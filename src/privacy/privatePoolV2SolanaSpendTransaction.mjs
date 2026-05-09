@@ -85,6 +85,24 @@ function normalizeAccountMeta(account, index) {
   };
 }
 
+function assertSpendProgramAccountLayout(accounts) {
+  if (accounts.length < 4) {
+    throw new Error(
+      "Vanta Private Pool v2 Solana spend transaction requires the fourth account to be the read-only operator authority signer.",
+    );
+  }
+  for (let index = 0; index < 3; index += 1) {
+    if (!accounts[index].isWritable) {
+      throw new Error(`Vanta Private Pool v2 Solana spend transaction requires accounts[${index}] to be writable.`);
+    }
+  }
+  if (!accounts[3].isSigner || accounts[3].isWritable) {
+    throw new Error(
+      "Vanta Private Pool v2 Solana spend transaction requires the fourth account to be the read-only operator authority signer.",
+    );
+  }
+}
+
 export function createVantaPrivatePoolV2ActualPrivateSpendInstruction(input = {}) {
   assertNoForbiddenPublicTerms(input);
   const programId = requirePublicKey(input.programId, "programId");
@@ -95,9 +113,11 @@ export function createVantaPrivatePoolV2ActualPrivateSpendInstruction(input = {}
   }
 
   const data = requireBase64Bytes(input.instructionDataBase64, "instructionDataBase64");
+  const accounts = input.accounts.map(normalizeAccountMeta);
+  assertSpendProgramAccountLayout(accounts);
   return new TransactionInstruction({
     data,
-    keys: input.accounts.map(normalizeAccountMeta),
+    keys: accounts,
     programId,
   });
 }

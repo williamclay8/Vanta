@@ -15,6 +15,7 @@ const programId = Keypair.generate().publicKey.toBase58();
 const poolState = Keypair.generate().publicKey.toBase58();
 const nullifierSet = Keypair.generate().publicKey.toBase58();
 const outputQueue = Keypair.generate().publicKey.toBase58();
+const operatorAuthority = Keypair.generate().publicKey.toBase58();
 
 const result = spawnSync(process.execPath, [scriptPath], {
   cwd: repoRoot,
@@ -30,6 +31,7 @@ const result = spawnSync(process.execPath, [scriptPath], {
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_RECENT_BLOCKHASH: "11111111111111111111111111111111",
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET: nullifierSet,
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE: outputQueue,
+    VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY: operatorAuthority,
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE: poolState,
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID: programId,
   },
@@ -44,6 +46,30 @@ assert.equal(result.stdout.includes("11111111111111111111111111111111"), false);
 assert.equal(result.stdout.includes("22222222222222222222222222222222"), false);
 assert.equal(result.stdout.includes("33333333333333333333333333333333"), false);
 assert.equal(result.stdout.includes("44444444444444444444444444444444"), false);
+
+const jsonResult = spawnSync(process.execPath, [scriptPath, "--json"], {
+  cwd: repoRoot,
+  encoding: "utf8",
+  env: {
+    ...process.env,
+    VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT_REF: "0x" + "22".repeat(32),
+    VANTA_ACTUAL_PRIVATE_NULLIFIER_REF: "0x" + "11".repeat(32),
+    VANTA_ACTUAL_PRIVATE_OUTPUT_COMMITMENT_REF: "0x" + "33".repeat(32),
+    VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH_REF: "0x" + "44".repeat(32),
+    VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET: relayerFeePayer,
+    VANTA_PRIVATE_POOL_V2_RELAYER_RPC_URL: "https://example.invalid",
+    VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY: operatorAuthority,
+    VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_RECENT_BLOCKHASH: "11111111111111111111111111111111",
+    VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET: nullifierSet,
+    VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE: outputQueue,
+    VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE: poolState,
+    VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID: programId,
+  },
+});
+assert.equal(jsonResult.status, 0, jsonResult.stderr || jsonResult.stdout);
+const json = JSON.parse(jsonResult.stdout);
+assert.equal(json.accountCount, 4);
+assert.equal(json.operatorAuthority, operatorAuthority);
 
 assert.equal(
   packageJson.scripts["private-pool-v2:solana-spend-transaction"],

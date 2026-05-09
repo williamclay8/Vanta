@@ -50,6 +50,7 @@ const scopes = [
       "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE_REF",
       "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET_REF",
       "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE_REF",
+      "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY_REF",
     ],
     forbiddenValues,
     rotationRequirements: sharedRotationRequirements,

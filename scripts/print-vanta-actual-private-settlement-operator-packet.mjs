@@ -47,12 +47,14 @@ const serviceEnv = [
   ["verifier", "VANTA_PRIVATE_POOL_V2_VERIFIER_URL_REF", "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN_REF"],
 ];
 const solanaSpendAccountRefs = {
+  authorityRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY_REF",
   nullifierSetRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET_REF",
   outputQueueRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE_REF",
   poolStateRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE_REF",
   programIdRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID_REF",
 };
 const solanaSpendRuntimeEnv = {
+  authority: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY",
   nullifierSet: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET",
   outputQueue: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE",
   poolState: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE",
@@ -100,6 +102,7 @@ function shellExports(refs) {
     `export ${solanaSpendRuntimeEnv.poolState}="<${solanaSpendAccountRefs.poolStateRef}>"`,
     `export ${solanaSpendRuntimeEnv.nullifierSet}="<${solanaSpendAccountRefs.nullifierSetRef}>"`,
     `export ${solanaSpendRuntimeEnv.outputQueue}="<${solanaSpendAccountRefs.outputQueueRef}>"`,
+    `export ${solanaSpendRuntimeEnv.authority}="<${solanaSpendAccountRefs.authorityRef}>"`,
     ...planRefExports,
     `export VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_JSON='<VALIDATED_PRIVATE_SETTLEMENT_PLAN_JSON>'`,
     `export VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN="<OPERATOR_BEARER_TOKEN_VALUE_FROM_SECRET_MANAGER>"`,

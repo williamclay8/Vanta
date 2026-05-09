@@ -22,7 +22,7 @@ const APPROVAL = approvalToken(CLUSTER);
 const APPROVAL_ENV_NAME = "VANTA_PRIVATE_POOL_V2_MAINNET_SMOKE_APPROVAL";
 const MAX_SOL_AT_RISK = Number.parseFloat(process.env.VANTA_PRIVATE_POOL_V2_SPEND_PROGRAM_SMOKE_MAX_SOL || "0");
 
-const POOL_STATE_LEN = 56;
+const POOL_STATE_LEN = 88;
 const NULLIFIER_SET_LEN = 16 + 32 * SLOT_COUNT;
 const OUTPUT_QUEUE_LEN = 16 + 96 * SLOT_COUNT;
 
@@ -140,6 +140,7 @@ console.log(JSON.stringify({
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE: poolState.publicKey.toBase58(),
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET: nullifierSet.publicKey.toBase58(),
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE: outputQueue.publicKey.toBase58(),
+    VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY: payer.publicKey.toBase58(),
   },
 }, null, 2));
 
@@ -166,6 +167,7 @@ function accountMetas() {
     { pubkey: poolState.publicKey, isSigner: false, isWritable: true },
     { pubkey: nullifierSet.publicKey, isSigner: false, isWritable: true },
     { pubkey: outputQueue.publicKey, isSigner: false, isWritable: true },
+    { pubkey: payer.publicKey, isSigner: true, isWritable: false },
   ];
 }
 

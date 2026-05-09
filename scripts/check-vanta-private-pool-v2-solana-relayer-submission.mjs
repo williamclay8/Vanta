@@ -72,12 +72,14 @@ const spendProgramId = Keypair.generate().publicKey.toBase58();
 const poolState = Keypair.generate().publicKey.toBase58();
 const nullifierSet = Keypair.generate().publicKey.toBase58();
 const outputQueue = Keypair.generate().publicKey.toBase58();
+const operatorAuthority = relayerKeypair.publicKey.toBase58();
 let submittedSpendTransaction = null;
 const builtSpendTransaction = buildVantaPrivatePoolV2ActualPrivateSpendTransaction({
   accounts: [
     { isSigner: false, isWritable: true, pubkey: poolState },
     { isSigner: false, isWritable: true, pubkey: nullifierSet },
     { isSigner: false, isWritable: true, pubkey: outputQueue },
+    { isSigner: true, isWritable: false, pubkey: operatorAuthority },
   ],
   instructionDataBase64: Buffer.from(
     JSON.stringify({

@@ -105,6 +105,21 @@ try {
     console.log("invalid-output-root fixture: expected failure observed");
   }
 
+  writeFixture("forged-input-membership");
+  console.log("forged-input-membership fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("forged-input-membership fixture unexpectedly succeeded");
+  } catch (error) {
+    if (error instanceof Error && error.message === "forged-input-membership fixture unexpectedly succeeded") {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("forged-input-membership fixture: expected failure observed");
+  }
+
   writeFixture("valid");
   restoredValidFixture = true;
   console.log("fixture restore: PASS");

@@ -12,6 +12,7 @@ This is intentionally minimal:
 - no proof verification
 
 It records the public evidence produced by an already-verified private spend lane: one nullifier, two output commitments, and a public input hash.
+The program now fail-closes writes behind the operator authority captured during init; it still does not verify proofs.
 
 ## Instructions
 
@@ -24,6 +25,7 @@ Initializes the headers of three already-created, program-owned, writable accoun
 1. `pool_state`
 2. `nullifier_set`
 3. `output_queue`
+4. `operator_authority` signer, read-only
 
 The init instruction is exactly one byte:
 
@@ -33,7 +35,7 @@ The init instruction is exactly one byte:
 
 Minimum account data sizes:
 
-- `pool_state`: 56 bytes
+- `pool_state`: 88 bytes
 - `nullifier_set`: `16 + 32 * slot_count` bytes
 - `output_queue`: `16 + 96 * slot_count` bytes
 
@@ -44,6 +46,7 @@ Spend accounts:
 1. `pool_state` writable
 2. `nullifier_set` writable
 3. `output_queue` writable
+4. `operator_authority` signer, read-only; must match the pubkey stored during init
 
 Spend instruction data is exactly 129 bytes:
 
@@ -54,6 +57,7 @@ Spend instruction data is exactly 129 bytes:
 Behavior:
 
 - verifies all three accounts are writable and owned by this program
+- verifies the stored operator authority signed the spend
 - verifies account headers were initialized
 - scans every fixed nullifier slot and rejects duplicate nullifiers
 - appends the nullifier to the nullifier set
@@ -82,3 +86,4 @@ cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml
 - `3`: output queue full
 - `4`: invalid or uninitialized account header
 - `5`: pool, nullifier, and output counts disagree
+- `6`: signer is not the initialized operator authority

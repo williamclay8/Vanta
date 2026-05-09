@@ -1,3 +1,8 @@
+import { xchacha20poly1305 } from "@noble/ciphers/chacha.js";
+import { x25519 } from "@noble/curves/ed25519.js";
+import { hkdf } from "@noble/hashes/hkdf";
+import { sha256 } from "@noble/hashes/sha256";
+import { bytesToHex, concatBytes, hexToBytes, utf8ToBytes } from "@noble/hashes/utils";
 import type {
   CanonicalBytes32,
   CanonicalEncryptedPayload,
@@ -8,7 +13,13 @@ const PHASE1_OWNER_RECOVERY_PAYLOAD_ENCODING_V1 =
   "vanta.canonical-note.payload.encoding.v1" as const;
 const PHASE1_OWNER_RECOVERY_PAYLOAD_VERSION_V1 = 1 as const;
 const PHASE1_OWNER_RECOVERY_PAYLOAD_SCHEME_V1 =
-  "owner-recovery-xor-stream-sha256-v1" as const;
+  "owner-recovery-x25519-xchacha20poly1305-v2" as const;
+const OWNER_RECOVERY_STATIC_KEY_DOMAIN =
+  "vanta:canonical-note:owner-recovery:static-x25519:v2";
+const OWNER_RECOVERY_AEAD_DOMAIN =
+  "vanta:canonical-note:owner-recovery:x25519-xchacha20poly1305:v2";
+const XCHACHA_NONCE_BYTES = 24;
+const ENVELOPE_BYTES32_BYTES = 32;
 
 export type OwnerRecoveryEncryptionInput = {
   ownerContext: CanonicalNoteOwnerContext;
@@ -40,25 +51,33 @@ export const phase1OwnerRecoveryPayloadCryptoAdapter: OwnerRecoveryCryptoAdapter
       );
     }
 
-    const keyMaterial = await deriveOwnerRecoveryKeyMaterial(
-      input.ownerContext,
-      input.payloadNonce,
-    );
-    const ciphertextBytes = await xorWithDerivedKeystream(input.plaintext, keyMaterial);
-    const authTag = await deriveOwnerRecoveryAuthTag(
-      input.ownerContext,
-      input.payloadNonce,
-      ciphertextBytes,
-    );
+    const recipientStaticSecretKey = deriveOwnerRecoveryStaticSecretKey(input.ownerContext);
+    const recipientStaticPublicKey = x25519.getPublicKey(recipientStaticSecretKey);
+    const ephemeralSecretKey = x25519.utils.randomSecretKey();
+    const ephemeralPublicKey = x25519.getPublicKey(ephemeralSecretKey);
+    const sharedSecret = x25519.getSharedSecret(ephemeralSecretKey, recipientStaticPublicKey);
+    const nonce = new Uint8Array(XCHACHA_NONCE_BYTES);
+    crypto.getRandomValues(nonce);
+    const key = deriveOwnerRecoveryAeadKey({
+      ownerContext: input.ownerContext,
+      ephemeralPublicKey,
+      recipientStaticPublicKey,
+      sharedSecret,
+    });
+    const ciphertextBytes = xchacha20poly1305(
+      key,
+      nonce,
+      encodeOwnerRecoveryAssociatedData(input.ownerContext),
+    ).encrypt(input.plaintext);
 
     return {
       scheme: PHASE1_OWNER_RECOVERY_PAYLOAD_SCHEME_V1,
       encoding: PHASE1_OWNER_RECOVERY_PAYLOAD_ENCODING_V1,
       payloadVersion: PHASE1_OWNER_RECOVERY_PAYLOAD_VERSION_V1,
       recipientPublicKey: input.recipientPublicKey,
-      payloadNonce: input.payloadNonce,
+      payloadNonce: encodeNonceEnvelope(nonce),
       ciphertext: encodeBase64(ciphertextBytes),
-      authTag,
+      authTag: `0x${bytesToHex(ephemeralPublicKey)}`,
     };
   },
 
@@ -71,25 +90,34 @@ export const phase1OwnerRecoveryPayloadCryptoAdapter: OwnerRecoveryCryptoAdapter
       );
     }
 
+    const nonce = decodeNonceEnvelope(input.payload.payloadNonce);
     const ciphertextBytes = decodeBase64(input.payload.ciphertext, "ciphertext");
-    const expectedAuthTag = await deriveOwnerRecoveryAuthTag(
-      input.ownerContext,
-      input.payload.payloadNonce,
-      ciphertextBytes,
+    const ephemeralPublicKey = decodeFixedHex(
+      input.payload.authTag,
+      "owner recovery ephemeral public key",
+      32,
     );
+    const recipientStaticSecretKey = deriveOwnerRecoveryStaticSecretKey(input.ownerContext);
+    const recipientStaticPublicKey = x25519.getPublicKey(recipientStaticSecretKey);
+    const sharedSecret = x25519.getSharedSecret(recipientStaticSecretKey, ephemeralPublicKey);
+    const key = deriveOwnerRecoveryAeadKey({
+      ownerContext: input.ownerContext,
+      ephemeralPublicKey,
+      recipientStaticPublicKey,
+      sharedSecret,
+    });
 
-    if (!constantTimeEqualHex(expectedAuthTag, input.payload.authTag)) {
+    try {
+      return xchacha20poly1305(
+        key,
+        nonce,
+        encodeOwnerRecoveryAssociatedData(input.ownerContext),
+      ).decrypt(ciphertextBytes);
+    } catch {
       throwValidationError(
         "The canonical encrypted payload failed owner recovery authentication.",
       );
     }
-
-    const keyMaterial = await deriveOwnerRecoveryKeyMaterial(
-      input.ownerContext,
-      input.payload.payloadNonce,
-    );
-
-    return xorWithDerivedKeystream(ciphertextBytes, keyMaterial);
   },
 };
 
@@ -128,75 +156,100 @@ function normalizeOwnerContext(value: CanonicalNoteOwnerContext) {
   }
 }
 
-async function deriveOwnerRecoveryKeyMaterial(
+function deriveOwnerRecoveryStaticSecretKey(
   ownerContext: CanonicalNoteOwnerContext,
-  payloadNonce: CanonicalBytes32,
-): Promise<Uint8Array> {
-  const material = concatBytes(
-    encodeUtf8("vanta:canonical-note:owner-recovery:key:v1"),
-    encodeLengthPrefixedUtf8(ownerContext.ownerPublicKey),
-    encodeLengthPrefixedUtf8(ownerContext.recoverySecret),
-    encodeOptionalLengthPrefixedUtf8(ownerContext.derivationContext),
-    encodeFixedHex32(payloadNonce, "payloadNonce"),
+): Uint8Array {
+  return hkdf(
+    sha256,
+    decodeRecoverySecret(ownerContext.recoverySecret),
+    utf8ToBytes(OWNER_RECOVERY_STATIC_KEY_DOMAIN),
+    concatBytes(
+      encodeLengthPrefixedUtf8(ownerContext.ownerPublicKey),
+      encodeOptionalLengthPrefixedUtf8(ownerContext.derivationContext),
+    ),
+    32,
   );
-
-  return deriveSha256Bytes(material);
 }
 
-async function deriveOwnerRecoveryAuthTag(
-  ownerContext: CanonicalNoteOwnerContext,
-  payloadNonce: CanonicalBytes32,
-  ciphertext: Uint8Array,
-): Promise<string> {
-  const material = concatBytes(
-    encodeUtf8("vanta:canonical-note:owner-recovery:auth:v1"),
-    encodeLengthPrefixedUtf8(ownerContext.ownerPublicKey),
-    encodeLengthPrefixedUtf8(ownerContext.recoverySecret),
-    encodeOptionalLengthPrefixedUtf8(ownerContext.derivationContext),
-    encodeFixedHex32(payloadNonce, "payloadNonce"),
-    encodeLengthPrefixedBytes(ciphertext),
+function deriveOwnerRecoveryAeadKey({
+  ownerContext,
+  ephemeralPublicKey,
+  recipientStaticPublicKey,
+  sharedSecret,
+}: {
+  ownerContext: CanonicalNoteOwnerContext;
+  ephemeralPublicKey: Uint8Array;
+  recipientStaticPublicKey: Uint8Array;
+  sharedSecret: Uint8Array;
+}): Uint8Array {
+  return hkdf(
+    sha256,
+    sharedSecret,
+    utf8ToBytes(OWNER_RECOVERY_AEAD_DOMAIN),
+    concatBytes(
+      ephemeralPublicKey,
+      recipientStaticPublicKey,
+      encodeOwnerRecoveryAssociatedData(ownerContext),
+    ),
+    32,
   );
-
-  return deriveSha256Hex(material);
 }
 
-async function xorWithDerivedKeystream(
-  input: Uint8Array,
-  keyMaterial: Uint8Array,
-): Promise<Uint8Array> {
-  const output = new Uint8Array(input.length);
-  let offset = 0;
-  let counter = 0;
+function encodeOwnerRecoveryAssociatedData(
+  ownerContext: CanonicalNoteOwnerContext,
+): Uint8Array {
+  return concatBytes(
+    encodeLengthPrefixedUtf8(PHASE1_OWNER_RECOVERY_PAYLOAD_ENCODING_V1),
+    encodeU8(PHASE1_OWNER_RECOVERY_PAYLOAD_VERSION_V1),
+    encodeLengthPrefixedUtf8(PHASE1_OWNER_RECOVERY_PAYLOAD_SCHEME_V1),
+    encodeLengthPrefixedUtf8(ownerContext.ownerPublicKey),
+    encodeOptionalLengthPrefixedUtf8(ownerContext.derivationContext),
+  );
+}
 
-  while (offset < input.length) {
-    const blockSeed = concatBytes(keyMaterial, encodeU32(counter));
-    const block = await deriveSha256Bytes(blockSeed);
+function decodeRecoverySecret(value: string): Uint8Array {
+  const normalized = normalizeNonEmptyString(value, "recoverySecret");
 
-    for (let index = 0; index < block.length && offset < input.length; index += 1) {
-      output[offset] = input[offset] ^ block[index];
-      offset += 1;
-    }
-
-    counter += 1;
+  if (/^(0x)?[0-9a-fA-F]{64}$/.test(normalized)) {
+    return hexToBytes(normalized.replace(/^0x/, "").toLowerCase());
   }
 
-  return output;
+  return utf8ToBytes(normalized);
 }
 
-async function deriveSha256Hex(bytes: Uint8Array): Promise<string> {
-  const digest = await deriveSha256Bytes(bytes);
-  return `0x${encodeHex(digest)}`;
+function encodeNonceEnvelope(nonce: Uint8Array): CanonicalBytes32 {
+  if (nonce.byteLength !== XCHACHA_NONCE_BYTES) {
+    throwValidationError("Owner recovery payload nonce must be 24 bytes.");
+  }
+
+  const envelope = new Uint8Array(ENVELOPE_BYTES32_BYTES);
+  envelope.set(nonce, 0);
+  return `0x${bytesToHex(envelope)}`;
 }
 
-async function deriveSha256Bytes(bytes: Uint8Array): Promise<Uint8Array> {
-  const copy = new Uint8Array(bytes.byteLength);
-  copy.set(bytes);
-  const digest = await crypto.subtle.digest("SHA-256", copy.buffer);
-  return new Uint8Array(digest);
+function decodeNonceEnvelope(value: string): Uint8Array {
+  const envelope = decodeFixedHex(value, "payloadNonce", ENVELOPE_BYTES32_BYTES);
+  const reserved = envelope.slice(XCHACHA_NONCE_BYTES);
+
+  for (const byte of reserved) {
+    if (byte !== 0) {
+      throwValidationError("Owner recovery payload nonce reserved bytes must be zero.");
+    }
+  }
+
+  return envelope.slice(0, XCHACHA_NONCE_BYTES);
 }
 
 function encodeUtf8(value: string): Uint8Array {
   return new TextEncoder().encode(value);
+}
+
+function encodeU8(value: number): Uint8Array {
+  if (!Number.isInteger(value) || value < 0 || value > 0xff) {
+    throwValidationError(`Value ${String(value)} cannot be encoded as u8.`);
+  }
+
+  return Uint8Array.of(value);
 }
 
 function encodeU32(value: number): Uint8Array {
@@ -223,24 +276,16 @@ function encodeOptionalLengthPrefixedUtf8(value: string | undefined): Uint8Array
   return concatBytes(Uint8Array.of(1), encodeLengthPrefixedUtf8(value));
 }
 
-function encodeLengthPrefixedBytes(bytes: Uint8Array): Uint8Array {
-  return concatBytes(encodeU32(bytes.length), bytes);
-}
-
-function encodeFixedHex32(value: string, fieldName: string): Uint8Array {
-  return decodeFixedHex(value, fieldName, 32);
-}
-
 function decodeFixedHex(value: string, fieldName: string, expectedByteLength: number): Uint8Array {
   const normalized = normalizeBytes32(value, fieldName).replace(/^0x/, "");
-  const bytes = new Uint8Array(expectedByteLength);
 
-  for (let index = 0; index < expectedByteLength; index += 1) {
-    const start = index * 2;
-    bytes[index] = Number.parseInt(normalized.slice(start, start + 2), 16);
+  if (normalized.length !== expectedByteLength * 2) {
+    throwValidationError(
+      `${fieldName} must be a ${String(expectedByteLength)}-byte hex string.`,
+    );
   }
 
-  return bytes;
+  return hexToBytes(normalized);
 }
 
 function normalizeBytes32(value: unknown, fieldName: string): CanonicalBytes32 {
@@ -261,23 +306,6 @@ function normalizeNonEmptyString(value: unknown, fieldName: string): string {
   }
 
   return value.trim();
-}
-
-function concatBytes(...chunks: Uint8Array[]): Uint8Array {
-  const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-  const combined = new Uint8Array(totalLength);
-  let offset = 0;
-
-  for (const chunk of chunks) {
-    combined.set(chunk, offset);
-    offset += chunk.length;
-  }
-
-  return combined;
-}
-
-function encodeHex(bytes: Uint8Array): string {
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 function encodeBase64(bytes: Uint8Array): string {
@@ -311,18 +339,6 @@ function decodeBase64(value: unknown, fieldName: string): Uint8Array {
 
 function throwValidationError(message: string): never {
   throw new Error(message);
-}
-
-function constantTimeEqualHex(left: string, right: string): boolean {
-  const leftBytes = decodeFixedHex(left, "left", 32);
-  const rightBytes = decodeFixedHex(right, "right", 32);
-  let difference = 0;
-
-  for (let index = 0; index < leftBytes.length; index += 1) {
-    difference |= leftBytes[index] ^ rightBytes[index];
-  }
-
-  return difference === 0;
 }
 
 function getErrorMessage(error: unknown): string {

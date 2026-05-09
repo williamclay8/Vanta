@@ -102,6 +102,29 @@ try {
     console.log("invalid-root fixture: expected failure observed");
   }
 
+  writeFixture("forged-append-path");
+  console.log("forged-append-path fixture write: PASS");
+
+  try {
+    clearCircuitTarget();
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("forged-append-path fixture unexpectedly succeeded");
+  } catch (error) {
+    if (error instanceof Error && error.message === "forged-append-path fixture unexpectedly succeeded") {
+      throw error;
+    }
+
+    const stdout = String(error.stdout ?? "").trim();
+    const stderr = String(error.stderr ?? "").trim();
+    if (stdout) {
+      console.log(stdout);
+    }
+    if (stderr) {
+      console.log(stderr);
+    }
+    console.log("forged-append-path fixture: expected failure observed");
+  }
+
   writeFixture("valid");
   restoredValidFixture = true;
   console.log("fixture restore: PASS");

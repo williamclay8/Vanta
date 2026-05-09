@@ -18,12 +18,13 @@ const sourceFiles = [
 
 if (
   fixtureMode !== "valid" &&
+  fixtureMode !== "forged-input-membership" &&
   fixtureMode !== "invalid-binding" &&
   fixtureMode !== "invalid-nullifier" &&
   fixtureMode !== "invalid-output-root"
 ) {
   console.error(
-    'Expected fixture mode "valid", "invalid-binding", "invalid-nullifier", or "invalid-output-root".',
+    'Expected fixture mode "valid", "forged-input-membership", "invalid-binding", "invalid-nullifier", or "invalid-output-root".',
   );
   process.exit(1);
 }

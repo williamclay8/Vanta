@@ -29,6 +29,7 @@ const requiredRelayerEnv = [
   "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE",
   "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET",
   "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE",
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY",
 ];
 const requiredOperatorEnv = ["VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION"];
 const requiredChecklistIds = [
@@ -45,6 +46,7 @@ const requiredChecklistIds = [
 const requiredSecretRefs = [
   "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET_REF",
   "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_PAYER_KEYPAIR_JSON_REF",
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY_REF",
 ];
 const refPatterns = {
   configurationReviewRef: /^review:relayer-live-config-[A-Za-z0-9._:-]+$/,
@@ -64,6 +66,9 @@ const mainnetSpendProgramConfig = {
   poolState: "5qjyK5B5ZMAgLmXxrpAGqFHvEHTCP4MUwRmzvA4MPEuQ",
   nullifierSet: "x5xWJZNN8rjZPdAYgG8EJuTZYYvYDQyhVXEgKB6i23k",
   outputQueue: "CsnYLMnnMso1KT6PE7csi51ZtFHSPQr1xTePA8rKUzrZ",
+  authority: null,
+  authorityRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY_REF",
+  compatibilityStatus: "blocked-existing-reviewed-program-pre-authority-gate",
   createAccountsRef:
     "solana-tx:368JyAHH4aAuvFiSuhGhoejuwPvyTDwMtHdrzLgRhqVnbQNrbaCjCHxjsR8Ty7PcoR4kb9xjR7Q674NKZ9BABdGo",
   initRef:
@@ -139,6 +144,7 @@ assert.deepEqual(evidence.observedExternalBlockers?.[0]?.missingSecretNames, [
   "VANTA_PRIVATE_POOL_V2_RELAYER_RPC_URL",
   "VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMIT_ACK",
   "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_PAYER_KEYPAIR_JSON",
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY",
   "VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION",
 ]);
 if (evidence.observedExternalBlockers?.[0]?.status === "resolved") {
@@ -230,6 +236,14 @@ for (const [refKey, blockers] of Object.entries(blockerByRef)) {
       assert.ok(evidence.productionBlockers.includes(blocker), `Missing production relayer blocker: ${blocker}`);
     }
   }
+}
+if (evidence.spendProgramConfig.compatibilityStatus === "blocked-existing-reviewed-program-pre-authority-gate") {
+  assert.ok(
+    evidence.productionBlockers.includes(
+      "Reviewed mainnet actual-private spend program predates the operator authority gate and must be redeployed/reinitialized before this ABI is production-compatible.",
+    ),
+    "Authority-gated ABI compatibility blocker must remain until the reviewed mainnet spend program is redeployed/reinitialized.",
+  );
 }
 
 const serialized = JSON.stringify(evidence);

@@ -66,12 +66,14 @@ for (const service of packet.requiredEnvironment.serviceRefs) {
   assert.match(service.tokenRefValue, /_AUTH_TOKEN_REF$/);
 }
 assert.deepEqual(packet.requiredEnvironment.publicSolanaSpendAccountRefs, {
+  authorityRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY_REF",
   nullifierSetRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET_REF",
   outputQueueRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE_REF",
   poolStateRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE_REF",
   programIdRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID_REF",
 });
 assert.deepEqual(packet.requiredEnvironment.publicSolanaSpendRuntimeEnv, {
+  authority: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY",
   nullifierSet: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET",
   outputQueue: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE",
   poolState: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE",
@@ -111,6 +113,7 @@ assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_PRIVATE
 assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE")));
 assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET")));
 assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE")));
+assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY")));
 
 const serialized = JSON.stringify(packet);
 for (const forbidden of [

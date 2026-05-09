@@ -36,6 +36,7 @@ const RELAYER_TRANSACTION_INPUT_ENVS = [
   "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE",
   "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET",
   "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE",
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY",
   "VANTA_ACTUAL_PRIVATE_NULLIFIER_REF",
   "VANTA_ACTUAL_PRIVATE_OUTPUT_COMMITMENT_REF",
   "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT_REF",
@@ -94,6 +95,7 @@ const packet = {
     poolState: spendAccounts.poolState,
     nullifierSet: spendAccounts.nullifierSet,
     outputQueue: spendAccounts.outputQueue,
+    authority: spendAccounts.authority,
     source: "ops/mainnet/actual-private-mainnet-settlement.evidence.json",
   },
   envStatus: {
@@ -136,6 +138,7 @@ const packet = {
         `export VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE="${spendAccounts.poolState ?? ""}"`,
         `export VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET="${spendAccounts.nullifierSet ?? ""}"`,
         `export VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE="${spendAccounts.outputQueue ?? ""}"`,
+        `export VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY="${spendAccounts.authority ?? ""}"`,
       ],
     },
     {

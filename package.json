@@ -90,6 +90,8 @@
     "mainnet:actual-private-shared-cohort-deposit-review-check": "node scripts/check-vanta-actual-private-shared-cohort-deposit-review.mjs",
     "mainnet:actual-private-shared-cohort-deposit-note": "node scripts/print-vanta-actual-private-shared-cohort-deposit-note.mjs",
     "mainnet:actual-private-shared-cohort-deposit-note-check": "node scripts/check-vanta-actual-private-shared-cohort-deposit-note.mjs",
+    "zk:canonical-note-membership-check": "node scripts/check-vanta-canonical-note-membership-circuit.mjs",
+    "zk:owner-recovery-payload-crypto-check": "node scripts/check-vanta-owner-recovery-payload-crypto.mjs",
     "mainnet:shared-cohort-next-action": "node scripts/print-vanta-shared-cohort-settlement-next-action.mjs",
     "mainnet:shared-cohort-next-action-check": "node scripts/check-vanta-shared-cohort-settlement-next-action.mjs",
     "mainnet:actual-private-hard-blockers-check": "node scripts/check-vanta-actual-private-hard-blockers-packet.mjs",

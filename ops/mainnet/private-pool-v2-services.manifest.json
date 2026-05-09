@@ -155,7 +155,8 @@
           "programIdRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID_REF",
           "poolStateRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE_REF",
           "nullifierSetRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET_REF",
-          "outputQueueRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE_REF"
+          "outputQueueRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE_REF",
+          "authorityRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY_REF"
         },
         "lastVerifiedAt": "2026-04-30T03:07:57Z",
         "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-relayer.onrender.com/health",
@@ -177,7 +178,8 @@
         { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET", "required": true },
-        { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE", "required": true }
+        { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY", "required": true }
       ],
       "healthChecks": ["/health", "/v1/claims/quote"],
       "persistence": {

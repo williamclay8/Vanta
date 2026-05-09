@@ -17,9 +17,10 @@ const OUTPUT_MAGIC: &[u8; 8] = b"VNTA2OUT";
 
 const HEADER_LEN: usize = 16;
 const COUNT_OFFSET: usize = 12;
-const POOL_STATE_LEN: usize = 56;
+const POOL_STATE_LEN: usize = 88;
 const POOL_SPEND_COUNT_OFFSET: usize = 16;
-const POOL_LAST_PUBLIC_INPUT_HASH_OFFSET: usize = 24;
+const POOL_AUTHORITY_OFFSET: usize = 24;
+const POOL_LAST_PUBLIC_INPUT_HASH_OFFSET: usize = 56;
 
 const HASH_LEN: usize = 32;
 const OUTPUT_RECORD_LEN: usize = HASH_LEN * 3;
@@ -29,6 +30,7 @@ const ERR_NULLIFIER_SET_FULL: u32 = 2;
 const ERR_OUTPUT_QUEUE_FULL: u32 = 3;
 const ERR_INVALID_HEADER: u32 = 4;
 const ERR_STATE_COUNT_MISMATCH: u32 = 5;
+const ERR_UNAUTHORIZED_OPERATOR: u32 = 6;
 
 #[derive(Clone)]
 struct OutputRecord {
@@ -42,6 +44,8 @@ struct VantaPrivatePoolV2Spend {
     ctx: TestContext,
     program_id: Pubkey,
     payer: Rc<Keypair>,
+    operator_authority: Rc<Keypair>,
+    wrong_operator_authority: Rc<Keypair>,
     pool_state: Pubkey,
     nullifier_set: Pubkey,
     output_queue: Pubkey,
@@ -77,6 +81,10 @@ impl VantaPrivatePoolV2Spend {
             .owner(system_program::ID)
             .create()
             .unwrap();
+        let operator_authority = Rc::new(Keypair::new());
+        let wrong_operator_authority = Rc::new(Keypair::new());
+        create_system_account(&mut ctx, operator_authority.pubkey(), 0);
+        create_system_account(&mut ctx, wrong_operator_authority.pubkey(), 0);
 
         let pool_state = Pubkey::new_unique();
         let nullifier_set = Pubkey::new_unique();
@@ -106,6 +114,8 @@ impl VantaPrivatePoolV2Spend {
             ctx,
             program_id,
             payer,
+            operator_authority,
+            wrong_operator_authority,
             pool_state,
             nullifier_set,
             output_queue,
@@ -141,7 +151,7 @@ impl VantaPrivatePoolV2Spend {
     pub fn action_spend(&mut self, seed: u64) {
         let payload = spend_payload(seed);
         let before = self.snapshot_accounts();
-        let outcome = self.call(payload.data, self.program_accounts());
+        let outcome = self.call_authorized(payload.data, self.program_accounts());
         self.check_spend_outcome(seed, outcome, before);
     }
 
@@ -162,13 +172,17 @@ impl VantaPrivatePoolV2Spend {
             public_input_hash: make_hash(7, 23),
         };
         let before = self.snapshot_accounts();
-        let outcome = self.call(payload.data, self.program_accounts());
+        let outcome = self.call_authorized(payload.data, self.program_accounts());
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
         fuzz_assert_eq!(
             outcome.as_ref().and_then(TxOutcome::error_code),
             Some(ERR_DUPLICATE_NULLIFIER)
         );
-        fuzz_assert_eq!(before, self.snapshot_accounts(), "duplicate nullifier mutated state");
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_accounts(),
+            "duplicate nullifier mutated state"
+        );
     }
 
     pub fn action_bad_payload(&mut self, selector: u8) {
@@ -184,23 +198,64 @@ impl VantaPrivatePoolV2Spend {
             }
         };
         let before = self.snapshot_accounts();
-        let outcome = self.call(data, self.program_accounts());
+        let outcome = self.call_authorized(data, self.program_accounts());
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
-        fuzz_assert_eq!(before, self.snapshot_accounts(), "bad payload mutated state");
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_accounts(),
+            "bad payload mutated state"
+        );
+    }
+
+    pub fn action_unsigned_spend(&mut self, seed: u64) {
+        let before = self.snapshot_accounts();
+        let outcome =
+            self.call_unsigned(spend_payload(seed).data, self.unsigned_authority_accounts());
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_accounts(),
+            "unsigned-authority call mutated state"
+        );
+    }
+
+    pub fn action_wrong_authority_spend(&mut self, seed: u64) {
+        let before = self.snapshot_accounts();
+        let outcome =
+            self.call_wrong_authority(spend_payload(seed).data, self.wrong_authority_accounts());
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+        fuzz_assert_eq!(
+            outcome.as_ref().and_then(TxOutcome::error_code),
+            Some(ERR_UNAUTHORIZED_OPERATOR)
+        );
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_accounts(),
+            "wrong-authority call mutated state"
+        );
     }
 
     pub fn action_non_writable_spend(&mut self, seed: u64) {
         let before = self.snapshot_accounts();
-        let outcome = self.call(spend_payload(seed).data, self.readonly_program_accounts());
+        let outcome =
+            self.call_authorized(spend_payload(seed).data, self.readonly_program_accounts());
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
-        fuzz_assert_eq!(before, self.snapshot_accounts(), "non-writable call mutated state");
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_accounts(),
+            "non-writable call mutated state"
+        );
     }
 
     pub fn action_wrong_owner_spend(&mut self, seed: u64) {
         let before = self.snapshot_accounts();
-        let outcome = self.call(spend_payload(seed).data, self.wrong_owner_accounts());
+        let outcome = self.call_authorized(spend_payload(seed).data, self.wrong_owner_accounts());
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
-        fuzz_assert_eq!(before, self.snapshot_accounts(), "wrong-owner call mutated state");
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_accounts(),
+            "wrong-owner call mutated state"
+        );
     }
 
     pub fn action_corrupt_header(&mut self, selector: u8) {
@@ -251,6 +306,10 @@ fn invariant_test(fixture: &mut VantaPrivatePoolV2Spend) {
 
     fuzz_assert_eq!(&pool[..8], POOL_MAGIC);
     fuzz_assert_eq!(pool[8], VERSION);
+    fuzz_assert_eq!(
+        &pool[POOL_AUTHORITY_OFFSET..POOL_AUTHORITY_OFFSET + HASH_LEN],
+        &fixture.operator_authority.pubkey().to_bytes()
+    );
     fuzz_assert_eq!(&nullifiers[..8], NULLIFIER_MAGIC);
     fuzz_assert_eq!(nullifiers[8], VERSION);
     fuzz_assert_eq!(&outputs[..8], OUTPUT_MAGIC);
@@ -260,12 +319,17 @@ fn invariant_test(fixture: &mut VantaPrivatePoolV2Spend) {
         read_u64(&pool, POOL_SPEND_COUNT_OFFSET) as usize,
         fixture.expected_count
     );
-    fuzz_assert_eq!(read_u32(&nullifiers, COUNT_OFFSET) as usize, fixture.expected_count);
-    fuzz_assert_eq!(read_u32(&outputs, COUNT_OFFSET) as usize, fixture.expected_count);
+    fuzz_assert_eq!(
+        read_u32(&nullifiers, COUNT_OFFSET) as usize,
+        fixture.expected_count
+    );
+    fuzz_assert_eq!(
+        read_u32(&outputs, COUNT_OFFSET) as usize,
+        fixture.expected_count
+    );
 
     fuzz_assert_eq!(
-        &pool[POOL_LAST_PUBLIC_INPUT_HASH_OFFSET
-            ..POOL_LAST_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN],
+        &pool[POOL_LAST_PUBLIC_INPUT_HASH_OFFSET..POOL_LAST_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN],
         &fixture.latest_public_input_hash
     );
 
@@ -311,7 +375,7 @@ impl VantaPrivatePoolV2Spend {
 
     fn send_valid_init(&mut self) {
         let before = self.snapshot_accounts();
-        let outcome = self.call(vec![TAG_INIT], self.program_accounts());
+        let outcome = self.call_authorized(vec![TAG_INIT], self.program_accounts());
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_success));
         if outcome.is_some_and(|o| o.is_success()) {
             self.initialized = true;
@@ -321,16 +385,15 @@ impl VantaPrivatePoolV2Spend {
             self.output_records.clear();
             self.latest_public_input_hash = [0; HASH_LEN];
         } else {
-            fuzz_assert_eq!(before, self.snapshot_accounts(), "failed init mutated state");
+            fuzz_assert_eq!(
+                before,
+                self.snapshot_accounts(),
+                "failed init mutated state"
+            );
         }
     }
 
-    fn check_spend_outcome(
-        &mut self,
-        seed: u64,
-        outcome: Option<TxOutcome>,
-        before: Vec<Vec<u8>>,
-    ) {
+    fn check_spend_outcome(&mut self, seed: u64, outcome: Option<TxOutcome>, before: Vec<Vec<u8>>) {
         let payload = spend_payload(seed);
         let expected_error = self.expected_spend_error(&payload.nullifier);
 
@@ -351,7 +414,11 @@ impl VantaPrivatePoolV2Spend {
             Some(code) => {
                 fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
                 fuzz_assert_eq!(outcome.as_ref().and_then(TxOutcome::error_code), Some(code));
-                fuzz_assert_eq!(before, self.snapshot_accounts(), "failed spend mutated state");
+                fuzz_assert_eq!(
+                    before,
+                    self.snapshot_accounts(),
+                    "failed spend mutated state"
+                );
             }
         }
     }
@@ -369,13 +436,31 @@ impl VantaPrivatePoolV2Spend {
         if self.expected_count >= self.output_capacity {
             return Some(ERR_OUTPUT_QUEUE_FULL);
         }
-        if self.accepted_nullifiers.iter().any(|seen| seen == nullifier) {
+        if self
+            .accepted_nullifiers
+            .iter()
+            .any(|seen| seen == nullifier)
+        {
             return Some(ERR_DUPLICATE_NULLIFIER);
         }
         None
     }
 
-    fn call(&mut self, data: Vec<u8>, accounts: Vec<AccountMeta>) -> Option<TxOutcome> {
+    fn call_authorized(&mut self, data: Vec<u8>, accounts: Vec<AccountMeta>) -> Option<TxOutcome> {
+        let operator_authority = Rc::clone(&self.operator_authority);
+        self.call_with_signer(data, accounts, &operator_authority)
+    }
+
+    fn call_wrong_authority(
+        &mut self,
+        data: Vec<u8>,
+        accounts: Vec<AccountMeta>,
+    ) -> Option<TxOutcome> {
+        let wrong_operator_authority = Rc::clone(&self.wrong_operator_authority);
+        self.call_with_signer(data, accounts, &wrong_operator_authority)
+    }
+
+    fn call_unsigned(&mut self, data: Vec<u8>, accounts: Vec<AccountMeta>) -> Option<TxOutcome> {
         let instruction = Instruction {
             program_id: self.program_id,
             accounts,
@@ -388,11 +473,31 @@ impl VantaPrivatePoolV2Spend {
             .ok()
     }
 
+    fn call_with_signer(
+        &mut self,
+        data: Vec<u8>,
+        accounts: Vec<AccountMeta>,
+        signer: &Keypair,
+    ) -> Option<TxOutcome> {
+        let instruction = Instruction {
+            program_id: self.program_id,
+            accounts,
+            data,
+        };
+        self.ctx
+            .raw_call(instruction)
+            .fee_payer(&self.payer)
+            .signers(&[signer])
+            .send()
+            .ok()
+    }
+
     fn program_accounts(&self) -> Vec<AccountMeta> {
         vec![
             AccountMeta::new(self.pool_state, false),
             AccountMeta::new(self.nullifier_set, false),
             AccountMeta::new(self.output_queue, false),
+            AccountMeta::new_readonly(self.operator_authority.pubkey(), true),
         ]
     }
 
@@ -401,6 +506,25 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new_readonly(self.pool_state, false),
             AccountMeta::new_readonly(self.nullifier_set, false),
             AccountMeta::new_readonly(self.output_queue, false),
+            AccountMeta::new_readonly(self.operator_authority.pubkey(), true),
+        ]
+    }
+
+    fn unsigned_authority_accounts(&self) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new(self.pool_state, false),
+            AccountMeta::new(self.nullifier_set, false),
+            AccountMeta::new(self.output_queue, false),
+            AccountMeta::new_readonly(self.operator_authority.pubkey(), false),
+        ]
+    }
+
+    fn wrong_authority_accounts(&self) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new(self.pool_state, false),
+            AccountMeta::new(self.nullifier_set, false),
+            AccountMeta::new(self.output_queue, false),
+            AccountMeta::new_readonly(self.wrong_operator_authority.pubkey(), true),
         ]
     }
 
@@ -409,6 +533,7 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new(self.wrong_pool_state, false),
             AccountMeta::new(self.wrong_nullifier_set, false),
             AccountMeta::new(self.wrong_output_queue, false),
+            AccountMeta::new_readonly(self.operator_authority.pubkey(), true),
         ]
     }
 

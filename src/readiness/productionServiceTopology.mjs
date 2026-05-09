@@ -36,6 +36,7 @@ const services = [
       "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE",
       "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET",
       "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE",
+      "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY",
     ],
     requiredStorage: ["claim_quotes", "claim_submissions", "relayer_idempotency_keys"],
     health: ["/health", "/v1/claims/quote"],

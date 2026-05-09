@@ -1,4 +1,4 @@
-import { poseidon2, poseidon3, poseidon4, poseidon11 } from "poseidon-lite";
+import { poseidon1, poseidon2, poseidon3, poseidon4, poseidon11 } from "poseidon-lite";
 import { createVantaPrivatePoolV2ClaimProofRequest } from "./privatePoolV2ProofRequests";
 import type {
   VantaPrivatePoolV2ClaimQuote,
@@ -17,6 +17,8 @@ export type VantaPrivatePoolV2ClaimCircuitWitness = {
   input_commitment: bigint;
   input_root: bigint;
   leaf_index: bigint;
+  membership_path: readonly [bigint, bigint, bigint];
+  membership_path_direction_bits: readonly [bigint, bigint, bigint];
   nullifier: bigint;
   owner_commitment: bigint;
   owner_secret: bigint;
@@ -35,6 +37,7 @@ export type VantaPrivatePoolV2ClaimCircuitFixture = {
 
 export type VantaPrivatePoolV2ClaimCircuitFixtureMode =
   | "valid"
+  | "forged-input-membership"
   | "invalid-binding"
   | "invalid-nullifier";
 
@@ -43,8 +46,9 @@ const DEFAULT_WITNESS_BASE = {
   asset_id: 404n,
   destination: 909n,
   input_commitment: 808n,
-  input_root: 1001n,
-  leaf_index: 0n,
+  leaf_index: 5n,
+  membership_path: [1111n, 1222n, 1333n] as const,
+  membership_path_direction_bits: [1n, 0n, 1n] as const,
   owner_commitment: 505n,
   owner_secret: 303n,
   quote_expires_at_slot: 1_000_150n,
@@ -54,9 +58,14 @@ const DEFAULT_WITNESS_BASE = {
   tree_id: 606n,
 };
 
-const DEFAULT_WITNESS = {
+const DEFAULT_WITH_ROOT = {
   ...DEFAULT_WITNESS_BASE,
-  nullifier: computeVantaPrivatePoolV2ClaimNullifier(DEFAULT_WITNESS_BASE),
+  input_root: computeVantaPrivatePoolV2ClaimInputRoot(DEFAULT_WITNESS_BASE),
+};
+
+const DEFAULT_WITNESS = {
+  ...DEFAULT_WITH_ROOT,
+  nullifier: computeVantaPrivatePoolV2ClaimNullifier(DEFAULT_WITH_ROOT),
 } satisfies VantaPrivatePoolV2ClaimCircuitWitness;
 
 function toCircuitString(value: bigint) {
@@ -78,8 +87,8 @@ function toMerkleProof(
 ): VantaPrivatePoolV2MerkleProof {
   return {
     leaf: toCommitment(witness),
-    path: [],
-    pathIndices: [],
+    path: witness.membership_path.map(toCircuitString),
+    pathIndices: witness.membership_path_direction_bits.map(Number),
     root: toCircuitString(witness.input_root),
   };
 }
@@ -99,6 +108,43 @@ export function computeVantaPrivatePoolV2ClaimNullifier(
   >,
 ) {
   return poseidon2([witness.input_commitment, witness.owner_secret]);
+}
+
+export function computeVantaPrivatePoolV2ClaimLeaf(
+  witness: Pick<VantaPrivatePoolV2ClaimCircuitWitness, "input_commitment">,
+) {
+  return poseidon1([witness.input_commitment]);
+}
+
+export function computeVantaPrivatePoolV2ClaimNode({
+  current,
+  directionBit,
+  sibling,
+}: {
+  current: bigint;
+  directionBit: bigint;
+  sibling: bigint;
+}) {
+  return directionBit === 1n
+    ? poseidon3([sibling, current, directionBit])
+    : poseidon3([current, sibling, directionBit]);
+}
+
+export function computeVantaPrivatePoolV2ClaimInputRoot(
+  witness: Pick<
+    VantaPrivatePoolV2ClaimCircuitWitness,
+    "input_commitment" | "membership_path" | "membership_path_direction_bits"
+  >,
+) {
+  return witness.membership_path.reduce(
+    (current, sibling, index) =>
+      computeVantaPrivatePoolV2ClaimNode({
+        current,
+        directionBit: witness.membership_path_direction_bits[index] ?? 0n,
+        sibling,
+      }),
+    computeVantaPrivatePoolV2ClaimLeaf(witness),
+  );
 }
 
 export function computeVantaPrivatePoolV2ClaimPublicInputHash(
@@ -139,7 +185,9 @@ export function createVantaPrivatePoolV2ClaimCircuitFixture({
   witness?: VantaPrivatePoolV2ClaimCircuitWitness;
 } = {}): VantaPrivatePoolV2ClaimCircuitFixture {
   const circuitWitness =
-    mode === "invalid-nullifier"
+    mode === "forged-input-membership"
+      ? { ...witness, input_root: witness.input_root + 1n }
+      : mode === "invalid-nullifier"
       ? {
           ...witness,
           nullifier: witness.nullifier + 1n,
@@ -178,6 +226,8 @@ export function serializeVantaPrivatePoolV2ClaimCircuitFixtureToToml(
     `leaf_index = "${witness.leaf_index.toString(10)}"`,
     `input_commitment = "${witness.input_commitment.toString(10)}"`,
     `input_root = "${witness.input_root.toString(10)}"`,
+    `membership_path = [${witness.membership_path.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
+    `membership_path_direction_bits = [${witness.membership_path_direction_bits.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
     `nullifier = "${witness.nullifier.toString(10)}"`,
     `destination = "${witness.destination.toString(10)}"`,
     `relayer_id = "${witness.relayer_id.toString(10)}"`,

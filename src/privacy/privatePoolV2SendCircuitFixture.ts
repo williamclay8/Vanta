@@ -1,4 +1,4 @@
-import { poseidon2, poseidon3, poseidon4, poseidon11 } from "poseidon-lite";
+import { poseidon1, poseidon2, poseidon3, poseidon4, poseidon11 } from "poseidon-lite";
 import { createVantaPrivatePoolV2SendProofRequest } from "./privatePoolV2ProofRequests";
 import type { VantaPrivatePoolV2ProofRequest } from "./privatePoolV2Types";
 
@@ -12,7 +12,10 @@ export type VantaPrivatePoolV2SendCircuitWitness = {
   change_output_root: bigint;
   economics_commitment: bigint;
   input_commitment: bigint;
+  input_leaf_index: bigint;
   input_root: bigint;
+  membership_path: readonly [bigint, bigint, bigint];
+  membership_path_direction_bits: readonly [bigint, bigint, bigint];
   nullifier: bigint;
   owner_commitment: bigint;
   owner_secret: bigint;
@@ -31,6 +34,7 @@ export type VantaPrivatePoolV2SendCircuitFixture = {
 
 export type VantaPrivatePoolV2SendCircuitFixtureMode =
   | "valid"
+  | "forged-input-membership"
   | "invalid-binding"
   | "invalid-nullifier"
   | "invalid-output-root";
@@ -41,7 +45,9 @@ const DEFAULT_WITNESS_BASE = {
   change_output_commitment: 1001n,
   economics_commitment: 808n,
   input_commitment: 303n,
-  input_root: 202n,
+  input_leaf_index: 5n,
+  membership_path: [1202n, 1303n, 1404n] as const,
+  membership_path_direction_bits: [1n, 0n, 1n] as const,
   owner_commitment: 606n,
   owner_secret: 404n,
   recipient_leaf_index: 1n,
@@ -50,9 +56,14 @@ const DEFAULT_WITNESS_BASE = {
   send_context_tag: 1102n,
 };
 
-const DEFAULT_WITH_NULLIFIER = {
+const DEFAULT_WITH_ROOT = {
   ...DEFAULT_WITNESS_BASE,
-  nullifier: computeVantaPrivatePoolV2SendNullifier(DEFAULT_WITNESS_BASE),
+  input_root: computeVantaPrivatePoolV2SendInputRoot(DEFAULT_WITNESS_BASE),
+};
+
+const DEFAULT_WITH_NULLIFIER = {
+  ...DEFAULT_WITH_ROOT,
+  nullifier: computeVantaPrivatePoolV2SendNullifier(DEFAULT_WITH_ROOT),
 };
 
 const DEFAULT_WITH_RECIPIENT_ROOT = {
@@ -81,6 +92,43 @@ export function computeVantaPrivatePoolV2SendNullifier(
   witness: Pick<VantaPrivatePoolV2SendCircuitWitness, "input_commitment" | "owner_secret">,
 ) {
   return poseidon2([witness.input_commitment, witness.owner_secret]);
+}
+
+export function computeVantaPrivatePoolV2SendLeaf(
+  witness: Pick<VantaPrivatePoolV2SendCircuitWitness, "input_commitment">,
+) {
+  return poseidon1([witness.input_commitment]);
+}
+
+export function computeVantaPrivatePoolV2SendNode({
+  current,
+  directionBit,
+  sibling,
+}: {
+  current: bigint;
+  directionBit: bigint;
+  sibling: bigint;
+}) {
+  return directionBit === 1n
+    ? poseidon3([sibling, current, directionBit])
+    : poseidon3([current, sibling, directionBit]);
+}
+
+export function computeVantaPrivatePoolV2SendInputRoot(
+  witness: Pick<
+    VantaPrivatePoolV2SendCircuitWitness,
+    "input_commitment" | "membership_path" | "membership_path_direction_bits"
+  >,
+) {
+  return witness.membership_path.reduce(
+    (current, sibling, index) =>
+      computeVantaPrivatePoolV2SendNode({
+        current,
+        directionBit: witness.membership_path_direction_bits[index] ?? 0n,
+        sibling,
+      }),
+    computeVantaPrivatePoolV2SendLeaf(witness),
+  );
 }
 
 export function computeVantaPrivatePoolV2SendAppendRoot({
@@ -128,7 +176,9 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
   witness?: VantaPrivatePoolV2SendCircuitWitness;
 } = {}): VantaPrivatePoolV2SendCircuitFixture {
   const circuitWitness =
-    mode === "invalid-nullifier"
+    mode === "forged-input-membership"
+      ? forgeVantaPrivatePoolV2SendInputMembership(witness)
+      : mode === "invalid-nullifier"
       ? {
           ...witness,
           nullifier: witness.nullifier + 1n,
@@ -164,6 +214,28 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
   };
 }
 
+function forgeVantaPrivatePoolV2SendInputMembership(
+  witness: VantaPrivatePoolV2SendCircuitWitness,
+): VantaPrivatePoolV2SendCircuitWitness {
+  const forgedInputRoot = witness.input_root + 1n;
+  const recipientOutputRoot = computeVantaPrivatePoolV2SendAppendRoot({
+    leaf_index: witness.recipient_leaf_index,
+    output_commitment: witness.recipient_output_commitment,
+    previous_root: forgedInputRoot,
+  });
+
+  return {
+    ...witness,
+    change_output_root: computeVantaPrivatePoolV2SendAppendRoot({
+      leaf_index: witness.change_leaf_index,
+      output_commitment: witness.change_output_commitment,
+      previous_root: recipientOutputRoot,
+    }),
+    input_root: forgedInputRoot,
+    recipient_output_root: recipientOutputRoot,
+  };
+}
+
 export function serializeVantaPrivatePoolV2SendCircuitFixtureToToml(
   fixture: VantaPrivatePoolV2SendCircuitFixture,
 ) {
@@ -174,6 +246,9 @@ export function serializeVantaPrivatePoolV2SendCircuitFixtureToToml(
     `request_version = "${witness.request_version.toString(10)}"`,
     `input_root = "${witness.input_root.toString(10)}"`,
     `input_commitment = "${witness.input_commitment.toString(10)}"`,
+    `input_leaf_index = "${witness.input_leaf_index.toString(10)}"`,
+    `membership_path = [${witness.membership_path.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
+    `membership_path_direction_bits = [${witness.membership_path_direction_bits.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
     `nullifier = "${witness.nullifier.toString(10)}"`,
     `recipient_output_commitment = "${witness.recipient_output_commitment.toString(10)}"`,
     `change_output_commitment = "${witness.change_output_commitment.toString(10)}"`,

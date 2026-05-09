@@ -1,4 +1,4 @@
-import { poseidon2, poseidon3, poseidon11 } from "poseidon-lite";
+import { poseidon1, poseidon2, poseidon3, poseidon11 } from "poseidon-lite";
 import { createVantaPrivatePoolV2ShieldProofRequest } from "./privatePoolV2ProofRequests";
 import type {
   VantaPrivatePoolV2Commitment,
@@ -10,6 +10,8 @@ export const VANTA_PRIVATE_POOL_V2_SHIELD_CIRCUIT_FIXTURE_VERSION =
 
 export type VantaPrivatePoolV2ShieldCircuitWitness = {
   amount: bigint;
+  append_path: readonly [bigint, bigint, bigint];
+  append_path_direction_bits: readonly [bigint, bigint, bigint];
   leaf_index: bigint;
   output_commitment: bigint;
   output_root: bigint;
@@ -31,15 +33,17 @@ export type VantaPrivatePoolV2ShieldCircuitFixture = {
 
 export type VantaPrivatePoolV2ShieldCircuitFixtureMode =
   | "valid"
+  | "forged-append-path"
   | "invalid-binding"
   | "invalid-root";
 
 const DEFAULT_WITNESS_BASE = {
   amount: 1_000_000n,
-  leaf_index: 0n,
+  append_path: [1111n, 1222n, 1333n] as const,
+  append_path_direction_bits: [1n, 0n, 1n] as const,
+  leaf_index: 5n,
   output_commitment: 808n,
   owner_commitment: 505n,
-  previous_root: 909n,
   request_version: 101n,
   route_commitment: 606n,
   source_mint: 202n,
@@ -48,9 +52,22 @@ const DEFAULT_WITNESS_BASE = {
   tree_id: 707n,
 };
 
-const DEFAULT_WITNESS = {
+const DEFAULT_WITH_PREVIOUS_ROOT = {
   ...DEFAULT_WITNESS_BASE,
-  output_root: computeVantaPrivatePoolV2ShieldAppendRoot(DEFAULT_WITNESS_BASE),
+  previous_root: computeVantaPrivatePoolV2ShieldRootFromLeaf({
+    leaf_value: 0n,
+    path: DEFAULT_WITNESS_BASE.append_path,
+    pathDirectionBits: DEFAULT_WITNESS_BASE.append_path_direction_bits,
+  }),
+};
+
+const DEFAULT_WITNESS = {
+  ...DEFAULT_WITH_PREVIOUS_ROOT,
+  output_root: computeVantaPrivatePoolV2ShieldRootFromLeaf({
+    leaf_value: DEFAULT_WITH_PREVIOUS_ROOT.output_commitment,
+    path: DEFAULT_WITH_PREVIOUS_ROOT.append_path,
+    pathDirectionBits: DEFAULT_WITH_PREVIOUS_ROOT.append_path_direction_bits,
+  }),
 } satisfies VantaPrivatePoolV2ShieldCircuitWitness;
 
 function toCircuitString(value: bigint) {
@@ -89,7 +106,41 @@ export function computeVantaPrivatePoolV2ShieldPublicInputHash(
   ]);
 }
 
-export function computeVantaPrivatePoolV2ShieldAppendRoot(
+export function computeVantaPrivatePoolV2ShieldNode({
+  current,
+  directionBit,
+  sibling,
+}: {
+  current: bigint;
+  directionBit: bigint;
+  sibling: bigint;
+}) {
+  return directionBit === 1n
+    ? poseidon3([sibling, current, directionBit])
+    : poseidon3([current, sibling, directionBit]);
+}
+
+export function computeVantaPrivatePoolV2ShieldRootFromLeaf({
+  leaf_value,
+  path,
+  pathDirectionBits,
+}: {
+  leaf_value: bigint;
+  path: readonly [bigint, bigint, bigint];
+  pathDirectionBits: readonly [bigint, bigint, bigint];
+}) {
+  return path.reduce(
+    (current, sibling, index) =>
+      computeVantaPrivatePoolV2ShieldNode({
+        current,
+        directionBit: pathDirectionBits[index] ?? 0n,
+        sibling,
+      }),
+    poseidon1([leaf_value]),
+  );
+}
+
+export function computeVantaPrivatePoolV2ShieldLegacyAppendRoot(
   witness: Pick<
     VantaPrivatePoolV2ShieldCircuitWitness,
     "leaf_index" | "output_commitment" | "previous_root"
@@ -106,7 +157,9 @@ export function createVantaPrivatePoolV2ShieldCircuitFixture({
   witness?: VantaPrivatePoolV2ShieldCircuitWitness;
 } = {}): VantaPrivatePoolV2ShieldCircuitFixture {
   const circuitWitness =
-    mode === "invalid-root"
+    mode === "forged-append-path"
+      ? forgeVantaPrivatePoolV2ShieldAppendPath(witness)
+      : mode === "invalid-root"
       ? {
           ...witness,
           output_root: witness.output_root + 1n,
@@ -132,6 +185,22 @@ export function createVantaPrivatePoolV2ShieldCircuitFixture({
   };
 }
 
+function forgeVantaPrivatePoolV2ShieldAppendPath(
+  witness: VantaPrivatePoolV2ShieldCircuitWitness,
+): VantaPrivatePoolV2ShieldCircuitWitness {
+  const forgedPreviousRoot = 909n;
+
+  return {
+    ...witness,
+    output_root: computeVantaPrivatePoolV2ShieldLegacyAppendRoot({
+      leaf_index: witness.leaf_index,
+      output_commitment: witness.output_commitment,
+      previous_root: forgedPreviousRoot,
+    }),
+    previous_root: forgedPreviousRoot,
+  };
+}
+
 export function serializeVantaPrivatePoolV2ShieldCircuitFixtureToToml(
   fixture: VantaPrivatePoolV2ShieldCircuitFixture,
 ) {
@@ -151,6 +220,8 @@ export function serializeVantaPrivatePoolV2ShieldCircuitFixtureToToml(
     `output_commitment = "${witness.output_commitment.toString(10)}"`,
     `previous_root = "${witness.previous_root.toString(10)}"`,
     `output_root = "${witness.output_root.toString(10)}"`,
+    `append_path = [${witness.append_path.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
+    `append_path_direction_bits = [${witness.append_path_direction_bits.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
     "",
   ].join("\n");
 }

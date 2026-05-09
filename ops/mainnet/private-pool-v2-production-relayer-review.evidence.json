@@ -27,7 +27,8 @@
       "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID",
       "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE",
       "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET",
-      "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE"
+      "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE",
+      "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY"
     ],
     "operator": [
       "VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION"
@@ -59,6 +60,9 @@
     "poolState": "5qjyK5B5ZMAgLmXxrpAGqFHvEHTCP4MUwRmzvA4MPEuQ",
     "nullifierSet": "x5xWJZNN8rjZPdAYgG8EJuTZYYvYDQyhVXEgKB6i23k",
     "outputQueue": "CsnYLMnnMso1KT6PE7csi51ZtFHSPQr1xTePA8rKUzrZ",
+    "authority": null,
+    "authorityRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY_REF",
+    "compatibilityStatus": "blocked-existing-reviewed-program-pre-authority-gate",
     "createAccountsRef": "solana-tx:368JyAHH4aAuvFiSuhGhoejuwPvyTDwMtHdrzLgRhqVnbQNrbaCjCHxjsR8Ty7PcoR4kb9xjR7Q674NKZ9BABdGo",
     "initRef": "solana-tx:3zfqv9jKCwWJ2vtwFaViBq2GuaTP6HqjbUqfW8PGYjraumdSvvtVFHiYG1uyLTDDvpLgtwwN4d4XmTjd7D2RQEGU",
     "spendEvidenceRef": "solana-tx:56QhWoCQ6KjD9SVBJ9KdZphVMp49qYSiwEDTprZsoyo5WFTXoLRMrxNTabB9dELhL5WrFWbSZDDzNd4URr3u5fZL",
@@ -78,9 +82,10 @@
         "VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMISSION_MODE",
         "VANTA_PRIVATE_POOL_V2_RELAYER_RPC_URL",
         "VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMIT_ACK",
-        "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_PAYER_KEYPAIR_JSON",
-        "VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION"
-      ],
+      "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_PAYER_KEYPAIR_JSON",
+      "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY",
+      "VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION"
+    ],
       "secretMaterialPrinted": false
     }
   ],
@@ -154,6 +159,7 @@
     "solana-tx:56QhWoCQ6KjD9SVBJ9KdZphVMp49qYSiwEDTprZsoyo5WFTXoLRMrxNTabB9dELhL5WrFWbSZDDzNd4URr3u5fZL"
   ],
   "productionBlockers": [
+    "Reviewed mainnet actual-private spend program predates the operator authority gate and must be redeployed/reinitialized before this ABI is production-compatible.",
     "No independent reviewer has accepted the production relayer boundary."
   ],
   "forbiddenInGit": [

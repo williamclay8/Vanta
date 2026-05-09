@@ -13,6 +13,7 @@ const programId = Keypair.generate().publicKey.toBase58();
 const poolState = Keypair.generate().publicKey.toBase58();
 const nullifierSet = Keypair.generate().publicKey.toBase58();
 const outputQueue = Keypair.generate().publicKey.toBase58();
+const operatorAuthority = Keypair.generate().publicKey.toBase58();
 const recentBlockhash = "11111111111111111111111111111111";
 const instructionDataBase64 = Buffer.from(
   JSON.stringify({
@@ -27,6 +28,7 @@ const built = buildVantaPrivatePoolV2ActualPrivateSpendTransaction({
     { isSigner: false, isWritable: true, pubkey: poolState },
     { isSigner: false, isWritable: true, pubkey: nullifierSet },
     { isSigner: false, isWritable: true, pubkey: outputQueue },
+    { isSigner: true, isWritable: false, pubkey: operatorAuthority },
   ],
   instructionDataBase64,
   programId,
@@ -38,7 +40,7 @@ assert.equal(built.version, VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_TRANSACTION_VERSI
 assert.equal(built.evidencePolicy, "real-solana-versioned-transaction-bytes-required");
 assert.equal(built.programId, programId);
 assert.equal(built.relayerFeePayer, relayerFeePayer);
-assert.equal(built.accountCount, 3);
+assert.equal(built.accountCount, 4);
 assert.match(built.serializedTransaction, /^base64:[A-Za-z0-9+/]+=*$/);
 
 const decoded = VersionedTransaction.deserialize(
@@ -50,6 +52,23 @@ assert.ok(decoded.message.staticAccountKeys.some((key) => key.toBase58() === pro
 assert.ok(decoded.message.staticAccountKeys.some((key) => key.toBase58() === poolState));
 assert.ok(decoded.message.staticAccountKeys.some((key) => key.toBase58() === nullifierSet));
 assert.ok(decoded.message.staticAccountKeys.some((key) => key.toBase58() === outputQueue));
+assert.ok(decoded.message.staticAccountKeys.some((key) => key.toBase58() === operatorAuthority));
+
+assert.throws(
+  () =>
+    buildVantaPrivatePoolV2ActualPrivateSpendTransaction({
+      accounts: [
+        { isSigner: false, isWritable: true, pubkey: poolState },
+        { isSigner: false, isWritable: true, pubkey: nullifierSet },
+        { isSigner: false, isWritable: true, pubkey: outputQueue },
+      ],
+      instructionDataBase64,
+      programId,
+      recentBlockhash,
+      relayerFeePayer,
+    }),
+  /requires the fourth account to be the read-only operator authority signer/,
+);
 
 assert.throws(
   () =>

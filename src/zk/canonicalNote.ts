@@ -12,7 +12,7 @@ export const CANONICAL_NOTE_PAYLOAD_ENCODING_V1 =
   "vanta.canonical-note.payload.encoding.v1" as const;
 export const CANONICAL_NOTE_PAYLOAD_VERSION_V1 = 1 as const;
 export const CANONICAL_NOTE_PAYLOAD_SCHEME_V1 =
-  "owner-recovery-xor-stream-sha256-v1" as const;
+  "owner-recovery-x25519-xchacha20poly1305-v2" as const;
 export const CANONICAL_NOTE_COMMITMENT_PREIMAGE_ORDER = [
   "version",
   "assetId",
