@@ -16,11 +16,15 @@
 
 This means the on-chain "evidence" account is **not enforcing privacy or soundness**. It is a public append-only log whose integrity rests entirely on the off-chain operator deciding what to submit. The README in `programs/.../README.md` calling this "anchoring private spend evidence" overstates what the program does.
 
+**Codex status, 2026-05-09:** partially remediated locally for the write authority boundary. `programs/vanta_private_pool_v2_spend/src/lib.rs` now stores an operator authority during init and requires the matching read-only signer on spend, and the transaction builder/relayer/operator surfaces now expect that fourth signer account. This closes the stale "callable by any wallet" shape for this branch, but it still does not add on-chain proof verification, verifying-key hash enforcement, accepted-root history, or production soundness. Existing reviewed mainnet spend-program evidence predates this authority-gated ABI and remains blocked until redeploy/reinit.
+
 ### 2. The on-chain program is trivially DoS-able
 
 Because there's no signer/authority check (item 1), anyone can call `process_spend` with any random 32-byte nullifier. Each call permanently consumes one slot in the fixed-size `nullifier_set` account. When `ERR_NULLIFIER_SET_FULL` triggers, the pool is bricked — no legitimate spend can ever be accepted. Cost to brick: roughly one transaction's compute fee per slot. This is independent of any ZK property and applies right now to anything you deploy.
 
 The duplicate-detection loop is also O(n) (`for slot in nullifier_slots(...)`). Long before the account fills, the linear scan will exceed Solana's compute-unit budget per call, freezing the pool earlier than the explicit "full" error.
+
+**Codex status, 2026-05-09:** partially remediated locally. The unauthenticated public slot-fill path is now gated by the initialized operator signer, but the fixed-capacity account layout and linear duplicate scan are still structurally DoS-prone. The remaining fix is still sharded/PDA-keyed nullifier existence storage or another O(1) scalable nullifier design.
 
 **Recommended fixes** for a v2 spend program before any real deployment:
 
@@ -45,6 +49,8 @@ fn merkle_root_from_path(...) {
 
 Both the "note hash" and the "Merkle node hash" are field addition. There is no preimage resistance, collision resistance, or binding. A prover can choose any commitment value they want and back-solve inputs; a prover can choose any root by choosing siblings. The comment admits both as placeholders. Either delete this circuit until it's real, or — at minimum — gate every code path that touches it behind a fail-closed check that refuses to ship if the placeholder is wired in.
 
+**Codex status, 2026-05-09:** remediated locally. `canonical_note_membership` now uses Poseidon note hashing, Poseidon Merkle leaf/node hashing, boolean direction-bit constraints, and leaf-index binding. Guard: `npm run zk:canonical-note-membership-check`.
+
 ### 4. The "entry" circuits skip Merkle membership
 
 The actual_private_spend circuit (`vanta_private_pool_v2_actual_private_spend_entry/src/main.nr`) is well-formed: it computes the Merkle root from the input commitment + path and asserts equality with `accepted_root`. **Good.**
@@ -56,9 +62,13 @@ But the `send_entry`, `claim_entry`, `shield_entry`, and `swap_to_shielded_entry
 
 A prover can spend any commitment they invent against any root they like. Use `vanta_private_pool_v2_actual_private_spend_entry` as the template and back-port real Merkle membership + an incremental-Merkle-tree append (e.g., zero-padded fixed-depth tree with Poseidon node hashing) into all four entry circuits.
 
+**Codex status, 2026-05-09:** partially remediated locally. Private Pool v2 `send_entry`, `claim_entry`, and `swap_to_shielded_entry` now prove input commitment membership under `input_root` and reject forged input-root fixtures; `shield_entry` now proves a path-based empty-leaf append to the output commitment. Still open: send/swap successor roots remain transitional `hash_3(previous_root, output_commitment, leaf_index)` transitions rather than full incremental Merkle insertion for each successor output.
+
 ### 5. Anonymity-set depth is 3
 
-All the production-shaped circuits (`vanta_private_core_single_note_*`, `vanta_private_pool_v2_actual_private_spend_entry`) declare `global MERKLE_DEPTH: u32 = 3;`. That is a maximum of **8 leaves per tree**. Tornado Cash uses depth 20–32 (1M–4B leaves). With depth 3 there is no anonymity set; even on the cleanest deployment, the recipient set is small enough to deanonymize trivially. The `canonical_note_membership` circuit is depth 20, but its hash is broken (item 3). Decide on a real depth (≥20) and migrate.
+All the production-shaped circuits (`vanta_private_core_single_note_*`, `vanta_private_pool_v2_actual_private_spend_entry`) declare `global MERKLE_DEPTH: u32 = 3;`. That is a maximum of **8 leaves per tree**. Tornado Cash uses depth 20–32 (1M–4B leaves). With depth 3 there is no anonymity set; even on the cleanest deployment, the recipient set is small enough to deanonymize trivially. The `canonical_note_membership` circuit is depth 20 and now locally repaired, but that does not migrate the active proving lanes. Decide on a real depth (≥20) and migrate.
+
+**Codex status, 2026-05-09:** still open for active proving lanes. The `canonical_note_membership` hash caveat is now stale because that circuit was repaired, but active Private Pool v2 and Private Core proving lanes still use depth 3 and do not provide a meaningful anonymity set.
 
 ---
 
@@ -74,9 +84,13 @@ All the production-shaped circuits (`vanta_private_core_single_note_*`, `vanta_p
 
 **Fix:** replace the entire file with the same X25519+HKDF-SHA256+XChaCha20-Poly1305 pattern used by `vantaShieldViewingKey.ts`. There is no reason to maintain two crypto pipelines, and the stronger one is already in the repo.
 
+**Codex status, 2026-05-09:** remediated locally. `ownerRecoveryPayloadCrypto.ts` now uses X25519 key agreement, HKDF-SHA256 key derivation, internally generated XChaCha nonces, and XChaCha20-Poly1305 AEAD. Guard: `npm run zk:owner-recovery-payload-crypto-check`. Residual caveat: if `recoverySecret` ever becomes user-typed/password-like input, the recovery flow still needs a password-hardening story.
+
 ### 7. PBKDF2-SHA256 at 120k iterations for the private vault
 
 `src/privateVault/privateVaultCrypto.ts` uses PBKDF2-SHA256 / 120,000 iterations. OWASP's 2023 PBKDF2-SHA256 baseline is 600,000 — and PBKDF2 is GPU-friendly. For a wallet/vault password derivation in 2026, the right primitive is Argon2id (memory-hard). Either bump iterations to ≥600k (cheap quick fix) or migrate to Argon2id with a proper `v2` envelope and decryption fallback for `v1`.
+
+**Codex status, 2026-05-09:** still open. No local remediation found in this pass; the private vault remains on PBKDF2-SHA256 with 120,000 iterations.
 
 ### 8. Local prover is not a prover, by design
 
@@ -115,6 +129,8 @@ In `vanta_private_core_single_note_send/src/main.nr` and the swap variant, the s
 ### 13. Frontend exposes operator tokens through `VITE_*` envs
 
 `SECURITY_LIMITATIONS.md` already calls this out: "any `VITE_...` token bundled into the app is suitable only for local or controlled test environments". Worth one more look — anything matching `VITE_OPERATOR_*` that ships in the production bundle should be removed before any mainnet operator action. A grep through the bundled JS at `vantaprivacy.xyz/assets/*.js` would be the next step (couldn't do from this environment — egress blocked).
+
+**Codex status, 2026-05-09:** repo-local guard added for the production bundle. The browser swap route no longer reads `VITE_JUPITER_API_KEY`, and `npm run frontend:operator-env-exposure-check` now builds with forbidden browser-token canaries, rejects operator/auth-token/secret-shaped `VITE_...` source keys, and scans `dist/` for canary or forbidden env-key exposure. This does not prove the currently live website bundle; no live deployment probe or redeploy happened in this pass.
 
 ---
 

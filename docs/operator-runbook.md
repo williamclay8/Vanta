@@ -831,6 +831,7 @@ Production browser builds default to `https://vanta-prod-private-pool-v2-operato
 Production operator builds default `VANTA_PRIVATE_POOL_V2_PUBLIC_SHIELD_RECEIPT_DEPOSIT_EVIDENCE_MODE` to `required`, which verifies native SOL deposit signatures against Solana before issuing public browser Shield receipts. Local runs default to `local-skip`; set `VANTA_PRIVATE_POOL_V2_PUBLIC_SHIELD_RECEIPT_RPC_URL` when the operator should use a specific Solana RPC for that evidence check.
 
 Do not use browser-exposed operator tokens as production secrets. Do not put operator bearer tokens in `VITE_...` variables; any `VITE_...` value is bundled into the client and must be treated as public.
+Run `npm run frontend:operator-env-exposure-check` before any production browser handoff; it builds with forbidden operator-token canaries and scans `dist/` for token/auth/secret-shaped browser env exposure.
 
 ## Wallet Signing Safety
 

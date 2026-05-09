@@ -78,7 +78,7 @@ const productionLocalServer = spawn("node", ["operator/private-pool-v2-server.mj
   env: {
     ...process.env,
     NODE_ENV: "production",
-    VANTA_PRIVATE_POOL_V2_DATABASE_URL: "postgres://vanta:mock@127.0.0.1:1/vanta",
+    VANTA_PRIVATE_POOL_V2_DATABASE_URL: "postgres://127.0.0.1:1/vanta_mock_boundary",
     VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN: "vanta-private-pool-v2-live-token",
     VANTA_PRIVATE_POOL_V2_OPERATOR_PORT: String(port + 1_000),
   },

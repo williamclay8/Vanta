@@ -173,17 +173,6 @@ function toJupiterInstructionInput(
   };
 }
 
-function getJupiterHeaders() {
-  const apiKey = import.meta.env.VITE_JUPITER_API_KEY?.trim();
-  const headers: Record<string, string> = {};
-
-  if (apiKey) {
-    headers["x-api-key"] = apiKey;
-  }
-
-  return headers;
-}
-
 async function fetchJupiterQuote(args: {
   amountAtomic: string;
   inputMint: string;
@@ -205,9 +194,7 @@ async function fetchJupiterQuote(args: {
     });
 
     try {
-      const response = await fetch(`${JUPITER_QUOTE_URL}?${searchParams.toString()}`, {
-        headers: getJupiterHeaders(),
-      });
+      const response = await fetch(`${JUPITER_QUOTE_URL}?${searchParams.toString()}`);
 
       if (!response.ok) {
         throw new Error(`Jupiter quote failed with status ${String(response.status)}.`);
@@ -399,7 +386,6 @@ export async function buildPublicToUsdcSwapInstructions(args: {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      ...getJupiterHeaders(),
     },
     body: JSON.stringify({
       dynamicComputeUnitLimit: true,
