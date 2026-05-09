@@ -32,6 +32,16 @@ assert.equal(
 assert.equal(result.privacyClaimAllowed, false);
 assert.equal(result.privacyRailCanClaimMeaningfulPrivacy, false);
 assert.equal(result.settlementReadiness, "no-real-funds-production-smoke-only");
+assert.deepEqual(result.spendProgramCompatibilityStatus, {
+  version: "vanta-private-pool-v2-spend-program-compatibility-0.1",
+  status: "blocked-pre-authority-abi-evidence",
+  currentLocalAbi: "operator-authority-gated-spend-v1",
+  reviewedMainnetEvidenceAbi: "pre-authority-gate-spend-v1",
+  compatibleWithCurrentLocalAbi: false,
+  blocker: "mainnet-spend-program-evidence-pre-authority-abi-incompatible",
+  requiredAction:
+    "Redeploy and reinitialize the spend program/accounts with operator authority before using the reviewed mainnet evidence for current ABI claims.",
+});
 assert.equal(result.routeHealthPublicPassed, true);
 assert.equal(result.routeHealthAuthenticatedPassed, true);
 assert.equal(result.productionSmokeHealthPassed, true);
@@ -75,6 +85,7 @@ assert.deepEqual(result.actualPrivateMainnetEvidence, {
       reviewerAcceptanceRef: "review:actual-private-production-replay-transcript-accepted-2026-04-30",
     },
   },
+  spendProgramCompatibilityStatus: result.spendProgramCompatibilityStatus,
   reviewStatus: "reviewed-blocked",
   reviewVerdict:
     "Do not claim Solscan-untrackable or live-mainnet-private settlement from this packet. Mainnet spend-program evidence is observed, including the spend transaction, and the production duplicate-nullifier replay rejection transcript is accepted, but shared-cohort, independent reviewer, audited-anonymity, and production-readiness gates remain blocked.",
@@ -147,6 +158,7 @@ const expectedMeaningfulPrivacyBlockedBy = [
   "no-independent-production-relayer-separation-review",
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
+  "mainnet-spend-program-evidence-pre-authority-abi-incompatible",
   ...(result.boundedRealFundsApprovalWindowActive ? [] : ["no-active-actual-private-settlement-approval-window"]),
 ];
 assert.deepEqual(result.meaningfulPrivacyBlockedBy, [...new Set(expectedMeaningfulPrivacyBlockedBy)]);
@@ -174,6 +186,10 @@ assert.ok(
 assert.ok(
   result.deploymentTruth.includes("observed mainnet spend-program evidence"),
   "Private settlement status must expose observed mainnet spend-program evidence without promoting readiness.",
+);
+assert.ok(
+  result.deploymentTruth.includes("reviewed spend-program evidence predates the current authority-gated spend ABI"),
+  "Private settlement status must disclose that reviewed spend evidence predates the authority-gated ABI.",
 );
 assert.ok(
   result.deploymentTruth.includes("must not be presented as live mainnet private settlement"),

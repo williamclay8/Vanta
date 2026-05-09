@@ -8,6 +8,24 @@
 
 ---
 
+## Codex current local state - 2026-05-09
+
+This review is now an active feedback-loop document, not only a point-in-time audit. The current branch has locally remediated several original findings while preserving the beta/non-production truth:
+
+| Area | Current local state | Guard |
+| --- | --- | --- |
+| Solana spend authority | Spend evidence writes require the initialized operator authority signer; reviewed mainnet evidence predates this ABI and remains blocked until redeploy/reinit. | `npm run private-pool-v2:contract-check` |
+| Canonical note membership | Placeholder additive note/tree hashing was replaced with Poseidon note, leaf, and node hashing plus direction/leaf-index constraints. | `npm run zk:canonical-note-membership-check` |
+| Canonical note proving commitment | `CanonicalNoteArtifacts` now carries both legacy SHA-256 display commitment and Poseidon/BN254 proof-facing `provingCommitment`; Live Shield records both and Live Send preserves the proof-facing commitment through redaction. | `npm run zk:canonical-note-proving-commitment-check` |
+| Private Pool v2 entry circuits | Local fixed-depth lanes now prove input membership and path-based successor append roots for Shield, Send, Swap-to-shielded, Claim, and actual-private spend where applicable. | `npm run private-pool-v2:verify` |
+| Private Pool v2 Send conservation | Send now proves a private economics commitment and `input_amount == recipient_amount + change_amount` inside the local Noir circuit. | `npm run private-pool-v2:send-circuit-check` |
+| Private Core tree hashing | Single-field membership paths and standard Poseidon node hashing are now guarded across send/swap/unshield. | `npm run zk:merkle-node-hash-contract-check` |
+| Owner recovery payload | X25519 + HKDF-SHA256 + XChaCha20-Poly1305 replaced the hand-rolled XOR/SHA path. | `npm run zk:owner-recovery-payload-crypto-check` |
+
+Still not solved: active proving lanes are still depth 3, on-chain proof verification/root-history enforcement is not wired, Send amount range checks still need a dedicated circuit pass, nullifier storage remains fixed/linear on-chain, no audit has accepted the boundary, and no live deployment evidence has been refreshed.
+
+---
+
 ## Critical findings
 
 ### 1. The on-chain Solana program does not verify proofs at all
@@ -144,14 +162,14 @@ In `vanta_private_core_single_note_send/src/main.nr` and the swap variant, the s
 
 ## Recommended order of operations
 
-If you're going to fix anything, the priority I'd suggest is:
+The prior feedback loops moved several early items from "recommended" to "locally guarded." From here, the highest-leverage order is:
 
-1. **Solana program signer/authority gate.** Blocks the DoS today, costs a single field of state and an `is_signer` check, and doesn't depend on any ZK work. (item 2)
-2. **Replace `ownerRecoveryPayloadCrypto.ts`** with the same X25519+XChaCha20-Poly1305 pattern as `vantaShieldViewingKey.ts`. One file, removes a class of bugs. (item 6)
-3. **Real Merkle membership + incremental-tree append in the four "entry" circuits**, using `actual_private_spend_entry` as the template. (item 4)
-4. **Bump Merkle depth to ≥20** across all production circuits and update fixtures. (item 5)
-5. **Delete or repair `canonical_note_membership`.** (item 3)
-6. **On-chain proof verification.** Biggest piece of work. Either embed a Groth16/Honk verifier (Light Protocol's `groth16-solana` is the usual reference), or have the program accept proofs and CPI into a verifier program. Pair this with anchoring `accepted_root` against a stored history. (item 1)
+1. **Keep the Solana authority boundary guarded and redeploy/reinit before citing live evidence.** The local branch has the signer gate, but the reviewed mainnet spend-program evidence is pre-authority-ABI and must remain blocked.
+2. **Bump Merkle depth to >=20 across active proving lanes and fixtures.** The repaired canonical membership target is depth 20, but Private Pool v2 and Private Core lanes still use depth 3.
+3. **Add amount range constraints for Send economics witnesses.** The circuit now proves conservation over field elements; it still needs range discipline before this becomes a production amount proof.
+4. **Remove plaintext memo/privacy leakage from Send-style successor discovery.** Encrypted memo and recipient discovery semantics need the same discipline as the owner-recovery and viewing-key work.
+5. **Replace fixed/linear on-chain nullifier storage.** The signer gate blocks public slot filling, but capacity and O(n) duplicate scanning are still not a production nullifier design.
+6. **Wire real on-chain proof verification and root-history enforcement.** Biggest piece of work. Either embed a Groth16/Honk verifier or CPI into a verifier program, then anchor accepted roots against stored history.
 
 ---
 
@@ -243,7 +261,9 @@ note := (asset_id, amount, owner_pubkey, blinding, derivation_tag)
 commitment := poseidon(asset_id, amount_lo, amount_hi, owner_pubkey, blinding, derivation_tag)
 ```
 
-Today this is computed via SHA-256 in `canonicalNote.ts` (good for browser display, useless to the circuit). Put a Poseidon variant alongside the SHA-256 one and wire it through. Keep the SHA-256 hash for diagnostic display only — never confuse it with the on-chain commitment.
+The local branch now computes both surfaces in `canonicalNote.ts`: a legacy SHA-256 display/audit commitment and a Poseidon/BN254 `provingCommitment` with an explicit field encoding. Keep the SHA-256 hash for diagnostic display only — never confuse it with the circuit-facing commitment or future on-chain commitment.
+
+**Codex status, 2026-05-09:** remediated locally for the canonical-note artifact boundary. `CanonicalNoteArtifacts` now carries `provingCommitment`, `liveShieldBridge.ts` records it through the shared artifact deriver, and `liveSendBridge.ts` preserves successor proving commitments while redacting encrypted payload bytes from browser storage. Guard: `npm run zk:canonical-note-proving-commitment-check`. Residual caveat: the local browser `AppendOnlyShieldedState` still inserts the legacy SHA-256 commitment and is not the production shared Poseidon tree.
 
 ### W2. Owner key hierarchy
 
@@ -2116,6 +2136,21 @@ Red-first failures observed locally: after the fixtures emitted path-derived roo
 Verification passed locally: `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:swap-to-shielded-circuit-check`, `npm run private-pool-v2:send-prove`, `npm run private-pool-v2:swap-to-shielded-prove`, `npm run private-pool-v2:public-input-hash-alignment-check`, `npm run private-pool-v2:contract-check`, `npm run zk:merkle-node-hash-contract-check`, `npm run security:limitations-check`, `npm run build`, full `npm run private-pool-v2:verify`, and `git diff --check`. Full Private Pool v2 verify still emits existing Crucible harness warnings (`mach_task_self` deprecation and unused mut), but the dry-run harness passed.
 
 Still open after this fifth local ZK pass: active lanes remain `MERKLE_DEPTH = 3`, the operator/indexer SHA-256 local root scheme is not proven inside Noir, output append monotonicity still depends on operator/indexer state outside the circuit, on-chain proof verification is not wired, nullifier storage remains fixed/linear where applicable, no audit has accepted the boundary, and no live deployment evidence was refreshed.
+
+### Sixth local ZK pass - 2026-05-09
+
+- Added a Poseidon/BN254 canonical note proving commitment alongside the legacy SHA-256 display/audit commitment in `src/zk/canonicalNote.ts`.
+- `CanonicalNoteArtifacts` now carries `provingCommitment`, `liveShieldBridge.ts` records it through the shared artifact deriver, and `liveSendBridge.ts` preserves successor proving commitments while redacting encrypted payload bytes from browser storage.
+- Added `npm run zk:canonical-note-proving-commitment-check`, which independently checks the BN254 field encoding, Poseidon field vector, creation-hint exclusion, u128 amount bound, artifact persistence, and aggregate verification wiring.
+- Added `npm run zk:review-guards-check` and wired it into both `npm run private-pool-v2:verify` and `npm run private-core:verify` so the canonical note membership, Merkle hash contract, owner-recovery crypto, and proving-commitment guards cannot drift out of the named verifier paths.
+- Strengthened `private-pool-v2:contract-check` so Solana spend-authority evidence guards stay visible in the contract surface, including authority signer markers, transaction builder/printer/relayer markers, Crucible authority-negative fixtures, and verify-script inclusion.
+- Updated mainnet private-settlement/readiness status to disclose that reviewed mainnet spend-program evidence predates the current authority-gated ABI and remains blocked until redeploy/reinit.
+- Added Private Pool v2 Send amount-conservation constraints: the Send circuit now proves a private economics commitment and asserts `input_amount == recipient_amount + change_amount`; the fixture lane adds an `invalid-amount-conservation` negative case.
+- Updated `SECURITY_LIMITATIONS.md` and `docs/zk/canonical-note-schema.md` with the current SHA-256-vs-Poseidon hash surface and the remaining beta truth.
+
+Verification passed locally: `npm run zk:canonical-note-proving-commitment-check`, `npm run zk:review-guards-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:contract-check`, `npm run security:limitations-check`, `npm run mainnet:private-settlement-check`, `npm run mainnet:readiness-check`, `npm run build`, full `npm run private-pool-v2:verify`, full `npm run private-core:verify`, and `git diff --check`. Full Private Pool v2 verify still emits existing Crucible harness warnings (`mach_task_self` deprecation and unused mut), but the dry-run harness passed.
+
+Still open after this sixth local ZK pass: active lanes remain `MERKLE_DEPTH = 3`, Send amount conservation is proven over field elements without range constraints, the operator/indexer SHA-256 local root scheme is not proven inside Noir, output append monotonicity still depends on operator/indexer state outside the circuit, on-chain proof verification/root-history enforcement is not wired, nullifier storage remains fixed/linear where applicable, no audit has accepted the boundary, and no live deployment evidence was refreshed.
 
 ---
 

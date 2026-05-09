@@ -67,7 +67,8 @@ With the following derived artifacts:
 
 ```text
 CanonicalNoteArtifactsV1 {
-  commitment: bytes32
+  commitment: bytes32              // legacy SHA-256 display/audit handle
+  provingCommitment: Field + metadata // Poseidon/BN254 circuit-facing commitment
   nullifierBasis: bytes32
   encryptedPayload: bytes
 }
@@ -312,6 +313,17 @@ That property matters for:
 ### Canonical Shielded State Compatibility
 
 The commitment must be suitable for insertion into a canonical shielded state structure, likely a global append-only tree or set. The schema should not assume a local or per-user state container as the long-term design.
+
+### Transitional Hash Surface Today
+
+The current implementation deliberately labels two commitment surfaces instead of pretending there is only one:
+
+- `commitment` uses `sha256-canonical-note-v1`. It is retained as a browser/operator display and audit handle for existing local state.
+- `provingCommitment` uses `poseidon-bn254-canonical-note-proving-commitment-v1` over `vanta.canonical-note.proving-fields.poseidon-bn254.v1`. It is the circuit-facing note commitment surface.
+- Live Shield records store both through `CanonicalNoteArtifacts`; Live Send successor records preserve `provingCommitment` while redacting encrypted payload bytes from browser storage.
+- The local `AppendOnlyShieldedState` root is still the legacy SHA-256 browser index, not the production shared Poseidon Merkle tree. Production privacy still requires the shared tree, depth migration, live verifier/root enforcement, and audit gates tracked in `SECURITY_LIMITATIONS.md`.
+
+Guard command: `npm run zk:canonical-note-proving-commitment-check`. For the broader Noir hash migration decision, see `docs/zk/noir-hash-contract-decision.md`.
 
 ## Encrypted Payload Expectations
 

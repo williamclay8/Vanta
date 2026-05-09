@@ -2,10 +2,15 @@ import {
   phase1OwnerRecoveryPayloadCryptoAdapter,
   type OwnerRecoveryCryptoAdapter,
 } from "./crypto/ownerRecoveryPayloadCrypto";
+import { poseidon10 } from "poseidon-lite";
 
 export const CANONICAL_NOTE_V1 = 1 as const;
 export const CANONICAL_NOTE_ENCODING_V1 = "vanta.canonical-note.encoding.v1" as const;
 export const CANONICAL_NOTE_COMMITMENT_SCHEME_V1 = "sha256-canonical-note-v1" as const;
+export const CANONICAL_NOTE_PROVING_COMMITMENT_SCHEME_V1 =
+  "poseidon-bn254-canonical-note-proving-commitment-v1" as const;
+export const CANONICAL_NOTE_PROVING_FIELD_ENCODING_V1 =
+  "vanta.canonical-note.proving-fields.poseidon-bn254.v1" as const;
 export const CANONICAL_NOTE_NULLIFIER_BASIS_SCHEME_V1 =
   "sha256-placeholder-nullifier-basis-v1" as const;
 export const CANONICAL_NOTE_PAYLOAD_ENCODING_V1 =
@@ -23,6 +28,23 @@ export const CANONICAL_NOTE_COMMITMENT_PREIMAGE_ORDER = [
   "blinding",
   "derivationTag",
 ] as const;
+export const CANONICAL_NOTE_PROVING_COMMITMENT_FIELD_ORDER = [
+  "version",
+  "assetIdHi",
+  "assetIdLo",
+  "amountLo",
+  "amountHi",
+  "ownerPublicKey",
+  "noteNonce",
+  "noteSecret",
+  "blinding",
+  "derivationTag",
+] as const;
+
+const BN254_SCALAR_FIELD =
+  21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+const U64_MASK = (1n << 64n) - 1n;
+const U128_MAX = (1n << 128n) - 1n;
 
 export type CanonicalNoteVersion = typeof CANONICAL_NOTE_V1;
 export type CanonicalAssetId = string;
@@ -73,6 +95,28 @@ export type CanonicalNoteCommitment = {
   value: string;
 };
 
+export type CanonicalNoteProvingFields = {
+  encoding: typeof CANONICAL_NOTE_PROVING_FIELD_ENCODING_V1;
+  fieldOrder: typeof CANONICAL_NOTE_PROVING_COMMITMENT_FIELD_ORDER;
+  version: bigint;
+  assetIdHi: bigint;
+  assetIdLo: bigint;
+  amountLo: bigint;
+  amountHi: bigint;
+  ownerPublicKey: bigint;
+  noteNonce: bigint;
+  noteSecret: bigint;
+  blinding: bigint;
+  derivationTag: bigint;
+};
+
+export type CanonicalNoteProvingCommitment = {
+  scheme: typeof CANONICAL_NOTE_PROVING_COMMITMENT_SCHEME_V1;
+  fieldEncoding: typeof CANONICAL_NOTE_PROVING_FIELD_ENCODING_V1;
+  value: string;
+  fieldValue: string;
+};
+
 export type CanonicalNullifierBasis = {
   scheme: typeof CANONICAL_NOTE_NULLIFIER_BASIS_SCHEME_V1;
   value: string;
@@ -90,6 +134,7 @@ export type CanonicalEncryptedPayload = {
 
 export type CanonicalNoteArtifacts = {
   commitment: CanonicalNoteCommitment;
+  provingCommitment: CanonicalNoteProvingCommitment;
   nullifierBasis: CanonicalNullifierBasis;
   encryptedPayload: CanonicalEncryptedPayload;
 };
@@ -123,6 +168,9 @@ export type CanonicalEncryptedPayloadOptions = {
 
 export type CanonicalNoteArtifactDeriver = {
   deriveCommitment(note: CanonicalNoteV1): Promise<CanonicalNoteCommitment>;
+  deriveProvingCommitment?(
+    note: CanonicalNoteV1,
+  ): Promise<CanonicalNoteProvingCommitment>;
   deriveNullifierBasis(note: CanonicalNoteV1): Promise<CanonicalNullifierBasis>;
   deriveEncryptedPayload(
     note: CanonicalNoteV1,
@@ -163,14 +211,18 @@ export async function deriveCanonicalNoteArtifacts(
   assertValidCanonicalNote(note);
   assertValidCanonicalNoteOwnerContext(ownerContext);
 
-  const [commitment, nullifierBasis, encryptedPayload] = await Promise.all([
+  const [commitment, provingCommitment, nullifierBasis, encryptedPayload] = await Promise.all([
     deriver.deriveCommitment(note),
+    deriver.deriveProvingCommitment
+      ? deriver.deriveProvingCommitment(note)
+      : deriveCanonicalNoteProvingCommitment(note),
     deriver.deriveNullifierBasis(note),
     deriver.deriveEncryptedPayload(note, ownerContext),
   ]);
 
   return {
     commitment,
+    provingCommitment,
     nullifierBasis,
     encryptedPayload,
   };
@@ -182,6 +234,66 @@ export async function deriveCanonicalNoteCommitment(
 ): Promise<CanonicalNoteCommitment> {
   assertValidCanonicalNote(note);
   return deriver.deriveCommitment(note);
+}
+
+export async function deriveCanonicalNoteProvingFields(
+  note: CanonicalNoteV1,
+): Promise<CanonicalNoteProvingFields> {
+  assertValidCanonicalNote(note);
+
+  const assetIdFields = await deriveStringFieldPair(
+    "vanta:canonical-note:asset-id-field-pair:v1",
+    note.assetId,
+  );
+
+  return {
+    encoding: CANONICAL_NOTE_PROVING_FIELD_ENCODING_V1,
+    fieldOrder: CANONICAL_NOTE_PROVING_COMMITMENT_FIELD_ORDER,
+    version: BigInt(note.version),
+    assetIdHi: assetIdFields.hi,
+    assetIdLo: assetIdFields.lo,
+    amountLo: note.amount & U64_MASK,
+    amountHi: note.amount >> 64n,
+    ownerPublicKey: await deriveStringField(
+      "vanta:canonical-note:owner-public-key-field:v1",
+      note.ownerPublicKey,
+    ),
+    noteNonce: deriveFieldFromBytes32(note.noteNonce, "noteNonce"),
+    noteSecret: deriveFieldFromBytes32(note.noteSecret, "noteSecret"),
+    blinding: deriveFieldFromBytes32(note.blinding, "blinding"),
+    derivationTag: deriveFieldFromBytes32(note.derivationTag, "derivationTag"),
+  };
+}
+
+export async function deriveCanonicalNoteProvingCommitment(
+  note: CanonicalNoteV1,
+): Promise<CanonicalNoteProvingCommitment> {
+  const fields = await deriveCanonicalNoteProvingFields(note);
+  const fieldValue = poseidon10(getCanonicalNoteProvingFieldValueVector(fields));
+
+  return {
+    scheme: CANONICAL_NOTE_PROVING_COMMITMENT_SCHEME_V1,
+    fieldEncoding: CANONICAL_NOTE_PROVING_FIELD_ENCODING_V1,
+    value: encodeFieldHex(fieldValue),
+    fieldValue: fieldValue.toString(10),
+  };
+}
+
+export function getCanonicalNoteProvingFieldValueVector(
+  fields: CanonicalNoteProvingFields,
+): bigint[] {
+  return [
+    fields.version,
+    fields.assetIdHi,
+    fields.assetIdLo,
+    fields.amountLo,
+    fields.amountHi,
+    fields.ownerPublicKey,
+    fields.noteNonce,
+    fields.noteSecret,
+    fields.blinding,
+    fields.derivationTag,
+  ];
 }
 
 export async function deriveCanonicalNullifierBasis(
@@ -485,6 +597,10 @@ export const placeholderCanonicalNoteArtifactDeriver: CanonicalNoteArtifactDeriv
     };
   },
 
+  async deriveProvingCommitment(note) {
+    return deriveCanonicalNoteProvingCommitment(note);
+  },
+
   async deriveNullifierBasis(note) {
     const basis = JSON.stringify({
       version: note.version,
@@ -565,6 +681,10 @@ function normalizeAmount(value: bigint | number | string | unknown): bigint {
 
     if (amount < 0n) {
       throw new Error("Amount cannot be negative.");
+    }
+
+    if (amount > U128_MAX) {
+      throw new Error("Amount cannot exceed u128 max.");
     }
 
     return amount;
@@ -653,6 +773,46 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function generatePlaceholderBytes32(): CanonicalBytes32 {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
   return `0x${encodeHex(bytes)}`;
+}
+
+async function deriveStringFieldPair(domain: string, value: string) {
+  const digest = await deriveSha256Bytes(
+    encodeUtf8(`${domain}\n${normalizeNonEmptyString(value, "fieldSource")}`),
+  );
+
+  return {
+    hi: bytesToBigInt(digest.slice(0, 16)),
+    lo: bytesToBigInt(digest.slice(16, 32)),
+  };
+}
+
+async function deriveStringField(domain: string, value: string) {
+  const digest = await deriveSha256Bytes(
+    encodeUtf8(`${domain}\n${normalizeNonEmptyString(value, "fieldSource")}`),
+  );
+  return bytesToBigInt(digest) % BN254_SCALAR_FIELD;
+}
+
+function deriveFieldFromBytes32(value: string, fieldName: string) {
+  return bytesToBigInt(decodeFixedHex(value, fieldName, 32)) % BN254_SCALAR_FIELD;
+}
+
+function bytesToBigInt(bytes: Uint8Array) {
+  let value = 0n;
+
+  for (const byte of bytes) {
+    value = (value << 8n) | BigInt(byte);
+  }
+
+  return value;
+}
+
+function encodeFieldHex(value: bigint) {
+  if (value < 0n || value >= BN254_SCALAR_FIELD) {
+    throw new CanonicalNoteValidationError("BN254 field value is outside the scalar field.");
+  }
+
+  return `0x${value.toString(16).padStart(64, "0")}`;
 }
 
 async function derivePlaceholderDigest(domain: string, payload: string): Promise<string> {

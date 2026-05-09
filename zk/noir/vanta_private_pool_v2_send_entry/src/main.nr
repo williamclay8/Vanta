@@ -6,6 +6,20 @@ fn compute_nullifier(input_commitment: Field, owner_secret: Field) -> Field {
     bn254::hash_2([input_commitment, owner_secret])
 }
 
+fn compute_send_economics_commitment(
+    input_amount: Field,
+    recipient_amount: Field,
+    change_amount: Field,
+    economics_blinding: Field,
+) -> Field {
+    bn254::hash_4([
+        input_amount,
+        recipient_amount,
+        change_amount,
+        economics_blinding,
+    ])
+}
+
 fn hash_merkle_leaf(commitment: Field) -> Field {
     bn254::hash_1([commitment])
 }
@@ -122,6 +136,10 @@ fn main(
     change_output_root: Field,
     change_append_path: [Field; MERKLE_DEPTH],
     change_append_path_direction_bits: [Field; MERKLE_DEPTH],
+    input_amount: Field,
+    recipient_amount: Field,
+    change_amount: Field,
+    economics_blinding: Field,
     owner_secret: Field,
 ) {
     let computed_input_root = compute_root(
@@ -138,6 +156,16 @@ fn main(
 
     let computed_nullifier = compute_nullifier(input_commitment, owner_secret);
     assert(computed_nullifier == nullifier);
+
+    assert(input_amount == recipient_amount + change_amount);
+
+    let computed_economics_commitment = compute_send_economics_commitment(
+        input_amount,
+        recipient_amount,
+        change_amount,
+        economics_blinding,
+    );
+    assert(computed_economics_commitment == economics_commitment);
 
     let computed_recipient_previous_root = compute_root_from_leaf(
         0,

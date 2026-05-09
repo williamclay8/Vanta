@@ -61,6 +61,7 @@ export type CanonicalPredecessorReference = {
 
 type LiveSendSuccessorArtifacts = {
   commitment: CanonicalNoteArtifacts["commitment"];
+  provingCommitment: CanonicalNoteArtifacts["provingCommitment"];
   encryptedPayload?: CanonicalNoteArtifacts["encryptedPayload"];
   encryptedPayloadCommitment?: string;
   nullifierBasis: CanonicalNoteArtifacts["nullifierBasis"];
@@ -633,6 +634,7 @@ function redactLiveSendArtifactsForPersistence(
 ): LiveSendSuccessorArtifacts {
   return {
     commitment: artifacts.commitment,
+    provingCommitment: artifacts.provingCommitment,
     encryptedPayloadCommitment:
       artifacts.encryptedPayloadCommitment ??
       "redacted:encrypted-payload:held-out-of-browser-storage",

@@ -137,6 +137,7 @@ const requiredFiles = [
       "createVantaPrivatePoolV2SendCircuitFixture",
       "computeVantaPrivatePoolV2SendRootFromLeaf",
       "computeVantaPrivatePoolV2SendNullifier",
+      "computeVantaPrivatePoolV2SendEconomicsCommitment",
       "computeVantaPrivatePoolV2SendPublicInputHash",
       "serializeVantaPrivatePoolV2SendCircuitFixtureToToml",
     ],
@@ -229,6 +230,7 @@ const requiredTextFiles = [
     path: "zk/noir/vanta_private_pool_v2_send_entry/src/main.nr",
     markers: [
       "bind_send_public_inputs",
+      "compute_send_economics_commitment",
       "compute_root",
       "compute_nullifier",
       "compute_root_from_leaf",
@@ -237,6 +239,8 @@ const requiredTextFiles = [
       "change_append_path",
       "assert(computed_input_root == input_root)",
       "assert(computed_nullifier == nullifier)",
+      "assert(input_amount == recipient_amount + change_amount)",
+      "assert(computed_economics_commitment == economics_commitment)",
       "assert(computed_recipient_previous_root == input_root)",
       "assert(computed_recipient_output_root == recipient_output_root)",
       "assert(computed_change_previous_root == recipient_output_root)",
@@ -293,6 +297,7 @@ const requiredTextFiles = [
       "invalid-binding",
       "invalid-nullifier",
       "invalid-output-root",
+      "invalid-amount-conservation",
       "forged-recipient-append-path",
       "forged-change-append-path",
       "forged-input-membership",
@@ -565,6 +570,63 @@ const requiredTextFiles = [
       "private-pool-v2 restart committed transition replay rejection: PASS",
     ],
   },
+  {
+    path: "programs/vanta_private_pool_v2_spend/src/lib.rs",
+    markers: [
+      "POOL_AUTHORITY_OFFSET",
+      "POOL_LAST_PUBLIC_INPUT_HASH_OFFSET",
+      "ERR_UNAUTHORIZED_OPERATOR",
+      "require_authority",
+      "authority.is_signer",
+      "accepted spend evidence",
+    ],
+  },
+  {
+    path: "programs/vanta_private_pool_v2_spend/README.md",
+    markers: [
+      "no proof verification",
+      "operator_authority",
+      "must match the pubkey stored during init",
+      "signer is not the initialized operator authority",
+    ],
+  },
+  {
+    path: "fuzz/vanta_private_pool_v2_spend/src/main.rs",
+    markers: [
+      "action_unsigned_spend",
+      "action_wrong_authority_spend",
+      "duplicate nullifier mutated state",
+      "failed spend mutated state",
+      "POOL_LAST_PUBLIC_INPUT_HASH_OFFSET",
+    ],
+  },
+  {
+    path: "scripts/check-vanta-private-pool-v2-solana-spend-transaction-builder.mjs",
+    markers: [
+      "requires the fourth account to be the read-only operator authority signer",
+      "operatorAuthority",
+      "cannot use the Memo program",
+      "Vanta Private Pool v2 Solana spend transaction builder check: PASS",
+    ],
+  },
+  {
+    path: "scripts/check-vanta-private-pool-v2-solana-spend-transaction-printer.mjs",
+    markers: [
+      "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY",
+      "operatorAuthority",
+      "private-pool-v2:solana-spend-transaction-check",
+      "Vanta Private Pool v2 Solana spend transaction printer check: PASS",
+    ],
+  },
+  {
+    path: "scripts/check-vanta-private-pool-v2-solana-relayer-submission.mjs",
+    markers: [
+      "submitPrivateSpend",
+      "simulate:true",
+      "builderIntegratedSubmission",
+      "Vanta Private Pool v2 Solana relayer submission check: PASS",
+    ],
+  },
 ];
 
 const requiredPackageScripts = [
@@ -602,6 +664,20 @@ const requiredPackageScripts = [
   "private-pool-v2:role-storage-check",
   "private-pool-v2:protocol-client-check",
   "private-pool-v2:postgres-store-check",
+  "zk:canonical-note-proving-commitment-check",
+  "zk:review-guards-check",
+  "private-pool-v2:solana-spend-transaction-builder-check",
+  "private-pool-v2:solana-spend-transaction-check",
+  "private-pool-v2:solana-relayer-submission-check",
+  "private-pool-v2:crucible-check",
+];
+
+const requiredVerifyScripts = [
+  "npm run zk:review-guards-check",
+  "npm run private-pool-v2:solana-spend-transaction-builder-check",
+  "npm run private-pool-v2:solana-spend-transaction-check",
+  "npm run private-pool-v2:solana-relayer-submission-check",
+  "npm run private-pool-v2:crucible-check",
 ];
 
 const failures = [];
@@ -649,6 +725,12 @@ const packageJson = JSON.parse(readFileSync(resolve(repoRoot, "package.json"), "
 for (const scriptName of requiredPackageScripts) {
   if (!packageJson.scripts?.[scriptName]) {
     failures.push(`Missing package script ${scriptName}`);
+  }
+}
+
+for (const scriptCall of requiredVerifyScripts) {
+  if (!packageJson.scripts?.["private-pool-v2:verify"]?.includes(scriptCall)) {
+    failures.push(`private-pool-v2:verify must include ${scriptCall}`);
   }
 }
 

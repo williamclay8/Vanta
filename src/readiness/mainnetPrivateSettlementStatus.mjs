@@ -52,9 +52,20 @@ export function createVantaMainnetPrivateSettlementStatus() {
     actualPrivateSettlementReview.promotionDecision?.reviewedLiveAllowed === true &&
     settlementEvidenceMatchesCurrentApproval &&
     actualPrivateSettlementEvidence.liveMainnetSettlementProven === true;
+  const spendProgramCompatibilityStatus = {
+    version: "vanta-private-pool-v2-spend-program-compatibility-0.1",
+    status: "blocked-pre-authority-abi-evidence",
+    currentLocalAbi: "operator-authority-gated-spend-v1",
+    reviewedMainnetEvidenceAbi: "pre-authority-gate-spend-v1",
+    compatibleWithCurrentLocalAbi: false,
+    blocker: "mainnet-spend-program-evidence-pre-authority-abi-incompatible",
+    requiredAction:
+      "Redeploy and reinitialize the spend program/accounts with operator authority before using the reviewed mainnet evidence for current ABI claims.",
+  };
   const meaningfulPrivacyBlockedBy = [
     "no-proven-audited-shared-anonymity-set",
     "no-proven-live-mainnet-private-settlement-evidence",
+    spendProgramCompatibilityStatus.blocker,
     ...(boundedRealFundsApprovalWindowActive ? [] : ["no-active-actual-private-settlement-approval-window"]),
   ];
   const approvalWindowTruth = boundedRealFundsApprovalWindowActive
@@ -84,11 +95,12 @@ export function createVantaMainnetPrivateSettlementStatus() {
       "ops/mainnet/service-deployment.evidence.json",
       "ops/mainnet/mainnet-real-funds-approval.evidence.json",
     ],
-    deploymentTruth: `Vanta Private Pool v2 currently has authenticated route-health across deployed production role services, no-real-funds production smoke coverage, a deployed final replay protocol layer, and observed mainnet spend-program evidence, but it still must not be presented as live mainnet private settlement because there is no proven audited shared anonymity set, no reviewed shared-cohort deposit evidence, no reviewed live production replay rejection, and ${approvalWindowTruth}.`,
+    deploymentTruth: `Vanta Private Pool v2 currently has authenticated route-health across deployed production role services, no-real-funds production smoke coverage, a deployed final replay protocol layer, and observed mainnet spend-program evidence, but the reviewed spend-program evidence predates the current authority-gated spend ABI and it still must not be presented as live mainnet private settlement because there is no proven audited shared anonymity set, no reviewed shared-cohort deposit evidence, no reviewed live production replay rejection, and ${approvalWindowTruth}.`,
     actualPrivateMainnetEvidence: {
       evidenceRefs: actualPrivateSettlementEvidence.evidenceRefs,
       evidenceStatus: actualPrivateSettlementEvidence.currentStatus,
       mainnetSpendProgramEvidence: actualPrivateSettlementEvidence.mainnetSpendProgramEvidence,
+      spendProgramCompatibilityStatus,
       reviewStatus: actualPrivateSettlementReview.reviewStatus,
       reviewVerdict: actualPrivateSettlementReview.finalVerdict,
       promotionDecision: actualPrivateSettlementReview.promotionDecision,
@@ -149,6 +161,7 @@ export function createVantaMainnetPrivateSettlementStatus() {
     safety:
       "No auth token values, database URLs, bearer values, wallet keys, signed transaction material, or customer private inputs are printed.",
     settlementReadiness: "no-real-funds-production-smoke-only",
+    spendProgramCompatibilityStatus,
     version: "vanta-mainnet-private-settlement-status-0.1",
   };
 }

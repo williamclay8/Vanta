@@ -21,12 +21,13 @@ if (
   fixtureMode !== "forged-input-membership" &&
   fixtureMode !== "forged-recipient-append-path" &&
   fixtureMode !== "forged-change-append-path" &&
+  fixtureMode !== "invalid-amount-conservation" &&
   fixtureMode !== "invalid-binding" &&
   fixtureMode !== "invalid-nullifier" &&
   fixtureMode !== "invalid-output-root"
 ) {
   console.error(
-    'Expected fixture mode "valid", "forged-input-membership", "forged-recipient-append-path", "forged-change-append-path", "invalid-binding", "invalid-nullifier", or "invalid-output-root".',
+    'Expected fixture mode "valid", "forged-input-membership", "forged-recipient-append-path", "forged-change-append-path", "invalid-amount-conservation", "invalid-binding", "invalid-nullifier", or "invalid-output-root".',
   );
   process.exit(1);
 }

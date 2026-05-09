@@ -8,9 +8,12 @@ export const VANTA_PRIVATE_POOL_V2_SEND_CIRCUIT_FIXTURE_VERSION =
 export type VantaPrivatePoolV2SendCircuitWitness = {
   asset_id_commitment: bigint;
   change_leaf_index: bigint;
+  change_amount: bigint;
   change_output_commitment: bigint;
   change_output_root: bigint;
+  economics_blinding: bigint;
   economics_commitment: bigint;
+  input_amount: bigint;
   input_commitment: bigint;
   input_leaf_index: bigint;
   input_root: bigint;
@@ -21,6 +24,7 @@ export type VantaPrivatePoolV2SendCircuitWitness = {
   owner_secret: bigint;
   change_append_path: readonly [bigint, bigint, bigint];
   change_append_path_direction_bits: readonly [bigint, bigint, bigint];
+  recipient_amount: bigint;
   recipient_leaf_index: bigint;
   recipient_append_path: readonly [bigint, bigint, bigint];
   recipient_append_path_direction_bits: readonly [bigint, bigint, bigint];
@@ -41,21 +45,35 @@ export type VantaPrivatePoolV2SendCircuitFixtureMode =
   | "forged-input-membership"
   | "forged-recipient-append-path"
   | "forged-change-append-path"
+  | "invalid-amount-conservation"
   | "invalid-binding"
   | "invalid-nullifier"
   | "invalid-output-root";
 
+const DEFAULT_WITNESS_ECONOMICS = {
+  change_amount: 1250n,
+  economics_blinding: 1203n,
+  input_amount: 5000n,
+  recipient_amount: 3750n,
+};
+
 const DEFAULT_WITNESS_BASE = {
   asset_id_commitment: 707n,
   change_leaf_index: 7n,
+  change_amount: DEFAULT_WITNESS_ECONOMICS.change_amount,
   change_output_commitment: 1001n,
-  economics_commitment: 808n,
+  economics_blinding: DEFAULT_WITNESS_ECONOMICS.economics_blinding,
+  economics_commitment: computeVantaPrivatePoolV2SendEconomicsCommitment(
+    DEFAULT_WITNESS_ECONOMICS,
+  ),
+  input_amount: DEFAULT_WITNESS_ECONOMICS.input_amount,
   input_commitment: 303n,
   input_leaf_index: 5n,
   membership_path: [1202n, 1303n, 1404n] as const,
   membership_path_direction_bits: [1n, 0n, 1n] as const,
   owner_commitment: 606n,
   owner_secret: 404n,
+  recipient_amount: DEFAULT_WITNESS_ECONOMICS.recipient_amount,
   recipient_leaf_index: 6n,
   recipient_output_commitment: 909n,
   request_version: 101n,
@@ -98,6 +116,20 @@ export function computeVantaPrivatePoolV2SendNullifier(
   witness: Pick<VantaPrivatePoolV2SendCircuitWitness, "input_commitment" | "owner_secret">,
 ) {
   return poseidon2([witness.input_commitment, witness.owner_secret]);
+}
+
+export function computeVantaPrivatePoolV2SendEconomicsCommitment(
+  witness: Pick<
+    VantaPrivatePoolV2SendCircuitWitness,
+    "input_amount" | "recipient_amount" | "change_amount" | "economics_blinding"
+  >,
+) {
+  return poseidon4([
+    witness.input_amount,
+    witness.recipient_amount,
+    witness.change_amount,
+    witness.economics_blinding,
+  ]);
 }
 
 export function computeVantaPrivatePoolV2SendLeaf(
@@ -206,6 +238,8 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
             ...witness,
             change_append_path: forgePath(witness.change_append_path),
           }
+      : mode === "invalid-amount-conservation"
+        ? createInvalidAmountConservationWitness(witness)
       : mode === "invalid-nullifier"
       ? {
           ...witness,
@@ -223,7 +257,7 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
     changeLeafIndex: toCircuitString(witness.change_leaf_index),
     changeOutputCommitment: toCircuitString(witness.change_output_commitment),
     changeOutputRoot: toCircuitString(circuitWitness.change_output_root),
-    economicsCommitment: toCircuitString(witness.economics_commitment),
+    economicsCommitment: toCircuitString(circuitWitness.economics_commitment),
     inputCommitment: toCircuitString(witness.input_commitment),
     inputRoot: toCircuitString(witness.input_root),
     nullifier: toCircuitString(circuitWitness.nullifier),
@@ -239,6 +273,22 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
     proofRequest,
     sendPublicInputHash: mode === "invalid-binding" ? validPublicHash + 1n : validPublicHash,
     witness: circuitWitness,
+  };
+}
+
+function createInvalidAmountConservationWitness(
+  witness: VantaPrivatePoolV2SendCircuitWitness,
+): VantaPrivatePoolV2SendCircuitWitness {
+  const unbalancedWitness = {
+    ...witness,
+    change_amount: witness.change_amount + 1n,
+  };
+
+  return {
+    ...unbalancedWitness,
+    economics_commitment: computeVantaPrivatePoolV2SendEconomicsCommitment(
+      unbalancedWitness,
+    ),
   };
 }
 
@@ -361,6 +411,10 @@ export function serializeVantaPrivatePoolV2SendCircuitFixtureToToml(
     `change_output_root = "${witness.change_output_root.toString(10)}"`,
     `change_append_path = [${witness.change_append_path.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
     `change_append_path_direction_bits = [${witness.change_append_path_direction_bits.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
+    `input_amount = "${witness.input_amount.toString(10)}"`,
+    `recipient_amount = "${witness.recipient_amount.toString(10)}"`,
+    `change_amount = "${witness.change_amount.toString(10)}"`,
+    `economics_blinding = "${witness.economics_blinding.toString(10)}"`,
     `owner_secret = "${witness.owner_secret.toString(10)}"`,
     "",
   ].join("\n");
