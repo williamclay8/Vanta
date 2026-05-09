@@ -2,6 +2,16 @@
 
 This runbook describes the current local operator surfaces for Vanta Pay, Private Pool v2, and the protocol tabs. It is intentionally conservative: these commands are for verified local/operator harnesses, not production deployment.
 
+## If You Have 10 Minutes
+
+Start with these three commands. Together they give a reviewer the fastest truthful read of the current state without implying production readiness:
+
+```bash
+npm run mainnet:readiness-json
+npm run private-pool-v2:verify
+npm run pay:verify
+```
+
 ## Readiness Truth
 
 Current Pay and Private Pool v2 status surfaces report `productionReady: false`.

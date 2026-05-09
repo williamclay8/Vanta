@@ -15,7 +15,7 @@ const programId = Keypair.generate().publicKey.toBase58();
 const poolState = Keypair.generate().publicKey.toBase58();
 const nullifierSet = Keypair.generate().publicKey.toBase58();
 const outputQueue = Keypair.generate().publicKey.toBase58();
-const operatorAuthority = Keypair.generate().publicKey.toBase58();
+const operatorAuthority = relayerFeePayer;
 
 const result = spawnSync(process.execPath, [scriptPath], {
   cwd: repoRoot,

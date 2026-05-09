@@ -39,6 +39,11 @@ export function DocsTrustPage() {
           operator, or reviewer should not need the full wallet trail to know
           enough to act.
         </p>
+        <p>
+          Today&apos;s trust packets bind to current operator-shaped commitments;
+          cryptographic verifiability against an audited proof system remains
+          part of the readiness work tracked in the security limitations.
+        </p>
         <div className="docs-step-grid" aria-label="Trust packet contents">
           <article className="docs-step-card">
             <span>1</span>

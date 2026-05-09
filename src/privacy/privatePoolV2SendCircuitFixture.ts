@@ -46,6 +46,7 @@ export type VantaPrivatePoolV2SendCircuitFixtureMode =
   | "forged-recipient-append-path"
   | "forged-change-append-path"
   | "invalid-amount-conservation"
+  | "invalid-amount-range"
   | "invalid-binding"
   | "invalid-nullifier"
   | "invalid-output-root";
@@ -240,6 +241,8 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
           }
       : mode === "invalid-amount-conservation"
         ? createInvalidAmountConservationWitness(witness)
+      : mode === "invalid-amount-range"
+        ? createInvalidAmountRangeWitness(witness)
       : mode === "invalid-nullifier"
       ? {
           ...witness,
@@ -288,6 +291,24 @@ function createInvalidAmountConservationWitness(
     ...unbalancedWitness,
     economics_commitment: computeVantaPrivatePoolV2SendEconomicsCommitment(
       unbalancedWitness,
+    ),
+  };
+}
+
+function createInvalidAmountRangeWitness(
+  witness: VantaPrivatePoolV2SendCircuitWitness,
+): VantaPrivatePoolV2SendCircuitWitness {
+  const outOfRangeInputAmount = 1n << 128n;
+  const rangeOverflowWitness = {
+    ...witness,
+    input_amount: outOfRangeInputAmount,
+    recipient_amount: outOfRangeInputAmount - witness.change_amount,
+  };
+
+  return {
+    ...rangeOverflowWitness,
+    economics_commitment: computeVantaPrivatePoolV2SendEconomicsCommitment(
+      rangeOverflowWitness,
     ),
   };
 }

@@ -20,7 +20,7 @@ Instruction data is byte-packed.
 
 ### `0` - init
 
-Initializes the headers of three already-created, program-owned, writable accounts:
+Initializes the headers of three already-created, program-owned, writable accounts and binds the pool to those exact child accounts:
 
 1. `pool_state`
 2. `nullifier_set`
@@ -33,9 +33,11 @@ The init instruction is exactly one byte:
 [0]
 ```
 
+Init is one-time for zeroed accounts. Reinitialization is rejected instead of allowing a later signer to replace the operator authority or child account bindings.
+
 Minimum account data sizes:
 
-- `pool_state`: 88 bytes
+- `pool_state`: 152 bytes
 - `nullifier_set`: `16 + 32 * slot_count` bytes
 - `output_queue`: `16 + 96 * slot_count` bytes
 
@@ -58,8 +60,9 @@ Behavior:
 
 - verifies all three accounts are writable and owned by this program
 - verifies the stored operator authority signed the spend
+- verifies the supplied `nullifier_set` and `output_queue` match the pubkeys stored in `pool_state` during init
 - verifies account headers were initialized
-- scans every fixed nullifier slot and rejects duplicate nullifiers
+- scans initialized nullifier slots and rejects duplicate nullifiers
 - appends the nullifier to the nullifier set
 - appends `output0`, `output1`, and `publicInputHash` as a fixed output record
 - increments the pool spend count
@@ -87,3 +90,5 @@ cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml
 - `4`: invalid or uninitialized account header
 - `5`: pool, nullifier, and output counts disagree
 - `6`: signer is not the initialized operator authority
+- `7`: account is already initialized
+- `8`: supplied nullifier/output account does not match the initialized pool binding

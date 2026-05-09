@@ -9,6 +9,8 @@ export const VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_TRANSACTION_VERSION =
   "vanta-private-pool-v2-solana-spend-transaction-0.1";
 
 export const SOLANA_MEMO_PROGRAM_ID = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
+const SPEND_INSTRUCTION_TAG = 1;
+const SPEND_INSTRUCTION_LEN = 129;
 
 const forbiddenPublicSpendTerms = [
   "amount",
@@ -52,6 +54,14 @@ function requireBase64Bytes(value, fieldName) {
   }
 
   return bytes;
+}
+
+function requireSpendInstructionData(bytes) {
+  if (bytes.length !== SPEND_INSTRUCTION_LEN || bytes[0] !== SPEND_INSTRUCTION_TAG) {
+    throw new Error(
+      "Vanta Private Pool v2 Solana spend transaction requires tag=1 and 129-byte spend instruction data.",
+    );
+  }
 }
 
 function assertNotMemoProgram(programId) {
@@ -113,6 +123,7 @@ export function createVantaPrivatePoolV2ActualPrivateSpendInstruction(input = {}
   }
 
   const data = requireBase64Bytes(input.instructionDataBase64, "instructionDataBase64");
+  requireSpendInstructionData(data);
   const accounts = input.accounts.map(normalizeAccountMeta);
   assertSpendProgramAccountLayout(accounts);
   return new TransactionInstruction({
@@ -127,6 +138,12 @@ export function buildVantaPrivatePoolV2ActualPrivateSpendTransaction(input = {})
   const relayerFeePayer = requirePublicKey(input.relayerFeePayer, "relayerFeePayer");
   const recentBlockhash = requireText(input.recentBlockhash, "recentBlockhash");
   const instruction = createVantaPrivatePoolV2ActualPrivateSpendInstruction(input);
+  const operatorAuthority = instruction.keys[3]?.pubkey;
+  if (!operatorAuthority || !operatorAuthority.equals(relayerFeePayer)) {
+    throw new Error(
+      "Vanta Private Pool v2 Solana spend transaction currently requires relayerFeePayer to equal operatorAuthority until operator co-signing is implemented.",
+    );
+  }
   const message = new TransactionMessage({
     instructions: [instruction],
     payerKey: relayerFeePayer,

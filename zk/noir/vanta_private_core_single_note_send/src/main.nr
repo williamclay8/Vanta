@@ -353,10 +353,9 @@ fn main(
     );
     assert(computed_send_context_tag == send_context_tag_hi + send_context_tag_lo);
 
-    // v0.1 assumption: sender authorization remains prechecked off-circuit.
-    // Keep the witness material live in the circuit surface for a later
-    // in-circuit owner-auth upgrade.
-    let sender_auth_placeholder =
-        sender_secret_key_hi + sender_secret_key_lo + sender_public_key_hi + sender_public_key_lo;
-    assert(sender_auth_placeholder == sender_auth_placeholder);
+    // v0.1 assumption: sender secret ownership is still prechecked off-circuit.
+    // The supplied sender public key is already part of the consumed note
+    // commitment; reject an all-zero placeholder secret while the full key
+    // relation remains future work.
+    assert(sender_secret_key_hi + sender_secret_key_lo != 0);
 }

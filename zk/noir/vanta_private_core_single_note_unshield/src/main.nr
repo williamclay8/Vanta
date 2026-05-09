@@ -252,10 +252,8 @@ fn main(
     );
     assert(computed_unshield_economic_terms_hash == unshield_economic_terms_hash);
 
-    // v0.1 assumption: owner authorization remains prechecked off-circuit.
-    // Keep the witness material live in the circuit surface for the later
-    // in-circuit owner-auth upgrade.
-    let owner_auth_placeholder =
-        owner_secret_key_hi + owner_secret_key_lo + owner_public_key_hi + owner_public_key_lo;
-    assert(owner_auth_placeholder == owner_auth_placeholder);
+    // v0.1 assumption: owner secret ownership is still prechecked off-circuit.
+    // Reject an all-zero placeholder secret so the owner-auth witness is not a
+    // no-op while the full in-circuit key relation remains future work.
+    assert(owner_secret_key_hi + owner_secret_key_lo != 0);
 }

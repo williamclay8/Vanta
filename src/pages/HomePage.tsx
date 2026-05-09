@@ -8,8 +8,8 @@ const productPoints = [
     title: "Shield assets",
   },
   {
-    copy: "Send and execute through private-state flows instead of exposing every product step to users.",
-    title: "Use private rails",
+    copy: "Use guarded shielded-state flows while production privacy claims stay locked behind evidence.",
+    title: "Use guarded rails",
   },
   {
     copy: "Create payment links, preview checkout, track runtime balances, and inspect merchant settlement preview controls.",

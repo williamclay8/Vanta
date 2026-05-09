@@ -62,6 +62,8 @@ Still not live or final:
 - mainnet private settlement
 - production custody, compliance, and incident-response guarantees
 
+Vanta is not production-ready until it has real mainnet-compatible private settlement, audited proof/circuit boundaries, persistent operator/indexer/relayer services, secure key/secret handling, replay/nullifier protection, browser-verified UX, production deployment docs, and a truthful security limitations page.
+
 ## Pricing
 
 - `0 monthly fee`

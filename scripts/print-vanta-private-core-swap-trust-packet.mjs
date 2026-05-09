@@ -156,6 +156,8 @@ function buildSwapTrustPacket({ baseUrl, status }) {
           ? "Proof-linked constrained Swap transition with commitment-oriented reviewer packet; not fully private or production-ready."
           : "No current Swap proof evidence is available from the operator; this packet is a commitment-oriented readiness surface, not a proof-backed Swap claim.",
     },
+    honestyNote:
+      "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in SECURITY_LIMITATIONS.md.",
     lane: {
       environment: summary.supportedEnvironment ?? null,
       status: summary.supportedSwapLaneStatus ?? null,
@@ -282,6 +284,10 @@ function validateSwapTrustPacket(packet) {
   assert(
     packet.command.check === "npm run swap:trust-packet-check",
     "Swap packet must expose the reviewer check command.",
+  );
+  assert(
+    packet.honestyNote?.includes("current operator-shaped commitments"),
+    "Swap packet must include the trust-packet honesty note.",
   );
   assert(
     packet.claimBoundary.evidenceStatus ===

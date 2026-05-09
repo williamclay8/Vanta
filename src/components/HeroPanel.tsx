@@ -22,7 +22,7 @@ export function HeroPanel() {
         </article>
         <article>
           <div>
-            <strong>Private Send</strong>
+            <strong>Guarded Send</strong>
             <span>Move</span>
           </div>
           <p>18.00 SOL</p>

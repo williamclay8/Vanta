@@ -11,6 +11,10 @@ if (!existsSync(runbookPath)) {
 const source = readFileSync(runbookPath, "utf8");
 const requiredPhrases = [
   "# Vanta Operator Runbook",
+  "If You Have 10 Minutes",
+  "npm run mainnet:readiness-json",
+  "npm run private-pool-v2:verify",
+  "npm run pay:verify",
   "npm run private-pool-v2:operator",
   "npm run pay:operator",
   "VANTA_PRIVATE_POOL_V2_STORE_PATH",

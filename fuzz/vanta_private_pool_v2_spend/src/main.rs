@@ -17,10 +17,12 @@ const OUTPUT_MAGIC: &[u8; 8] = b"VNTA2OUT";
 
 const HEADER_LEN: usize = 16;
 const COUNT_OFFSET: usize = 12;
-const POOL_STATE_LEN: usize = 88;
+const POOL_STATE_LEN: usize = 152;
 const POOL_SPEND_COUNT_OFFSET: usize = 16;
 const POOL_AUTHORITY_OFFSET: usize = 24;
 const POOL_LAST_PUBLIC_INPUT_HASH_OFFSET: usize = 56;
+const POOL_NULLIFIER_SET_OFFSET: usize = 88;
+const POOL_OUTPUT_QUEUE_OFFSET: usize = 120;
 
 const HASH_LEN: usize = 32;
 const OUTPUT_RECORD_LEN: usize = HASH_LEN * 3;
@@ -31,6 +33,8 @@ const ERR_OUTPUT_QUEUE_FULL: u32 = 3;
 const ERR_INVALID_HEADER: u32 = 4;
 const ERR_STATE_COUNT_MISMATCH: u32 = 5;
 const ERR_UNAUTHORIZED_OPERATOR: u32 = 6;
+const ERR_ALREADY_INITIALIZED: u32 = 7;
+const ERR_POOL_ACCOUNT_MISMATCH: u32 = 8;
 
 #[derive(Clone)]
 struct OutputRecord {
@@ -309,6 +313,14 @@ fn invariant_test(fixture: &mut VantaPrivatePoolV2Spend) {
     fuzz_assert_eq!(
         &pool[POOL_AUTHORITY_OFFSET..POOL_AUTHORITY_OFFSET + HASH_LEN],
         &fixture.operator_authority.pubkey().to_bytes()
+    );
+    fuzz_assert_eq!(
+        &pool[POOL_NULLIFIER_SET_OFFSET..POOL_NULLIFIER_SET_OFFSET + HASH_LEN],
+        &fixture.nullifier_set.to_bytes()
+    );
+    fuzz_assert_eq!(
+        &pool[POOL_OUTPUT_QUEUE_OFFSET..POOL_OUTPUT_QUEUE_OFFSET + HASH_LEN],
+        &fixture.output_queue.to_bytes()
     );
     fuzz_assert_eq!(&nullifiers[..8], NULLIFIER_MAGIC);
     fuzz_assert_eq!(nullifiers[8], VERSION);

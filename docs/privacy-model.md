@@ -65,6 +65,14 @@ This distinction must remain true across product, protocol, and docs.
 
 ---
 
+## What "shielded state" means today
+
+In the abstract model, shielded state is the private value representation that begins after supported assets leave a transparent wallet flow. It is the state future proofs, commitments, nullifiers, encrypted memos, and trust packets should reference instead of treating the public wallet balance as private.
+
+In the current deployed-shaped implementation, shielded state is still transitional: a supported SPL or SOL movement lands at a Vanta-controlled vault path, the browser records local shield-state notes and commitments, and operator/proof surfaces bind those records through local or repo-checked evidence. That mapping is useful for beta verification, but it is not yet a production shared Poseidon tree, an audited anonymity set, or an on-chain verifier-enforced private pool.
+
+---
+
 ## v1 privacy goals
 
 The goals of v1 are practical and product-oriented.

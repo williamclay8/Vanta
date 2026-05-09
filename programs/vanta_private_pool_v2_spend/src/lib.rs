@@ -19,10 +19,12 @@ const OUTPUT_MAGIC: &[u8; 8] = b"VNTA2OUT";
 
 const HEADER_LEN: usize = 16;
 const COUNT_OFFSET: usize = 12;
-const POOL_STATE_LEN: usize = 88;
+const POOL_STATE_LEN: usize = 152;
 const POOL_SPEND_COUNT_OFFSET: usize = 16;
 const POOL_AUTHORITY_OFFSET: usize = 24;
 const POOL_LAST_PUBLIC_INPUT_HASH_OFFSET: usize = 56;
+const POOL_NULLIFIER_SET_OFFSET: usize = 88;
+const POOL_OUTPUT_QUEUE_OFFSET: usize = 120;
 
 const HASH_LEN: usize = 32;
 const SPEND_PAYLOAD_LEN: usize = 1 + HASH_LEN * 4;
@@ -34,6 +36,8 @@ const ERR_OUTPUT_QUEUE_FULL: u32 = 3;
 const ERR_INVALID_HEADER: u32 = 4;
 const ERR_STATE_COUNT_MISMATCH: u32 = 5;
 const ERR_UNAUTHORIZED_OPERATOR: u32 = 6;
+const ERR_ALREADY_INITIALIZED: u32 = 7;
+const ERR_POOL_ACCOUNT_MISMATCH: u32 = 8;
 
 pub fn process_instruction(
     program_id: &Pubkey,
@@ -75,12 +79,17 @@ fn process_init(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) -> P
         if data.len() < POOL_STATE_LEN {
             return Err(ProgramError::AccountDataTooSmall);
         }
+        require_uninitialized(&data[..])?;
 
         data.fill(0);
         data[..8].copy_from_slice(POOL_MAGIC);
         data[8] = VERSION;
         data[POOL_AUTHORITY_OFFSET..POOL_AUTHORITY_OFFSET + HASH_LEN]
             .copy_from_slice(authority.key.as_ref());
+        data[POOL_NULLIFIER_SET_OFFSET..POOL_NULLIFIER_SET_OFFSET + HASH_LEN]
+            .copy_from_slice(nullifier_set.key.as_ref());
+        data[POOL_OUTPUT_QUEUE_OFFSET..POOL_OUTPUT_QUEUE_OFFSET + HASH_LEN]
+            .copy_from_slice(output_queue.key.as_ref());
     }
 
     init_fixed_slot_account(nullifier_set, NULLIFIER_MAGIC, HASH_LEN)?;
@@ -116,6 +125,7 @@ fn process_spend(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) -> 
 
     require_pool_header(&pool_data)?;
     require_authority(&pool_data, authority)?;
+    require_pool_account_bindings(&pool_data, nullifier_set, output_queue)?;
     require_fixed_slot_header(&nullifier_data, NULLIFIER_MAGIC, HASH_LEN)?;
     require_fixed_slot_header(&output_data, OUTPUT_MAGIC, OUTPUT_RECORD_LEN)?;
 
@@ -135,7 +145,7 @@ fn process_spend(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) -> 
         return Err(ProgramError::Custom(ERR_OUTPUT_QUEUE_FULL));
     }
 
-    for slot in nullifier_slots(&nullifier_data) {
+    for slot in nullifier_slots(&nullifier_data).take(nullifier_count) {
         if slot == nullifier {
             return Err(ProgramError::Custom(ERR_DUPLICATE_NULLIFIER));
         }
@@ -182,6 +192,7 @@ fn init_fixed_slot_account(
     if fixed_slot_capacity(&data, slot_len)? == 0 {
         return Err(ProgramError::AccountDataTooSmall);
     }
+    require_uninitialized(&data[..])?;
 
     data.fill(0);
     data[..8].copy_from_slice(magic);
@@ -196,6 +207,13 @@ fn require_pool_header(data: &[u8]) -> ProgramResult {
     Ok(())
 }
 
+fn require_uninitialized(data: &[u8]) -> ProgramResult {
+    if data.iter().any(|byte| *byte != 0) {
+        return Err(ProgramError::Custom(ERR_ALREADY_INITIALIZED));
+    }
+    Ok(())
+}
+
 fn require_authority(pool_data: &[u8], authority: &AccountInfo) -> ProgramResult {
     if !authority.is_signer {
         return Err(ProgramError::MissingRequiredSignature);
@@ -203,6 +221,24 @@ fn require_authority(pool_data: &[u8], authority: &AccountInfo) -> ProgramResult
     if pool_data[POOL_AUTHORITY_OFFSET..POOL_AUTHORITY_OFFSET + HASH_LEN] != *authority.key.as_ref()
     {
         return Err(ProgramError::Custom(ERR_UNAUTHORIZED_OPERATOR));
+    }
+    Ok(())
+}
+
+fn require_pool_account_bindings(
+    pool_data: &[u8],
+    nullifier_set: &AccountInfo,
+    output_queue: &AccountInfo,
+) -> ProgramResult {
+    if pool_data[POOL_NULLIFIER_SET_OFFSET..POOL_NULLIFIER_SET_OFFSET + HASH_LEN]
+        != *nullifier_set.key.as_ref()
+    {
+        return Err(ProgramError::Custom(ERR_POOL_ACCOUNT_MISMATCH));
+    }
+    if pool_data[POOL_OUTPUT_QUEUE_OFFSET..POOL_OUTPUT_QUEUE_OFFSET + HASH_LEN]
+        != *output_queue.key.as_ref()
+    {
+        return Err(ProgramError::Custom(ERR_POOL_ACCOUNT_MISMATCH));
     }
     Ok(())
 }
@@ -404,11 +440,229 @@ mod tests {
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &spend_instruction()),
-                Err(ProgramError::Custom(6))
+                Err(ProgramError::Custom(ERR_UNAUTHORIZED_OPERATOR))
             );
         }
 
         assert_eq!(before, (pool_data, nullifier_data, output_data));
+    }
+
+    #[test]
+    fn init_rejects_reinitialization_without_mutating_state() {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let nullifier_set = Pubkey::new_unique();
+        let output_queue = Pubkey::new_unique();
+        let authority = Pubkey::new_unique();
+        let mut pool_lamports = 1_000_000;
+        let mut nullifier_lamports = 1_000_000;
+        let mut output_lamports = 1_000_000;
+        let mut authority_lamports = 1_000_000;
+        let mut pool_data = vec![0; POOL_STATE_LEN];
+        let mut nullifier_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut output_data = vec![0; HEADER_LEN + OUTPUT_RECORD_LEN * 4];
+        let mut signer_data = [];
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                true,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let nullifier = account_info(
+                &nullifier_set,
+                &program_id,
+                true,
+                false,
+                &mut nullifier_lamports,
+                &mut nullifier_data,
+            );
+            let output = account_info(
+                &output_queue,
+                &program_id,
+                true,
+                false,
+                &mut output_lamports,
+                &mut output_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                false,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let accounts = vec![pool, nullifier, output, authority_info];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &[TAG_INIT]),
+                Ok(())
+            );
+        }
+
+        let before = (
+            pool_data.clone(),
+            nullifier_data.clone(),
+            output_data.clone(),
+        );
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                true,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let nullifier = account_info(
+                &nullifier_set,
+                &program_id,
+                true,
+                false,
+                &mut nullifier_lamports,
+                &mut nullifier_data,
+            );
+            let output = account_info(
+                &output_queue,
+                &program_id,
+                true,
+                false,
+                &mut output_lamports,
+                &mut output_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                false,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let accounts = vec![pool, nullifier, output, authority_info];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &[TAG_INIT]),
+                Err(ProgramError::Custom(ERR_ALREADY_INITIALIZED))
+            );
+        }
+
+        assert_eq!(before, (pool_data, nullifier_data, output_data));
+    }
+
+    #[test]
+    fn spend_rejects_mixed_account_triplets() {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let nullifier_set = Pubkey::new_unique();
+        let wrong_nullifier_set = Pubkey::new_unique();
+        let output_queue = Pubkey::new_unique();
+        let authority = Pubkey::new_unique();
+        let mut pool_lamports = 1_000_000;
+        let mut nullifier_lamports = 1_000_000;
+        let mut wrong_nullifier_lamports = 1_000_000;
+        let mut output_lamports = 1_000_000;
+        let mut authority_lamports = 1_000_000;
+        let mut pool_data = vec![0; POOL_STATE_LEN];
+        let mut nullifier_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut wrong_nullifier_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut output_data = vec![0; HEADER_LEN + OUTPUT_RECORD_LEN * 4];
+        let mut signer_data = [];
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                true,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let nullifier = account_info(
+                &nullifier_set,
+                &program_id,
+                true,
+                false,
+                &mut nullifier_lamports,
+                &mut nullifier_data,
+            );
+            let output = account_info(
+                &output_queue,
+                &program_id,
+                true,
+                false,
+                &mut output_lamports,
+                &mut output_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                false,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let accounts = vec![pool, nullifier, output, authority_info];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &[TAG_INIT]),
+                Ok(())
+            );
+        }
+        wrong_nullifier_data.copy_from_slice(&nullifier_data);
+
+        let before = (
+            pool_data.clone(),
+            wrong_nullifier_data.clone(),
+            output_data.clone(),
+        );
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                true,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let wrong_nullifier = account_info(
+                &wrong_nullifier_set,
+                &program_id,
+                true,
+                false,
+                &mut wrong_nullifier_lamports,
+                &mut wrong_nullifier_data,
+            );
+            let output = account_info(
+                &output_queue,
+                &program_id,
+                true,
+                false,
+                &mut output_lamports,
+                &mut output_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                false,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let accounts = vec![pool, wrong_nullifier, output, authority_info];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &spend_instruction()),
+                Err(ProgramError::Custom(ERR_POOL_ACCOUNT_MISMATCH))
+            );
+        }
+
+        assert_eq!(before, (pool_data, wrong_nullifier_data, output_data));
     }
 
     fn account_info<'a>(

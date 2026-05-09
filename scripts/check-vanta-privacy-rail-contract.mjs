@@ -128,6 +128,7 @@ for (const phrase of [
   "Do not claim meaningful privacy",
   "Render does not create privacy",
   "Current checked refs:",
+  "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in `SECURITY_LIMITATIONS.md`.",
   "swap-to-shielded nullifier registration and output append atomically.",
   "unshield replay/nullifier registration and exit transition atomically.",
   "live venue privacy",

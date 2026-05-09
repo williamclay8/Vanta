@@ -1458,7 +1458,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           {status === "awaiting_confirmation" && (
             <div className="status-panel">
               <span>Awaiting wallet confirmation</span>
-              <p>Approve this private send in your wallet.</p>
+              <p>Approve this shielded-state send in your wallet.</p>
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>
@@ -1468,7 +1468,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           {status === "sending" && (
             <div className="status-panel status-panel--processing">
               <span>Send in progress</span>
-              <p>Sending from your shielded balance.</p>
+              <p>Recording the constrained Send transition from your shielded balance.</p>
               {sendProgressLabel && (
                 <p className="shield-helper shield-helper--meta">{sendProgressLabel}</p>
               )}
@@ -1517,7 +1517,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <span>Send complete</span>
               <p>
                 {lastSentAmount !== null && lastRecipient
-                  ? `${formatBalance(lastSentAmount, "USDC")} was sent from shielded state for recipient ${lastRecipient}.`
+                  ? `${formatBalance(lastSentAmount, "USDC")} was recorded from shielded state for recipient ${lastRecipient}.`
                   : "The constrained Vanta send note was confirmed."}
               </p>
               <div className="success-metrics">

@@ -81,13 +81,13 @@ const builtSpendTransaction = buildVantaPrivatePoolV2ActualPrivateSpendTransacti
     { isSigner: false, isWritable: true, pubkey: outputQueue },
     { isSigner: true, isWritable: false, pubkey: operatorAuthority },
   ],
-  instructionDataBase64: Buffer.from(
-    JSON.stringify({
-      acceptedRoot: "root:reviewed",
-      nullifierCommitment: "nf:reviewed",
-      publicInputHash: "pub:reviewed",
-    }),
-  ).toString("base64"),
+  instructionDataBase64: Buffer.concat([
+    Buffer.from([1]),
+    Buffer.from("11".repeat(32), "hex"),
+    Buffer.from("22".repeat(32), "hex"),
+    Buffer.from("33".repeat(32), "hex"),
+    Buffer.from("44".repeat(32), "hex"),
+  ]).toString("base64"),
   programId: spendProgramId,
   recentBlockhash: "11111111111111111111111111111111",
   relayerFeePayer: relayerKeypair.publicKey.toBase58(),

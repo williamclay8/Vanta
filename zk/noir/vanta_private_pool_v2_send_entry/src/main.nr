@@ -7,15 +7,15 @@ fn compute_nullifier(input_commitment: Field, owner_secret: Field) -> Field {
 }
 
 fn compute_send_economics_commitment(
-    input_amount: Field,
-    recipient_amount: Field,
-    change_amount: Field,
+    input_amount: u128,
+    recipient_amount: u128,
+    change_amount: u128,
     economics_blinding: Field,
 ) -> Field {
     bn254::hash_4([
-        input_amount,
-        recipient_amount,
-        change_amount,
+        input_amount as Field,
+        recipient_amount as Field,
+        change_amount as Field,
         economics_blinding,
     ])
 }
@@ -136,9 +136,9 @@ fn main(
     change_output_root: Field,
     change_append_path: [Field; MERKLE_DEPTH],
     change_append_path_direction_bits: [Field; MERKLE_DEPTH],
-    input_amount: Field,
-    recipient_amount: Field,
-    change_amount: Field,
+    input_amount: u128,
+    recipient_amount: u128,
+    change_amount: u128,
     economics_blinding: Field,
     owner_secret: Field,
 ) {

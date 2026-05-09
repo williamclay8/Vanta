@@ -27,6 +27,8 @@ const packets = {
       safeClaim:
         "Shield has a shaped receipt/trust-packet contract, but this packet is not current proof-backed and is not a production-private or audited anonymity claim.",
     },
+    honestyNote:
+      "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in SECURITY_LIMITATIONS.md.",
     visibleFields: [
       "target asset",
       "receipt id",
@@ -67,8 +69,17 @@ const packets = {
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Send has a canonical ledger gate and a repo-checked no-witness proof-artifact operator boundary, but browser Send execution is blocked until a local proof artifact is available and the lane is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
+        "Send has a canonical ledger gate and a repo-checked no-witness proof-artifact operator boundary, but legacy Send memo/discovery surfaces can still expose recipient details until AEAD v2 lands, browser Send execution is blocked until a local proof artifact is available, and the lane is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
     },
+    honestyNote:
+      "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in SECURITY_LIMITATIONS.md.",
+    sendMemoMode: "legacy-v1-plaintext-memo-compatible-v2-aead-pending",
+    publicChainVisibleFields: [
+      "legacy v1 Send memo can expose recipient",
+      "legacy v1 Send memo can expose amount",
+      "legacy v1 Send memo can expose change amount",
+      "legacy spent-marker memo can expose consumed note id",
+    ],
     spendabilityBasis: "canonical-spendable-note-ledger",
     visibleFields: [
       "proof id",
@@ -128,6 +139,8 @@ const packets = {
       safeClaim:
         "Unshield has a shaped release-evidence contract, but this packet is not current proof-backed and is not a production-private exit or anonymity claim.",
     },
+    honestyNote:
+      "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in SECURITY_LIMITATIONS.md.",
     visibleFields: [
       "release receipt reference",
       "redacted transaction evidence",
@@ -181,9 +194,15 @@ if (checkMode) {
   assert.ok(packet.claimBoundary.safeClaim.includes("not"));
   assert.ok(packet.verificationCommands.includes("npm run programmatic-privacy:contract-check"));
   assert.ok(packet.remainingBlockers.includes("audited shared anonymity set"));
+  assert.ok(packet.honestyNote?.includes("current operator-shaped commitments"));
 
   if (packet.action === "send") {
     assert.equal(packet.spendabilityBasis, "canonical-spendable-note-ledger");
+    assert.equal(packet.sendMemoMode, "legacy-v1-plaintext-memo-compatible-v2-aead-pending");
+    assert.ok(
+      packet.publicChainVisibleFields?.some((field) => field.includes("recipient")),
+      "Send packet must disclose current public-chain recipient leakage while legacy v1 memos exist.",
+    );
     assert.ok(packet.verificationCommands.includes("npm run send:balance-ledger-check"));
     assert.ok(
       packet.verificationCommands.includes("npm run private-core:send-operator-no-witness-check"),

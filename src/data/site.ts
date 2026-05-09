@@ -13,10 +13,10 @@ export const capabilities: Capability[] = [
     details: "The constrained entry point for current private-core flows.",
   },
   {
-    title: "Private Send",
+    title: "Shielded Send (beta)",
     status: "Private Core lane",
-    summary: "Move value privately.",
-    details: "Proof-backed where implemented; production privacy claims remain gated.",
+    summary: "Move from shielded state with claim gates visible.",
+    details: "Proof-shaped where implemented; legacy memo/discovery privacy remains a blocker.",
   },
   {
     title: "Private Swap",
@@ -41,8 +41,8 @@ export const capabilities: Capability[] = [
 export const roadmap = [
   {
     phase: "Phase 01",
-    title: "Shield + Private Send",
-    description: "Today’s private-core lane.",
+    title: "Shield + guarded Send",
+    description: "Today’s private-core beta lane.",
   },
   {
     phase: "Phase 02",

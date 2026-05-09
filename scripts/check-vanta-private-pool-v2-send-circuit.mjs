@@ -123,6 +123,24 @@ try {
     console.log("invalid-amount-conservation fixture: expected failure observed");
   }
 
+  writeFixture("invalid-amount-range");
+  console.log("invalid-amount-range fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-amount-range fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-amount-range fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-amount-range fixture: expected failure observed");
+  }
+
   writeFixture("forged-recipient-append-path");
   console.log("forged-recipient-append-path fixture write: PASS");
 

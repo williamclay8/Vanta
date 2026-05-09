@@ -13,15 +13,15 @@ const programId = Keypair.generate().publicKey.toBase58();
 const poolState = Keypair.generate().publicKey.toBase58();
 const nullifierSet = Keypair.generate().publicKey.toBase58();
 const outputQueue = Keypair.generate().publicKey.toBase58();
-const operatorAuthority = Keypair.generate().publicKey.toBase58();
+const operatorAuthority = relayerFeePayer;
 const recentBlockhash = "11111111111111111111111111111111";
-const instructionDataBase64 = Buffer.from(
-  JSON.stringify({
-    acceptedRoot: "root:reviewed",
-    nullifierCommitment: "nf:reviewed",
-    publicInputHash: "pub:reviewed",
-  }),
-).toString("base64");
+const instructionDataBase64 = Buffer.concat([
+  Buffer.from([1]),
+  Buffer.from("11".repeat(32), "hex"),
+  Buffer.from("22".repeat(32), "hex"),
+  Buffer.from("33".repeat(32), "hex"),
+  Buffer.from("44".repeat(32), "hex"),
+]).toString("base64");
 
 const built = buildVantaPrivatePoolV2ActualPrivateSpendTransaction({
   accounts: [
@@ -117,6 +117,46 @@ assert.throws(
       relayerFeePayer,
     }),
   /requires base64 instructionDataBase64/,
+);
+
+assert.throws(
+  () =>
+    buildVantaPrivatePoolV2ActualPrivateSpendTransaction({
+      accounts: [
+        { isSigner: false, isWritable: true, pubkey: poolState },
+        { isSigner: false, isWritable: true, pubkey: nullifierSet },
+        { isSigner: false, isWritable: true, pubkey: outputQueue },
+        { isSigner: true, isWritable: false, pubkey: operatorAuthority },
+      ],
+      instructionDataBase64: Buffer.concat([
+        Buffer.from([0]),
+        Buffer.from("11".repeat(32), "hex"),
+        Buffer.from("22".repeat(32), "hex"),
+        Buffer.from("33".repeat(32), "hex"),
+        Buffer.from("44".repeat(32), "hex"),
+      ]).toString("base64"),
+      programId,
+      recentBlockhash,
+      relayerFeePayer,
+    }),
+  /requires tag=1 and 129-byte spend instruction data/,
+);
+
+assert.throws(
+  () =>
+    buildVantaPrivatePoolV2ActualPrivateSpendTransaction({
+      accounts: [
+        { isSigner: false, isWritable: true, pubkey: poolState },
+        { isSigner: false, isWritable: true, pubkey: nullifierSet },
+        { isSigner: false, isWritable: true, pubkey: outputQueue },
+        { isSigner: true, isWritable: false, pubkey: Keypair.generate().publicKey.toBase58() },
+      ],
+      instructionDataBase64,
+      programId,
+      recentBlockhash,
+      relayerFeePayer,
+    }),
+  /requires relayerFeePayer to equal operatorAuthority/,
 );
 
 const publicBuilderResult = JSON.stringify(built);

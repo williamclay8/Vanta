@@ -14,15 +14,15 @@ This review is now an active feedback-loop document, not only a point-in-time au
 
 | Area | Current local state | Guard |
 | --- | --- | --- |
-| Solana spend authority | Spend evidence writes require the initialized operator authority signer; reviewed mainnet evidence predates this ABI and remains blocked until redeploy/reinit. | `npm run private-pool-v2:contract-check` |
+| Solana spend authority | Spend evidence writes require the initialized operator authority signer; init is one-time, pool state binds the initialized nullifier/output accounts, and reviewed mainnet evidence predates this ABI and remains blocked until redeploy/reinit. | `npm run private-pool-v2:contract-check` |
 | Canonical note membership | Placeholder additive note/tree hashing was replaced with Poseidon note, leaf, and node hashing plus direction/leaf-index constraints. | `npm run zk:canonical-note-membership-check` |
 | Canonical note proving commitment | `CanonicalNoteArtifacts` now carries both legacy SHA-256 display commitment and Poseidon/BN254 proof-facing `provingCommitment`; Live Shield records both and Live Send preserves the proof-facing commitment through redaction. | `npm run zk:canonical-note-proving-commitment-check` |
 | Private Pool v2 entry circuits | Local fixed-depth lanes now prove input membership and path-based successor append roots for Shield, Send, Swap-to-shielded, Claim, and actual-private spend where applicable. | `npm run private-pool-v2:verify` |
-| Private Pool v2 Send conservation | Send now proves a private economics commitment and `input_amount == recipient_amount + change_amount` inside the local Noir circuit. | `npm run private-pool-v2:send-circuit-check` |
+| Private Pool v2 Send conservation | Send now proves a private economics commitment, constrains amount witnesses as `u128`, and checks `input_amount == recipient_amount + change_amount` inside the local Noir circuit. | `npm run private-pool-v2:send-circuit-check` |
 | Private Core tree hashing | Single-field membership paths and standard Poseidon node hashing are now guarded across send/swap/unshield. | `npm run zk:merkle-node-hash-contract-check` |
 | Owner recovery payload | X25519 + HKDF-SHA256 + XChaCha20-Poly1305 replaced the hand-rolled XOR/SHA path. | `npm run zk:owner-recovery-payload-crypto-check` |
 
-Still not solved: active proving lanes are still depth 3, on-chain proof verification/root-history enforcement is not wired, Send amount range checks still need a dedicated circuit pass, nullifier storage remains fixed/linear on-chain, no audit has accepted the boundary, and no live deployment evidence has been refreshed.
+Still not solved: active proving lanes are still depth 3, on-chain proof verification/root-history enforcement is not wired, nullifier storage remains fixed-capacity/linear on-chain even though duplicate scanning now only covers initialized slots, no audit has accepted the boundary, and no live deployment evidence has been refreshed.
 
 ---
 
@@ -34,7 +34,7 @@ Still not solved: active proving lanes are still depth 3, on-chain proof verific
 
 This means the on-chain "evidence" account is **not enforcing privacy or soundness**. It is a public append-only log whose integrity rests entirely on the off-chain operator deciding what to submit. The README in `programs/.../README.md` calling this "anchoring private spend evidence" overstates what the program does.
 
-**Codex status, 2026-05-09:** partially remediated locally for the write authority boundary. `programs/vanta_private_pool_v2_spend/src/lib.rs` now stores an operator authority during init and requires the matching read-only signer on spend, and the transaction builder/relayer/operator surfaces now expect that fourth signer account. This closes the stale "callable by any wallet" shape for this branch, but it still does not add on-chain proof verification, verifying-key hash enforcement, accepted-root history, or production soundness. Existing reviewed mainnet spend-program evidence predates this authority-gated ABI and remains blocked until redeploy/reinit.
+**Codex status, 2026-05-09:** partially remediated locally for the write authority boundary. `programs/vanta_private_pool_v2_spend/src/lib.rs` now stores an operator authority during one-time init, requires the matching read-only signer on spend, binds the pool to the initialized nullifier/output accounts, and the transaction builder/relayer/operator surfaces now expect that fourth signer account. This closes the stale "callable by any wallet" shape for this branch, but it still does not add on-chain proof verification, verifying-key hash enforcement, accepted-root history, or production soundness. Existing reviewed mainnet spend-program evidence predates this authority-gated ABI and remains blocked until redeploy/reinit.
 
 ### 2. The on-chain program is trivially DoS-able
 
@@ -42,7 +42,7 @@ Because there's no signer/authority check (item 1), anyone can call `process_spe
 
 The duplicate-detection loop is also O(n) (`for slot in nullifier_slots(...)`). Long before the account fills, the linear scan will exceed Solana's compute-unit budget per call, freezing the pool earlier than the explicit "full" error.
 
-**Codex status, 2026-05-09:** partially remediated locally. The unauthenticated public slot-fill path is now gated by the initialized operator signer, but the fixed-capacity account layout and linear duplicate scan are still structurally DoS-prone. The remaining fix is still sharded/PDA-keyed nullifier existence storage or another O(1) scalable nullifier design.
+**Codex status, 2026-05-09:** partially remediated locally. The unauthenticated public slot-fill path is now gated by the initialized operator signer, reinitialization is rejected, mixed account triplets are rejected by pool-state child-account bindings, and duplicate checks scan only initialized nullifier slots. The fixed-capacity account layout and O(n) duplicate scan are still structurally DoS-prone at scale. The remaining fix is still sharded/PDA-keyed nullifier existence storage or another O(1) scalable nullifier design.
 
 **Recommended fixes** for a v2 spend program before any real deployment:
 
@@ -166,9 +166,9 @@ The prior feedback loops moved several early items from "recommended" to "locall
 
 1. **Keep the Solana authority boundary guarded and redeploy/reinit before citing live evidence.** The local branch has the signer gate, but the reviewed mainnet spend-program evidence is pre-authority-ABI and must remain blocked.
 2. **Bump Merkle depth to >=20 across active proving lanes and fixtures.** The repaired canonical membership target is depth 20, but Private Pool v2 and Private Core lanes still use depth 3.
-3. **Add amount range constraints for Send economics witnesses.** The circuit now proves conservation over field elements; it still needs range discipline before this becomes a production amount proof.
+3. **Extend amount range constraints beyond Send.** Private Pool v2 Send is now locally constrained to `u128`; Private Core Send/Swap/Unshield and other economics witnesses still need the same range/carry discipline before they become production amount proofs.
 4. **Remove plaintext memo/privacy leakage from Send-style successor discovery.** Encrypted memo and recipient discovery semantics need the same discipline as the owner-recovery and viewing-key work.
-5. **Replace fixed/linear on-chain nullifier storage.** The signer gate blocks public slot filling, but capacity and O(n) duplicate scanning are still not a production nullifier design.
+5. **Replace fixed/linear on-chain nullifier storage.** The signer/account-binding gates block public slot filling and mixed account triplets, and duplicate scanning now covers only initialized slots, but fixed capacity and O(n) lookup are still not a production nullifier design.
 6. **Wire real on-chain proof verification and root-history enforcement.** Biggest piece of work. Either embed a Groth16/Honk verifier or CPI into a verifier program, then anchor accepted roots against stored history.
 
 ---
@@ -2074,7 +2074,7 @@ The team has built the right framework for shipping a privacy product honestly. 
 
 First local hardening slice started:
 
-- Added an operator-authority gate to `programs/vanta_private_pool_v2_spend`. Init stores the authority, spend requires the same read-only signer, and the pool state layout is now 88 bytes.
+- Added an operator-authority gate to `programs/vanta_private_pool_v2_spend`. Init stores the authority, spend requires the same read-only signer, and the pool state layout is now 152 bytes.
 - Updated local transaction builder, printer, relayer submission checks, operator packet surfaces, service manifests, secret references, and production-review evidence to require `VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY`.
 - Marked existing reviewed mainnet spend-program/account evidence as pre-authority-gate and therefore blocked/incompatible until redeploy/reinitialization.
 - Updated the Crucible dry-run harness to include authority state and unsigned/wrong-authority spend attempts.
@@ -2151,6 +2151,24 @@ Still open after this fifth local ZK pass: active lanes remain `MERKLE_DEPTH = 3
 Verification passed locally: `npm run zk:canonical-note-proving-commitment-check`, `npm run zk:review-guards-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:contract-check`, `npm run security:limitations-check`, `npm run mainnet:private-settlement-check`, `npm run mainnet:readiness-check`, `npm run build`, full `npm run private-pool-v2:verify`, full `npm run private-core:verify`, and `git diff --check`. Full Private Pool v2 verify still emits existing Crucible harness warnings (`mach_task_self` deprecation and unused mut), but the dry-run harness passed.
 
 Still open after this sixth local ZK pass: active lanes remain `MERKLE_DEPTH = 3`, Send amount conservation is proven over field elements without range constraints, the operator/indexer SHA-256 local root scheme is not proven inside Noir, output append monotonicity still depends on operator/indexer state outside the circuit, on-chain proof verification/root-history enforcement is not wired, nullifier storage remains fixed/linear where applicable, no audit has accepted the boundary, and no live deployment evidence was refreshed.
+
+### Seventh local ZK/review-guard pass - 2026-05-09
+
+- Narrowed Private Pool v2 Send economics witnesses from `Field` to `u128` before Poseidon field encoding. The new `invalid-amount-range` fixture uses a `2^128` amount and now fails at Noir type validation instead of solving over the BN254 field.
+- Added `npm run zk:circuit-soundness-lint` and wired it into `npm run zk:review-guards-check`. The lint forbids self-equality witness no-ops, additive membership path collapse, old placeholder hash TODOs, direction-bit Merkle parent hashes, and transitional `hash_3(previous_root, output_commitment, leaf_index)` successor roots. It reports the remaining depth-3 lanes as an open migration rather than pretending depth-20 is complete.
+- Replaced two Private Core owner-auth no-op asserts with nonzero secret constraints while preserving the explicit v0.1 truth that owner/sender key authorization remains prechecked off-circuit.
+- Hardened the Solana spend program locally: init now rejects reinitialization, `pool_state` stores the initialized nullifier-set and output-queue account keys, spend rejects mixed account triplets, duplicate scanning only covers initialized nullifier slots, and the local builder/printer/relayer checks now require byte-packed `tag=1` / 129-byte spend data plus current-path `relayerFeePayer == operatorAuthority` until co-signing exists.
+- Added review-handoff docs artifacts and checks: `LANE_STATUS.md`, `docs/docs-source-of-truth.md`, `npm run docs:source-of-truth-check`, a top-of-runbook "If You Have 10 Minutes" path, `SECURITY_LIMITATIONS.md` last-validation metadata, and README definition-of-done visibility.
+- Trust-packet surfaces now include the shared honesty note that packets bind current operator-shaped commitments, not audited cryptographic verifiability. The Send packet now also discloses current legacy v1 public-chain memo leakage with `sendMemoMode` and `publicChainVisibleFields`.
+- Product copy that implied Send privacy before AEAD successor discovery was demoted from "Private Send / Move value privately" language to guarded shielded-state Send language.
+
+Red-first evidence observed locally: `npm run private-pool-v2:send-circuit-check` failed before the `u128` change because the `2^128` amount fixture solved successfully; after the circuit type change it failed as expected. `npm run private-core:send-check` then caught a bad attempted owner-key variable reference before the owner-auth placeholder cleanup was corrected.
+
+Verification passed locally: `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:send-prove`, `npm run private-core:send-check`, `npm run private-core:consume-check`, `npm run zk:review-guards-check`, `cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml`, `cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml`, `npm run private-pool-v2:solana-spend-transaction-builder-check`, `npm run private-pool-v2:solana-spend-transaction-check`, `npm run private-pool-v2:solana-relayer-submission-check`, `npm run private-pool-v2:contract-check`, `npm run docs:source-of-truth-check`, `npm run security:limitations-check`, `npm run operator:runbook-check`, `npm run privacy-rail:contract-check`, `npm run send:trust-packet-check`, `npm run swap:trust-packet-check`, `npm run build`, full `npm run private-pool-v2:verify`, full `npm run private-core:verify`, `npm run docs:verify`, and `git diff --check`. Full Private Pool v2 verify rebuilt and dry-ran the Crucible fuzz harness successfully, with the existing `mach_task_self` deprecation and unused-mut warnings.
+
+Verification caveat: `cargo-build-sbf` is not installed in this environment, so the Solana SBF `.so` was not rebuilt for the new 152-byte pool-state ABI during this pass.
+
+Still open after this seventh local pass: active proving lanes remain `MERKLE_DEPTH = 3`, amount range/carry discipline beyond Private Pool v2 Send is incomplete, plaintext Send v1 memo/discovery architecture still needs the AEAD v2 recipient/change memo redesign, on-chain proof verification/root-history enforcement is not wired, fixed-capacity/O(n) nullifier storage still needs PDA/sharded redesign, no audit has accepted the boundary, and no live deployment evidence was refreshed.
 
 ---
 

@@ -87,6 +87,19 @@ NoteCreationHint {
 
 `NoteCreationHint` is optional, non-canonical metadata used only for recovery and operator or wallet UX support. It must not be required for commitment correctness.
 
+## Transitional Hash Surface Today
+
+Current Vanta note artifacts intentionally carry two commitment surfaces while the app migrates from local shielded-state bookkeeping to the proving lane:
+
+| Surface | Hash lane today | Role |
+| --- | --- | --- |
+| `commitment` | legacy SHA-256 display/audit handle | Browser-local shielded-state indexing, reviewer handles, and compatibility with existing local records. |
+| `provingCommitment` | Poseidon/BN254 field commitment | Circuit-facing note commitment for Noir proof lanes and future shared-tree membership. |
+| Private Pool v2 entry circuits | Poseidon/BN254 | Local Shield, Send, Swap-to-shielded, Claim, and actual-private spend fixture/prove lanes. |
+| Local operator/indexer state | transitional local handles plus Poseidon proof fields where available | Beta operator surfaces; not a production shared Poseidon tree or on-chain root-history enforcement. |
+
+The migration plan remains the one recorded in `docs/zk/noir-hash-contract-decision.md`: keep the SHA-256 handle as compatibility/display evidence while every proof-facing boundary moves toward Poseidon/BN254 commitments and explicit stale-control checks.
+
 ## Field Semantics
 
 ### `version`

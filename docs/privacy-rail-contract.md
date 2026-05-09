@@ -23,6 +23,8 @@ These action-specific trust packets are the canonical machine-readable surfaces 
 
 These commands must remain fail-closed: they should never imply “production-private”, “fully private”, “anonymity”, “audited”, or “mainnet-ready” unless the matching gates are actually satisfied.
 
+Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in `SECURITY_LIMITATIONS.md`.
+
 ## Rails
 
 ### `alpha-public-warning`
