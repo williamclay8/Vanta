@@ -2622,3 +2622,220 @@ Vanta isn't there yet. After Codex's three local ZK passes (visible in the progr
 What I'd want to see in the next review pass, six months from now: this document's "still open" lists are mostly closed, the trust-contract pattern is wired into UI gating across all six lanes, the on-chain program owns the vaults, the proofs are real and verified on chain, and `vantaprivacy.xyz/.well-known/audit` returns a JSON document I can verify against the deployed program ID. If those things are true, Vanta is the premier privacy suite for Solana. The path to get there is plumbed in the recommendations above.
 
 Good luck.
+
+---
+
+# Taste Pass — How to 20× It
+
+The strategic, technical, and UI/UX passes above tell you what to *build*. This pass tells you what to build it *as*. They're different. A 2× improvement is "the buttons feel nicer." A 20× improvement is "people screenshot the receipt, not because it's pretty, but because they've never seen a payment artifact look like that before."
+
+Taste in a product is the sum of small commitments most teams refuse to make: a specific aesthetic, a specific voice, a specific posture toward the user. Most products are designed by committee toward "good," which is why they all look the same. The privacy/payments space is currently a sea of dark Linear clones with mint accents. Vanta has the opportunity to break out of it, but only if the team commits to taste decisions that *exclude* things rather than include everything.
+
+Twelve commitments, in order of leverage.
+
+## T1. Pick an aesthetic that means something
+
+The current visual language is "darker Linear with mint" — competently executed, perfectly forgettable. The product's name is *Vanta*, named after Vantablack, the darkest material ever made. The brand has been gifted the most distinctive aesthetic prompt in the privacy space and the site does not use it.
+
+Four directions worth seriously considering:
+
+- **The abyss.** Lean fully into Vantablack. The site's actual `#000` rather than `#030406`. Bioluminescent accents that glow against true black like deep-sea creatures. Particle motion that suggests being underwater. WebGL depth, parallax in 3D space, things that move slowly because they're heavy with water. **This is the obvious answer and the team should take it.** Nobody else in crypto is doing this and the brand name justifies it perfectly.
+- **The vault.** Heavy materials. Brushed steel, brass, leather, riveted plates, embossed seals. Privacy as a Swiss bank from a future where Swiss banks are still a good idea. Tactile, weighty, slightly anachronistic.
+- **The classical correspondence.** Wax seals, monogrammed letterhead, registered mail, stamped envelopes. Privacy as a return to a slower, more deliberate communication standard. Receipts that look like notarized documents.
+- **The brutalist financial.** No ornament. Akzidenz Grotesk. Monospace numbers in a single column. Two grayscales and one color. The aesthetic of a Swiss bond prospectus from 1978. Nothing moves. Nothing decorates. The cryptography is the only ornamentation the product allows itself.
+
+Pick one. Commit hard. The wrong choice committed-to is better than the right choice hedged-toward. Right now Vanta is hedged toward four directions at once and reads as none of them.
+
+If forced: the abyss. The brand demands it.
+
+## T2. Develop a voice the product actually speaks in
+
+Read three sentences from the current product back-to-back:
+
+> *"Production privacy claims remain locked."*
+> *"Settlement preview controls."*
+> *"Spendable shielded state available."*
+
+This is the voice of a contract review, not the voice of a product. It's accurate but it's not anyone's voice. Compare:
+
+- **Stripe's voice:** clear, precise, technical without apology. *"Charges are billed to the customer's payment method on a recurring schedule."*
+- **Linear's voice:** direct, opinionated, slightly impatient. *"Don't write project briefs. Write Linear projects."*
+- **Notion's voice:** warm, conversational, encouraging. *"You can always come back and edit this later."*
+
+A privacy product's voice should be *quietly confident.* Not technical-defensive. Not marketing-warm. Confident, materially-aware, with a slight understatement that signals seriousness. Examples:
+
+> *"Your USDC enters Vanta. The door closes behind it."*
+> *"Send privately. The chain sees that something happened. It does not see what."*
+> *"Your trust packet is sealed. Counterparties verify it without opening it."*
+> *"You can leave whenever you want. The door always opens from inside."*
+
+Notice these don't say "production privacy claims remain locked." They say what is true, materially. The disclaimers belong in their own corner of the product (the claim controls dialog), not infused into every sentence on every page.
+
+A voice spec should fit on one page. Go write it.
+
+## T3. Commit to a vocabulary
+
+The current product surface uses generic web3 vocabulary: *shield, unshield, send, swap, balance, nullifier, commitment, settlement, withdrawal, receipt.* Functional, accurate, undifferentiated. Every privacy product uses these words.
+
+What if Vanta used different words?
+
+- *Shield* → **seal** (or **stow**, **case**, **case in**, **tuck**)
+- *Unshield* → **open** (or **release**, **uncase**, **draw**)
+- *Send* → **pass** (or **convey**, **forward**)
+- *Swap* → **exchange** (or **trade**, **convert in place**)
+- *Balance* → **holding** (or **trust**)
+- *Receipt* → **letter** (or **packet**, **stamp**, **seal**)
+- *Nullifier* → **mark** (or **tally**)
+- *Commitment* → **claim** (or **note**)
+- *Withdrawal* → **drawdown**
+- *Vault* → **the vault** (singular, definite — there is only one)
+
+These aren't random. They're the vocabulary of a 19th-century banking house, filtered through cryptographic precision. They're also vocabulary nobody else in crypto uses. **Adopting a distinctive vocabulary is the fastest way to be quotable.** Aztec's "Noir" and "Barretenberg" are objectively weird names; they're also part of why Aztec gets talked about. Penumbra's "shielded zone" and "Halo 2" do the same work.
+
+Don't rename everything at once. Start with two: rename the user-facing trust packet to the **Letter** (because that's what it is — a sealed, signed correspondence), and rename the on-chain vault PDA to the **Vault** (singular, definite; there is one Vault per asset). Two months later when the merchant community is saying "Vanta Letters" and "the Vanta Vault" of their own accord, expand.
+
+## T4. Make privacy visible by making time visible
+
+Every privacy product hides its weakest property: anonymity set size. Vanta should display it as the centerpiece. Not just "1,247 active deposits" as a static number, but a *time-aware* visualization that's the most prominent thing on the home page:
+
+- A horizontal axis representing time, from now reaching into the past two weeks
+- A density of dots representing the deposits in the pool at each moment
+- A shaded band showing the user's "anonymity envelope" — the set of deposits they could plausibly be inside, growing wider as time passes
+- A real-time ticker as new deposits arrive, the band visibly thickening
+
+This is a visualization nobody has built. It would communicate the privacy property of the system in a way no copy ever could. It would also be *honest about weakness*: when the anonymity set is small, the band is narrow, and users see that. When it's large, they see that too. The system's privacy story would be quantifiable on the front page.
+
+This is the single most leveraged taste move. It commits to the privacy thesis visually, it's unique to Vanta, it's a screenshot people share, and it requires nothing the team can't already build.
+
+## T5. Build the receipt as an artifact, not a record
+
+Today's trust packet is a JSON blob. The taste move: **the trust packet is a sealed letter.**
+
+Specifically:
+
+- A real PDF, served from `/letter/<id>`, with letterhead, a serial number (`VTA-2026-0xa1b...`), a date, an issuing operator signature, a recipient field, and a sealed-wax-style impression of the brand mark in the corner.
+- A QR code in the bottom-right that resolves to a verification URL that reads the on-chain proof and confirms the letter is authentic.
+- A "Letter received" page on the verification URL that mirrors the PDF visually — same letterhead, same serial — with a subtle "verified" stamp animation when the cryptographic checks pass.
+- The on-screen receipt UI inside `/app/pay` looks like the PDF. Not styled-as-receipt; literally the same layout. So a merchant can hand the customer a printout and the email and the URL all show the same artifact.
+- An optional API endpoint that returns the letter as a single inline-image PNG for easy embedding in invoicing software.
+
+The Letter becomes the company's distribution artifact. Every merchant who uses Vanta puts a Vanta Letter in their customers' hands. Every counterparty verification produces a Vanta Letter URL. Every accountant audit references a Vanta Letter serial number. The artifact carries the brand into every conversation Vanta isn't in the room for.
+
+Stripe doesn't have a Letter. Square doesn't have a Letter. PayPal doesn't have a Letter. This is the move that creates a *category*.
+
+## T6. Make the threshold a real moment
+
+When a user first shields, that's a moment. Today it's silent — a successful transaction signature appears, some text changes, and the user moves on. A tasteful product makes the moment feel like crossing a threshold:
+
+- A 600ms animation when the shield confirms: the brand mark briefly fills the screen, fades to the page background, and the new note appears in the user's vault grid with a subtle settling motion.
+- A single, unique mechanical sound — a heavy door closing, ~200ms, low-frequency, opt-in default-on.
+- The user's first-ever shield gets a named entry in their history: "Your first seal: 2026-05-09." On-screen marker. Optional one-click "save commemorative receipt" that issues a special edition Letter.
+- A subtle persistent change in the app shell: once the user has shielded for the first time, the brand mark in the nav corner glows mint instead of gray. Tiny. Permanent. Becomes part of the user's relationship with the product.
+
+These are not features in any feature list. They're the texture of using the product. They're what makes a user say "I like Vanta" instead of "I use Vanta."
+
+## T7. Errors are an opportunity
+
+Most products treat errors as failures. Tasteful products treat errors as the most important UX moments — the user is already frustrated, and how the product responds determines whether they stay.
+
+Three concrete moves:
+
+- **A custom 404 page** that's specifically Vanta. A confused vault attendant. A returned-unopened envelope. The brand mark dimmed and uncertain. Page copy that's slightly self-aware: *"This isn't a place. The Vanta Vault has fewer rooms than the URL suggests."*
+- **Network errors get specificity.** Not "Transaction failed." Instead: *"The Solana network rejected this transaction at slot 312,584,221. The cluster is operating with elevated latency. Your funds were not moved. Try again, or wait 30 seconds."* The user's frustration is addressed by precision.
+- **Wallet-rejection errors get warmth.** *"You declined to sign. That's fine — your funds are still where you left them."* Not all errors are problems. Some are user choices. Treat them differently.
+
+Error states are also where your voice (T2) gets tested. A panicked error voice undoes everything else. A composed error voice compounds with everything else.
+
+## T8. Hide easter eggs that respect the topic
+
+Privacy is serious. Humorless is a choice; it's not the only one. A handful of small, on-theme moments that 1% of users will notice:
+
+- **Brand mark animation by time of day.** During market hours UTC, the mark pulses on a 4s cycle. After hours, slower (8s cycle). Discoverable only by people who watch.
+- **Slot-parity background tint.** The home page's background hue shifts microscopically based on the current Solana slot height parity. Even slots = mint at 0.4% saturation; odd slots = mint at 0.6% saturation. Visually undetectable to anyone not looking for it. Visible if you look closely. A thing for cryptography people to spot.
+- **A `well-known` document.** `vantaprivacy.xyz/.well-known/audit` returns a JSON file with current circuit hashes, verifying-key hashes, deployed program IDs, and a signature from the project key. Cryptographers find it. They share it. It costs nothing.
+- **A discreet manifest.** `vantaprivacy.xyz/manifest` (or in the page source as a comment) contains a single-paragraph credo: *"Vanta is built by people who think privacy is a precondition for being a person, not a feature for being suspicious. We will close the door behind your transactions and we will not open it without your asking. We will tell you when we cannot do that yet. We will not pretend to do it when we cannot."* People screenshot manifestos.
+- **The Konami code unlock**, mentioned in the UI/UX pass. Worth keeping.
+
+Three discoverable easter eggs, none of which a casual user will notice. All of which signal craft to the people who do.
+
+## T9. Onboarding is a story, not a tutorial
+
+The first 90 seconds with a product are when taste lands or doesn't. Today's first 90 seconds with Vanta: read the home page, click "Enter App," see a form. Generic.
+
+What if the first 90 seconds were:
+
+- The home page, after a 2-second pause, gently begins to scroll on its own. As it scrolls, a single particle drifts from a labeled "Public Wallet" node on the left toward a "Vanta Vault" node on the right. Behind the particle, a faint trail. As it crosses an invisible boundary, the particle's color shifts from neutral to mint, and the trail behind it fades.
+- The home page text fades in alongside this motion, sentence by sentence: *"Your wallet is public. Vanta closes the door behind it. Privacy starts at the threshold."*
+- After 30 seconds, the auto-scroll stops. The user can scroll freely. A small "Begin" CTA appears.
+- Clicking "Begin" doesn't take the user to a form. It takes them to the **Vault** — a visual metaphor for their soon-to-exist shielded balance — and prompts them to "Open your Vault" by connecting a wallet. The vault doors open. They see an empty interior. Now they're inside the product.
+
+This is 200 lines of WebGL and 50 lines of copy. It would take a week to build well. It would be the most-talked-about onboarding in crypto.
+
+## T10. Treat the docs as a publication, not a reference
+
+The current docs are correctly framed but feel like documentation. What if they felt like a *publication*?
+
+- Each doc page has a byline ("Written by the Vanta team, last reviewed 2026-05-09").
+- Each major release ships with a long-form essay on `vantaprivacy.xyz/log`. Not a changelog. A piece of writing. *"Why we are not a token-based protocol (yet)."* *"What Privacy Pools means for Solana."* *"The decision to use Poseidon."* These are the documents that get linked in cryptography Twitter and that build technical credibility over years.
+- The newsletter is real. Monthly. One voice (preferably an actual named person on the team). Long-form, technical, opinionated. Substack or self-hosted. Subscribers measured in hundreds before launch, thousands after.
+- A `/manifesto` page distinct from the docs. The principles. Updated rarely. The thing the founder would defend in writing.
+- A `/people` page with the team. Real names, real photos, real backgrounds. Privacy is a trust product; trust comes from people users can identify.
+
+Stripe's blog is a reason people trust Stripe. Vercel's blog is a reason people trust Vercel. The Linear blog is a reason people trust Linear. None of these companies are journalism shops; they all *publish*. Vanta should too.
+
+## T11. Keep the operator visible until it isn't
+
+A tasteful privacy product is honest about its current architecture. The current architecture has an operator. Most privacy products try to hide their operator behind decentralization theater. Vanta should do the opposite:
+
+- A **public Operator page** at `vantaprivacy.xyz/operator`. Lists the current operator entity, the deployed program IDs, the operator's public key, the operator's published commitments ("we will not change the verifying key without 30 days' notice"), the operator's incident history.
+- An **Operator Letter** signed monthly. A one-page document, signed cryptographically by the operator's key, containing: pool size, monthly throughput, any incidents, any policy changes, links to evidence. Published on the public page; signed so anyone can verify it later.
+- A **decommissioning roadmap.** Public, dated milestones for moving from "single operator" to "anyone-can-operate" to "trustless." Updated quarterly. Treats the operator role as a temporary state the project is actively trying to retire.
+
+This makes the trust model an asset rather than a liability. Yes, there's an operator. Yes, here's exactly who they are and what they can do. Yes, here's the path off them. **Honesty about the current trust model is taste.**
+
+## T12. The artifact you leave behind
+
+When a user stops using Vanta, what do they take with them? Today: nothing. The localStorage clears, the trust packets are operator-side, the wallet still works, the experience is gone.
+
+A tasteful product gives the user something to keep:
+
+- A **lifetime activity letter.** Generated at any time. PDF. Lists every action the user took (privacy-aware — no counterparty addresses unless they explicitly attached them), totals, the date range, the cryptographic signatures. It's the user's record of having used the product.
+- A **commemorative edition** for milestones. First shield, 100th shield, one year as a user. Special-styled Letter. Optional: claimable as a free, non-financialized NFT for users who want one.
+- A **data export.** Standard CSV/JSON of everything the user did, encrypted to their viewing key, downloadable. Compliant with GDPR's data portability requirement; also just kind to the user.
+- A **goodbye page.** If a user explicitly chooses to delete their account, a final page that says: *"Your local data is gone. Your on-chain footprint remains; that's not ours to delete. Here's a final letter for your records."* Followed by a final downloaded Letter. People remember how products say goodbye.
+
+These are not retention mechanisms. They're the opposite — they're respect for the user's right to leave. Products that respect that earn the kind of loyalty that retention mechanisms cannot.
+
+---
+
+## What 20× looks like in practice
+
+If everything above lands, what does Vanta actually feel like in 12 months?
+
+A user opens `vantaprivacy.xyz`. The screen is true black. A handful of bioluminescent points drift slowly. A single line of text fades in: *"Privacy starts at the threshold."* A particle crosses a faintly-rendered boundary; behind it, a depth-oracle gauge shows 12,847 sealed deposits over the last 14 days, the band thickening as the user watches.
+
+They click "Open your Vault." Their wallet prompts. They sign. The Vault doors open visually. They are inside an interior that's specifically theirs — a small, dark, comfortable room with their assets arranged in a grid. They seal a USDC deposit; the door closes with a single low-frequency mechanical sound. A Letter is issued. It looks like nothing they've ever seen before — a PDF with a cryptographic seal, a serial number, an embossed brand mark, and a verification QR. They send it to their accountant. The accountant has never received an artifact like it. They mention it to a colleague. The colleague mentions it on Twitter. The serial number gets shared. People click through to verify. The verification page mirrors the artifact perfectly.
+
+A merchant integrating Vanta gets a Letter with every payment. They configure their hosted checkout — the customer-facing flow uses the same Vault metaphor; the customer recognizes it from screenshots their friends shared. Settlement produces a Letter. The merchant receives the Letter via webhook with a verification URL. They forward it to their finance team without explanation. The finance team asks where it's from. The answer ("Vanta") becomes part of the company's vocabulary.
+
+Six months in, "Letters" is what the community calls trust packets. "The Vault" is what they call the protocol. A monthly Operator Letter goes out and people read it. The newsletter has 4,000 subscribers. The cryptography essays get linked in Vitalik's digest. The home page's depth oracle shows 380,000 sealed deposits. The manifesto is screenshotted. Onboarding feels like a ritual. Errors feel composed. Easter eggs get found and shared.
+
+None of this is more *features*. All of this is taste.
+
+---
+
+## How to start
+
+Most of this is unbuildable in a hackathon and unfundable in a typical seed round. Both are fine. Taste is a long game. The starting moves are small, opinionated, and mostly free:
+
+- **This week:** write the voice spec (T2). One page. Pin it to the engineering channel. Apply it to the next ten copy edits.
+- **This week:** rename "trust packet" to "Letter" everywhere. The next time anyone in the team uses the old term, gently correct them. Two weeks later it'll have stuck.
+- **This week:** ship the `/.well-known/audit` document and the `/manifesto` page. Both are 30 minutes of work. Both are taste signals that compound.
+- **This month:** commit to the abyss aesthetic. Replace `#030406` with `#000`. Replace the hero with a WebGL particle field. Tell whoever's worried about it that the brand demanded it.
+- **This month:** redesign the receipt as a Letter. PDF, sealed, serial-numbered, verifiable. Show one to ten people. Iterate. Ship.
+- **This quarter:** build the depth-oracle visualization (T4). Put it on the home page. Make it the most prominent number on the site.
+- **This quarter:** write the first long-form essay for the log. Pick a topic that the team has actually thought hard about (the Poseidon decision, the operator decommissioning roadmap, the choice not to use a token). Publish under a real byline. See who shares it.
+
+The team that does these seven things in three months has shipped a product that *looks like Vanta*. The team that doesn't has shipped a product that looks like every other privacy app.
+
+20× the taste is not 20× the polish. It's 20 specific commitments that exclude things, made in public, defended in writing, executed with care. Most teams don't make any of them. The ones that do are the ones we still talk about ten years later.
