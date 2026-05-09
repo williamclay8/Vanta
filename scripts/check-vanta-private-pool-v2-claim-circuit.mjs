@@ -90,6 +90,21 @@ try {
     console.log("invalid-nullifier fixture: expected failure observed");
   }
 
+  writeFixture("invalid-amount-range");
+  console.log("invalid-amount-range fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-amount-range fixture unexpectedly succeeded");
+  } catch (error) {
+    if (error instanceof Error && error.message === "invalid-amount-range fixture unexpectedly succeeded") {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-amount-range fixture: expected failure observed");
+  }
+
   writeFixture("forged-input-membership");
   console.log("forged-input-membership fixture write: PASS");
 

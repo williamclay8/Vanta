@@ -8,6 +8,10 @@ export type VantaPayCheckoutUiMode = "hosted" | "embedded" | "modal";
 
 export type VantaPayCheckoutSessionStatus = "open" | "completed" | "expired" | "canceled";
 
+export type VantaPayCheckoutCompletionBasis =
+  | "local-test-harness"
+  | "customer-payment-evidence";
+
 export type VantaPayPrivacyRail = "umbra" | "private_pool_v2";
 
 export type VantaPayMerchantTrustStatus = {
@@ -214,8 +218,10 @@ export type VantaPayCheckoutSession = {
 export type VantaPayPayment = {
   amount: string;
   checkoutSessionId: string;
+  completionBasis: VantaPayCheckoutCompletionBasis;
   createdAt: string;
   currency: VantaPayAsset;
+  customerPaymentEvidenceRef: string | null;
   id: string;
   merchantId: string;
   object: "payment";
@@ -246,8 +252,10 @@ export type VantaPayReceipt = {
   amount: string;
   asset: VantaPayAsset;
   checkoutSessionId: string;
+  completionBasis: VantaPayCheckoutCompletionBasis;
   createdAt: string;
   customerEmail: string | null;
+  customerPaymentEvidenceRef: string | null;
   id: string;
   invoiceReference: string | null;
   merchantId: string;
@@ -278,6 +286,11 @@ export type VantaPayReceiptPublicView = {
   object: "receipt_public_view";
   orderId: string | null;
   paymentId: string;
+  checkoutCompletion: {
+    basis: VantaPayCheckoutCompletionBasis;
+    customerPaymentEvidenceRefPresent: boolean;
+    localHarness: boolean;
+  };
   privateSettlement: {
     auditDisclosure: VantaPayReceiptRedactedReference;
     policyMode: "legible-trust";

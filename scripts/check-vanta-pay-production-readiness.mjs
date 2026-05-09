@@ -43,6 +43,13 @@ assert.equal(status.mainnetReady, false);
 assert.equal(status.strictReadyGateCommand, "npm run pay:production-readiness-check");
 assert.equal(status.payStatus.productionReady, false);
 assert.equal(status.payStatus.privateSettlement.checkoutProofBoundary, "hidden-economics-request");
+assert.equal(status.payStatus.privateSettlement.checkoutCompletionAuth, "internal-settlement-token-only");
+assert.equal(status.payStatus.privateSettlement.checkoutCompletionDefaultBasis, "local-test-harness");
+assert.equal(status.payStatus.privateSettlement.checkoutCompletionEndpoint, "chain-subscriber-internal");
+assert.equal(status.payStatus.privateSettlement.customerPaymentEvidenceRequiredForProduction, true);
+assert.equal(status.payStatus.privateSettlement.customerPaymentEvidenceWired, false);
+assert.equal(status.payStatus.privateSettlement.operatorSeesRawMerchantApiTerms, true);
+assert.equal(status.payStatus.privateSettlement.operatorSeesRawSettlementAdapterTerms, false);
 assert.equal(
   status.payStatus.privateSettlement.acceptedCheckoutSettlementBoundary,
   "actual-private-spend-protocol-settlement",
@@ -76,6 +83,29 @@ assert.equal(status.payStatus.capabilities.productionLaunchApproved, false);
 assert.equal(status.privateSettlement.liveMainnetPrivateSettlementAvailable, false);
 assert.equal(status.privateSettlement.productionReady, false);
 assert.equal(status.privateSettlement.privacyClaimAllowed, false);
+
+const fullyConfiguredPayStatus = JSON.parse(
+  execFileSync("npm", ["run", "--silent", "pay:status-json"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      VANTA_PAY_DATABASE_URL: "postgres://vanta-pay-readiness-check.invalid/vanta",
+      VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN: "vanta-pay-readiness-check-token",
+      VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN: "vanta-pay-readiness-check-token",
+      VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL: "http://127.0.0.1:65535",
+      VANTA_PAY_PRODUCTION_LAUNCH_APPROVED: "true",
+    },
+  }),
+);
+
+assert.equal(fullyConfiguredPayStatus.privateSettlement.customerPaymentEvidenceWired, false);
+assert.equal(
+  fullyConfiguredPayStatus.productionReady,
+  false,
+  "pay:status-json must not report productionReady while customer payment evidence is unwired.",
+);
+
 assert.ok(
   status.blockers.includes("pay-durable-store-not-configured"),
   "Pay production readiness must block on missing durable store.",
@@ -93,8 +123,16 @@ assert.ok(
   "Pay production readiness must block on missing private-pool operator auth.",
 );
 assert.ok(
+  status.blockers.includes("pay-internal-settlement-token-not-configured"),
+  "Pay production readiness must block on missing internal settlement completion token.",
+);
+assert.ok(
   status.blockers.includes("pay-production-launch-approval-not-recorded"),
   "Pay production readiness must block on missing Pay production launch approval.",
+);
+assert.ok(
+  status.blockers.includes("pay-customer-payment-evidence-not-wired"),
+  "Pay production readiness must block until customer payment evidence is wired.",
 );
 assert.ok(
   status.blockers.includes("private-settlement-not-live-mainnet"),

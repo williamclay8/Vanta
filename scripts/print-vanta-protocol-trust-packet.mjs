@@ -69,16 +69,15 @@ const packets = {
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Send has a canonical ledger gate and a repo-checked no-witness proof-artifact operator boundary, but legacy Send memo/discovery surfaces can still expose recipient details until AEAD v2 lands, browser Send execution is blocked until a local proof artifact is available, and the lane is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
+        "Send has a canonical ledger gate, repo-checked no-witness proof-artifact operator boundary, and v2 viewing-key AEAD action memos in the live pages, but recipient discovery is still incomplete, browser Send execution is blocked until a local proof artifact is available, and the lane is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
     },
     honestyNote:
       "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in SECURITY_LIMITATIONS.md.",
-    sendMemoMode: "legacy-v1-plaintext-memo-compatible-v2-aead-pending",
+    sendMemoMode: "v2-viewing-key-aead-live-legacy-v1-parse-compatible",
     publicChainVisibleFields: [
-      "legacy v1 Send memo can expose recipient",
-      "legacy v1 Send memo can expose amount",
-      "legacy v1 Send memo can expose change amount",
-      "legacy spent-marker memo can expose consumed note id",
+      "new live Send action memos expose only the v2 AEAD memo prefix and opaque ciphertext body",
+      "legacy historical v1 Send memos remain parse-compatible and can expose recipient/amount/change amount",
+      "recipient-side discovery still needs a trustable viewing-key exchange or encrypted outbox design",
     ],
     spendabilityBasis: "canonical-spendable-note-ledger",
     visibleFields: [
@@ -112,6 +111,7 @@ const packets = {
       "npm run private-core:send-operator-redaction-check",
       "npm run private-core:send-nullifier-replay-no-witness-check",
       "npm run private-core:send-committed-settlement-check",
+      "npm run actions:memo-encryption-check",
       "npm run send:requires-shielded-state-check",
       "npm run send:balance-ledger-check",
       "npm run send:production-privacy-claim-gate",
@@ -198,11 +198,12 @@ if (checkMode) {
 
   if (packet.action === "send") {
     assert.equal(packet.spendabilityBasis, "canonical-spendable-note-ledger");
-    assert.equal(packet.sendMemoMode, "legacy-v1-plaintext-memo-compatible-v2-aead-pending");
+    assert.equal(packet.sendMemoMode, "v2-viewing-key-aead-live-legacy-v1-parse-compatible");
     assert.ok(
-      packet.publicChainVisibleFields?.some((field) => field.includes("recipient")),
-      "Send packet must disclose current public-chain recipient leakage while legacy v1 memos exist.",
+      packet.publicChainVisibleFields?.some((field) => field.includes("opaque ciphertext")),
+      "Send packet must disclose that new action memos are opaque AEAD ciphertext.",
     );
+    assert.ok(packet.verificationCommands.includes("npm run actions:memo-encryption-check"));
     assert.ok(packet.verificationCommands.includes("npm run send:balance-ledger-check"));
     assert.ok(
       packet.verificationCommands.includes("npm run private-core:send-operator-no-witness-check"),

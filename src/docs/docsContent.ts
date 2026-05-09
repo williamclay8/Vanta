@@ -85,7 +85,7 @@ export const docsPages: DocsPageMeta[] = [
     slug: "/docs/pay",
     title: "Vanta Pay",
     summary:
-      "Pay is the merchant preview: private checkout and settlement records, proof-backed receipts, status, refunds, withdrawals, and reconciliation in plain business language.",
+      "Pay is the merchant preview: test checkout, settlement records, receipt-backed test records, status, refunds, withdrawals, and reconciliation in plain business language.",
     track: "pay",
     section: "pay",
     badge: "forward-looking",

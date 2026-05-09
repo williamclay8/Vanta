@@ -30,9 +30,15 @@ function buildStatus() {
     ...(payStatus.capabilities?.privatePoolOperatorAuthConfigured
       ? []
       : ["pay-private-pool-operator-auth-not-configured"]),
+    ...(payStatus.capabilities?.internalSettlementCompletionTokenConfigured
+      ? []
+      : ["pay-internal-settlement-token-not-configured"]),
     ...(payStatus.capabilities?.productionLaunchApproved
       ? []
       : ["pay-production-launch-approval-not-recorded"]),
+    ...(payStatus.privateSettlement?.customerPaymentEvidenceWired
+      ? []
+      : ["pay-customer-payment-evidence-not-wired"]),
     ...(privateSettlement.liveMainnetPrivateSettlementAvailable
       ? []
       : ["private-settlement-not-live-mainnet"]),
@@ -94,7 +100,13 @@ if (jsonMode) {
   console.log(
     `- privatePoolOperatorAuthConfigured: ${String(status.payStatus.capabilities.privatePoolOperatorAuthConfigured)}`,
   );
+  console.log(
+    `- internalSettlementCompletionTokenConfigured: ${String(status.payStatus.capabilities.internalSettlementCompletionTokenConfigured)}`,
+  );
   console.log(`- productionLaunchApproved: ${String(status.payStatus.capabilities.productionLaunchApproved)}`);
+  console.log(
+    `- customerPaymentEvidenceWired: ${String(status.payStatus.privateSettlement.customerPaymentEvidenceWired)}`,
+  );
   console.log(
     `- liveMainnetPrivateSettlementAvailable: ${String(status.privateSettlement.liveMainnetPrivateSettlementAvailable)}`,
   );

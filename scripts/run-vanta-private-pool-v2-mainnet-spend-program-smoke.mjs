@@ -22,9 +22,12 @@ const APPROVAL = approvalToken(CLUSTER);
 const APPROVAL_ENV_NAME = "VANTA_PRIVATE_POOL_V2_MAINNET_SMOKE_APPROVAL";
 const MAX_SOL_AT_RISK = Number.parseFloat(process.env.VANTA_PRIVATE_POOL_V2_SPEND_PROGRAM_SMOKE_MAX_SOL || "0");
 
-const POOL_STATE_LEN = 152;
+const POOL_STATE_LEN = 184;
 const NULLIFIER_SET_LEN = 16 + 32 * SLOT_COUNT;
 const OUTPUT_QUEUE_LEN = 16 + 96 * SLOT_COUNT;
+const ROOT_HISTORY_LEN = 16 + 32 * SLOT_COUNT;
+const NULLIFIER_MARKER_LEN = 16 + 32 * 2;
+const NULLIFIER_MARKER_SEED = Buffer.from("vanta2nul");
 
 if (!Number.isInteger(SLOT_COUNT) || SLOT_COUNT < 2 || SLOT_COUNT > 64) {
   throw new Error("VANTA_PRIVATE_POOL_V2_MAINNET_SMOKE_SLOT_COUNT must be an integer from 2 to 64.");
@@ -36,6 +39,12 @@ const programId = new PublicKey(PROGRAM_ID);
 const poolState = Keypair.generate();
 const nullifierSet = Keypair.generate();
 const outputQueue = Keypair.generate();
+const rootHistory = Keypair.generate();
+const nullifier = bytes32(0x11);
+const [nullifierMarker] = PublicKey.findProgramAddressSync(
+  [NULLIFIER_MARKER_SEED, poolState.publicKey.toBuffer(), nullifier],
+  programId,
+);
 
 const deployAccount = await connection.getAccountInfo(programId, "confirmed");
 if (!deployAccount?.executable) {
@@ -55,36 +64,45 @@ const createAccountsTx = new Transaction().add(
   await createProgramAccountInstruction(poolState.publicKey, POOL_STATE_LEN),
   await createProgramAccountInstruction(nullifierSet.publicKey, NULLIFIER_SET_LEN),
   await createProgramAccountInstruction(outputQueue.publicKey, OUTPUT_QUEUE_LEN),
+  await createProgramAccountInstruction(rootHistory.publicKey, ROOT_HISTORY_LEN),
 );
 
 const initTx = new Transaction().add(new TransactionInstruction({
-  keys: accountMetas(),
+  keys: initAccountMetas(),
   programId,
   data: Buffer.from([0]),
 }));
 
+const acceptedRoot = bytes32(0x44);
+const registerRootTx = new Transaction().add(new TransactionInstruction({
+  keys: rootRegistrationAccountMetas(),
+  programId,
+  data: Buffer.concat([Buffer.from([2]), acceptedRoot]),
+}));
+
 const spendPayload = Buffer.concat([
   Buffer.from([1]),
-  bytes32(0x11),
+  nullifier,
   bytes32(0x22),
   bytes32(0x33),
-  bytes32(0x44),
+  acceptedRoot,
+  bytes32(0x55),
 ]);
 const spendTx = new Transaction().add(new TransactionInstruction({
-  keys: accountMetas(),
+  keys: spendAccountMetas(),
   programId,
   data: spendPayload,
 }));
 const replayTx = new Transaction().add(
   ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }),
   new TransactionInstruction({
-    keys: accountMetas(),
+    keys: spendAccountMetas(),
     programId,
     data: spendPayload,
   }),
 );
 
-await simulateOrThrow("create-accounts", createAccountsTx, [payer, poolState, nullifierSet, outputQueue]);
+await simulateOrThrow("create-accounts", createAccountsTx, [payer, poolState, nullifierSet, outputQueue, rootHistory]);
 if (process.env[APPROVAL_ENV_NAME] !== APPROVAL) {
   throw new Error(`Refusing to send ${CLUSTER} transactions without ${APPROVAL_ENV_NAME}=${APPROVAL}. create-accounts simulation passed.`);
 }
@@ -93,10 +111,14 @@ const createAccountsSig = await sendAndConfirmTransaction(connection, createAcco
   poolState,
   nullifierSet,
   outputQueue,
+  rootHistory,
 ], { commitment: "confirmed" });
 
 await simulateOrThrow("init", initTx, [payer]);
 const initSig = await sendAndConfirmTransaction(connection, initTx, [payer], { commitment: "confirmed" });
+
+await simulateOrThrow("register-root", registerRootTx, [payer]);
+const registerRootSig = await sendAndConfirmTransaction(connection, registerRootTx, [payer], { commitment: "confirmed" });
 
 await simulateOrThrow("spend", spendTx, [payer]);
 const spendSig = await sendAndConfirmTransaction(connection, spendTx, [payer], { commitment: "confirmed" });
@@ -126,9 +148,12 @@ console.log(JSON.stringify({
   poolState: poolState.publicKey.toBase58(),
   nullifierSet: nullifierSet.publicKey.toBase58(),
   outputQueue: outputQueue.publicKey.toBase58(),
+  rootHistory: rootHistory.publicKey.toBase58(),
+  nullifierMarker: nullifierMarker.toBase58(),
   slotCount: SLOT_COUNT,
   createAccountsSig,
   initSig,
+  registerRootSig,
   spendSig,
   replayRejected,
   replayErr: replaySimulation.value.err,
@@ -140,6 +165,8 @@ console.log(JSON.stringify({
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE: poolState.publicKey.toBase58(),
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET: nullifierSet.publicKey.toBase58(),
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE: outputQueue.publicKey.toBase58(),
+    VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY: rootHistory.publicKey.toBase58(),
+    VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_MARKER: nullifierMarker.toBase58(),
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY: payer.publicKey.toBase58(),
   },
 }, null, 2));
@@ -159,14 +186,37 @@ async function estimateRent() {
     await connection.getMinimumBalanceForRentExemption(POOL_STATE_LEN)
     + await connection.getMinimumBalanceForRentExemption(NULLIFIER_SET_LEN)
     + await connection.getMinimumBalanceForRentExemption(OUTPUT_QUEUE_LEN)
+    + await connection.getMinimumBalanceForRentExemption(ROOT_HISTORY_LEN)
+    + await connection.getMinimumBalanceForRentExemption(NULLIFIER_MARKER_LEN)
   );
 }
 
-function accountMetas() {
+function initAccountMetas() {
   return [
     { pubkey: poolState.publicKey, isSigner: false, isWritable: true },
     { pubkey: nullifierSet.publicKey, isSigner: false, isWritable: true },
     { pubkey: outputQueue.publicKey, isSigner: false, isWritable: true },
+    { pubkey: rootHistory.publicKey, isSigner: false, isWritable: true },
+    { pubkey: payer.publicKey, isSigner: true, isWritable: false },
+  ];
+}
+
+function spendAccountMetas() {
+  return [
+    { pubkey: poolState.publicKey, isSigner: false, isWritable: true },
+    { pubkey: nullifierSet.publicKey, isSigner: false, isWritable: false },
+    { pubkey: outputQueue.publicKey, isSigner: false, isWritable: true },
+    { pubkey: rootHistory.publicKey, isSigner: false, isWritable: false },
+    { pubkey: nullifierMarker, isSigner: false, isWritable: true },
+    { pubkey: payer.publicKey, isSigner: true, isWritable: true },
+    { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+  ];
+}
+
+function rootRegistrationAccountMetas() {
+  return [
+    { pubkey: poolState.publicKey, isSigner: false, isWritable: false },
+    { pubkey: rootHistory.publicKey, isSigner: false, isWritable: true },
     { pubkey: payer.publicKey, isSigner: true, isWritable: false },
   ];
 }

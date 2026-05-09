@@ -7,8 +7,10 @@ const receipt = {
   asset: "USDC",
   auditDisclosureId: "aud_7a1d3a7fd97ce95f7f06c32c",
   checkoutSessionId: "cs_redacted_public_view_test",
+  completionBasis: "local-test-harness",
   createdAt: "2026-05-02T00:00:00.000Z",
   customerEmail: "buyer@example.com",
+  customerPaymentEvidenceRef: null,
   id: "rcpt_redacted_public_view_test",
   invoiceReference: null,
   merchantId: "merchant_vanta_demo",
@@ -30,6 +32,9 @@ assert.equal(publicView.merchantId, receipt.merchantId);
 assert.equal(publicView.amount, receipt.amount);
 assert.equal(publicView.asset, receipt.asset);
 assert.equal(publicView.status, "paid");
+assert.equal(publicView.checkoutCompletion.basis, "local-test-harness");
+assert.equal(publicView.checkoutCompletion.customerPaymentEvidenceRefPresent, false);
+assert.equal(publicView.checkoutCompletion.localHarness, true);
 assert.equal(publicView.customer.emailCollected, true);
 assert.equal(publicView.customer.emailRedacted, true);
 assert.equal(publicView.privateSettlement.policyMode, "legible-trust");

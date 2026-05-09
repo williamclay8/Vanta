@@ -38,6 +38,7 @@ import {
 import { recordVerifiedSplShieldNote } from "@/solana/verifiedSplShieldNotes";
 import { recordRecentShieldTokenNote } from "@/solana/recentShieldTokenNotes";
 import { createShieldAssetCapability } from "@/solana/shieldAssetCapability";
+import { getShieldTrustContract } from "@/solana/shieldTrustContract";
 import { formatVantaSolAmount } from "@/solana/solAmountFormat";
 import {
   type LiveShieldTokenAssetKey,
@@ -306,6 +307,7 @@ function repairVerifiedNativeSolShieldNote(args: {
 
 export function ShieldPage(_props: ShieldPageProps) {
   const { recentShield, runPrivateCoreShield, setRecentShield } = usePrivacyFlow();
+  const shieldTrustContract = useMemo(() => getShieldTrustContract(), []);
   const {
     lamportsBalance,
     solBalance,
@@ -1783,12 +1785,16 @@ export function ShieldPage(_props: ShieldPageProps) {
         <div>
           <span className="eyebrow product-intro__eyebrow">Add privacy</span>
           <h2>Shield</h2>
-          <p>Shield an asset so you can send, swap, or hold it privately.</p>
+          <p>{shieldTrustContract.visibleStatusCopy}</p>
         </div>
 
         <div className="module-state">
-          <strong>Private entry</strong>
-          <p>Supported assets enter Vanta before private actions begin.</p>
+          <strong>{shieldTrustContract.currentTruth}</strong>
+          <p>
+            {shieldTrustContract.claimControls.productionPrivacyClaimsLocked
+              ? shieldTrustContract.visibleStatusCopy
+              : "Production Shield privacy claims are unlocked by current evidence."}
+          </p>
         </div>
       </div>
 

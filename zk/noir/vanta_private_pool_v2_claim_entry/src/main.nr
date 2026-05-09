@@ -52,7 +52,7 @@ fn compute_leaf_index_from_direction_bits(
 fn bind_claim_public_inputs(
     request_version: Field,
     asset_id: Field,
-    amount: Field,
+    amount: u128,
     owner_commitment: Field,
     tree_id: Field,
     leaf_index: Field,
@@ -61,21 +61,21 @@ fn bind_claim_public_inputs(
     nullifier: Field,
     destination: Field,
     relayer_id: Field,
-    relayer_fee: Field,
+    relayer_fee: u128,
     quote_expires_at_slot: Field,
 ) -> Field {
     let input_membership = bn254::hash_3([tree_id, leaf_index, input_root]);
     let claim_terms = bn254::hash_4([
         destination,
         relayer_id,
-        relayer_fee,
+        relayer_fee as Field,
         quote_expires_at_slot,
     ]);
 
     bn254::hash_11([
         request_version,
         asset_id,
-        amount,
+        amount as Field,
         owner_commitment,
         input_membership,
         input_commitment,
@@ -91,7 +91,7 @@ fn main(
     claim_public_input_hash: pub Field,
     request_version: Field,
     asset_id: Field,
-    amount: Field,
+    amount: u128,
     owner_commitment: Field,
     tree_id: Field,
     leaf_index: Field,
@@ -102,7 +102,7 @@ fn main(
     nullifier: Field,
     destination: Field,
     relayer_id: Field,
-    relayer_fee: Field,
+    relayer_fee: u128,
     quote_expires_at_slot: Field,
     owner_secret: Field,
 ) {

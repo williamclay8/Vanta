@@ -14,15 +14,17 @@ This review is now an active feedback-loop document, not only a point-in-time au
 
 | Area | Current local state | Guard |
 | --- | --- | --- |
-| Solana spend authority | Spend evidence writes require the initialized operator authority signer; init is one-time, pool state binds the initialized nullifier/output accounts, and reviewed mainnet evidence predates this ABI and remains blocked until redeploy/reinit. | `npm run private-pool-v2:contract-check` |
-| Canonical note membership | Placeholder additive note/tree hashing was replaced with Poseidon note, leaf, and node hashing plus direction/leaf-index constraints. | `npm run zk:canonical-note-membership-check` |
+| Solana spend authority/root history/nullifier PDA | Spend evidence writes require the initialized operator authority signer; init is one-time, pool state binds the initialized nullifier/output/root-history accounts, spends reject unregistered accepted roots, and replay truth now uses a deterministic nullifier marker PDA instead of a fixed/linear nullifier scan. Reviewed mainnet evidence predates this ABI and remains blocked until SBF rebuild, redeploy, and reinit. | `npm run private-pool-v2:contract-check`; `npm run private-pool-v2:sbf-abi-status` |
+| Canonical note membership | Placeholder additive note/tree hashing was replaced with Poseidon note, leaf, and node hashing plus direction/leaf-index constraints; note amount limbs are now `u64` in the local circuit ABI. | `npm run zk:canonical-note-membership-check` |
 | Canonical note proving commitment | `CanonicalNoteArtifacts` now carries both legacy SHA-256 display commitment and Poseidon/BN254 proof-facing `provingCommitment`; Live Shield records both and Live Send preserves the proof-facing commitment through redaction. | `npm run zk:canonical-note-proving-commitment-check` |
 | Private Pool v2 entry circuits | Local fixed-depth lanes now prove input membership and path-based successor append roots for Shield, Send, Swap-to-shielded, Claim, and actual-private spend where applicable. | `npm run private-pool-v2:verify` |
-| Private Pool v2 Send conservation | Send now proves a private economics commitment, constrains amount witnesses as `u128`, and checks `input_amount == recipient_amount + change_amount` inside the local Noir circuit. | `npm run private-pool-v2:send-circuit-check` |
+| Private Pool v2 Shield/Send/Claim amount range | Shield, Send, and Claim raw amount witnesses are constrained as `u128`; Send also proves a private economics commitment and checks `input_amount == recipient_amount + change_amount`; Claim relayer-fee is constrained as `u128`. | `npm run private-pool-v2:shield-circuit-check`; `npm run private-pool-v2:send-circuit-check`; `npm run private-pool-v2:claim-circuit-check` |
 | Private Core tree hashing | Single-field membership paths and standard Poseidon node hashing are now guarded across send/swap/unshield. | `npm run zk:merkle-node-hash-contract-check` |
+| Private Core Send/Swap/Unshield amount range | Send, Swap, and Unshield amount limbs are now `u64` in the local Noir lanes, with negative fixtures for out-of-range witnesses. | `npm run private-core:send-check`; `npm run private-core:swap-check`; `npm run private-core:check` |
+| Action memo privacy | Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers now fail closed into v2 viewing-key AEAD; v1 plaintext parsing remains only for historical chain memos. External Send v2 currently fails closed until recipient viewing-key exchange is wired. | `npm run actions:memo-encryption-check` |
 | Owner recovery payload | X25519 + HKDF-SHA256 + XChaCha20-Poly1305 replaced the hand-rolled XOR/SHA path. | `npm run zk:owner-recovery-payload-crypto-check` |
 
-Still not solved: active proving lanes are still depth 3, on-chain proof verification/root-history enforcement is not wired, nullifier storage remains fixed-capacity/linear on-chain even though duplicate scanning now only covers initialized slots, no audit has accepted the boundary, and no live deployment evidence has been refreshed.
+Still not solved: active proving lanes are still depth 3, on-chain proof verification/verifying-key enforcement is not wired, root history is only a local operator-authorized fixed-slot scaffold, the output queue is still fixed-capacity, no audit has accepted the boundary, the local SBF binary must be rebuilt before it can represent the current ABI, and no live deployment evidence has been refreshed.
 
 ---
 
@@ -30,26 +32,26 @@ Still not solved: active proving lanes are still depth 3, on-chain proof verific
 
 ### 1. The on-chain Solana program does not verify proofs at all
 
-`programs/vanta_private_pool_v2_spend/src/lib.rs` — and its README literally says **"no proof verification"**. The `process_spend` instruction takes `[1, nullifier:32, output0:32, output1:32, publicInputHash:32]` and writes it to fixed-slot accounts. It checks duplicates and account ownership, but there is no Groth16/PLONK/Honk verifier, no signature check, no authority gate, no Merkle-root anchoring. The instruction is callable by any wallet that pays rent.
+`programs/vanta_private_pool_v2_spend/src/lib.rs` — and its README literally says **"no proof verification"**. The current local `process_spend` instruction takes `[1, nullifier:32, output0:32, output1:32, acceptedRoot:32, publicInputHash:32]` and writes it to fixed-slot accounts after operator authority, account-binding, and fixed-slot root-history checks. It checks duplicates and account ownership, but there is still no Groth16/PLONK/Honk verifier, no verifying-key hash enforcement, and no on-chain Merkle tree that proves the accepted root came from a real shared commitment set.
 
 This means the on-chain "evidence" account is **not enforcing privacy or soundness**. It is a public append-only log whose integrity rests entirely on the off-chain operator deciding what to submit. The README in `programs/.../README.md` calling this "anchoring private spend evidence" overstates what the program does.
 
-**Codex status, 2026-05-09:** partially remediated locally for the write authority boundary. `programs/vanta_private_pool_v2_spend/src/lib.rs` now stores an operator authority during one-time init, requires the matching read-only signer on spend, binds the pool to the initialized nullifier/output accounts, and the transaction builder/relayer/operator surfaces now expect that fourth signer account. This closes the stale "callable by any wallet" shape for this branch, but it still does not add on-chain proof verification, verifying-key hash enforcement, accepted-root history, or production soundness. Existing reviewed mainnet spend-program evidence predates this authority-gated ABI and remains blocked until redeploy/reinit.
+**Codex status, 2026-05-09:** partially remediated locally for the write authority and accepted-root scaffold boundary. `programs/vanta_private_pool_v2_spend/src/lib.rs` now stores an operator authority during one-time init, requires the matching read-only signer on spend, binds the pool to initialized nullifier/output/root-history accounts, adds an operator-authorized `register root` instruction, and rejects spends whose `acceptedRoot` is not present in the bound root-history account. The transaction builder/relayer/operator surfaces now expect the root-history account and fifth signer account. This closes the stale "callable by any wallet" and "any unregistered root" shapes for this branch, but it still does not add on-chain proof verification, verifying-key hash enforcement, a program-owned Merkle tree, or production soundness. Existing reviewed mainnet spend-program evidence predates this authority/root-history ABI and remains blocked until SBF rebuild, redeploy, and reinit.
 
 ### 2. The on-chain program is trivially DoS-able
 
-Because there's no signer/authority check (item 1), anyone can call `process_spend` with any random 32-byte nullifier. Each call permanently consumes one slot in the fixed-size `nullifier_set` account. When `ERR_NULLIFIER_SET_FULL` triggers, the pool is bricked — no legitimate spend can ever be accepted. Cost to brick: roughly one transaction's compute fee per slot. This is independent of any ZK property and applies right now to anything you deploy.
+Before the local authority/root-history/nullifier-PDA hardening, any wallet could call `process_spend` with any random 32-byte nullifier and permanently consume one slot in the fixed-size `nullifier_set` account. Current local source gates spend writes behind the initialized operator authority and bound child accounts, keeps the legacy `nullifier_set` as a read-only namespace/header account, and moves duplicate replay truth to a deterministic PDA marker derived from `["vanta2nul", pool_state, nullifier]`.
 
-The duplicate-detection loop is also O(n) (`for slot in nullifier_slots(...)`). Long before the account fills, the linear scan will exceed Solana's compute-unit budget per call, freezing the pool earlier than the explicit "full" error.
+The previous duplicate-detection loop was O(n) (`for slot in nullifier_slots(...)`). The current local source no longer scans or appends the fixed nullifier set on spend; it creates or verifies the PDA marker and rejects duplicate marker reuse. The remaining risk is no longer fixed/linear nullifier lookup in source, but that this ABI is local-only until the SBF binary is rebuilt and redeployed, and the broader tree/root/proof design is still scaffolded.
 
-**Codex status, 2026-05-09:** partially remediated locally. The unauthenticated public slot-fill path is now gated by the initialized operator signer, reinitialization is rejected, mixed account triplets are rejected by pool-state child-account bindings, and duplicate checks scan only initialized nullifier slots. The fixed-capacity account layout and O(n) duplicate scan are still structurally DoS-prone at scale. The remaining fix is still sharded/PDA-keyed nullifier existence storage or another O(1) scalable nullifier design.
+**Codex status, 2026-05-09:** remediated locally at the source/contract/harness level for the nullifier lookup shape. The unauthenticated public slot-fill path is gated by the initialized operator signer, reinitialization is rejected, mixed account triplets are rejected by pool-state child-account bindings, `process_spend` requires a writable nullifier marker PDA plus System Program account, and duplicate nullifiers reject by reusing the marker instead of scanning a fixed array. Guards: `cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml`, `npm run private-pool-v2:solana-spend-transaction-builder-check`, `npm run private-pool-v2:solana-spend-transaction-check`, `npm run private-pool-v2:solana-relayer-submission-check`, `npm run private-pool-v2:contract-check`, and `npm run private-pool-v2:crucible-check`. Residual caveat: `npm run private-pool-v2:sbf-abi-check` correctly blocks until `cargo-build-sbf` and `solana` CLI are installed and the SBF binary is rebuilt for the seven-account PDA ABI.
 
 **Recommended fixes** for a v2 spend program before any real deployment:
 
-- Require a signer key whose pubkey matches a configured operator/authority.
+- Preserve the initialized operator/authority signer boundary and keep reviewed mainnet evidence blocked until the current ABI is rebuilt, redeployed, and reinitialized.
 - Commit a verifying-key hash and verify a real proof against `publicInputHash` in-program (or via a dedicated verifier program / Light-Protocol-style verifier).
-- Anchor `accepted_root` to a stored historical root set so a forged `input_root` from the proof can't be slipped in.
-- Replace the linear nullifier scan with a sharded or PDA-keyed nullifier-existence account so capacity scales and lookup is O(1).
+- Replace the operator-fed fixed-slot root-history scaffold with proof-backed program-owned tree state so a forged `input_root` from the proof can't be slipped in.
+- Rebuild and redeploy the current PDA-keyed nullifier-marker ABI before citing live replay evidence; keep `private-pool-v2:sbf-abi-check` as the fail-closed gate.
 
 ### 3. `canonical_note_membership` circuit is non-cryptographic placeholder code
 
@@ -150,6 +152,8 @@ In `vanta_private_core_single_note_send/src/main.nr` and the swap variant, the s
 
 **Codex status, 2026-05-09:** repo-local guard added for the production bundle. The browser swap route no longer reads `VITE_JUPITER_API_KEY`, and `npm run frontend:operator-env-exposure-check` now builds with forbidden browser-token canaries, rejects operator/auth-token/secret-shaped `VITE_...` source keys, and scans `dist/` for canary or forbidden env-key exposure. This does not prove the currently live website bundle; no live deployment probe or redeploy happened in this pass.
 
+**Codex status, 2026-05-09:** lane trust contracts are now partially remediated locally for Shield, Send, Swap, and Unshield. The new `shieldTrustContract.ts`, `sendTrustContract.ts`, `swapTrustContract.ts`, and `unshieldTrustContract.ts` expose runtime `claimControls` with `productionPrivacyClaimsLocked: true`, and the four app pages render status copy from those objects instead of free-form production privacy copy. Guard: `npm run lanes:trust-contract-check`, now included in `npm run truth:privacy-claim-gate`.
+
 ---
 
 ## What's actually good
@@ -166,10 +170,10 @@ The prior feedback loops moved several early items from "recommended" to "locall
 
 1. **Keep the Solana authority boundary guarded and redeploy/reinit before citing live evidence.** The local branch has the signer gate, but the reviewed mainnet spend-program evidence is pre-authority-ABI and must remain blocked.
 2. **Bump Merkle depth to >=20 across active proving lanes and fixtures.** The repaired canonical membership target is depth 20, but Private Pool v2 and Private Core lanes still use depth 3.
-3. **Extend amount range constraints beyond Send.** Private Pool v2 Send is now locally constrained to `u128`; Private Core Send/Swap/Unshield and other economics witnesses still need the same range/carry discipline before they become production amount proofs.
-4. **Remove plaintext memo/privacy leakage from Send-style successor discovery.** Encrypted memo and recipient discovery semantics need the same discipline as the owner-recovery and viewing-key work.
-5. **Replace fixed/linear on-chain nullifier storage.** The signer/account-binding gates block public slot filling and mixed account triplets, and duplicate scanning now covers only initialized slots, but fixed capacity and O(n) lookup are still not a production nullifier design.
-6. **Wire real on-chain proof verification and root-history enforcement.** Biggest piece of work. Either embed a Groth16/Honk verifier or CPI into a verifier program, then anchor accepted roots against stored history.
+3. **Keep amount range constraints guarded while the proof lanes mature.** Canonical note membership, Private Pool v2 Shield/Send/Claim, and Private Core Send/Swap/Unshield now use typed amount ABIs with negative range fixtures; future lanes must keep this linted discipline before making production amount-proof claims.
+4. **Finish recipient-grade memo/discovery semantics.** New Send/Swap/Unshield/SOL-Unshield action memos now fail closed into v2 viewing-key AEAD, and external Send v2 now fails closed until recipient viewing-key exchange is wired. Recipient viewing-key exchange, dual recipient/change encryption, ciphertext-hash proof binding, and old v1 chain-history migration remain open.
+5. **Rebuild/redeploy the Solana PDA-nullifier ABI before citing live replay evidence.** The local source now uses a deterministic nullifier marker PDA for O(1) duplicate rejection, but reviewed mainnet/SBF evidence is stale until rebuilt and redeployed.
+6. **Wire real on-chain proof verification and replace the root-history scaffold with proof-backed tree state.** The local branch now has operator-authorized fixed-slot root-history rejection, but the bigger production piece remains: embed a Groth16/Honk verifier or CPI into a verifier program, commit the verifying-key hash, and make accepted roots come from program-owned shared tree state rather than an operator-fed list.
 
 ---
 
@@ -439,16 +443,16 @@ The trace, end-to-end, when a user clicks *Send* on `/app/send`:
 
 1. **Capability gate.** `src/solana/shieldedSendCapability.ts` only enables send for shielded USDC; every other asset is blocked with `executionMode: "unsupported-private-send-asset"`. SOL is explicitly excluded with the comment "shielded SOL can stay held here until the SOL send lane is implemented." So today, "private send" is a USDC-only feature.
 2. **Note picking.** The browser picks a "predecessor" note from the user's local list (`vantaShieldState`-managed notes derived from on-chain memos the user previously emitted). It computes a `consumedNoteId` and a target `recipient` address.
-3. **Memo construction.** `src/solana/vantaShieldState.ts:createPreparedSendMemo` builds a Solana **Memo program** instruction with prefix `"vanta:send-note:v1:"` followed by `JSON.stringify(payload)`. The payload contains: `kind: "send"`, `amount`, `changeAmount`, `asset: "USDC"`, `mintAddress`, `owner`, `recipient`, `vaultOwner`, `consumedNoteId`, `createdAt`, `noteId`, `changeNoteId`. Look at `src/solana/vantaShieldState.ts:388-396`:
+3. **Memo construction.** Before the action-memo feedback loop, `src/solana/vantaShieldState.ts:createPreparedSendMemo` built a Solana **Memo program** instruction with prefix `"vanta:send-note:v1:"` followed by `JSON.stringify(payload)`. Fresh local helpers now require a Shield viewing public key and emit `vanta:send-note:v2:` AEAD ciphertext; v1 plaintext parsing remains only for historical chain records. The old helper shape was:
    ```ts
    function createMemoInstruction(prefix, payload) {
      const memoPayload = `${prefix}${JSON.stringify(payload)}`;
      return { accounts: [], data: new TextEncoder().encode(memoPayload), programAddress: VANTA_SHIELD_MEMO_PROGRAM };
    }
    ```
-   **This is plaintext JSON to the SPL Memo program.** No encryption, no AEAD, no viewing-key. Anyone scanning the chain reads the full send.
+   That v1 shape was plaintext JSON to the SPL Memo program. Current fresh helpers fail closed into v2 viewing-key AEAD, but recipient-grade discovery, dual recipient/change encryption, ciphertext-hash proof binding, and historical v1 migration remain open.
 4. **Transaction signing.** The browser asks the user's wallet to sign a transaction whose only meaningful instruction is that memo, plus Helius priority-fee instructions. **No SPL transfer is included.** The vault's USDC ATA is unchanged.
-5. **A second transaction — the "spent marker."** `src/solana/vantaShieldState.ts:createSpentMarkerInstruction` writes another plaintext memo with prefix `"vanta:spent-marker:..."` claiming `consumedNoteId` is now spent. This too is signed by the user, also has no asset transfer.
+5. **A second transaction — the "spent marker."** Before the action-memo feedback loop, `src/solana/vantaShieldState.ts:createSpentMarkerInstruction` wrote another plaintext memo with prefix `"vanta:spent-marker:..."` claiming `consumedNoteId` was now spent. Fresh spent-marker helpers now emit v2 AEAD ciphertext; legacy v1 spent markers remain parseable for old chain history.
 6. **Off-chain operator notification.** The browser POSTs to the operator's `/private-core/send-proof` and `/private-core/send-transition` endpoints (see `operator/unshield-server.mjs:873–1190`). The operator:
    - Calls `assertPrivateCoreWitnessMaterialPolicy(body, { lane: "send" })` (a contract check, not a proof verification).
    - Resolves a "proof receipt" via `resolvePrivateCoreSendProofReceipt`. For witness-package mode this calls the local prover; for proof-artifact mode it parses public inputs and checks them against the operator's stored root.
@@ -456,7 +460,7 @@ The trace, end-to-end, when a user clicks *Send* on `/app/send`:
    - Reserves the input nullifier in an in-memory `privateCoreSendStore`.
    - Persists the proof and send records to JSON files.
 7. **Local bookkeeping.** `src/zk/liveSendBridge.ts:recordCanonicalSendFromLiveSend` writes a record to `localStorage["vanta.zk.phase1.live-send-records.v1"]`. Same shape as the shield bridge's localStorage — a list of canonical notes, indexed by transition signature, redacted on persistence.
-8. **Recipient discovery.** The recipient's browser, when they sign in with their wallet, scans the Solana memo program for entries whose `recipient` field matches their pubkey. Since the memo is plain JSON, this is a public scan. They then add the implied note to their own localStorage.
+8. **Recipient discovery.** Legacy v1 recipient discovery scanned the Solana memo program for plaintext entries whose `recipient` field matched the recipient pubkey. Fresh v2 memos stop exposing that plaintext field, but production-grade recipient discovery still needs recipient viewing-key exchange or a view-tag/indexer design before Send can claim recipient-private discovery.
 
 That's the whole flow.
 
@@ -467,17 +471,17 @@ Honest accounting of where information leaks:
 | Property | Visible on chain? | Visible to operator? |
 |---|---|---|
 | Sender wallet address | Yes (transaction signer) | Yes |
-| Recipient wallet address | Yes (in memo JSON) | Yes |
-| Asset (USDC mint) | Yes | Yes |
-| Send amount | Yes | Yes |
-| Change amount | Yes | Yes |
-| Predecessor note id | Yes | Yes |
-| Vault owner address | Yes | Yes |
+| Recipient wallet address | Legacy v1: yes. Fresh v2: not in plaintext memo. | Operator/status surfaces still see current transition metadata; recipient-grade discovery remains unfinished. |
+| Asset (USDC mint) | Legacy v1: yes. Fresh v2: ciphertext memo plus signer/timing. | Yes in current operator/user state surfaces. |
+| Send amount | Legacy v1: yes. Fresh v2: ciphertext memo plus signer/timing. | Yes in current operator/user state surfaces. |
+| Change amount | Legacy v1: yes. Fresh v2: ciphertext memo plus signer/timing. | Yes in current operator/user state surfaces. |
+| Predecessor note id | Legacy v1: yes. Fresh v2: ciphertext memo plus signer/timing. | Yes in current operator/user state surfaces. |
+| Vault owner address | Legacy v1: yes. Fresh v2: ciphertext memo plus signer/timing. | Yes in current operator/user state surfaces. |
 | Timing | Yes | Yes |
 
-The information that is *not* on chain or at the operator: **none that matters.** A passive observer with no Vanta knowledge can read the memo program, decode the JSON, and reconstruct the full transaction graph. The only "privacy" that exists is that the SPL token vault's balance doesn't change, so a casual observer who only watches token flows wouldn't see the send. But anyone who indexes the memo program — which Solscan and Solana FM and Helius all do — sees everything.
+For legacy v1 memos, the information that is *not* on chain or at the operator was effectively **none that matters**: a passive observer could read the memo program, decode the JSON, and reconstruct the full transaction graph. Fresh local v2 action memos improve this by emitting ciphertext instead of raw action terms, but that does not make Send production-private: signer/timing remain public, operator/user state surfaces still carry transition metadata, recipient discovery is not solved, and proof-bound ciphertext hashes are not wired.
 
-In short: today's "private send" is a Solana memo with the literal phrase `"recipient":"<address>","amount":"<value>"` written to chain in cleartext. The code is more honest than the product copy here — `vantaShieldState.ts:446-458` has a `deriveShieldMemoSymmetricKey` placeholder with the comment *"replace this owner-derived placeholder with a proper ECDH(owner_viewing_key, ephemeral_pubkey) key agreement before mainnet"*. That replacement hasn't happened, and it isn't even applied to the send memo — only shield memos use the placeholder, and the send memo skips encryption entirely.
+In short: the original reviewed "private send" was a Solana memo with the literal phrase `"recipient":"<address>","amount":"<value>"` written to chain in cleartext. The current local branch no longer emits that v1 plaintext shape for fresh Send action helpers, but the remaining production Send work is still substantial: recipient viewing-key exchange or view tags, dual recipient/change encryption, proof-bound ciphertext hashes, real prover/verifier enforcement, and a production shared tree.
 
 ## What the operator actually does
 
@@ -494,12 +498,12 @@ There is also a Noir circuit (`zk/noir/vanta_private_pool_v2_send_entry/src/main
 
 ## Trust assumptions to be honest about
 
-- **No proof of conservation of value.** Nothing constrains `sendAmount + changeAmount = inputNoteAmount`. A malicious sender could write a memo with `sendAmount = 1000, changeAmount = 1000` against a `predecessorNote` of value `100`, and nothing in the on-chain or operator code would notice. The operator only stores nullifier records keyed by an opaque "input commitment", not the input amount.
+- **Conservation is local-proof-only today.** Private Pool v2 Send now proves `input_amount == recipient_amount + change_amount` with `u128` witnesses, and Private Core Send has amount-range/carry guards. This is still not production enforcement until the real prover/verifier and on-chain acceptance boundary are wired.
 - **No proof of ownership.** The send memo is signed by the sender's Solana wallet. Owning that wallet is enough to *claim* you control any note attributed to it in the memo log. There is no spending-key separation; a leaked Solana wallet means leaked sends, regardless of whether the user has rotated their viewing key.
 - **No proof the predecessor is unspent.** Nothing in the on-chain artifact prevents a sender from writing two sends against the same predecessor. The off-chain `privateCoreSendStore.reserveInputNullifier` is the only deduplication, and it's in-memory at the operator. If the operator restarts without the persistence file, the dedup state is gone.
 - **The vault holds all the money.** Recipient receiving a send memo doesn't get USDC. They get a claim against the vault. If the vault key is lost, frozen, sanctioned, or rugged, every recipient loses everything.
 - **No anonymity set.** Two senders' memos sit next to each other in the memo program, but nothing combines them into a cryptographic anonymity set. A recipient with a 100 USDC inbound and a sender with a 100 USDC outbound at the same minute are trivially linked by pattern matching.
-- **The recipient's address leaks.** Even ignoring the rest, putting `recipient` in a plaintext memo means the social graph is fully visible. Anyone watching for a particular wallet can see who they're sending to and how much.
+- **Recipient privacy is improved but not complete.** Fresh v2 action memos no longer put `recipient` in plaintext, but recipient discovery is not production-grade until Vanta has recipient viewing-key exchange or view-tag/indexer discovery plus proof-bound ciphertext hashes.
 
 ## What "send actually works" needs to mean
 
@@ -509,9 +513,9 @@ Same exercise as the shield section. Pick the target before building.
 
 **Target B — Operator-mediated transfer with real off-chain ZK.** Operator sees the send (so the recipient leak isn't fixed), but conservation of value, ownership, and double-spend are enforced by real proofs that the operator verifies before honoring later unshield requests. Vault is still custodial. Strictly weaker than A, but it's at least cryptographically auditable: anyone can re-verify the proofs. To get this you need to (1) replace the mock prover with bb.js, (2) make the operator actually verify the resulting proofs, and (3) commit a public proof log so observers can detect operator misbehavior.
 
-**Target C — What's deployed today.** Plaintext memos + custodial vault + mock proofs + operator discretion. The honest framing is "an internal ledger of who owes whom, with extra steps." This isn't private-send; it's an off-the-books accounting system.
+**Target C — The current non-production shape.** Fresh local action memos are encrypted, but the lane still has custodial vault + mock/local proof boundaries + operator discretion + no on-chain verifier. The honest framing is "an internal ledger of who owes whom, with encrypted diagnostics and extra steps." This is not production private-send.
 
-The current code is structured as if it's heading to A (the Noir circuits and `vantaPrivateCoreSendProof.ts`'s detailed encoding scheme are A-shaped) but ships as C (memos plaintext, prover mock, no on-chain verifier). The intermediate state — pretending you have A while shipping C — is the dangerous one because it's what loud product copy is built around.
+The current code is structured as if it's heading to A (the Noir circuits and `vantaPrivateCoreSendProof.ts`'s detailed encoding scheme are A-shaped) but still ships short of A (fresh memos encrypted, prover boundary local/mock in key paths, no on-chain verifier). The intermediate state - pretending you have A while shipping a custodial/operator-discretion lane - is the dangerous one because it's what loud product copy is built around.
 
 The rest of this document assumes **Target A**. It is the only one of these three that earns the word "private" in the product name.
 
@@ -698,7 +702,7 @@ Don't rewrite from scratch. The following pieces are correct or close:
 
 While S1–S5 are in flight:
 
-- **Stop emitting plaintext send memos.** The current memo bytes are a public ledger of every send. If the live site has any traffic against this, the social graph is leaking right now. Lowest-effort interim fix: bolt `vantaShieldViewingKey.ts`-style AEAD onto the existing send memo (same code, replace `JSON.stringify` with `encryptVantaShieldMemoToViewingKey`). This still has all the trust problems above, but it stops the bleeding while the rest of the plan ships.
+- **Keep fresh Send memos on the v2 AEAD path.** The original v1 memo bytes were a public ledger of every send; fresh local helpers now fail closed into viewing-key AEAD. The remaining work is recipient-grade discovery, dual recipient/change encryption, proof-bound ciphertext hashes, and historical v1 migration.
 - Mark `liveSendBridge.ts:recordCanonicalSendFromLiveSend` and the localStorage list as user-facing diagnostics only. Don't claim the JSON list is "shielded state".
 - Remove `TAG_SPEND = 1` from the on-chain program once `TAG_SEND = 3` exists; a public, unauthenticated append-only nullifier log accessible to any wallet is a denial-of-service that scales with rent (audit item 2).
 - Block the SOL-send capability path with a real refusal: today it returns a soft `unsupported-private-send-asset` blocker; the user can't actually trigger it but the option appears in the asset list. Hide it until the SOL lane exists.
@@ -720,9 +724,9 @@ Total: about 7–9 calendar weeks for one developer once shield W1+W2+W4+W6 land
 
 If you want a single PR to make on the send lane that materially advances this without breaking the existing UI:
 
-> **Stop writing send memos as plaintext JSON. Wrap the payload in `encryptVantaShieldMemoToViewingKey` (sealed to the recipient's viewing key, with a parallel sealed-to-self change memo). Keep the prefix `vanta:send-note:v2:` so old clients can still parse v1 memos for backward compat. Update the recipient discovery in `vantaShieldState.ts:1340` to attempt v2 decryption first and fall back to v1 plaintext.**
+> **Completed locally for the current browser helpers: fresh send memos now emit `vanta:send-note:v2:` AEAD ciphertext, and recipient discovery attempts v2 decryption before falling back to historical v1 plaintext. Keep the guard, then finish recipient-grade discovery plus proof-bound recipient/change ciphertext commitments.**
 
-This single PR closes the largest privacy leak in the send lane today (the plaintext recipient/amount). It does not touch the proof or the trust model — those still need S1+S3+S4 — but it removes the public broadcast of every send's economics.
+This local change closes the largest fresh send memo privacy leak (the plaintext recipient/amount). It does not touch the proof or the trust model - those still need S1+S3+S4 - but it removes the fresh public broadcast of send economics while preserving historical v1 parsing.
 
 Pair this with marking `liveSendBridge.ts` as a "diagnostics-only" path in user-facing copy until the proof lane is real.
 
@@ -754,7 +758,7 @@ Everything else is `needs-private-route-adapter` — visible in the asset list b
 The trace, end-to-end, when a user clicks *Swap*:
 
 1. **Quote.** The browser fetches a quote for the source/target pair. For SOL→shielded, that's a Jupiter quote API call routed through the operator adapter; the adapter holds a `liquidityKeypair` and signs/submits the eventual on-chain swap. For USDC→SOL, the venue is Meteora DLMM via `operator/meteora-dlmm-context.mjs`. The quote includes `outputAmount`, `quoteId`, `quoteTimestamp`, `quoteExpiresAt`, `venueFamily`, `venueName`, `venuePoolAddress`.
-2. **Memo construction.** `src/solana/vantaShieldState.ts:createPreparedSwapMemo` builds a Solana **Memo program** instruction with prefix `vanta:swap-note:v1:` followed by JSON. Same shape as send — plaintext JSON with `inputAmount`, `outputAmount`, `inputAsset`, `outputAsset`, `mintAddress`, `owner`, `vaultOwner`, `consumedNoteId`, `quoteId`, `venueName`, `venuePoolAddress`. **All economic terms in cleartext on chain.**
+2. **Memo construction.** Before the action-memo feedback loop, `src/solana/vantaShieldState.ts:createPreparedSwapMemo` built a Solana **Memo program** instruction with prefix `vanta:swap-note:v1:` followed by plaintext JSON. Fresh browser helpers now emit `vanta:swap-note:v2:` AEAD ciphertext and parsers retain v1 fallback for historical chain records. Remaining leakage is signed-intent/operator metadata plus the lack of proof-bound ciphertext commitments.
 3. **Memo transaction.** Browser asks the wallet to sign a transaction whose only meaningful instruction is that memo + Helius priority-fee instructions. **No SPL transfer, no Jupiter or Meteora instruction is included in the user's transaction.**
 4. **Spent marker.** A second transaction with `createSpentMarkerInstruction` claiming `consumedNoteId` is now spent (same pattern as send).
 5. **Signed swap intent.** The browser signs an out-of-band intent message with the user's wallet (`vanta:swap-intent:v2`) and POSTs to the operator's `/private-core/swap-proof` and `/private-core/swap-transition` endpoints in `operator/unshield-server.mjs`. The intent contains `consumedNoteId`, `inputAmount`, `outputAmount`, `quoteId`, `venuePoolAddress`, etc., signed with Ed25519 by the user's Solana keypair.
@@ -770,17 +774,17 @@ Same accounting as the send section, with one wrinkle: the venue.
 |---|---|---|---|
 | User wallet (sender) | Yes (memo signer + intent signer) | Yes (signed intent) | No |
 | Venue used (Jupiter/Meteora) | Yes (memo + venue tx) | Yes | n/a |
-| Input asset | Yes | Yes | Yes |
-| Input amount | Yes | Yes | Yes |
-| Output asset | Yes | Yes | Yes |
-| Output amount | Yes | Yes | Yes |
-| Slippage | Yes (memo) | Yes | Yes |
-| Quote ID + timestamp | Yes | Yes | Yes |
-| Linkability (user → venue swap) | Yes (memo plaintext + identical timestamps + matching amounts) | Yes | Trivial via timing+amount |
+| Input asset | Operator venue tx: yes. Fresh user memo: ciphertext. | Yes | Yes |
+| Input amount | Operator venue tx: yes. Fresh user memo: ciphertext. | Yes | Yes |
+| Output asset | Operator venue tx: yes. Fresh user memo: ciphertext. | Yes | Yes |
+| Output amount | Operator venue tx: yes. Fresh user memo: ciphertext. | Yes | Yes |
+| Slippage | Fresh user memo: ciphertext; venue tx/quote context still observable to operator. | Yes | Yes |
+| Quote ID + timestamp | Fresh user memo: ciphertext plus transaction timing. | Yes | Yes |
+| Linkability (user -> venue swap) | No longer via plaintext user memo; still plausible via timing, operator tx cadence, and amount/venue tx correlation. | Yes | Trivial via timing+amount |
 
-The single privacy gain over a fully public swap: **the venue (Jupiter/Meteora) sees the operator's `liquidityKeypair` as the swapper, not the user's wallet.** That is real but limited. Anyone correlating the public memo's `inputAmount, outputAmount, quoteId, quoteTimestamp` with the public Jupiter swap from the operator's wallet within the quote TTL window can re-link the user to the venue swap deterministically. Quote TTL is 30s by default (`VANTA_SOL_TO_SHIELDED_QUOTE_TTL_MS`); during that 30-second window the operator processes one swap intent at a time, so the matching is one-to-one.
+The single privacy gain over a fully public swap: **the venue (Jupiter/Meteora) sees the operator's `liquidityKeypair` as the swapper, not the user's wallet.** That is real but limited. Fresh v2 memos remove the easiest user-memo term leak, but anyone correlating the user's memo timing with the public Jupiter/Meteora swap from the operator's wallet within the quote TTL window can still re-link the user to the venue swap in low-throughput conditions. Quote TTL is 30s by default (`VANTA_SOL_TO_SHIELDED_QUOTE_TTL_MS`); during that 30-second window the operator processes one swap intent at a time, so the matching can still be one-to-one.
 
-In short: today's "private swap" buys you about 30 seconds of weak unlinkability against the venue at the cost of full custody by the operator's liquidity wallet, and reveals everything to a chain observer.
+In short: today's "private swap" buys limited venue unlinkability at the cost of full custody by the operator's liquidity wallet. Fresh memo ciphertext improves passive chain privacy, but the lane is not production-private because timing, operator custody, venue execution, and proof enforcement remain unresolved.
 
 ## What the operator actually does
 
@@ -908,11 +912,11 @@ Notes:
 
 Effort: 1–2 weeks of circuit work. Slippage-band proofs over u128 multiplications are the slowest part.
 
-### X2. Replace the plaintext swap memo
+### X2. Keep the encrypted swap memo guard
 
-Same fix as send (S2 above). `createPreparedSwapMemo` currently writes plain JSON via `createMemoInstruction`. Replace with `encryptVantaShieldMemoToViewingKey` sealed to the user's own viewing key. The output note is owned by the same user, so there's only one memo per swap (no recipient).
+Same fix as send (S2 above), now completed locally for fresh helpers. `createPreparedSwapMemo` emits v2 AEAD sealed to the user's own viewing key. The output note is owned by the same user, so there's only one memo per swap (no recipient).
 
-Memo plaintext: `{ output_asset, output_amount, output_blinding, leaf_index, swap_oracle_slot, free_form }`. Memo prefix: `vanta:swap-note:v2:`. Keep parsing of v1 memos for backward compat for one release, then drop.
+The v2 plaintext inside the sealed body is shaped around `{ output_asset, output_amount, output_blinding, leaf_index, swap_oracle_slot, free_form }`. On chain, the fresh memo bytes use prefix `vanta:swap-note:v2:` and are opaque without the viewing key. Keep parsing of v1 memos for backward compatibility until a migration policy is explicit.
 
 Effort: 1–2 days.
 
@@ -1009,10 +1013,10 @@ These are operational mitigations, not cryptographic guarantees, but they're the
 
 ## What to delete or quarantine
 
-- **Stop emitting plaintext swap memos.** Same as send — wrap in AEAD as an interim fix while X1–X3 ship.
+- **Keep fresh Swap memos on the v2 AEAD path.** The original plaintext swap memo issue is locally remediated for fresh helpers; keep the guard green while X1–X3 ship.
 - **Disable the `operator-usdc-sol` and `operator-sol-to-shielded` execution modes** in `shieldedSwapCapability.ts` until X4 (the rebalance contract) is real, OR explicitly down-rank the product to Target C and remove the "private swap" framing from user-facing copy. Today the page says "swap" and the user can't tell whether their trade is operator-custodial or programmatic.
-- Remove the dead `sender_secret_stub` line from `vanta_private_core_single_note_swap/src/main.nr` — it gives a false impression of an ownership constraint.
-- Replace the `assert(input_asset_id_hi + input_asset_id_lo != output_asset_id_hi + output_asset_id_lo)` check with a real "fields differ" constraint (`(a - b) * inv == 1`), or delete the circuit entirely until it's rewritten. The current check passes for any two distinct (hi, lo) splits that sum to the same value.
+- Keep the `sender_secret_stub` removal guarded. The local branch replaced the dead self-equality with a nonzero sender-secret witness liveness guard; final in-circuit owner auth remains open.
+- Keep the additive asset-inequality bypass guarded. The local branch replaced the additive limb-sum check with limb comparison and added a sum-collision fixture; a fuller circuit rewrite should still use production-grade asset identity and ownership constraints.
 - Lock down the `liquidityKeypair` env loading to refuse to start unless the keypair is wrapped (e.g., behind an HSM signer). A plain JSON keypair in env is the worst pattern for a wallet that holds liquidity for swaps.
 
 ## Order of operations and rough effort
@@ -1031,9 +1035,9 @@ Total: about 10–12 calendar weeks for swap on top of the shield and send found
 
 ## Concrete first commit for Codex (swap-side)
 
-> **Replace the plaintext `vanta:swap-note:v1:` memo with `vanta:swap-note:v2:` AEAD-sealed to the user's own viewing key. Plaintext fields move into the sealed body; the on-chain memo bytes become opaque to chain observers. Update `extractMemoPayload` callers in `vantaShieldState.ts:1603` to attempt v2 decryption first and fall back to v1.**
+> **Completed locally for fresh helpers: `vanta:swap-note:v2:` memos are AEAD-sealed to the user's own viewing key, plaintext fields move into the sealed body, and `extractMemoPayload` callers attempt v2 decryption before falling back to historical v1. Keep the guard while X1/X3/X4 finish.**
 
-This is the same one-day fix as the send-side first PR, applied to swap. It does not address the architectural problems but immediately closes the largest privacy leak — the plaintext broadcast of every swap's input/output asset, amount, venue, and quote ID.
+This is the same one-day fix as the send-side first PR, applied to swap. It does not address the architectural problems, but it closes the largest fresh user-memo privacy leak: the plaintext broadcast of every swap's input/output asset, amount, venue, and quote ID.
 
 Pair it with two small repairs:
 
@@ -1052,7 +1056,7 @@ Pair it with two small repairs:
 
 ## Cross-lane summary
 
-After all three deep dives, the unifying observation is that **none of the three lanes today produce or verify a real ZK proof on chain**, and **all three lanes leak full economic terms in plaintext via Solana memos.** The crypto, the circuits, and the on-chain program all exist, but they exist in parallel — never wired together as a single end-to-end pipeline.
+After all three deep dives, the unifying observation is that **none of the three lanes today produce or verify a real ZK proof on chain**. Fresh local action memos no longer leak full economic terms as plaintext Solana memo bytes, but historical v1 records, operator/status metadata, venue execution, recipient discovery, and proof-bound ciphertext hashes remain unresolved. The crypto, the circuits, and the on-chain program all exist, but they still are not wired together as a single end-to-end production pipeline.
 
 The minimum repair that moves the project from "custodial app with privacy theming" to "alpha-but-real shielded pool" is:
 
@@ -1080,19 +1084,17 @@ Two paths, both ending at `operator/unshield-server.mjs`:
 The trace, end-to-end, when a user clicks *Unshield*:
 
 1. **Note picking.** The browser picks a shielded note (or chain of transitioned notes) the user owns. It computes a `consumedNoteId` and a `transitionNoteId`.
-2. **Optional spent-marker memo.** For some flow shapes, the browser writes a Memo program instruction with prefix `vanta:unshield-note:v1:` (and a `spent-marker` for the predecessor) — same plaintext-JSON design as send and swap. Anyone scanning the chain reads `amount`, `destinationOwner`, `consumedNoteId`, `vaultOwner`, etc., in cleartext.
+2. **Optional spent-marker memo.** Before the action-memo feedback loop, some flow shapes wrote a Memo program instruction with prefix `vanta:unshield-note:v1:` (and a `spent-marker` for the predecessor) using the same plaintext-JSON design as send and swap. Fresh local helpers now emit v2 AEAD ciphertext, but historical v1 records and the public exit transfer still reveal important linkage.
 3. **Intent construction.** `src/solana/unshieldAuth.ts:createUnshieldIntentPayload` builds an `UnshieldIntentPayload` containing `amount, destinationOwner, mintAddress, owner, requester, vaultOwner, noteId, transitionNoteId, requestId, issuedAt`.
-4. **Signing.** The intent is signed in one of two modes:
-   - `signUnshieldIntent` — real Ed25519 signature from the user's wallet over the human-readable `formatUnshieldIntentMessage` text.
-   - `createTransitionAuthorizedUnshieldIntent` — returns `signature: "transition-authorized"` literally, with no cryptographic signature. Authorized solely by the existence of a prior transition Solana signature.
+4. **Signing.** In the original review, the intent could be signed in two modes: `signUnshieldIntent` with a real Ed25519 signature, or `createTransitionAuthorizedUnshieldIntent` with the literal `signature: "transition-authorized"` sentinel. The local branch has since removed the sentinel path from browser and operator auth; public exits should now use wallet-signed intents.
 5. **Operator submission.** Browser POSTs the signed intent to `/unshield` (or `/unshield/sol`). The handler in `operator/unshield-server.mjs:1738` runs through:
    - `parseSignedUnshieldIntent` validates the shape and version.
    - Asserts `intent.owner === intent.requester === intent.destinationOwner`. **The user can only unshield to themselves.** No "unshield to a different wallet" capability exists in this code path.
    - Asserts `intent.vaultOwner === vaultOwner` (the operator's configured single vault).
    - `assertFreshUnshieldIntent(intent)` — checks `issuedAt` is within `VANTA_UNSHIELD_INTENT_TTL_MS` (5 minutes).
-   - `verifySignedUnshieldIntent(intent)` — Ed25519 verify against `intent.requester`, OR accepts the `"transition-authorized"` literal if the path is wallet-direct.
+   - `verifySignedUnshieldIntent(intent)` — Ed25519 verify against `intent.requester`; the old `"transition-authorized"` literal acceptance path has been removed locally.
    - Replay checks against in-memory sets and a JSON-backed `releaseRecords` store keyed by `requestId`, `noteId`, `transitionNoteId`.
-6. **On-chain context check.** For the wallet-direct path, `fetchConstrainedOnchainUnshieldContext` reads the user's shield notes from chain memos (`VANTA_SHIELD_MEMO_PREFIX_V2`) and verifies the requested amount is consistent with what the user has shielded minus what they've already unshielded. For the transition-authorized path, `waitForEligibleUnshieldTransition` polls the chain for the transition memo to settle.
+6. **On-chain context check.** For the wallet-direct path, `fetchConstrainedOnchainUnshieldContext` reads the user's shield notes from chain memos (`VANTA_SHIELD_MEMO_PREFIX_V2`) and verifies the requested amount is consistent with what the user has shielded minus what they've already unshielded. The old transition-authorized polling path should be treated as historical review context, not the current authorization boundary.
 7. **Vault keypair load.** `loadKeypairFromEnv(vaultSignerSecretKeyEnvName)` loads the **operator's vault keypair from environment variable**. The operator asserts `keypair.signer.address === vaultOwner` — confirming that the operator IS the vault custodian.
 8. **Release transfer.** The operator builds and signs an SPL transfer from `vaultOwner` to `destinationOwner` for `intent.amount`, signed by the vault keypair. For SOL: `SystemProgram.transfer({ fromPubkey: keypair.publicKey, toPubkey: new PublicKey(intent.destinationOwner), lamports })` followed by `sendAndConfirmTransaction`. For SPL: `client.helpers.splToken(...).sendTransfer({...})`.
 9. **Release receipt.** Operator returns a typed receipt:
@@ -1100,13 +1102,13 @@ The trace, end-to-end, when a user clicks *Unshield*:
    {
      kind: "vanta-unshield-operator-release-receipt-v1",
      proofStatus: "not-provided-wallet-authorized-public-exit"
-                | "not-provided-transition-authorized-public-exit",
+                | "not-provided-wallet-signed-transition-public-exit",
      replayStatus: "accepted-first-use",
      spendabilityBasis: "canonical-spendable-note-ledger",
      ...
    }
    ```
-   The receipt openly declares **`proofStatus: "not-provided"`**. The operator is honest in code that no proof is verified for this release — the only check is the user's wallet signature on the intent text.
+   The receipt openly declares **`proofStatus: "not-provided"`**. The operator is honest in code that no proof is verified for this release - the current public-exit boundary is the user's wallet signature on the intent text, not the removed literal `"transition-authorized"` sentinel.
 10. **Local bookkeeping.** `src/zk/liveUnshieldBridge.ts:recordCanonicalUnshieldFromLiveUnshield` writes the unshield to localStorage, same redaction-on-persistence pattern as the send/swap bridges.
 
 ## What's actually private and what isn't
@@ -1117,7 +1119,7 @@ The trace, end-to-end, when a user clicks *Unshield*:
 | Destination wallet | Yes (always equal to sender) | Yes |
 | Asset (USDC mint or SOL) | Yes | Yes |
 | Amount | Yes | Yes |
-| Linkage to original shield | Yes (via memo plaintext + amount + timing) | Yes |
+| Linkage to original shield | Legacy v1: memo plaintext + amount + timing. Fresh v2: destination/self-exit, transfer amount, timing, and operator records still leak linkage. | Yes |
 | Vault wallet | Yes (always the same address) | Yes |
 
 The unshield lane is a regular SPL transfer from the operator's vault to the user's wallet. The destination wallet is constrained to be the user's *own* wallet — there is no "private exit to a fresh address" capability. So the chain shows: deposit from wallet X → operator vault → withdrawal to wallet X. **No anonymity at all.** Anyone with chain history can trivially link every deposit to every withdrawal.
@@ -1166,17 +1168,17 @@ The circuit is also not wired into the live unshield path. The release-receipt's
 
 ## The "transition-authorized" path
 
-This deserves special attention because it's an alternate authorization mode that bypasses Ed25519 signatures entirely.
+This deserves special attention as historical context because it was an alternate authorization mode that bypassed Ed25519 signatures entirely. The local branch has since removed the browser and operator sentinel path.
 
-`createTransitionAuthorizedUnshieldIntent` constructs an intent with `signature: "transition-authorized"` — the literal string, not a signature. The intent is accepted by the operator if it has a `transitionStateSignature` referencing a prior on-chain transition (a send memo, swap memo, or similar) where the user's wallet was the signer.
+`createTransitionAuthorizedUnshieldIntent` constructed an intent with `signature: "transition-authorized"` — the literal string, not a signature. The intent was accepted by the operator if it had a `transitionStateSignature` referencing a prior on-chain transition (a send memo, swap memo, or similar) where the user's wallet was the signer.
 
-The reasoning behind this mode appears to be: if you've already chained your notes through a series of operator-acknowledged transitions, your final unshield doesn't need a fresh wallet signature — your historical transitions stand in for it. From a UX standpoint that avoids one wallet popup. From a security standpoint it widens the trust boundary: the operator is now trusting that any prior transition record bound to the same wallet justifies the release, and that nothing in the operator's records has drifted between transitions.
+The reasoning behind this mode appeared to be: if you've already chained your notes through a series of operator-acknowledged transitions, your final unshield doesn't need a fresh wallet signature — your historical transitions stand in for it. From a UX standpoint that avoided one wallet popup. From a security standpoint it widened the trust boundary: the operator trusted that any prior transition record bound to the same wallet justified the release, and that nothing in the operator's records drifted between transitions.
 
-`assertEligibleDirectUnshieldRelease` (wallet-direct mode) has a different shape than `waitForEligibleUnshieldTransition` (transition mode), and the two paths take different release decisions. A subtle bug in either eligibility check is a withdrawal-authorization bug. **Two ways to authorize the same release is two attack surfaces.**
+The removed implementation had `assertEligibleDirectUnshieldRelease` (wallet-direct mode) and `waitForEligibleUnshieldTransition` (transition mode) taking different release decisions. A subtle bug in either eligibility check would have been a withdrawal-authorization bug. The current local code removes the literal transition-authorized branch; keep the guard because reintroducing two release authorization paths would reopen the same attack surface.
 
 ## Trust assumptions to be honest about
 
-In addition to the trust assumptions inherited from shield (vault is custodial), send (memos plaintext, no proofs), and swap (operator is liquidity provider):
+In addition to the trust assumptions inherited from shield (vault is custodial), send (fresh memos encrypted but no production proof/discovery boundary), and swap (operator is liquidity provider):
 
 - **The vault keypair is the entire security model.** Every deposit ever made to Vanta sits in one wallet whose private key lives in an operator env var. If the env leaks, gets exfiltrated, gets sniffed by a CI logging accident, or the operator host is compromised, every dollar is gone. There is no on-chain program enforcement, no multi-sig, no PDA. (Audit item 13 cited the configured-fallback vault address `7yUf...rtdi`; this is the address whose private key the operator must hold.)
 - **No proof of ownership.** The operator believes that the requester owns the note because the requester signed the intent with the same wallet that originally shielded the note. That's a chain-of-custody argument, not a cryptographic ownership proof. If a user's wallet is compromised, every note they ever shielded can be stolen even if the attacker never had access to any "viewing key" or "spending secret".
@@ -1290,15 +1292,15 @@ Effort: 2 weeks, gated on shield W4 (vault PDA) and shield W6 (Groth16 verifier)
 
 ### U3. Replace the plaintext unshield memo
 
-Same fix as send-S2 and swap-X2. The current `vanta:unshield-note:v1:` memo writes plaintext JSON via the same `createMemoInstruction` helper. Replace with `encryptVantaShieldMemoToViewingKey` sealed to the user's own viewing key (the user is exiting to themselves, so there's no recipient to seal to externally — the memo just records "this nullifier corresponds to this exit" for the user's own future reference).
+Same fix as send-S2 and swap-X2. Before the action-memo feedback loop, `vanta:unshield-note:v1:` wrote plaintext JSON via the same `createMemoInstruction` helper. Fresh unshield and SOL-unshield helpers now emit v2 AEAD ciphertext sealed to the user's viewing key, while parsers keep v1 plaintext fallback for historical chain records.
 
-In Target A, the memo is optional — the on-chain `UnshieldEvent` is enough for the indexer to track activity. But the memo is still useful because the viewing-key-encrypted body lets the user reconstruct their own exit history from chain alone. Just stop writing it in cleartext.
+In Target A, the memo is optional - the on-chain `UnshieldEvent` is enough for the indexer to track activity. But the memo is still useful because the viewing-key-encrypted body lets the user reconstruct their own exit history from chain alone. Keep fresh memos encrypted and add proof-bound ciphertext/hash discipline before claiming more.
 
 Effort: 1–2 days.
 
 ### U4. Delete the "transition-authorized" path
 
-In Target A this entire authorization mode goes away. Note ownership is proven cryptographically (constraint #6 in U1), so there's no need for a "you signed an earlier transition" alternate-auth path. The operator's `/unshield` endpoint becomes a thin relayer service, not an authorization service.
+The literal `"transition-authorized"` alternate-auth path is now removed locally. Target A still needs the stronger end state: note ownership proven cryptographically (constraint #6 in U1), no historical-transition authorization shortcut, and the operator's `/unshield` endpoint becoming a thin relayer service rather than an authorization service.
 
 Specifically:
 
@@ -1335,8 +1337,8 @@ Effort: 3–5 days. The bulk of the work is rewriting `operator/unshield-server.
 
 ## What to delete or quarantine
 
-- **Stop emitting plaintext unshield memos.** Same as send and swap — wrap in AEAD.
-- **Stop the transition-authorized path now, regardless of Target A timing.** Two ways to authorize the same release is one too many; remove the bypass mode and require a real Ed25519 signature on every unshield request. This is a one-day fix that eliminates a class of authentication-confusion bugs while you build the real proof path.
+- **Keep fresh Unshield memos on the v2 AEAD path.** Same as send and swap: the original plaintext memo issue is locally remediated for fresh helpers, while proof-bound ciphertext hashes and production verifier enforcement remain open.
+- **Keep the transition-authorized path removed.** The local branch removed the browser/operator sentinel path; every current public-exit request should require a real Ed25519 wallet signature until the real proof path replaces the custody model.
 - **Mandate vault keypair rotation before launch.** As long as Target A isn't shipped, the configured `vaultOwner` private key is the entire security model. Rotate it on a schedule, never reuse keys across environments, and audit who has env access.
 - **Add a safety check that refuses unshield if `proofStatus !== "verified"`** in user-facing copy. Today the field says "not-provided" and the UI renders the unshield as if it were a private exit. Make the copy match the field.
 - **Refuse to start the operator** if `VANTA_VAULT_SIGNER_SECRET_KEY` (or whatever the env var is named) is set in a production deployment manifest, after Target A ships. The vault key in env is a Target C artifact; production should never have one.
@@ -1360,9 +1362,9 @@ The real reason to ship unshield first after shield is **that it removes the vau
 
 Two parallel one-day fixes that together close the largest practical issues without depending on anything else:
 
-> **(a) AEAD-wrap the unshield memo using `encryptVantaShieldMemoToViewingKey` (same change pattern as send and swap), and (b) remove `createTransitionAuthorizedUnshieldIntent` plus the `"transition-authorized"` literal-signature acceptance branch in `operator/unshield-server.mjs`. Every unshield request now requires a real Ed25519 signature.**
+> **Completed locally: unshield/SOL-unshield memos now use v2 AEAD, and `createTransitionAuthorizedUnshieldIntent` plus the `"transition-authorized"` literal-signature acceptance branch were removed. Keep the regression guard so every unshield request requires a real Ed25519 signature.**
 
-(a) closes the plaintext leak; (b) eliminates the alternate-authorization attack surface. Neither touches the proof path or the custody model — those need U1 + U2 + U5. But these two together remove the easiest exploits that a non-cryptographic attacker could go after today.
+This closes the fresh plaintext leak and eliminates the alternate-authorization attack surface. It does not touch the proof path or the custody model - those still need U1 + U2 + U5 - but it removes the easiest exploits that a non-cryptographic attacker could go after today.
 
 Pair this with adding a CI assertion that fails the build if `vaultSignerSecretKeyEnvName` appears anywhere in `operator/render-*` deploy manifests after the U2 milestone — same pattern as the swap-side `liquidityKeypair` lockdown.
 
@@ -1382,8 +1384,8 @@ Pair this with adding a CI assertion that fails the build if `vaultSignerSecretK
 
 After all four lane deep dives, the consolidated priority list:
 
-1. **Stop emitting plaintext memos** across all four lanes (shield, send, swap, unshield). One AEAD function, one prefix bump per lane. ~1 week of work; closes the largest privacy leak in the deployed app today.
-2. **Remove the transition-authorized unshield bypass** and the `vault keypair in env` security model expectation. Move toward a PDA-owned vault and program-enforced release. This is the highest-leverage custody fix.
+1. **Keep fresh action memos encrypted** across shield, send, swap, unshield, and spent markers. The v2 AEAD prefix bump is now local; remaining work is recipient-grade discovery, proof-bound ciphertext/hash discipline, and historical v1 compatibility management.
+2. **Keep the transition-authorized unshield bypass removed** and replace the remaining `vault keypair in env` custody model with a PDA-owned vault plus program-enforced release. The bypass removal is local; the custody migration is still the highest-leverage unshield fix.
 3. **Lock the Poseidon note schema** (shield W1) and rebuild the four entry circuits on top of it (shield, send, swap, unshield) at depth 20 with real Merkle membership and ownership constraints. The actual_private_spend circuit is the template; everything else gets the same shape.
 4. **Wire a real prover** (`@aztec/bb.js` or snarkjs) into the browser, replace the mock prover, and embed a Groth16 verifier in the on-chain program (Light's `groth16-solana` is the reference).
 5. **Build the on-chain program** with one shared verifier, one shared incremental Merkle tree, one PDA vault per asset, and four instructions (shield, send, swap, unshield) that all reference the same tree state.
@@ -1445,7 +1447,7 @@ Strategy is a *composition* lane. It doesn't introduce new privacy primitives; i
 - **Settle to private balance** = the final hop is a send-to-self into the shielded pool. Inherits send's privacy properties.
 - **Settle to public destination** = the final hop is an unshield. Inherits unshield's privacy properties.
 
-If send leaks plaintext memos with `amount, recipient, asset` (it does today), then every Stealth DCA child order leaks the same information N times. If swap requires a custodial liquidity wallet (it does today), then every Strategy child swap goes through that same wallet. If unshield reveals the destination on chain and forces destination-equals-owner (it does today), then "settle to public destination" forces the entire strategy's output to land in the original initiator's wallet, in plaintext, defeating the strategy-level privacy framing entirely.
+If send leaks plaintext memos with `amount, recipient, asset` (it did in the original v1 action-memo shape), then every Stealth DCA child order leaks the same information N times. Fresh v2 action memos improve that specific leak, but Strategy still inherits Send's unfinished recipient discovery and proof-bound ciphertext work. If swap requires a custodial liquidity wallet (it does today), then every Strategy child swap goes through that same wallet. If unshield reveals the destination on chain and forces destination-equals-owner (it does today), then "settle to public destination" forces the entire strategy's output to land in the original initiator's wallet, defeating the strategy-level privacy framing entirely.
 
 **Strategy cannot be more private than the sum of its child legs.** And the child legs today, as documented in the previous deep dives, are not private at all.
 
@@ -1603,8 +1605,8 @@ The four economic lanes (shield, send, swap, unshield) are positioned as private
 
 The single most leveraged sequence of fixes:
 
-1. **Stop emitting plaintext memos** across shield, send, swap, unshield — wrap everything in the AEAD pattern that already works in `vantaShieldViewingKey.ts`. Closes the largest privacy leak in the deployed app.
-2. **Lift the strategy-lane trust-contract pattern into the other four lanes** — make UI copy derive from explicit `claimControls` objects so the product never claims more than the code can support.
+1. **Keep fresh action memos on v2 AEAD and finish recipient discovery.** Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers now fail closed into viewing-key AEAD; recipient viewing-key exchange, view tags/indexer discovery, proof-bound ciphertext hashes, and historical v1 migration remain open.
+2. **Keep the strategy/pay trust-contract pattern lifted into the other four lanes** — make UI copy derive from explicit `claimControls` objects so the product never claims more than the code can support.
 3. **Migrate the vault from operator-keypair-in-env to a program-owned PDA** (shield W4, unshield U2). Removes the entire single-env-var custody risk.
 4. **Lock the Poseidon note schema** (shield W1) and rebuild the four entry circuits on top of it (shield W3, send S1, swap X1, unshield U1) at depth 20 with real Merkle membership and real ownership constraints.
 5. **Wire a real prover** (`@aztec/bb.js`) and embed a Groth16 verifier (Light's `groth16-solana`) so the on-chain program enforces the proofs the circuits already shape.
@@ -1652,7 +1654,7 @@ The Pay lane today is **a Stripe-shaped API for a payment processor that does no
 
 This is consistent with `getVantaPayMerchantTrustStatus().productionReady: false` and `getVantaPayReceiptPrivacyContract().claimControls.fully_private_pay_claim: false`. The trust contract pattern lifted from the strategy lane is in place. The framing in code is honest. The product copy on `/app/pay` and `/docs/pay` is the part to audit against this reality — anywhere it implies "merchant accepts on-chain stablecoin payments privately," the code is not delivering that today.
 
-The actual customer-side payment flow — if it exists — must live somewhere outside `vantaPayRuntime.ts` and `operator/pay-server.mjs`. It would have to be: (a) a separate "checkout app" that asks the customer to sign an SPL transfer to a vault address with a memo containing the session ID, then (b) something polling the chain to detect that transfer and call `POST /v1/checkout/sessions/{id}/complete` on the merchant's behalf. There are hints of this in `splShieldTransfer.ts` and the various memo prefixes, but nothing in the Pay code itself wires customer wallet → checkout completion. The current `complete` endpoint is open-input — anyone with the session ID and merchant credentials can declare a session complete.
+The actual customer-side payment flow — if it exists — must live somewhere outside `vantaPayRuntime.ts` and `operator/pay-server.mjs`. It would have to be: (a) a separate "checkout app" that asks the customer to sign an SPL transfer to a vault address with a memo containing the session ID, then (b) something polling the chain to detect that transfer and call `POST /v1/checkout/sessions/{id}/complete` on the merchant's behalf. There are hints of this in `splShieldTransfer.ts` and the various memo prefixes, but nothing in the Pay code itself wires customer wallet → checkout completion. The local branch has since locked `/complete` behind `VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN`, so merchant Bearer auth alone is no longer enough; the remaining truth is that completion is an internal local/test harness until customer payment evidence is wired.
 
 ## What's actually private and what isn't
 
@@ -1676,8 +1678,8 @@ If product copy implies "merchants accept private stablecoin payments," that's c
 
 For Pay specifically, on top of all the assumptions inherited from shield/unshield (vault keypair in env, mock prover, etc.):
 
-- **The operator runs the entire merchant lifecycle.** Merchant signups, API key issuance (via Bearer tokens — see `requireAuth` in pay-server.mjs), checkout session creation, completion, refunds, withdrawals — all server-side, all gated by Bearer tokens. There's no merchant on-chain identity, no merchant signing of session-completion or refund decisions. The operator IS the merchant from a key-management standpoint.
-- **The operator decides when a checkout is "complete."** The endpoint `POST /v1/checkout/sessions/{id}/complete` accepts a request and trusts whoever calls it. There's no on-chain proof binding the completion to a customer SPL transfer. If the operator's API key leaks, anyone can mark any session complete.
+- **The operator runs the merchant lifecycle.** Merchant signups, API key issuance (via Bearer tokens — see `requireAuth` in pay-server.mjs), checkout session creation, refunds, withdrawals, and most merchant actions are server-side. Completion now has a separate internal settlement-token boundary, but there is still no merchant on-chain identity or merchant signing of session-completion/refund decisions.
+- **The internal operator path decides when a checkout is "complete."** The endpoint `POST /v1/checkout/sessions/{id}/complete` now requires `VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN` locally, so a leaked merchant Bearer token alone cannot mark a session complete. There is still no on-chain proof binding completion to a customer SPL transfer, and customer payment evidence is not wired for production.
 - **The operator decides when refunds happen.** Refunds are bookkeeping; the operator could mark a refund without actually returning funds, or vice versa.
 - **The operator delivers webhooks signed with the merchant's webhook secret.** The webhook secret is operator-stored. So while webhook signatures are cryptographically valid (HMAC-SHA256), their authenticity rests on the operator's storage of the secret being intact.
 - **The operator IS the merchant's bank.** Merchant balances are operator-tracked. Merchant withdrawals are operator-signed transfers from the vault. The merchant has no direct on-chain claim against any program-owned escrow.
@@ -1693,14 +1695,18 @@ The `vantaPayPrivateSettlementAdapter.ts` summary object is even more explicit:
 ```ts
 VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY = {
   hiddenEconomicsProductionPrivacyClaimAllowed: false,
-  operatorSeesRawSettlementTerms: false,
+  checkoutCompletionAuth: "internal-settlement-token-only",
+  customerPaymentEvidenceRequiredForProduction: true,
+  customerPaymentEvidenceWired: false,
+  operatorSeesRawMerchantApiTerms: true,
+  operatorSeesRawSettlementAdapterTerms: false,
   rawEconomicTermsInLiveCheckoutSettlement: false,
   rawEconomicTermsInLiveWithdrawalSettlement: false,
   ...
 }
 ```
 
-These are runtime values that gate behavior. **They claim properties the code below them does not yet enforce.** Specifically: `operatorSeesRawSettlementTerms: false` is asserted, but the in-memory `Map` storing the checkout session has the raw `amount, currency, customerEmail, lineItems` fields fully visible to the operator that runs the server. The "operator-doesn't-see-raw-terms" claim only applies to the *settlement-adapter handoff* (where commitments replace amounts), not to the merchant-API surface (where everything is in plaintext).
+These are runtime values that gate behavior, but their scope has to stay precise. Current local status splits `operatorSeesRawMerchantApiTerms: true` from `operatorSeesRawSettlementAdapterTerms: false`: the in-memory merchant API/runtime still stores raw `amount, currency, customerEmail, lineItems`, while the settlement-adapter handoff uses commitments instead of raw settlement terms.
 
 This is a different gap than the other lanes. In shield/send/swap, the gap is "the code is shaped like A but ships C" without explicit code-level claims. In Pay, the gap is "explicit code-level claims are made about a sub-component (the settlement adapter) that don't transfer to the larger system (the runtime that hosts the adapter)." The fix is to be more careful about what the trust-contract assertions cover.
 
@@ -1849,10 +1855,10 @@ Effort: 1–2 weeks. Mostly a coordinated copy + code review across `/app/pay`, 
 
 ## What to delete or quarantine
 
-- **The `complete` endpoint as currently shaped** (`POST /v1/checkout/sessions/{id}/complete` accepting a Bearer-authed call from the merchant) needs to be locked down so it can only be called by the operator's chain-event subscriber after a `CheckoutPaidEvent`. Today it's reachable from any caller with the merchant's API token; an attacker with the merchant's API key can mark sessions complete without any actual customer payment.
-- **The local mock prover path** in `settleCheckoutSession` and `settleWithdrawal`. Replace with calls into the real prover/verifier from shield-W7. Until that lands, the trust-contract claim `operatorSeesRawSettlementTerms: false` is contradicted by the in-memory checkout-session state.
+- **Keep `/complete` locked behind the internal settlement token.** The local branch now requires `VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN`, so merchant Bearer auth alone cannot complete sessions. The remaining production task is to let only the chain-event subscriber call this after customer payment evidence / `CheckoutPaidEvent` verification.
+- **The local mock prover path** in `settleCheckoutSession` and `settleWithdrawal`. Replace with calls into the real prover/verifier from shield-W7. Until that lands, keep `operatorSeesRawMerchantApiTerms: true` and `operatorSeesRawSettlementAdapterTerms: false` scoped separately.
 - **Refund endpoint as journal-only.** Either implement on-chain refunds (P4) or label refunds as "credit memos" rather than "refunds" until they actually return funds.
-- **The "fully_private_pay_claim: false" flag** should be wired to gate user-facing copy. Today it's a returned value with no consumer; some component of the merchant UI should read it and refuse to render "private payments" framing while it's `false`.
+- **Keep the "fully_private_pay_claim: false" flag wired to user-facing copy.** The local branch now consumes the false production-privacy boundary in Pay/docs surfaces; keep forbidden-phrase and claim-control checks as the guard.
 - **`saveRuntimeSnapshot` as the only durability layer.** Mark this as a development-mode artifact only. Production must use Postgres transactions.
 
 ## Order of operations and rough effort
@@ -1875,9 +1881,9 @@ The honest answer for most teams in this position is to ship Pay-Target-B fast, 
 
 Two parallel one-day fixes that materially close the worst gaps without depending on any of the cryptographic work:
 
-> **(a) Lock the `POST /v1/checkout/sessions/{id}/complete` endpoint so it only accepts requests from the operator's internal chain-event subscriber, not from arbitrary callers with the merchant's Bearer token. Add a service-account separator: `VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN` is required in addition to (or instead of) the merchant Bearer token for the `/complete` route. (b) Wire the `claimControls.fully_private_pay_claim` flag from `vantaPayReceiptPrivacyContract.ts` into the `/app/pay` and `/docs/pay` UI surfaces so any "privately" / "private payments" copy is hidden while the flag is `false`.**
+> **Completed locally for the current Pay API/UI truth boundary: `POST /v1/checkout/sessions/{id}/complete` now uses the internal `VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN` boundary instead of merchant Bearer auth, and Pay status/readiness/doc checks disclose that customer payment evidence is not production-wired. Keep UI copy tied to `claimControls.fully_private_pay_claim === false`.**
 
-(a) closes the trivial "merchant API key compromise = mark sessions paid arbitrarily" hole. (b) makes the deployed copy match the code's actual claims — the same pattern as the strategy-lane first commit, applied to Pay. Neither change touches the cryptographic primitives or the on-chain program; both can ship today.
+This closes the local "merchant API key compromise = mark sessions paid arbitrarily" hole for checkout completion and keeps deployed-copy claims subordinate to the code's actual claim controls. It does not touch the cryptographic primitives, customer-side payment evidence, or on-chain program, and no live deployment evidence has been refreshed in this loop.
 
 Pair this with a CI check that fails the build if any string matching `/private (payment|checkout|refund|settlement)/i` appears in a `.tsx` file under `src/pages/Pay*` or `src/pages/DocsPay*` while `claimControls.fully_private_pay_claim === false`.
 
@@ -1897,12 +1903,12 @@ Pair this with a CI check that fails the build if any string matching `/private 
 
 After deep dives on shield, send, swap, unshield, strategy, and pay, the consolidated story is now complete:
 
-The four economic lanes (shield, send, swap, unshield) are positioned as private but ship as custodial-with-extra-steps. Their cryptographic primitives exist but are not connected to one another. The strategy lane is positioned as a preview, ships as a preview, and is the closest to honest in the codebase. The pay lane is positioned as a payment processor, ships as a Stripe-shaped API with no actual customer payment flow visible in the code reviewed, and contradicts its own privacy claims through plaintext checkout-session storage at the operator.
+The four economic lanes (shield, send, swap, unshield) now have better local honesty guards and fresh action-memo encryption, but they still ship short of production-private settlement because the cryptographic primitives are not connected end-to-end with an on-chain verifier, production tree state, relayer/indexer persistence, and audit acceptance. The strategy lane is positioned as a preview, ships as a preview, and remains the closest to honest in the codebase. The pay lane is positioned as a payment processor, ships as a Stripe-shaped API with no customer payment evidence wired for production in the reviewed code, and still needs operator/runtime data boundaries to stay distinct from settlement-adapter privacy claims.
 
 The single most leveraged sequence of fixes, updated:
 
-1. **Stop emitting plaintext memos** across shield, send, swap, unshield — wrap everything in the AEAD pattern that already works in `vantaShieldViewingKey.ts`.
-2. **Lift the strategy-lane and pay-lane trust-contract pattern into the other four lanes** — make UI copy derive from explicit `claimControls` objects so the product never claims more than the code can support. **Wire those claim-controls into UI gating, not just static returns.**
+1. **Keep fresh action memos on v2 AEAD and finish recipient discovery.** Fresh Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers no longer emit plaintext v1 memos; view-tag/indexer discovery, recipient key exchange, ciphertext-hash proof binding, and historical v1 migration remain open.
+2. **Keep the strategy-lane and pay-lane trust-contract pattern lifted into the other four lanes** — make UI copy derive from explicit `claimControls` objects so the product never claims more than the code can support. **Wire those claim-controls into UI gating, not just static returns.**
 3. **Migrate the vault from operator-keypair-in-env to a program-owned PDA** (shield W4, unshield U2). Removes the entire single-env-var custody risk.
 4. **Lock the Poseidon note schema** (shield W1) and rebuild the four entry circuits on top of it (shield W3, send S1, swap X1, unshield U1) at depth 20 with real Merkle membership and real ownership constraints.
 5. **Wire a real prover** (`@aztec/bb.js`) and embed a Groth16 verifier (Light's `groth16-solana`) so the on-chain program enforces the proofs the circuits already shape.
@@ -2082,7 +2088,7 @@ First local hardening slice started:
 
 Verification passed locally: `cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml`, `cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml`, Solana SBF build for the spend program, `npm run private-pool-v2:crucible-check`, `npm run private-pool-v2:verify`, `npm run zk:owner-recovery-payload-crypto-check`, `npm run build`, `npm run private-core:check`, and `git diff --check`.
 
-Still open from this review: real on-chain proof verification, real Private Pool v2 entry-circuit membership/append constraints, `canonical_note_membership` hash replacement, non-linear nullifier storage, and the plaintext memo/privacy architecture work.
+At this earlier pass, still open from this review: real on-chain proof verification, real Private Pool v2 entry-circuit membership/append constraints, `canonical_note_membership` hash replacement, non-linear nullifier storage, and the plaintext memo/privacy architecture work.
 
 ### Second local ZK pass - 2026-05-09
 
@@ -2096,7 +2102,7 @@ Red-first failures observed locally: `zk:canonical-note-membership-check` failed
 
 Verification passed locally: `npm run zk:canonical-note-membership-check`, `npm run private-pool-v2:shield-circuit-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:claim-circuit-check`, `npm run private-pool-v2:swap-to-shielded-circuit-check`, their matching prove commands, `npm run private-pool-v2:public-input-hash-alignment-check`, `npm run private-core:check`, full `npm run private-pool-v2:verify`, and `git diff --check`.
 
-Still open after this second pass: output append-path semantics for send/swap successors remain fake append hashes, all affected lanes are still depth 3 except the canonical membership target, real on-chain proof verification is not wired, nullifier storage is still linear/fixed-capacity, and plaintext memo/privacy architecture work remains.
+At this earlier pass, still open after the second pass: output append-path semantics for send/swap successors remain fake append hashes, all affected lanes are still depth 3 except the canonical membership target, real on-chain proof verification is not wired, nullifier storage is still linear/fixed-capacity, and plaintext memo/privacy architecture work remains.
 
 ### Third local ZK pass - 2026-05-09
 
@@ -2108,7 +2114,7 @@ Red-first failure observed locally: `npm run zk:merkle-node-hash-contract-check`
 
 Verification passed locally: `npm run zk:merkle-node-hash-contract-check`, `npm run private-pool-v2:actual-private-spend-circuit-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:claim-circuit-check`, `npm run private-pool-v2:shield-circuit-check`, `npm run private-pool-v2:swap-to-shielded-circuit-check`, `npm run private-pool-v2:public-input-hash-alignment-check`, full `npm run private-pool-v2:verify`, `npm run zk:canonical-note-membership-check`, `npm run private-core:check`, and `git diff --check`.
 
-Still open after this third pass: the Private Core single-note send/swap/unshield circuits still carry the older hi/lo and direction-bit-oriented Merkle surfaces; output append-path semantics for send/swap successors still need real successor append proofs; most active lanes remain depth 3; on-chain proof verification is still not wired; nullifier storage remains fixed/linear; and plaintext memo/privacy architecture work remains.
+At this earlier pass, still open after the third pass: the Private Core single-note send/swap/unshield circuits still carry the older hi/lo and direction-bit-oriented Merkle surfaces; output append-path semantics for send/swap successors still need real successor append proofs; most active lanes remain depth 3; on-chain proof verification is still not wired; nullifier storage remains fixed/linear; and plaintext memo/privacy architecture work remains.
 
 ### Fourth local ZK pass - 2026-05-09
 
@@ -2150,14 +2156,14 @@ Still open after this fifth local ZK pass: active lanes remain `MERKLE_DEPTH = 3
 
 Verification passed locally: `npm run zk:canonical-note-proving-commitment-check`, `npm run zk:review-guards-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:contract-check`, `npm run security:limitations-check`, `npm run mainnet:private-settlement-check`, `npm run mainnet:readiness-check`, `npm run build`, full `npm run private-pool-v2:verify`, full `npm run private-core:verify`, and `git diff --check`. Full Private Pool v2 verify still emits existing Crucible harness warnings (`mach_task_self` deprecation and unused mut), but the dry-run harness passed.
 
-Still open after this sixth local ZK pass: active lanes remain `MERKLE_DEPTH = 3`, Send amount conservation is proven over field elements without range constraints, the operator/indexer SHA-256 local root scheme is not proven inside Noir, output append monotonicity still depends on operator/indexer state outside the circuit, on-chain proof verification/root-history enforcement is not wired, nullifier storage remains fixed/linear where applicable, no audit has accepted the boundary, and no live deployment evidence was refreshed.
+Still open after this sixth local ZK pass, before the later amount-range and root-history loops: active lanes remain `MERKLE_DEPTH = 3`, Send amount conservation is proven over field elements without range constraints, the operator/indexer SHA-256 local root scheme is not proven inside Noir, output append monotonicity still depends on operator/indexer state outside the circuit, on-chain proof verification/root-history enforcement is not wired, nullifier storage remains fixed/linear where applicable, no audit has accepted the boundary, and no live deployment evidence was refreshed.
 
 ### Seventh local ZK/review-guard pass - 2026-05-09
 
 - Narrowed Private Pool v2 Send economics witnesses from `Field` to `u128` before Poseidon field encoding. The new `invalid-amount-range` fixture uses a `2^128` amount and now fails at Noir type validation instead of solving over the BN254 field.
 - Added `npm run zk:circuit-soundness-lint` and wired it into `npm run zk:review-guards-check`. The lint forbids self-equality witness no-ops, additive membership path collapse, old placeholder hash TODOs, direction-bit Merkle parent hashes, and transitional `hash_3(previous_root, output_commitment, leaf_index)` successor roots. It reports the remaining depth-3 lanes as an open migration rather than pretending depth-20 is complete.
 - Replaced two Private Core owner-auth no-op asserts with nonzero secret constraints while preserving the explicit v0.1 truth that owner/sender key authorization remains prechecked off-circuit.
-- Hardened the Solana spend program locally: init now rejects reinitialization, `pool_state` stores the initialized nullifier-set and output-queue account keys, spend rejects mixed account triplets, duplicate scanning only covers initialized nullifier slots, and the local builder/printer/relayer checks now require byte-packed `tag=1` / 129-byte spend data plus current-path `relayerFeePayer == operatorAuthority` until co-signing exists.
+- Hardened the Solana spend program locally: init now rejects reinitialization, `pool_state` stores the initialized nullifier-set and output-queue account keys, spend rejects mixed account triplets, duplicate scanning only covers initialized nullifier slots, and the local builder/printer/relayer checks required byte-packed `tag=1` / 129-byte spend data plus current-path `relayerFeePayer == operatorAuthority` until co-signing exists. This seventh-pass ABI was later superseded by the twelfth loop's 161-byte accepted-root payload and bound root-history account.
 - Added review-handoff docs artifacts and checks: `LANE_STATUS.md`, `docs/docs-source-of-truth.md`, `npm run docs:source-of-truth-check`, a top-of-runbook "If You Have 10 Minutes" path, `SECURITY_LIMITATIONS.md` last-validation metadata, and README definition-of-done visibility.
 - Trust-packet surfaces now include the shared honesty note that packets bind current operator-shaped commitments, not audited cryptographic verifiability. The Send packet now also discloses current legacy v1 public-chain memo leakage with `sendMemoMode` and `publicChainVisibleFields`.
 - Product copy that implied Send privacy before AEAD successor discovery was demoted from "Private Send / Move value privately" language to guarded shielded-state Send language.
@@ -2168,7 +2174,92 @@ Verification passed locally: `npm run private-pool-v2:send-circuit-check`, `npm 
 
 Verification caveat: `cargo-build-sbf` is not installed in this environment, so the Solana SBF `.so` was not rebuilt for the new 152-byte pool-state ABI during this pass.
 
-Still open after this seventh local pass: active proving lanes remain `MERKLE_DEPTH = 3`, amount range/carry discipline beyond Private Pool v2 Send is incomplete, plaintext Send v1 memo/discovery architecture still needs the AEAD v2 recipient/change memo redesign, on-chain proof verification/root-history enforcement is not wired, fixed-capacity/O(n) nullifier storage still needs PDA/sharded redesign, no audit has accepted the boundary, and no live deployment evidence was refreshed.
+Still open after this seventh local pass, before the later root-history and Private Core amount-range loops: active proving lanes remain `MERKLE_DEPTH = 3`, amount range/carry discipline beyond Private Pool v2 Send is incomplete, Send recipient discovery still needs the AEAD v2 recipient/change memo and view-tag/indexer design, on-chain proof verification/root-history enforcement is not wired, fixed-capacity/O(n) nullifier storage still needs PDA/sharded redesign, no audit has accepted the boundary, and no live deployment evidence was refreshed.
+
+**Codex status, 2026-05-09:** partially remediated locally after the seventh pass for public-chain action memo leakage. New Send, Swap, Unshield, SOL-Unshield, and spent-marker action memo helpers now emit v2 viewing-key AEAD ciphertext and fail closed without a Shield viewing public key; `fetchVantaShieldAccountState` parses v2 first and falls back to legacy v1 plaintext so historical memos remain readable. Guard: `npm run actions:memo-encryption-check`, now included in `npm run truth:privacy-claim-gate` and `npm run send:verify`. Residual caveat: Send recipient discovery is still not fully solved because the live Send page currently only has the local sender viewing key; production-private Send still needs recipient viewing-key exchange or view-tag/indexer discovery, plus the standing live settlement, relayer, anonymity, replay, audit, and on-chain proof/root-history gates.
+
+### Twelfth Codex feedback loop - Solana root-history ABI and SBF status guard
+
+This local slice moved the Solana spend-program review item from "root history absent" to "root-history scaffold present, proof verifier still absent":
+
+- `programs/vanta_private_pool_v2_spend/src/lib.rs` now carries the 184-byte pool-state ABI, `TAG_REGISTER_ROOT`, a bound `root_history` account, 161-byte spend payloads with `acceptedRoot`, and custom errors for full/duplicate/unknown roots.
+- The spend path rejects an unregistered accepted root before mutating nullifier/output/pool state, while `process_register_root` lets only the initialized operator authority append roots to the bound root-history account.
+- The Crucible harness now models root-history capacity, root registration, unknown-root rejection, root-history account bindings, and root count/content invariants.
+- Transaction builder, printer, relayer-submission, README, mainnet-shaped smoke template, and `private-pool-v2:contract-check` surfaces now expect the root-history ABI.
+- New local status surface: `npm run private-pool-v2:sbf-abi-status` reports whether the local SBF binary is fresh for the current 184-byte / 161-byte root-history ABI, and `npm run private-pool-v2:sbf-abi-check` fail-closes when the binary/toolchain is stale or unavailable.
+
+Verification caveat: this is still not on-chain proof verification. The root-history list is operator-authorized and program-bound, but it is not yet proof-backed by a program-owned Merkle tree or a verifying-key hash. The local SBF `.so` is currently older than `src/lib.rs`, and `cargo-build-sbf` / `solana` CLI availability is a toolchain blocker for rebuild/deploy/reinit evidence.
+
+Still open after this twelfth local pass: active proving lanes remain `MERKLE_DEPTH = 3`, amount range/carry discipline beyond Private Pool v2 Send and Private Core Send/Swap is incomplete, recipient-grade Send discovery still needs viewing-key exchange / dual recipient-change encryption / ciphertext-hash proof binding, on-chain proof verification/verifying-key enforcement is not wired, root-history is only a fixed-slot operator-fed scaffold, fixed-capacity/O(n) nullifier storage still needs PDA/sharded redesign, no audit has accepted the boundary, and no live deployment evidence was refreshed.
+
+### Thirteenth Codex feedback loop - action memo, amount-range, Unshield auth, and Pay truth gates
+
+This local slice closed the next review-loop footguns that could make beta surfaces sound more private or more payment-ready than they are:
+
+- Send, Swap, Unshield, SOL-Unshield, and spent-marker action memo helpers now require a Shield viewing public key and emit `v2` AEAD ciphertext; fresh helpers no longer create plaintext `v1` memos, while parsers still fall back to `v1` for historical chain records.
+- Send, Swap, and Unshield pages now pass the local viewing key into action memo builders, and `npm run actions:memo-encryption-check` verifies v2 prefixes, no raw term leakage, wrong-key rejection, fail-closed no-key creation, legacy parse compatibility, and UI viewing-key adoption.
+- Private Core Send, Swap, and Unshield amount limbs are now constrained as `u64`; Send also uses carry-aware input amount reconstruction, with `invalid-amount-range`, `valid-amount-carry`, Swap invalid amount fixtures, and Unshield invalid amount fixtures covering the new boundaries.
+- The Unshield `transition-authorized` sentinel path was removed from browser and operator auth, leaving wallet-signed message intents as the public-exit authorization boundary.
+- Pay checkout completion is demoted to an internal local/test harness unless a customer payment evidence reference is supplied; `/v1/checkout/sessions/{id}/complete` now requires `VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN`, and docs/status/readiness surfaces disclose that customer-side payment evidence is not wired for production.
+
+Verification run during this slice so far: `npm run actions:memo-encryption-check`, `npm run truth:privacy-claim-gate`, `npm run lanes:trust-contract-check`, `npm run unshield:public-exit-surface-check`, `npm run private-core:send-check`, `npm run private-core:swap-check`, `npm run private-core:check`, `npm run zk:review-guards-check`, `cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml`, `cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml`, `npm run private-pool-v2:contract-check`, `npm run private-pool-v2:solana-spend-transaction-builder-check`, `npm run private-pool-v2:solana-spend-transaction-check`, `npm run private-pool-v2:solana-relayer-submission-check`, `npm run pay:merchant-api-check`, `npm run pay:production-readiness-contract-check`, `npm run pay:doc-truth-check`, and `npm run docs:source-of-truth-check`.
+
+Still open after this thirteenth local pass: active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery and proof-bound ciphertext hashes remain open, on-chain proof verification/verifying-key enforcement is not wired, root-history and nullifier storage remain fixed-slot local scaffolds, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
+
+### Fourteenth Codex feedback loop - amount ranges, Send recipient fail-close, and Pay false-ready guard
+
+This local slice closed the three actionable findings from the follow-up diff review:
+
+- Canonical note membership now constrains amount limbs as `u64` and has an `invalid-amount-range` negative fixture.
+- Private Pool v2 Shield now constrains the shield amount as `u128`, recomputes the economics commitment in its invalid-range fixture, and checks that the circuit rejects `2^128`.
+- Private Pool v2 Claim now has an `invalid-amount-range` fixture wired through the fixture writer and circuit checker. `amount` and `relayer_fee` are constrained as `u128` at the Noir ABI and cast to `Field` only at the Poseidon hash boundary.
+- `npm run zk:circuit-soundness-lint` now fail-closes if canonical-note, Shield, or Claim amount ABIs regress to raw `Field`.
+- `pay:status-json` now includes customer payment evidence in its production-ready calculation. The production-readiness contract check runs a fully configured Pay status subprocess and asserts `productionReady: false` while `customerPaymentEvidenceWired` remains false.
+- Live Send v2 now fails closed for non-self recipients before action memo creation, because the page only has the local sender viewing key. This preserves AEAD memo privacy until recipient viewing-key exchange, view tags, or another recipient-discovery design is actually wired.
+
+Red-first checks observed during this slice: `npm run private-pool-v2:claim-circuit-check` initially allowed the `2^128` Claim amount; `npm run pay:production-readiness-contract-check` initially saw `pay:status-json` report `productionReady: true` with customer payment evidence unwired; and `npm run actions:memo-encryption-check` initially failed on the missing non-self Send fail-closed guard. The same three commands then passed after the patches. Additional range closure verified with `npm run zk:canonical-note-membership-check`, `npm run private-pool-v2:shield-circuit-check`, and `npm run zk:circuit-soundness-lint`.
+
+Broader verification after this pass included `npm run private-core:check`, `npm run pay:verify`, `npm run send:verify`, `npm run private-pool-v2:contract-check`, `npm run private-pool-v2:solana-spend-transaction-builder-check`, `npm run private-pool-v2:sbf-abi-status-json`, and `git diff --check`. `npm run private-pool-v2:verify` advanced through the local runtime, proof-request, circuit, and proof lanes, then stopped at the intentional strict SBF ABI gate because the local `.so` predates `src/lib.rs` and this machine is missing `cargo-build-sbf` and `solana`.
+
+Still open after this fourteenth local pass: active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / proof-bound ciphertext hashes, on-chain proof verification/verifying-key enforcement is not wired, root-history and nullifier storage remain fixed-slot local scaffolds, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
+
+### Fifteenth Codex feedback loop - Send recipient privacy framing
+
+This local slice tightened the Send page's product-truth contract from "v2 AEAD exists" to "what is visible today":
+
+- `src/solana/sendTrustContract.ts` now tells users that fresh v2 Send memos still put ciphertext, signer, and timing on chain; current operator/status surfaces still see transition and proof metadata; and recipient-grade discovery plus proof-bound ciphertext hashes remain open.
+- `npm run lanes:trust-contract-check` now guards that exact Send framing so future UI copy cannot regress back into a vague recipient-privacy claim.
+
+Red-first check observed during this slice: `npm run lanes:trust-contract-check` initially failed on the missing Send visibility markers, then passed after the shared trust-contract copy was updated.
+
+Still open after this fifteenth local pass, before the later Solana PDA-nullifier loop: active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / proof-bound ciphertext hashes, on-chain proof verification/verifying-key enforcement is not wired, root-history and nullifier storage remain fixed-slot local scaffolds, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
+
+### Sixteenth Codex feedback loop - Solana nullifier PDA ABI
+
+This local slice moved the Solana spend-program DoS finding from "fixed/linear nullifier storage" to "PDA replay marker implemented locally, SBF/live evidence blocked":
+
+- `programs/vanta_private_pool_v2_spend/src/lib.rs` now keeps `nullifier_set` as a read-only bound namespace/header account and derives replay truth from `NULLIFIER_MARKER_SEED = b"vanta2nul"` plus `(pool_state, nullifier)`.
+- Spend accounts now require seven metas: writable `pool_state`, read-only `nullifier_set`, writable `output_queue`, read-only `root_history`, writable `nullifier_marker`, writable signer `operator_authority`, and read-only System Program.
+- `process_spend` no longer scans or appends fixed nullifier slots. It creates a missing marker PDA by System Program CPI, writes `VNTA2NMK` marker bytes, and rejects duplicate marker reuse with error `1`.
+- The transaction builder, printer, relayer-submission check, README, mainnet-shaped smoke template, SBF ABI status guard, contract check, and Crucible harness now expect the seven-account PDA ABI and derived marker address.
+- Crucible invariant coverage belongs now and was updated: marker account bytes are part of failed-action snapshots, successful spends assert marker magic/pool/nullifier contents, duplicate marker reuse rejects without mutating pool/output/root/marker state, and the legacy fixed nullifier count remains zero.
+
+Verification in this slice: `cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml`, `cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml`, `cargo check --manifest-path fuzz/vanta_private_pool_v2_spend/Cargo.toml`, `npm run private-pool-v2:solana-spend-transaction-builder-check`, `npm run private-pool-v2:solana-spend-transaction-check`, `npm run private-pool-v2:solana-relayer-submission-check`, `npm run private-pool-v2:contract-check`, `npm run private-pool-v2:sbf-abi-status`, and `npm run private-pool-v2:crucible-check`. `npm run private-pool-v2:sbf-abi-check` failed as expected with `stale-sbf-binary`, `missing-cargo-build-sbf`, and `missing-solana-cli`.
+
+Still open after this sixteenth local pass: active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / proof-bound ciphertext hashes, on-chain proof verification/verifying-key enforcement is not wired, root-history is still a fixed-slot operator-fed scaffold rather than proof-backed program-owned tree state, output records remain fixed-capacity, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
+
+### Seventeenth Codex feedback loop - Pay evidence reference shape
+
+This local slice closed the follow-up claim-drift gap where any non-empty string could label Pay checkout completion as `customer-payment-evidence`:
+
+- `src/pay/vantaPayRuntime.ts` now requires evidence-based completion to carry a typed customer payment evidence reference with the current accepted shape `solana:signature:<base58-signature>`.
+- `scripts/check-vanta-pay-merchant-api.mjs` now red-checks malformed evidence refs before accepting a valid typed Solana signature reference.
+- `docs/pay-merchant-trust-surface.md`, `docs/operator-runbook.md`, and `SECURITY_LIMITATIONS.md` now say "typed customer payment evidence reference" instead of implying any arbitrary string is enough.
+- `npm run pay:doc-truth-check` now guards the typed evidence wording in the merchant trust surface.
+
+Red-first checks observed during this slice: `npm run pay:merchant-api-check` initially accepted `not-an-evidence-ref`, and `npm run pay:doc-truth-check` initially failed on the missing typed-evidence doc marker. Both passed after the runtime and docs were updated.
+
+Still open after this seventeenth local pass: customer-side wallet payment evidence is still not wired for production, the current typed reference is only a shape guard rather than chain-finality/session-binding verification, active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / proof-bound ciphertext hashes, on-chain proof verification/verifying-key enforcement is not wired, root-history is still a fixed-slot operator-fed scaffold rather than proof-backed program-owned tree state, output records remain fixed-capacity, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
 
 ---
 
@@ -2297,7 +2388,7 @@ The flow indicator is excellent — exactly the kind of visual chunking the rest
 - **The flow indicator is in the right place but only used here, on Swap, and on Pay.** Make it a shared `<LaneFlowIndicator>` component used by Shield, Send, Swap, and Unshield, with the current step animated (a subtle horizontal sweep light that moves left to right on the active step every 4 seconds).
 - **Recipient input needs help.** Today it's a plain text input that takes a Solana base58 address. Real privacy products show: address validation as you type, optional ENS / .sol name resolution (Bonfida), recent-recipients dropdown, paste-detection that flips to checksum-validated state, QR-code scan button on mobile. Stripe handles "recipient" inputs better than Vanta does today, and Vanta is moving more sensitive data.
 - **The "you send / they receive / your change" three-output pattern is the unique-selling-point of shielded send.** Today it's three labeled rows in a list. Make it a small visual: one input note splitting into two output notes via a Y-shape, with the amounts animated as you adjust. This is the only place in the entire product where the user sees the UTXO-style note model directly. Lean into it.
-- **Recipient privacy framing is currently a footnote.** The note "Send and execute through private-state flows instead of exposing every product step to users" is on the home page, not on Send. Send itself doesn't tell the user what's actually private about their send. After the AEAD memo work from the send-lane deep dive lands, Send should display: "Visible on chain: nothing identifying your recipient. Visible to operator: nothing. Visible only to your recipient: amount, asset, and message." That's the table stakes for a "private send" product, and it's missing today.
+- **Recipient privacy framing is currently a footnote.** The note "Send and execute through private-state flows instead of exposing every product step to users" is on the home page, not on Send. Send itself doesn't tell the user what's actually private about the current beta Send lane. After the v2 AEAD memo work, safer copy should say: "Visible on chain for fresh v2 memos: ciphertext, signer, and timing. Visible to current operator/status surfaces: transition/proof metadata. Production recipient privacy still needs view-tag/indexer discovery and proof-bound ciphertext hashes."
 
 ### `/app/swap` — Swap
 
@@ -2322,7 +2413,7 @@ The exit lane. Same form pattern, lots of edge cases (full vs partial unshield, 
 
 Two specific UX issues stood out from the code:
 
-- **The "transition-authorized" vs "wallet-authorized" distinction is exposed in the UI.** Per the unshield deep dive, this is also a security issue (two ways to authorize the same release). It's also confusing UX. A user shouldn't need to understand which authorization path their unshield uses — that's an implementation detail. The form should pick one, default to the safer one (real wallet signature), and not surface the choice.
+- **The old "transition-authorized" vs "wallet-authorized" distinction should stay gone.** Per the unshield deep dive, two ways to authorize the same release was both a security issue and confusing UX. The current local code has removed the literal transition-authorized path; keep the UI on the real-wallet-signature boundary and avoid reintroducing a mode choice.
 - **Destination is forced to self.** This is unambiguous in the code: `intent.destinationOwner === intent.requester`. The UI today doesn't tell users this clearly enough. The destination field defaults to "your wallet" but visually looks like an editable text input. Make the destination explicit: a labeled card showing the user's connected wallet address with a "to your own wallet" pill, and a disabled "Send to a different wallet" toggle that says "Coming soon — needs unshield-to-fresh-wallet support" (which lines up with the unshield-lane recommendation U2).
 
 **General recommendations:**
@@ -2680,7 +2771,7 @@ In a longer form, the highest-leverage moves, ordered by leverage-per-week-of-wo
 
 1. **Lift the strategy/pay trust-contract pattern into UI gating across all six lanes** (closes the framing-vs-code gap that makes everything else risky).
 2. **Replace the operator-keypair-in-env vault with a program-owned PDA** (eliminates the single-env-leak custody risk that dwarfs every other operational concern).
-3. **AEAD-wrap every plaintext memo across shield/send/swap/unshield** (closes the largest live privacy leak in the deployed app).
+3. **Keep fresh action memos on v2 AEAD and finish recipient discovery/proof binding** (fresh helpers no longer emit plaintext v1 action memos; view-tag/indexer discovery, recipient key exchange, ciphertext-hash proof binding, and legacy v1 migration remain).
 4. **Lock the Poseidon canonical note schema and rebuild the four entry circuits at depth 20 with real ownership constraints** (turns the cryptographic story from "shaped right" to "actually right").
 5. **Wire `@aztec/bb.js` as the real prover and Light's Groth16 verifier on-chain** (turns the cryptographic claims into cryptographic facts).
 6. **Adopt Privacy Pools association sets and publish the compliance posture publicly** (unlocks merchant adoption that Tornado-shaped privacy can't reach).

@@ -134,20 +134,20 @@ fn derive_swap_economic_terms_hash(
     input_asset_id_lo: Field,
     output_asset_id_hi: Field,
     output_asset_id_lo: Field,
-    input_amount_lo: Field,
-    input_amount_hi: Field,
-    output_amount_lo: Field,
-    output_amount_hi: Field,
+    input_amount_lo: u64,
+    input_amount_hi: u64,
+    output_amount_lo: u64,
+    output_amount_hi: u64,
 ) -> Field {
     bn254::hash_8([
         input_asset_id_hi,
         input_asset_id_lo,
         output_asset_id_hi,
         output_asset_id_lo,
-        input_amount_lo,
-        input_amount_hi,
-        output_amount_lo,
-        output_amount_hi,
+        input_amount_lo as Field,
+        input_amount_hi as Field,
+        output_amount_lo as Field,
+        output_amount_hi as Field,
     ])
 }
 
@@ -164,10 +164,10 @@ fn main(
     input_asset_id_lo: Field,
     output_asset_id_hi: Field,
     output_asset_id_lo: Field,
-    input_amount_lo: Field,
-    input_amount_hi: Field,
-    output_amount_lo: Field,
-    output_amount_hi: Field,
+    input_amount_lo: u64,
+    input_amount_hi: u64,
+    output_amount_lo: u64,
+    output_amount_hi: u64,
     input_note_type_code: Field,
     sender_public_key_hi: Field,
     sender_public_key_lo: Field,
@@ -200,8 +200,10 @@ fn main(
     assert(output_note_version == 0);
     assert(input_note_type_code == 0);
     assert(output_note_type_code == 0);
-    let sender_secret_stub = sender_secret_key_hi + sender_secret_key_lo;
-    assert(sender_secret_stub == sender_secret_key_hi + sender_secret_key_lo);
+    // v0.1 owner authorization remains prechecked off-circuit. Keep the
+    // sender secret witness live and nonzero until the in-circuit owner-auth
+    // upgrade lands.
+    assert(sender_secret_key_hi + sender_secret_key_lo != 0);
 
     let computed_swap_economic_terms_hash = derive_swap_economic_terms_hash(
         input_asset_id_hi,
@@ -220,8 +222,8 @@ fn main(
         input_note_type_code,
         input_asset_id_hi,
         input_asset_id_lo,
-        input_amount_lo,
-        input_amount_hi,
+        input_amount_lo as Field,
+        input_amount_hi as Field,
         sender_public_key_hi,
         sender_public_key_lo,
         input_note_nonce_hi,
@@ -259,8 +261,8 @@ fn main(
         output_note_type_code,
         output_asset_id_hi,
         output_asset_id_lo,
-        output_amount_lo,
-        output_amount_hi,
+        output_amount_lo as Field,
+        output_amount_hi as Field,
         output_owner_public_key_hi,
         output_owner_public_key_lo,
         output_note_nonce_hi,
@@ -274,9 +276,11 @@ fn main(
     );
     assert(computed_output_commitment == output_commitment);
 
-    assert(input_asset_id_hi + input_asset_id_lo != output_asset_id_hi + output_asset_id_lo);
-    assert(input_amount_lo + input_amount_hi != 0);
-    assert(output_amount_lo + output_amount_hi != 0);
+    if input_asset_id_hi == output_asset_id_hi {
+        assert(input_asset_id_lo != output_asset_id_lo);
+    }
+    assert((input_amount_lo as Field) + (input_amount_hi as Field) != 0);
+    assert((output_amount_lo as Field) + (output_amount_hi as Field) != 0);
 
     let computed_swap_context_tag = derive_swap_context_tag(
         input_nullifier,

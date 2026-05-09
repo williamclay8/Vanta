@@ -78,7 +78,7 @@ export function DocsHomePage() {
           <span className="docs-path-card__label">{payPage.title}</span>
           <strong>{payPage.summary}</strong>
           <p>
-            Follow the merchant path: private checkout only matters when the
+            Follow the merchant path: test checkout only matters when the
             merchant gets a receipt, status, and reconciliation trail they can
             actually inspect.
           </p>

@@ -501,8 +501,8 @@ Current staging deployment refs:
 
 ## Vanta Pay merchant integration
 
-Vanta Pay is the merchant preview for private stablecoin checkout and settlement
-records. It helps a business understand payment requests, checkout, settlement
+Vanta Pay is the merchant preview for test checkout and settlement records. It
+helps a business understand payment requests, checkout, settlement
 status, refunds, withdrawals, receipts, and reconciliation without learning the
 privacy system first.
 

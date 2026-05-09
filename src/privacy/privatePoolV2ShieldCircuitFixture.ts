@@ -38,7 +38,8 @@ export type VantaPrivatePoolV2ShieldCircuitFixtureMode =
   | "forged-append-path"
   | "invalid-economics-commitment"
   | "invalid-binding"
-  | "invalid-root";
+  | "invalid-root"
+  | "invalid-amount-range";
 
 const DEFAULT_WITNESS_BASE = {
   amount: 1_000_000n,
@@ -196,10 +197,12 @@ export function createVantaPrivatePoolV2ShieldCircuitFixture({
           ...witness,
           output_root: witness.output_root + 1n,
         }
+      : mode === "invalid-amount-range"
+      ? createInvalidAmountRangeWitness(witness)
       : witness;
   const validPublicHash = computeVantaPrivatePoolV2ShieldPublicInputHash(circuitWitness);
   const proofRequest = createVantaPrivatePoolV2ShieldProofRequest({
-    amountBaseUnits: witness.amount,
+    amountBaseUnits: circuitWitness.amount,
     economicsCommitment: toCircuitString(circuitWitness.economics_commitment),
     ownerCommitment: toCircuitString(witness.owner_commitment),
     previousRoot: toCircuitString(witness.previous_root),
@@ -215,6 +218,24 @@ export function createVantaPrivatePoolV2ShieldCircuitFixture({
     proofRequest,
     shieldPublicInputHash: mode === "invalid-binding" ? validPublicHash + 1n : validPublicHash,
     witness: circuitWitness,
+  };
+}
+
+function createInvalidAmountRangeWitness(
+  witness: VantaPrivatePoolV2ShieldCircuitWitness,
+): VantaPrivatePoolV2ShieldCircuitWitness {
+  const amount = 1n << 128n;
+
+  return {
+    ...witness,
+    amount,
+    economics_commitment: computeVantaPrivatePoolV2ShieldEconomicsCommitment({
+      amount,
+      economics_blinding: witness.economics_blinding,
+      source_mint: witness.source_mint,
+      target_asset_id: witness.target_asset_id,
+      target_mint: witness.target_mint,
+    }),
   };
 }
 

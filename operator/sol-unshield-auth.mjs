@@ -92,10 +92,6 @@ export function assertFreshSolUnshieldIntent(payload, now = Date.now()) {
 }
 
 export function verifySignedSolUnshieldIntent(payload) {
-  if (payload.signature === "transition-authorized") {
-    return typeof payload.transitionStateSignature === "string" && payload.transitionStateSignature.length > 0;
-  }
-
   const message = new TextEncoder().encode(formatSolUnshieldIntentMessage(payload));
   const signature = Buffer.from(payload.signature, "base64");
   const publicKeyBytes = new PublicKey(payload.requester).toBytes();

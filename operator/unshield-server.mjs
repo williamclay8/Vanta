@@ -1895,7 +1895,7 @@ function createUnshieldOperatorReleaseReceipt(args) {
   const proofStatus =
     isDirectUnshieldTransitionReference(args.intent)
       ? "not-provided-wallet-authorized-public-exit"
-      : "not-provided-transition-authorized-public-exit";
+      : "not-provided-wallet-signed-transition-public-exit";
   const intentHash = hashReleaseIntent(args.intent);
 
   return {
@@ -1934,7 +1934,6 @@ function hashReleaseIntent(intent) {
 
 function isWalletDirectUnshieldIntent(intent) {
   return (
-    intent.signature !== "transition-authorized" &&
     intent.transitionNoteId === `direct:${intent.noteId}` &&
     !intent.transitionStateSignature
   );
@@ -1942,7 +1941,6 @@ function isWalletDirectUnshieldIntent(intent) {
 
 function isWalletDirectSolUnshieldIntent(intent) {
   return (
-    intent.signature !== "transition-authorized" &&
     intent.transitionNoteId === `direct:${intent.consumedNoteId}` &&
     !intent.transitionStateSignature
   );

@@ -1,6 +1,9 @@
-import { Connection } from "@solana/web3.js";
+import { Connection, SystemProgram } from "@solana/web3.js";
 
-import { buildVantaPrivatePoolV2ActualPrivateSpendTransaction } from "../src/privacy/privatePoolV2SolanaSpendTransaction.mjs";
+import {
+  buildVantaPrivatePoolV2ActualPrivateSpendTransaction,
+  deriveVantaPrivatePoolV2NullifierMarkerAddress,
+} from "../src/privacy/privatePoolV2SolanaSpendTransaction.mjs";
 
 function readRequiredEnv(name) {
   const value = process.env[name]?.trim() ?? "";
@@ -51,6 +54,7 @@ function instructionDataBase64FromEnv() {
       "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT",
       "VANTA_ACTUAL_PRIVATE_CHANGE_OUTPUT_COMMITMENT_REF",
     ),
+    commitmentBytes("VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT", "VANTA_ACTUAL_PRIVATE_ACCEPTED_ROOT_REF"),
     commitmentBytes(
       "VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH",
       "VANTA_ACTUAL_PRIVATE_SPEND_PUBLIC_INPUT_HASH_REF",
@@ -64,17 +68,27 @@ const explicitRecentBlockhash = readOptionalEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SP
 const latestBlockhash = explicitRecentBlockhash
   ? { blockhash: explicitRecentBlockhash, lastValidBlockHeight: null }
   : await new Connection(rpcUrl, "confirmed").getLatestBlockhash("confirmed");
+const instructionDataBase64 = instructionDataBase64FromEnv();
+const programId = readRequiredEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID");
+const poolState = readRequiredEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE");
+const nullifierMarker =
+  readOptionalEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_MARKER")
+  || deriveVantaPrivatePoolV2NullifierMarkerAddress({
+    instructionDataBase64,
+    poolState,
+    programId,
+  });
 
 const built = buildVantaPrivatePoolV2ActualPrivateSpendTransaction({
   accounts: [
     {
       isSigner: false,
       isWritable: true,
-      pubkey: readRequiredEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE"),
+      pubkey: poolState,
     },
     {
       isSigner: false,
-      isWritable: true,
+      isWritable: false,
       pubkey: readRequiredEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET"),
     },
     {
@@ -83,13 +97,29 @@ const built = buildVantaPrivatePoolV2ActualPrivateSpendTransaction({
       pubkey: readRequiredEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE"),
     },
     {
-      isSigner: true,
+      isSigner: false,
       isWritable: false,
+      pubkey: readRequiredEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY"),
+    },
+    {
+      isSigner: false,
+      isWritable: true,
+      pubkey: nullifierMarker,
+    },
+    {
+      isSigner: true,
+      isWritable: true,
       pubkey: readRequiredEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY"),
     },
+    {
+      isSigner: false,
+      isWritable: false,
+      pubkey: readOptionalEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_SYSTEM_PROGRAM")
+        || SystemProgram.programId.toBase58(),
+    },
   ],
-  instructionDataBase64: instructionDataBase64FromEnv(),
-  programId: readRequiredEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID"),
+  instructionDataBase64,
+  programId,
   recentBlockhash: latestBlockhash.blockhash,
   relayerFeePayer,
 });
@@ -99,9 +129,11 @@ if (process.argv.includes("--json")) {
     accountCount: built.accountCount,
     evidencePolicy: built.evidencePolicy,
     lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+    nullifierMarker,
     operatorAuthority: readRequiredEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY"),
     programId: built.programId,
     relayerFeePayer: built.relayerFeePayer,
+    rootHistory: readRequiredEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY"),
     transactionVersion: built.transactionVersion,
     version: built.version,
   }, null, 2));

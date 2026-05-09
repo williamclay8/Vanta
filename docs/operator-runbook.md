@@ -792,6 +792,13 @@ Verify the packet contract with:
 npm run pay:approval-packet-check
 ```
 
+Checkout completion evidence boundary:
+
+- `POST /v1/checkout/sessions/{id}/complete` defaults to `completionBasis: "local-test-harness"` for local/operator harness verification.
+- The `/complete` route is internal-chain-subscriber only and requires `VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN`; merchant Bearer auth alone must not complete a checkout.
+- Production Pay must not treat that endpoint as customer-paid unless the completion carries a typed customer payment evidence reference, such as `solana:signature:<base58-signature>`, from the customer-side wallet/payment flow.
+- `npm run pay:production-readiness-json` must keep `pay-customer-payment-evidence-not-wired` blocked until that flow is wired and verified.
+
 The merchant trust surface is documented in `docs/pay-merchant-trust-surface.md`. Use these commands to inspect and verify it:
 
 ```bash

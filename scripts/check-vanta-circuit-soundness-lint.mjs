@@ -17,6 +17,14 @@ const forbiddenPatterns = [
     message: "self-equality assert does not constrain the witness",
   },
   {
+    pattern: /assert\(\s*[A-Za-z_][A-Za-z0-9_]*\s*==\s*sender_secret_key_hi\s*\+\s*sender_secret_key_lo\s*\)/u,
+    message: "sender secret liveness must not be a restated witness sum",
+  },
+  {
+    pattern: /input_asset_id_hi\s*\+\s*input_asset_id_lo\s*!=\s*output_asset_id_hi\s*\+\s*output_asset_id_lo/u,
+    message: "asset inequality must compare limbs, not additive limb sums",
+  },
+  {
     pattern: /membership_path_hi\s*\[[^\]]+\]\s*\+\s*membership_path_lo\s*\[[^\]]+\]/u,
     message: "hi/lo membership path addition collapses distinct witnesses",
   },
@@ -31,6 +39,14 @@ const forbiddenPatterns = [
   {
     pattern: /hash_3\s*\(\s*\[\s*previous_root\s*,\s*output_commitment\s*,\s*leaf_index\s*\]\s*\)/u,
     message: "successor append root must be path-derived, not a hash_3 shortcut",
+  },
+  {
+    pattern: /send_amount_lo\s*\+\s*change_amount_lo/u,
+    message: "Private Core Send input amount must use carry-aware limb reconstruction",
+  },
+  {
+    pattern: /send_amount_hi\s*\+\s*change_amount_hi/u,
+    message: "Private Core Send input amount must use carry-aware limb reconstruction",
   },
   {
     pattern: /fn\s+hash_note[^{]*\{[^}]*\bversion\s*\+\s*asset_id/isu,
@@ -52,6 +68,45 @@ for (const file of noirFiles) {
 
   if (source.includes("global MERKLE_DEPTH: u32 = 3;")) {
     depth3Open.push(file);
+  }
+
+  if (file.startsWith("zk/noir/vanta_private_core_single_note_")) {
+    const mainStart = source.indexOf("fn main(");
+    const mainEnd = mainStart === -1 ? -1 : source.indexOf(") {", mainStart);
+    const mainSignature = mainStart === -1 || mainEnd === -1 ? "" : source.slice(mainStart, mainEnd);
+    if (/\b(?:send_|change_|input_|output_)?amount_(?:lo|hi)\s*:\s*Field\b/u.test(mainSignature)) {
+      failures.push(`${file}: Private Core amount limbs in main ABI must be u64, not raw Field`);
+    }
+  }
+
+  if (file === "zk/noir/canonical_note_membership/src/main.nr") {
+    const mainStart = source.indexOf("pub fn main(");
+    const mainEnd = mainStart === -1 ? -1 : source.indexOf(") {", mainStart);
+    const mainSignature = mainStart === -1 || mainEnd === -1 ? "" : source.slice(mainStart, mainEnd);
+    if (/\bamount_(?:lo|hi)\s*:\s*Field\b/u.test(mainSignature)) {
+      failures.push(`${file}: canonical note amount limbs in main ABI must be u64, not raw Field`);
+    }
+  }
+
+  if (file === "zk/noir/vanta_private_pool_v2_shield_entry/src/main.nr") {
+    const mainStart = source.indexOf("fn main(");
+    const mainEnd = mainStart === -1 ? -1 : source.indexOf(") {", mainStart);
+    const mainSignature = mainStart === -1 || mainEnd === -1 ? "" : source.slice(mainStart, mainEnd);
+    if (/\bamount\s*:\s*Field\b/u.test(mainSignature)) {
+      failures.push(`${file}: shield amount in main ABI must be u128, not raw Field`);
+    }
+  }
+
+  if (file === "zk/noir/vanta_private_pool_v2_claim_entry/src/main.nr") {
+    const mainStart = source.indexOf("fn main(");
+    const mainEnd = mainStart === -1 ? -1 : source.indexOf(") {", mainStart);
+    const mainSignature = mainStart === -1 || mainEnd === -1 ? "" : source.slice(mainStart, mainEnd);
+    if (/\bamount\s*:\s*Field\b/u.test(mainSignature)) {
+      failures.push(`${file}: claim amount in main ABI must be u128, not raw Field`);
+    }
+    if (/\brelayer_fee\s*:\s*Field\b/u.test(mainSignature)) {
+      failures.push(`${file}: claim relayer fee in main ABI must be u128, not raw Field`);
+    }
   }
 
   const publicInputs = [

@@ -128,6 +128,32 @@ try {
     console.log("invalid-economics-commitment fixture: expected failure observed");
   }
 
+  writeFixture("invalid-amount-range");
+  console.log("invalid-amount-range fixture write: PASS");
+
+  try {
+    clearCircuitTarget();
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-amount-range fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-amount-range fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    const stdout = String(error.stdout ?? "").trim();
+    const stderr = String(error.stderr ?? "").trim();
+    if (stdout) {
+      console.log(stdout);
+    }
+    if (stderr) {
+      console.log(stderr);
+    }
+    console.log("invalid-amount-range fixture: expected failure observed");
+  }
+
   writeFixture("forged-append-path");
   console.log("forged-append-path fixture write: PASS");
 

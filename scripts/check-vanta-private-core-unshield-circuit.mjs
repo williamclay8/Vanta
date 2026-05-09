@@ -74,6 +74,10 @@ try {
   printStatus("invalid-sibling-field fixture write: PASS");
   expectExecuteFailure("invalid-sibling-field");
 
+  writeFixture("invalid-amount-range");
+  printStatus("invalid-amount-range fixture write: PASS");
+  expectExecuteFailure("invalid-amount-range");
+
   writeFixture("valid");
   restoredValidFixture = true;
   printStatus("fixture restore: PASS");

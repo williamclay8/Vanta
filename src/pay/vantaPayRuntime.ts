@@ -8,6 +8,7 @@ import { VANTA_PAY_ASSET_SYMBOLS, getVantaPayAssetDecimals } from "./vantaPayAss
 import type {
   VantaPayAsset,
   VantaPayBalances,
+  VantaPayCheckoutCompletionBasis,
   VantaPayCheckoutSession,
   VantaPayCheckoutSessionCreateInput,
   VantaPayDestinationType,
@@ -53,6 +54,7 @@ export const VANTA_PAY_WEBHOOK_EVENTS = [
 
 const defaultNow = "2026-04-19T20:10:00.000Z";
 const textEncoder = new TextEncoder();
+const customerPaymentEvidenceRefPattern = /^solana:signature:[1-9A-HJ-NP-Za-km-z]{64,128}$/u;
 
 function hashId(prefix: string, ...parts: readonly string[]) {
   return `${prefix}_${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f")))).slice(0, 24)}`;
@@ -103,6 +105,21 @@ function normalizeAmount(value: string, asset: VantaPayAsset) {
   }
 
   return formatAmountFromBaseUnits(baseUnits, asset);
+}
+
+function normalizeCustomerPaymentEvidenceRef(value?: string | null) {
+  const ref = value?.trim() || null;
+  if (!ref) {
+    return null;
+  }
+
+  if (!customerPaymentEvidenceRefPattern.test(ref)) {
+    throw new Error(
+      "Vanta Pay requires a typed customer payment evidence reference such as solana:signature:<base58-signature>.",
+    );
+  }
+
+  return ref;
 }
 
 function addAmounts(left: string, right: string, asset: VantaPayAsset) {
@@ -328,14 +345,28 @@ export function createVantaPayRuntime({
     sessions.set(session.id, session);
   }
   for (const payment of snapshot?.payments ?? []) {
-    const restoredPayment = payment as VantaPayPayment & { refundedAmount?: string };
+    const restoredPayment = payment as VantaPayPayment & {
+      completionBasis?: VantaPayCheckoutCompletionBasis;
+      customerPaymentEvidenceRef?: string | null;
+      refundedAmount?: string;
+    };
     payments.set(payment.id, {
       ...restoredPayment,
+      completionBasis: restoredPayment.completionBasis ?? "local-test-harness",
+      customerPaymentEvidenceRef: restoredPayment.customerPaymentEvidenceRef ?? null,
       refundedAmount: restoredPayment.refundedAmount ?? "0.00",
     });
   }
   for (const receipt of snapshot?.receipts ?? []) {
-    receipts.set(receipt.id, receipt);
+    const restoredReceipt = receipt as VantaPayReceipt & {
+      completionBasis?: VantaPayCheckoutCompletionBasis;
+      customerPaymentEvidenceRef?: string | null;
+    };
+    receipts.set(receipt.id, {
+      ...restoredReceipt,
+      completionBasis: restoredReceipt.completionBasis ?? "local-test-harness",
+      customerPaymentEvidenceRef: restoredReceipt.customerPaymentEvidenceRef ?? null,
+    });
   }
   for (const refund of snapshot?.refunds ?? []) {
     const restoredRefund = refund as VantaPayRefund & { idempotencyKey?: string };
@@ -505,7 +536,11 @@ export function createVantaPayRuntime({
 
   function completeCheckoutSession(
     id: string,
-    options: { privateRailReceiptId?: string } = {},
+    options: {
+      completionBasis?: VantaPayCheckoutCompletionBasis;
+      customerPaymentEvidenceRef?: string | null;
+      privateRailReceiptId?: string;
+    } = {},
   ) {
     const current = sessions.get(id);
     if (!current) {
@@ -547,6 +582,19 @@ export function createVantaPayRuntime({
       throw new Error("Private rail receipt does not match checkout session route.");
     }
 
+    const customerPaymentEvidenceRef = normalizeCustomerPaymentEvidenceRef(
+      options.customerPaymentEvidenceRef,
+    );
+    const completionBasis =
+      options.completionBasis ??
+      (customerPaymentEvidenceRef ? "customer-payment-evidence" : "local-test-harness");
+    if (completionBasis === "customer-payment-evidence" && !customerPaymentEvidenceRef) {
+      throw new Error("Customer payment evidence reference required before evidence-based completion.");
+    }
+    if (completionBasis === "local-test-harness" && customerPaymentEvidenceRef) {
+      throw new Error("Customer payment evidence reference requires customer-payment-evidence completion basis.");
+    }
+
     const completedSession = {
       ...current,
       status: "completed",
@@ -556,8 +604,10 @@ export function createVantaPayRuntime({
     const payment = {
       amount: completedSession.amount,
       checkoutSessionId: completedSession.id,
+      completionBasis,
       createdAt: now,
       currency: completedSession.currency,
+      customerPaymentEvidenceRef,
       id: hashId("pay", completedSession.id, completedSession.amount),
       merchantId: completedSession.merchantId,
       object: "payment",
@@ -575,8 +625,10 @@ export function createVantaPayRuntime({
       amount: payment.amount,
       asset: payment.currency,
       checkoutSessionId: completedSession.id,
+      completionBasis,
       createdAt: now,
       customerEmail: completedSession.customerEmail,
+      customerPaymentEvidenceRef,
       id: hashId("rcpt", payment.id, completedSession.orderId ?? ""),
       invoiceReference: completedSession.metadata.invoice_number ?? null,
       merchantId: completedSession.merchantId,

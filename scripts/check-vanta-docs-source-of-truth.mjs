@@ -24,6 +24,7 @@ const privacyModel = readRequired("docs/privacy-model.md");
 const canonicalNote = readRequired("docs/zk/canonical-note-schema.md");
 const operatorRunbook = readRequired("docs/operator-runbook.md");
 const readme = readRequired("README.md");
+const docsContent = readRequired("src/docs/docsContent.ts");
 const packageJson = JSON.parse(readRequired("package.json"));
 
 for (const lane of ["Shield", "Send", "Swap", "Unshield", "Strategy", "Pay"]) {
@@ -47,12 +48,15 @@ for (const phrase of [
   "docs/privacy-model.md",
   "docs/privacy-rail-contract.md",
   "LANE_STATUS.md",
+  "src/docs/docsContent.ts",
+  "pay:doc-truth-check",
   "truth:privacy-claim-gate",
 ]) {
   requirePhrase(sourceOfTruth, phrase, "docs/docs-source-of-truth.md");
 }
 
 requirePhrase(limitations, "Last validated against repo-local code: 2026-05-09", "SECURITY_LIMITATIONS.md");
+requirePhrase(docsContent, "test checkout", "src/docs/docsContent.ts");
 requirePhrase(privacyModel, 'What "shielded state" means today', "docs/privacy-model.md");
 requirePhrase(canonicalNote, "Transitional Hash Surface Today", "docs/zk/canonical-note-schema.md");
 requirePhrase(operatorRunbook, "If You Have 10 Minutes", "docs/operator-runbook.md");

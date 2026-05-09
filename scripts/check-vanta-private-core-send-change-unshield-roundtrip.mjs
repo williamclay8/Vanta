@@ -44,13 +44,25 @@ async function stopServer(server) {
 }
 
 async function requestJson(baseUrl, path, options = {}) {
-  const response = await fetch(`${baseUrl}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers ?? {}),
-    },
-  });
+  let response;
+  try {
+    response = await fetch(`${baseUrl}${path}`, {
+      ...options,
+      headers: {
+        Connection: "close",
+        "Content-Type": "application/json",
+        ...(options.headers ?? {}),
+      },
+    });
+  } catch (error) {
+    const cause = error && typeof error === "object" && "cause" in error ? error.cause : null;
+    const causeMessage =
+      cause && typeof cause === "object" && "message" in cause ? `: ${cause.message}` : "";
+    throw new Error(
+      `request failed for ${path}${causeMessage}`,
+      error instanceof Error ? { cause: error } : undefined,
+    );
+  }
 
   const text = await response.text();
   let parsed = null;
@@ -240,11 +252,15 @@ const server = spawn("node", ["operator/unshield-server.mjs"], {
 
 let stderr = "";
 let stdout = "";
+let serverExit = null;
 server.stdout.on("data", (chunk) => {
   stdout += chunk.toString("utf8");
 });
 server.stderr.on("data", (chunk) => {
   stderr += chunk.toString("utf8");
+});
+server.once("exit", (code, signal) => {
+  serverExit = { code, signal };
 });
 
 try {
@@ -1329,6 +1345,9 @@ try {
   const output = [stdout.trim(), stderr.trim()].filter(Boolean).join("\n");
   if (output) {
     console.error(output);
+  }
+  if (serverExit) {
+    console.error(`operator server exited early: ${JSON.stringify(serverExit)}`);
   }
   process.exitCode = 1;
 } finally {

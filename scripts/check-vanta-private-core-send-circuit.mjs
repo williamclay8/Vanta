@@ -63,6 +63,16 @@ try {
   printStatus("invalid-leaf-index fixture write: PASS");
   expectExecuteFailure("invalid-leaf-index");
 
+  writeFixture("invalid-amount-range");
+  printStatus("invalid-amount-range fixture write: PASS");
+  expectExecuteFailure("invalid-amount-range");
+
+  writeFixture("valid-amount-carry");
+  printStatus("valid-amount-carry fixture write: PASS");
+  const validAmountCarryOutput = runNargo(["execute"]);
+  printCapturedOutput(validAmountCarryOutput);
+  printStatus("valid-amount-carry fixture: PASS");
+
   writeFixture("valid");
   restoredValidFixture = true;
   printStatus("fixture restore: PASS");

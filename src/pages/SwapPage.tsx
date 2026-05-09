@@ -36,8 +36,10 @@ import {
   getShieldedSwapPairCapability,
   listShieldedSwapAssetOptions,
 } from "@/solana/shieldedSwapCapability";
+import { getSwapTrustContract } from "@/solana/swapTrustContract";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
+import { useVantaShieldViewingKey } from "@/solana/useVantaShieldViewingKey";
 import {
   createPreparedSwapMemo,
   createSpentMarkerInstruction,
@@ -163,8 +165,10 @@ function formatReadyAssetOptionLabel(args: {
 }
 
 export function SwapPage() {
+  const swapTrustContract = useMemo(() => getSwapTrustContract(), []);
   const { walletAddress, walletConnected } = useWalletState();
   const walletSession = useWalletSession();
+  const viewingKey = useVantaShieldViewingKey();
   const {
     account: shieldAccount,
     error: shieldStateError,
@@ -617,7 +621,7 @@ export function SwapPage() {
                 transitionKind: pendingSpentMarker.transitionKind,
                 transitionNoteId: pendingSpentMarker.transitionNoteId,
                 vaultOwner: pendingSpentMarker.vaultOwner,
-              }),
+              }, { viewingPublicKey: viewingKey?.publicKey }),
             ];
 
             return spentMarkerTransaction.send({
@@ -741,7 +745,7 @@ export function SwapPage() {
               transitionKind: pendingSpentMarker.transitionKind,
               transitionNoteId: pendingSpentMarker.transitionNoteId,
               vaultOwner: pendingSpentMarker.vaultOwner,
-            }),
+            }, { viewingPublicKey: viewingKey?.publicKey }),
           ];
 
           return spentMarkerTransaction.send({
@@ -780,6 +784,7 @@ export function SwapPage() {
     spentMarkerTransaction.status,
     swapTransaction.signature,
     swapWait.waitStatus,
+    viewingKey?.publicKey,
     walletAddress,
     walletSession,
   ]);
@@ -1087,24 +1092,30 @@ export function SwapPage() {
     setStatus("awaiting_confirmation");
 
     const createdAt = Date.now();
-    const preparedSwap = createPreparedSwapMemo({
-      consumedNoteId: args.note.noteId,
-      createdAt,
-      inputAmount: args.note.amount.toString(),
-      inputAsset: "USDC",
-      mintAddress: liveShieldAsset.mintAddress!,
-      outputAmount: args.swapQuote.outputAmount,
-      outputAsset: "SOL",
-      owner: args.shieldAccountState.owner,
-      quoteExpiresAt: args.swapQuote.quoteExpiresAt,
-      quoteId: args.swapQuote.quoteId,
-      quoteTimestamp: args.swapQuote.quoteTimestamp,
-      venueFamily: args.swapQuote.venueFamily,
-      venueName: args.swapQuote.venueName,
-      venueNetwork: args.swapQuote.venueNetwork,
-      venuePoolAddress: args.swapQuote.venuePoolAddress ?? undefined,
-      vaultOwner: args.shieldAccountState.vaultOwner,
-    });
+    if (!viewingKey?.publicKey) {
+      throw new Error("Vanta action memo encryption requires your Shield viewing key to be ready.");
+    }
+    const preparedSwap = createPreparedSwapMemo(
+      {
+        consumedNoteId: args.note.noteId,
+        createdAt,
+        inputAmount: args.note.amount.toString(),
+        inputAsset: "USDC",
+        mintAddress: liveShieldAsset.mintAddress!,
+        outputAmount: args.swapQuote.outputAmount,
+        outputAsset: "SOL",
+        owner: args.shieldAccountState.owner,
+        quoteExpiresAt: args.swapQuote.quoteExpiresAt,
+        quoteId: args.swapQuote.quoteId,
+        quoteTimestamp: args.swapQuote.quoteTimestamp,
+        venueFamily: args.swapQuote.venueFamily,
+        venueName: args.swapQuote.venueName,
+        venueNetwork: args.swapQuote.venueNetwork,
+        venuePoolAddress: args.swapQuote.venuePoolAddress ?? undefined,
+        vaultOwner: args.shieldAccountState.vaultOwner,
+      },
+      { viewingPublicKey: viewingKey?.publicKey },
+    );
 
     setPendingSpentMarker({
       asset: "USDC",
@@ -1215,24 +1226,30 @@ export function SwapPage() {
     setStatus("awaiting_confirmation");
 
     const createdAt = Date.now();
-    const preparedSwap = createPreparedSwapMemo({
-      consumedNoteId: args.note.noteId,
-      createdAt,
-      inputAmount: args.note.amount.toString(),
-      inputAsset: "SOL",
-      mintAddress: VANTA_NATIVE_SOL_ASSET_ID,
-      outputAmount: args.swapQuote.outputAmount,
-      outputAsset: args.swapQuote.outputAsset,
-      owner: args.shieldAccountState.owner,
-      quoteExpiresAt: args.swapQuote.quoteExpiresAt,
-      quoteId: args.swapQuote.quoteId,
-      quoteTimestamp: args.swapQuote.quoteTimestamp,
-      venueFamily: args.swapQuote.venueFamily,
-      venueName: args.swapQuote.venueName,
-      venueNetwork: args.swapQuote.venueNetwork,
-      venuePoolAddress: args.swapQuote.venuePoolAddress ?? undefined,
-      vaultOwner: args.shieldAccountState.vaultOwner,
-    });
+    if (!viewingKey?.publicKey) {
+      throw new Error("Vanta action memo encryption requires your Shield viewing key to be ready.");
+    }
+    const preparedSwap = createPreparedSwapMemo(
+      {
+        consumedNoteId: args.note.noteId,
+        createdAt,
+        inputAmount: args.note.amount.toString(),
+        inputAsset: "SOL",
+        mintAddress: VANTA_NATIVE_SOL_ASSET_ID,
+        outputAmount: args.swapQuote.outputAmount,
+        outputAsset: args.swapQuote.outputAsset,
+        owner: args.shieldAccountState.owner,
+        quoteExpiresAt: args.swapQuote.quoteExpiresAt,
+        quoteId: args.swapQuote.quoteId,
+        quoteTimestamp: args.swapQuote.quoteTimestamp,
+        venueFamily: args.swapQuote.venueFamily,
+        venueName: args.swapQuote.venueName,
+        venueNetwork: args.swapQuote.venueNetwork,
+        venuePoolAddress: args.swapQuote.venuePoolAddress ?? undefined,
+        vaultOwner: args.shieldAccountState.vaultOwner,
+      },
+      { viewingPublicKey: viewingKey?.publicKey },
+    );
 
     setPendingSpentMarker({
       asset: "SOL",
@@ -1443,12 +1460,16 @@ export function SwapPage() {
         <div>
           <span className="eyebrow product-intro__eyebrow">Shielded swap</span>
           <h2>Swap</h2>
-          <p>Record a swap transition from shielded state.</p>
+          <p>{swapTrustContract.visibleStatusCopy}</p>
         </div>
 
         <div className="module-state">
-          <strong>Constrained route</strong>
-          <p>Current live execution is constrained; route settlement remains operator-visible.</p>
+          <strong>{swapTrustContract.currentTruth}</strong>
+          <p>
+            {swapTrustContract.claimControls.productionPrivacyClaimsLocked
+              ? swapTrustContract.visibleStatusCopy
+              : "Production Swap privacy claims are unlocked by current evidence."}
+          </p>
         </div>
       </div>
 

@@ -12,7 +12,9 @@ import {
   listShieldedSendAssetOptions,
   type ShieldedSendAssetKey,
 } from "@/solana/shieldedSendCapability";
+import { getSendTrustContract } from "@/solana/sendTrustContract";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
+import { useVantaShieldViewingKey } from "@/solana/useVantaShieldViewingKey";
 import { useRealtimeSignatureProgress } from "@/solana/useRealtimeSignatureProgress";
 import {
   liveShieldAsset,
@@ -161,6 +163,8 @@ function sumSpendableNoteAmounts(notes: { amount: number }[]) {
 }
 
 export function SendPage({ dashboard = false }: SendPageProps) {
+  const sendTrustContract = useMemo(() => getSendTrustContract(), []);
+  const viewingKey = useVantaShieldViewingKey();
   const {
     ensurePrivateCoreOperatorRootKnown,
     privateCoreHoldState,
@@ -959,7 +963,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             transitionKind: pendingSpentMarker.transitionKind,
             transitionNoteId: pendingSpentMarker.transitionNoteId,
             vaultOwner: pendingSpentMarker.vaultOwner,
-          }),
+          }, { viewingPublicKey: viewingKey?.publicKey }),
         ];
 
         return spentMarkerTransaction.send({
@@ -994,6 +998,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     spentMarkerTransaction,
     spentMarkerTransaction.signature,
     spentMarkerTransaction.status,
+    viewingKey?.publicKey,
   ]);
 
   useEffect(() => {
@@ -1094,20 +1099,31 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     setLastRecipient(trimmedRecipient);
     setLastSentAmount(args.amountNumeric);
     setLastChangeAmount(nextChangeAmount);
+    if (trimmedRecipient !== args.shieldAccountState.owner) {
+      throw new Error(
+        "External Vanta Send v2 requires recipient viewing-key exchange before action memo creation.",
+      );
+    }
+    if (!viewingKey?.publicKey) {
+      throw new Error("Vanta action memo encryption requires your Shield viewing key to be ready.");
+    }
     setStatus("awaiting_confirmation");
 
     const createdAt = Date.now();
-    const preparedSend = createPreparedSendMemo({
-      amount: args.amountNumeric.toString(),
-      asset: "USDC",
-      changeAmount: nextChangeAmount.toString(),
-      consumedNoteId: args.note.noteId,
-      createdAt,
-      mintAddress: liveShieldAsset.mintAddress!,
-      owner: args.shieldAccountState.owner,
-      recipient: trimmedRecipient,
-      vaultOwner: args.shieldAccountState.vaultOwner,
-    });
+    const preparedSend = createPreparedSendMemo(
+      {
+        amount: args.amountNumeric.toString(),
+        asset: "USDC",
+        changeAmount: nextChangeAmount.toString(),
+        consumedNoteId: args.note.noteId,
+        createdAt,
+        mintAddress: liveShieldAsset.mintAddress!,
+        owner: args.shieldAccountState.owner,
+        recipient: trimmedRecipient,
+        vaultOwner: args.shieldAccountState.vaultOwner,
+      },
+      { viewingPublicKey: viewingKey?.publicKey },
+    );
 
     setPendingSpentMarker({
       consumedNoteId: args.note.noteId,
@@ -1298,12 +1314,16 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         <div>
           <span className="eyebrow product-intro__eyebrow">{dashboard ? "Dashboard" : "Send shielded"}</span>
           <h2>Send</h2>
-          <p>Record a send transition from your shielded balance.</p>
+          <p>{sendTrustContract.visibleStatusCopy}</p>
         </div>
 
         <div className="module-state">
-          <strong>Shielded balance</strong>
-          <p>Send part of your balance and keep any change shielded.</p>
+          <strong>{sendTrustContract.currentTruth}</strong>
+          <p>
+            {sendTrustContract.claimControls.productionPrivacyClaimsLocked
+              ? sendTrustContract.visibleStatusCopy
+              : "Production Send privacy claims are unlocked by current evidence."}
+          </p>
         </div>
       </div>
 

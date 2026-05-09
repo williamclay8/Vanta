@@ -9,32 +9,41 @@ use std::rc::Rc;
 
 const TAG_INIT: u8 = 0;
 const TAG_SPEND: u8 = 1;
+const TAG_REGISTER_ROOT: u8 = 2;
 
 const VERSION: u8 = 1;
 const POOL_MAGIC: &[u8; 8] = b"VNTA2POL";
 const NULLIFIER_MAGIC: &[u8; 8] = b"VNTA2NUL";
+const NULLIFIER_MARKER_MAGIC: &[u8; 8] = b"VNTA2NMK";
 const OUTPUT_MAGIC: &[u8; 8] = b"VNTA2OUT";
+const ROOT_MAGIC: &[u8; 8] = b"VNTA2ROT";
+const NULLIFIER_MARKER_SEED: &[u8] = b"vanta2nul";
 
 const HEADER_LEN: usize = 16;
 const COUNT_OFFSET: usize = 12;
-const POOL_STATE_LEN: usize = 152;
+const POOL_STATE_LEN: usize = 184;
 const POOL_SPEND_COUNT_OFFSET: usize = 16;
 const POOL_AUTHORITY_OFFSET: usize = 24;
 const POOL_LAST_PUBLIC_INPUT_HASH_OFFSET: usize = 56;
 const POOL_NULLIFIER_SET_OFFSET: usize = 88;
 const POOL_OUTPUT_QUEUE_OFFSET: usize = 120;
+const POOL_ROOT_HISTORY_OFFSET: usize = 152;
 
 const HASH_LEN: usize = 32;
 const OUTPUT_RECORD_LEN: usize = HASH_LEN * 3;
+const NULLIFIER_MARKER_LEN: usize = HEADER_LEN + HASH_LEN * 2;
+const NULLIFIER_MARKER_POOL_OFFSET: usize = HEADER_LEN;
+const NULLIFIER_MARKER_NULLIFIER_OFFSET: usize = HEADER_LEN + HASH_LEN;
 
 const ERR_DUPLICATE_NULLIFIER: u32 = 1;
-const ERR_NULLIFIER_SET_FULL: u32 = 2;
 const ERR_OUTPUT_QUEUE_FULL: u32 = 3;
 const ERR_INVALID_HEADER: u32 = 4;
 const ERR_STATE_COUNT_MISMATCH: u32 = 5;
 const ERR_UNAUTHORIZED_OPERATOR: u32 = 6;
-const ERR_ALREADY_INITIALIZED: u32 = 7;
-const ERR_POOL_ACCOUNT_MISMATCH: u32 = 8;
+const ERR_ROOT_HISTORY_FULL: u32 = 9;
+const ERR_DUPLICATE_ROOT: u32 = 10;
+const ERR_UNKNOWN_ACCEPTED_ROOT: u32 = 11;
+const ERR_NULLIFIER_MARKER_MISMATCH: u32 = 12;
 
 #[derive(Clone)]
 struct OutputRecord {
@@ -53,15 +62,18 @@ struct VantaPrivatePoolV2Spend {
     pool_state: Pubkey,
     nullifier_set: Pubkey,
     output_queue: Pubkey,
+    root_history: Pubkey,
     wrong_pool_state: Pubkey,
     wrong_nullifier_set: Pubkey,
     wrong_output_queue: Pubkey,
+    wrong_root_history: Pubkey,
     initialized: bool,
     state_error_code: Option<u32>,
     expected_count: usize,
-    nullifier_capacity: usize,
     output_capacity: usize,
+    root_capacity: usize,
     accepted_nullifiers: Vec<[u8; HASH_LEN]>,
+    accepted_roots: Vec<[u8; HASH_LEN]>,
     output_records: Vec<OutputRecord>,
     latest_public_input_hash: [u8; HASH_LEN],
 }
@@ -93,12 +105,15 @@ impl VantaPrivatePoolV2Spend {
         let pool_state = Pubkey::new_unique();
         let nullifier_set = Pubkey::new_unique();
         let output_queue = Pubkey::new_unique();
+        let root_history = Pubkey::new_unique();
         create_program_accounts(
             &mut ctx,
             &program_id,
             pool_state,
             nullifier_set,
             output_queue,
+            root_history,
+            4,
             4,
             4,
         );
@@ -106,6 +121,7 @@ impl VantaPrivatePoolV2Spend {
         let wrong_pool_state = Pubkey::new_unique();
         let wrong_nullifier_set = Pubkey::new_unique();
         let wrong_output_queue = Pubkey::new_unique();
+        let wrong_root_history = Pubkey::new_unique();
         create_system_account(&mut ctx, wrong_pool_state, POOL_STATE_LEN);
         create_system_account(&mut ctx, wrong_nullifier_set, fixed_slot_len(4, HASH_LEN));
         create_system_account(
@@ -113,6 +129,7 @@ impl VantaPrivatePoolV2Spend {
             wrong_output_queue,
             fixed_slot_len(4, OUTPUT_RECORD_LEN),
         );
+        create_system_account(&mut ctx, wrong_root_history, fixed_slot_len(4, HASH_LEN));
 
         Self {
             ctx,
@@ -123,40 +140,93 @@ impl VantaPrivatePoolV2Spend {
             pool_state,
             nullifier_set,
             output_queue,
+            root_history,
             wrong_pool_state,
             wrong_nullifier_set,
             wrong_output_queue,
+            wrong_root_history,
             initialized: false,
             state_error_code: None,
             expected_count: 0,
-            nullifier_capacity: 4,
             output_capacity: 4,
+            root_capacity: 4,
             accepted_nullifiers: Vec::new(),
+            accepted_roots: Vec::new(),
             output_records: Vec::new(),
             latest_public_input_hash: [0; HASH_LEN],
         }
     }
 
     pub fn action_init_standard(&mut self) {
-        self.reset_accounts(4, 4);
+        self.reset_accounts(4, 4, 4);
         self.send_valid_init();
     }
 
     pub fn action_init_nullifier_limited(&mut self) {
-        self.reset_accounts(3, 4);
+        self.reset_accounts(3, 4, 4);
         self.send_valid_init();
     }
 
     pub fn action_init_output_limited(&mut self) {
-        self.reset_accounts(4, 3);
+        self.reset_accounts(4, 3, 4);
+        self.send_valid_init();
+    }
+
+    pub fn action_init_root_limited(&mut self) {
+        self.reset_accounts(4, 4, 3);
         self.send_valid_init();
     }
 
     pub fn action_spend(&mut self, seed: u64) {
-        let payload = spend_payload(seed);
-        let before = self.snapshot_accounts();
-        let outcome = self.call_authorized(payload.data, self.program_accounts());
+        let accepted_root = self.accepted_root_for_spend(seed);
+        let payload = spend_payload(seed, accepted_root);
+        self.ensure_marker_placeholder(&payload.nullifier);
+        let before = self.snapshot_accounts_for_nullifier(&payload.nullifier);
+        let outcome = self.call_authorized(
+            payload.data,
+            self.spend_accounts_for_nullifier(&payload.nullifier),
+        );
         self.check_spend_outcome(seed, outcome, before);
+    }
+
+    pub fn action_register_root(&mut self, seed: u64) {
+        if !self.initialized || self.state_error_code.is_some() {
+            return;
+        }
+        let root = make_hash(seed, 4);
+        let before = self.snapshot_accounts();
+        let outcome =
+            self.call_authorized(register_root_data(root), self.root_registration_accounts());
+        if self.accepted_roots.iter().any(|seen| seen == &root) {
+            fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+            fuzz_assert_eq!(
+                outcome.as_ref().and_then(TxOutcome::error_code),
+                Some(ERR_DUPLICATE_ROOT)
+            );
+            fuzz_assert_eq!(
+                before,
+                self.snapshot_accounts(),
+                "duplicate root mutated state"
+            );
+            return;
+        }
+        if self.accepted_roots.len() >= self.root_capacity {
+            fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+            fuzz_assert_eq!(
+                outcome.as_ref().and_then(TxOutcome::error_code),
+                Some(ERR_ROOT_HISTORY_FULL)
+            );
+            fuzz_assert_eq!(
+                before,
+                self.snapshot_accounts(),
+                "full root history mutated state"
+            );
+            return;
+        }
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_success));
+        if outcome.is_some_and(|o| o.is_success()) {
+            self.accepted_roots.push(root);
+        }
     }
 
     pub fn action_spend_duplicate(&mut self) {
@@ -168,6 +238,10 @@ impl VantaPrivatePoolV2Spend {
                 nullifier,
                 make_hash(7, 21),
                 make_hash(7, 22),
+                self.accepted_roots
+                    .last()
+                    .copied()
+                    .unwrap_or(make_hash(7, 4)),
                 make_hash(7, 23),
             ),
             nullifier,
@@ -175,8 +249,12 @@ impl VantaPrivatePoolV2Spend {
             output1: make_hash(7, 22),
             public_input_hash: make_hash(7, 23),
         };
-        let before = self.snapshot_accounts();
-        let outcome = self.call_authorized(payload.data, self.program_accounts());
+        self.ensure_marker_placeholder(&payload.nullifier);
+        let before = self.snapshot_accounts_for_nullifier(&payload.nullifier);
+        let outcome = self.call_authorized(
+            payload.data,
+            self.spend_accounts_for_nullifier(&payload.nullifier),
+        );
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
         fuzz_assert_eq!(
             outcome.as_ref().and_then(TxOutcome::error_code),
@@ -184,7 +262,7 @@ impl VantaPrivatePoolV2Spend {
         );
         fuzz_assert_eq!(
             before,
-            self.snapshot_accounts(),
+            self.snapshot_accounts_for_nullifier(&payload.nullifier),
             "duplicate nullifier mutated state"
         );
     }
@@ -196,37 +274,47 @@ impl VantaPrivatePoolV2Spend {
             2 => vec![TAG_INIT, 1],
             3 => vec![TAG_SPEND],
             _ => {
-                let mut data = spend_payload(42).data;
+                let mut data = spend_payload(42, self.accepted_root_for_spend(42)).data;
                 data.push(0);
                 data
             }
         };
-        let before = self.snapshot_accounts();
-        let outcome = self.call_authorized(data, self.program_accounts());
+        let nullifier = make_hash(42, 1);
+        self.ensure_marker_placeholder(&nullifier);
+        let before = self.snapshot_accounts_for_nullifier(&nullifier);
+        let outcome = self.call_authorized(data, self.spend_accounts_for_nullifier(&nullifier));
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
         fuzz_assert_eq!(
             before,
-            self.snapshot_accounts(),
+            self.snapshot_accounts_for_nullifier(&nullifier),
             "bad payload mutated state"
         );
     }
 
     pub fn action_unsigned_spend(&mut self, seed: u64) {
-        let before = self.snapshot_accounts();
-        let outcome =
-            self.call_unsigned(spend_payload(seed).data, self.unsigned_authority_accounts());
+        let nullifier = make_hash(seed, 1);
+        self.ensure_marker_placeholder(&nullifier);
+        let before = self.snapshot_accounts_for_nullifier(&nullifier);
+        let outcome = self.call_unsigned(
+            spend_payload(seed, self.accepted_root_for_spend(seed)).data,
+            self.unsigned_authority_accounts(&nullifier),
+        );
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
         fuzz_assert_eq!(
             before,
-            self.snapshot_accounts(),
+            self.snapshot_accounts_for_nullifier(&nullifier),
             "unsigned-authority call mutated state"
         );
     }
 
     pub fn action_wrong_authority_spend(&mut self, seed: u64) {
-        let before = self.snapshot_accounts();
-        let outcome =
-            self.call_wrong_authority(spend_payload(seed).data, self.wrong_authority_accounts());
+        let nullifier = make_hash(seed, 1);
+        self.ensure_marker_placeholder(&nullifier);
+        let before = self.snapshot_accounts_for_nullifier(&nullifier);
+        let outcome = self.call_wrong_authority(
+            spend_payload(seed, self.accepted_root_for_spend(seed)).data,
+            self.wrong_authority_accounts(&nullifier),
+        );
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
         fuzz_assert_eq!(
             outcome.as_ref().and_then(TxOutcome::error_code),
@@ -234,30 +322,39 @@ impl VantaPrivatePoolV2Spend {
         );
         fuzz_assert_eq!(
             before,
-            self.snapshot_accounts(),
+            self.snapshot_accounts_for_nullifier(&nullifier),
             "wrong-authority call mutated state"
         );
     }
 
     pub fn action_non_writable_spend(&mut self, seed: u64) {
-        let before = self.snapshot_accounts();
-        let outcome =
-            self.call_authorized(spend_payload(seed).data, self.readonly_program_accounts());
+        let nullifier = make_hash(seed, 1);
+        self.ensure_marker_placeholder(&nullifier);
+        let before = self.snapshot_accounts_for_nullifier(&nullifier);
+        let outcome = self.call_authorized(
+            spend_payload(seed, self.accepted_root_for_spend(seed)).data,
+            self.readonly_program_accounts(&nullifier),
+        );
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
         fuzz_assert_eq!(
             before,
-            self.snapshot_accounts(),
+            self.snapshot_accounts_for_nullifier(&nullifier),
             "non-writable call mutated state"
         );
     }
 
     pub fn action_wrong_owner_spend(&mut self, seed: u64) {
-        let before = self.snapshot_accounts();
-        let outcome = self.call_authorized(spend_payload(seed).data, self.wrong_owner_accounts());
+        let nullifier = make_hash(seed, 1);
+        self.ensure_marker_placeholder(&nullifier);
+        let before = self.snapshot_accounts_for_nullifier(&nullifier);
+        let outcome = self.call_authorized(
+            spend_payload(seed, self.accepted_root_for_spend(seed)).data,
+            self.wrong_owner_accounts(&nullifier),
+        );
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
         fuzz_assert_eq!(
             before,
-            self.snapshot_accounts(),
+            self.snapshot_accounts_for_nullifier(&nullifier),
             "wrong-owner call mutated state"
         );
     }
@@ -266,10 +363,11 @@ impl VantaPrivatePoolV2Spend {
         if !self.initialized {
             return;
         }
-        let target = match selector % 3 {
+        let target = match selector % 4 {
             0 => self.pool_state,
             1 => self.nullifier_set,
-            _ => self.output_queue,
+            2 => self.output_queue,
+            _ => self.root_history,
         };
         self.ctx
             .update_account(&target, |data| {
@@ -285,12 +383,12 @@ impl VantaPrivatePoolV2Spend {
         if !self.initialized || self.state_error_code.is_some() {
             return;
         }
-        if self.expected_count + 1 > self.nullifier_capacity {
+        if self.expected_count + 1 > self.output_capacity {
             return;
         }
         let mismatched = (self.expected_count + 1) as u32;
         self.ctx
-            .update_account(&self.nullifier_set, |data| {
+            .update_account(&self.output_queue, |data| {
                 data[COUNT_OFFSET..COUNT_OFFSET + 4].copy_from_slice(&mismatched.to_le_bytes());
             })
             .unwrap();
@@ -307,6 +405,7 @@ fn invariant_test(fixture: &mut VantaPrivatePoolV2Spend) {
     let pool = fixture.account_data(fixture.pool_state);
     let nullifiers = fixture.account_data(fixture.nullifier_set);
     let outputs = fixture.account_data(fixture.output_queue);
+    let roots = fixture.account_data(fixture.root_history);
 
     fuzz_assert_eq!(&pool[..8], POOL_MAGIC);
     fuzz_assert_eq!(pool[8], VERSION);
@@ -322,22 +421,29 @@ fn invariant_test(fixture: &mut VantaPrivatePoolV2Spend) {
         &pool[POOL_OUTPUT_QUEUE_OFFSET..POOL_OUTPUT_QUEUE_OFFSET + HASH_LEN],
         &fixture.output_queue.to_bytes()
     );
+    fuzz_assert_eq!(
+        &pool[POOL_ROOT_HISTORY_OFFSET..POOL_ROOT_HISTORY_OFFSET + HASH_LEN],
+        &fixture.root_history.to_bytes()
+    );
     fuzz_assert_eq!(&nullifiers[..8], NULLIFIER_MAGIC);
     fuzz_assert_eq!(nullifiers[8], VERSION);
     fuzz_assert_eq!(&outputs[..8], OUTPUT_MAGIC);
     fuzz_assert_eq!(outputs[8], VERSION);
+    fuzz_assert_eq!(&roots[..8], ROOT_MAGIC);
+    fuzz_assert_eq!(roots[8], VERSION);
 
     fuzz_assert_eq!(
         read_u64(&pool, POOL_SPEND_COUNT_OFFSET) as usize,
         fixture.expected_count
     );
-    fuzz_assert_eq!(
-        read_u32(&nullifiers, COUNT_OFFSET) as usize,
-        fixture.expected_count
-    );
+    fuzz_assert_eq!(read_u32(&nullifiers, COUNT_OFFSET) as usize, 0);
     fuzz_assert_eq!(
         read_u32(&outputs, COUNT_OFFSET) as usize,
         fixture.expected_count
+    );
+    fuzz_assert_eq!(
+        read_u32(&roots, COUNT_OFFSET) as usize,
+        fixture.accepted_roots.len()
     );
 
     fuzz_assert_eq!(
@@ -345,9 +451,8 @@ fn invariant_test(fixture: &mut VantaPrivatePoolV2Spend) {
         &fixture.latest_public_input_hash
     );
 
-    for (index, nullifier) in fixture.accepted_nullifiers.iter().enumerate() {
-        let start = HEADER_LEN + index * HASH_LEN;
-        fuzz_assert_eq!(&nullifiers[start..start + HASH_LEN], nullifier);
+    for nullifier in fixture.accepted_nullifiers.iter() {
+        fixture.assert_nullifier_marker(nullifier);
     }
 
     for (index, output) in fixture.output_records.iter().enumerate() {
@@ -362,38 +467,52 @@ fn invariant_test(fixture: &mut VantaPrivatePoolV2Spend) {
             &output.public_input_hash
         );
     }
+
+    for (index, root) in fixture.accepted_roots.iter().enumerate() {
+        let start = HEADER_LEN + index * HASH_LEN;
+        fuzz_assert_eq!(&roots[start..start + HASH_LEN], root);
+    }
 }
 
 impl VantaPrivatePoolV2Spend {
-    fn reset_accounts(&mut self, nullifier_capacity: usize, output_capacity: usize) {
+    fn reset_accounts(
+        &mut self,
+        nullifier_capacity: usize,
+        output_capacity: usize,
+        root_capacity: usize,
+    ) {
         create_program_accounts(
             &mut self.ctx,
             &self.program_id,
             self.pool_state,
             self.nullifier_set,
             self.output_queue,
+            self.root_history,
             nullifier_capacity,
             output_capacity,
+            root_capacity,
         );
         self.initialized = false;
         self.state_error_code = None;
         self.expected_count = 0;
-        self.nullifier_capacity = nullifier_capacity;
         self.output_capacity = output_capacity;
+        self.root_capacity = root_capacity;
         self.accepted_nullifiers.clear();
+        self.accepted_roots.clear();
         self.output_records.clear();
         self.latest_public_input_hash = [0; HASH_LEN];
     }
 
     fn send_valid_init(&mut self) {
         let before = self.snapshot_accounts();
-        let outcome = self.call_authorized(vec![TAG_INIT], self.program_accounts());
+        let outcome = self.call_authorized(vec![TAG_INIT], self.init_accounts());
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_success));
         if outcome.is_some_and(|o| o.is_success()) {
             self.initialized = true;
             self.state_error_code = None;
             self.expected_count = 0;
             self.accepted_nullifiers.clear();
+            self.accepted_roots.clear();
             self.output_records.clear();
             self.latest_public_input_hash = [0; HASH_LEN];
         } else {
@@ -406,7 +525,7 @@ impl VantaPrivatePoolV2Spend {
     }
 
     fn check_spend_outcome(&mut self, seed: u64, outcome: Option<TxOutcome>, before: Vec<Vec<u8>>) {
-        let payload = spend_payload(seed);
+        let payload = spend_payload(seed, self.accepted_root_for_spend(seed));
         let expected_error = self.expected_spend_error(&payload.nullifier);
 
         match expected_error {
@@ -421,6 +540,7 @@ impl VantaPrivatePoolV2Spend {
                         public_input_hash: payload.public_input_hash,
                     });
                     self.latest_public_input_hash = payload.public_input_hash;
+                    self.assert_nullifier_marker(&payload.nullifier);
                 }
             }
             Some(code) => {
@@ -428,7 +548,7 @@ impl VantaPrivatePoolV2Spend {
                 fuzz_assert_eq!(outcome.as_ref().and_then(TxOutcome::error_code), Some(code));
                 fuzz_assert_eq!(
                     before,
-                    self.snapshot_accounts(),
+                    self.snapshot_accounts_for_nullifier(&payload.nullifier),
                     "failed spend mutated state"
                 );
             }
@@ -442,8 +562,8 @@ impl VantaPrivatePoolV2Spend {
         if let Some(code) = self.state_error_code {
             return Some(code);
         }
-        if self.expected_count >= self.nullifier_capacity {
-            return Some(ERR_NULLIFIER_SET_FULL);
+        if self.accepted_roots.is_empty() {
+            return Some(ERR_UNKNOWN_ACCEPTED_ROOT);
         }
         if self.expected_count >= self.output_capacity {
             return Some(ERR_OUTPUT_QUEUE_FULL);
@@ -456,6 +576,13 @@ impl VantaPrivatePoolV2Spend {
             return Some(ERR_DUPLICATE_NULLIFIER);
         }
         None
+    }
+
+    fn accepted_root_for_spend(&self, seed: u64) -> [u8; HASH_LEN] {
+        self.accepted_roots
+            .last()
+            .copied()
+            .unwrap_or(make_hash(seed, 4))
     }
 
     fn call_authorized(&mut self, data: Vec<u8>, accounts: Vec<AccountMeta>) -> Option<TxOutcome> {
@@ -504,48 +631,81 @@ impl VantaPrivatePoolV2Spend {
             .ok()
     }
 
-    fn program_accounts(&self) -> Vec<AccountMeta> {
+    fn init_accounts(&self) -> Vec<AccountMeta> {
         vec![
             AccountMeta::new(self.pool_state, false),
             AccountMeta::new(self.nullifier_set, false),
             AccountMeta::new(self.output_queue, false),
+            AccountMeta::new(self.root_history, false),
             AccountMeta::new_readonly(self.operator_authority.pubkey(), true),
         ]
     }
 
-    fn readonly_program_accounts(&self) -> Vec<AccountMeta> {
+    fn spend_accounts_for_nullifier(&self, nullifier: &[u8; HASH_LEN]) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new(self.pool_state, false),
+            AccountMeta::new_readonly(self.nullifier_set, false),
+            AccountMeta::new(self.output_queue, false),
+            AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new(self.nullifier_marker_pubkey(nullifier), false),
+            AccountMeta::new(self.operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
+        ]
+    }
+
+    fn root_registration_accounts(&self) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new(self.root_history, false),
+            AccountMeta::new_readonly(self.operator_authority.pubkey(), true),
+        ]
+    }
+
+    fn readonly_program_accounts(&self, nullifier: &[u8; HASH_LEN]) -> Vec<AccountMeta> {
         vec![
             AccountMeta::new_readonly(self.pool_state, false),
             AccountMeta::new_readonly(self.nullifier_set, false),
             AccountMeta::new_readonly(self.output_queue, false),
-            AccountMeta::new_readonly(self.operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new(self.nullifier_marker_pubkey(nullifier), false),
+            AccountMeta::new(self.operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
         ]
     }
 
-    fn unsigned_authority_accounts(&self) -> Vec<AccountMeta> {
+    fn unsigned_authority_accounts(&self, nullifier: &[u8; HASH_LEN]) -> Vec<AccountMeta> {
         vec![
             AccountMeta::new(self.pool_state, false),
-            AccountMeta::new(self.nullifier_set, false),
+            AccountMeta::new_readonly(self.nullifier_set, false),
             AccountMeta::new(self.output_queue, false),
-            AccountMeta::new_readonly(self.operator_authority.pubkey(), false),
+            AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new(self.nullifier_marker_pubkey(nullifier), false),
+            AccountMeta::new(self.operator_authority.pubkey(), false),
+            AccountMeta::new_readonly(system_program::ID, false),
         ]
     }
 
-    fn wrong_authority_accounts(&self) -> Vec<AccountMeta> {
+    fn wrong_authority_accounts(&self, nullifier: &[u8; HASH_LEN]) -> Vec<AccountMeta> {
         vec![
             AccountMeta::new(self.pool_state, false),
-            AccountMeta::new(self.nullifier_set, false),
+            AccountMeta::new_readonly(self.nullifier_set, false),
             AccountMeta::new(self.output_queue, false),
-            AccountMeta::new_readonly(self.wrong_operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new(self.nullifier_marker_pubkey(nullifier), false),
+            AccountMeta::new(self.wrong_operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
         ]
     }
 
-    fn wrong_owner_accounts(&self) -> Vec<AccountMeta> {
+    fn wrong_owner_accounts(&self, nullifier: &[u8; HASH_LEN]) -> Vec<AccountMeta> {
         vec![
             AccountMeta::new(self.wrong_pool_state, false),
-            AccountMeta::new(self.wrong_nullifier_set, false),
+            AccountMeta::new_readonly(self.wrong_nullifier_set, false),
             AccountMeta::new(self.wrong_output_queue, false),
-            AccountMeta::new_readonly(self.operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(self.wrong_root_history, false),
+            AccountMeta::new(self.nullifier_marker_pubkey(nullifier), false),
+            AccountMeta::new(self.operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
         ]
     }
 
@@ -554,7 +714,54 @@ impl VantaPrivatePoolV2Spend {
             self.account_data(self.pool_state),
             self.account_data(self.nullifier_set),
             self.account_data(self.output_queue),
+            self.account_data(self.root_history),
         ]
+    }
+
+    fn snapshot_accounts_for_nullifier(&self, nullifier: &[u8; HASH_LEN]) -> Vec<Vec<u8>> {
+        let mut accounts = self.snapshot_accounts();
+        accounts.push(self.account_data(self.nullifier_marker_pubkey(nullifier)));
+        accounts
+    }
+
+    fn ensure_marker_placeholder(&mut self, nullifier: &[u8; HASH_LEN]) {
+        let marker = self.nullifier_marker_pubkey(nullifier);
+        if self.ctx.get_account(&marker).is_ok() {
+            return;
+        }
+        self.ctx
+            .create_account()
+            .pubkey(marker)
+            .lamports(0)
+            .owner(system_program::ID)
+            .size(0)
+            .create()
+            .unwrap();
+    }
+
+    fn assert_nullifier_marker(&self, nullifier: &[u8; HASH_LEN]) {
+        let marker_data = self.account_data(self.nullifier_marker_pubkey(nullifier));
+        fuzz_assert!(marker_data.len() >= NULLIFIER_MARKER_LEN);
+        fuzz_assert_eq!(&marker_data[..8], NULLIFIER_MARKER_MAGIC);
+        fuzz_assert_eq!(marker_data[8], VERSION);
+        fuzz_assert_eq!(read_u32(&marker_data, COUNT_OFFSET), 1);
+        fuzz_assert_eq!(
+            &marker_data[NULLIFIER_MARKER_POOL_OFFSET..NULLIFIER_MARKER_POOL_OFFSET + HASH_LEN],
+            &self.pool_state.to_bytes()
+        );
+        fuzz_assert_eq!(
+            &marker_data
+                [NULLIFIER_MARKER_NULLIFIER_OFFSET..NULLIFIER_MARKER_NULLIFIER_OFFSET + HASH_LEN],
+            nullifier
+        );
+    }
+
+    fn nullifier_marker_pubkey(&self, nullifier: &[u8; HASH_LEN]) -> Pubkey {
+        Pubkey::find_program_address(
+            &[NULLIFIER_MARKER_SEED, self.pool_state.as_ref(), nullifier],
+            &self.program_id,
+        )
+        .0
     }
 
     fn account_data(&self, pubkey: Pubkey) -> Vec<u8> {
@@ -571,13 +778,19 @@ struct SpendPayload {
     public_input_hash: [u8; HASH_LEN],
 }
 
-fn spend_payload(seed: u64) -> SpendPayload {
+fn spend_payload(seed: u64, accepted_root: [u8; HASH_LEN]) -> SpendPayload {
     let nullifier = make_hash(seed, 1);
     let output0 = make_hash(seed, 2);
     let output1 = make_hash(seed, 3);
-    let public_input_hash = make_hash(seed, 4);
+    let public_input_hash = make_hash(seed, 5);
     SpendPayload {
-        data: spend_data(nullifier, output0, output1, public_input_hash),
+        data: spend_data(
+            nullifier,
+            output0,
+            output1,
+            accepted_root,
+            public_input_hash,
+        ),
         nullifier,
         output0,
         output1,
@@ -589,14 +802,23 @@ fn spend_data(
     nullifier: [u8; HASH_LEN],
     output0: [u8; HASH_LEN],
     output1: [u8; HASH_LEN],
+    accepted_root: [u8; HASH_LEN],
     public_input_hash: [u8; HASH_LEN],
 ) -> Vec<u8> {
-    let mut data = Vec::with_capacity(1 + HASH_LEN * 4);
+    let mut data = Vec::with_capacity(1 + HASH_LEN * 5);
     data.push(TAG_SPEND);
     data.extend_from_slice(&nullifier);
     data.extend_from_slice(&output0);
     data.extend_from_slice(&output1);
+    data.extend_from_slice(&accepted_root);
     data.extend_from_slice(&public_input_hash);
+    data
+}
+
+fn register_root_data(root: [u8; HASH_LEN]) -> Vec<u8> {
+    let mut data = Vec::with_capacity(1 + HASH_LEN);
+    data.push(TAG_REGISTER_ROOT);
+    data.extend_from_slice(&root);
     data
 }
 
@@ -615,8 +837,10 @@ fn create_program_accounts(
     pool_state: Pubkey,
     nullifier_set: Pubkey,
     output_queue: Pubkey,
+    root_history: Pubkey,
     nullifier_capacity: usize,
     output_capacity: usize,
+    root_capacity: usize,
 ) {
     ctx.create_account()
         .pubkey(pool_state)
@@ -637,6 +861,13 @@ fn create_program_accounts(
         .lamports(1_000_000)
         .owner(*program_id)
         .size(fixed_slot_len(output_capacity, OUTPUT_RECORD_LEN))
+        .create()
+        .unwrap();
+    ctx.create_account()
+        .pubkey(root_history)
+        .lamports(1_000_000)
+        .owner(*program_id)
+        .size(fixed_slot_len(root_capacity, HASH_LEN))
         .create()
         .unwrap();
 }

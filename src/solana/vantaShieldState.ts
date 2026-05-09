@@ -29,6 +29,11 @@ const VANTA_SOL_UNSHIELD_MEMO_PREFIX = "vanta:sol-unshield-note:v1:";
 export const VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX = "vanta:native-sol-shield-note:v1:";
 export const VANTA_SHIELD_MEMO_PREFIX_V2 = "vanta:shield-note:v2:";
 export const VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX_V2 = "vanta:native-sol-shield-note:v2:";
+export const VANTA_SEND_MEMO_PREFIX_V2 = "vanta:send-note:v2:";
+export const VANTA_UNSHIELD_MEMO_PREFIX_V2 = "vanta:unshield-note:v2:";
+export const VANTA_SWAP_MEMO_PREFIX_V2 = "vanta:swap-note:v2:";
+export const VANTA_SOL_UNSHIELD_MEMO_PREFIX_V2 = "vanta:sol-unshield-note:v2:";
+export const VANTA_SPENT_MARKER_MEMO_PREFIX_V2 = "vanta:spent-marker:v2:";
 export const VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE =
   "vanta-native-sol-same-transaction-deposit";
 export const VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE =
@@ -393,6 +398,18 @@ function createMemoInstruction(prefix: string, payload: object): TransactionInst
     data: new TextEncoder().encode(memoPayload),
     programAddress: toAddress(VANTA_SHIELD_MEMO_PROGRAM),
   };
+}
+
+function createActionMemoInstruction(
+  encryptedPrefix: string,
+  payload: object,
+  ownerPubkey: string,
+  options: ShieldMemoEncryptionOptions = {},
+): TransactionInstructionInput {
+  if (!options.viewingPublicKey) {
+    throw new Error("Vanta action memo encryption requires a Shield viewing public key.");
+  }
+  return createEncryptedMemoInstruction(encryptedPrefix, payload, ownerPubkey, options);
 }
 
 function canonicalJsonStringify(value: unknown): string {
@@ -1033,12 +1050,14 @@ export function createNativeSolShieldMemoInstruction(
 
 export function createSendMemoInstruction(
   payload: Omit<SendMemoPayload, "kind" | "noteId" | "changeNoteId">,
+  options: ShieldMemoEncryptionOptions = {},
 ): TransactionInstructionInput {
-  return createPreparedSendMemo(payload).instruction;
+  return createPreparedSendMemo(payload, options).instruction;
 }
 
 export function createPreparedSendMemo(
   payload: Omit<SendMemoPayload, "kind" | "noteId" | "changeNoteId">,
+  options: ShieldMemoEncryptionOptions = {},
 ) {
   const noteId = createSendNoteId(payload);
   const recipientNoteId =
@@ -1070,12 +1089,12 @@ export function createPreparedSendMemo(
 
   return {
     changeNoteId,
-    instruction: createMemoInstruction(VANTA_SEND_MEMO_PREFIX, {
+    instruction: createActionMemoInstruction(VANTA_SEND_MEMO_PREFIX_V2, {
       ...payload,
       kind: "send",
       noteId,
       changeNoteId,
-    } satisfies SendMemoPayload),
+    } satisfies SendMemoPayload, payload.owner, options),
     noteId,
     recipientNoteId,
   };
@@ -1083,21 +1102,23 @@ export function createPreparedSendMemo(
 
 export function createPreparedUnshieldMemo(
   payload: Omit<UnshieldMemoPayload, "kind" | "noteId">,
+  options: ShieldMemoEncryptionOptions = {},
 ) {
   const noteId = createUnshieldNoteId(payload);
 
   return {
-    instruction: createMemoInstruction(VANTA_UNSHIELD_MEMO_PREFIX, {
+    instruction: createActionMemoInstruction(VANTA_UNSHIELD_MEMO_PREFIX_V2, {
       ...payload,
       kind: "unshield",
       noteId,
-    } satisfies UnshieldMemoPayload),
+    } satisfies UnshieldMemoPayload, payload.owner, options),
     noteId,
   };
 }
 
 export function createPreparedSwapMemo(
   payload: Omit<SwapMemoPayload, "kind" | "noteId" | "outputNoteId">,
+  options: ShieldMemoEncryptionOptions = {},
 ) {
   const noteId = createSwapNoteId(payload);
   const outputNoteId = createSwapOutputNoteId({
@@ -1109,7 +1130,7 @@ export function createPreparedSwapMemo(
   });
 
   return {
-    instruction: createMemoInstruction(VANTA_SWAP_MEMO_PREFIX, {
+    instruction: createActionMemoInstruction(VANTA_SWAP_MEMO_PREFIX_V2, {
       ca: payload.createdAt,
       cn: payload.consumedNoteId,
       cs: payload.consumedShieldStateSignature,
@@ -1130,7 +1151,7 @@ export function createPreparedSwapMemo(
       vo: payload.vaultOwner,
       vp: payload.venuePoolAddress,
       vw: payload.venueNetwork,
-    } satisfies SwapMemoWirePayload),
+    } satisfies SwapMemoWirePayload, payload.owner, options),
     noteId,
     outputNoteId,
   };
@@ -1138,27 +1159,29 @@ export function createPreparedSwapMemo(
 
 export function createPreparedSolUnshieldMemo(
   payload: Omit<SolUnshieldMemoPayload, "kind" | "noteId">,
+  options: ShieldMemoEncryptionOptions = {},
 ) {
   const noteId = createSolUnshieldNoteId(payload);
 
   return {
-    instruction: createMemoInstruction(VANTA_SOL_UNSHIELD_MEMO_PREFIX, {
+    instruction: createActionMemoInstruction(VANTA_SOL_UNSHIELD_MEMO_PREFIX_V2, {
       ...payload,
       kind: "sol_unshield",
       noteId,
-    } satisfies SolUnshieldMemoPayload),
+    } satisfies SolUnshieldMemoPayload, payload.owner, options),
     noteId,
   };
 }
 
 export function createSpentMarkerInstruction(
   payload: Omit<SpentMarkerMemoPayload, "kind" | "markerId">,
+  options: ShieldMemoEncryptionOptions = {},
 ): TransactionInstructionInput {
-  return createMemoInstruction(VANTA_SPENT_MARKER_MEMO_PREFIX, {
+  return createActionMemoInstruction(VANTA_SPENT_MARKER_MEMO_PREFIX_V2, {
     ...payload,
     kind: "spent_marker",
     markerId: createSpentMarkerId(payload),
-  } satisfies SpentMarkerMemoPayload);
+  } satisfies SpentMarkerMemoPayload, payload.owner, options);
 }
 
 export function getShieldAccountId(owner: string, mintAddress: string) {
@@ -1328,23 +1351,30 @@ function parseNativeSolShieldMemo(
   }
 }
 
-function parseSendMemo(
+export function parseSendMemo(
   memo: string | null | undefined,
   stateSignature: string,
+  options: ShieldMemoDecryptionOptions = {},
 ): (Omit<VantaSendNote, "consumedNoteId" | "noteId"> & {
   changeNoteId?: string;
   consumedNoteId?: string;
   consumedShieldStateSignature?: string;
   noteId?: string;
 }) | null {
+  const encryptedPayload = tryDecryptShieldMemoBody<SendMemoPayload>(
+    memo ?? "",
+    VANTA_SEND_MEMO_PREFIX_V2,
+    "",
+    options,
+  );
   const memoPayload = extractMemoPayload(memo, VANTA_SEND_MEMO_PREFIX);
 
-  if (!memoPayload) {
+  if (!encryptedPayload && !memoPayload) {
     return null;
   }
 
   try {
-    const parsed = JSON.parse(memoPayload) as Partial<SendMemoPayload>;
+    const parsed = encryptedPayload ?? (JSON.parse(memoPayload ?? "") as Partial<SendMemoPayload>);
 
     if (
       parsed.kind !== "send" ||
@@ -1398,18 +1428,26 @@ function parseSendMemo(
   }
 }
 
-function parseSpentMarkerMemo(
+export function parseSpentMarkerMemo(
   memo: string | null | undefined,
   stateSignature: string,
+  options: ShieldMemoDecryptionOptions = {},
 ): VantaSpentMarker | null {
+  const encryptedPayload = tryDecryptShieldMemoBody<SpentMarkerMemoPayload>(
+    memo ?? "",
+    VANTA_SPENT_MARKER_MEMO_PREFIX_V2,
+    "",
+    options,
+  );
   const memoPayload = extractMemoPayload(memo, VANTA_SPENT_MARKER_MEMO_PREFIX);
 
-  if (!memoPayload) {
+  if (!encryptedPayload && !memoPayload) {
     return null;
   }
 
   try {
-    const parsed = JSON.parse(memoPayload) as Partial<SpentMarkerMemoPayload>;
+    const parsed =
+      encryptedPayload ?? (JSON.parse(memoPayload ?? "") as Partial<SpentMarkerMemoPayload>);
     const assetId =
       typeof parsed.assetId === "string"
         ? parsed.assetId
@@ -1481,18 +1519,26 @@ function parseSpentMarkerMemo(
   }
 }
 
-function parseSolUnshieldMemo(
+export function parseSolUnshieldMemo(
   memo: string | null | undefined,
   stateSignature: string,
+  options: ShieldMemoDecryptionOptions = {},
 ): (Omit<VantaSolUnshieldNote, "noteId"> & { noteId?: string }) | null {
+  const encryptedPayload = tryDecryptShieldMemoBody<SolUnshieldMemoPayload>(
+    memo ?? "",
+    VANTA_SOL_UNSHIELD_MEMO_PREFIX_V2,
+    "",
+    options,
+  );
   const memoPayload = extractMemoPayload(memo, VANTA_SOL_UNSHIELD_MEMO_PREFIX);
 
-  if (!memoPayload) {
+  if (!encryptedPayload && !memoPayload) {
     return null;
   }
 
   try {
-    const parsed = JSON.parse(memoPayload) as Partial<SolUnshieldMemoPayload>;
+    const parsed =
+      encryptedPayload ?? (JSON.parse(memoPayload ?? "") as Partial<SolUnshieldMemoPayload>);
 
     if (
       parsed.kind !== "sol_unshield" ||
@@ -1532,22 +1578,30 @@ function parseSolUnshieldMemo(
   }
 }
 
-function parseUnshieldMemo(
+export function parseUnshieldMemo(
   memo: string | null | undefined,
   stateSignature: string,
+  options: ShieldMemoDecryptionOptions = {},
 ): (Omit<VantaUnshieldNote, "consumedNoteId" | "noteId"> & {
   consumedNoteId?: string;
   consumedShieldStateSignature?: string;
   noteId?: string;
 }) | null {
+  const encryptedPayload = tryDecryptShieldMemoBody<UnshieldMemoPayload>(
+    memo ?? "",
+    VANTA_UNSHIELD_MEMO_PREFIX_V2,
+    "",
+    options,
+  );
   const memoPayload = extractMemoPayload(memo, VANTA_UNSHIELD_MEMO_PREFIX);
 
-  if (!memoPayload) {
+  if (!encryptedPayload && !memoPayload) {
     return null;
   }
 
   try {
-    const parsed = JSON.parse(memoPayload) as Partial<UnshieldMemoPayload>;
+    const parsed =
+      encryptedPayload ?? (JSON.parse(memoPayload ?? "") as Partial<UnshieldMemoPayload>);
 
     if (
       parsed.kind !== "unshield" ||
@@ -1591,23 +1645,32 @@ function parseUnshieldMemo(
   }
 }
 
-function parseSwapMemo(
+export function parseSwapMemo(
   memo: string | null | undefined,
   stateSignature: string,
+  options: ShieldMemoDecryptionOptions = {},
 ): (Omit<VantaSwapNote, "consumedNoteId" | "noteId" | "outputNoteId"> & {
   consumedNoteId?: string;
   consumedShieldStateSignature?: string;
   noteId?: string;
   outputNoteId?: string;
 }) | null {
+  const encryptedPayload = tryDecryptShieldMemoBody<SwapMemoPayload & SwapMemoWirePayload>(
+    memo ?? "",
+    VANTA_SWAP_MEMO_PREFIX_V2,
+    "",
+    options,
+  );
   const memoPayload = extractMemoPayload(memo, VANTA_SWAP_MEMO_PREFIX);
 
-  if (!memoPayload) {
+  if (!encryptedPayload && !memoPayload) {
     return null;
   }
 
   try {
-    const parsed = JSON.parse(memoPayload) as Partial<SwapMemoPayload & SwapMemoWirePayload>;
+    const parsed =
+      encryptedPayload ??
+      (JSON.parse(memoPayload ?? "") as Partial<SwapMemoPayload & SwapMemoWirePayload>);
     const kind = parsed.kind ?? parsed.k;
     const inputAsset = parsed.inputAsset ?? parsed.ii;
     const outputAsset = parsed.outputAsset ?? parsed.oi;
@@ -1790,7 +1853,9 @@ export async function fetchVantaShieldAccountState(args: {
 
   const parsedSendNotes = signatureMemoEntries
     .map((item) =>
-      parseSendMemo(item.memo, item.signature.toString()),
+      parseSendMemo(item.memo, item.signature.toString(), {
+        viewingSecretKey: args.viewingSecretKey,
+      }),
     )
     .filter((note): note is NonNullable<typeof note> => {
       return (
@@ -1804,7 +1869,9 @@ export async function fetchVantaShieldAccountState(args: {
 
   const parsedUnshieldNotes = signatureMemoEntries
     .map((item) =>
-      parseUnshieldMemo(item.memo, item.signature.toString()),
+      parseUnshieldMemo(item.memo, item.signature.toString(), {
+        viewingSecretKey: args.viewingSecretKey,
+      }),
     )
     .filter((note): note is NonNullable<typeof note> => {
       return (
@@ -1818,7 +1885,9 @@ export async function fetchVantaShieldAccountState(args: {
 
   const parsedSwapNotes = signatureMemoEntries
     .map((item) =>
-      parseSwapMemo(item.memo, item.signature.toString()),
+      parseSwapMemo(item.memo, item.signature.toString(), {
+        viewingSecretKey: args.viewingSecretKey,
+      }),
     )
     .filter((note): note is NonNullable<typeof note> => {
       return (
@@ -1831,7 +1900,9 @@ export async function fetchVantaShieldAccountState(args: {
 
   const parsedSolUnshieldNotes = signatureMemoEntries
     .map((item) =>
-      parseSolUnshieldMemo(item.memo, item.signature.toString()),
+      parseSolUnshieldMemo(item.memo, item.signature.toString(), {
+        viewingSecretKey: args.viewingSecretKey,
+      }),
     )
     .filter((note): note is NonNullable<typeof note> => {
       return note !== null && note.owner === args.owner && note.vaultOwner === args.vaultOwner;
@@ -2004,7 +2075,9 @@ export async function fetchVantaShieldAccountState(args: {
 
   const explicitSpentMarkers = signatureMemoEntries
     .map((item) =>
-      parseSpentMarkerMemo(item.memo, item.signature.toString()),
+      parseSpentMarkerMemo(item.memo, item.signature.toString(), {
+        viewingSecretKey: args.viewingSecretKey,
+      }),
     )
     .filter((marker: VantaSpentMarker | null): marker is VantaSpentMarker => {
       return (

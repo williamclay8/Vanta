@@ -107,6 +107,7 @@ try {
     "invalid-membership-root",
     "invalid-direction-bit",
     "invalid-leaf-index",
+    "invalid-amount-range",
   ]) {
     writeFixture(mode);
     console.log(`${mode} fixture write: PASS`);

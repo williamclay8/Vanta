@@ -20,10 +20,11 @@ if (
   fixtureMode !== "valid" &&
   fixtureMode !== "forged-input-membership" &&
   fixtureMode !== "invalid-binding" &&
-  fixtureMode !== "invalid-nullifier"
+  fixtureMode !== "invalid-nullifier" &&
+  fixtureMode !== "invalid-amount-range"
 ) {
   console.error(
-    'Expected fixture mode "valid", "forged-input-membership", "invalid-binding", or "invalid-nullifier".',
+    'Expected fixture mode "valid", "forged-input-membership", "invalid-binding", "invalid-nullifier", or "invalid-amount-range".',
   );
   process.exit(1);
 }

@@ -2,6 +2,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { execFileSync } from "node:child_process";
+import { poseidon1, poseidon2, poseidon6, poseidon8, poseidon15 } from "poseidon-lite";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
@@ -18,6 +19,7 @@ async function main() {
     "invalid-leaf-index",
     "invalid-consume-context-split",
     "invalid-sibling-field",
+    "invalid-amount-range",
   ]);
   if (!supportedFixtureModes.has(fixtureMode)) {
     throw new Error(
@@ -152,7 +154,102 @@ function createWitnessPackageForMode(validWitnessPackage, mode) {
     };
   }
 
+  if (mode === "invalid-amount-range") {
+    return createInvalidAmountRangeWitnessPackage(validWitnessPackage);
+  }
+
   throw new Error(`Unsupported fixture mode ${mode}`);
+}
+
+function createInvalidAmountRangeWitnessPackage(validWitnessPackage) {
+  const privateWitness = {
+    ...validWitnessPackage.privateWitness,
+    amount_lo: (1n << 64n).toString(10),
+  };
+  const commitment = deriveNoteCommitment(privateWitness, validWitnessPackage.publicInputs.note_version);
+  const leaf = poseidon1([BigInt(commitment)]).toString(10);
+  const stateRoot = deriveRoot({
+    leaf,
+    path: privateWitness.membership_path,
+    pathDirectionBits: privateWitness.membership_path_direction_bits,
+  });
+  const nullifier = poseidon6([
+    BigInt(privateWitness.note_secret_hi),
+    BigInt(privateWitness.note_secret_lo),
+    BigInt(privateWitness.note_nonce_hi),
+    BigInt(privateWitness.note_nonce_lo),
+    BigInt(stateRoot),
+    BigInt(leaf),
+  ]).toString(10);
+  const consumeContextTag = poseidon8([
+    BigInt(privateWitness.release_destination_hi),
+    BigInt(privateWitness.release_destination_lo),
+    BigInt(privateWitness.asset_id_hi),
+    BigInt(privateWitness.asset_id_lo),
+    BigInt(privateWitness.amount_lo),
+    BigInt(privateWitness.amount_hi),
+    BigInt(validWitnessPackage.publicInputs.note_version),
+    BigInt(nullifier),
+  ]).toString(10);
+  const unshieldEconomicTermsHash = poseidon8([
+    BigInt(privateWitness.release_destination_hi),
+    BigInt(privateWitness.release_destination_lo),
+    BigInt(privateWitness.asset_id_hi),
+    BigInt(privateWitness.asset_id_lo),
+    BigInt(privateWitness.amount_lo),
+    BigInt(privateWitness.amount_hi),
+    BigInt(validWitnessPackage.publicInputs.note_version),
+    0n,
+  ]).toString(10);
+
+  return {
+    ...validWitnessPackage,
+    publicInputs: {
+      ...validWitnessPackage.publicInputs,
+      consume_context_tag_hi: "0",
+      consume_context_tag_lo: consumeContextTag,
+      nullifier,
+      state_root: stateRoot,
+      unshield_economic_terms_hash: unshieldEconomicTermsHash,
+    },
+    privateWitness,
+  };
+}
+
+function deriveNoteCommitment(privateWitness, noteVersion) {
+  const noteHeader = poseidon2([
+    BigInt(noteVersion),
+    BigInt(privateWitness.note_type_code),
+  ]);
+
+  return poseidon15([
+    noteHeader,
+    BigInt(privateWitness.asset_id_hi),
+    BigInt(privateWitness.asset_id_lo),
+    BigInt(privateWitness.amount_lo),
+    BigInt(privateWitness.amount_hi),
+    BigInt(privateWitness.owner_public_key_hi),
+    BigInt(privateWitness.owner_public_key_lo),
+    BigInt(privateWitness.note_nonce_hi),
+    BigInt(privateWitness.note_nonce_lo),
+    BigInt(privateWitness.note_secret_hi),
+    BigInt(privateWitness.note_secret_lo),
+    BigInt(privateWitness.blinding_hi),
+    BigInt(privateWitness.blinding_lo),
+    BigInt(privateWitness.derivation_tag_hi),
+    BigInt(privateWitness.derivation_tag_lo),
+  ]).toString(10);
+}
+
+function deriveRoot({ leaf, path, pathDirectionBits }) {
+  return path.reduce((current, sibling, index) => {
+    const isCurrentRight = pathDirectionBits[index] === "1";
+    return (
+      isCurrentRight
+        ? poseidon2([BigInt(sibling), BigInt(current)])
+        : poseidon2([BigInt(current), BigInt(sibling)])
+    ).toString(10);
+  }, leaf);
 }
 
 try {

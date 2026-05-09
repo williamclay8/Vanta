@@ -39,7 +39,8 @@ export type VantaPrivatePoolV2ClaimCircuitFixtureMode =
   | "valid"
   | "forged-input-membership"
   | "invalid-binding"
-  | "invalid-nullifier";
+  | "invalid-nullifier"
+  | "invalid-amount-range";
 
 const DEFAULT_WITNESS_BASE = {
   amount: 1_000_000n,
@@ -192,10 +193,15 @@ export function createVantaPrivatePoolV2ClaimCircuitFixture({
           ...witness,
           nullifier: witness.nullifier + 1n,
         }
+      : mode === "invalid-amount-range"
+      ? {
+          ...witness,
+          amount: 1n << 128n,
+        }
       : witness;
   const validPublicHash = computeVantaPrivatePoolV2ClaimPublicInputHash(circuitWitness);
   const proofRequest = createVantaPrivatePoolV2ClaimProofRequest({
-    amountBaseUnits: witness.amount,
+    amountBaseUnits: circuitWitness.amount,
     claimPublicInputHash: toCircuitString(validPublicHash),
     destinationAddress: toCircuitString(witness.destination),
     merkleProof: toMerkleProof(circuitWitness),

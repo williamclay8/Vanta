@@ -16,7 +16,7 @@ export const capabilities: Capability[] = [
     title: "Shielded Send (beta)",
     status: "Private Core lane",
     summary: "Move from shielded state with claim gates visible.",
-    details: "Proof-shaped where implemented; legacy memo/discovery privacy remains a blocker.",
+    details: "Proof-shaped where implemented; v2 AEAD memos reduce public-chain leakage while recipient discovery remains a blocker.",
   },
   {
     title: "Private Swap",

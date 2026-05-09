@@ -22,7 +22,7 @@ export function DocsRoadmapPage() {
           Vanta&apos;s roadmap is merchant-first in product language, even though
           Portal remains the easiest way to understand how the system works.
           Pay is the flagship direction because merchants have a concrete
-          problem: they need private checkout and stablecoin settlement to feel
+          problem: they need test checkout and eventual private settlement to feel
           like normal operations, not a protocol diagram.
         </p>
         <p>

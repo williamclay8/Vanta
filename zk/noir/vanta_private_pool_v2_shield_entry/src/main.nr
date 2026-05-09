@@ -74,14 +74,14 @@ fn compute_economics_commitment(
     source_mint: Field,
     target_mint: Field,
     target_asset_id: Field,
-    amount: Field,
+    amount: u128,
     economics_blinding: Field,
 ) -> Field {
     bn254::hash_5([
         source_mint,
         target_mint,
         target_asset_id,
-        amount,
+        amount as Field,
         economics_blinding,
     ])
 }
@@ -92,7 +92,7 @@ fn main(
     source_mint: Field,
     target_mint: Field,
     target_asset_id: Field,
-    amount: Field,
+    amount: u128,
     economics_blinding: Field,
     economics_commitment: Field,
     owner_commitment: Field,

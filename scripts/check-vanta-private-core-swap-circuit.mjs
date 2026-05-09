@@ -63,6 +63,20 @@ try {
   printStatus("invalid-leaf-index fixture write: PASS");
   expectExecuteFailure("invalid-leaf-index");
 
+  writeFixture("invalid-sender-secret");
+  printStatus("invalid-sender-secret fixture write: PASS");
+  expectExecuteFailure("invalid-sender-secret");
+
+  writeFixture("invalid-amount-range");
+  printStatus("invalid-amount-range fixture write: PASS");
+  expectExecuteFailure("invalid-amount-range");
+
+  writeFixture("valid-asset-sum-collision");
+  printStatus("valid-asset-sum-collision fixture write: PASS");
+  const validAssetSumCollisionOutput = runNargo(["execute"]);
+  printCapturedOutput(validAssetSumCollisionOutput);
+  printStatus("valid-asset-sum-collision fixture: PASS");
+
   writeFixture("valid");
   restoredValidFixture = true;
   printStatus("fixture restore: PASS");

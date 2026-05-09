@@ -13,6 +13,7 @@ const supportedModes = new Set([
   "invalid-direction-bit",
   "invalid-leaf-index",
   "invalid-membership-root",
+  "invalid-amount-range",
 ]);
 
 if (!supportedModes.has(mode)) {
@@ -75,13 +76,6 @@ const baseWitness = {
   owner_public_key: 303n,
   version: 1n,
 };
-const validCommitment = computeCommitment(baseWitness);
-const validRoot = computeRoot({
-  commitment: validCommitment,
-  membershipPath: baseWitness.membership_path,
-  membershipPathIndexBits: baseWitness.membership_path_index_bits,
-});
-
 const witness =
   mode === "invalid-direction-bit"
     ? {
@@ -90,10 +84,18 @@ const witness =
       }
     : mode === "invalid-leaf-index"
       ? { ...baseWitness, leaf_index: baseWitness.leaf_index + 1n }
+    : mode === "invalid-amount-range"
+      ? { ...baseWitness, amount_lo: 1n << 64n }
       : baseWitness;
 
-const commitment = mode === "invalid-commitment" ? validCommitment + 1n : validCommitment;
-const membershipRoot = mode === "invalid-membership-root" ? validRoot + 1n : validRoot;
+const witnessCommitment = computeCommitment(witness);
+const witnessRoot = computeRoot({
+  commitment: witnessCommitment,
+  membershipPath: witness.membership_path,
+  membershipPathIndexBits: witness.membership_path_index_bits,
+});
+const commitment = mode === "invalid-commitment" ? witnessCommitment + 1n : witnessCommitment;
+const membershipRoot = mode === "invalid-membership-root" ? witnessRoot + 1n : witnessRoot;
 
 const toml = [
   `amount_hi = "${toCircuitString(witness.amount_hi)}"`,

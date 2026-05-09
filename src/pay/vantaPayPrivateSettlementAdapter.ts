@@ -20,9 +20,15 @@ export const VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY = {
   acceptedCheckoutSettlementVerificationCommand: "npm run pay:committed-checkout-acceptance-check",
   checkoutProofBoundary: "hidden-economics-request",
   checkoutSettlementRoute: "actual-private-spend-protocol-settlement",
+  checkoutCompletionAuth: "internal-settlement-token-only",
+  checkoutCompletionDefaultBasis: "local-test-harness",
+  checkoutCompletionEndpoint: "chain-subscriber-internal",
+  customerPaymentEvidenceRequiredForProduction: true,
+  customerPaymentEvidenceWired: false,
   hiddenEconomicsProductionPrivacyClaimAllowed: false,
   lifecycleModel: "preview-approve-execute-settle",
-  operatorSeesRawSettlementTerms: false,
+  operatorSeesRawMerchantApiTerms: true,
+  operatorSeesRawSettlementAdapterTerms: false,
   proofBoundaryVerificationCommand: "npm run pay:hidden-economics-request-check",
   rawEconomicTermsInAcceptedCheckoutSettlement: false,
   rawEconomicTermsInLiveCheckoutSettlement: false,
@@ -880,7 +886,7 @@ export function createVantaPayPrivateSettlementAdapter({
 
     const normalizedAmount = normalizeAmount(amount, asset);
     const treeId = treeIdForAsset(asset);
-    const commitments = await indexer.listCommitments({ assetId: assetIdForAsset(asset), treeId });
+    const commitments = await indexer.listCommitments({ assetId: hiddenEconomicsAssetId, treeId });
     const sourceCommitment = commitments[0];
     if (!sourceCommitment) {
       throw new Error(`No private settlement commitment available for ${asset}.`);

@@ -1,12 +1,15 @@
 import { strict as assert } from "node:assert";
 
-import { Keypair, VersionedTransaction } from "@solana/web3.js";
+import { Keypair, SystemProgram, VersionedTransaction } from "@solana/web3.js";
 
 import {
   createVantaPrivatePoolV2SolanaRelayerSubmitter,
   isVantaSolanaTransactionSignature,
 } from "../src/privacy/privatePoolV2SolanaRelayerSubmission.mjs";
-import { buildVantaPrivatePoolV2ActualPrivateSpendTransaction } from "../src/privacy/privatePoolV2SolanaSpendTransaction.mjs";
+import {
+  buildVantaPrivatePoolV2ActualPrivateSpendTransaction,
+  deriveVantaPrivatePoolV2NullifierMarkerAddress,
+} from "../src/privacy/privatePoolV2SolanaSpendTransaction.mjs";
 
 const validSignature = "4".repeat(88);
 const calls = [];
@@ -72,14 +75,23 @@ const spendProgramId = Keypair.generate().publicKey.toBase58();
 const poolState = Keypair.generate().publicKey.toBase58();
 const nullifierSet = Keypair.generate().publicKey.toBase58();
 const outputQueue = Keypair.generate().publicKey.toBase58();
+const rootHistory = Keypair.generate().publicKey.toBase58();
+const nullifierMarker = deriveVantaPrivatePoolV2NullifierMarkerAddress({
+  nullifierHex: "0x" + "11".repeat(32),
+  poolState,
+  programId: spendProgramId,
+});
 const operatorAuthority = relayerKeypair.publicKey.toBase58();
 let submittedSpendTransaction = null;
 const builtSpendTransaction = buildVantaPrivatePoolV2ActualPrivateSpendTransaction({
   accounts: [
     { isSigner: false, isWritable: true, pubkey: poolState },
-    { isSigner: false, isWritable: true, pubkey: nullifierSet },
+    { isSigner: false, isWritable: false, pubkey: nullifierSet },
     { isSigner: false, isWritable: true, pubkey: outputQueue },
-    { isSigner: true, isWritable: false, pubkey: operatorAuthority },
+    { isSigner: false, isWritable: false, pubkey: rootHistory },
+    { isSigner: false, isWritable: true, pubkey: nullifierMarker },
+    { isSigner: true, isWritable: true, pubkey: operatorAuthority },
+    { isSigner: false, isWritable: false, pubkey: SystemProgram.programId.toBase58() },
   ],
   instructionDataBase64: Buffer.concat([
     Buffer.from([1]),
@@ -87,6 +99,7 @@ const builtSpendTransaction = buildVantaPrivatePoolV2ActualPrivateSpendTransacti
     Buffer.from("22".repeat(32), "hex"),
     Buffer.from("33".repeat(32), "hex"),
     Buffer.from("44".repeat(32), "hex"),
+    Buffer.from("55".repeat(32), "hex"),
   ]).toString("base64"),
   programId: spendProgramId,
   recentBlockhash: "11111111111111111111111111111111",

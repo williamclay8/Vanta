@@ -248,7 +248,7 @@ function buildSwapTrustPacket({ baseUrl, status }) {
       operatorVisibleRawEconomics: [
         "raw input/output amounts remain operator-visible in private-core swap-transition records",
         "route adapter and live venue paths can still see raw input/output assets, quote id, route, slippage, and pool metadata",
-        "public SPL memo beta execution still serializes raw swap terms until commitment-only swap memos replace it",
+        "new live Swap action memos expose only the v2 AEAD memo prefix and opaque ciphertext body, while legacy v1 memos remain parse-compatible",
       ],
       localPrivacyPrimitives: [
         "swap-to-shielded proof request",
@@ -327,6 +327,12 @@ function validateSwapTrustPacket(packet) {
       "raw input/output amounts remain operator-visible in private-core swap-transition records",
     ),
     "Swap packet must disclose operator-visible raw economics that remain outside the committed packet.",
+  );
+  assert(
+    packet.privacyDisclosure.operatorVisibleRawEconomics.some((field) =>
+      field.includes("v2 AEAD memo prefix and opaque ciphertext body"),
+    ),
+    "Swap packet must disclose that new action memos are opaque AEAD ciphertext.",
   );
   assert(
     packet.privacyDisclosure.remainingBlockers.includes(

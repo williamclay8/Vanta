@@ -26,9 +26,11 @@ const host = process.env.VANTA_PAY_OPERATOR_HOST ?? process.env.HOST ?? "0.0.0.0
 const port = Number(process.env.PORT ?? process.env.VANTA_PAY_OPERATOR_PORT ?? "8798");
 const rawSecretKey = process.env.VANTA_PAY_SECRET_KEY;
 const rawWebhookSecret = process.env.VANTA_PAY_WEBHOOK_SECRET;
+const rawInternalSettlementToken = process.env.VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN;
 const databaseUrl = process.env.VANTA_PAY_DATABASE_URL;
 const secretKey = rawSecretKey ?? "sk_test_vanta";
 const webhookSecret = rawWebhookSecret ?? "whsec_test_vanta";
+const internalSettlementToken = rawInternalSettlementToken ?? null;
 const privatePoolOperatorUrl = process.env.VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL;
 const privatePoolOperatorAuthToken = process.env.VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN;
 const rateLimitPerMinute = Number(process.env.VANTA_PAY_RATE_LIMIT_PER_MINUTE ?? "600");
@@ -65,6 +67,10 @@ const supportedDestinationTypes = new Set([
   "wallet_address",
 ]);
 const supportedUiModes = new Set(["embedded", "hosted", "modal"]);
+const supportedCheckoutCompletionBases = new Set([
+  "customer-payment-evidence",
+  "local-test-harness",
+]);
 
 function assertProductionSecrets() {
   if (process.env.NODE_ENV !== "production") {
@@ -77,6 +83,10 @@ function assertProductionSecrets() {
 
   if (!rawWebhookSecret || rawWebhookSecret === "whsec_test_vanta") {
     throw new Error("Vanta Pay production mode requires VANTA_PAY_WEBHOOK_SECRET.");
+  }
+
+  if (!rawInternalSettlementToken) {
+    throw new Error("Vanta Pay production mode requires VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN.");
   }
 
   if (!databaseUrl) {
@@ -259,6 +269,20 @@ function unauthorized(response) {
   });
 }
 
+function settlementAuthUnavailable(response) {
+  sendJson(response, 503, {
+    error: "Vanta Pay internal settlement completion is not configured.",
+    ok: false,
+  });
+}
+
+function forbiddenSettlement(response) {
+  sendJson(response, 403, {
+    error: "Missing or invalid Vanta Pay internal settlement token.",
+    ok: false,
+  });
+}
+
 async function requireAuth(request, response, telemetryContext) {
   if (request.url === "/health") {
     return true;
@@ -278,6 +302,43 @@ async function requireAuth(request, response, telemetryContext) {
       severity: "warning",
     });
     unauthorized(response);
+    return false;
+  }
+
+  return true;
+}
+
+async function requireInternalSettlementAuth(request, response, telemetryContext) {
+  if (!internalSettlementToken) {
+    await appendOperatorEvent({
+      eventRef: `${telemetryContext.requestId}:${telemetryContext.path}`,
+      eventType: "internal_settlement_auth_not_configured",
+      payload: {
+        method: request.method,
+        path: telemetryContext.path,
+        requestId: telemetryContext.requestId,
+        service: "vanta-pay",
+      },
+      severity: "error",
+    });
+    settlementAuthUnavailable(response);
+    return false;
+  }
+
+  const suppliedToken = request.headers["x-vanta-pay-internal-settlement-token"];
+  if (suppliedToken !== internalSettlementToken) {
+    await appendOperatorEvent({
+      eventRef: `${telemetryContext.requestId}:${telemetryContext.path}`,
+      eventType: "internal_settlement_auth_rejected",
+      payload: {
+        method: request.method,
+        path: telemetryContext.path,
+        requestId: telemetryContext.requestId,
+        service: "vanta-pay",
+      },
+      severity: "warning",
+    });
+    forbiddenSettlement(response);
     return false;
   }
 
@@ -333,6 +394,30 @@ function toSessionInput(body) {
     orderId: body.order_id ?? body.orderId,
     successUrl: requireNonEmptyString(body.success_url ?? body.successUrl, "success_url"),
     uiMode: requireSupportedValue(uiMode, "ui_mode", supportedUiModes),
+  };
+}
+
+function toCheckoutCompletionInput(body) {
+  const rawEvidenceRef =
+    body.customer_payment_evidence_ref ??
+    body.customerPaymentEvidenceRef ??
+    body.payment_evidence_ref ??
+    body.paymentEvidenceRef;
+  const customerPaymentEvidenceRef =
+    typeof rawEvidenceRef === "string" && rawEvidenceRef.trim().length > 0
+      ? rawEvidenceRef.trim()
+      : null;
+  const rawBasis = body.completion_basis ?? body.completionBasis;
+  const completionBasis =
+    rawBasis === undefined || rawBasis === null
+      ? customerPaymentEvidenceRef
+        ? "customer-payment-evidence"
+        : "local-test-harness"
+      : requireSupportedValue(rawBasis, "completion_basis", supportedCheckoutCompletionBases);
+
+  return {
+    completionBasis,
+    customerPaymentEvidenceRef,
   };
 }
 
@@ -517,12 +602,18 @@ const server = createServer(async (request, response) => {
       return;
     }
 
-    if (!(await requireAuth(request, response, telemetryContext))) {
+    if (request.method === "GET" && url.pathname === "/health") {
+      sendJson(response, 200, { ok: true, service: "vanta-pay" });
       return;
     }
 
-    if (request.method === "GET" && url.pathname === "/health") {
-      sendJson(response, 200, { ok: true, service: "vanta-pay" });
+    const sessionCompleteMatch = url.pathname.match(/^\/v1\/checkout\/sessions\/([^/]+)\/complete$/);
+
+    if (request.method === "POST" && sessionCompleteMatch) {
+      if (!(await requireInternalSettlementAuth(request, response, telemetryContext))) {
+        return;
+      }
+    } else if (!(await requireAuth(request, response, telemetryContext))) {
       return;
     }
 
@@ -539,6 +630,7 @@ const server = createServer(async (request, response) => {
             refunds: true,
             withdrawals: true,
           },
+          internalSettlementCompletionTokenConfigured: Boolean(internalSettlementToken),
           paymentLinkCreation: true,
           privateExitWithdrawalRequired: true,
           privatePoolOperatorConfigured: Boolean(privatePoolOperatorUrl),
@@ -597,8 +689,8 @@ const server = createServer(async (request, response) => {
       return;
     }
 
-    const sessionCompleteMatch = url.pathname.match(/^\/v1\/checkout\/sessions\/([^/]+)\/complete$/);
     if (request.method === "POST" && sessionCompleteMatch) {
+      const body = await readRequestBody(request);
       const session = runtime.getCheckoutSession(sessionCompleteMatch[1]);
       if (!session) {
         sendJson(response, 404, { error: "Checkout session not found." });
@@ -608,6 +700,7 @@ const server = createServer(async (request, response) => {
       const privateRailReceipt = await settlementAdapter.settleCheckoutSession({ session });
       runtime.registerPrivateRailReceipt(privateRailReceipt);
       const completion = runtime.completeCheckoutSession(session.id, {
+        ...toCheckoutCompletionInput(body),
         privateRailReceiptId: privateRailReceipt.id,
       });
       await saveRuntimeSnapshot();

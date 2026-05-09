@@ -30,6 +30,7 @@ const port = 11280 + Math.floor(Math.random() * 300);
 const baseUrl = `http://127.0.0.1:${port}`;
 const privatePoolPort = port + 2_000;
 const privatePoolBaseUrl = `http://127.0.0.1:${privatePoolPort}`;
+const payInternalSettlementToken = "vanta-pay-internal-settlement-test-token";
 
 function assert(condition, message) {
   if (!condition) {
@@ -192,6 +193,7 @@ function startPrivatePoolServer({ authToken, storePath } = {}) {
 function startServer({
   databaseUrl,
   includeSecrets = true,
+  internalSettlementToken = payInternalSettlementToken,
   nodeEnv,
   privatePoolOperatorAuthToken,
   privatePoolOperatorUrl,
@@ -213,6 +215,7 @@ function startServer({
         ? { VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL: privatePoolOperatorUrl }
         : {}),
       ...(includeSecrets ? { VANTA_PAY_SECRET_KEY: secretKey } : {}),
+      ...(includeSecrets ? { VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN: internalSettlementToken } : {}),
       ...(storePath ? { VANTA_PAY_STORE_PATH: storePath } : {}),
       ...(includeSecrets ? { VANTA_PAY_WEBHOOK_SECRET: webhookSecret } : {}),
     },
@@ -353,6 +356,34 @@ try {
     "Merchant API must expose the payment lifecycle model.",
   );
   assert(
+    status.privateSettlement.checkoutCompletionDefaultBasis === "local-test-harness",
+    "Merchant API must expose the local checkout completion harness boundary.",
+  );
+  assert(
+    status.privateSettlement.checkoutCompletionAuth === "internal-settlement-token-only",
+    "Merchant API must expose the internal settlement token completion boundary.",
+  );
+  assert(
+    status.privateSettlement.checkoutCompletionEndpoint === "chain-subscriber-internal",
+    "Merchant API must expose the internal chain-subscriber completion boundary.",
+  );
+  assert(
+    status.privateSettlement.customerPaymentEvidenceRequiredForProduction === true,
+    "Merchant API must require customer payment evidence before production completion.",
+  );
+  assert(
+    status.privateSettlement.customerPaymentEvidenceWired === false,
+    "Merchant API must not imply the customer payment evidence flow is wired.",
+  );
+  assert(
+    status.privateSettlement.operatorSeesRawMerchantApiTerms === true,
+    "Merchant API must disclose that the operator receives raw merchant API checkout terms.",
+  );
+  assert(
+    status.privateSettlement.operatorSeesRawSettlementAdapterTerms === false,
+    "Merchant API must disclose the scoped settlement-adapter redaction boundary.",
+  );
+  assert(
     status.privateSettlement.refundState === "merchant-visible",
     "Merchant API must expose merchant-visible refund state.",
   );
@@ -438,16 +469,43 @@ try {
   );
   runtime.registerPrivateRailReceipt(privateRailReceipt);
 
+  try {
+    runtime.completeCheckoutSession(session.id, {
+      completionBasis: "customer-payment-evidence",
+      privateRailReceiptId: privateRailReceipt.id,
+    });
+    throw new Error("Expected evidence-based completion without evidence to fail.");
+  } catch (error) {
+    assert(
+      String(error instanceof Error ? error.message : error).includes(
+        "Customer payment evidence reference required",
+      ),
+      "Expected customer payment evidence guard.",
+    );
+  }
+
   const completion = runtime.completeCheckoutSession(session.id, {
     privateRailReceiptId: privateRailReceipt.id,
   });
   assert(completion.payment.status === "completed", "Expected completed payment.");
   assert(completion.payment.railStatus === "settled", "Expected settled private rail status.");
   assert(
+    completion.payment.completionBasis === "local-test-harness",
+    "Expected default completion to stay labeled as local test harness.",
+  );
+  assert(
+    completion.payment.customerPaymentEvidenceRef === null,
+    "Expected local harness completion to omit customer payment evidence.",
+  );
+  assert(
     completion.payment.privateRailReceiptId === privateRailReceipt.id,
     "Expected payment to reference private rail receipt.",
   );
   assert(completion.receipt.status === "paid", "Expected paid receipt.");
+  assert(
+    completion.receipt.completionBasis === "local-test-harness",
+    "Expected receipt to disclose the local test harness completion basis.",
+  );
   assert(
     completion.receipt.privateRailReceiptId === privateRailReceipt.id,
     "Expected receipt to reference private rail receipt.",
@@ -458,6 +516,54 @@ try {
   );
   assert(completion.events.some((event) => event.type === "payment.completed"), "Expected event.");
   console.log("vanta-pay payment completion: PASS");
+
+  const evidenceRuntime = createVantaPayRuntime();
+  const evidenceSettlementAdapter = createVantaPayPrivateSettlementAdapter();
+  const evidenceSession = evidenceRuntime.createCheckoutSession({
+    amount: "1.25",
+    cancelUrl: "https://merchant.com/cancel",
+    collectEmail: false,
+    collectName: false,
+    currency: "USDC",
+    lineItems: [{ name: "Evidence-mode item", quantity: 1, unitAmount: "1.25" }],
+    merchantId: "mrc_123",
+    mode: "payment",
+    orderId: "order_evidence_001",
+    successUrl: "https://merchant.com/success",
+    uiMode: "hosted",
+  });
+  const evidenceRailReceipt = await evidenceSettlementAdapter.settleCheckoutSession({
+    session: evidenceSession,
+  });
+  evidenceRuntime.registerPrivateRailReceipt(evidenceRailReceipt);
+  try {
+    evidenceRuntime.completeCheckoutSession(evidenceSession.id, {
+      customerPaymentEvidenceRef: "not-an-evidence-ref",
+      privateRailReceiptId: evidenceRailReceipt.id,
+    });
+    throw new Error("Expected malformed customer payment evidence reference to fail.");
+  } catch (error) {
+    assert(
+      String(error instanceof Error ? error.message : error).includes(
+        "typed customer payment evidence reference",
+      ),
+      "Expected typed customer payment evidence reference guard.",
+    );
+  }
+  const validCustomerPaymentEvidenceRef = `solana:signature:${"2".repeat(88)}`;
+  const evidenceCompletion = evidenceRuntime.completeCheckoutSession(evidenceSession.id, {
+    customerPaymentEvidenceRef: validCustomerPaymentEvidenceRef,
+    privateRailReceiptId: evidenceRailReceipt.id,
+  });
+  assert(
+    evidenceCompletion.payment.completionBasis === "customer-payment-evidence",
+    "Expected explicit customer evidence to set evidence-based completion.",
+  );
+  assert(
+    evidenceCompletion.receipt.customerPaymentEvidenceRef === validCustomerPaymentEvidenceRef,
+    "Expected receipt to preserve the customer payment evidence reference.",
+  );
+  console.log("vanta-pay customer payment evidence completion: PASS");
 
   const signed = runtime.signWebhookEvent(completion.events[0], "whsec_test_vanta");
   assert(
@@ -677,6 +783,10 @@ try {
       "Expected private-rail completion policy.",
     );
     assert(
+      apiStatus.parsed?.capabilities?.internalSettlementCompletionTokenConfigured === true,
+      "Expected internal settlement completion token configuration to be visible without exposing the token.",
+    );
+    assert(
       apiStatus.parsed?.capabilities?.privatePoolOperatorConfigured === true,
       "Expected configured Private Pool v2 operator status.",
     );
@@ -815,18 +925,50 @@ try {
     );
     console.log("vanta-pay api checkout session: PASS");
 
-    const completed = await requestJson(
+    const merchantOnlyCompletion = await requestJson(
       `/v1/checkout/sessions/${sessionResponse.parsed.id}/complete`,
       { method: "POST" },
     );
+    assert(!merchantOnlyCompletion.ok, "Expected merchant-only API completion to fail closed.");
+    assert(
+      merchantOnlyCompletion.status === 403,
+      merchantOnlyCompletion.text || "Expected missing internal settlement token rejection.",
+    );
+    assert(
+      merchantOnlyCompletion.text.includes("internal settlement token"),
+      merchantOnlyCompletion.text || "Expected internal settlement token rejection.",
+    );
+    console.log("vanta-pay api merchant-only completion rejection: PASS");
+
+    const completed = await requestJson(
+      `/v1/checkout/sessions/${sessionResponse.parsed.id}/complete`,
+      {
+        headers: {
+          "x-vanta-pay-internal-settlement-token": payInternalSettlementToken,
+        },
+        method: "POST",
+      },
+    );
     assert(completed.ok, completed.text || "Expected completion response.");
     assert(completed.parsed?.payment?.status === "completed", "Expected completed API payment.");
+    assert(
+      completed.parsed?.payment?.completionBasis === "local-test-harness",
+      "Expected bare API completion to be labeled as the local test harness.",
+    );
+    assert(
+      completed.parsed?.payment?.customerPaymentEvidenceRef === null,
+      "Expected bare API completion to omit customer payment evidence.",
+    );
     assert(
       completed.parsed?.payment?.privateRailReceiptId?.startsWith("prail_"),
       "Expected API payment private rail receipt.",
     );
     assert(completed.parsed?.receipt?.id?.startsWith("rcpt_"), "Expected API receipt id.");
     assert(completed.parsed?.receipt?.status === "paid", "Expected API receipt paid status.");
+    assert(
+      completed.parsed?.receipt?.completionBasis === "local-test-harness",
+      "Expected API receipt to disclose local harness completion.",
+    );
     assert(
       completed.parsed?.receipt?.privateRailReceiptId === completed.parsed?.payment?.privateRailReceiptId,
       "Expected API receipt to reference the payment private rail receipt.",
@@ -837,7 +979,12 @@ try {
     );
     const repeatedCompletion = await requestJson(
       `/v1/checkout/sessions/${sessionResponse.parsed.id}/complete`,
-      { method: "POST" },
+      {
+        headers: {
+          "x-vanta-pay-internal-settlement-token": payInternalSettlementToken,
+        },
+        method: "POST",
+      },
     );
     assert(repeatedCompletion.ok, repeatedCompletion.text || "Expected repeated completion response.");
     assert(

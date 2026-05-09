@@ -60,6 +60,17 @@ assert.ok(
     !solUnshieldOperatorAuthSource.includes('payload.signature === "operator-direct"'),
   "Unshield operator auth must not accept operator-direct sentinel signatures.",
 );
+assert.ok(
+  !unshieldAuthSource.includes('"transition-authorized"') &&
+    !solUnshieldAuthSource.includes('"transition-authorized"'),
+  "Unshield auth must not mint transition-authorized sentinel signatures.",
+);
+assert.ok(
+  !unshieldOperatorAuthSource.includes('payload.signature === "transition-authorized"') &&
+    !solUnshieldOperatorAuthSource.includes('payload.signature === "transition-authorized"') &&
+    !unshieldOperatorSource.includes('intent.signature !== "transition-authorized"'),
+  "Unshield operator auth must not accept transition-authorized sentinel signatures.",
+);
 
 for (const phrase of [
   "VANTA_UNSHIELD_MEMO_PREFIX",

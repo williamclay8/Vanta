@@ -35,6 +35,7 @@ import {
 import { requestOperatorUnshield } from "@/solana/unshieldOperatorClient";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
+import { useVantaShieldViewingKey } from "@/solana/useVantaShieldViewingKey";
 import {
   createPreparedSendMemo,
   createPreparedSolUnshieldMemo,
@@ -44,6 +45,7 @@ import {
   VANTA_NATIVE_SOL_ASSET_ID,
   type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
+import { getUnshieldTrustContract } from "@/solana/unshieldTrustContract";
 import {
   listCanonicalUnshieldDiagnosticsSummaries,
   recordCanonicalUnshieldFromLiveUnshield,
@@ -278,6 +280,7 @@ function sumSpendableAmounts(notes: readonly { amount: number }[], decimals: num
 }
 
 export function UnshieldPage() {
+  const unshieldTrustContract = useMemo(() => getUnshieldTrustContract(), []);
   const client = useSolanaClient();
   const {
     privateCoreHoldState,
@@ -487,6 +490,7 @@ export function UnshieldPage() {
   } = usePrivacyFlow();
   const { walletAddress, walletAddressShort, walletConnected } = useWalletState();
   const walletSession = useWalletSession();
+  const viewingKey = useVantaShieldViewingKey();
   const shieldRegistry = useVantaShieldAssetRegistryState();
   const canonicalShieldState = useVantaShieldState();
   const usdcShieldEntry = shieldRegistry.byAssetKey.USDC;
@@ -986,7 +990,7 @@ export function UnshieldPage() {
             transitionKind: "send",
             transitionNoteId: pendingSplitMarker.transitionNoteId,
             vaultOwner: pendingSplitMarker.vaultOwner,
-          }),
+          }, { viewingPublicKey: viewingKey?.publicKey }),
         ];
 
         return splitSpentMarkerTransaction.preflight({
@@ -1033,6 +1037,7 @@ export function UnshieldPage() {
     splitSpentMarkerTransaction.signature,
     splitSpentMarkerTransaction.status,
     splitTransitionWait.waitStatus,
+    viewingKey?.publicKey,
   ]);
 
   useEffect(() => {
@@ -1134,6 +1139,7 @@ export function UnshieldPage() {
           mintAddress: splitMintAddress,
           owner: selectedShieldAccount.owner,
           vaultOwner: selectedShieldAccount.vaultOwner,
+          viewingSecretKey: viewingKey?.secretKey,
         });
         const exactChildNote = refreshedAccount.spendableShieldNotes.find(
           (note) => note.noteId === pendingSplitFollowup.childNoteId,
@@ -1175,6 +1181,7 @@ export function UnshieldPage() {
     selectedShieldAsset,
     shieldRegistry.configuredEntries,
     splitSpentMarkerWait.waitStatus,
+    viewingKey?.secretKey,
   ]);
 
   const operatorReleaseDisabledReason = useMemo(() => {
@@ -1784,17 +1791,23 @@ export function UnshieldPage() {
           const nextChangeAmount = Number(
             Math.max(selectedShieldNote.amount - requestedAmountNumeric, 0).toFixed(6),
           );
-          const preparedSplit = createPreparedSendMemo({
-            amount: requestedAmountNumeric.toString(),
-            asset: "USDC",
-            changeAmount: nextChangeAmount.toString(),
-            consumedNoteId: selectedShieldNote.noteId,
-            createdAt,
-            mintAddress: selectedShieldAsset.mintAddress,
-            owner: activeShieldAccount.owner,
-            recipient: activeShieldAccount.owner,
-            vaultOwner: activeShieldAccount.vaultOwner,
-          });
+          if (!viewingKey?.publicKey) {
+            throw new Error("Vanta action memo encryption requires your Shield viewing key to be ready.");
+          }
+          const preparedSplit = createPreparedSendMemo(
+            {
+              amount: requestedAmountNumeric.toString(),
+              asset: "USDC",
+              changeAmount: nextChangeAmount.toString(),
+              consumedNoteId: selectedShieldNote.noteId,
+              createdAt,
+              mintAddress: selectedShieldAsset.mintAddress,
+              owner: activeShieldAccount.owner,
+              recipient: activeShieldAccount.owner,
+              vaultOwner: activeShieldAccount.vaultOwner,
+            },
+            { viewingPublicKey: viewingKey?.publicKey },
+          );
 
           if (!preparedSplit.recipientNoteId) {
             throw new Error("Vanta could not derive the exact split note for this unshield request.");
@@ -1954,12 +1967,16 @@ export function UnshieldPage() {
         <div>
           <span className="eyebrow product-intro__eyebrow">Move out</span>
           <h2>Unshield</h2>
-          <p>Move shielded funds back to your public wallet.</p>
+          <p>{unshieldTrustContract.visibleStatusCopy}</p>
         </div>
 
         <div className="module-state">
-          <strong>Public exit</strong>
-          <p>Use one shielded note and release funds once.</p>
+          <strong>{unshieldTrustContract.currentTruth}</strong>
+          <p>
+            {unshieldTrustContract.claimControls.productionPrivacyClaimsLocked
+              ? unshieldTrustContract.visibleStatusCopy
+              : "Production Unshield privacy claims are unlocked by current evidence."}
+          </p>
         </div>
       </div>
 

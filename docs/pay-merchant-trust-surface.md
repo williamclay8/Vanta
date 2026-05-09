@@ -7,7 +7,7 @@ privacy system before they can understand a payment.
 
 Current truth: `/app/pay` is a test-mode merchant checkout cockpit, not a finished production payments network. It should create and review checkout sessions, show receipt-backed test payment records when the local/operator harness records a private rail receipt, and keep production limits visible before anything sounds live.
 
-Production privacy claims are not enabled yet. Test-mode completion is not the same as live mainnet private payment readiness.
+Production privacy claims are not enabled yet. Test-mode completion is not the same as live mainnet private payment readiness. Checkout completion defaults to `completionBasis: "local-test-harness"` unless a customer payment evidence reference is supplied by the customer-side wallet/payment flow. Evidence-based completion requires a typed customer payment evidence reference such as `solana:signature:<base58-signature>`. The operator `/complete` route is internal-chain-subscriber only and requires `VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN`; a merchant Bearer token alone must not mark a checkout paid.
 
 ## What stays private
 
@@ -18,6 +18,7 @@ Today, that means:
 
 - test-mode checkout session handling
 - receipt-backed test payment records from the local/operator harness
+- explicit customer payment evidence before production completion can be claimed
 - settlement receipts from the private settlement adapter when an operator rail is configured
 - simulation-bound approval before wallet action
 - typed status surfaces instead of implicit assumptions

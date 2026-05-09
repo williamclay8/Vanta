@@ -91,12 +91,18 @@ const privatePoolOperatorConfigured = Boolean(process.env.VANTA_PAY_PRIVATE_POOL
 const privatePoolOperatorAuthConfigured = Boolean(
   process.env.VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN,
 );
+const internalSettlementCompletionTokenConfigured = Boolean(
+  process.env.VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN,
+);
 const productionLaunchApproved = process.env.VANTA_PAY_PRODUCTION_LAUNCH_APPROVED === "true";
+const customerPaymentEvidenceWired = privateSettlement.customerPaymentEvidenceWired === true;
 const payProductionReady =
   productionDurableStoreConfigured &&
   privatePoolOperatorConfigured &&
   privatePoolOperatorAuthConfigured &&
-  productionLaunchApproved;
+  internalSettlementCompletionTokenConfigured &&
+  productionLaunchApproved &&
+  customerPaymentEvidenceWired;
 
 const result = {
   capabilities: {
@@ -111,6 +117,7 @@ const result = {
       refunds: true,
       withdrawals: true,
     },
+    internalSettlementCompletionTokenConfigured,
     paymentLinkCreation: true,
     privateExitWithdrawalRequired: true,
     privatePoolOperatorAuthConfigured,
@@ -176,6 +183,9 @@ if (jsonMode) {
   console.log(
     `- productionGuards: database=${String(result.capabilities.productionDatabaseRequired)}, durableStore=${String(result.capabilities.productionDurableStoreRequired)}, httpsWebhooks=${String(result.capabilities.productionHttpsWebhooks)}`,
   );
+  console.log(
+    `- internal settlement completion token configured: ${String(result.capabilities.internalSettlementCompletionTokenConfigured)}`,
+  );
   console.log(`- storage: ${result.storage.kind}`);
   for (const [surface, status] of Object.entries(result.surfaces)) {
     console.log(`- ${surface}: ${status}`);
@@ -187,6 +197,8 @@ if (jsonMode) {
   console.log(`- settlement lifecycle: ${result.privateSettlement.lifecycleModel}`);
   console.log(`- checkout proof boundary: ${result.privateSettlement.checkoutProofBoundary}`);
   console.log(`- checkout settlement route: ${result.privateSettlement.checkoutSettlementRoute}`);
+  console.log(`- checkout completion auth: ${result.privateSettlement.checkoutCompletionAuth}`);
+  console.log(`- checkout completion endpoint: ${result.privateSettlement.checkoutCompletionEndpoint}`);
   console.log(
     `- accepted checkout settlement boundary: ${result.privateSettlement.acceptedCheckoutSettlementBoundary}`,
   );

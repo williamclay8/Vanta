@@ -38,6 +38,11 @@ export function buildVantaPayReceiptPublicView(
     object: "receipt_public_view",
     orderId: receipt.orderId,
     paymentId: receipt.paymentId,
+    checkoutCompletion: {
+      basis: receipt.completionBasis,
+      customerPaymentEvidenceRefPresent: Boolean(receipt.customerPaymentEvidenceRef),
+      localHarness: receipt.completionBasis === "local-test-harness",
+    },
     privateSettlement: {
       auditDisclosure: redactReference(receipt.auditDisclosureId),
       policyMode: "legible-trust",

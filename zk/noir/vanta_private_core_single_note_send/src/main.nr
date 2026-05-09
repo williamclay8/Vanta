@@ -132,22 +132,41 @@ fn derive_send_context_tag(
 fn derive_send_economic_terms_hash(
     asset_id_hi: Field,
     asset_id_lo: Field,
-    send_amount_lo: Field,
-    send_amount_hi: Field,
-    change_amount_lo: Field,
-    change_amount_hi: Field,
+    send_amount_lo: u64,
+    send_amount_hi: u64,
+    change_amount_lo: u64,
+    change_amount_hi: u64,
     note_version: Field,
 ) -> Field {
     bn254::hash_8([
         asset_id_hi,
         asset_id_lo,
-        send_amount_lo,
-        send_amount_hi,
-        change_amount_lo,
-        change_amount_hi,
+        send_amount_lo as Field,
+        send_amount_hi as Field,
+        change_amount_lo as Field,
+        change_amount_hi as Field,
         note_version,
         0,
     ])
+}
+
+fn compute_carried_input_amount(
+    send_amount_lo: u64,
+    send_amount_hi: u64,
+    change_amount_lo: u64,
+    change_amount_hi: u64,
+) -> (Field, Field) {
+    let u64_modulus: u128 = 18446744073709551616;
+    let lo_sum = (send_amount_lo as u128) + (change_amount_lo as u128);
+    let mut carry: u128 = 0;
+    if lo_sum >= u64_modulus {
+        carry = 1;
+    }
+    let input_amount_lo = lo_sum - carry * u64_modulus;
+    let input_amount_hi = (send_amount_hi as u128) + (change_amount_hi as u128) + carry;
+    assert(input_amount_hi < u64_modulus);
+
+    (input_amount_lo as Field, input_amount_hi as Field)
 }
 
 fn assert_zero_note(
@@ -187,10 +206,10 @@ fn main(
     send_context_tag_lo: pub Field,
     asset_id_hi: Field,
     asset_id_lo: Field,
-    send_amount_lo: Field,
-    send_amount_hi: Field,
-    change_amount_lo: Field,
-    change_amount_hi: Field,
+    send_amount_lo: u64,
+    send_amount_hi: u64,
+    change_amount_lo: u64,
+    change_amount_hi: u64,
     input_note_type_code: Field,
     sender_public_key_hi: Field,
     sender_public_key_lo: Field,
@@ -245,13 +264,20 @@ fn main(
     );
     assert(computed_send_economic_terms_hash == send_economic_terms_hash);
 
+    let (input_amount_lo, input_amount_hi) = compute_carried_input_amount(
+        send_amount_lo,
+        send_amount_hi,
+        change_amount_lo,
+        change_amount_hi,
+    );
+
     let input_commitment = hash_note_commitment(
         note_version,
         input_note_type_code,
         asset_id_hi,
         asset_id_lo,
-        send_amount_lo + change_amount_lo,
-        send_amount_hi + change_amount_hi,
+        input_amount_lo,
+        input_amount_hi,
         sender_public_key_hi,
         sender_public_key_lo,
         input_note_nonce_hi,
@@ -289,8 +315,8 @@ fn main(
         recipient_note_type_code,
         asset_id_hi,
         asset_id_lo,
-        send_amount_lo,
-        send_amount_hi,
+        send_amount_lo as Field,
+        send_amount_hi as Field,
         recipient_owner_public_key_hi,
         recipient_owner_public_key_lo,
         recipient_note_nonce_hi,
@@ -304,7 +330,7 @@ fn main(
     );
     assert(computed_recipient_commitment == recipient_commitment);
 
-    let has_change = change_amount_lo + change_amount_hi != 0;
+    let has_change = (change_amount_lo as Field) + (change_amount_hi as Field) != 0;
 
     if has_change {
         assert(change_note_type_code == 0);
@@ -313,8 +339,8 @@ fn main(
             change_note_type_code,
             asset_id_hi,
             asset_id_lo,
-            change_amount_lo,
-            change_amount_hi,
+            change_amount_lo as Field,
+            change_amount_hi as Field,
             change_owner_public_key_hi,
             change_owner_public_key_lo,
             change_note_nonce_hi,

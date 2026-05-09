@@ -12,7 +12,7 @@ export function DocsPayPage() {
     <DocsPageTemplate
       title={page.title}
       summary={page.summary}
-      readFirst="Vanta Pay is a merchant preview for private checkout, settlement records, and trust packets. It is not a live production payment processor yet."
+      readFirst="Vanta Pay is a merchant preview for test checkout, settlement records, and trust packets. It is not a live production payment processor yet."
       badge={page.badge}
       nextStep={page.nextStep}
     >
@@ -26,7 +26,7 @@ export function DocsPayPage() {
           withdrawals, keep receipts, and reconcile what happened.
         </p>
         <p>
-          The merchant should not only hear that a payment was private. The
+          The merchant should not only see that a test payment record exists. The
           useful artifact is the receipt or trust packet: what happened, what
           can be proven, what stayed private, who can verify it, and what action
           comes next.
