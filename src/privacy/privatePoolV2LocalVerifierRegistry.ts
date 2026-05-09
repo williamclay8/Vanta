@@ -5,6 +5,7 @@ import type {
   VantaPrivatePoolV2Indexer,
   VantaPrivatePoolV2ProofRequest,
   VantaPrivatePoolV2ProofResult,
+  VantaPrivatePoolV2ProofSystem,
   VantaPrivatePoolV2Prover,
   VantaPrivatePoolV2ShadowCommitments,
 } from "./privatePoolV2Types";
@@ -80,6 +81,7 @@ export type VantaPrivatePoolV2LocalVerifierRegistryArgs = {
 export type VantaPrivatePoolV2ProofReceipt = {
   assetId: string;
   intent: VantaPrivatePoolV2ProofRequest["intent"];
+  proofSystem: VantaPrivatePoolV2ProofSystem;
   publicInputCommitment: string;
   receiptId: string;
   recordedAtSlot: bigint;
@@ -485,6 +487,7 @@ export class VantaPrivatePoolV2LocalVerifierRegistry {
     const receipt = {
       assetId: request.assetId,
       intent: request.intent,
+      proofSystem: proof.proofSystem,
       publicInputCommitment: proof.publicInputCommitment,
       receiptId: hashParts(
         this.scheme,

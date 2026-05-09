@@ -306,6 +306,15 @@ export function assertSolToShieldedRouteReceipt(args: {
     throw new Error("SOL route adapter proof receipt must use the hidden-economics asset sentinel.");
   }
 
+  if (
+    receipt.proofReceipt.proofSystem !== "noir-bb" &&
+    receipt.proofReceipt.proofSystem !== "groth16" &&
+    receipt.proofReceipt.proofSystem !== "plonk" &&
+    receipt.proofReceipt.proofSystem !== "mock"
+  ) {
+    throw new Error("SOL route adapter proof receipt must expose a recognized proof system.");
+  }
+
   if (!receipt.proofReceipt.publicInputCommitment) {
     throw new Error("SOL route adapter proof receipt must include a public input commitment.");
   }

@@ -79,6 +79,12 @@ function assertProductionAuthToken() {
       "Private Pool v2 production mode requires VANTA_PRIVATE_POOL_V2_DATABASE_URL for durable nullifier replay enforcement.",
     );
   }
+
+  if (runtimeMode !== "remote-services") {
+    throw new Error(
+      "Private Pool v2 production mode requires VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services so local mock proofs cannot back live settlement.",
+    );
+  }
 }
 
 assertProductionAuthToken();
@@ -588,6 +594,9 @@ const protocolActionProofModes = {
   swap: "swap_to_shielded_circuit_request",
   unshield: "committed_unshield_or_claim_circuit_request",
 };
+const productionProofSystems = ["noir-bb", "groth16", "plonk"];
+const productionProofSystemSet = new Set(productionProofSystems);
+const localBenchmarkProofSystem = "mock";
 
 function hashHex(...parts) {
   return `0x${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f"))))}`;
@@ -595,6 +604,40 @@ function hashHex(...parts) {
 
 function hashId(prefix, ...parts) {
   return `${prefix}_${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f")))).slice(0, 24)}`;
+}
+
+function productionProofSystemRequiredNow() {
+  return (
+    process.env.NODE_ENV === "production" ||
+    process.env.VANTA_PRIVATE_POOL_V2_REQUIRE_PRODUCTION_PROOF_SYSTEM === "true" ||
+    process.env.VANTA_PRIVATE_POOL_V2_REAL_FUNDS_SETTLEMENT_ENABLED === "true"
+  );
+}
+
+function proofTrustBoundaryPayload() {
+  return {
+    acceptedProductionProofSystems: productionProofSystems,
+    localBenchmarkProofSystem,
+    mockProofRealFundsAllowed: false,
+    mockProofsAcceptedOnlyFor: [
+      "local-benchmark receipts",
+      "deterministic no-real-funds smoke checks",
+    ],
+    productionProofSystemRequired: true,
+    productionProofSystemRequiredNow: productionProofSystemRequiredNow(),
+  };
+}
+
+function assertProofSystemCanBackConfiguredSettlement(proof) {
+  if (!productionProofSystemRequiredNow()) {
+    return;
+  }
+
+  if (!productionProofSystemSet.has(proof?.proofSystem)) {
+    throw new Error(
+      `Private Pool v2 real-funds settlement requires a production ZK proof system (${productionProofSystems.join(", ")}); ${proof?.proofSystem ?? "missing"} proofs are local-benchmark only.`,
+    );
+  }
 }
 
 async function ensureProofReceiptReplayGuarded(proofReceipt, sourceRef) {
@@ -2006,6 +2049,7 @@ async function statusPayload() {
     },
     productionReady: false,
     protocolActionProofModes,
+    proofTrustBoundary: proofTrustBoundaryPayload(),
     readiness,
     receiptCount: receipts.length,
     receiptStorePath: receiptStore.path,
@@ -2107,6 +2151,7 @@ async function proveAndAcceptPayCheckoutSettlement(rawSession) {
     },
   });
   const proof = await runtime.prover.prove(request);
+  assertProofSystemCanBackConfiguredSettlement(proof);
   const proofReceipt = await runtime.verifierRegistry.acceptProof({ proof, request });
   await persistReceipts(request);
 
@@ -2195,6 +2240,7 @@ async function proveAndAcceptPayWithdrawalSettlement(body) {
     quote,
   });
   const proof = await runtime.prover.prove(request);
+  assertProofSystemCanBackConfiguredSettlement(proof);
   const requestId = hashHex("pay-withdrawal-claim", merchantId, destination, amount, asset, sourceCommitment.commitment);
   await reserveAcceptedClaimNullifier(request, requestId);
   const proofReceipt = await runtime.verifierRegistry.acceptProof({ proof, request });
@@ -2524,6 +2570,7 @@ async function proveAndAcceptProtocolSettlement(body) {
   }
 
   const proof = await runtime.prover.prove(request);
+  assertProofSystemCanBackConfiguredSettlement(proof);
   const requestId =
     economicsMode === "committed-economics"
       ? hashHex(
@@ -2771,10 +2818,12 @@ const server = createServer(async (request, response) => {
       const body = await readRequestBody(request);
       const proofRequest = toProofRequest(body.request);
       const requestId = body.requestId ?? body.proof?.publicInputCommitment ?? proofRequest.publicInputs?.join("|");
+      const proof = toProofResult(body.proof);
+      assertProofSystemCanBackConfiguredSettlement(proof);
       await enforceClaimNullifierPreflight(proofRequest, requestId);
       await reserveAcceptedClaimNullifier(proofRequest, requestId);
       const receipt = await runtime.verifierRegistry.acceptProof({
-        proof: toProofResult(body.proof),
+        proof,
         request: proofRequest,
       });
       await recordAcceptedClaimNullifier(proofRequest, requestId, receipt.receiptId);

@@ -97,6 +97,11 @@ assert.match(
 );
 assert.match(
   adapterSource,
+  /proofReceipt\.proofSystem !== "mock"/,
+  "SOL-to-shielded adapter must require explicit proof-system receipts.",
+);
+assert.match(
+  adapterSource,
   /publicInputCommitment/,
   "SOL-to-shielded adapter must require proof public input commitments.",
 );

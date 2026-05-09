@@ -27,6 +27,8 @@ function isSolanaTransactionSignature(value) {
   return typeof value === "string" && /^[1-9A-HJ-NP-Za-km-z]{64,88}$/.test(value);
 }
 
+const productionProofSystems = new Set(["noir-bb", "groth16", "plonk"]);
+
 function hashRef(prefix, value) {
   return `${prefix}:${createHash("sha256").update(JSON.stringify(value)).digest("hex").slice(0, 24)}`;
 }
@@ -86,6 +88,9 @@ export function validateVantaActualPrivateSettlementResponse({ plan, response })
   if (response.proofReceipt?.assetId !== "hidden:economic-terms") {
     return { accepted: false, reason: "invalid-hidden-asset" };
   }
+  if (!productionProofSystems.has(response.proofReceipt?.proofSystem)) {
+    return { accepted: false, reason: "invalid-production-proof-system" };
+  }
   if (
     response.proofReceipt?.replayKey !==
     `${expectedReplayKeyPrefix}:${plan.request.nullifierOrReplayCommitment}`
@@ -136,6 +141,21 @@ export function validateVantaActualPrivateOperatorCapability({ status }) {
     "committed_unshield_or_claim_circuit_request"
   ) {
     return { accepted: false, reason: "operator-unshield-proof-mode-not-committed" };
+  }
+  if (status?.proofTrustBoundary?.mockProofRealFundsAllowed !== false) {
+    return { accepted: false, reason: "operator-mock-proof-boundary-not-exposed" };
+  }
+  if (status?.proofTrustBoundary?.productionProofSystemRequired !== true) {
+    return { accepted: false, reason: "operator-production-proof-system-not-required" };
+  }
+  const acceptedProductionProofSystems =
+    status?.proofTrustBoundary?.acceptedProductionProofSystems;
+  if (
+    !Array.isArray(acceptedProductionProofSystems) ||
+    acceptedProductionProofSystems.length === 0 ||
+    acceptedProductionProofSystems.some((proofSystem) => !productionProofSystems.has(proofSystem))
+  ) {
+    return { accepted: false, reason: "operator-production-proof-systems-invalid" };
   }
 
   return { accepted: true, reason: "actual-private-operator-capability-ready" };

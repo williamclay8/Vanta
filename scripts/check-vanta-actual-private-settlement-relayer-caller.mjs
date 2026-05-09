@@ -66,6 +66,11 @@ const result = await requestVantaActualPrivateSettlementViaRelayer({
               send: "actual_private_spend_circuit_request",
               unshield: "committed_unshield_or_claim_circuit_request",
             },
+            proofTrustBoundary: {
+              acceptedProductionProofSystems: ["noir-bb", "groth16", "plonk"],
+              mockProofRealFundsAllowed: false,
+              productionProofSystemRequired: true,
+            },
           };
         },
         status: 200,
@@ -91,6 +96,7 @@ const result = await requestVantaActualPrivateSettlementViaRelayer({
           proofReceipt: {
             assetId: "hidden:economic-terms",
             intent: "private-send",
+            proofSystem: "noir-bb",
             publicInputCommitment: "commitment:proof-public-input",
             receiptId: "receipt:actual-private-demo",
             replayKey: "private-send:nullifier:actual-private-demo",
@@ -135,6 +141,7 @@ assert.equal(
       proofReceipt: {
         assetId: "hidden:economic-terms",
         intent: "unshield",
+        proofSystem: "noir-bb",
         publicInputCommitment: "commitment:proof-public-input",
         receiptId: "receipt:actual-private-unshield-demo",
         replayKey: "unshield:nullifier:actual-private-unshield-demo",
@@ -191,6 +198,23 @@ assert.equal(
 );
 
 assert.equal(
+  validateVantaActualPrivateOperatorCapability({
+    status: {
+      proofTrustBoundary: {
+        acceptedProductionProofSystems: ["noir-bb"],
+        mockProofRealFundsAllowed: true,
+        productionProofSystemRequired: true,
+      },
+      protocolActionProofModes: {
+        send: "actual_private_spend_circuit_request",
+        unshield: "committed_unshield_or_claim_circuit_request",
+      },
+    },
+  }).reason,
+  "operator-mock-proof-boundary-not-exposed",
+);
+
+assert.equal(
   validateVantaActualPrivateSettlementResponse({
     plan,
     response: {
@@ -202,6 +226,34 @@ assert.equal(
     },
   }).reason,
   "accepted-public-input-outputCommitment-mismatch",
+);
+
+assert.equal(
+  validateVantaActualPrivateSettlementResponse({
+    plan,
+    response: {
+      ...result.response,
+      proofReceipt: {
+        ...result.response.proofReceipt,
+        proofSystem: "mock",
+      },
+    },
+  }).reason,
+  "invalid-production-proof-system",
+);
+
+assert.equal(
+  validateVantaActualPrivateSettlementResponse({
+    plan,
+    response: {
+      ...result.response,
+      proofReceipt: {
+        ...result.response.proofReceipt,
+        proofSystem: undefined,
+      },
+    },
+  }).reason,
+  "invalid-production-proof-system",
 );
 
 assert.equal(

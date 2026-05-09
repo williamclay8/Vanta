@@ -1249,6 +1249,7 @@ async function createServiceHandlers(role, {
       const receipt = {
         assetId: String(requestBody.assetId),
         intent: requestBody.intent,
+        proofSystem: proof.proofSystem,
         publicInputCommitment: proof.publicInputCommitment,
         receiptId: hashHex(serviceVersion, "receipt", replayKey, proof.publicInputCommitment),
         recordedAtSlot: 1_000_000n,

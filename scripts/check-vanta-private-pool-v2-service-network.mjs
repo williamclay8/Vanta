@@ -1022,6 +1022,10 @@ try {
       "private-send:field:service-network-actual-private-nullifier",
     "Expected actual-private spend receipt to replay-key by nullifier.",
   );
+  assert(
+    actualPrivateSpendReceipt.parsed?.proofSystem === "mock",
+    "Expected verifier service receipts to preserve the originating proof system.",
+  );
   const actualPrivateSpendNullifier = await requestJson(
     serviceUrls.get("indexer"),
     `/v1/nullifiers/${encodeURIComponent("field:service-network-actual-private-nullifier")}`,

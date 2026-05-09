@@ -461,6 +461,7 @@ try {
     proofReceipt: {
       assetId: "USDC",
       intent: "private-send",
+      proofSystem: "mock",
       publicInputCommitment: "field:restored-protocol-only-public-input-commitment",
       receiptId: "0xrestoredprotocolonlyprivatesendreceipt",
       recordedAtSlot: "90210",

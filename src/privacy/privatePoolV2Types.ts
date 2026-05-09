@@ -67,10 +67,12 @@ export type VantaPrivatePoolV2ProofRequest = {
   shadowCommitments?: VantaPrivatePoolV2ShadowCommitments;
 };
 
+export type VantaPrivatePoolV2ProofSystem = "noir-bb" | "groth16" | "plonk" | "mock";
+
 export type VantaPrivatePoolV2ProofResult = {
   publicInputCommitment: string;
   proofBytes: Uint8Array;
-  proofSystem: "noir-bb" | "groth16" | "plonk" | "mock";
+  proofSystem: VantaPrivatePoolV2ProofSystem;
   verifyingKeyId: string;
 };
 
@@ -125,6 +127,7 @@ export interface VantaPrivatePoolV2VerifierRegistry {
   }): Promise<{
     assetId: string;
     intent: VantaPrivatePoolV2ProofIntent;
+    proofSystem: VantaPrivatePoolV2ProofSystem;
     publicInputCommitment: string;
     receiptId: string;
     recordedAtSlot: bigint;

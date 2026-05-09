@@ -171,6 +171,7 @@ try {
     request: proofRequest,
   });
   assert(shieldReceipt.intent === "shield", "Expected shield receipt.");
+  assert(shieldReceipt.proofSystem === "mock", "Expected local shield receipt to preserve mock proof system.");
   assert(
     shieldReceipt.shadowCommitments?.operatorVisibleTermsCommitment ===
       proofRequest.shadowCommitments?.operatorVisibleTermsCommitment,
@@ -330,6 +331,7 @@ try {
     request: sendProofRequest,
   });
   assert(sendReceipt.intent === "private-send", "Expected private-send receipt.");
+  assert(sendReceipt.proofSystem === "mock", "Expected local private-send receipt to preserve mock proof system.");
   assert(sendReceipt.replayKey === "private-send:field:send-nullifier", "Expected nullifier replay key.");
   assert(
     (await sendVerifierIndexer.getNullifier("field:send-nullifier"))?.nullifier ===
@@ -408,6 +410,10 @@ try {
     proof: actualPrivateSpendProof,
     request: actualPrivateSpendRequest,
   });
+  assert(
+    actualPrivateSpendReceipt.proofSystem === "mock",
+    "Expected local actual-private spend receipt to preserve mock proof system.",
+  );
   assert(
     actualPrivateSpendReceipt.replayKey === "private-send:field:actual-private-nullifier",
     "Expected actual private spend receipt to use the nullifier replay key.",
@@ -556,6 +562,10 @@ try {
     request: swapProofRequest,
   });
   assert(swapReceipt.intent === "swap-to-shielded", "Expected swap-to-shielded receipt.");
+  assert(
+    swapReceipt.proofSystem === "mock",
+    "Expected local swap-to-shielded receipt to preserve mock proof system.",
+  );
   assert(
     swapReceipt.replayKey === "swap-to-shielded:field:swap-nullifier",
     "Expected swap-to-shielded nullifier replay key.",

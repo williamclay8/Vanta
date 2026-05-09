@@ -412,6 +412,32 @@ try {
     committedSendSettlement?.proofReceipt?.replayKey === "private-send:0xcommittedsend_replay",
     "Expected committed Send proof receipt replay key to bind to the request nullifier/replay commitment.",
   );
+  await assertRejects(
+    () =>
+      Promise.resolve(
+        validateVantaPrivatePoolV2ProtocolSettlementResponse({
+          requireProductionProofSystem: true,
+          request: {
+            action: "send",
+            acceptedRoot: "0xcommittedsend_root",
+            assetCohort: "USDC",
+            economicsCommitment: "0xcommittedsend_economics",
+            economicsMode: "committed-economics",
+            nullifierOrReplayCommitment: "0xcommittedsend_replay",
+            outputCommitment: "0xcommittedsend_recipient_output",
+            ownerCommitment: "0xcommittedsend_owner",
+            poolId: committedSendInputTreeId,
+            privateSpendContextHash: "0xcommittedsend_context",
+            routeCommitment: "0xcommittedsend_route",
+            settlementCommitment: "0xcommittedsend_settlement",
+            settlementId: "protocol-client-committed-send",
+          },
+          response: committedSendSettlement,
+        }),
+      ),
+    "Private Pool v2 production settlement validation rejects mock proof receipts.",
+    "Expected production protocol settlement validation to reject local mock proof receipts.",
+  );
   assert(
     committedSendProofRequest.amountBaseUnits ===
       VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,
@@ -455,6 +481,7 @@ try {
             proofReceipt: {
               assetId: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
               intent: "private-send",
+              proofSystem: "mock",
               publicInputCommitment: "0xcommittedsend_public_input_commitment",
               receiptId: "0xcommittedsendbadreplay",
               recordedAtSlot: "1",
@@ -1023,6 +1050,7 @@ try {
             proofReceipt: {
               assetId: "WRONG",
               intent: "shield",
+              proofSystem: "mock",
               publicInputCommitment: "0xcommitment",
               receiptId: "0xreceipt",
               recordedAtSlot: "1",
@@ -1078,6 +1106,7 @@ try {
             proofReceipt: {
               assetId: "USDC",
               intent: "shield",
+              proofSystem: "mock",
               publicInputCommitment: "0xcommitment",
               receiptId: "0xproofreceipt",
               recordedAtSlot: "1",

@@ -173,6 +173,7 @@ async function main() {
     );
     assert.equal(receipt.proofReceipt.assetId, "hidden:economic-terms");
     assert.equal(receipt.proofReceipt.intent, "swap-to-shielded");
+    assert.equal(receipt.proofReceipt.proofSystem, "mock");
     assert.equal(
       receipt.proofReceipt.replayKey,
       `swap-to-shielded:${hashHex(

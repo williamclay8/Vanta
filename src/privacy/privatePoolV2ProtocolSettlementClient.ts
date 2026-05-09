@@ -244,9 +244,12 @@ export type VantaPrivatePoolV2ShadowCommitments = {
   scheme: string;
 };
 
+export type VantaPrivatePoolV2ProofSystem = "noir-bb" | "groth16" | "plonk" | "mock";
+
 export type VantaPrivatePoolV2ProofReceipt = {
   assetId: string;
   intent: "shield" | "private-send" | "swap-to-shielded" | "unshield" | "claim";
+  proofSystem: VantaPrivatePoolV2ProofSystem;
   publicInputCommitment: string;
   receiptId: string;
   recordedAtSlot: string | number;
@@ -261,6 +264,7 @@ export type VantaProtocolSettlementResponse = {
 };
 
 export type VantaProtocolSettlementValidationInput = {
+  requireProductionProofSystem?: boolean;
   request: VantaProtocolSettlementRequest;
   response: VantaProtocolSettlementResponse;
 };
@@ -291,6 +295,8 @@ export type VantaPrivatePoolV2SettlementPolicy = {
   conflictingReplayRejection: boolean;
   failClosedValidation: boolean;
   identicalReplayIdempotency: boolean;
+  mockProofRealFundsBlocked: boolean;
+  productionProofSystemRequired: boolean;
   productionDurableStoreRequired: boolean;
   restartSafeSettlementReceipts: boolean;
   version: string;
@@ -319,6 +325,14 @@ export type VantaPrivatePoolV2OperatorStatus = {
     rawSettlementCount: number;
   };
   protocolActionProofModes: Record<VantaProtocolSettlementAction, string>;
+  proofTrustBoundary?: {
+    acceptedProductionProofSystems: readonly Exclude<VantaPrivatePoolV2ProofSystem, "mock">[];
+    localBenchmarkProofSystem: "mock";
+    mockProofRealFundsAllowed: false;
+    mockProofsAcceptedOnlyFor: readonly string[];
+    productionProofSystemRequired: boolean;
+    productionProofSystemRequiredNow: boolean;
+  };
   receiptCount: number;
   receiptStorePath: string;
   settlementPolicy: VantaPrivatePoolV2SettlementPolicy;
@@ -412,10 +426,12 @@ function expectedLocalProofPublicInputCommitment(request: {
 }
 
 export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
+  requireProductionProofSystem = false,
   request,
   response,
 }: VantaProtocolSettlementValidationInput): VantaProtocolSettlementResponse {
   const receipt = response.protocolSettlementReceipt;
+  const proofSystem = response.proofReceipt?.proofSystem;
 
   requireProtocolSettlementCondition(
     response.kind === "protocol_settlement",
@@ -440,6 +456,17 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
   requireProtocolSettlementCondition(
     typeof receipt.proofReceiptId === "string" && receipt.proofReceiptId.startsWith("ppv2_"),
     "Private Pool v2 protocol settlement receipt is missing a proof receipt id.",
+  );
+  requireProtocolSettlementCondition(
+    proofSystem === "noir-bb" ||
+      proofSystem === "groth16" ||
+      proofSystem === "plonk" ||
+      proofSystem === "mock",
+    "Private Pool v2 proof receipt is missing a recognized proof system.",
+  );
+  requireProtocolSettlementCondition(
+    !requireProductionProofSystem || proofSystem !== "mock",
+    "Private Pool v2 production settlement validation rejects mock proof receipts.",
   );
   if (request.action === "shield" && request.economicsMode !== "committed-economics") {
     const shieldCapability = request.shieldCapability;

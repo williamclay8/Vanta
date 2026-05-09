@@ -170,6 +170,13 @@ function validateCommittedSwapSettlementResponse({ request, response }) {
     "Private Pool v2 proof receipt must use the hidden-economics asset sentinel.",
   );
   requireSettlementCondition(
+    proofReceipt?.proofSystem === "noir-bb" ||
+      proofReceipt?.proofSystem === "groth16" ||
+      proofReceipt?.proofSystem === "plonk" ||
+      proofReceipt?.proofSystem === "mock",
+    "Private Pool v2 proof receipt must expose a recognized proof system.",
+  );
+  requireSettlementCondition(
     proofReceipt?.replayKey === `swap-to-shielded:${request.nullifierOrReplayCommitment}`,
     "Private Pool v2 proof receipt replay key does not match the SOL route request.",
   );
@@ -609,6 +616,7 @@ async function requestProtocolSettlement({ body, outputLeafIndex, publicSwapSign
     const proofReceipt = {
       assetId: privatePoolV2HiddenEconomicsAssetId,
       intent: "swap-to-shielded",
+      proofSystem: "mock",
       publicInputCommitment: proofPublicInputCommitment,
       receiptId: hashHex("mock-proof-receipt", settlementId),
       recordedAtSlot: "mock",

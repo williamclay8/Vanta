@@ -261,6 +261,7 @@ export function createVantaPrivatePoolV2RemoteVerifierRegistry(
       return {
         assetId: String(response.assetId),
         intent: response.intent,
+        proofSystem: response.proofSystem ?? body.proof.proofSystem,
         publicInputCommitment: String(response.publicInputCommitment),
         receiptId: String(response.receiptId),
         recordedAtSlot: toBigInt(response.recordedAtSlot),

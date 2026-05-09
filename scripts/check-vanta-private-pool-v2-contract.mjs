@@ -13,6 +13,7 @@ const requiredFiles = [
       "VantaPrivatePoolV2Indexer",
       "VantaPrivatePoolV2Relayer",
       "VantaPrivatePoolV2Prover",
+      "VantaPrivatePoolV2ProofSystem",
       "VantaPrivatePoolV2VerifierRegistry",
       "VantaPrivatePoolV2Protocol",
     ],
@@ -157,7 +158,11 @@ const requiredFiles = [
 const requiredTextFiles = [
   {
     path: "src/privacy/privatePoolV2SettlementPolicy.ts",
-    markers: ["productionDurableStoreRequired"],
+    markers: [
+      "mockProofRealFundsBlocked",
+      "productionDurableStoreRequired",
+      "productionProofSystemRequired",
+    ],
   },
   {
     path: "src/privacy/privatePoolV2CapabilityProfile.ts",
@@ -318,6 +323,7 @@ const requiredTextFiles = [
       "local indexer append: PASS",
       "local verifier shield commitment append: PASS",
       "local verifier shield receipt: PASS",
+      "Expected local shield receipt to preserve mock proof system.",
       "local verifier claim receipt: PASS",
       "local verifier nullifier replay rejection: PASS",
       "local verifier private-send nullifier and output append: PASS",
@@ -345,6 +351,7 @@ const requiredTextFiles = [
       "private-send:${nullifier}",
       "recipientOutputCommitment",
       "changeOutputCommitment",
+      "proofSystem: proof.proofSystem",
     ],
   },
   {
@@ -446,6 +453,11 @@ const requiredTextFiles = [
       "VANTA_PRIVATE_POOL_V2_VERIFIER_URL",
       "settlementPolicy",
       "VANTA_PRIVATE_POOL_V2_SETTLEMENT_POLICY",
+      "proofTrustBoundary",
+      "proofTrustBoundaryPayload",
+      "mockProofRealFundsAllowed",
+      "VANTA_PRIVATE_POOL_V2_REQUIRE_PRODUCTION_PROOF_SYSTEM",
+      "VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services",
       "shieldRouteEvidence",
       "privatePoolV2SettlementPolicy.ts",
       "protocolActionProofModes",
@@ -458,6 +470,16 @@ const requiredTextFiles = [
       "VANTA_PRIVATE_POOL_V2_PUBLIC_SHIELD_RECEIPT_DEPOSIT_EVIDENCE_MODE",
       "X-Vanta-Shield-Receipt-Deposit-Evidence",
       "getParsedTransaction",
+    ],
+  },
+  {
+    path: "scripts/check-vanta-private-pool-v2-mock-proof-boundary.mjs",
+    markers: [
+      "private-pool-v2 production mock runtime rejection: PASS",
+      "private-pool-v2 mock proof status boundary: PASS",
+      "private-pool-v2 mock proof settlement rejection: PASS",
+      "private-pool-v2 direct mock proof rejection: PASS",
+      "VANTA_PRIVATE_POOL_V2_REQUIRE_PRODUCTION_PROOF_SYSTEM",
     ],
   },
   {
@@ -513,6 +535,7 @@ const requiredPackageScripts = [
   "private-pool-v2:local-relayer-check",
   "private-pool-v2:local-prover-check",
   "private-pool-v2:local-verifier-check",
+  "private-pool-v2:mock-proof-boundary-check",
   "private-pool-v2:shield-proof-request-check",
   "private-pool-v2:send-proof-request-check",
   "private-pool-v2:swap-to-shielded-proof-request-check",

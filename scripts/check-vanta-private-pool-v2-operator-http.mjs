@@ -624,6 +624,14 @@ try {
     "Expected identical settlement replay idempotency policy.",
   );
   assert(
+    status.parsed?.settlementPolicy?.mockProofRealFundsBlocked === true,
+    "Expected mock proof real-funds rejection policy.",
+  );
+  assert(
+    status.parsed?.settlementPolicy?.productionProofSystemRequired === true,
+    "Expected production proof-system settlement policy.",
+  );
+  assert(
     status.parsed?.settlementPolicy?.conflictingReplayRejection === true,
     "Expected conflicting settlement replay rejection policy.",
   );
@@ -651,6 +659,14 @@ try {
   assert(
     status.parsed?.protocolActionProofModes?.swap === "swap_to_shielded_circuit_request",
     "Expected swap protocol action proof mode.",
+  );
+  assert(
+    status.parsed?.proofTrustBoundary?.mockProofRealFundsAllowed === false,
+    "Expected operator status to block mock proofs from real-funds settlement.",
+  );
+  assert(
+    status.parsed?.proofTrustBoundary?.productionProofSystemRequired === true,
+    "Expected operator status to expose production proof-system requirement.",
   );
   console.log("private-pool-v2 http status: PASS");
 
