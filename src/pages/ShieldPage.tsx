@@ -144,6 +144,7 @@ function toErrorMessage(error: unknown, fallback: string) {
 
 function toRecoverableSolDepositsErrorMessage(error: unknown) {
   const message = error instanceof Error ? error.message : String(error ?? "");
+  const normalizedMessage = message.toLowerCase();
 
   if (isSolanaRpcRateLimitError(error)) {
     return "The public Solana RPC is rate-limited while checking recent SOL vault deposits. Try again in a moment; Vanta will not ask for another transfer.";
@@ -154,14 +155,32 @@ function toRecoverableSolDepositsErrorMessage(error: unknown) {
   }
 
   if (
+    normalizedMessage.includes("failed to fetch") ||
+    normalizedMessage.includes("load failed") ||
+    normalizedMessage.includes("networkerror") ||
     message.includes("-32600") ||
     message.includes("getTransaction") ||
-    message.toLowerCase().includes("solana rpc")
+    normalizedMessage.includes("solana rpc")
   ) {
-    return "Recent SOL vault deposits could not be checked because the Solana RPC endpoint blocked the request.";
+    return "Recent SOL vault deposits could not be checked because the browser RPC endpoint blocked the request. Vanta will not ask for another transfer.";
   }
 
   return toErrorMessage(error, "Recent SOL vault deposits could not be checked.");
+}
+
+function toPrivatePoolShieldReceiptWarning(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  const normalizedMessage = message.toLowerCase();
+
+  if (
+    normalizedMessage.includes("failed to fetch") ||
+    normalizedMessage.includes("load failed") ||
+    normalizedMessage.includes("networkerror")
+  ) {
+    return "Private Pool v2 Shield receipt is unavailable from the browser right now; local Shield evidence was recorded and Vanta will not ask for another transfer.";
+  }
+
+  return toErrorMessage(error, "Private Pool v2 Shield receipt could not be checked.");
 }
 
 function readTokenDecimals(balance: unknown) {
@@ -1454,6 +1473,20 @@ export function ShieldPage(_props: ShieldPageProps) {
 
         setRecentShield(recentShieldContext);
 
+        if (pendingShieldAsset === "SOL" && nativeSolLocalShieldStateNote) {
+          setPendingShieldAmount(null);
+          setPendingShieldAmountDisplay(null);
+          setPendingShieldMemoCreatedAt(null);
+          setPendingDepositSignature(null);
+          setPendingShieldAsset(null);
+          setPendingShieldTarget(null);
+          setPendingProtocolSettlement(null);
+          setPendingUmbraApprovalDisplay(null);
+          setFlowError(null);
+          setStatus("complete");
+          void supportedToken?.refresh();
+        }
+
         let protocolSettlement: Awaited<
           ReturnType<typeof requestVantaPrivatePoolV2BrowserShieldReceipt>
         > | null = null;
@@ -1513,10 +1546,7 @@ export function ShieldPage(_props: ShieldPageProps) {
                 "Private Pool v2 Shield proof receipt intent did not match Shield.";
             }
           } catch (error) {
-            protocolSettlementWarning = toErrorMessage(
-              error,
-              "Private Pool v2 Shield receipt could not be checked.",
-            );
+            protocolSettlementWarning = toPrivatePoolShieldReceiptWarning(error);
           }
         } else {
           protocolSettlementWarning =
@@ -1882,6 +1912,8 @@ export function ShieldPage(_props: ShieldPageProps) {
                     <p>
                       {latestRecoverableSolDeposit
                         ? `${latestRecoverableSolDeposit.amountDisplay} SOL reached the Vanta vault but has no matching shield-state record yet.`
+                        : hasPendingNativeSolShieldEvidence
+                          ? "Local SOL evidence is saved and waiting for ledger sync. No recovery action or second transfer is needed."
                         : recoverableSolDepositsLoading
                           ? "Checking recent wallet-to-vault SOL deposits."
                           : recoverableSolDepositsError

@@ -118,6 +118,38 @@ assert.ok(
   ),
   "Shield page must not hide a ledger-derived Shielded SOL balance behind the selected SPL token loader.",
 );
+const nativeSolLocalEvidenceCompletionIndex = shieldPageSource.indexOf(
+  'if (pendingShieldAsset === "SOL" && nativeSolLocalShieldStateNote)',
+);
+const privatePoolReceiptRequestIndex = shieldPageSource.indexOf(
+  "requestVantaPrivatePoolV2BrowserShieldReceipt(committedSettlement)",
+);
+assert.ok(
+  nativeSolLocalEvidenceCompletionIndex > 0 &&
+    privatePoolReceiptRequestIndex > nativeSolLocalEvidenceCompletionIndex &&
+    shieldPageSource
+      .slice(nativeSolLocalEvidenceCompletionIndex, privatePoolReceiptRequestIndex)
+      .includes('setStatus("complete")'),
+  "Native SOL Shield must mark local shield-state evidence complete before optional Private Pool receipt checks, so a browser fetch/RPC issue cannot strand the UI in Recording local shield state.",
+);
+assert.ok(
+  /function toPrivatePoolShieldReceiptWarning[\s\S]{0,900}failed to fetch[\s\S]{0,1400}local Shield evidence was recorded[\s\S]{0,900}another transfer/.test(
+    shieldPageSource,
+  ),
+  "Native SOL Shield must sanitize browser-network receipt failures after local evidence is recorded.",
+);
+assert.ok(
+  /function toRecoverableSolDepositsErrorMessage[\s\S]{0,900}failed to fetch[\s\S]{0,1400}Vanta will not ask for another transfer/.test(
+    shieldPageSource,
+  ),
+  "Native SOL recovery discovery must not surface raw Failed to fetch when browser RPC/history reads fail.",
+);
+assert.ok(
+  shieldPageSource.includes(
+    "Local SOL evidence is saved and waiting for ledger sync. No recovery action or second transfer is needed.",
+  ),
+  "Native SOL recovery panel must prioritize saved local evidence over a broad wallet-history fetch error.",
+);
 assert.ok(
   shieldPageSource.includes("repairVerifiedNativeSolShieldNote") &&
     shieldPageSource.includes('recentShield.claimTier !== "proof_receipt_verified"') &&
