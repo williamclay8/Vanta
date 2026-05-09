@@ -38,6 +38,7 @@ import {
 import { recordVerifiedSplShieldNote } from "@/solana/verifiedSplShieldNotes";
 import { recordRecentShieldTokenNote } from "@/solana/recentShieldTokenNotes";
 import { createShieldAssetCapability } from "@/solana/shieldAssetCapability";
+import { formatVantaSolAmount } from "@/solana/solAmountFormat";
 import {
   type LiveShieldTokenAssetKey,
   type LiveShieldTokenAssetConfig,
@@ -59,6 +60,7 @@ import {
   VANTA_NATIVE_SOL_ASSET_ID,
   VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
   VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
+  type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
 import { recordCanonicalShieldFromLiveShield } from "@/zk/liveShieldBridge";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
@@ -224,6 +226,17 @@ function describeRecentShieldCompletion(recentShield: RecentShieldContext, warni
   }
 
   return `${amountLabel} reached the Vanta vault as a public deposit; local shield-state proof is still unavailable.${suffix}`;
+}
+
+function isPendingNativeSolShieldStateNote(note: VantaShieldedSolNote) {
+  return (
+    note.lifecycleStatus === "pending" &&
+    !note.consumedByTransitionKind &&
+    (note.stateSignature.startsWith("local-sol-recovery:") ||
+      note.stateSignature.startsWith("local-sol-shield-state:") ||
+      note.sourceSwapNoteId === "native-sol-recovery" ||
+      note.sourceSwapNoteId === "native-sol-shield-state")
+  );
 }
 
 function isMissingBrowserCommittedShieldReceiptDepositSignatureWarning(warning: string | null) {
@@ -437,6 +450,32 @@ export function ShieldPage(_props: ShieldPageProps) {
   const targetShieldedBalance = isNativeSolShield
     ? nativeSolShieldAccount?.shieldedSolBalance ?? 0
     : shieldedBalance;
+  const pendingNativeSolShieldEvidenceBalance = isNativeSolShield
+    ? Number(
+        (nativeSolShieldAccount?.shieldedSolNotes ?? [])
+          .filter(isPendingNativeSolShieldStateNote)
+          .reduce((sum, note) => sum + note.amount, 0)
+          .toFixed(9),
+      )
+    : 0;
+  const pendingNativeSolFromRecentShield =
+    isNativeSolShield &&
+    recentShield?.asset === "SOL" &&
+    (recentShield.claimTier === "local_shield_state" ||
+      recentShield.claimTier === "proof_receipt_verified") &&
+    Number.isFinite(recentShield.resultingShieldedBalance) &&
+    recentShield.resultingShieldedBalance > targetShieldedBalance
+      ? Number(
+          Math.max(0, recentShield.resultingShieldedBalance - targetShieldedBalance).toFixed(9),
+        )
+      : 0;
+  const pendingNativeSolShieldBalance = Number(
+    Math.max(pendingNativeSolShieldEvidenceBalance, pendingNativeSolFromRecentShield).toFixed(9),
+  );
+  const pendingNativeSolShieldBalanceLabel =
+    pendingNativeSolShieldBalance > 0
+      ? formatVantaSolAmount(pendingNativeSolShieldBalance)
+      : null;
   const targetShieldedBalanceReadUnavailable =
     Boolean(walletConnected && capability.targetShieldAsset) &&
     (supportedToken?.status === "error" || Boolean(targetShieldStateError));
@@ -715,8 +754,10 @@ export function ShieldPage(_props: ShieldPageProps) {
             targetShieldStateRefreshing)) ||
         (isNativeSolShield && targetShieldStateRefreshing && targetShieldedBalance <= 0)
       ? "Loading..."
-      : targetShieldSymbol
-        ? formatAssetAmount(targetShieldedBalance, targetShieldSymbol)
+      : isNativeSolShield
+        ? formatVantaSolAmount(targetShieldedBalance)
+        : targetShieldSymbol
+          ? formatAssetAmount(targetShieldedBalance, targetShieldSymbol)
         : "Choose asset";
 
   async function beginShieldTransfer(
@@ -1823,8 +1864,15 @@ export function ShieldPage(_props: ShieldPageProps) {
               <div className="swap-module__field">
                 <div className="swap-module__label-row">
                   <span>To</span>
-                  <div className="send-balance-line shield-helper shield-helper--meta">
-                    Shielded balance: {targetShieldedBalanceLabel}
+                  <div className="shield-balance-stack">
+                    <div className="send-balance-line shield-helper shield-helper--meta">
+                      Shielded balance: {targetShieldedBalanceLabel}
+                    </div>
+                    {pendingNativeSolShieldBalanceLabel && (
+                      <div className="send-balance-line shield-helper shield-helper--meta">
+                        Pending shield-state: {pendingNativeSolShieldBalanceLabel}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="swap-quote-line">

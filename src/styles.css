@@ -2922,6 +2922,18 @@ input {
   margin-top: -4px;
 }
 
+.shield-balance-stack {
+  display: grid;
+  gap: 3px;
+  justify-items: end;
+  min-width: 0;
+  text-align: right;
+}
+
+.shield-balance-stack .send-balance-line {
+  margin-top: 0;
+}
+
 .send-page .send-card--workspace,
 .swap-page .send-card--workspace,
 .unshield-page .send-card--workspace {

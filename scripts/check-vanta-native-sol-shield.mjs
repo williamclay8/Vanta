@@ -358,6 +358,17 @@ assert.ok(
   "Shield page must keep the displayed native SOL Shielded balance ledger-derived instead of inflating it from recent proof receipt context.",
 );
 assert.ok(
+  shieldPageSource.includes("pendingNativeSolShieldEvidenceBalance") &&
+    shieldPageSource.includes("pendingNativeSolFromRecentShield") &&
+    shieldPageSource.includes("pendingNativeSolShieldBalanceLabel") &&
+    shieldPageSource.includes("Pending shield-state:") &&
+    shieldPageSource.includes("formatVantaSolAmount") &&
+    /const pendingNativeSolFromRecentShield[\s\S]{0,700}recentShield\.claimTier === "local_shield_state"[\s\S]{0,220}recentShield\.claimTier === "proof_receipt_verified"/.test(
+      shieldPageSource,
+    ),
+  "Shield page must surface pending native SOL shield-state evidence separately from the ledger-spendable Shielded balance without labeling public-vault-only deposits as shield-state.",
+);
+assert.ok(
   nativeSolShieldSource.includes("getParsedTransactions"),
   "Native SOL deposit discovery must inspect parsed wallet transactions.",
 );

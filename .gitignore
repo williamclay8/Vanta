@@ -3,6 +3,7 @@
 .env.operator
 .env.operator.local
 .env.render.local
+env*.local
 wallet/
 *.keypair.json
 node_modules/
