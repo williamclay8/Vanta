@@ -11,6 +11,7 @@
     "build": "tsc -b && vite build",
     "vite-env:contract-check": "node scripts/check-vanta-vite-env-contract.mjs",
     "frontend:operator-env-exposure-check": "node scripts/check-vanta-frontend-operator-env-exposure.mjs",
+    "private-mode:contract-check": "node scripts/check-vanta-private-mode-contract.mjs",
     "solana:helius-rpc-config-check": "node scripts/check-vanta-helius-rpc-config.mjs",
     "active-memory:check": "node scripts/check-vanta-active-memory-flow.mjs",
     "design:contract-check": "node scripts/check-vanta-design-contract.mjs",

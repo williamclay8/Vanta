@@ -88,9 +88,9 @@ All the production-shaped circuits (`vanta_private_core_single_note_*`, `vanta_p
 
 ### 7. PBKDF2-SHA256 at 120k iterations for the private vault
 
-`src/privateVault/privateVaultCrypto.ts` uses PBKDF2-SHA256 / 120,000 iterations. OWASP's 2023 PBKDF2-SHA256 baseline is 600,000 — and PBKDF2 is GPU-friendly. For a wallet/vault password derivation in 2026, the right primitive is Argon2id (memory-hard). Either bump iterations to ≥600k (cheap quick fix) or migrate to Argon2id with a proper `v2` envelope and decryption fallback for `v1`.
+`src/privateVault/privateVaultCrypto.ts` used PBKDF2-SHA256 / 120,000 iterations. OWASP's 2023 PBKDF2-SHA256 baseline is 600,000 — and PBKDF2 is GPU-friendly. For a wallet/vault password derivation in 2026, the right primitive is Argon2id (memory-hard). Either bump iterations to ≥600k (cheap quick fix) or migrate to Argon2id with a proper `v2` envelope and decryption fallback for `v1`.
 
-**Codex status, 2026-05-09:** still open. No local remediation found in this pass; the private vault remains on PBKDF2-SHA256 with 120,000 iterations.
+**Codex status, 2026-05-09:** quick-fix remediated locally without breaking existing vault decrypts. New private-vault encryptions now write `pbkdf2-aes-gcm-sha256.v2` envelopes with `kdfIterations: 600_000`; legacy `pbkdf2-aes-gcm-sha256.v1` payloads still decrypt with the old 120,000-iteration fallback. Guard: `npm run private-mode:contract-check`, which now round-trips a new v2 payload, decrypts legacy v1 fixtures with missing and explicit iteration metadata, rejects downgraded/mismatched iteration metadata, and checks wrong-password failure. Residual caveat: already-created v1 vault payloads remain at the old offline-guessing cost until unlocked and re-encrypted/migrated. Argon2id remains the stronger future migration target.
 
 ### 8. Local prover is not a prover, by design
 
