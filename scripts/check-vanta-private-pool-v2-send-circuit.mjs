@@ -105,6 +105,42 @@ try {
     console.log("invalid-output-root fixture: expected failure observed");
   }
 
+  writeFixture("forged-recipient-append-path");
+  console.log("forged-recipient-append-path fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("forged-recipient-append-path fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "forged-recipient-append-path fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("forged-recipient-append-path fixture: expected failure observed");
+  }
+
+  writeFixture("forged-change-append-path");
+  console.log("forged-change-append-path fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("forged-change-append-path fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "forged-change-append-path fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("forged-change-append-path fixture: expected failure observed");
+  }
+
   writeFixture("forged-input-membership");
   console.log("forged-input-membership fixture write: PASS");
 

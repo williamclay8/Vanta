@@ -1,9 +1,9 @@
-import { poseidon1, poseidon2, poseidon3, poseidon12 } from "poseidon-lite";
+import { poseidon1, poseidon2, poseidon12 } from "poseidon-lite";
 import { createVantaPrivatePoolV2SwapToShieldedProofRequest } from "./privatePoolV2ProofRequests";
 import type { VantaPrivatePoolV2ProofRequest } from "./privatePoolV2Types";
 
 export const VANTA_PRIVATE_POOL_V2_SWAP_TO_SHIELDED_CIRCUIT_FIXTURE_VERSION =
-  "vanta-private-pool-v2-swap-to-shielded-circuit-fixture-0.1" as const;
+  "vanta-private-pool-v2-swap-to-shielded-circuit-fixture-0.2" as const;
 
 export type VantaPrivatePoolV2SwapToShieldedCircuitWitness = {
   economics_commitment: bigint;
@@ -13,6 +13,8 @@ export type VantaPrivatePoolV2SwapToShieldedCircuitWitness = {
   membership_path: readonly [bigint, bigint, bigint];
   membership_path_direction_bits: readonly [bigint, bigint, bigint];
   nullifier_or_replay_commitment: bigint;
+  output_append_path: readonly [bigint, bigint, bigint];
+  output_append_path_direction_bits: readonly [bigint, bigint, bigint];
   output_commitment: bigint;
   output_leaf_index: bigint;
   output_root: bigint;
@@ -33,6 +35,7 @@ export type VantaPrivatePoolV2SwapToShieldedCircuitFixture = {
 export type VantaPrivatePoolV2SwapToShieldedCircuitFixtureMode =
   | "valid"
   | "forged-input-membership"
+  | "forged-output-append-path"
   | "invalid-binding"
   | "invalid-nullifier"
   | "invalid-output-root";
@@ -44,7 +47,7 @@ const DEFAULT_WITNESS_BASE = {
   membership_path: [1202n, 1303n, 1404n] as const,
   membership_path_direction_bits: [1n, 0n, 1n] as const,
   output_commitment: 1201n,
-  output_leaf_index: 3n,
+  output_leaf_index: 6n,
   owner_commitment: 606n,
   owner_secret: 404n,
   request_version: 101n,
@@ -55,7 +58,7 @@ const DEFAULT_WITNESS_BASE = {
 
 const DEFAULT_WITH_ROOT = {
   ...DEFAULT_WITNESS_BASE,
-  input_root: computeVantaPrivatePoolV2SwapToShieldedInputRoot(DEFAULT_WITNESS_BASE),
+  ...buildVantaPrivatePoolV2SwapToShieldedTree(DEFAULT_WITNESS_BASE),
 };
 
 const DEFAULT_WITH_NULLIFIER = {
@@ -66,11 +69,6 @@ const DEFAULT_WITH_NULLIFIER = {
 
 const DEFAULT_WITNESS = {
   ...DEFAULT_WITH_NULLIFIER,
-  output_root: computeVantaPrivatePoolV2SwapToShieldedAppendRoot({
-    leaf_index: DEFAULT_WITH_NULLIFIER.output_leaf_index,
-    output_commitment: DEFAULT_WITH_NULLIFIER.output_commitment,
-    previous_root: DEFAULT_WITH_NULLIFIER.input_root,
-  }),
 } satisfies VantaPrivatePoolV2SwapToShieldedCircuitWitness;
 
 function toCircuitString(value: bigint) {
@@ -90,6 +88,10 @@ export function computeVantaPrivatePoolV2SwapToShieldedLeaf(
   witness: Pick<VantaPrivatePoolV2SwapToShieldedCircuitWitness, "input_commitment">,
 ) {
   return poseidon1([witness.input_commitment]);
+}
+
+function computeVantaPrivatePoolV2SwapToShieldedLeafValue(value: bigint) {
+  return poseidon1([value]);
 }
 
 export function computeVantaPrivatePoolV2SwapToShieldedNode({
@@ -123,16 +125,24 @@ export function computeVantaPrivatePoolV2SwapToShieldedInputRoot(
   );
 }
 
-export function computeVantaPrivatePoolV2SwapToShieldedAppendRoot({
-  leaf_index,
-  output_commitment,
-  previous_root,
+export function computeVantaPrivatePoolV2SwapToShieldedRootFromLeaf({
+  leafValue,
+  path,
+  pathDirectionBits,
 }: {
-  leaf_index: bigint;
-  output_commitment: bigint;
-  previous_root: bigint;
+  leafValue: bigint;
+  path: readonly [bigint, bigint, bigint];
+  pathDirectionBits: readonly [bigint, bigint, bigint];
 }) {
-  return poseidon3([previous_root, output_commitment, leaf_index]);
+  return path.reduce(
+    (current, sibling, index) =>
+      computeVantaPrivatePoolV2SwapToShieldedNode({
+        current,
+        directionBit: pathDirectionBits[index] ?? 0n,
+        sibling,
+      }),
+    computeVantaPrivatePoolV2SwapToShieldedLeafValue(leafValue),
+  );
 }
 
 export function computeVantaPrivatePoolV2SwapToShieldedPublicInputHash(
@@ -164,6 +174,11 @@ export function createVantaPrivatePoolV2SwapToShieldedCircuitFixture({
   const circuitWitness =
     mode === "forged-input-membership"
       ? forgeVantaPrivatePoolV2SwapToShieldedInputMembership(witness)
+      : mode === "forged-output-append-path"
+        ? {
+            ...witness,
+            output_append_path: forgePath(witness.output_append_path),
+          }
       : mode === "invalid-nullifier"
       ? {
           ...witness,
@@ -209,11 +224,80 @@ function forgeVantaPrivatePoolV2SwapToShieldedInputMembership(
   return {
     ...witness,
     input_root: forgedInputRoot,
-    output_root: computeVantaPrivatePoolV2SwapToShieldedAppendRoot({
-      leaf_index: witness.output_leaf_index,
-      output_commitment: witness.output_commitment,
-      previous_root: forgedInputRoot,
-    }),
+  };
+}
+
+function forgePath(path: readonly [bigint, bigint, bigint]) {
+  return [path[0] + 1n, path[1], path[2]] as const;
+}
+
+function toPathTuple(path: readonly bigint[]) {
+  return [path[0] ?? 0n, path[1] ?? 0n, path[2] ?? 0n] as const;
+}
+
+function directionBitsForIndex(index: bigint) {
+  return [index & 1n, (index >> 1n) & 1n, (index >> 2n) & 1n] as const;
+}
+
+function buildLayers(leaves: readonly bigint[]) {
+  let current = leaves.map((leaf) =>
+    computeVantaPrivatePoolV2SwapToShieldedLeafValue(leaf),
+  );
+  const layers: bigint[][] = [current];
+
+  while (current.length > 1) {
+    const next: bigint[] = [];
+
+    for (let index = 0; index < current.length; index += 2) {
+      const left = current[index] ?? current[index - 1] ?? 0n;
+      const right = current[index + 1] ?? left;
+      next.push(poseidon2([left, right]));
+    }
+
+    layers.push(next);
+    current = next;
+  }
+
+  return layers;
+}
+
+function rootForLeaves(leaves: readonly bigint[]) {
+  const layers = buildLayers(leaves);
+  return layers[layers.length - 1]?.[0] ?? computeVantaPrivatePoolV2SwapToShieldedLeafValue(0n);
+}
+
+function pathForLeaf(leaves: readonly bigint[], leafIndex: bigint) {
+  const layers = buildLayers(leaves);
+  const path: bigint[] = [];
+  let currentIndex = Number(leafIndex);
+
+  for (let depth = 0; depth < 3; depth += 1) {
+    const layer = layers[depth] ?? [];
+    const isRight = currentIndex % 2 === 1;
+    const siblingIndex = isRight ? currentIndex - 1 : currentIndex + 1;
+    path.push(layer[siblingIndex] ?? layer[currentIndex] ?? 0n);
+    currentIndex = Math.floor(currentIndex / 2);
+  }
+
+  return toPathTuple(path);
+}
+
+function buildVantaPrivatePoolV2SwapToShieldedTree(
+  witness: typeof DEFAULT_WITNESS_BASE,
+) {
+  const emptyLeaves = Array.from({ length: 8 }, () => 0n);
+  const inputLeaves = [...emptyLeaves];
+  inputLeaves[Number(witness.input_leaf_index)] = witness.input_commitment;
+  const outputLeaves = [...inputLeaves];
+  outputLeaves[Number(witness.output_leaf_index)] = witness.output_commitment;
+
+  return {
+    input_root: rootForLeaves(inputLeaves),
+    membership_path: pathForLeaf(inputLeaves, witness.input_leaf_index),
+    membership_path_direction_bits: directionBitsForIndex(witness.input_leaf_index),
+    output_append_path: pathForLeaf(inputLeaves, witness.output_leaf_index),
+    output_append_path_direction_bits: directionBitsForIndex(witness.output_leaf_index),
+    output_root: rootForLeaves(outputLeaves),
   };
 }
 
@@ -237,6 +321,8 @@ export function serializeVantaPrivatePoolV2SwapToShieldedCircuitFixtureToToml(
     `output_commitment = "${witness.output_commitment.toString(10)}"`,
     `output_leaf_index = "${witness.output_leaf_index.toString(10)}"`,
     `output_root = "${witness.output_root.toString(10)}"`,
+    `output_append_path = [${witness.output_append_path.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
+    `output_append_path_direction_bits = [${witness.output_append_path_direction_bits.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
     `owner_commitment = "${witness.owner_commitment.toString(10)}"`,
     `swap_context_tag = "${witness.swap_context_tag.toString(10)}"`,
     `owner_secret = "${witness.owner_secret.toString(10)}"`,

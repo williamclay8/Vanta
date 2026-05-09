@@ -70,6 +70,10 @@ function assertValue(publicInputMap, label, expected, lane) {
   );
 }
 
+function leafIndexFromDirectionBits(bits) {
+  return bits.reduce((index, bit, bitIndex) => index + bit * (1n << BigInt(bitIndex)), 0n);
+}
+
 try {
   mkdirSync(tempTsDir, { recursive: true });
 
@@ -114,10 +118,12 @@ try {
   } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ClaimCircuitFixture.js")).href);
   const {
     computeVantaPrivatePoolV2SendPublicInputHash,
+    computeVantaPrivatePoolV2SendRootFromLeaf,
     createVantaPrivatePoolV2SendCircuitFixture,
   } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2SendCircuitFixture.js")).href);
   const {
     computeVantaPrivatePoolV2SwapToShieldedPublicInputHash,
+    computeVantaPrivatePoolV2SwapToShieldedRootFromLeaf,
     createVantaPrivatePoolV2SwapToShieldedCircuitFixture,
   } = await import(
     pathToFileURL(join(tempJsDir, "privatePoolV2SwapToShieldedCircuitFixture.js")).href
@@ -304,7 +310,53 @@ try {
     sendWitness.change_leaf_index,
     sendWitness.change_output_root,
   ]);
+  const sendRecipientPreviousRoot = computeVantaPrivatePoolV2SendRootFromLeaf({
+    leafValue: 0n,
+    path: sendWitness.recipient_append_path,
+    pathDirectionBits: sendWitness.recipient_append_path_direction_bits,
+  });
+  const sendRecipientOutputRoot = computeVantaPrivatePoolV2SendRootFromLeaf({
+    leafValue: sendWitness.recipient_output_commitment,
+    path: sendWitness.recipient_append_path,
+    pathDirectionBits: sendWitness.recipient_append_path_direction_bits,
+  });
+  const sendChangePreviousRoot = computeVantaPrivatePoolV2SendRootFromLeaf({
+    leafValue: 0n,
+    path: sendWitness.change_append_path,
+    pathDirectionBits: sendWitness.change_append_path_direction_bits,
+  });
+  const sendChangeOutputRoot = computeVantaPrivatePoolV2SendRootFromLeaf({
+    leafValue: sendWitness.change_output_commitment,
+    path: sendWitness.change_append_path,
+    pathDirectionBits: sendWitness.change_append_path_direction_bits,
+  });
   assert(sendOutputTransition > 0n, "Expected send output transition to be derived.");
+  assert(
+    sendRecipientPreviousRoot === sendWitness.input_root,
+    "Expected send recipient append path to prove an empty slot under input root.",
+  );
+  assert(
+    sendRecipientOutputRoot === sendWitness.recipient_output_root,
+    "Expected send recipient output root to derive from recipient append path.",
+  );
+  assert(
+    leafIndexFromDirectionBits(sendWitness.recipient_append_path_direction_bits) ===
+      sendWitness.recipient_leaf_index,
+    "Expected send recipient append path bits to bind recipient leaf index.",
+  );
+  assert(
+    sendChangePreviousRoot === sendWitness.recipient_output_root,
+    "Expected send change append path to prove an empty slot under recipient output root.",
+  );
+  assert(
+    sendChangeOutputRoot === sendWitness.change_output_root,
+    "Expected send change output root to derive from change append path.",
+  );
+  assert(
+    leafIndexFromDirectionBits(sendWitness.change_append_path_direction_bits) ===
+      sendWitness.change_leaf_index,
+    "Expected send change append path bits to bind change leaf index.",
+  );
   assert(
     computeVantaPrivatePoolV2SendPublicInputHash(sendWitness) === send.sendPublicInputHash,
     "Expected send fixture hash to match Noir public hash preimage.",
@@ -420,12 +472,26 @@ try {
   assertValue(swapMap, "owner-commitment", swapWitness.owner_commitment, "swap-to-shielded");
   assertValue(swapMap, "swap-context-tag", swapWitness.swap_context_tag, "swap-to-shielded");
 
-  const swapOutputRoot = poseidon3([
-    swapWitness.input_root,
-    swapWitness.output_commitment,
-    swapWitness.output_leaf_index,
-  ]);
-  assert(swapOutputRoot === swapWitness.output_root, "Expected swap output root to be derived.");
+  const swapPreviousRoot = computeVantaPrivatePoolV2SwapToShieldedRootFromLeaf({
+    leafValue: 0n,
+    path: swapWitness.output_append_path,
+    pathDirectionBits: swapWitness.output_append_path_direction_bits,
+  });
+  const swapOutputRoot = computeVantaPrivatePoolV2SwapToShieldedRootFromLeaf({
+    leafValue: swapWitness.output_commitment,
+    path: swapWitness.output_append_path,
+    pathDirectionBits: swapWitness.output_append_path_direction_bits,
+  });
+  assert(
+    swapPreviousRoot === swapWitness.input_root,
+    "Expected swap output append path to prove an empty slot under input root.",
+  );
+  assert(swapOutputRoot === swapWitness.output_root, "Expected swap output root to derive from append path.");
+  assert(
+    leafIndexFromDirectionBits(swapWitness.output_append_path_direction_bits) ===
+      swapWitness.output_leaf_index,
+    "Expected swap output append path bits to bind output leaf index.",
+  );
   assert(
     computeVantaPrivatePoolV2SwapToShieldedPublicInputHash(swapWitness) ===
       swap.swapPublicInputHash,

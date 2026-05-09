@@ -105,6 +105,24 @@ try {
     console.log("invalid-output-root fixture: expected failure observed");
   }
 
+  writeFixture("forged-output-append-path");
+  console.log("forged-output-append-path fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("forged-output-append-path fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "forged-output-append-path fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("forged-output-append-path fixture: expected failure observed");
+  }
+
   writeFixture("forged-input-membership");
   console.log("forged-input-membership fixture write: PASS");
 

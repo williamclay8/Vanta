@@ -21,16 +21,16 @@ fn assert_direction_bit(bit: Field) {
     assert(bit * (bit - 1) == 0);
 }
 
-fn compute_root(
-    input_commitment: Field,
-    membership_path: [Field; MERKLE_DEPTH],
-    membership_path_direction_bits: [Field; MERKLE_DEPTH],
+fn compute_root_from_leaf(
+    leaf_value: Field,
+    path: [Field; MERKLE_DEPTH],
+    path_direction_bits: [Field; MERKLE_DEPTH],
 ) -> Field {
-    let mut current = hash_merkle_leaf(input_commitment);
+    let mut current = hash_merkle_leaf(leaf_value);
 
     for i in 0..MERKLE_DEPTH {
-        let sibling = membership_path[i];
-        let is_current_right = membership_path_direction_bits[i];
+        let sibling = path[i];
+        let is_current_right = path_direction_bits[i];
 
         assert_direction_bit(is_current_right);
 
@@ -44,20 +44,24 @@ fn compute_root(
     current
 }
 
-fn compute_leaf_index_from_direction_bits(
+fn compute_root(
+    input_commitment: Field,
+    membership_path: [Field; MERKLE_DEPTH],
     membership_path_direction_bits: [Field; MERKLE_DEPTH],
 ) -> Field {
-    membership_path_direction_bits[0]
-        + membership_path_direction_bits[1] * 2
-        + membership_path_direction_bits[2] * 4
+    compute_root_from_leaf(
+        input_commitment,
+        membership_path,
+        membership_path_direction_bits,
+    )
 }
 
-fn compute_append_root(
-    previous_root: Field,
-    output_commitment: Field,
-    leaf_index: Field,
+fn compute_leaf_index_from_direction_bits(
+    direction_bits: [Field; MERKLE_DEPTH],
 ) -> Field {
-    bn254::hash_3([previous_root, output_commitment, leaf_index])
+    direction_bits[0]
+        + direction_bits[1] * 2
+        + direction_bits[2] * 4
 }
 
 fn bind_swap_public_inputs(
@@ -105,6 +109,8 @@ fn main(
     output_commitment: Field,
     output_leaf_index: Field,
     output_root: Field,
+    output_append_path: [Field; MERKLE_DEPTH],
+    output_append_path_direction_bits: [Field; MERKLE_DEPTH],
     owner_commitment: Field,
     swap_context_tag: Field,
     owner_secret: Field,
@@ -125,12 +131,24 @@ fn main(
         compute_nullifier_or_replay_commitment(input_commitment, owner_secret);
     assert(computed_nullifier_or_replay_commitment == nullifier_or_replay_commitment);
 
-    let computed_output_root = compute_append_root(
-        input_root,
+    let computed_previous_root = compute_root_from_leaf(
+        0,
+        output_append_path,
+        output_append_path_direction_bits,
+    );
+    assert(computed_previous_root == input_root);
+
+    let computed_output_root = compute_root_from_leaf(
         output_commitment,
-        output_leaf_index,
+        output_append_path,
+        output_append_path_direction_bits,
     );
     assert(computed_output_root == output_root);
+
+    let computed_output_leaf_index = compute_leaf_index_from_direction_bits(
+        output_append_path_direction_bits,
+    );
+    assert(computed_output_leaf_index == output_leaf_index);
 
     let computed_public_input_hash = bind_swap_public_inputs(
         request_version,

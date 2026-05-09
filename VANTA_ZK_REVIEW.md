@@ -62,7 +62,7 @@ But the `send_entry`, `claim_entry`, `shield_entry`, and `swap_to_shielded_entry
 
 A prover can spend any commitment they invent against any root they like. Use `vanta_private_pool_v2_actual_private_spend_entry` as the template and back-port real Merkle membership + an incremental-Merkle-tree append (e.g., zero-padded fixed-depth tree with Poseidon node hashing) into all four entry circuits.
 
-**Codex status, 2026-05-09:** partially remediated locally. Private Pool v2 `send_entry`, `claim_entry`, and `swap_to_shielded_entry` now prove input commitment membership under `input_root` and reject forged input-root fixtures; `shield_entry` now proves a path-based empty-leaf append to the output commitment. Still open: send/swap successor roots remain transitional `hash_3(previous_root, output_commitment, leaf_index)` transitions rather than full incremental Merkle insertion for each successor output.
+**Codex status, 2026-05-09:** remediated locally for the fixed-depth Private Pool v2 circuit/fixture lane. Private Pool v2 `send_entry`, `claim_entry`, and `swap_to_shielded_entry` now prove input commitment membership under `input_root` and reject forged input-root fixtures; `shield_entry` now proves a path-based empty-leaf append to the output commitment; and `send_entry` / `swap_to_shielded_entry` now prove successor output roots from private append-path witnesses instead of transitional `hash_3(previous_root, output_commitment, leaf_index)` handles. Guards: `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:swap-to-shielded-circuit-check`, `npm run private-pool-v2:public-input-hash-alignment-check`, `npm run private-pool-v2:contract-check`, and `npm run zk:merkle-node-hash-contract-check`. Residual caveat: these are local Poseidon fixture/circuit append proofs, not a production shared tree, not the SHA-256 local indexer root scheme, not depth-20 anonymity, and not on-chain verifier enforcement.
 
 ### 5. Anonymity-set depth is 3
 
@@ -2102,6 +2102,20 @@ Red-first failures observed locally: the expanded Merkle contract guard failed o
 Verification passed locally: `npm run zk:merkle-node-hash-contract-check`, `npm run private-core:check`, `npm run private-core:send-check`, `npm run private-core:swap-check`, `npm run private-core:prove`, `npm run private-core:send-prove`, `npm run private-core:swap-prove`, focused no-witness/proof-artifact checks, full `npm run private-core:verify`, and `git diff --check`.
 
 Still open after this fourth pass: the proving lanes remain depth 3, source-layer note/tree hashes still carry transitional SHA-style semantics, owner auth remains off-circuit for v0.1, send/swap successor append semantics and Private Pool v2 production verifier wiring remain incomplete, on-chain proof verification is not wired, and this was not pushed or deployed/live.
+
+### Fifth local ZK pass - 2026-05-09
+
+- Replaced the remaining Private Pool v2 Send/Swap successor output-root shortcuts with private append-path witness constraints in the local fixed-depth Poseidon circuit lane.
+- `vanta_private_pool_v2_send_entry` now proves that the recipient append path is empty under `input_root`, that the recipient output commitment produces `recipient_output_root`, that the change append path is empty under `recipient_output_root`, and that the change output commitment produces `change_output_root`. Both append-path direction-bit arrays are bound to their declared output leaf indices.
+- `vanta_private_pool_v2_swap_to_shielded_entry` now proves that the output append path is empty under `input_root`, that the output commitment produces `output_root`, and that append-path direction bits bind `output_leaf_index`.
+- The send/swap TypeScript fixtures now build coherent depth-3 Poseidon trees for input membership and successor output append paths, bump their fixture contract versions to `0.2`, serialize the new private append witnesses, and include forged recipient/change/output append-path negative fixtures.
+- `npm run zk:merkle-node-hash-contract-check` now forbids reintroducing transitional `hash_3(previous_root, output_commitment, leaf_index)` successor append roots in the covered Send/Swap circuits and fixtures.
+
+Red-first failures observed locally: after the fixtures emitted path-derived roots, `npm run private-pool-v2:send-circuit-check` and `npm run private-pool-v2:swap-to-shielded-circuit-check` failed against the old `hash_3` circuits on otherwise valid witnesses. The same checks passed after the Noir circuits were updated, including the new forged append-path negative fixtures.
+
+Verification passed locally: `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:swap-to-shielded-circuit-check`, `npm run private-pool-v2:send-prove`, `npm run private-pool-v2:swap-to-shielded-prove`, `npm run private-pool-v2:public-input-hash-alignment-check`, `npm run private-pool-v2:contract-check`, `npm run zk:merkle-node-hash-contract-check`, `npm run security:limitations-check`, `npm run build`, full `npm run private-pool-v2:verify`, and `git diff --check`. Full Private Pool v2 verify still emits existing Crucible harness warnings (`mach_task_self` deprecation and unused mut), but the dry-run harness passed.
+
+Still open after this fifth local ZK pass: active lanes remain `MERKLE_DEPTH = 3`, the operator/indexer SHA-256 local root scheme is not proven inside Noir, output append monotonicity still depends on operator/indexer state outside the circuit, on-chain proof verification is not wired, nullifier storage remains fixed/linear where applicable, no audit has accepted the boundary, and no live deployment evidence was refreshed.
 
 ---
 

@@ -1,9 +1,9 @@
-import { poseidon1, poseidon2, poseidon3, poseidon4, poseidon11 } from "poseidon-lite";
+import { poseidon1, poseidon2, poseidon4, poseidon11 } from "poseidon-lite";
 import { createVantaPrivatePoolV2SendProofRequest } from "./privatePoolV2ProofRequests";
 import type { VantaPrivatePoolV2ProofRequest } from "./privatePoolV2Types";
 
 export const VANTA_PRIVATE_POOL_V2_SEND_CIRCUIT_FIXTURE_VERSION =
-  "vanta-private-pool-v2-send-circuit-fixture-0.1" as const;
+  "vanta-private-pool-v2-send-circuit-fixture-0.2" as const;
 
 export type VantaPrivatePoolV2SendCircuitWitness = {
   asset_id_commitment: bigint;
@@ -19,7 +19,11 @@ export type VantaPrivatePoolV2SendCircuitWitness = {
   nullifier: bigint;
   owner_commitment: bigint;
   owner_secret: bigint;
+  change_append_path: readonly [bigint, bigint, bigint];
+  change_append_path_direction_bits: readonly [bigint, bigint, bigint];
   recipient_leaf_index: bigint;
+  recipient_append_path: readonly [bigint, bigint, bigint];
+  recipient_append_path_direction_bits: readonly [bigint, bigint, bigint];
   recipient_output_commitment: bigint;
   recipient_output_root: bigint;
   request_version: bigint;
@@ -35,13 +39,15 @@ export type VantaPrivatePoolV2SendCircuitFixture = {
 export type VantaPrivatePoolV2SendCircuitFixtureMode =
   | "valid"
   | "forged-input-membership"
+  | "forged-recipient-append-path"
+  | "forged-change-append-path"
   | "invalid-binding"
   | "invalid-nullifier"
   | "invalid-output-root";
 
 const DEFAULT_WITNESS_BASE = {
   asset_id_commitment: 707n,
-  change_leaf_index: 2n,
+  change_leaf_index: 7n,
   change_output_commitment: 1001n,
   economics_commitment: 808n,
   input_commitment: 303n,
@@ -50,15 +56,21 @@ const DEFAULT_WITNESS_BASE = {
   membership_path_direction_bits: [1n, 0n, 1n] as const,
   owner_commitment: 606n,
   owner_secret: 404n,
-  recipient_leaf_index: 1n,
+  recipient_leaf_index: 6n,
   recipient_output_commitment: 909n,
   request_version: 101n,
   send_context_tag: 1102n,
 };
 
+const DEFAULT_TREE = buildVantaPrivatePoolV2SendTrees(DEFAULT_WITNESS_BASE);
+
 const DEFAULT_WITH_ROOT = {
   ...DEFAULT_WITNESS_BASE,
-  input_root: computeVantaPrivatePoolV2SendInputRoot(DEFAULT_WITNESS_BASE),
+  input_root: DEFAULT_TREE.inputRoot,
+  membership_path: DEFAULT_TREE.inputMembershipPath,
+  membership_path_direction_bits: DEFAULT_TREE.inputMembershipPathDirectionBits,
+  recipient_append_path: DEFAULT_TREE.recipientAppendPath,
+  recipient_append_path_direction_bits: DEFAULT_TREE.recipientAppendPathDirectionBits,
 };
 
 const DEFAULT_WITH_NULLIFIER = {
@@ -68,20 +80,14 @@ const DEFAULT_WITH_NULLIFIER = {
 
 const DEFAULT_WITH_RECIPIENT_ROOT = {
   ...DEFAULT_WITH_NULLIFIER,
-  recipient_output_root: computeVantaPrivatePoolV2SendAppendRoot({
-    leaf_index: DEFAULT_WITH_NULLIFIER.recipient_leaf_index,
-    output_commitment: DEFAULT_WITH_NULLIFIER.recipient_output_commitment,
-    previous_root: DEFAULT_WITH_NULLIFIER.input_root,
-  }),
+  recipient_output_root: DEFAULT_TREE.recipientOutputRoot,
+  change_append_path: DEFAULT_TREE.changeAppendPath,
+  change_append_path_direction_bits: DEFAULT_TREE.changeAppendPathDirectionBits,
 };
 
 const DEFAULT_WITNESS = {
   ...DEFAULT_WITH_RECIPIENT_ROOT,
-  change_output_root: computeVantaPrivatePoolV2SendAppendRoot({
-    leaf_index: DEFAULT_WITH_RECIPIENT_ROOT.change_leaf_index,
-    output_commitment: DEFAULT_WITH_RECIPIENT_ROOT.change_output_commitment,
-    previous_root: DEFAULT_WITH_RECIPIENT_ROOT.recipient_output_root,
-  }),
+  change_output_root: DEFAULT_TREE.changeOutputRoot,
 } satisfies VantaPrivatePoolV2SendCircuitWitness;
 
 function toCircuitString(value: bigint) {
@@ -98,6 +104,10 @@ export function computeVantaPrivatePoolV2SendLeaf(
   witness: Pick<VantaPrivatePoolV2SendCircuitWitness, "input_commitment">,
 ) {
   return poseidon1([witness.input_commitment]);
+}
+
+function computeVantaPrivatePoolV2SendLeafValue(value: bigint) {
+  return poseidon1([value]);
 }
 
 export function computeVantaPrivatePoolV2SendNode({
@@ -131,16 +141,24 @@ export function computeVantaPrivatePoolV2SendInputRoot(
   );
 }
 
-export function computeVantaPrivatePoolV2SendAppendRoot({
-  leaf_index,
-  output_commitment,
-  previous_root,
+export function computeVantaPrivatePoolV2SendRootFromLeaf({
+  leafValue,
+  path,
+  pathDirectionBits,
 }: {
-  leaf_index: bigint;
-  output_commitment: bigint;
-  previous_root: bigint;
+  leafValue: bigint;
+  path: readonly [bigint, bigint, bigint];
+  pathDirectionBits: readonly [bigint, bigint, bigint];
 }) {
-  return poseidon3([previous_root, output_commitment, leaf_index]);
+  return path.reduce(
+    (current, sibling, index) =>
+      computeVantaPrivatePoolV2SendNode({
+        current,
+        directionBit: pathDirectionBits[index] ?? 0n,
+        sibling,
+      }),
+    computeVantaPrivatePoolV2SendLeafValue(leafValue),
+  );
 }
 
 export function computeVantaPrivatePoolV2SendPublicInputHash(
@@ -178,6 +196,16 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
   const circuitWitness =
     mode === "forged-input-membership"
       ? forgeVantaPrivatePoolV2SendInputMembership(witness)
+      : mode === "forged-recipient-append-path"
+        ? {
+            ...witness,
+            recipient_append_path: forgePath(witness.recipient_append_path),
+          }
+      : mode === "forged-change-append-path"
+        ? {
+            ...witness,
+            change_append_path: forgePath(witness.change_append_path),
+          }
       : mode === "invalid-nullifier"
       ? {
           ...witness,
@@ -218,21 +246,90 @@ function forgeVantaPrivatePoolV2SendInputMembership(
   witness: VantaPrivatePoolV2SendCircuitWitness,
 ): VantaPrivatePoolV2SendCircuitWitness {
   const forgedInputRoot = witness.input_root + 1n;
-  const recipientOutputRoot = computeVantaPrivatePoolV2SendAppendRoot({
-    leaf_index: witness.recipient_leaf_index,
-    output_commitment: witness.recipient_output_commitment,
-    previous_root: forgedInputRoot,
-  });
 
   return {
     ...witness,
-    change_output_root: computeVantaPrivatePoolV2SendAppendRoot({
-      leaf_index: witness.change_leaf_index,
-      output_commitment: witness.change_output_commitment,
-      previous_root: recipientOutputRoot,
-    }),
     input_root: forgedInputRoot,
-    recipient_output_root: recipientOutputRoot,
+  };
+}
+
+function forgePath(path: readonly [bigint, bigint, bigint]) {
+  return [path[0] + 1n, path[1], path[2]] as const;
+}
+
+function toPathTuple(path: readonly bigint[]) {
+  return [path[0] ?? 0n, path[1] ?? 0n, path[2] ?? 0n] as const;
+}
+
+function directionBitsForIndex(index: bigint) {
+  return [index & 1n, (index >> 1n) & 1n, (index >> 2n) & 1n] as const;
+}
+
+function buildLayers(leaves: readonly bigint[]) {
+  let current = leaves.map((leaf) => computeVantaPrivatePoolV2SendLeafValue(leaf));
+  const layers: bigint[][] = [current];
+
+  while (current.length > 1) {
+    const next: bigint[] = [];
+
+    for (let index = 0; index < current.length; index += 2) {
+      const left = current[index] ?? current[index - 1] ?? 0n;
+      const right = current[index + 1] ?? left;
+      next.push(poseidon2([left, right]));
+    }
+
+    layers.push(next);
+    current = next;
+  }
+
+  return layers;
+}
+
+function rootForLeaves(leaves: readonly bigint[]) {
+  const layers = buildLayers(leaves);
+  return layers[layers.length - 1]?.[0] ?? computeVantaPrivatePoolV2SendLeafValue(0n);
+}
+
+function pathForLeaf(leaves: readonly bigint[], leafIndex: bigint) {
+  const layers = buildLayers(leaves);
+  const path: bigint[] = [];
+  let currentIndex = Number(leafIndex);
+
+  for (let depth = 0; depth < 3; depth += 1) {
+    const layer = layers[depth] ?? [];
+    const isRight = currentIndex % 2 === 1;
+    const siblingIndex = isRight ? currentIndex - 1 : currentIndex + 1;
+    path.push(layer[siblingIndex] ?? layer[currentIndex] ?? 0n);
+    currentIndex = Math.floor(currentIndex / 2);
+  }
+
+  return toPathTuple(path);
+}
+
+function buildVantaPrivatePoolV2SendTrees(
+  witness: typeof DEFAULT_WITNESS_BASE,
+) {
+  const emptyLeaves = Array.from({ length: 8 }, () => 0n);
+  const inputIndex = Number(witness.input_leaf_index);
+  const recipientIndex = Number(witness.recipient_leaf_index);
+  const changeIndex = Number(witness.change_leaf_index);
+  const inputLeaves = [...emptyLeaves];
+  inputLeaves[inputIndex] = witness.input_commitment;
+  const recipientLeaves = [...inputLeaves];
+  recipientLeaves[recipientIndex] = witness.recipient_output_commitment;
+  const changeLeaves = [...recipientLeaves];
+  changeLeaves[changeIndex] = witness.change_output_commitment;
+
+  return {
+    changeAppendPath: pathForLeaf(recipientLeaves, witness.change_leaf_index),
+    changeAppendPathDirectionBits: directionBitsForIndex(witness.change_leaf_index),
+    changeOutputRoot: rootForLeaves(changeLeaves),
+    inputMembershipPath: pathForLeaf(inputLeaves, witness.input_leaf_index),
+    inputMembershipPathDirectionBits: directionBitsForIndex(witness.input_leaf_index),
+    inputRoot: rootForLeaves(inputLeaves),
+    recipientAppendPath: pathForLeaf(inputLeaves, witness.recipient_leaf_index),
+    recipientAppendPathDirectionBits: directionBitsForIndex(witness.recipient_leaf_index),
+    recipientOutputRoot: rootForLeaves(recipientLeaves),
   };
 }
 
@@ -258,8 +355,12 @@ export function serializeVantaPrivatePoolV2SendCircuitFixtureToToml(
     `send_context_tag = "${witness.send_context_tag.toString(10)}"`,
     `recipient_leaf_index = "${witness.recipient_leaf_index.toString(10)}"`,
     `recipient_output_root = "${witness.recipient_output_root.toString(10)}"`,
+    `recipient_append_path = [${witness.recipient_append_path.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
+    `recipient_append_path_direction_bits = [${witness.recipient_append_path_direction_bits.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
     `change_leaf_index = "${witness.change_leaf_index.toString(10)}"`,
     `change_output_root = "${witness.change_output_root.toString(10)}"`,
+    `change_append_path = [${witness.change_append_path.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
+    `change_append_path_direction_bits = [${witness.change_append_path_direction_bits.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
     `owner_secret = "${witness.owner_secret.toString(10)}"`,
     "",
   ].join("\n");

@@ -99,6 +99,23 @@ for (const file of fixtureFiles) {
   );
 }
 
+const privatePoolV2AppendProofFiles = [
+  "zk/noir/vanta_private_pool_v2_send_entry/src/main.nr",
+  "zk/noir/vanta_private_pool_v2_swap_to_shielded_entry/src/main.nr",
+  "src/privacy/privatePoolV2SendCircuitFixture.ts",
+  "src/privacy/privatePoolV2SwapToShieldedCircuitFixture.ts",
+];
+
+for (const file of privatePoolV2AppendProofFiles) {
+  const source = read(file);
+
+  assert(
+    !source.includes("hash_3([previous_root, output_commitment, leaf_index])") &&
+      !source.includes("poseidon3([previous_root, output_commitment, leaf_index])"),
+    `${file} must not reintroduce transitional hash_3 successor append roots`,
+  );
+}
+
 const privateCoreProofFiles = [
   "src/zk/vantaPrivateCoreSendProof.ts",
   "src/zk/vantaPrivateCoreSwapProof.ts",
