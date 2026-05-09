@@ -94,6 +94,8 @@ In `vanta_private_core_single_note_send/src/main.nr` and the swap variant, the s
 
 `hash_merkle_node(left, right, is_current_right)` mixes the path bit into the parent hash. Once you separately enforce direction-correct ordering (which the code does via the `if is_current_right == 1`), the bit doesn't need to enter the hash. Including it changes the meaning of "tree root" — node at position `(L, R)` produces a different parent depending on whether the prover claims to be the left or the right child during the proof. This is unusual enough that I'd recommend either removing the bit from `hash_merkle_node` (matching standard incremental Merkle trees) or documenting why it's there and making sure the off-chain indexer matches bit-for-bit.
 
+**Codex status, 2026-05-09:** remediated for `canonical_note_membership` and all Private Pool v2 entry circuits by standardizing node hashing on `hash_2(left, right)` / `poseidon2([left, right])`. Direction bits now only select ordering and compute leaf-index consistency. The Private Core single-note send/swap/unshield circuits still need the same convention update.
+
 ### 11. Off-chain nullifier replay guard relies on Node single-threading for atomicity
 
 `src/privacy/nullifierReplayGuard.mjs` is correct under Node's event loop, but the comment around `productionReady: false` is right — for the Postgres adapter (`postgresNullifierReplayStore.mjs`), reservation must use `INSERT ... ON CONFLICT DO NOTHING RETURNING *` inside a transaction to be safe under concurrency, not a separate `SELECT` then `INSERT`. If the production guard is the source of truth (because the on-chain program isn't, see item 1), this race becomes the actual double-spend boundary.
@@ -520,7 +522,7 @@ Replace `zk/noir/vanta_private_pool_v2_send_entry/src/main.nr` (and consolidate 
 Notes on the circuit:
 
 - **Drop `MERKLE_DEPTH = 3`.** Use 20 to match shield (audit item 5).
-- **Drop the `is_current_right` argument from `hash_merkle_node`.** Standard incremental Merkle uses `poseidon2(left, right)`, with the prover/verifier swapping inputs based on direction (audit item 10). This is what `vanta_private_pool_v2_actual_private_spend_entry` already does correctly — copy that template.
+- **Drop the `is_current_right` argument from `hash_merkle_node`.** Standard incremental Merkle uses `poseidon2(left, right)`, with the prover/verifier swapping inputs based on direction (audit item 10). Codex's 2026-05-09 third pass standardizes this in the Private Pool v2 entry circuits; copy that convention into remaining Private Core lanes.
 - **Drop the `hi/lo` sibling split** (audit item 9). One field per sibling.
 - **Bind the encrypted memo ciphertext hashes into the public inputs.** The circuit doesn't decrypt or verify the memo content — the recipient does that off-circuit. But the proof must commit to the exact ciphertext bytes the program will store, so an operator/relayer can't swap memos after the fact.
 - **No `recipient_pubkey` in plain.** It's a witness, included only inside `recipient_commitment = poseidon(...recipient_pubkey...)`. The recipient's identity never leaks from the circuit.
@@ -1867,6 +1869,163 @@ After those seven are done, all six lanes become real, and the product catalog m
 
 ---
 
+# Docs Pass
+
+The docs are the pleasant surprise of this review. Read in isolation, the documentation set is the single most honest part of the project: explicit non-goals, fail-closed framing, careful word choice, repeated reminders that nothing here is audited or mainnet-ready. The team's own `MISSION.md` declares the rule that should govern every public surface:
+
+> *Avoid anonymous, untraceable, fully private, production-ready, mainnet-private, or trustless-privacy claims unless the exact claim has been verified by the matching production, audit, operator, and mainnet gates.*
+
+If that rule were enforced everywhere, the gap between code and copy this review keeps surfacing would mostly close. The work is making the rule actually binding instead of advisory.
+
+## What's in scope
+
+Three categories of documentation, all of which a reviewer or future operator will encounter:
+
+**Top-level repository docs** (8 files, ~3.5k lines combined):
+`README.md` (805 lines), `MISSION.md` (43), `DESIGN.md` (430), `SECURITY_LIMITATIONS.md` (136), `SUBMISSION.md` (783), `AGENTS.md` (290), `VANTA_VAULT.md` (23), and the new `VANTA_ZK_REVIEW.md` produced by this work.
+
+**`docs/` folder** (18 markdown files plus 4 in `docs/architecture/` and 19 in `docs/zk/`, ~5k lines combined):
+The most load-bearing files for reviewers are `docs/audit-package.md`, `docs/operator-runbook.md`, `docs/privacy-model.md`, `docs/privacy-rail-contract.md`, `docs/mvp-real.md`, `docs/mainnet-deployment-runbook.md`, `docs/mainnet-external-gates.md`, and the `docs/zk/` series describing canonical notes, Noir hash decisions, and per-lane proof boundaries.
+
+**In-app `/docs` pages** (`src/pages/Docs*.tsx`):
+`DocsHomePage`, `DocsPortalPage`, `DocsPayPage`, `DocsTrustPage`, `DocsSecurityPage`, `DocsRoadmapPage`. These render at `vantaprivacy.xyz/docs/*` and are the only docs most users will see. They are sourced from `src/docs/docsContent` (component-driven) rather than from the markdown files, which means the user-facing docs and the operator-facing docs evolve independently.
+
+## What the docs do well
+
+There's a pattern across the careful docs that's worth naming, because lifting it into the rest of the project closes most of the copy-vs-code gap.
+
+- **`MISSION.md`** establishes a forbidden-phrase rule in plain language. The list ("anonymous, untraceable, fully private, production-ready, mainnet-private, trustless-privacy") is concrete enough to grep for.
+- **`SECURITY_LIMITATIONS.md`** enumerates exactly what the project can claim today and what it cannot, by lane. The framing is excellent: every claim is paired with what would have to be true to upgrade it.
+- **`docs/privacy-model.md`** scopes v1 narrowly — one asset, one environment, one shield, one send — and explicitly lists non-goals: "perfect privacy under all adversarial conditions, production-grade protocol completeness, comprehensive obfuscation of all metadata."
+- **`docs/audit-package.md`** opens with *"This document is the starting handoff for future reviewers. It is not an audit report. It does not make Vanta mainnet-ready."* The Out-of-Scope list and Known Non-Production Boundaries section are correctly framed.
+- **`docs/privacy-rail-contract.md`** introduces the `alpha-public-warning | umbra-mainnet | vanta-private-pool-v2` rail model and gates each rail's claim strength on the existence of named env refs. **This is the most architecturally important doc in the project.** It is the gating pattern I praised in the strategy and pay deep dives, applied to language: a claim like "production-private settlement" is allowed only after specific refs (capability, asset, signing-evidence, limitations) exist for the rail in question.
+- **`DocsHomePage.tsx`** opens with: *"The beta truth is part of the product."* User-facing copy that names its own beta-ness is unusual and good.
+- **`DocsSecurityPage.tsx`** glossary distinguishes "public wallet flow" / "private state" / "preview" — a tight three-term vocabulary that, if used consistently, would prevent most of the loose-language drift.
+
+The repeated pattern across these docs is "name the limit, name the gate that would lift it, refuse to lift the claim until the gate is satisfied." When this pattern is followed, the docs are bulletproof. When it's not, the docs drift toward marketing.
+
+## Where the docs and code disagree
+
+Six specific gaps. Each is a place where the docs are accurate-ish in isolation but, read against the code, are misleading either by abstraction, by omission, or by phrasing.
+
+### D1. The audit-package's prose checklist is not encoded as automated checks
+
+`docs/audit-package.md` instructs reviewers to inspect, among other things:
+
+- *"whether public inputs bind to the thing being proved"*
+- *"whether nullifiers and replay checks prevent the same private state from being reused"*
+- *"whether valid fixtures pass and invalid fixtures fail"*
+
+These are exactly the questions whose answers, in this review, were "no" for several circuits — `vanta_private_pool_v2_send_entry` and `_swap_to_shielded_entry` and `_claim_entry` and `_shield_entry` have public inputs that don't bind Merkle membership; `vanta_private_core_single_note_swap` has an additive asset-difference check that's bypassable; the unshield circuit has a dead-code ownership assertion (`assert(x == x)`).
+
+But the named verification commands — `npm run private-core:verify`, `npm run private-pool-v2:verify` — pass on these circuits because the fixtures are valid by construction. **The verification scripts check that fixtures compile and that they round-trip; they don't audit the circuit constraints.** A reviewer who follows only the scripts gets a green pass on circuits that have soundness issues; a reviewer who reads the audit-package's prose questions and actually inspects the Noir source will find what this review found.
+
+The gap is: prose checklists are not enforcement. **Encode the audit checklist as static-analysis CI checks** — e.g., a Noir-source linter that fails the build if a circuit (a) takes a witness without using it in any constraint, (b) compares two field-element witnesses by additive sum rather than via difference-times-inverse, (c) declares a public input that's not constrained by any assertion. Three lints would catch every soundness issue this review surfaced.
+
+### D2. `privacy-model.md` is so abstract it's compatible with both A and C
+
+The privacy-model document carefully says:
+
+> *Whether the underlying protocol uses notes / commitments / shielded account abstractions / UTXO-like objects is an implementation detail, but the product model must remain stable: public balance / shielded balance / private action from shielded balance.*
+
+The honest reading is "we haven't picked a final cryptographic substrate yet, but the product model survives any of them." That's a reasonable place to be early.
+
+The dishonest reading — and the one the deployed code currently fits — is "shielded state is whatever the operator says it is, including a custodial vault with browser-localStorage bookkeeping." This is *also* compatible with the doc, because "shielded balance" is left undefined.
+
+A reader who ships in privacy mental models from Tornado / Aztec / Penumbra will assume "shielded state" means a shared on-chain commitment tree with cryptographic ownership, because that's what the term means in those systems. The doc does nothing to disabuse them. The deployed code is custodial-with-bookkeeping. **The privacy-model doc should explicitly disambiguate**: at minimum, add a "What 'shielded state' means in the deployed system today" section that names the gap between the abstract product model and the concrete current implementation.
+
+### D3. The SHA-256 vs Poseidon split is documented in pieces but never together
+
+Three docs touch the hash-contract question:
+
+- `docs/zk/canonical-note-schema.md` describes the canonical note shape and says commitments derive from those fields, without specifying the hash.
+- `docs/zk/noir-hash-contract-decision.md` decides Poseidon for the Noir proving lane and says *"existing TypeScript note/state machinery still uses transitional SHA-256-oriented seams in places."*
+- The deployed live-shield bridge (`src/zk/liveShieldBridge.ts`) computes a SHA-256 commitment via `deriveCanonicalNoteArtifacts` and stores it in localStorage as the "shielded state."
+
+A reader reading any *one* of these docs believes a different thing:
+
+- canonical-note-schema reader: "there's one canonical commitment, derivation-tagged"
+- noir-hash-contract-decision reader: "circuits use Poseidon, app uses SHA-256, they'll converge"
+- liveShieldBridge code reader: "the shielded state I'm seeing in localStorage is a SHA-256 hash chain"
+
+The three are mutually consistent only if you read all three. **The canonical-note-schema doc should land the Poseidon-vs-SHA-256 split as a labeled "Transitional Hash Surface Today" section** so a reader doesn't need the cross-reference graph to understand which commitments are circuit-bound and which are display-only.
+
+### D4. The "trust packet" promise inherits unlanded gates
+
+The "trust packet" concept appears in `MISSION.md` ("Trust packet is the growth artifact"), `docs/privacy-rail-contract.md`, the `DocsTrustPage`, and the npm scripts (`npm run shield:trust-packet-check`, `npm run send:trust-packet-check`, `npm run swap:trust-packet-check`, `npm run unshield:trust-packet-check`).
+
+The product idea is solid: make private settlement useful to counterparties by producing a verifiable receipt for each action. The framing is the right one for a privacy product that wants real-world distribution.
+
+But the trust packets are only as strong as the underlying circuits and proofs. With the lane-level gaps documented above, a "trust packet" today is: a redacted JSON object listing commitments computed off a mock prover's SHA-256, sealed inside a Stripe-shaped envelope. **The promise the docs make about trust packets is a future promise, not a current one** — and several places in the docs and product copy describe trust packets as if they're a working primitive ("Trust packet is the growth artifact").
+
+The fix is small: every trust-packet-shaped doc surface should add a one-sentence honesty note: *"Today's trust packets bind to current operator-shaped commitments; full cryptographic verifiability requires the proof and verifier work tracked in the SECURITY_LIMITATIONS gate list."* Or equivalently: gate the noun "trust packet" itself behind the same claim-controls pattern the strategy and pay lanes use, so the term doesn't render in user-facing copy until the underlying proofs are real.
+
+### D5. Operator runbook is comprehensive but un-actionable for new readers
+
+`docs/operator-runbook.md` is 1400 lines listing ~50 readiness check commands. It's the right inventory of *what should exist*, but for a reviewer or new operator landing on it cold, there's no curated entry point. The same complaint applies to the README's "Demo-Day Proof Points" section: 6 commands with overlapping coverage, no clear "if you only run one thing" path.
+
+A reviewer's first ten minutes with the project are spent figuring out which of the 50 commands actually matter today. **Add a top-of-runbook "If you have 10 minutes" section** with the three commands that produce the most informative single output. From the lane deep dives, those are likely:
+
+- `npm run mainnet:readiness-json` — produces the structured readiness state in one JSON blob
+- `npm run private-pool-v2:verify` — exercises the circuit fixtures and prover
+- `npm run pay:verify` — exercises the merchant API contract
+
+Anything beyond those three should be reachable from the runbook but not the entry point.
+
+### D6. In-app `/docs` and `/docs/*.md` evolve independently
+
+The user-facing `/docs` pages are React components that pull metadata from `src/docs/docsContent`; the operator-facing `/docs/*.md` files live in the repo and are read directly. A change to "what does shield mean" in the markdown doesn't propagate to the in-app page; a change to the in-app copy doesn't propagate to the markdown.
+
+This is a minor risk today (the shipped copy is conservative on both surfaces), but it's a class of bug worth eliminating before the lanes get more complex. **Pick one as the source of truth** — either generate the in-app docs from the markdown (parse + render) or generate the markdown from the React components (export to file). Whichever path is simpler. Today the cost of having both is low; in 6 months when product copy needs to be edited under deadline, the cost will be a wrong claim shipped to one surface but not the other.
+
+## Specific edits I would recommend
+
+Smallest-first, pinned to specific files:
+
+1. **Add a "Last validated" header to `SECURITY_LIMITATIONS.md`.** A single dated line at the top: `Last validated against deployed code: YYYY-MM-DD`. Bump on every release. Lets readers tell whether the limitations they're reading are current.
+
+2. **Add a `LANE_STATUS.md` at the repo root.** A table — one row per lane (shield, send, swap, unshield, strategy, pay), columns for: current target (A/B/C from the lane deep dives), trust-contract `productionReady`, verifier present (mock/real), vault custody model (operator-key/PDA), claim-controls flags. This is the artifact a reviewer or product manager would most often want and that doesn't currently exist as a single page.
+
+3. **Add a "What 'shielded state' means today" section to `docs/privacy-model.md`.** Two paragraphs: one describing the abstract model, one describing the deployed-implementation mapping (SPL transfer to vault + localStorage commitment list). Closes D2.
+
+4. **Add a "Transitional Hash Surface" section to `docs/zk/canonical-note-schema.md`.** Lists which surfaces use SHA-256 today vs Poseidon. References `noir-hash-contract-decision.md` for the migration plan. Closes D3.
+
+5. **Add an honesty note to every trust-packet doc/UI surface.** One sentence, copy-pasted: *"Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in `SECURITY_LIMITATIONS.md`."* Closes D4.
+
+6. **Top-of-`operator-runbook.md` "If you have 10 minutes" section.** Three commands. Closes D5.
+
+7. **Decide on a single docs source of truth.** Either parse `docs/*.md` into the in-app pages or export the in-app pages to markdown. Closes D6.
+
+8. **Encode the audit-package prose checklist as Noir lints.** New CI step `npm run zk:circuit-soundness-lint` that walks every `zk/noir/**/main.nr` and fails if (a) a witness is unused in any constraint, (b) any equality check between two field elements is implemented as additive comparison, (c) any public input is not transitively bound by an assert. Closes D1.
+
+9. **Add a CI check for forbidden-phrase usage.** Greps `src/pages/**.tsx`, `src/docs/**`, and `docs/*.md` for the phrase list in `MISSION.md` ("anonymous, untraceable, fully private, production-ready, mainnet-private, trustless-privacy") and fails the build if any appears outside an explicit "this is the thing we are NOT claiming" context. The existing claim-controls flags can drive a per-phrase allowlist.
+
+10. **Hoist `MISSION.md`'s Definition of done to the README.** It's currently the most concise priority list in the project and it's buried in MISSION.md. Putting it under "What Works Today" in `README.md` would let any first-time reader see the actual readiness scorecard without hunting.
+
+## What this review's own document should do
+
+`VANTA_ZK_REVIEW.md` (this file) is now ~1900 lines and covers six lanes plus this docs pass. It should not be the canonical reference forever. Two suggestions for its long-term place in the repo:
+
+- **Split it.** Each lane's deep-dive section becomes a sibling document under `docs/review/`: `docs/review/shield.md`, `docs/review/send.md`, etc. The cross-lane summary stays as `docs/review/README.md`. Easier to update one lane without re-touching the whole file.
+- **Or freeze it as a dated snapshot.** Rename to `VANTA_ZK_REVIEW_2026_05_09.md` and treat it as a point-in-time audit. Future reviews land as new dated files. This is more honest about the temporal validity of the findings — every "today the code does X" statement in this document is a 2026-05-09 claim that may or may not still hold.
+
+Either is fine. The current single-monolithic-file form is the worst long-term shape because it invites both partial updates that drift and full-file rewrites that lose history.
+
+## Final assessment of docs
+
+The docs are the part of this project I would change least. The framing is honest, the gating pattern (`privacy-rail-contract.md`'s ref-conditional claims) is correct, the disclaimers are explicit. The work isn't fixing the docs — it's:
+
+- making the docs' gating pattern enforceable in CI (D1, recommendation #8 and #9),
+- closing two specific abstraction-vs-implementation gaps (D2, D3),
+- gating the "trust packet" noun like the strategy/pay lanes already gate their privacy claims (D4),
+- and lowering the friction for a new reader (D5, D6, recommendations #2, #6, #7, #10).
+
+After all six lane deep dives and this docs pass, my single most leveraged recommendation for the project, summarizing across all of them, is this: **the gating pattern that already lives in the strategy lane (claim-controls flags), the pay lane (receipt privacy contract), and the docs (`privacy-rail-contract.md`'s rail/ref model) is the right enforcement mechanism. Apply it everywhere, wire it into UI and CI, and let the gates carry the load that careful prose is currently carrying.** Every other recommendation in this document is a specific instance of that meta-recommendation.
+
+The team has built the right framework for shipping a privacy product honestly. The remaining work is using it.
+
+---
+
 ## Codex progress notes - 2026-05-09
 
 First local hardening slice started:
@@ -1894,3 +2053,15 @@ Red-first failures observed locally: `zk:canonical-note-membership-check` failed
 Verification passed locally: `npm run zk:canonical-note-membership-check`, `npm run private-pool-v2:shield-circuit-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:claim-circuit-check`, `npm run private-pool-v2:swap-to-shielded-circuit-check`, their matching prove commands, `npm run private-pool-v2:public-input-hash-alignment-check`, `npm run private-core:check`, full `npm run private-pool-v2:verify`, and `git diff --check`.
 
 Still open after this second pass: output append-path semantics for send/swap successors remain fake append hashes, all affected lanes are still depth 3 except the canonical membership target, real on-chain proof verification is not wired, nullifier storage is still linear/fixed-capacity, and plaintext memo/privacy architecture work remains.
+
+### Third local ZK pass - 2026-05-09
+
+- Standardized Private Pool v2 Merkle node hashing across `shield_entry`, `send_entry`, `claim_entry`, `swap_to_shielded_entry`, and `actual_private_spend_entry` by removing the direction bit from the parent hash.
+- Updated the matching TypeScript fixtures to compute tree parents with `poseidon2([left, right])`, using direction bits only to order `(current, sibling)` and to bind the declared leaf index.
+- Added `npm run zk:merkle-node-hash-contract-check`, a source-level guard that fails if the covered circuits reintroduce `hash_merkle_node(left, right, is_current_right)` / `hash_3([left, right, is_current_right])` or if the matching fixtures reintroduce direction-bit `poseidon3` parent hashing.
+
+Red-first failure observed locally: `npm run zk:merkle-node-hash-contract-check` failed against the old Private Pool v2 direction-bit node helper before the circuit/fixture updates.
+
+Verification passed locally: `npm run zk:merkle-node-hash-contract-check`, `npm run private-pool-v2:actual-private-spend-circuit-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:claim-circuit-check`, `npm run private-pool-v2:shield-circuit-check`, `npm run private-pool-v2:swap-to-shielded-circuit-check`, `npm run private-pool-v2:public-input-hash-alignment-check`, full `npm run private-pool-v2:verify`, `npm run zk:canonical-note-membership-check`, `npm run private-core:check`, and `git diff --check`.
+
+Still open after this third pass: the Private Core single-note send/swap/unshield circuits still carry the older hi/lo and direction-bit-oriented Merkle surfaces; output append-path semantics for send/swap successors still need real successor append proofs; most active lanes remain depth 3; on-chain proof verification is still not wired; nullifier storage remains fixed/linear; and plaintext memo/privacy architecture work remains.

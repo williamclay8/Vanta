@@ -126,8 +126,8 @@ export function computeVantaPrivatePoolV2ClaimNode({
   sibling: bigint;
 }) {
   return directionBit === 1n
-    ? poseidon3([sibling, current, directionBit])
-    : poseidon3([current, sibling, directionBit]);
+    ? poseidon2([sibling, current])
+    : poseidon2([current, sibling]);
 }
 
 export function computeVantaPrivatePoolV2ClaimInputRoot(
