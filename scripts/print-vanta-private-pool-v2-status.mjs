@@ -134,8 +134,10 @@ try {
       guardedNullifierCount: guardedNullifiers.length,
       mode: "claim-preflight-and-accepted-reservation",
       productionReady: false,
+      reservationMode: nullifierReplayGuard.reservationMode ?? "single-process-memory-reservation",
       reservedNullifierCount: reservedGuardedNullifiers.length,
       storageMode: nullifierReplayGuard.storageMode,
+      uniquenessScope: nullifierReplayGuard.uniquenessScope ?? "context-nullifier",
     },
     supportedAssets: runtime.assets.map((asset) => ({
       id: asset.id,
@@ -184,7 +186,7 @@ try {
       `- protocolActionProofModes: shield=${result.protocolActionProofModes.shield}, send=${result.protocolActionProofModes.send}, swap=${result.protocolActionProofModes.swap}, unshield=${result.protocolActionProofModes.unshield}`,
     );
     console.log(
-      `- nullifierReplayGuard: mode=${result.nullifierReplayGuard.mode}, storage=${result.nullifierReplayGuard.storageMode}, accepted=${result.nullifierReplayGuard.acceptedNullifierCount}, reserved=${result.nullifierReplayGuard.reservedNullifierCount}`,
+      `- nullifierReplayGuard: mode=${result.nullifierReplayGuard.mode}, reservation=${result.nullifierReplayGuard.reservationMode}, storage=${result.nullifierReplayGuard.storageMode}, uniqueness=${result.nullifierReplayGuard.uniquenessScope}, accepted=${result.nullifierReplayGuard.acceptedNullifierCount}, reserved=${result.nullifierReplayGuard.reservedNullifierCount}`,
     );
     console.log(`- assets: ${result.supportedAssets.map((asset) => asset.symbol).join(", ")}`);
     for (const [surface, status] of Object.entries(result.surfaces)) {

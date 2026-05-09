@@ -120,8 +120,10 @@ function summarize(config, payload, status) {
     storageRef: "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF",
     nullifierReplayAcceptedCount: acceptedNullifierCount,
     nullifierReplayGuardMode: payload.nullifierReplayGuard?.mode ?? null,
+    nullifierReplayGuardReservationMode: payload.nullifierReplayGuard?.reservationMode ?? null,
     nullifierReplayGuardStorageMode: payload.nullifierReplayGuard?.storageMode ?? null,
     nullifierReplayGuardProductionReady: payload.nullifierReplayGuard?.productionReady ?? false,
+    nullifierReplayGuardUniquenessScope: payload.nullifierReplayGuard?.uniquenessScope ?? null,
     nullifierReplayReservedCount: reservedNullifierCount,
     productionSmokeReplaySimulationRef: replayEvidence.productionSmokeReplaySimulationRef,
     productionSmokeReplaySimulationStatus: productionSmokeReplayTarget.status ?? null,
@@ -190,8 +192,10 @@ const result = response.parsed
       storageRef: "VANTA_PRIVATE_POOL_V2_DATABASE_URL_REF",
       nullifierReplayAcceptedCount: "pending",
       nullifierReplayGuardMode: null,
+      nullifierReplayGuardReservationMode: null,
       nullifierReplayGuardStorageMode: null,
       nullifierReplayGuardProductionReady: false,
+      nullifierReplayGuardUniquenessScope: null,
       nullifierReplayReservedCount: "pending",
       version: "vanta-production-nullifier-replay-status-0.1",
     };
@@ -274,7 +278,9 @@ if (jsonMode || checkMode) {
   console.log(`- storageKind: ${result.storageKind}`);
   console.log(`- durableStoreConfigured: ${String(result.storageDurableStoreConfigured)}`);
   console.log(`- nullifierReplayGuardMode: ${result.nullifierReplayGuardMode}`);
+  console.log(`- nullifierReplayGuardReservationMode: ${result.nullifierReplayGuardReservationMode}`);
   console.log(`- nullifierReplayGuardStorageMode: ${result.nullifierReplayGuardStorageMode}`);
+  console.log(`- nullifierReplayGuardUniquenessScope: ${result.nullifierReplayGuardUniquenessScope}`);
   console.log(`- nullifierReplayAcceptedCount: ${String(result.nullifierReplayAcceptedCount)}`);
   console.log(`- nullifierReplayReservedCount: ${String(result.nullifierReplayReservedCount)}`);
   console.log(`- layeredReplayStatus: ${result.layeredReplayStatus}`);

@@ -56,8 +56,8 @@ export function createPostgresNullifierReplayStore({ client, tableName = "pool_n
     throw new Error("Vanta durable nullifier store requires a Postgres client.");
   }
 
-  async function ensureTable() {
-    await client.query(`
+  async function ensureTable(db = client) {
+    await db.query(`
       CREATE TABLE IF NOT EXISTS ${tableName} (
         nullifier TEXT NOT NULL PRIMARY KEY,
         context TEXT NOT NULL,
@@ -70,34 +70,61 @@ export function createPostgresNullifierReplayStore({ client, tableName = "pool_n
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
-    await client.query(`
+    await db.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS idx_${tableName}_context_nullifier
         ON ${tableName} (context, nullifier)
     `);
-    await client.query(`
+    await db.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS idx_${tableName}_context_request
         ON ${tableName} (context, request_id)
     `);
   }
 
-  async function findByNullifier({ context, nullifier }) {
+  async function withTransaction(action) {
     await ensureTable();
-    const result = await client.query(
+    const session = typeof client.connect === "function" ? await client.connect() : client;
+
+    try {
+      await session.query("BEGIN");
+      const result = await action(session);
+      await session.query("COMMIT");
+      return result;
+    } catch (error) {
+      try {
+        await session.query("ROLLBACK");
+      } catch {
+        // Preserve the original failure; rollback errors are secondary cleanup failures.
+      }
+      throw error;
+    } finally {
+      session.release?.();
+    }
+  }
+
+  async function findByGlobalNullifier({ nullifier }, db = client, { ensure = true } = {}) {
+    if (ensure) {
+      await ensureTable(db);
+    }
+
+    const result = await db.query(
       `
         SELECT context, nullifier, request_id, asset_id, spent_at_slot, claim_receipt_id, status
         FROM ${tableName}
-        WHERE context = $1 AND nullifier = $2
+        WHERE nullifier = $1
         LIMIT 1
       `,
-      [context, nullifier],
+      [nullifier],
     );
 
     return normalizeRow(result.rows[0]);
   }
 
-  async function findByRequest({ context, requestId }) {
-    await ensureTable();
-    const result = await client.query(
+  async function findByRequest({ context, requestId }, db = client, { ensure = true } = {}) {
+    if (ensure) {
+      await ensureTable(db);
+    }
+
+    const result = await db.query(
       `
         SELECT context, nullifier, request_id, asset_id, spent_at_slot, claim_receipt_id, status
         FROM ${tableName}
@@ -115,9 +142,8 @@ export function createPostgresNullifierReplayStore({ client, tableName = "pool_n
     context,
     nullifier,
     requestId,
-  }) {
-    await ensureTable();
-    const result = await client.query(
+  }, db = client) {
+    const result = await db.query(
       `
         UPDATE ${tableName}
         SET claim_receipt_id = $4, status = 'accepted'
@@ -133,15 +159,17 @@ export function createPostgresNullifierReplayStore({ client, tableName = "pool_n
   return {
     kind: "postgres-nullifier-replay-store",
     productionReady: false,
+    reservationMode: "postgres-transactional-insert-on-conflict",
     storageMode: "postgres-unique-index",
+    uniquenessScope: "global-nullifier-plus-context-request-id",
 
     async check({ context: rawContext, nullifier: rawNullifier, requestId: rawRequestId }) {
       const context = requireText(rawContext, "context");
       const nullifier = requireText(rawNullifier, "nullifier");
       const requestId = requireText(rawRequestId, "requestId");
-      const existing = await findByNullifier({ context, nullifier });
+      const existing = await findByGlobalNullifier({ nullifier });
 
-      if (existing?.requestId === requestId) {
+      if (existing?.context === context && existing?.requestId === requestId) {
         return {
           accepted: true,
           idempotent: true,
@@ -184,63 +212,64 @@ export function createPostgresNullifierReplayStore({ client, tableName = "pool_n
       const nullifier = requireText(rawNullifier, "nullifier");
       const requestId = requireText(rawRequestId, "requestId");
 
-      await ensureTable();
-      const insert = await client.query(
-        `
-          INSERT INTO ${tableName} (
-            context,
-            nullifier,
-            request_id,
-            asset_id,
-            spent_at_slot,
-            claim_receipt_id,
-            status
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, 'reserved')
-          ON CONFLICT DO NOTHING
-          RETURNING context, nullifier, request_id, asset_id, spent_at_slot, claim_receipt_id, status
-        `,
-        [context, nullifier, requestId, assetId, normalizeSlot(spentAtSlot), claimReceiptId],
-      );
+      return await withTransaction(async (db) => {
+        const insert = await db.query(
+          `
+            INSERT INTO ${tableName} (
+              context,
+              nullifier,
+              request_id,
+              asset_id,
+              spent_at_slot,
+              claim_receipt_id,
+              status
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, 'reserved')
+            ON CONFLICT DO NOTHING
+            RETURNING context, nullifier, request_id, asset_id, spent_at_slot, claim_receipt_id, status
+          `,
+          [context, nullifier, requestId, assetId, normalizeSlot(spentAtSlot), claimReceiptId],
+        );
 
-      const inserted = normalizeRow(insert.rows[0]);
-      if (inserted) {
-        return {
-          accepted: true,
-          idempotent: false,
-          reason: "durable-nullifier-reserved",
-          record: inserted,
-          replay: false,
-        };
-      }
+        const inserted = normalizeRow(insert.rows[0]);
+        if (inserted) {
+          return {
+            accepted: true,
+            idempotent: false,
+            reason: "durable-nullifier-reserved",
+            record: inserted,
+            replay: false,
+          };
+        }
 
-      const existingNullifier = await findByNullifier({ context, nullifier });
-      if (existingNullifier?.requestId === requestId) {
-        return {
-          accepted: true,
-          idempotent: true,
-          reason: "idempotent-durable-nullifier-reservation",
-          record: existingNullifier,
-          replay: false,
-        };
-      }
+        const existingNullifier = await findByGlobalNullifier({ nullifier }, db, { ensure: false });
+        if (existingNullifier?.context === context && existingNullifier?.requestId === requestId) {
+          return {
+            accepted: true,
+            idempotent: true,
+            reason: "idempotent-durable-nullifier-reservation",
+            record: existingNullifier,
+            replay: false,
+          };
+        }
 
-      if (existingNullifier) {
+        if (existingNullifier) {
+          return {
+            accepted: false,
+            existing: existingNullifier,
+            reason: "conflicting-durable-nullifier-replay",
+            replay: true,
+          };
+        }
+
+        const existingRequest = await findByRequest({ context, requestId }, db, { ensure: false });
         return {
           accepted: false,
-          existing: existingNullifier,
-          reason: "conflicting-durable-nullifier-replay",
+          existing: existingRequest,
+          reason: "conflicting-durable-request-replay",
           replay: true,
         };
-      }
-
-      const existingRequest = await findByRequest({ context, requestId });
-      return {
-        accepted: false,
-        existing: existingRequest,
-        reason: "conflicting-durable-request-replay",
-        replay: true,
-      };
+      });
     },
 
     async markAccepted({
@@ -253,12 +282,17 @@ export function createPostgresNullifierReplayStore({ client, tableName = "pool_n
       const context = requireText(rawContext, "context");
       const nullifier = requireText(rawNullifier, "nullifier");
       const requestId = requireText(rawRequestId, "requestId");
-      const updated = await updateAccepted({
-        claimReceiptId,
-        context,
-        nullifier,
-        requestId,
-      });
+      const updated = await withTransaction(async (db) =>
+        updateAccepted(
+          {
+            claimReceiptId,
+            context,
+            nullifier,
+            requestId,
+          },
+          db,
+        ),
+      );
 
       if (!updated) {
         throw new Error(

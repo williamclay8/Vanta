@@ -616,6 +616,14 @@ try {
     "Expected no accepted nullifiers before claim acceptance.",
   );
   assert(
+    status.parsed?.nullifierReplayGuard?.reservationMode === "single-process-memory-reservation",
+    "Expected local operator status to expose memory reservation mode.",
+  );
+  assert(
+    status.parsed?.nullifierReplayGuard?.uniquenessScope === "context-nullifier",
+    "Expected local operator status to expose context-scoped nullifier replay uniqueness.",
+  );
+  assert(
     status.parsed?.settlementPolicy?.failClosedValidation === true,
     "Expected fail-closed settlement validation policy.",
   );

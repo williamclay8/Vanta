@@ -2077,8 +2077,10 @@ async function statusPayload() {
         ? "postgres-durable-claim-preflight-and-accepted-reservation"
         : "claim-preflight-and-accepted-reservation",
       productionReady: false,
+      reservationMode: nullifierReplayGuard.reservationMode ?? "single-process-memory-reservation",
       reservedNullifierCount: reservedGuardedNullifiers.length,
       storageMode: nullifierReplayGuard.storageMode,
+      uniquenessScope: nullifierReplayGuard.uniquenessScope ?? "context-nullifier",
     },
     observability: {
       auditEventSinkKind: operatorEventSink.kind,
