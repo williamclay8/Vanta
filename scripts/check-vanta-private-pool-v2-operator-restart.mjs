@@ -26,6 +26,7 @@ const sourceFiles = [
   "privatePoolV2LocalIndexer.ts",
   "privatePoolV2LocalProver.ts",
 ];
+const hiddenEconomicsAssetId = "hidden:economic-terms";
 const textEncoder = new TextEncoder();
 
 function assert(condition, message) {
@@ -144,28 +145,28 @@ async function loadFixtureRuntime() {
   const indexer = createVantaPrivatePoolV2LocalIndexer();
   const previousRoot = await indexer.getCurrentRoot("vanta-restart-tree");
   const firstCommitment = indexer.appendCommitment({
-    assetId: "USDC",
+    assetId: hiddenEconomicsAssetId,
     commitment: "field:restart-shield-output-commitment",
     treeId: "vanta-restart-tree",
   });
   const secondPreviousRoot = await indexer.getCurrentRoot("vanta-restart-tree");
   const secondCommitment = indexer.appendCommitment({
-    assetId: "USDC",
+    assetId: hiddenEconomicsAssetId,
     commitment: "field:restart-second-shield-output-commitment",
     treeId: "vanta-restart-tree",
   });
   const sendRecipientCommitment = indexer.appendCommitment({
-    assetId: "USDC",
+    assetId: hiddenEconomicsAssetId,
     commitment: "field:restart-send-recipient-output-commitment",
     treeId: "vanta-restart-tree",
   });
   const sendChangeCommitment = indexer.appendCommitment({
-    assetId: "USDC",
+    assetId: hiddenEconomicsAssetId,
     commitment: "field:restart-send-change-output-commitment",
     treeId: "vanta-restart-tree",
   });
   const swapOutputCommitment = indexer.appendCommitment({
-    assetId: "USDC",
+    assetId: hiddenEconomicsAssetId,
     commitment: "field:restart-swap-output-commitment",
     treeId: "vanta-restart-tree",
   });
@@ -173,6 +174,7 @@ async function loadFixtureRuntime() {
   const prover = createVantaPrivatePoolV2LocalProver();
   const shieldRequest = createVantaPrivatePoolV2ShieldProofRequest({
     amountBaseUnits: 2_000_000n,
+    economicsCommitment: "field:restart-shield-economics",
     ownerCommitment: "field:restart-owner",
     previousRoot,
     routeCommitment: "field:restart-route",
@@ -183,6 +185,7 @@ async function loadFixtureRuntime() {
   });
   const secondShieldRequest = createVantaPrivatePoolV2ShieldProofRequest({
     amountBaseUnits: 3_000_000n,
+    economicsCommitment: "field:restart-second-shield-economics",
     ownerCommitment: "field:restart-second-owner",
     previousRoot: secondPreviousRoot,
     routeCommitment: "field:restart-second-route",

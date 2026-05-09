@@ -36,8 +36,10 @@ export type VantaPrivacyDisclosureField =
   | "output-commitment"
   | "note-version"
   | "context-tag"
+  | "shield-public-input-hash"
   | "source-mint"
   | "target-mint"
+  | "target-asset"
   | "owner-commitment"
   | "route-commitment"
   | "tree-id"
@@ -150,17 +152,19 @@ export const VANTA_PRIVACY_BOUNDARY_DESCRIPTORS = [
     contractVersion: VANTA_PRIVACY_BOUNDARY_CONTRACT_VERSION,
     hiddenWitnessMaterial: [
       "shield-witness-secret",
+      "raw source mint",
+      "raw target mint",
+      "raw target asset",
+      "raw amount",
+      "economics blinding",
       "private-output-note-material",
       "route-witness-material",
     ],
     lane: "private-pool-v2-shield",
     laneLabel: "Private Pool v2 Shield",
-    publicDisclosure: ["context-tag"],
+    publicDisclosure: ["shield-public-input-hash"],
     publicRequestDisclosure: [
-      "source-mint",
-      "target-mint",
-      "asset",
-      "amount",
+      "economics-commitment",
       "owner-commitment",
       "route-commitment",
       "tree-id",
@@ -171,7 +175,7 @@ export const VANTA_PRIVACY_BOUNDARY_DESCRIPTORS = [
     ],
     tier: "v1.5-hash-bound-public-request-terms",
     truthLabel:
-      "Private Pool v2 Shield hash-binds public request terms in-circuit; the request/operator layer still sees them.",
+      "Private Pool v2 Shield binds raw source/target asset and amount to an economics commitment at the local proof boundary; anonymity, deployment, route privacy, and audit gates remain blocked.",
   },
   {
     blockersToHiddenEconomicTerms: hiddenEconomicTermBlockers,

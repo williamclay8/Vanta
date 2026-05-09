@@ -305,7 +305,7 @@ export class VantaPrivatePoolV2LocalVerifierRegistry {
       }
 
       const record = this.#indexer.appendCommitment({
-        assetId: requirePublicInput(request, "target-asset:"),
+        assetId: request.assetId,
         commitment: requirePublicInput(request, "output-commitment:"),
         treeId,
       });

@@ -111,6 +111,16 @@ const requiredFiles = [
     ],
   },
   {
+    path: "src/privacy/privatePoolV2ShieldCircuitFixture.ts",
+    exports: [
+      "VANTA_PRIVATE_POOL_V2_SHIELD_CIRCUIT_FIXTURE_VERSION",
+      "createVantaPrivatePoolV2ShieldCircuitFixture",
+      "computeVantaPrivatePoolV2ShieldEconomicsCommitment",
+      "computeVantaPrivatePoolV2ShieldPublicInputHash",
+      "serializeVantaPrivatePoolV2ShieldCircuitFixtureToToml",
+    ],
+  },
+  {
     path: "src/privacy/privatePoolV2ClaimCircuitFixture.ts",
     exports: [
       "VANTA_PRIVATE_POOL_V2_CLAIM_CIRCUIT_FIXTURE_VERSION",
@@ -182,9 +192,15 @@ const requiredTextFiles = [
     path: "zk/noir/vanta_private_pool_v2_shield_entry/src/main.nr",
     markers: [
       "bind_shield_public_inputs",
+      "compute_economics_commitment",
+      "economics_blinding",
+      "economics_commitment",
+      "bn254::hash_5",
+      "bn254::hash_8",
       "compute_root_from_leaf",
       "append_path",
       "assert(computed_previous_root == previous_root)",
+      "assert(computed_economics_commitment == economics_commitment)",
       "assert(computed_output_root == output_root)",
       "assert(computed_public_input_hash == shield_public_input_hash)",
     ],
@@ -368,8 +384,18 @@ const requiredTextFiles = [
       "shield proof request public inputs: PASS",
       "shield proof request positive amount guard: PASS",
       "shield proof request owner guard: PASS",
+      "shield proof request economics guard: PASS",
+      "economics-commitment:field:economics",
+      "hidden:economic-terms",
       "claim proof request public inputs: PASS",
       "claim proof request nullifier guard: PASS",
+    ],
+  },
+  {
+    path: "scripts/check-vanta-private-pool-v2-shield-circuit.mjs",
+    markers: [
+      "invalid-economics-commitment fixture write: PASS",
+      "invalid-economics-commitment fixture: expected failure observed",
     ],
   },
   {

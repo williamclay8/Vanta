@@ -13,11 +13,12 @@ const fixtureMode = process.argv[2] ?? "valid";
 if (
   fixtureMode !== "valid" &&
   fixtureMode !== "forged-append-path" &&
+  fixtureMode !== "invalid-economics-commitment" &&
   fixtureMode !== "invalid-binding" &&
   fixtureMode !== "invalid-root"
 ) {
   console.error(
-    'Expected fixture mode "valid", "forged-append-path", "invalid-binding", or "invalid-root". Example: node scripts/write-vanta-private-pool-v2-shield-fixture.mjs invalid-root',
+    'Expected fixture mode "valid", "forged-append-path", "invalid-economics-commitment", "invalid-binding", or "invalid-root". Example: node scripts/write-vanta-private-pool-v2-shield-fixture.mjs invalid-root',
   );
   process.exit(1);
 }

@@ -140,14 +140,14 @@ try {
   });
 
   assert(directRequest.intent === "shield", "Expected direct shield request.");
-  assert(directRequest.assetId === "USDC", "Expected direct target asset id.");
+  assert(directRequest.assetId === "hidden:economic-terms", "Expected direct hidden asset sentinel.");
   assert(
-    directRequest.publicInputs.includes("source-mint:mint:usdc"),
-    "Expected direct source mint binding.",
+    directRequest.publicInputs.some((input) => input.startsWith("economics-commitment:0x")),
+    "Expected direct economics commitment binding.",
   );
   assert(
-    directRequest.publicInputs.includes("target-mint:mint:usdc"),
-    "Expected direct target mint binding.",
+    !directRequest.publicInputs.some((input) => input.startsWith("source-mint:") || input.startsWith("target-mint:") || input.startsWith("amount:")),
+    "Expected direct Shield proof request to hide raw economics.",
   );
   assert(
     directRequest.publicInputs.includes("route-commitment:capability:direct-configured-token:direct"),
@@ -162,14 +162,14 @@ try {
     treeCommitment,
   });
 
-  assert(routedRequest.assetId === "USDC", "Expected routed target asset id.");
+  assert(routedRequest.assetId === "hidden:economic-terms", "Expected routed hidden asset sentinel.");
   assert(
-    routedRequest.publicInputs.includes("source-mint:mint:bonk"),
-    "Expected routed source mint binding.",
+    routedRequest.publicInputs.some((input) => input.startsWith("economics-commitment:0x")),
+    "Expected routed economics commitment binding.",
   );
   assert(
-    routedRequest.publicInputs.includes("target-mint:mint:usdc"),
-    "Expected routed target mint binding.",
+    !routedRequest.publicInputs.some((input) => input.startsWith("source-mint:") || input.startsWith("target-mint:") || input.startsWith("amount:")),
+    "Expected routed Shield proof request to hide raw economics.",
   );
   assert(
     routedRequest.publicInputs.includes(

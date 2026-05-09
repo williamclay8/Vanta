@@ -30,6 +30,7 @@ export function getVantaPrivatePoolV2BenchmarkSnapshot() {
   const shieldProofRequest = benchmarkCommitment
     ? createVantaPrivatePoolV2ShieldProofRequest({
         amountBaseUnits: 1n,
+        economicsCommitment: "0xbenchmark-shield-economics-commitment",
         ownerCommitment: "0xbenchmark-owner-commitment",
         sourceMintAddress: benchmarkAsset.mintAddress,
         targetAssetId: benchmarkAsset.mintAddress,

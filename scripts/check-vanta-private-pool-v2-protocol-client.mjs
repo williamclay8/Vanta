@@ -15,6 +15,7 @@ const baseUrl = `http://127.0.0.1:${port}`;
 const localProverScheme = "sha256-private-pool-v2-local-prover-0.1";
 const localIndexerScheme = "sha256-append-only-private-pool-v2-local-indexer-0.1";
 const payPrivateSettlementAdapterVersion = "vanta-pay-private-settlement-adapter-0.1";
+const hiddenEconomicsAssetId = "hidden:economic-terms";
 
 function assert(condition, message) {
   if (!condition) {
@@ -216,6 +217,7 @@ try {
     VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
     createVantaPrivatePoolV2ActualPrivateSpendProofRequest,
     createVantaPrivatePoolV2SendProofRequest,
+    createVantaPrivatePoolV2ShieldProofRequest,
     createVantaPrivatePoolV2SwapToShieldedProofRequest,
   } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ProofRequests.js")).href);
 
@@ -243,6 +245,61 @@ try {
 
   const emptyStatus = await fetchVantaPrivatePoolV2ProtocolSettlementStatus({ authToken, baseUrl });
   assert(emptyStatus?.protocolSettlementCount === 0, "Expected empty protocol settlement status.");
+
+  const committedShieldTreeId = treeIdForAsset(hiddenEconomicsAssetId);
+  const committedShieldPreviousRoot = currentRoot(committedShieldTreeId, []);
+  const committedShieldRecord = {
+    assetId: hiddenEconomicsAssetId,
+    commitment: "0xcommittedshield_output",
+    leafIndex: 0,
+    treeId: committedShieldTreeId,
+  };
+  const committedShieldOutputRoot = currentRoot(committedShieldTreeId, [
+    committedShieldRecord,
+  ]);
+  const committedShieldProofRequest = createVantaPrivatePoolV2ShieldProofRequest({
+    amountBaseUnits: 1n,
+    economicsCommitment: "0xcommittedshield_economics",
+    ownerCommitment: "0xcommittedshield_owner",
+    previousRoot: committedShieldPreviousRoot,
+    routeCommitment: "0xcommittedshield_route",
+    sourceMintAddress: hiddenEconomicsAssetId,
+    targetAssetId: hiddenEconomicsAssetId,
+    targetMintAddress: hiddenEconomicsAssetId,
+    treeCommitment: {
+      ...committedShieldRecord,
+      merkleRoot: committedShieldOutputRoot,
+    },
+  });
+  const committedShieldSettlement = await requestVantaPrivatePoolV2ProtocolSettlement({
+    action: "shield",
+    authToken,
+    baseUrl,
+    economicsCommitment: "0xcommittedshield_economics",
+    economicsMode: "committed-economics",
+    nullifierOrReplayCommitment: "0xcommittedshield_replay",
+    outputCommitment: "0xcommittedshield_output",
+    outputLeafIndex: "0",
+    outputRoot: committedShieldOutputRoot,
+    ownerCommitment: "0xcommittedshield_owner",
+    previousRoot: committedShieldPreviousRoot,
+    routeCommitment: "0xcommittedshield_route",
+    settlementCommitment: "0xcommittedshield_settlement",
+    settlementId: "protocol-client-committed-shield",
+  });
+  assert(
+    committedShieldSettlement?.proofReceipt?.intent === "shield",
+    "Expected committed Shield settlement to record Shield proof request intent.",
+  );
+  assert(
+    committedShieldSettlement?.proofReceipt?.assetId === hiddenEconomicsAssetId,
+    "Expected committed Shield proof receipt to use the hidden-economics asset sentinel.",
+  );
+  assert(
+    committedShieldSettlement?.proofReceipt?.publicInputCommitment ===
+      expectedLocalPublicInputCommitment(committedShieldProofRequest),
+    `Expected committed Shield settlement to record the dedicated Shield proof request hash. expected=${expectedLocalPublicInputCommitment(committedShieldProofRequest)} actual=${committedShieldSettlement?.proofReceipt?.publicInputCommitment}`,
+  );
 
   const browserShieldFixture = createVantaShieldCommittedEconomicsSettlement({
     amount: "0.0100",
@@ -338,7 +395,7 @@ try {
     "USDC",
   );
   const committedSendInputRecord = {
-    assetId: "USDC",
+    assetId: hiddenEconomicsAssetId,
     commitment: committedSendInputCommitment,
     leafIndex: 0,
     treeId: committedSendInputTreeId,
@@ -671,7 +728,7 @@ try {
     "USDC",
   );
   const committedSwapInputRecord = {
-    assetId: "USDC",
+    assetId: hiddenEconomicsAssetId,
     commitment: committedSwapInputCommitment,
     leafIndex: 3,
     treeId: committedSendInputTreeId,
@@ -683,7 +740,7 @@ try {
     committedSwapInputRecord,
   ]);
   const committedSwapOutputRecord = {
-    assetId: "USDC",
+    assetId: hiddenEconomicsAssetId,
     commitment: "0xcommittedswap_output",
     leafIndex: 4,
     treeId: committedSendInputTreeId,
@@ -1092,7 +1149,7 @@ try {
           },
         }),
       ),
-    "Shield proof receipt asset does not match the target shield asset",
+    "Shield proof receipt must use the hidden-economics asset sentinel",
     "Expected Shield settlement validation to reject mismatched proof receipt asset.",
   );
 
@@ -1104,7 +1161,7 @@ try {
           response: {
             kind: "protocol_settlement",
             proofReceipt: {
-              assetId: "USDC",
+              assetId: "hidden:economic-terms",
               intent: "shield",
               proofSystem: "mock",
               publicInputCommitment: "0xcommitment",
@@ -1291,19 +1348,19 @@ try {
 
   const finalStatus = await fetchVantaPrivatePoolV2ProtocolSettlementStatus({ authToken, baseUrl });
   assert(
-    finalStatus?.protocolSettlementCount === settlementRequests.length + 6,
+    finalStatus?.protocolSettlementCount === settlementRequests.length + 7,
     "Expected typed status to report every protocol settlement.",
   );
   assert(
-    finalStatus?.protocolSettlements?.length === settlementRequests.length + 6,
+    finalStatus?.protocolSettlements?.length === settlementRequests.length + 7,
     "Expected typed status to include every protocol settlement.",
   );
   assert(
-    finalStatus?.receiptCount === settlementRequests.length + 6,
+    finalStatus?.receiptCount === settlementRequests.length + 7,
     "Expected one accepted proof receipt per protocol settlement in typed status.",
   );
   assert(
-    finalStatus?.receipts?.length === settlementRequests.length + 6,
+    finalStatus?.receipts?.length === settlementRequests.length + 7,
     "Expected typed status receipts to include every protocol proof receipt.",
   );
 
@@ -1373,11 +1430,11 @@ try {
 
   const finalOperatorStatus = await fetchVantaPrivatePoolV2OperatorStatus({ authToken, baseUrl });
   assert(
-    finalOperatorStatus?.receiptCount === settlementRequests.length + 6,
+    finalOperatorStatus?.receiptCount === settlementRequests.length + 7,
     "Expected typed operator status to report every protocol proof receipt.",
   );
   assert(
-    finalOperatorStatus?.operatorEconomicsExposure?.committedSettlementCount === 4,
+    finalOperatorStatus?.operatorEconomicsExposure?.committedSettlementCount === 5,
     `Expected typed operator status to report committed economics settlement count; received ${finalOperatorStatus?.operatorEconomicsExposure?.committedSettlementCount}.`,
   );
   assert(

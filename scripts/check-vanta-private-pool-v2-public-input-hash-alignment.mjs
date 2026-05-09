@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { poseidon2, poseidon3, poseidon4, poseidon6, poseidon11 } from "poseidon-lite";
+import { poseidon2, poseidon3, poseidon4, poseidon5, poseidon6, poseidon8, poseidon11 } from "poseidon-lite";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-pool-v2-hash-alignment-"));
@@ -138,10 +138,7 @@ try {
     shieldEntries,
     [
       "vanta-private-pool-v2-shield-proof-request-0.1",
-      "source-mint",
-      "target-mint",
-      "target-asset",
-      "amount",
+      "economics-commitment",
       "owner-commitment",
       "route-commitment",
       "tree-id",
@@ -152,10 +149,7 @@ try {
     ],
     "shield",
   );
-  assertValue(shieldMap, "source-mint", shieldWitness.source_mint, "shield");
-  assertValue(shieldMap, "target-mint", shieldWitness.target_mint, "shield");
-  assertValue(shieldMap, "target-asset", shieldWitness.target_asset_id, "shield");
-  assertValue(shieldMap, "amount", shieldWitness.amount, "shield");
+  assertValue(shieldMap, "economics-commitment", shieldWitness.economics_commitment, "shield");
   assertValue(shieldMap, "owner-commitment", shieldWitness.owner_commitment, "shield");
   assertValue(shieldMap, "route-commitment", shieldWitness.route_commitment, "shield");
   assertValue(shieldMap, "tree-id", shieldWitness.tree_id, "shield");
@@ -166,6 +160,32 @@ try {
 
   const rootTransition = poseidon2([shieldWitness.previous_root, shieldWitness.output_root]);
   assert(rootTransition > 0n, "Expected shield root transition to be derived.");
+  assert(
+    poseidon5([
+      shieldWitness.source_mint,
+      shieldWitness.target_mint,
+      shieldWitness.target_asset_id,
+      shieldWitness.amount,
+      shieldWitness.economics_blinding,
+    ]) === shieldWitness.economics_commitment,
+    "Expected shield economics commitment to bind private raw economics and blinding.",
+  );
+  assert(
+    poseidon8([
+      shieldWitness.request_version,
+      shieldWitness.economics_commitment,
+      shieldWitness.owner_commitment,
+      shieldWitness.route_commitment,
+      shieldWitness.tree_id,
+      shieldWitness.leaf_index,
+      shieldWitness.output_commitment,
+      rootTransition,
+    ]) === shield.shieldPublicInputHash,
+    "Expected shield public-input hash to bind economics commitment instead of raw terms.",
+  );
+  for (const rawShieldLabel of ["source-mint", "target-mint", "target-asset", "amount"]) {
+    assert(!shieldMap.has(rawShieldLabel), `Shield public inputs must not expose ${rawShieldLabel}.`);
+  }
   assert(
     computeVantaPrivatePoolV2ShieldPublicInputHash(shieldWitness) ===
       shield.shieldPublicInputHash,

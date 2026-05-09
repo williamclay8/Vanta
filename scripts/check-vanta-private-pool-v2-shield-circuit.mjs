@@ -102,6 +102,32 @@ try {
     console.log("invalid-root fixture: expected failure observed");
   }
 
+  writeFixture("invalid-economics-commitment");
+  console.log("invalid-economics-commitment fixture write: PASS");
+
+  try {
+    clearCircuitTarget();
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-economics-commitment fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-economics-commitment fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    const stdout = String(error.stdout ?? "").trim();
+    const stderr = String(error.stderr ?? "").trim();
+    if (stdout) {
+      console.log(stdout);
+    }
+    if (stderr) {
+      console.log(stderr);
+    }
+    console.log("invalid-economics-commitment fixture: expected failure observed");
+  }
+
   writeFixture("forged-append-path");
   console.log("forged-append-path fixture write: PASS");
 

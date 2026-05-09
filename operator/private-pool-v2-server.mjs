@@ -590,7 +590,7 @@ const VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID = "hidden:economic-terms";
 const settlementPolicy = VANTA_PRIVATE_POOL_V2_SETTLEMENT_POLICY;
 const protocolActionProofModes = {
   send: "actual_private_spend_circuit_request",
-  shield: "shield_circuit_request",
+  shield: "committed_shield_circuit_request",
   swap: "swap_to_shielded_circuit_request",
   unshield: "committed_unshield_or_claim_circuit_request",
 };
@@ -884,6 +884,10 @@ function validateProtocolSettlementBody(body) {
       outputRoot:
         typeof body.outputRoot === "string" && body.outputRoot.trim().length > 0
           ? body.outputRoot
+          : undefined,
+      previousRoot:
+        typeof body.previousRoot === "string" && body.previousRoot.trim().length > 0
+          ? body.previousRoot
           : undefined,
       ownerCommitment: requireNonEmptyString(body.ownerCommitment, "ownerCommitment"),
       poolId: optionalNonEmptyString(body.poolId),
@@ -1451,6 +1455,7 @@ function protocolSettlementFingerprint({
   outputCommitment,
   outputLeafIndex,
   outputRoot,
+  previousRoot,
   owner,
   ownerCommitment,
   poolId,
@@ -1517,6 +1522,7 @@ function protocolSettlementFingerprint({
 	    outputCommitment,
 	    outputLeafIndex,
 	    outputRoot,
+	    previousRoot,
 	    ownerCommitment,
 	    poolId,
 	    privateSpendContextHash,
@@ -1552,6 +1558,7 @@ function assertProtocolReplayMatches(
     outputCommitment,
     outputLeafIndex,
     outputRoot,
+    previousRoot,
 	    owner,
 	    ownerCommitment,
 	    poolId,
@@ -1621,9 +1628,10 @@ function assertProtocolReplayMatches(
       inputRoot,
       inputCommitment,
       nullifierOrReplayCommitment,
-      outputCommitment,
-      outputLeafIndex,
-      outputRoot,
+	      outputCommitment,
+	      outputLeafIndex,
+	      outputRoot,
+	      previousRoot,
     owner,
     ownerCommitment,
     poolId,
@@ -1732,7 +1740,7 @@ function commitmentFromShieldRequest(proofRequest) {
     return null;
   }
 
-  const assetId = readPublicInput(proofRequest, "target-asset:");
+  const assetId = readPublicInput(proofRequest, "target-asset:") ?? proofRequest.assetId;
   const commitment = readPublicInput(proofRequest, "output-commitment:");
   const leafIndex = readPublicInput(proofRequest, "leaf-index:");
   const merkleRoot = readPublicInput(proofRequest, "output-root:");
@@ -2128,7 +2136,7 @@ async function proveAndAcceptPayCheckoutSettlement(rawSession) {
   const treeId = treeIdForAsset(asset);
   const existingCommitments = await runtime.indexer.listCommitments({ treeId });
   const leaf = {
-    assetId,
+    assetId: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
     commitment: hashHex(
       VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
       "checkout-output",
@@ -2142,6 +2150,7 @@ async function proveAndAcceptPayCheckoutSettlement(rawSession) {
   };
   const request = createVantaPrivatePoolV2ShieldProofRequest({
     amountBaseUnits: amountToBaseUnits(amount, asset),
+    economicsCommitment: hashHex("checkout-economics", session.id, session.clientToken, amount, asset, leaf.commitment),
     ownerCommitment: hashHex("merchant", session.merchantId),
     previousRoot: await runtime.indexer.getCurrentRoot(treeId),
     sourceMintAddress: asset,
@@ -2213,7 +2222,14 @@ async function proveAndAcceptPayWithdrawalSettlement(body) {
   }
 
   const treeId = treeIdForAsset(asset);
-  const commitments = await runtime.indexer.listCommitments({ assetId: assetIdForAsset(asset), treeId });
+  const commitments = [
+    ...(await runtime.indexer.listCommitments({
+      assetId: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
+      treeId,
+    })),
+    ...(await runtime.indexer.listCommitments({ assetId: assetIdForAsset(asset), treeId })),
+    ...(await runtime.indexer.listCommitments({ assetId: asset, treeId })),
+  ];
   const sourceCommitment = commitments[0];
   if (!sourceCommitment) {
     throw new Error(`No private settlement commitment available for ${asset}.`);
@@ -2296,6 +2312,7 @@ async function proveAndAcceptProtocolSettlement(body) {
     outputCommitment,
     outputLeafIndex,
     outputRoot,
+    previousRoot,
     owner,
     ownerCommitment,
     poolId,
@@ -2340,6 +2357,7 @@ async function proveAndAcceptProtocolSettlement(body) {
         outputCommitment,
         outputLeafIndex,
         outputRoot,
+        previousRoot,
         owner,
         ownerCommitment,
         poolId,
@@ -2376,38 +2394,43 @@ async function proveAndAcceptProtocolSettlement(body) {
     const targetAsset = VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID;
     const treeId = treeIdForAsset(targetAsset);
     const existingCommitments = await runtime.indexer.listCommitments({ treeId });
+    const computedPreviousRoot = merkleRootFor(treeId, existingCommitments);
     const leaf = {
-      assetId: targetAsset,
+      assetId: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
       commitment: outputCommitment,
       leafIndex: existingCommitments.length,
       treeId,
     };
-    const outputRoot = merkleRootFor(treeId, [...existingCommitments, leaf]);
-    request = {
+    const computedOutputRoot = merkleRootFor(treeId, [...existingCommitments, leaf]);
+    if (previousRoot && previousRoot !== computedPreviousRoot) {
+      throw new Error("Committed Shield previous root does not match verifier indexer root.");
+    }
+    if (outputLeafIndex && Number(outputLeafIndex) !== leaf.leafIndex) {
+      throw new Error("Committed Shield output leaf index does not match next verifier leaf.");
+    }
+    if (outputRoot && outputRoot !== computedOutputRoot) {
+      throw new Error("Committed Shield output root does not match verifier indexer root.");
+    }
+    request = createVantaPrivatePoolV2ShieldProofRequest({
       amountBaseUnits: 1n,
-      assetId: targetAsset,
-      intent: "shield",
-      publicInputs: [
-        "vanta-private-pool-v2-hidden-economics-proof-request-0.1:version",
-        "intent:shield",
-        `tree-id:${treeId}`,
-        `leaf-index:${leaf.leafIndex}`,
-        `target-asset:${targetAsset}`,
-        `output-commitment:${outputCommitment}`,
-        `output-root:${outputRoot}`,
-        `settlement-commitment:${settlementCommitment}`,
-        `owner-commitment:${ownerCommitment}`,
-        `nullifier-or-replay-commitment:${nullifierOrReplayCommitment}`,
-        `route-commitment:${routeCommitment}`,
-        `economics-commitment:${economicsCommitment}`,
-      ],
-    };
+      economicsCommitment,
+      ownerCommitment,
+      previousRoot: computedPreviousRoot,
+      routeCommitment,
+      sourceMintAddress: "hidden:economic-terms",
+      targetAssetId: targetAsset,
+      targetMintAddress: "hidden:economic-terms",
+      treeCommitment: {
+        ...leaf,
+        merkleRoot: computedOutputRoot,
+      },
+    });
   } else if (action === "shield") {
     const targetAsset = shieldCapability.targetShieldAsset.assetKey;
     const treeId = treeIdForAsset(targetAsset);
     const existingCommitments = await runtime.indexer.listCommitments({ treeId });
     const leaf = {
-      assetId: targetAsset,
+      assetId: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
       commitment: hashHex(
         VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
         "protocol-shield-output",
@@ -2421,6 +2444,7 @@ async function proveAndAcceptProtocolSettlement(body) {
     request = createPrivatePoolV2ShieldProofRequestFromCapability({
       amountBaseUnits: amountToBaseUnits(amount, asset),
       capability: shieldCapability,
+      economicsCommitment: hashHex("protocol-shield-economics", settlementId, asset, amount, leaf.commitment),
       ownerCommitment: hashHex("owner", owner),
       previousRoot: await runtime.indexer.getCurrentRoot(treeId),
       routeCommitment: shieldRouteEvidence
@@ -2459,6 +2483,10 @@ async function proveAndAcceptProtocolSettlement(body) {
     const treeId = treeIdForAsset(targetAsset);
     const assetId = assetIdForAsset(targetAsset);
     const commitments = [
+      ...(await runtime.indexer.listCommitments({
+        assetId: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
+        treeId,
+      })),
       ...(await runtime.indexer.listCommitments({ assetId: asset, treeId })),
       ...(await runtime.indexer.listCommitments({ assetId, treeId })),
     ];
@@ -2722,10 +2750,11 @@ async function proveAndAcceptProtocolSettlement(body) {
 	      inputRoot,
 	      inputCommitment,
 	      nullifierOrReplayCommitment,
-	      outputCommitment,
-	      outputLeafIndex,
-	      outputRoot,
-      owner,
+		      outputCommitment,
+		      outputLeafIndex,
+		      outputRoot,
+		      previousRoot,
+	      owner,
       ownerCommitment,
       poolId,
       privateSpendContextHash,

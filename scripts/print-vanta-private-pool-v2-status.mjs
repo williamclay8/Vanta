@@ -23,7 +23,7 @@ const sourceFiles = [
 ];
 const protocolActionProofModes = {
   send: "actual_private_spend_circuit_request",
-  shield: "shield_circuit_request",
+  shield: "committed_shield_circuit_request",
   swap: "swap_to_shielded_circuit_request",
   unshield: "committed_unshield_or_claim_circuit_request",
 };
@@ -126,6 +126,13 @@ try {
     targetPrivacyFlags: capabilityProfile.targetPrivacyFlags,
     requiredBlockingEvidence: capabilityProfile.requiredBlockingEvidence,
     productionGate,
+    operatorEconomicsExposure: {
+      committedSettlementCount: 0,
+      hiddenEconomicsActions: ["shield", "send", "swap", "unshield"],
+      legacyRawPaySettlementEndpointEnabled: false,
+      operatorStillSeesRawActions: ["raw-shield", "raw-unshield", "swap"],
+      rawSettlementCount: 0,
+    },
     protocolActionProofModes,
     readiness,
     settlementPolicy: VANTA_PRIVATE_POOL_V2_SETTLEMENT_POLICY,
@@ -156,6 +163,8 @@ try {
     verificationCommands: [
       "private-pool-v2:contract-check",
       "private-pool-v2:local-runtime-check",
+      "private-pool-v2:hidden-economics-request-check",
+      "private-pool-v2:public-input-hash-alignment-check",
       "private-pool-v2:shield-circuit-check",
       "private-pool-v2:send-circuit-check",
       "private-pool-v2:swap-to-shielded-circuit-check",
@@ -184,6 +193,9 @@ try {
     console.log(`- settlementPolicy: ${result.settlementPolicy.version}`);
     console.log(
       `- protocolActionProofModes: shield=${result.protocolActionProofModes.shield}, send=${result.protocolActionProofModes.send}, swap=${result.protocolActionProofModes.swap}, unshield=${result.protocolActionProofModes.unshield}`,
+    );
+    console.log(
+      `- operatorEconomicsExposure: hidden=${result.operatorEconomicsExposure.hiddenEconomicsActions.join(",")}; raw=${result.operatorEconomicsExposure.operatorStillSeesRawActions.join(",")}`,
     );
     console.log(
       `- nullifierReplayGuard: mode=${result.nullifierReplayGuard.mode}, reservation=${result.nullifierReplayGuard.reservationMode}, storage=${result.nullifierReplayGuard.storageMode}, uniqueness=${result.nullifierReplayGuard.uniquenessScope}, accepted=${result.nullifierReplayGuard.acceptedNullifierCount}, reserved=${result.nullifierReplayGuard.reservedNullifierCount}`,

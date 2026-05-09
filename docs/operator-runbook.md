@@ -375,6 +375,8 @@ src/privacy/postgresNullifierReplayStore.mjs
 
 Private Pool v2 uses the in-process guard for local claim preflight and accepted-claim reservation. In production, the operator now refuses to boot unless `VANTA_PRIVATE_POOL_V2_DATABASE_URL` is configured, so accepted-claim reservation goes through the Postgres nullifier replay store behind a checked transaction plus `INSERT ... ON CONFLICT DO NOTHING RETURNING ...` boundary. The store uses global nullifier uniqueness plus context-scoped idempotent request uniqueness; preflight remains a non-mutating preview, not the atomic barrier. It is still marked `productionReady: false` until production database refs, backup/restore evidence, live private-settlement evidence, external review, and audit gates are complete.
 
+Shield proof requests now have a local committed-economics boundary: the Noir Shield circuit/fixture binds raw source mint, target mint, target asset, and amount to a Poseidon economics commitment, while operator/capability request paths carry `economics-commitment` handles and hidden-economics asset/amount sentinels instead of raw proof inputs. This is a reviewer-visible proof/request hardening step only; route timing, deposit evidence, anonymity-set, relayer-separation, live settlement, and audit gates still block production-private Shield claims.
+
 The sanitized deployed replay-status surface is:
 
 ```bash

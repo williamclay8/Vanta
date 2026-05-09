@@ -94,6 +94,7 @@ try {
   };
   const request = createVantaPrivatePoolV2ShieldProofRequest({
     amountBaseUnits: 1_000_000n,
+    economicsCommitment: "field:economics",
     ownerCommitment: "field:owner",
     previousRoot: "field:previous-root",
     routeCommitment: "field:route",
@@ -106,10 +107,7 @@ try {
 
   const expectedPublicInputs = [
     "vanta-private-pool-v2-shield-proof-request-0.1:version",
-    "source-mint:mint:public-usdc",
-    "target-mint:mint:shielded-usdc",
-    "target-asset:USDC",
-    "amount:1000000",
+    "economics-commitment:field:economics",
     "owner-commitment:field:owner",
     "route-commitment:field:route",
     "tree-id:vanta-private-pool-v2-usdc",
@@ -120,8 +118,8 @@ try {
   ];
 
   assert(request.intent === "shield", "Expected shield intent.");
-  assert(request.assetId === "USDC", "Expected target asset id.");
-  assert(request.amountBaseUnits === 1_000_000n, "Expected amount base units.");
+  assert(request.assetId === "hidden:economic-terms", "Expected hidden-economics asset sentinel.");
+  assert(request.amountBaseUnits === 1n, "Expected hidden-economics amount sentinel.");
   assert(
     JSON.stringify(request.publicInputs) === JSON.stringify(expectedPublicInputs),
     "Expected stable shield proof public-input ordering.",
@@ -151,6 +149,7 @@ try {
   );
   const changedShieldRequest = createVantaPrivatePoolV2ShieldProofRequest({
     amountBaseUnits: 1_000_001n,
+    economicsCommitment: "field:economics:changed",
     ownerCommitment: "field:owner",
     previousRoot: "field:previous-root",
     routeCommitment: "field:route",
@@ -165,6 +164,17 @@ try {
       request.shadowCommitments?.operatorVisibleTermsCommitment,
     "Expected shield shadow commitment to change when operator-visible economics change.",
   );
+  for (const rawInputPrefix of [
+    "source-mint:",
+    "target-mint:",
+    "target-asset:",
+    "amount:",
+  ]) {
+    assert(
+      !request.publicInputs.some((input) => input.startsWith(rawInputPrefix)),
+      `Shield proof public inputs must not expose ${rawInputPrefix}.`,
+    );
+  }
   assert(
     !request.circuitPublicInputs.some((input) =>
       [
@@ -189,6 +199,7 @@ try {
     () =>
       createVantaPrivatePoolV2ShieldProofRequest({
         amountBaseUnits: 0n,
+        economicsCommitment: "field:economics",
         ownerCommitment: "field:owner",
         sourceMintAddress: "mint:public-usdc",
         targetAssetId: "USDC",
@@ -203,6 +214,7 @@ try {
     () =>
       createVantaPrivatePoolV2ShieldProofRequest({
         amountBaseUnits: 1n,
+        economicsCommitment: "field:economics",
         ownerCommitment: " ",
         sourceMintAddress: "mint:public-usdc",
         targetAssetId: "USDC",
@@ -212,6 +224,21 @@ try {
     "owner commitment",
   );
   console.log("shield proof request owner guard: PASS");
+
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2ShieldProofRequest({
+        amountBaseUnits: 1n,
+        economicsCommitment: " ",
+        ownerCommitment: "field:owner",
+        sourceMintAddress: "mint:public-usdc",
+        targetAssetId: "USDC",
+        targetMintAddress: "mint:shielded-usdc",
+        treeCommitment,
+      }),
+    "economics commitment",
+  );
+  console.log("shield proof request economics guard: PASS");
 
   const merkleProof = {
     leaf: treeCommitment,

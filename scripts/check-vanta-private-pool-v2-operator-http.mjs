@@ -198,7 +198,7 @@ async function loadFixtureRuntime() {
   const indexer = createVantaPrivatePoolV2LocalIndexer();
   const previousRoot = await indexer.getCurrentRoot("vanta-http-tree");
   const commitment = indexer.appendCommitment({
-    assetId: "USDC",
+    assetId: hiddenEconomicsAssetId,
     commitment: "field:http-shield-output-commitment",
     treeId: "vanta-http-tree",
   });
@@ -206,6 +206,7 @@ async function loadFixtureRuntime() {
   const prover = createVantaPrivatePoolV2LocalProver();
   const shieldRequest = createVantaPrivatePoolV2ShieldProofRequest({
     amountBaseUnits: 1_000_000n,
+    economicsCommitment: "field:http-shield-economics",
     ownerCommitment: "field:owner",
     previousRoot,
     routeCommitment: "field:route",
@@ -652,7 +653,7 @@ try {
     "Expected production durable-store settlement policy.",
   );
   assert(
-    status.parsed?.protocolActionProofModes?.shield === "shield_circuit_request",
+    status.parsed?.protocolActionProofModes?.shield === "committed_shield_circuit_request",
     "Expected shield protocol action proof mode.",
   );
   assert(
@@ -883,8 +884,8 @@ try {
         "Expected shield protocol receipt to preserve capability mode.",
       );
       assert(
-        protocolSettlement.parsed?.proofReceipt?.assetId === "USDC",
-        "Expected routed shield proof receipt to bind target shield asset.",
+        protocolSettlement.parsed?.proofReceipt?.assetId === hiddenEconomicsAssetId,
+        "Expected routed shield proof receipt to use hidden-economics asset sentinel.",
       );
       assert(
         protocolSettlement.parsed?.protocolSettlementReceipt?.routeProvider === "jupiter",

@@ -108,14 +108,14 @@ try {
   const indexer = createVantaPrivatePoolV2LocalIndexer();
   const previousRoot = await indexer.getCurrentRoot("vanta-test-tree");
   const commitment = indexer.appendCommitment({
-    assetId: "USDC",
+    assetId: "hidden:economic-terms",
     commitment: "field:shield-output-commitment",
     treeId: "vanta-test-tree",
   });
   const currentRoot = await indexer.getCurrentRoot("vanta-test-tree");
   const merkleProof = await indexer.getMerkleProof(commitment.commitment);
   const listedCommitments = await indexer.listCommitments({
-    assetId: "USDC",
+    assetId: "hidden:economic-terms",
     treeId: "vanta-test-tree",
   });
 
@@ -148,6 +148,7 @@ try {
 
   const proofRequest = createVantaPrivatePoolV2ShieldProofRequest({
     amountBaseUnits: 1_000_000n,
+    economicsCommitment: "field:shield-economics",
     ownerCommitment: "field:owner",
     previousRoot,
     routeCommitment: "field:route",
@@ -179,7 +180,7 @@ try {
   );
   assert(verifierRegistry.receipts.length === 1, "Expected one verifier receipt.");
   const verifierCommitments = await verifierIndexer.listCommitments({
-    assetId: "USDC",
+    assetId: "hidden:economic-terms",
     treeId: "vanta-test-tree",
   });
   assert(verifierCommitments.length === 1, "Expected verifier to append shield commitment.");

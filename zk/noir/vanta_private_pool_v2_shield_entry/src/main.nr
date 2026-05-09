@@ -47,10 +47,7 @@ fn compute_leaf_index_from_direction_bits(
 
 fn bind_shield_public_inputs(
     request_version: Field,
-    source_mint: Field,
-    target_mint: Field,
-    target_asset_id: Field,
-    amount: Field,
+    economics_commitment: Field,
     owner_commitment: Field,
     route_commitment: Field,
     tree_id: Field,
@@ -61,18 +58,31 @@ fn bind_shield_public_inputs(
 ) -> Field {
     let root_transition = bn254::hash_2([previous_root, output_root]);
 
-    bn254::hash_11([
+    bn254::hash_8([
         request_version,
-        source_mint,
-        target_mint,
-        target_asset_id,
-        amount,
+        economics_commitment,
         owner_commitment,
         route_commitment,
         tree_id,
         leaf_index,
         output_commitment,
         root_transition,
+    ])
+}
+
+fn compute_economics_commitment(
+    source_mint: Field,
+    target_mint: Field,
+    target_asset_id: Field,
+    amount: Field,
+    economics_blinding: Field,
+) -> Field {
+    bn254::hash_5([
+        source_mint,
+        target_mint,
+        target_asset_id,
+        amount,
+        economics_blinding,
     ])
 }
 
@@ -83,6 +93,8 @@ fn main(
     target_mint: Field,
     target_asset_id: Field,
     amount: Field,
+    economics_blinding: Field,
+    economics_commitment: Field,
     owner_commitment: Field,
     route_commitment: Field,
     tree_id: Field,
@@ -112,12 +124,18 @@ fn main(
     );
     assert(computed_leaf_index == leaf_index);
 
-    let computed_public_input_hash = bind_shield_public_inputs(
-        request_version,
+    let computed_economics_commitment = compute_economics_commitment(
         source_mint,
         target_mint,
         target_asset_id,
         amount,
+        economics_blinding,
+    );
+    assert(computed_economics_commitment == economics_commitment);
+
+    let computed_public_input_hash = bind_shield_public_inputs(
+        request_version,
+        economics_commitment,
         owner_commitment,
         route_commitment,
         tree_id,

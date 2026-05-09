@@ -110,6 +110,8 @@ In `vanta_private_core_single_note_send/src/main.nr` and the swap variant, the s
 
 `vanta_private_pool_v2_shield_entry/src/main.nr` exposes `source_mint`, `target_mint`, `target_asset_id`, `amount` in the public input bag. The README and `SECURITY_LIMITATIONS.md` already say shield isn't economic-private. The recommendation is to add a "committed shield" mode where the proof binds `economics_commitment = poseidon(asset, amount, blinding)` and the raw fields stay in the encrypted memo, mirroring how the send/swap/unshield entries do it.
 
+**Codex status, 2026-05-09:** remediated for the local Private Pool v2 Shield circuit/request/operator boundary. `zk/noir/vanta_private_pool_v2_shield_entry/src/main.nr` now computes and asserts a private Poseidon economics commitment from source mint, target mint, target asset, amount, and blinding, then binds only that commitment plus owner/route/tree/output/root fields into the Shield public-input hash. The TS fixture/proof-request lane now uses hidden-economics sentinels, rejects blank economics commitments, includes an invalid-economics-commitment Noir fixture, and checks public-input hash alignment. The committed Shield protocol endpoint now builds through `createVantaPrivatePoolV2ShieldProofRequest` instead of an ad hoc hidden-economics request, and the typed client/protocol checks compare the expected local public-input commitment when tree witnesses are supplied. Operator/status/docs remain beta-truthful: `productionReady`, `privacyClaimAllowed`, `productionPrivateReady`, and current verified production privacy flags stay false, and operator/capability paths still carry locally generated commitment handles unless callers supply circuit-aligned field commitments. No live deployment evidence was refreshed in this pass.
+
 ### 13. Frontend exposes operator tokens through `VITE_*` envs
 
 `SECURITY_LIMITATIONS.md` already calls this out: "any `VITE_...` token bundled into the app is suitable only for local or controlled test environments". Worth one more look — anything matching `VITE_OPERATOR_*` that ships in the production bundle should be removed before any mainnet operator action. A grep through the bundled JS at `vantaprivacy.xyz/assets/*.js` would be the next step (couldn't do from this environment — egress blocked).
@@ -2841,3 +2843,225 @@ Most of this is unbuildable in a hackathon and unfundable in a typical seed roun
 The team that does these seven things in three months has shipped a product that *looks like Vanta*. The team that doesn't has shipped a product that looks like every other privacy app.
 
 20× the taste is not 20× the polish. It's 20 specific commitments that exclude things, made in public, defended in writing, executed with care. Most teams don't make any of them. The ones that do are the ones we still talk about ten years later.
+
+---
+
+# Polish Pass — How to 20× It
+
+If taste is what to *exclude*, polish is what to *complete*. They're orthogonal. A product can be tasteful without being polished (a beautiful demo with rough edges) or polished without being tasteful (a competently-built generic SaaS). Vanta is currently neither — it's *competent*. Becoming the premier suite means both.
+
+Polish is the thousand small things that distinguish "ships" from "feels expensive." It's why iOS feels different from Android, why Linear feels different from a generic Trello clone, why Stripe Checkout feels different from a generic payment page. None of those products have features the others lack. They have *finish*.
+
+Ten themes, each with concrete moves. None require new product features. All require the team to slow down and treat each interaction as a discrete artifact.
+
+## P1. Performance
+
+Polish that you can't measure is taste. Polish that you can measure is performance, and Vanta has not yet measured.
+
+- **Set a Core Web Vitals budget.** LCP < 1.8s on a Moto G4 / 4G connection, INP < 200ms, CLS < 0.05. Fail CI on regression. Today: unmeasured.
+- **Code-split aggressively.** `src/pages/SendPage.tsx` is 2,692 lines, ShieldPage is 2,157, UnshieldPage is 3,232. The full app bundle ships them on first load. Vite supports route-level lazy splits with `React.lazy()`; this is one afternoon of work and will halve the initial bundle.
+- **Defer the wallet adapter.** Solana wallet adapters add ~150kB of compressed JS. Most users land on `/` first; they don't need wallet code until they click "Open App." Lazy-load it.
+- **Audit the CSS.** 9,051 lines of `styles.css` is a lot. Some is necessary (a real design system) but PurgeCSS via Vite would shed at least 40% on first paint. Bonus: enables CSS-in-JS for component-scoped styles without doubling the bundle.
+- **Image weight.** Token logos (per the asset-picker recommendation) need to be SVG or 2x WebP, lazy-loaded with `loading="lazy"`, sized via `width`/`height` attributes to prevent CLS.
+- **Font loading.** The `@import` of Google Fonts at the top of `styles.css` blocks first paint until 4 font files arrive. Replace with `<link rel="preload">` + `font-display: swap`, or self-host the woff2s and inline a minimal subset for the hero.
+- **Service worker for the app shell.** A small SW that caches the shell on first visit. Repeat visitors load the app offline-first; the only thing that needs the network is the wallet/RPC traffic.
+- **Avoid layout thrash.** Audit every component for `getBoundingClientRect()` reads inside loops. Don't read after writing.
+- **Real-user monitoring.** Beyond synthetic Lighthouse, ship `web-vitals` to a privacy-respecting analytics endpoint (Plausible, self-hosted Umami, or just a `POST` to your own endpoint). Aggregate; never per-user.
+
+Target: home page Lighthouse mobile score ≥ 95 on every category. Today probably 60-75.
+
+## P2. Type and numbers
+
+This is a financial product. Numbers and type are the medium. Polish here is differentiation.
+
+- **Tabular numerals everywhere.** `font-variant-numeric: tabular-nums` is in the root CSS — good. But fixed-width digits only matter when *aligned*; the codebase has lots of free-flowing balance text where this is wasted. Audit and right-align every numeric display in tables, cards, and stat rows.
+- **Semantic decimal alignment.** `100.50` and `1,234.00` should align at the decimal, not the right edge. CSS Grid `subgrid` or `text-align-last: justify` handles this; today it's not done.
+- **Locale-aware formatting that respects context.** USDC isn't `$1,234.56` — that's USD. It's `1,234.56 USDC` (American), `1.234,56 USDC` (European). The `toLocaleString` in the code uses `undefined` as locale, which delegates to the browser; this is correct but should be explicit and tested per locale.
+- **Currency precision is asset-specific.** USDC: 6 decimals. SOL: 9. Show the right number of decimals based on the asset; never silently truncate. The `formatVantaSolAmount` function in the codebase does this for SOL specifically; generalize it.
+- **Number transitions.** When a balance changes from `100.00` to `250.00`, the number should animate (count up, ~400ms). React-spring or framer-motion can do this in 5 lines. Today balances jump.
+- **Type sizes follow a modular scale.** Pick a ratio (1.25 minor third, or 1.333 perfect fourth) and derive all sizes from it. Today the CSS has a mix of px values that probably don't snap to a scale. Audit and reduce to ~8 sizes total.
+- **Line height proportional to size.** Body text wants 1.55–1.65 line-height; display wants 1.0–1.1. Today some headings probably have body line-heights — visual audit needed.
+- **Optical sizing.** Manrope and Syne both support OpenType `opsz` — different glyph forms at different sizes. Enable via `font-optical-sizing: auto`. Most browsers ignore it but on Safari and modern Firefox it makes a visible difference.
+- **Long-form readability.** Docs pages and the eventual `/log` essays need a max width of ~65 characters per line for comfortable reading. Today there's no such constraint visible. Add `max-width: 65ch` on prose blocks.
+- **Hyphenation and orphan control.** Display headlines should use `text-wrap: balance` (Chrome 114+, Safari 17.4+) so the title doesn't end with a single dangling word. One CSS line, big perceived polish.
+
+## P3. Interaction quality
+
+The micro-feedback that separates "responsive" from "alive."
+
+- **Every button has four hover cues.** Cursor change (already there), color shift, shadow change, micro-scale (≤ 1.02). Plus `:active` state with reverse-scale (0.98) for tactile press feedback. Today most buttons have one or two cues.
+- **Focus rings that look intentional.** The current `:focus-visible` is a 2px mint outline — fine for default, generic for premium. Replace with a layered glow: `0 0 0 2px rgba(0,0,0,0.5), 0 0 0 4px var(--accent)` (inner darken plus outer accent) for a focus ring that pops on any background.
+- **Click should feel cause-and-effect.** Every clickable surface acknowledges the click within 16ms — even before the actual state change. CSS `:active` + transform is the cheapest way; for higher-stakes actions, a brief loading state with optimistic UI.
+- **Optimistic UI on writes.** When the user submits a Shield, the new note appears in the Vault grid *immediately*, in a "pending" visual state, then transitions to confirmed when the chain catches up. Today the UI waits for the chain. This is 3-second-feels-like-eternity territory; optimistic UI flips it to 0-second-feels-like-300ms.
+- **Copy-paste affordances.** Every address/serial/signature has a one-click copy button. Click triggers: brief check icon (300ms), label changes to "Copied" (1.5s), then reverts. Today some copy buttons exist but the feedback isn't standardized.
+- **Drag and drop where it fits.** Files (CSV merchant exports), addresses (drop a wallet address from another tab), recipient pictures (in the eventual contacts feature). Most apps don't bother with drag-drop; products that do feel premium.
+- **Keyboard shortcuts that respect convention.** `Cmd-K` opens search. `Cmd-/` opens shortcuts panel. `Cmd-Shift-D` toggles dark mode (or in this case, an alternate theme). `g` then `s` jumps to Shield (Linear-style). Document them in a `?` modal.
+- **Clipboard awareness.** When the recipient field is focused and the clipboard contains a Solana address, offer to paste it — Linear does this for issue links. `navigator.clipboard.readText()` requires permission, but you can detect when the user *paste*s and validate immediately.
+- **Input format-on-blur.** Amount inputs currently re-format on every keystroke (or not at all, hard to tell from the code). Best practice: parse on blur, format on blur. Avoids fighting the user mid-type.
+- **Idle state recovery.** If the user has been idle for 90 seconds with a quote on screen, refetch the quote silently and update with a subtle pulse. Don't make the user click "refresh."
+
+## P4. Motion
+
+Animation should be invisible when right and obvious when wrong. Vanta's animation today is mostly absent, which means there's nothing to be wrong yet — a clean slate.
+
+- **A standard easing palette.** The CSS has two easing curves; expand to a real library:
+  - `--ease-snappy: cubic-bezier(0.4, 0, 0.2, 1)` — material-style for taps and toggles
+  - `--ease-out: cubic-bezier(0.16, 1, 0.3, 1)` — for entrances
+  - `--ease-in: cubic-bezier(0.7, 0, 0.84, 0)` — for exits
+  - `--ease-spring: linear(0, 0.5, 0.9, 1.05, 0.95, 1)` — for playful confirmations
+  - `--ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1)` — for celebratory states
+  - Each named, each documented, each used purposefully. Today every animation is `var(--ease-out)` regardless of context.
+- **Animation duration scale.** 100ms (instant feedback), 200ms (state change), 400ms (page transition), 600ms (celebratory). Never go above 600ms unless it's intentional content (the onboarding cinematic). Audit existing transitions for off-scale values.
+- **Hardware-accelerated transforms only.** Animate `transform` and `opacity`. Never `width`, `height`, `top`, `left`, `padding`, `margin`. The CSS today probably has at least a few of the wrong kind; lint with stylelint.
+- **Reduced-motion respected everywhere.** `prefers-reduced-motion: reduce` should disable nonessential motion. Today this isn't visible in the code; add a `useReducedMotion()` hook and a `@media (prefers-reduced-motion: reduce) { transition: none !important }` block at the bottom of styles.css.
+- **60fps or it didn't happen.** Profile every animation in DevTools Performance panel. Anything below 60fps gets fixed or cut. The mint-pulse on the brand mark, the slot-tick animation, the route particle line — all need to be hardware-accelerated.
+- **Coordinated transitions.** When a page transitions, multiple elements move in sequence (header fade-out, content slide-up with stagger, new header slide-in, new content fade-in). Today's transitions are simultaneous; orchestration is what makes them feel composed.
+- **Spring physics where appropriate.** For drag interactions, dropdowns, modal entries, use spring rather than linear easing. Framer Motion's `spring` config or react-spring does this in one prop.
+- **Page transition system.** When navigating between `/app/*` routes, a coherent transition (slide, fade, or shared-element) instead of the default React Router instant swap. View Transitions API (Chrome 111+, Safari 18+) is now usable; one polyfill for older browsers.
+- **Loading shimmers, not spinners.** A spinner is a UI giving up. A shimmer is a UI working. Card-shaped placeholders that pulse with a gradient sweep while data loads. The Vault grid, the balance row, the receipt list — all should shimmer-load, not spin-load.
+
+## P5. States nobody designs but everyone hits
+
+Polish lives in the states a product doesn't show on a happy-path screenshot.
+
+- **Empty states with personality.** "No shielded notes yet" today is text. Make it an illustration of an empty Vault interior with a single "Seal your first deposit" CTA and a hint about what shows up next. Same for empty payment list, empty refunds, empty webhooks.
+- **Loading skeletons everywhere.** Card-shaped pulses match the eventual layout. The user never sees blank space; never sees content jump in.
+- **Error states with recovery.** Three things: what happened (in plain language), why it might have happened (likely causes), what to do next (specific button). Today's error display is mostly toast-style or buried in helper text.
+- **Offline state.** Detect via `navigator.onLine` and `online`/`offline` events. Show a banner: "You're offline. Vanta is still showing your last-known state. Connect to refresh."
+- **Slow-network state.** When a fetch is taking longer than expected (>3s), show a "Still working — Solana is slow right now" message. Set realistic expectations rather than letting the user wonder.
+- **Zero-balance state.** A wallet with $0 still gets a Vault interior, just an empty one with an inviting "Try your first seal with as little as $1" CTA.
+- **Locked state.** When a feature is gated (per the trust-contract pattern), show a locked-but-glanceable preview with a clear "What this needs to unlock" description.
+- **Pending state.** Solana confirms in 400ms but the user's mental model includes "is this real yet?" Pending states should be visually distinct (slight desaturation, subtle pulse) and explicit ("Waiting for Solana to confirm...").
+- **Stale state.** When data hasn't been refreshed in a while, indicate it. "Balance last updated 47 seconds ago" with a refresh button. Stripe does this; most apps don't.
+- **Recovery flows.** What happens when a user lands mid-flow after a refresh? Restore the form state from URL or localStorage, never make them re-enter.
+
+## P6. Accessibility
+
+A11y is polish because doing it badly tells users you don't care; doing it well lets them do their work without friction.
+
+- **WCAG-AA contrast minimum, AAA where possible.** The current palette has `--muted: #8b9997` against `--bg: #030406` — that's 5.6:1 contrast, AA but not AAA. Audit all text/background combinations with axe-core.
+- **Keyboard navigation across every flow.** Tab through every page; every interactive element should be reachable. No keyboard traps in modals. Visible focus on every focusable element.
+- **Screen reader testing.** Test with VoiceOver (Mac/iOS) and NVDA (Windows). The `aria-label`s in the code are a start; complete coverage requires actual testing.
+- **Live regions for state changes.** When a transaction confirms, an `aria-live="polite"` region announces "Shield complete. 100 USDC sealed." Currently the success states are visual-only.
+- **Form errors associated with fields.** `aria-describedby` linking inputs to their error messages. Today's `pay-field__error` uses `id` attributes which is good; verify it's done consistently.
+- **Focus management in modals.** When a modal opens, focus moves to its first focusable element. When it closes, focus returns to the trigger. Use a library (Radix, Reach UI) rather than rolling this yourself.
+- **`prefers-color-scheme` and `prefers-contrast`.** Today the app is dark-only. Even if you don't ship a light mode, respect `prefers-contrast: more` by increasing contrast and removing decorative gradients.
+- **Skip-to-content link.** A keyboard-only `Tab`-revealed link that jumps past the navigation. One element, one rule, half a day of work.
+- **Touch targets sized for thumbs.** Apple HIG: 44×44pt. Material: 48×48dp. Today some buttons are smaller; on mobile this matters.
+- **Captions / alt text discipline.** Every illustration, icon, and image has either a useful `alt` or `aria-hidden="true"` if decorative. The brand mark's `aria-hidden` is correct; the rest needs an audit.
+
+## P7. Mobile
+
+Most stablecoin payments happen on mobile. The site is desktop-first. Even on the path to a real mobile app, the web app needs to be mobile-perfect.
+
+- **Mobile-first responsive.** Today's CSS has media queries that adapt desktop down to mobile. The polish move is the inverse — design mobile, scale up. The visible CSS hints at desktop-first.
+- **Touch interactions.** No hover states as the only feedback (touch devices don't hover). Use `:active` + `:focus-visible` for parity.
+- **iOS Safari quirks.** `100vh` doesn't account for the address bar. Use `100dvh` (dynamic viewport height) which is now widely supported. Position-fixed bugs on iOS Safari need testing.
+- **Safe-area insets.** `env(safe-area-inset-bottom)` for iOS notch / home indicator. Already a common pattern; should be in the global CSS.
+- **Tap delay removal.** `touch-action: manipulation` on interactive elements eliminates the 300ms tap delay on mobile.
+- **Haptic feedback.** On supported devices, `navigator.vibrate(10)` on critical interactions (Shield confirm, Send confirm). Subtle, opt-in default-on.
+- **Mobile wallet deeplinks.** Phantom, Solflare, Backpack on iOS/Android use `solana:` URI schemes. Detect mobile, show appropriate connect flow.
+- **Pull-to-refresh.** Standard mobile pattern. iOS Safari handles it natively; Android needs explicit handling.
+- **Address bar resize handling.** When the user scrolls, the mobile address bar collapses. Layout should not jump. `min-height: 100dvh` on the main container.
+- **Performance on a Moto G4.** Test on a real low-end Android, not just a desktop with throttled CPU. Many apps look fine in DevTools and crash on actual devices.
+
+## P8. Asset craft
+
+The icons, illustrations, sounds, and small artifacts that compound into "this product was designed by someone who cared."
+
+- **Custom icon set.** Don't use Heroicons / Feather / Lucide. Commission or hand-draw an icon set specific to Vanta. ~30 icons, consistent stroke weight, 24px grid. Vanta-specific glyphs: vault, seal, letter, key, ledger, oracle.
+- **Token logos with consistent treatment.** USDC, USDT, SOL etc. all have official logos but they're rendered at different sizes, with different padding, different baseline alignment. Polish: all token logos rendered at 24px in a 32px square, consistent padding, monochrome variant for low-emphasis use.
+- **Hero illustration.** Per the taste pass, a custom WebGL hero. Polish here is making sure it loads under 100kB (compressed Three.js, gzipped textures), runs at 60fps on a 5-year-old MacBook, gracefully degrades on older devices.
+- **Sound design.** Two sounds, mastered to broadcast standards (-14 LUFS, no clipping, single peak). One for action confirmation (low-frequency mechanical), one for receipt issuance (single high-frequency stamp). Loaded as small AAC or OGG files, not WAV.
+- **PDF letterhead.** Per the taste pass, the trust packet is a Letter. Polish: typography in the PDF matches the web (Manrope/Syne embedded), the layout is precisely engineered (A4 and US Letter both supported, signing block aligned, QR code at exactly 1.5cm).
+- **Email templates.** When Vanta sends a webhook receipt to a merchant or a Letter to a customer, the email itself should look designed. HTML email is its own cursed art form (Litmus/Email on Acid testing required); polish here means the email looks the same in Gmail desktop, Apple Mail, Outlook, and Yahoo.
+- **Favicon + app icons.** A polished suite includes 16/32/48 favicon, 180px Apple Touch icon, 192/512 PNG for Android, an SVG for adaptive theming, and a `site.webmanifest` that ties them together. Today: probably one favicon, generic.
+- **Open Graph cards.** When someone shares `vantaprivacy.xyz` on Twitter or Discord, the preview card matters. A custom-designed OG image, dynamically generated per page (Vercel OG, satori, or a static set of 6-8 cards). Today: probably no OG card or a default Vite one.
+- **Loading screen identity.** Even the brief moment between page transitions should have visual identity. A subtle Vanta brand mark that fades during transitions, not a generic Vite splash.
+- **404 / 500 / offline pages designed.** Each error page is a discrete design opportunity (per the taste pass).
+
+## P9. Engineering quality
+
+Polish that holds up over time is engineering polish. Without this, the visible polish degrades on every deploy.
+
+- **Component decomposition.** A 3,232-line UnshieldPage is a polish risk because no one will refactor it carefully. Extract: `<UnshieldForm>`, `<UnshieldRecipient>`, `<UnshieldApprovalReview>`, `<UnshieldTransitionPicker>`. Each ≤ 200 lines.
+- **Type-safety end to end.** TypeScript strict mode if not already. No `any`. No `as` casts unless commented. Audit and clean up.
+- **Storybook for UI components.** Each shared component (`<Button>`, `<Card>`, `<FlowIndicator>`, `<AssetPickerGrid>`) has a Storybook story with all states. Catches visual regressions, makes polish review possible across states.
+- **Visual regression testing.** Chromatic, Percy, or self-hosted Playwright + pixelmatch. Snapshot every page in every state on every PR. Flag any pixel diff for review.
+- **Lighthouse CI.** Run Lighthouse on every PR; fail if Performance/Accessibility/Best Practices/SEO drop below thresholds.
+- **Bundle analyzer in CI.** `vite-bundle-analyzer` runs on every build; PRs that increase the main bundle by more than X kB get a comment.
+- **Source-map quality.** Production source maps are uploaded to error monitoring (Sentry-style) but not served to clients. Stack traces in error reports point to original TS source, not minified output.
+- **Console hygiene.** Zero `console.log` in production. ESLint rule `no-console` with allowed `console.error` only.
+- **Unhandled promise rejections.** Global handler that captures and reports them. Today they probably go silently to the browser console.
+- **CSS quality.** Stylelint with strict rules: no `!important` outside specific allowlists, no animation of layout properties, color values must use design tokens.
+- **Component prop deprecation flow.** When a prop changes, deprecate before removing. `console.warn` in dev when deprecated props are used. Migration paths documented.
+- **Dependency hygiene.** `npm audit` clean, Dependabot enabled, `package-lock.json` regenerated regularly. Renovate-bot or similar for automated PRs.
+- **Pre-commit hooks.** Format on commit (Prettier), lint-staged on changed files, type-check before push. Husky or lefthook. Eliminates entire categories of regression.
+
+## P10. The quality machinery
+
+Polish only stays polished if it's a system, not an event. Six structural moves:
+
+- **Polish standups.** Once a week, one hour, the team reviews the last week's UI in detail. Hover every button. Tab through every form. Make a list. File the issues. Fix them next week. Linear and Stripe both do this; it's why their products feel different.
+- **A polish backlog.** Distinct from the feature backlog. Items are small (≤ 1 day each). Anyone on the team can add to it. The backlog has its own priority and owner. Most teams kill polish work in feature reviews; a separate track protects it.
+- **The 5% time rule.** Every engineer spends 5% of their time on polish from the polish backlog. That's two hours per week per engineer. With four engineers, ten hours of polish per week, every week, forever.
+- **Definition of done includes polish.** A feature isn't done when it works. It's done when it works *and* the empty state is designed *and* the error states are handled *and* the loading state shimmers *and* the success state is celebrated *and* the keyboard navigation works *and* the screen reader announces correctly. Add this to the team's PR template.
+- **A polish anti-feature list.** Things the team has decided not to do, with reasons. "We don't show toast notifications for routine actions because they create UI noise." Documented in the engineering wiki. Prevents drift.
+- **A polish review per release.** Before any release goes to production, one team member spends 30 minutes using the product as a new user. Notes everything that feels off. Files issues. Fixes them or explicitly decides not to. Ship is gated on this.
+
+The reason these systems matter: polish degrades. Every PR adds new affordances; some of them are unpolished. Without a system that *finds* unpolished things, the product asymptotically becomes worse over time. Stripe and Linear and Apple are exceptional not because they polish faster, but because they polish *constantly*.
+
+---
+
+## What 20× looks like in practice
+
+The hover state on the home page's "Enter App" button now feels like pressing a key on a keyboard — there's a 12ms color shift, a 1px shadow change, a 1.5% scale, a near-imperceptible cursor change. None alone is noticeable. Together they make the button feel like an object you are pressing rather than a pixel you are clicking.
+
+The Shield form's amount input now formats as you type. `1234` becomes `1,234`. `1234.5678` for USDC truncates at 2 decimals on blur and shows a small "USDC has 6 decimals" tooltip if you try to enter more. The Max button isn't a button — it's a label inside the field that lights up on focus.
+
+When you submit a Shield, the new note appears in the Vault grid before the chain confirms. It's marked pending with a subtle desaturation and a tiny `Pending` badge. 400ms later when the chain confirms, the desaturation fades, the badge becomes a `✓`, and the brand mark in the nav flashes mint for 300ms.
+
+The receipt page has one custom favicon variant — slightly more saturated — that signals "you are looking at a Letter." Print the page and the print stylesheet engages: the Letter renders cleanly in black-and-white at A4, the QR code stays sharp, the navigation chrome disappears.
+
+A user's screen reader announces "Shield successful, 100 USDC now in your Vault" without the user knowing they enabled accessibility. A keyboard user navigates the entire app without touching the mouse. A user on a 3-year-old Android sees the home page in 1.2s and interacts within 200ms of any tap. A user on iOS Safari sees a fixed bottom nav that respects the safe area, with safe-area-aware padding.
+
+None of this is a feature. All of this is what makes the product feel premium when no individual moment is exceptional.
+
+---
+
+## How to start
+
+Polish is asymptotic. You will never finish. The work is making the curve slope upward continuously instead of flat.
+
+Three immediate moves, smallest-to-largest:
+
+- **This week:** add `vite-bundle-analyzer`, `web-vitals`, and Lighthouse CI to the project. Set baseline numbers. Now you can measure.
+- **This week:** establish the polish backlog as a separate track. First entries: every "today's UI doesn't yet do X" item from this pass. Single owner. Single weekly review.
+- **This month:** the polish standup. One hour, weekly, the whole team. Walk through the product. Note. File. Fix. Repeat. The cultural artifact that makes everything else stick.
+
+Three thirty-day projects, one per week:
+
+- **Week 1: code-split the page bundles** (P1). Halves the initial bundle. Immediate Lighthouse win.
+- **Week 2: build the standardized motion primitives** (P4). Three named easings, three named durations. Refactor every existing transition to use them.
+- **Week 3: add loading skeletons and empty states everywhere** (P5). Replace every spinner with a shimmer. Replace every blank state with a designed empty state.
+- **Week 4: WCAG-AA audit + keyboard navigation + screen reader pass** (P6). One developer, four days, run axe-core, fix everything. Then four hours of manual testing. Then commit to the result.
+
+After four weeks, the product feels measurably faster, the animations feel coordinated, the empty states feel designed, and every user can use the app regardless of input method. None of this requires new product work. It's all latent polish in the existing surface.
+
+---
+
+## Polish vs taste — the relationship
+
+A useful model: taste decides *what* the product is. Polish executes *how* the product is. They feed each other. A tasteful product without polish is an unfulfilled promise — an aesthetic vision rendered roughly. A polished product without taste is a perfectly-machined commodity — a generic experience executed well.
+
+The 20× version of Vanta is the rare combination: a specific aesthetic point of view (the abyss, the Letter, the Vault) executed with the precision of an iOS-grade app. Most teams hit one or the other. The teams who hit both are the teams whose products people copy for the next ten years.
+
+Vanta's taste opportunity is unique because of the brand name and the architectural framework already in place. Vanta's polish opportunity is unique because the codebase is small enough to cover end-to-end and the product surface is small enough to hand-tune every interaction.
+
+Both opportunities expire. As the codebase grows and the team grows, both decisions become harder to make. The right time is now, and "now" specifically means the next 90 days while the product is still small enough to remake. After that, every change costs more.
+
+That's the closing argument of this entire review: ship the technical work, ship the trust-contract enforcement, ship the customer-side wallet flow — and while you're shipping all of that, commit to a specific aesthetic and a specific polish standard. The team that does both, in parallel, in the next ninety days, ships the premier privacy suite for Solana.
+
+The team that does one without the other ships another also-ran. The team that does neither ships nothing memorable.
+
+The choice is whose review I'm writing six months from now.

@@ -1,4 +1,7 @@
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
 import {
+  VANTA_PRIVATE_POOL_V2_SHIELD_PROOF_REQUEST_VERSION,
   createVantaPrivatePoolV2ShieldProofRequest,
   type VantaPrivatePoolV2ShieldProofRequestArgs,
 } from "./privatePoolV2ProofRequests";
@@ -35,6 +38,7 @@ type SupportedPrivatePoolV2ShieldCapability = PrivatePoolV2ShieldCapabilityInput
 export type PrivatePoolV2ShieldCapabilityProofRequestArgs = {
   amountBaseUnits: bigint;
   capability: PrivatePoolV2ShieldCapabilityInput;
+  economicsCommitment?: string;
   ownerCommitment: string;
   previousRoot?: string;
   routeCommitment?: string;
@@ -63,9 +67,34 @@ function createCapabilityRouteCommitment(capability: PrivatePoolV2ShieldCapabili
   return `capability:${capability.mode}:${capability.requiresPublicRoute ? "routed" : "direct"}`;
 }
 
+function hashParts(...parts: readonly string[]) {
+  return `0x${bytesToHex(new Uint8Array(sha256(new TextEncoder().encode(parts.join("\u001f")))))}`;
+}
+
+function createCapabilityEconomicsCommitment({
+  amountBaseUnits,
+  capability,
+  treeCommitment,
+}: {
+  amountBaseUnits: bigint;
+  capability: SupportedPrivatePoolV2ShieldCapability;
+  treeCommitment: VantaPrivatePoolV2Commitment;
+}) {
+  return hashParts(
+    VANTA_PRIVATE_POOL_V2_SHIELD_PROOF_REQUEST_VERSION,
+    "economics",
+    capability.sourceAsset.mintAddress,
+    capability.targetShieldAsset.assetKey,
+    capability.targetShieldAsset.mintAddress,
+    amountBaseUnits.toString(),
+    treeCommitment.commitment,
+  );
+}
+
 export function createPrivatePoolV2ShieldProofRequestFromCapability({
   amountBaseUnits,
   capability,
+  economicsCommitment,
   ownerCommitment,
   previousRoot,
   routeCommitment,
@@ -75,6 +104,13 @@ export function createPrivatePoolV2ShieldProofRequestFromCapability({
 
   const proofArgs: VantaPrivatePoolV2ShieldProofRequestArgs = {
     amountBaseUnits,
+    economicsCommitment:
+      economicsCommitment ??
+      createCapabilityEconomicsCommitment({
+        amountBaseUnits,
+        capability,
+        treeCommitment,
+      }),
     ownerCommitment,
     previousRoot,
     routeCommitment: routeCommitment ?? createCapabilityRouteCommitment(capability),

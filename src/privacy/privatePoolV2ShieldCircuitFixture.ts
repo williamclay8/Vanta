@@ -1,4 +1,4 @@
-import { poseidon1, poseidon2, poseidon3, poseidon11 } from "poseidon-lite";
+import { poseidon1, poseidon2, poseidon3, poseidon5, poseidon8 } from "poseidon-lite";
 import { createVantaPrivatePoolV2ShieldProofRequest } from "./privatePoolV2ProofRequests";
 import type {
   VantaPrivatePoolV2Commitment,
@@ -12,6 +12,8 @@ export type VantaPrivatePoolV2ShieldCircuitWitness = {
   amount: bigint;
   append_path: readonly [bigint, bigint, bigint];
   append_path_direction_bits: readonly [bigint, bigint, bigint];
+  economics_blinding: bigint;
+  economics_commitment: bigint;
   leaf_index: bigint;
   output_commitment: bigint;
   output_root: bigint;
@@ -34,6 +36,7 @@ export type VantaPrivatePoolV2ShieldCircuitFixture = {
 export type VantaPrivatePoolV2ShieldCircuitFixtureMode =
   | "valid"
   | "forged-append-path"
+  | "invalid-economics-commitment"
   | "invalid-binding"
   | "invalid-root";
 
@@ -41,6 +44,7 @@ const DEFAULT_WITNESS_BASE = {
   amount: 1_000_000n,
   append_path: [1111n, 1222n, 1333n] as const,
   append_path_direction_bits: [1n, 0n, 1n] as const,
+  economics_blinding: 9191n,
   leaf_index: 5n,
   output_commitment: 808n,
   owner_commitment: 505n,
@@ -54,6 +58,13 @@ const DEFAULT_WITNESS_BASE = {
 
 const DEFAULT_WITH_PREVIOUS_ROOT = {
   ...DEFAULT_WITNESS_BASE,
+  economics_commitment: computeVantaPrivatePoolV2ShieldEconomicsCommitment({
+    amount: DEFAULT_WITNESS_BASE.amount,
+    economics_blinding: DEFAULT_WITNESS_BASE.economics_blinding,
+    source_mint: DEFAULT_WITNESS_BASE.source_mint,
+    target_asset_id: DEFAULT_WITNESS_BASE.target_asset_id,
+    target_mint: DEFAULT_WITNESS_BASE.target_mint,
+  }),
   previous_root: computeVantaPrivatePoolV2ShieldRootFromLeaf({
     leaf_value: 0n,
     path: DEFAULT_WITNESS_BASE.append_path,
@@ -78,7 +89,7 @@ function toTreeCommitment(
   witness: VantaPrivatePoolV2ShieldCircuitWitness,
 ): VantaPrivatePoolV2Commitment {
   return {
-    assetId: toCircuitString(witness.target_asset_id),
+    assetId: "hidden:economic-terms",
     commitment: toCircuitString(witness.output_commitment),
     leafIndex: Number(witness.leaf_index),
     merkleRoot: toCircuitString(witness.output_root),
@@ -91,18 +102,34 @@ export function computeVantaPrivatePoolV2ShieldPublicInputHash(
 ) {
   const rootTransition = poseidon2([witness.previous_root, witness.output_root]);
 
-  return poseidon11([
+  return poseidon8([
     witness.request_version,
-    witness.source_mint,
-    witness.target_mint,
-    witness.target_asset_id,
-    witness.amount,
+    witness.economics_commitment,
     witness.owner_commitment,
     witness.route_commitment,
     witness.tree_id,
     witness.leaf_index,
     witness.output_commitment,
     rootTransition,
+  ]);
+}
+
+export function computeVantaPrivatePoolV2ShieldEconomicsCommitment({
+  amount,
+  economics_blinding,
+  source_mint,
+  target_asset_id,
+  target_mint,
+}: Pick<
+  VantaPrivatePoolV2ShieldCircuitWitness,
+  "amount" | "economics_blinding" | "source_mint" | "target_asset_id" | "target_mint"
+>) {
+  return poseidon5([
+    source_mint,
+    target_mint,
+    target_asset_id,
+    amount,
+    economics_blinding,
   ]);
 }
 
@@ -159,6 +186,11 @@ export function createVantaPrivatePoolV2ShieldCircuitFixture({
   const circuitWitness =
     mode === "forged-append-path"
       ? forgeVantaPrivatePoolV2ShieldAppendPath(witness)
+      : mode === "invalid-economics-commitment"
+      ? {
+          ...witness,
+          economics_commitment: witness.economics_commitment + 1n,
+        }
       : mode === "invalid-root"
       ? {
           ...witness,
@@ -168,6 +200,7 @@ export function createVantaPrivatePoolV2ShieldCircuitFixture({
   const validPublicHash = computeVantaPrivatePoolV2ShieldPublicInputHash(circuitWitness);
   const proofRequest = createVantaPrivatePoolV2ShieldProofRequest({
     amountBaseUnits: witness.amount,
+    economicsCommitment: toCircuitString(circuitWitness.economics_commitment),
     ownerCommitment: toCircuitString(witness.owner_commitment),
     previousRoot: toCircuitString(witness.previous_root),
     routeCommitment: toCircuitString(witness.route_commitment),
@@ -213,6 +246,8 @@ export function serializeVantaPrivatePoolV2ShieldCircuitFixtureToToml(
     `target_mint = "${witness.target_mint.toString(10)}"`,
     `target_asset_id = "${witness.target_asset_id.toString(10)}"`,
     `amount = "${witness.amount.toString(10)}"`,
+    `economics_blinding = "${witness.economics_blinding.toString(10)}"`,
+    `economics_commitment = "${witness.economics_commitment.toString(10)}"`,
     `owner_commitment = "${witness.owner_commitment.toString(10)}"`,
     `route_commitment = "${witness.route_commitment.toString(10)}"`,
     `tree_id = "${witness.tree_id.toString(10)}"`,

@@ -39,6 +39,7 @@ export const VANTA_PRIVATE_POOL_V2_SHADOW_COMMITMENT_SCHEME =
 
 export type VantaPrivatePoolV2ShieldProofRequestArgs = {
   amountBaseUnits: bigint;
+  economicsCommitment: string;
   ownerCommitment: string;
   previousRoot?: string;
   routeCommitment?: string;
@@ -212,6 +213,7 @@ function bindRouteCommitment(args: {
 
 export function createVantaPrivatePoolV2ShieldProofRequest({
   amountBaseUnits,
+  economicsCommitment,
   ownerCommitment,
   previousRoot = "0",
   routeCommitment,
@@ -229,6 +231,10 @@ export function createVantaPrivatePoolV2ShieldProofRequest({
     throw new Error("Shield proof requires an owner commitment.");
   }
 
+  if (!economicsCommitment.trim()) {
+    throw new Error("Shield proof requires an economics commitment.");
+  }
+
   const resolvedRouteCommitment = bindRouteCommitment({
     amountBaseUnits,
     routeCommitment,
@@ -237,10 +243,7 @@ export function createVantaPrivatePoolV2ShieldProofRequest({
   });
   const publicInputs = [
     `${VANTA_PRIVATE_POOL_V2_SHIELD_PROOF_REQUEST_VERSION}:version`,
-    `source-mint:${sourceMintAddress}`,
-    `target-mint:${targetMintAddress}`,
-    `target-asset:${targetAssetId}`,
-    `amount:${amountBaseUnits.toString()}`,
+    `economics-commitment:${economicsCommitment}`,
     `owner-commitment:${ownerCommitment}`,
     `route-commitment:${resolvedRouteCommitment}`,
     `tree-id:${treeCommitment.treeId}`,
@@ -251,8 +254,8 @@ export function createVantaPrivatePoolV2ShieldProofRequest({
   ] as const;
 
   return {
-    amountBaseUnits,
-    assetId: targetAssetId,
+    amountBaseUnits: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,
+    assetId: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
     ...(shieldPublicInputHash
       ? { circuitPublicInputs: [`shield-public-input-hash:${shieldPublicInputHash}`] }
       : {}),

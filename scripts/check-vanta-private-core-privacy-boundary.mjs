@@ -175,7 +175,28 @@ try {
   }
   assert(!laneHidesEconomicTerms("private-core-unshield"), "Expected unshield not to claim v2 hidden terms.");
 
-  for (const lane of ["private-pool-v2-shield", "private-pool-v2-claim"]) {
+  const shield = getVantaPrivacyBoundaryDescriptor("private-pool-v2-shield");
+  assert(
+    shield.tier === "v1.5-hash-bound-public-request-terms",
+    "Expected private-pool-v2-shield to be hash-bound public-request tier.",
+  );
+  assert(!laneHidesEconomicTerms("private-pool-v2-shield"), "Expected shield not to claim v2 hidden terms.");
+  assert(
+    JSON.stringify(shield.publicDisclosure) === JSON.stringify(["shield-public-input-hash"]),
+    "Expected shield proof disclosure to stay hash-only.",
+  );
+  assert(
+    shield.publicRequestDisclosure.includes("economics-commitment"),
+    "Expected shield request disclosure to include economics commitment.",
+  );
+  for (const field of ["source-mint", "target-mint", "asset", "amount"]) {
+    assert(
+      !shield.publicRequestDisclosure.includes(field),
+      `Shield request disclosure must not include raw ${field}.`,
+    );
+  }
+
+  for (const lane of ["private-pool-v2-claim"]) {
     const descriptor = getVantaPrivacyBoundaryDescriptor(lane);
     assert(
       descriptor.tier === "v1.5-hash-bound-public-request-terms",

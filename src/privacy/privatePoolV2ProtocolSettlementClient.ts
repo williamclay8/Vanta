@@ -1,7 +1,11 @@
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 
-import { createVantaPrivatePoolV2SwapToShieldedProofRequest } from "./privatePoolV2ProofRequests";
+import {
+  VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
+  createVantaPrivatePoolV2ShieldProofRequest,
+  createVantaPrivatePoolV2SwapToShieldedProofRequest,
+} from "./privatePoolV2ProofRequests";
 import {
   serializeVantaShieldCommittedEconomicsSettlementOpening,
   type VantaShieldCommittedEconomicsSettlementOpening,
@@ -12,6 +16,8 @@ const VANTA_PRODUCTION_PRIVATE_POOL_V2_RECEIPT_API_URL =
   "https://vanta-prod-private-pool-v2-operator.onrender.com" as const;
 const VANTA_PRIVATE_POOL_V2_LOCAL_PROVER_SCHEME =
   "sha256-private-pool-v2-local-prover-0.1" as const;
+const VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION =
+  "vanta-pay-private-settlement-adapter-0.1" as const;
 
 export type VantaProtocolSettlementAction = "shield" | "send" | "swap" | "unshield";
 
@@ -71,6 +77,7 @@ export type VantaCommittedEconomicsSettlementTerms = {
   outputCommitment?: string;
   outputLeafIndex?: string;
   outputRoot?: string;
+  previousRoot?: string;
   ownerCommitment: string;
   poolId?: string;
   privateSpendContextHash?: string;
@@ -107,6 +114,7 @@ export type VantaRawProtocolSettlementRequest = {
   outputCommitment?: never;
   outputLeafIndex?: never;
   outputRoot?: never;
+  previousRoot?: never;
   owner: string;
   ownerCommitment?: never;
   poolId?: never;
@@ -425,6 +433,14 @@ function expectedLocalProofPublicInputCommitment(request: {
   );
 }
 
+function privateSettlementTreeIdForAsset(asset: string) {
+  return hashProtocolSettlementParts(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "tree",
+    asset,
+  ).slice(0, 34);
+}
+
 export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
   requireProductionProofSystem = false,
   request,
@@ -481,8 +497,8 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
       "Shield protocol settlement proof receipt intent is not shield.",
     );
     requireProtocolSettlementCondition(
-      response.proofReceipt?.assetId === shieldCapability?.targetShieldAsset?.assetKey,
-      "Shield proof receipt asset does not match the target shield asset.",
+      response.proofReceipt?.assetId === VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
+      "Shield proof receipt must use the hidden-economics asset sentinel.",
     );
     requireProtocolSettlementCondition(
       receipt.operatorVisibleTermsCommitment ===
@@ -666,14 +682,62 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
       );
     }
     if (request.action === "shield") {
+      const proofReceipt = response.proofReceipt;
       requireProtocolSettlementCondition(
-        response.proofReceipt?.intent === "shield",
+        proofReceipt?.intent === "shield",
         "Committed Shield protocol settlement proof receipt intent is not shield.",
       );
       requireProtocolSettlementCondition(
-        response.proofReceipt?.assetId === "hidden:economic-terms",
+        proofReceipt?.assetId === "hidden:economic-terms",
         "Committed Shield proof receipt must use the hidden-economics asset sentinel.",
       );
+      const hasCommittedShieldTreeWitness =
+        request.previousRoot !== undefined ||
+        request.outputLeafIndex !== undefined ||
+        request.outputRoot !== undefined;
+      if (hasCommittedShieldTreeWitness) {
+        for (const [fieldName, fieldValue] of [
+          ["outputCommitment", request.outputCommitment],
+          ["outputLeafIndex", request.outputLeafIndex],
+          ["outputRoot", request.outputRoot],
+          ["previousRoot", request.previousRoot],
+        ] as const) {
+          requireProtocolSettlementCondition(
+            typeof fieldValue === "string" && fieldValue.trim().length > 0,
+            `Committed Shield protocol settlement request is missing ${fieldName}.`,
+          );
+        }
+        const outputLeafIndex = Number(request.outputLeafIndex);
+        requireProtocolSettlementCondition(
+          Number.isSafeInteger(outputLeafIndex) && outputLeafIndex >= 0,
+          "Committed Shield protocol settlement request has an invalid output leaf index.",
+        );
+        const committedShieldOutputCommitment = request.outputCommitment ?? "";
+        const committedShieldOutputRoot = request.outputRoot ?? "";
+        const committedShieldPreviousRoot = request.previousRoot ?? "";
+        const expectedShieldProofRequest = createVantaPrivatePoolV2ShieldProofRequest({
+          amountBaseUnits: 1n,
+          economicsCommitment: request.economicsCommitment,
+          ownerCommitment: request.ownerCommitment,
+          previousRoot: committedShieldPreviousRoot,
+          routeCommitment: request.routeCommitment,
+          sourceMintAddress: "hidden:economic-terms",
+          targetAssetId: "hidden:economic-terms",
+          targetMintAddress: "hidden:economic-terms",
+          treeCommitment: {
+            assetId: "hidden:economic-terms",
+            commitment: committedShieldOutputCommitment,
+            leafIndex: outputLeafIndex,
+            merkleRoot: committedShieldOutputRoot,
+            treeId: privateSettlementTreeIdForAsset("hidden:economic-terms"),
+          },
+        });
+        requireProtocolSettlementCondition(
+          proofReceipt?.publicInputCommitment ===
+            expectedLocalProofPublicInputCommitment(expectedShieldProofRequest),
+          "Committed Shield proof receipt public input commitment does not match the request.",
+        );
+      }
       requireProtocolSettlementCondition(
         typeof receipt.shieldReceiptBindingHash === "string" &&
           receipt.shieldReceiptBindingHash.startsWith("0x"),
@@ -731,6 +795,7 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
   outputCommitment,
   outputLeafIndex,
   outputRoot,
+  previousRoot,
   owner,
   ownerCommitment,
   poolId,
@@ -774,6 +839,7 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
       ...(outputCommitment ? { outputCommitment } : {}),
       ...(outputLeafIndex ? { outputLeafIndex } : {}),
       ...(outputRoot ? { outputRoot } : {}),
+      ...(previousRoot ? { previousRoot } : {}),
       owner,
       ...(ownerCommitment ? { ownerCommitment } : {}),
       ...(poolId ? { poolId } : {}),
@@ -827,6 +893,7 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
       outputCommitment,
       outputLeafIndex,
       outputRoot,
+      previousRoot,
       owner,
       ownerCommitment,
       poolId,

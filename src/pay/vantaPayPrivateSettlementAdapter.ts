@@ -813,7 +813,7 @@ export function createVantaPayPrivateSettlementAdapter({
       session.currency,
     );
     const leaf = {
-      assetId,
+      assetId: hiddenEconomicsAssetId,
       commitment: outputCommitment,
       leafIndex,
       treeId,
@@ -821,6 +821,14 @@ export function createVantaPayPrivateSettlementAdapter({
     const merkleRoot = merkleRootFor(treeId, [...existingCommitments, leaf]);
     const request = await createVantaPrivatePoolV2ShieldProofRequest({
       amountBaseUnits,
+      economicsCommitment: hashHex(
+        "checkout-shield-economics",
+        session.id,
+        session.clientToken,
+        session.amount,
+        session.currency,
+        outputCommitment,
+      ),
       ownerCommitment: hashHex("merchant", session.merchantId),
       previousRoot: await indexer.getCurrentRoot(treeId),
       sourceMintAddress: session.currency,
