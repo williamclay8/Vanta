@@ -2065,3 +2065,543 @@ Red-first failure observed locally: `npm run zk:merkle-node-hash-contract-check`
 Verification passed locally: `npm run zk:merkle-node-hash-contract-check`, `npm run private-pool-v2:actual-private-spend-circuit-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:claim-circuit-check`, `npm run private-pool-v2:shield-circuit-check`, `npm run private-pool-v2:swap-to-shielded-circuit-check`, `npm run private-pool-v2:public-input-hash-alignment-check`, full `npm run private-pool-v2:verify`, `npm run zk:canonical-note-membership-check`, `npm run private-core:check`, and `git diff --check`.
 
 Still open after this third pass: the Private Core single-note send/swap/unshield circuits still carry the older hi/lo and direction-bit-oriented Merkle surfaces; output append-path semantics for send/swap successors still need real successor append proofs; most active lanes remain depth 3; on-chain proof verification is still not wired; nullifier storage remains fixed/linear; and plaintext memo/privacy architecture work remains.
+
+---
+
+# UI/UX Pass
+
+I couldn't pull the deployed site down (network egress blocked from this environment), but I read every page component, the design system in `DESIGN.md`, all 9k lines of `src/styles.css`, and the shared components. Below is a page-by-page critique plus a cross-cutting plan for making Vanta the kind of site people enjoy spending time on.
+
+The aesthetic foundation is genuinely good. The work is mostly about turning a careful, informational app into one that feels alive.
+
+## Cross-cutting observations
+
+Six observations that apply across the whole product surface and are worth naming before going page-by-page.
+
+### CC1. The visual language is on-thesis but emotionally flat
+
+The palette in `src/styles.css` is excellent: a near-black background (`#030406`) with two warm-cool accents (`#77f2d4` mint and `#e4c781` ledger gold), supported by `#9bbdff` for verified and `#ffc957` / `#ff8383` for warnings. Type pairs Syne (display) with Manrope (body), Space Grotesk for labels, Space Mono for code. This is the right starting point for a privacy/finance product — confident, dark, modern, restrained.
+
+What's missing is *life*. The site has:
+- one CSS-only background gradient (radial glows + 96px grid mask)
+- one keyframe animation referenced (a pulse on the brand mark via `feGaussianBlur` filter)
+- basically zero scroll-triggered, hover-driven, or stateful motion
+
+For 2026, the bar for a flagship product website is "feels engineered, not just designed." Linear's keyboard cursor, Stripe's CSS-only iridescent gradients, Vercel's deploy-globe, Aztec's grid-warp on hover — these are all small interactions that signal craft. Vanta has the brand to support that level of polish but ships none of it.
+
+### CC2. Every page leads with disclaimers
+
+Open any app page and the first thing in the hero is a row of "beta state" / "no production funds" / "production privacy claims locked" badges. This is honest — and per the docs pass, the framing is correct. But emotionally it tells every visitor *the same warning over and over* before they've done anything. By the third page they tune it out, which defeats the warning's purpose.
+
+The fix is not to remove the truth. It's to consolidate it once at the app shell level (a persistent thin "Beta" pill in the top-right that opens a dialog explaining the full claim contract) and let each page's hero say what the page is actually for. Today, "Shield" the page barely talks about shielding before it talks about what shielding isn't.
+
+### CC3. Reviewer-facing language has leaked into user-facing surfaces
+
+The dashboard's trust hero shows "Latest Trust Packet" / "Reviewer Verification" / "Operator-visible, beta-truthful, reproducible" / `npm run private-core:operator-status` command blocks above the fold. Strategy page shows "Hash-bound packet preview." Shield page has a "Wallet approval review" details accordion under the form. Send page has "Vanta send note: <signature prefix>...<suffix>" surfaces.
+
+Most of this should be in a separate `/app/inspect` view for cryptography-curious users and reviewers. The default user view should never show a `npm run` command unless the user is on the developer surface.
+
+### CC4. Density without rhythm
+
+Every app page is a single long vertical scroll of dense `dl/dt/dd` rows, `<details>` accordions, and 4-7 horizontal info chips. There's no visual rhythm — no images, no diagrams, no color blocks, no breathing rooms. A new user landing on Send sees 8 sections of grey-on-grey text. The eye doesn't know where to go first.
+
+The same content reorganized into a 2-column scroller (primary action on the left, contextual receipt on the right) with a visible flow indicator across the top would feel half as long without losing any information. The structure is there in code (`send-flow-indicator`, `module-page__hero`); it's just not given enough visual weight relative to the body content.
+
+### CC5. The home page sells the idea; the app sells the limitation
+
+There's a tone fork. `HomePage.tsx` says "Make supported Solana activity less public" — confident product framing. App pages say "Production privacy claims remain locked" — defensive engineering framing. The disconnect between landing and product is the moment a curious user realizes the gap, and it lands as a letdown rather than as honest disclosure.
+
+The fix is to align the *tone gradient*. Landing should set up "this is what we're building"; the app should keep the same energy while being explicit about what's live today. Right now landing is upbeat and the app is hedged; visitors feel a vibe-shift on the first click into `/app`.
+
+### CC6. The Solana-native context is invisible
+
+This is a Solana product. There is no live block height, no shielded-pool TVL counter, no "X people are using Vanta right now" signal, no recent action ticker, no chain status header. A user lands on Vanta and has no proof of life beyond static copy. Even just a tiny "Solana mainnet · slot 312,584,221 · 401ms" widget in the top-right would change the entire feel from "marketing site" to "running system."
+
+(Today's TVL is presumably zero or near zero, so a TVL counter has to wait. But block height and slot timing are public and free.)
+
+---
+
+## Page-by-page
+
+### `/` — Home
+
+**File:** `src/pages/HomePage.tsx`
+
+The home page is the most polished surface in the project. Minimal nav, kicker → headline → subhead → two CTAs, then "What it does" (4 product points) and "Inside the app" (6 deep links). The `landing-minimal__grid` aria-hidden grid + two corner glows give it a clean tech-product feel.
+
+The good: the structure is right. The headline is honest. The dual-CTA pattern (Enter App / Learn More) is correct. The fact that the same nav links go through to docs and X works.
+
+What's weak:
+
+- **The hero is static.** `<h1>Make supported Solana activity <span>less public.</span></h1>` is a single line of text with no kinetic interest. For comparison: Stripe's hero has a 5-color iridescent gradient that responds to scroll; Linear's has a parallax cursor; Aztec's has an animated mesh. Vanta has a kicker, a headline, two buttons, and one paragraph. **Add a hero visualization.** A subtle live demo of "wallet → shield → private state" as 3 nodes connected by a flowing particle line would be on-brand and move what is currently inert text. The brand mark already has a gradient glow that could pulse on a slow loop.
+- **"What it does" is 4 text cards with no iconography.** The four cards are titled "Shield assets / Use private rails / Accept payments / Exit on your terms." They're just `<strong>` + `<p>`. Add small SVG glyphs (a shield, two arrows in a circle, a receipt, a door) — same color as the accent so they don't fight the type. Even minimal pictograms 3× the scannability.
+- **"Inside the app" is just a link list.** It says "The constrained actions Vanta can show honestly." This is the moment a visitor decides whether to enter the app. Six text links is the minimum-effort answer. Replace with 6 hover-responsive cards, each with: action name, single-sentence outcome ("Lock USDC into Vanta's private area"), small status pill ("Live" / "Preview"), and an arrow that shifts on hover. Same data, vastly higher click-through intent.
+- **No social proof.** No "powered by Solana" badge, no "deployed on mainnet" indicator, no version line, no GitHub link, no "what we shipped this week." For a tech-credibility-driven product, even a small footer reading "v0.1.0 — last deploy 2 days ago — Solana mainnet" buys huge trust.
+
+**One concrete edit:** add a `landing-minimal__live-strip` between the hero and "What it does" — a single horizontal row showing real Solana mainnet block height (via `getBlockHeight` polled every 2s), the current slot's confirmation latency, and a small mint-colored dot that pulses each time the slot increments. Cost: 30 lines of code, one effect, one fetch loop. Effect: the page goes from "marketing site" to "this is plugged into something." This single change moves more conversion than any copy edit.
+
+### `/app/dashboard` — App dashboard
+
+**File:** `src/pages/AppDashboardPage.tsx`
+
+This is the most reviewer-coded page in the product. Above the fold:
+
+- "Trust Status" hero with what-we-can-prove-right-now copy
+- "Latest Trust Packet" panel with `Packet / Gate / Lineage / Boundary` rows
+- "Current local state" stat row (Shielded USDC / Verified SOL shield state / Actionable notes)
+- "Reviewer Verification" panel with `npm run` commands inline as `<code>`
+- "Next Step" card
+- "Reviewer Package" card
+- A 4-card actions grid
+
+A new user opening this page is hit with five different framings of "current state" before they see "what to do next." The Reviewer Verification panel literally lists shell commands.
+
+**Recommendations:**
+
+- **Two distinct dashboards.** Default `/app/dashboard` is a user dashboard: balance, last action, next-step CTA, the 4 action cards. A separate `/app/inspect` is the reviewer dashboard: trust packet, gates, lineage, npm commands, JSON dumps. Today's page is both at once, and that hurts both audiences.
+- **Lead with balance, not status.** A wallet user lands and wants to see a number. "Shielded USDC: 0.00" or whatever is the right hero. The status copy can be a single line beneath the number, with a small "Why?" link that opens the full trust-packet drawer.
+- **Drop the inline `npm run` commands from this view.** They belong on `/app/inspect` or in the docs. Having shell commands in the user-facing app is a category error.
+- **The 4 action cards (Shield / Send / Unshield / Swap) need work.** They're currently uniform `dashboard-action-card--minimal` rectangles with a badge in the corner. Differentiate them: each card gets a unique illustration or pictogram, badge color reflects readiness (`Ready` is mint, `Needs notes` is muted, `Start` is gold), and hover triggers a small motion (icon rotates, border lights up). Make picking a lane feel like a choice, not a directory listing.
+- **The "Next Step" card is good — keep it, but expand it.** When a user finishes a shield, the next step should be visually presented as a small celebratory state: confetti for ~600ms in the accent color, the next step CTA fades in, the action card for the lane they came from gets a green "Done" tick. Right now success is silent; users don't know if they completed anything.
+
+### `/app/shield` — Shield
+
+**File:** `src/pages/ShieldPage.tsx` (2157 lines)
+
+The form is well-engineered: amount entry with Max button, asset selector (with public-route capability detection), shielded-balance preview, route helper, recovery panel, viewing-key panel, decoy-batcher option (presumably exposed somewhere), wallet approval review, route progress indicator. All correct.
+
+The problem is purely UX. Above the form's submit button there are routinely **8–12 helper lines** depending on state: route label, route progress, validation messages, recovery hints, viewing-key state, transitional warnings, and so on. The shield-helper class is used 30+ times in this file. The user-facing form has "Choose what to shield" and "Vanta will shield X directly so it remains X in shielded state" and "asset can enter shielded state as itself" — copy that's correct but feels machine-generated.
+
+**Recommendations:**
+
+- **Collapse all helper text into a single "What happens" expandable block** below the submit button. Default-collapsed for first-time users, persistent if they expanded it before. The form itself should be: amount, from, to, a route summary line, submit. Everything else on demand.
+- **Replace the asset dropdown with an asset picker grid.** A row of 6-12 pill-buttons showing token logos + symbol (USDC, USDT, SOL, BONK, etc.). Selected state lights up the accent border. Configured-but-not-loaded states show a subtle "loading" shimmer. Solana token logos are a public CDN; this is half a day of work and triples the visual interest of the page.
+- **Make the route preview kinetic.** When a user picks `BONK → Shielded USDC`, the route helper should show a small animation: the source token icon, an arrow that travels left-to-right with a particle, the target shielded-USDC icon. Same idea Jupiter has on their swap aggregator. This is what "private rails" should *look* like, not just say.
+- **Add a balance-after-shield preview.** "Shielded USDC: 100.00 → 250.00" with the new value pulsing in mint color. Banks have done this for 40 years; web3 forgot.
+- **The wallet approval review accordion is buried.** The exact thing that should be most legible — what the user is about to sign — is in a `<details>` element under the submit button. Promote it to a side panel that's always visible during the awaiting-confirmation state, and make it look like a wallet's actual signing prompt. This is a **safety win**, not just a polish win — users who can pre-read the transaction are less likely to blind-sign hostile ones.
+
+### `/app/send` — Send
+
+**File:** `src/pages/SendPage.tsx` (2692 lines)
+
+Same form pattern as Shield, scoped to USDC-only. The page leads with `[Shield] [Send] [Hold change]` flow indicator and a context banner ("No shielded funds ready to send. Shield first, then send from the private balance."). Form follows: amount, recipient, send notes, plus the same family of helper text and approval review.
+
+The flow indicator is excellent — exactly the kind of visual chunking the rest of the app needs. It's also currently the only good visual rhythm element on the page.
+
+**Recommendations:**
+
+- **The flow indicator is in the right place but only used here, on Swap, and on Pay.** Make it a shared `<LaneFlowIndicator>` component used by Shield, Send, Swap, and Unshield, with the current step animated (a subtle horizontal sweep light that moves left to right on the active step every 4 seconds).
+- **Recipient input needs help.** Today it's a plain text input that takes a Solana base58 address. Real privacy products show: address validation as you type, optional ENS / .sol name resolution (Bonfida), recent-recipients dropdown, paste-detection that flips to checksum-validated state, QR-code scan button on mobile. Stripe handles "recipient" inputs better than Vanta does today, and Vanta is moving more sensitive data.
+- **The "you send / they receive / your change" three-output pattern is the unique-selling-point of shielded send.** Today it's three labeled rows in a list. Make it a small visual: one input note splitting into two output notes via a Y-shape, with the amounts animated as you adjust. This is the only place in the entire product where the user sees the UTXO-style note model directly. Lean into it.
+- **Recipient privacy framing is currently a footnote.** The note "Send and execute through private-state flows instead of exposing every product step to users" is on the home page, not on Send. Send itself doesn't tell the user what's actually private about their send. After the AEAD memo work from the send-lane deep dive lands, Send should display: "Visible on chain: nothing identifying your recipient. Visible to operator: nothing. Visible only to your recipient: amount, asset, and message." That's the table stakes for a "private send" product, and it's missing today.
+
+### `/app/swap` — Swap
+
+**File:** `src/pages/SwapPage.tsx` (1667 lines)
+
+Same form-card pattern, scoped to USDC ↔ SOL via Meteora DLMM. Visible state: input note picker, output amount preview, venue badge ("Meteora · DLMM · Mainnet"), quote expiry countdown, slippage indicator, route protection toggles.
+
+The Swap page has the best concrete data in the product (real Jupiter/Meteora quotes), but the smallest visual budget for it.
+
+**Recommendations:**
+
+- **Show the quote as a number, not as a row in a list.** Pickup pattern from Jupiter: huge type for the input amount, equals sign, slightly less huge type for the output amount, route shown beneath as small icons (USDC → Meteora → SOL). Vanta has this content; it just doesn't visually privilege it.
+- **The quote-expiry countdown is the page's only kinetic element.** Make it good: a thin progress bar across the top of the swap card that drains from accent-mint to warning-amber as the quote approaches expiry. Re-fetching the quote restarts the bar. This is the kind of small craft touch that makes a swap feel like a swap.
+- **Add a price chart.** Even a lightweight 24h sparkline of the pair's price (USDC/SOL) gives the page an information-density boost without complexity. Chartjs or recharts is already in the project's react ecosystem; the Helius RPC fees fetch infrastructure already exists.
+- **The "currently SOL only" message needs reframing.** Today the asset picker has 14+ assets and 12 of them are blocked. That's misleading and frustrating. Either show only the assets that work today (USDC ↔ SOL is the live pair), or label each visibly and make the disabled ones genuinely look disabled (greyed out, "coming soon" tag, no hover state). Users will pick one of the disabled ones first, and then feel the friction.
+
+### `/app/unshield` — Unshield
+
+**File:** `src/pages/UnshieldPage.tsx` (3232 lines — largest file in `pages/`)
+
+The exit lane. Same form pattern, lots of edge cases (full vs partial unshield, transition vs wallet-direct authorization, USDC vs SOL exit, signed vs unsigned intents).
+
+Two specific UX issues stood out from the code:
+
+- **The "transition-authorized" vs "wallet-authorized" distinction is exposed in the UI.** Per the unshield deep dive, this is also a security issue (two ways to authorize the same release). It's also confusing UX. A user shouldn't need to understand which authorization path their unshield uses — that's an implementation detail. The form should pick one, default to the safer one (real wallet signature), and not surface the choice.
+- **Destination is forced to self.** This is unambiguous in the code: `intent.destinationOwner === intent.requester`. The UI today doesn't tell users this clearly enough. The destination field defaults to "your wallet" but visually looks like an editable text input. Make the destination explicit: a labeled card showing the user's connected wallet address with a "to your own wallet" pill, and a disabled "Send to a different wallet" toggle that says "Coming soon — needs unshield-to-fresh-wallet support" (which lines up with the unshield-lane recommendation U2).
+
+**General recommendations:**
+
+- **Lead with the visible exit consequence.** "You'll receive: 100.00 USDC in `7yU...rtdi`." Big and prominent. Everything else (proof receipt, audit disclosure, gate state) goes below the fold.
+- **The "exit recipe" graphic.** Same idea as the Send Y-split: a single shielded note flowing back into a public wallet, with the user's own wallet address as the destination. Small animated pictogram showing the privacy boundary being crossed. Currently the page has no visual that shows what unshield actually means.
+- **Confirmation states.** When the unshield completes, the page goes to a green "Complete" state with the SPL transfer signature linked to Solscan. Add a small celebratory transition (mint-colored radial pulse from the transfer signature outward) and offer next-step actions: "Shield more" / "Share receipt" / "View on Solscan." Today the success state is muted text.
+
+### `/app/strategy` — Strategy
+
+**File:** `src/pages/StrategyPage.tsx` (570 lines)
+
+Per the strategy-lane deep dive, this is preview-only. The form is good — the most product-like in the suite, with mode (Stealth DCA / Private TWAP), side (Buy / Sell), asset, total size, time window, slice/timing policies, urgency, landing mode, max slippage, funding source, destination. Lots of dropdowns.
+
+**Recommendations:**
+
+- **The form is the product, but it's not visually presented as one.** Imagine a strategy form that, as you adjust inputs, shows the resulting child-order schedule as a horizontal timeline with N tick marks across a bar — sized by notional, colored by readiness, with hover for per-child detail. As the user changes "Time window: 6h → 24h" the marks redistribute live. As they change "Slice policy: Fixed count → Randomized sizing" the mark heights vary. This single visualization makes Stealth DCA *feel* stealthy in a way no copy can.
+- **Strategy mode toggle needs life.** Stealth DCA vs Private TWAP is a meaningful product choice. Today it's a `<select>` dropdown. Make it a 2-card toggle with explanatory copy on hover: Stealth DCA showing many small irregular ticks; Private TWAP showing many evenly-spaced small ticks. Visual difference makes the choice memorable.
+- **Funding source is confusing.** The user picks "Connected wallet / Public wallet balance / Vanta private balance." Two of those mean essentially the same thing. Consolidate to "Public wallet" vs "Vanta private balance" with help text explaining the shield-first requirement.
+- **The unimplemented policies (Min/max child size, Venue threshold, Volatility-aware, Liquidity-aware) — per the strategy-lane deep dive — should not be selectable until Y4 lands.** Today they're typeable inert options. Show them as disabled "Coming soon" entries.
+- **Add a strategy preview ledger.** As the user designs the strategy, a side panel shows: "This strategy will produce ~24 child trades over 24 hours, averaging $10,416 each, executed every 60 minutes ± 17 minutes of jitter, settling to your Vanta private balance." That's the "hash-bound packet preview" reframed as something a human actually wants to read.
+
+### `/app/pay` — Pay
+
+**File:** `src/pages/PayPage.tsx` (835 lines)
+
+The 4-step flow indicator (`Create → Approve → Settle → Share receipt`) is the right structure. The split layout (request builder on the left, review card on the right, status panel below) maps well to a Stripe Checkout-shaped product.
+
+What could be elevated:
+
+- **The "Vanta Pay" hero is currently three side-by-side text blocks (eyebrow / title / body / badges + module-state demo card).** Compress to a single hero column with a hero illustration of a payment link / checkout flow on the right. The PayPage is the only place where Vanta has a concrete consumer-facing product moment; let it look like one.
+- **The receipt packet panel is the unique product feature.** Today it's a `dl` of facts. Make it look like an actual receipt — a printable, shareable card with the merchant brand at the top, the amount in big type, the proof receipt as a verifiable QR code, "verify at vantaprivacy.xyz/receipt/<id>" link, and a "Copy share link" button that pulses on click. Trust packets are the project's distribution thesis (per `MISSION.md`); the receipt UI is where that thesis becomes tangible.
+- **Add a hosted-checkout preview.** Show the merchant what their customer will see — a Stripe-style modal mockup with the merchant logo, line items, "Pay with Vanta" button. Update it live as the merchant edits the form. This is the #1 thing merchants want to see before integrating a checkout, and Stripe and Square both do it.
+- **Test-mode badging is correct but everywhere.** "Test mode" / "No production funds moved" / "Production privacy claims remain locked" is three badges of the same idea. Pick one (Test Mode), make the other two a tooltip that opens a longer explanation. Reduces visual noise.
+
+### `/app/launch` — Private Launch
+
+**File:** `src/pages/LaunchPage.tsx` (21 lines, all delegated to `<ModulePage>`)
+
+Pure roadmap placeholder. Currently the only acceptable surface in the app for "this is intentionally not built yet."
+
+**Recommendation:**
+
+- Lean into the placeholder. Right now it shows a generic ModulePage with summary text. Make this page something delightful — a horizontal roadmap visualization (timeline with milestones), a "subscribe for updates" form, a poll asking which feature to prioritize, a sketch of the future UI. A page that says "we'll build this someday" should at least be a fun page to land on.
+
+### `/app/privacy-review` — Privacy Review
+
+**File:** `src/pages/PrivacyReviewPage.tsx` (51 lines)
+
+Reviewer-facing page showing Umbra benchmark approval samples. Honest, sparse, correct in scope.
+
+**Recommendations:**
+
+- This page is good as it is. It's clearly labeled "Review only" and serves a narrow audience.
+- One small win: the `<dl>` of approval rows could become a code-style monospace box that visually communicates "this is the cryptographic prompt the user would see." Stylistically borrow from Aztec's `aztec.network` approval-prompt visualizations.
+
+### `/app/actual-private-settlement` — Actual Private Settlement
+
+**File:** `src/pages/ActualPrivateSettlementPage.tsx` (116 lines)
+
+The "this is the real cryptographic settlement boundary" page. Per its name, it's a reviewer-leaning page showing what the real private-spend lane is doing.
+
+**Recommendations:**
+
+- Either fold this into `/app/inspect` per the dashboard recommendation, or keep it as a proudly-technical page that uses the visual treatment to signal "this is for engineers." Monospace fonts, terminal-style colors, the proof receipt rendered as a code block. Make it look and feel like a Wireshark for private settlement.
+
+### `/docs/*` — Docs
+
+**Files:** `DocsHomePage`, `DocsPortalPage`, `DocsPayPage`, `DocsTrustPage`, `DocsSecurityPage`, `DocsRoadmapPage`
+
+The docs in-app surfaces are the cleanest pages in the product. They follow a `DocsPageTemplate` shell with eyebrow / title / next-step / step-grid structure. Copy is careful and consistent.
+
+**Recommendations:**
+
+- **Add a visible left-sidebar navigation** (most modern docs sites do — Stripe, Vercel, Solana docs itself). Today docs navigation is via top-nav links only; on the docs subpages there's no "where am I" affordance.
+- **Inline diagrams.** The `DocsHomePage` `landing-minimal__plain-strip` (the 4-step "Start public / Shield into Vanta / Create a receipt / Let the counterparty verify") would benefit enormously from a single SVG diagram showing those 4 boxes connected by arrows. The Mermaid library is probably already available; even basic boxes-and-arrows would lift these pages.
+- **Add searchability.** A `Cmd-K` search bar over the docs is table stakes. Algolia DocSearch is free for open-source projects.
+- **Per-page "On this page" right-rail.** Standard docs pattern. With pages of this length it's overkill, but if pages grow to operator-runbook-length (1400 lines), they'll need it.
+
+---
+
+## A new visual & interaction system
+
+Beyond the per-page recommendations, here's what would make Vanta the *best-looking* site in the privacy/payments space rather than just *a good-looking* one. Six concrete additions, in order of cost/impact ratio.
+
+### V1. A cohesive motion vocabulary
+
+Pick three motion primitives and use them everywhere:
+
+- **Slow pulse** (1.6s ease-in-out, mint accent at 8% opacity → 24% → 8%) for active/healthy states. Brand mark, "live" indicators, active flow steps.
+- **Particle line** (60-frame loop, 4-6 dots flowing along a path) for routes — Shield route, Send hop, Swap venue path, Strategy schedule.
+- **Reveal-on-scroll** with a 12px Y-translate fade-in (200ms ease-out, IntersectionObserver-driven) for cards entering the viewport. Subtle but it makes long pages feel composed.
+
+A `useReducedMotion()` hook respects the system preference.
+
+### V2. A canonical 3D / WebGL hero element
+
+The home page would benefit from one signature 3D asset. Two options:
+
+- **Option A — Volumetric brand mark.** Take the current 2D `BrandMark` SVG and re-implement in Three.js as a glassy mint-tinted prism that slowly rotates with mouse parallax. ~150 lines of code, immediate "this site has motion" upgrade.
+- **Option B — Ambient particle field.** A WebGL particle system in the hero that's dense in the center (representing public state) and sparse on the right (representing shielded state), with a visible "boundary" drawn between. Suggests the privacy thesis with no copy. Higher upfront cost (~400 lines) but harder to copy.
+
+Either runs in `<canvas>` behind the existing hero copy, with `<canvas style="opacity:0.6">` so it never fights the foreground.
+
+### V3. The shielded-state visualization that should exist throughout the app
+
+The single biggest UX miss is that "shielded state" is a label, not an image. A canonical shielded-state visualization — a small grid of glyphs representing notes, with shielded notes glowing softly and unshielded notes flat — would be reused across:
+
+- App dashboard ("Your shielded state" hero panel)
+- Shield page (preview of the new note appearing in the user's grid)
+- Send page (the input note's glow fading, two new output notes appearing)
+- Unshield page (the consumed note dimming and its value flowing out as an SPL transfer)
+- Pay page (merchant escrow as a shared shielded grid)
+
+This is one component (`<ShieldedStateGrid />`) used five places. Build it once, instrument it with the user's actual notes (per the live-shield bridge), and every page benefits. **This is the single most leveraged piece of design work the project could do.**
+
+### V4. Sound design (carefully)
+
+Privacy products usually skip sound, but a single, optional, opt-in subtle audio cue on action confirmation (a single mint-toned chime, ~200ms, like Stripe's payment-success or Linear's done-toast) would make completing a Shield feel like an event. Default off; toggle in settings; tooltip explaining "celebratory chime only on successful actions, never on errors or load."
+
+### V5. A persistent "system status" header strip
+
+A 28-pixel-tall strip across the top of the app shell (above the page hero, beneath the nav) showing:
+
+- Solana network status (operational / degraded / down) — pulled from a public RPC health endpoint
+- Slot height, ticking up live
+- Vanta operator status (color-coded green / amber / red, click for breakdown)
+- Beta-mode pill linking to claim controls
+
+This makes the entire app feel like a live system. ~80 lines of code; uses existing infrastructure.
+
+### V6. Easter eggs that respect the theme
+
+Privacy/finance is a serious topic, but not humorless. Two examples:
+
+- **`vantaprivacy.xyz/.well-known/audit`** returns a JSON document with the current circuit hashes, vk hashes, deployed program IDs, and a signature from the project key. Cryptography people will share it.
+- **Konami-code unlock**: typing `↑↑↓↓←→←→ba` on any app page reveals the developer-inspect view (`/app/inspect`) without needing to navigate to it. Unannounced; discoverable via the source.
+
+These are small but they're the kind of detail people screenshot and post.
+
+---
+
+## Order of operations and rough effort
+
+Listed by cost/impact ratio. The first three are weekend-scope and produce huge visual upgrades.
+
+| # | Recommendation | Effort | Impact |
+|---|---|---|---|
+| 1 | Live system status strip (V5) + block-height ticker on home | 1 day | Very high — flips "marketing" to "running system" instantly |
+| 2 | Single `<ShieldedStateGrid />` component used across 5 pages (V3) | 3–4 days | Highest — turns "shielded state" from word to image |
+| 3 | Asset picker grid (replace dropdowns on Shield/Swap with token-logo pills) | 2 days | High — half the app's perceived complexity drops |
+| 4 | Cohesive motion vocabulary (V1) — 3 primitives wired to existing components | 3 days | Medium-high — every page feels alive without redesign |
+| 5 | Two-dashboard split — `/app/dashboard` user, `/app/inspect` reviewer | 2 days | High — fixes the largest tonal issue cross-cutting the app |
+| 6 | Hero 3D / WebGL element on home (V2) | 1 week | High — makes the home page memorable |
+| 7 | Lane flow indicator promoted to shared component, animated active step | 1 day | Medium — small win replicated 4 places |
+| 8 | Receipt packet UI redesign (Pay) — printable receipt + share link + QR | 4 days | High for Pay specifically |
+| 9 | Strategy timeline visualization (preview the schedule as you edit) | 1 week | High for Strategy lane |
+| 10 | Sound design (optional, opt-in chime on success) | 1 day | Low cost, high delight if discovered |
+
+Total to hit "best-looking site in the space": ~4–5 weeks of one designer/developer. The bulk of the cost is items 2 (`<ShieldedStateGrid />`), 6 (hero 3D), and 9 (strategy timeline) — the three set-pieces that make the site memorable.
+
+## Concrete first commit for Codex (UI/UX)
+
+Two parallel one-day fixes that make a visible dent:
+
+> **(a) Add a `<SystemStatusStrip />` component above every `/app/*` page that polls Solana mainnet block height every 2s, shows network status, and includes a single Beta pill that opens a dialog with the four-lane claim-controls table. Replace the current "beta state" badge sprawl on every individual page with this single shared strip. (b) Replace the asset-selection `<select>` dropdowns on `ShieldPage` and `SwapPage` with a row of token-logo pill buttons (USDC, USDT, SOL, BONK, etc.) — selected state lights up the accent border, disabled assets show "Coming soon" tag, no dropdown.**
+
+(a) collapses 5 pages worth of disclaimer chips into one canonical strip while making the entire app feel live. (b) makes the most-used input on the most-used page visually engaging. Neither change touches the cryptographic primitives or the on-chain program; both can ship today. Together they're maybe 250 lines of new TSX and 80 lines of CSS, and they'd transform the first-impression quality of the site.
+
+Pair this with deleting the inline `npm run` command blocks from `AppDashboardPage` and pushing them to a future `/app/inspect` route, so the user-facing dashboard stops looking like a developer surface.
+
+---
+
+That ends the UI/UX pass. The aesthetic foundation is genuinely strong — the palette, the type, the architectural choices in `DESIGN.md` are all pointed in the right direction. What's missing is the layer of motion, illustration, and interactive delight that separates "good-looking app" from "the kind of site people screenshot and share." Six set-pieces (live status strip, shielded-state grid, hero 3D, motion vocabulary, lane flow visualizations, receipt packet UI) would close that gap and move Vanta from "carefully designed beta product" to "the privacy suite people want to use even when they don't have to."
+
+---
+
+# Final Pass — Becoming the Premier Privacy Suite
+
+The lane deep dives covered the cryptography. The docs pass covered the framing. The UI/UX pass covered the surface. This final pass covers everything else — the strategic, operational, regulatory, ecosystem, and product moves that determine whether Vanta becomes a credible privacy suite that real businesses adopt or remains a well-engineered demo.
+
+The framing question: **what would a head of compliance at a crypto-native merchant need to see to wire Vanta into a revenue stream?** That person is the actual customer. Most of what follows works backwards from their checklist.
+
+## F1. Compliance posture as a product feature, not an afterthought
+
+Privacy on Solana post-Tornado-Cash is a regulatory minefield. The path through it is well-established by recent academic work (Buterin, Heimbach et al. on Privacy Pools; the FATF Travel Rule guidance; OFAC's August 2022 sanctions) and Vanta has not yet committed to it architecturally. The blockers below are not optional for a US-deployed privacy product reaching real merchants:
+
+- **Adopt the Privacy Pools pattern.** Every withdrawal proves not just "I own a valid note" but also "this note is in association set S," where S is a curated allowlist of deposits proven to come from non-sanctioned, non-stolen, non-mixed sources. Any merchant or exchange can choose which association sets to honor; users can choose which to be members of. This is the only known design that gives users meaningful privacy while letting compliance-conscious counterparties verifiably reject sanctioned funds. Without it, every Vanta deposit eventually correlates back to a sanctions exposure question.
+- **Selective disclosure key escrow with a clear, public policy.** A user, voluntarily, can produce a viewing key for a specific transaction and share it with a counterparty (or under a specific court order, with law enforcement). The escrow is **per-user, opt-in, narrowly scoped** — there is no master key that decrypts all of Vanta. The policy is published verbatim on `vantaprivacy.xyz/legal/disclosure` and references specific statutes. This is what unlocks regulated counterparty integration (banks, exchanges, payroll).
+- **Tiered KYC for merchants, not customers.** Customers paying merchants stay private. Merchants accepting funds at meaningful volume go through a one-time identity verification (Persona, Plaid Identity, or similar). Tier 0 ≤ $1k/mo no KYC; Tier 1 ≤ $50k/mo light KYC; Tier 2 above that full KYB with a registered legal entity. Most US PSP shapes look like this. Vanta's `getVantaPayMerchantTrustStatus` already has the type for this; it just needs the workflow.
+- **Travel Rule integration where applicable.** When a merchant unshields above the $3k threshold, Vanta exposes the originator/beneficiary information to the merchant's compliance system via an API. This is mandatory in most jurisdictions; ignoring it is what got several mixers shut down.
+- **A real legal entity and Terms.** Vanta needs a registered entity (likely a non-US foundation for the protocol layer + a US-incorporated entity for merchant services), published Terms of Service, a Privacy Policy, and a clear "what we will and won't do under legal pressure" document. The MISSION.md hints at this with "policy-safe private settlement" but the underlying legal structure isn't yet visible in the repo.
+- **Sanctions screening at the deposit boundary.** Every deposit address gets checked against OFAC's SDN list and Chainalysis sanctions screening before the deposit is honored. A deposit from a flagged address is reverse-able to the depositor's wallet within a 24-hour window with no privacy claim. Cost: ~$0.10 per check via Chainalysis API; vendor integration is a one-week project.
+
+None of this is happy work for a privacy product to do. But "privacy you can give to your accountant" is a 100x larger market than "privacy that reads as a sanctions evasion tool." Pick the larger market.
+
+## F2. Anonymity-set bootstrapping — solving the empty-pool problem
+
+A privacy pool with one user has anonymity set one — no privacy. Even after all the cryptographic work in the lane deep dives lands, Vanta has to ship to a market where no anonymity set exists yet. Three concurrent strategies:
+
+- **Subsidized initial deposits.** For the first 90 days, Vanta refunds the network and protocol fees on shielded deposits to the first 1000 users. Cost: maybe $50k. Effect: a measurable anonymity set baseline before any organic flow arrives.
+- **Anchor merchant partnerships.** Sign 3-5 launch merchants (e.g., a known DAO treasury, an OTC desk, a Solana-native subscription service) who commit to routing $1M+/month through Vanta in the first quarter. Their flow is the seed that grows the user-side pool. The trust packet pattern is exactly what these merchants need to integrate without depending on Vanta as a custodian for very long. Negotiate a rev-share or token-grant in exchange for the commitment.
+- **Publish the anonymity-set "depth oracle" prominently.** A real-time gauge on the home page: "Current anonymity set: 1,247 active deposits across 8 assets." Make it the single most prominent number on the site. Privacy products that hide their anonymity set are hiding their weakest property; products that publish it are signaling strength as the number grows. The same gauge should fail-closed on the trust packet — a packet from an anonymity set < 100 is labeled "low-anonymity" with explicit copy.
+
+The depth oracle infrastructure is also the right shape for the **decoy-batcher** code already partially in the repo (`shieldDecoyBatcher.ts`). Decoy deposits are a way to inflate the apparent anonymity set artificially; they're controversial. If used at all, they should be (a) cryptographically distinguishable from real deposits via a labeled-decoy circuit input, and (b) not counted in the public depth oracle. Otherwise the depth oracle is misleading and the privacy claim is hollow.
+
+## F3. Distribution & go-to-market
+
+The technical work of the previous sections gets Vanta to "production-ready cryptographic primitive." None of that wins users. Concrete distribution moves:
+
+- **The 50-merchant design partner program.** Identify 50 crypto-native merchants in 2026 (DePIN projects, Solana-native SaaS, infrastructure providers, NFT marketplaces, content monetization platforms). Offer them: free integration support, white-glove onboarding, public case studies, and a token grant if Vanta launches one. Make the bar honest: "we are a beta product, your customers' transactions will be private once these specific gates clear, here's the roadmap." Most will say no. The 5–10 who say yes are the early-stage anchor flow.
+- **A one-page "Why Vanta" deck targeting the merchant audience.** Today the home page is general-purpose. The merchant-specific version should answer: my customers don't want their wallet history public; my competitors and arbitrageurs can see my revenue flows on-chain; my international customers face tax/regulatory exposure from public payment trails. Vanta solves these without breaking my compliance posture. That's a 5-slide deck Vanta should ship next week.
+- **Conference presence is the wrong play.** Vanta is at a stage where Solana Breakpoint booths don't move metrics; the merchant audience isn't there. Better: 1:1 outreach to the 50 highest-revenue Solana merchants directly, an active developer-relations presence on Twitter/X (the project has `@vantaprivacy`; needs to ship), and content (case studies, technical deep-dives, comparisons against Aztec/Penumbra/Railgun).
+- **A "for treasuries" positioning track.** Solana foundation, prominent project treasuries, DAO multi-sigs — these are organizations that want their movements less public for legitimate reasons (acquisition negotiation, employee compensation, vendor payments). The product fits them especially well because they have legal teams who can evaluate the disclosure mechanism, and they have predictable monthly flow that bootstraps the anonymity set.
+- **A "for payroll" positioning track.** Crypto payroll providers (Toku, Liquifi, Request) currently expose every employee's wallet on chain. Plug Vanta in and that exposure goes away. This is high-LTV, recurring, low-fraud, and structurally aligned with the privacy thesis.
+
+## F4. Developer surface
+
+Today a merchant integrating Vanta writes HTTP requests against `operator/pay-server.mjs` directly. That's a Stripe-shaped API but without Stripe's developer experience. To compete with Stripe-on-crypto (the implicit positioning), the developer surface needs:
+
+- **A typed SDK.** TypeScript first (`@vanta/pay`), Python second (`vanta-pay`), Ruby/PHP/Go later. The TypeScript SDK should mirror Stripe's API ergonomics: `vanta.checkoutSessions.create({...})`, `vanta.refunds.create({...})`, idempotency-key support, automatic retries with exponential backoff, typed webhook event handlers.
+- **A drop-in React component.** `<VantaCheckout sessionId={id} />` for embedded mode, `<VantaPaymentLink slug={...} />` for hosted mode. With Tailwind/CSS-variable theming so merchants can match their brand.
+- **A wallet adapter library.** `@vanta/wallet-react` with `useVantaShieldedBalance()`, `useVantaPaymentSession()` hooks. Solves the integration problem for any wallet-connected dApp.
+- **A webhook signing verifier.** Today merchants reverse-engineer the `t={timestamp},v1={signature}` header (Stripe-compatible). Ship `vanta.webhooks.constructEvent(rawBody, signatureHeader, secret)` so they don't have to.
+- **Sandbox test mode.** A separate `test_*` API key tier that runs against a test-only operator with fake balances and fake wallets. Critical for merchant integration testing.
+- **A public Postman / OpenAPI spec.** `vantaprivacy.xyz/api/openapi.json`. Generated from the type definitions in `vantaPayTypes.ts`, kept in sync via CI.
+- **API reference docs at `docs.vantaprivacy.xyz`.** Auto-generated from the OpenAPI spec. Stripe-style three-column layout (nav, content, code samples in 4 languages).
+- **A migration guide from Stripe.** Many candidate merchants currently use Stripe. A "your Stripe webhook handler, with these 3 line changes, accepts Vanta events too" guide is high-leverage.
+
+This is 6–10 weeks of focused work for one developer-relations engineer. Without it, Vanta is competing on price and privacy alone; with it, Vanta is competing on developer experience too — which is what most merchant decisions actually optimize for.
+
+## F5. Mobile reach
+
+The entire UI/UX pass treated Vanta as a desktop web app because that's what `src/pages/*` ships. That's a market constraint. ~70% of consumer crypto activity happens on mobile (Phantom mobile, Solflare mobile, in-app browsers). A privacy payment product that's desktop-only excludes its largest customer segment.
+
+Three options, ordered by effort:
+
+- **Option A — PWA optimization.** Make the existing app a high-quality progressive web app. Mobile-first responsive design (current code has some mobile media queries but is not mobile-first), wallet connect via mobile wallet deeplinks (Phantom, Solflare, Backpack all support `solana:` URI schemes), home-screen install prompt. ~2–3 weeks, no new codebase.
+- **Option B — Native iOS/Android via React Native.** A real mobile app published in app stores. Better push notifications, more reliable wallet integration via mobile-native SDKs (Mobile Wallet Adapter), better camera/biometrics access. ~10–12 weeks for a competent team. Higher long-term ceiling.
+- **Option C — Mobile-first hosted checkout only.** Don't ship a full mobile app yet, but make sure the customer-facing checkout flow (per Pay-lane P1) is mobile-perfect. This is the pragmatic compromise: merchants integrate from desktop, customers pay from mobile, Vanta's own mobile app comes later. ~3–4 weeks.
+
+Option C is the right default. Option A is the right second step. Option B should wait for product-market fit signals.
+
+## F6. Wallet ecosystem integration breadth
+
+Today the app uses a single wallet adapter path (visible in `src/data/context/WalletContext` and the various `useVantaSafeSendTransaction` hooks). For a Solana product in 2026, the supported-wallets list determines reach. Specific integrations to ship:
+
+- **Phantom** — the default. Already presumably works.
+- **Solflare** — second priority. Standard wallet adapter integration.
+- **Backpack** — the rising third option. Has xNFT/native app surface that Vanta could integrate into directly.
+- **Mobile Wallet Adapter (MWA)** — Solana Mobile / Saga support, which is also the default for in-app browsers in Phantom/Solflare mobile.
+- **Squads multi-sig** — for DAO treasuries and corporate users. Squads' protocol supports executing arbitrary instructions via multi-sig; Vanta should integrate as a known Squads program ID.
+- **Hardware wallets** (Ledger, Trezor) — required for treasury-scale users. Standard Solana wallet adapter has support; Vanta needs to test the signing UX specifically since shielded transactions have larger instruction data than typical SPL transfers.
+- **Wallet connect for WalletConnect-based wallets** — out of scope for Solana specifically (WalletConnect is largely EVM), but mention here so it's not forgotten if Vanta cross-chains later.
+
+## F7. Operational maturity
+
+Stripe is at 99.999% uptime. Vanta has no published uptime, no SLO, no status page, no on-call rotation, no incident response runbook outside the operator-runbook.md (which is for operators, not customers). To be the premier *suite* — meaning something businesses depend on — Vanta needs:
+
+- **`status.vantaprivacy.xyz`** — a public status page (Statuspage, Better Uptime, or similar). Lists the operational status of each component (operator API, webhook delivery, indexer, on-chain program). Updated automatically via health-check pings.
+- **A published SLO.** "99.9% uptime on the merchant API" is the right opening number (~8.7 hours of allowed downtime per year). Anything stricter requires multi-region deployment and is overkill for the current operator architecture. 99.9% is achievable on a single Render region with thoughtful health checks.
+- **Incident response runbook.** Operator on-call escalation, severity levels (Sev 0 = funds at risk, Sev 1 = service down, Sev 2 = degraded, Sev 3 = cosmetic), public communication templates. Stored at `ops/incident-response.md`.
+- **24/7 monitoring with paging.** PagerDuty or Grafana On-Call. Tied to the same checks the status page reads. Founder-only initially, expanded to a small team as headcount allows.
+- **Quarterly chaos drills.** Once per quarter, a planned outage of one component to verify (a) detection works, (b) escalation works, (c) recovery works. Public post-mortem after each drill.
+- **A "transparency report"** published quarterly. How many shielded deposits, how many unshields, how many disclosure requests received from law enforcement, how many honored, how many declined and on what grounds. Cloudflare and Twitter and most major platforms publish these; for a privacy product it's a credibility multiplier.
+
+## F8. Recovery, social key management, and loss prevention
+
+Privacy products lose user funds in ways traditional products don't. Specifically:
+
+- **Lost wallet → lost shielded balance.** Per the shield-lane deep dive, today's recovery is `recoverySecret: randomHex32()` stored in localStorage. If the user clears localStorage, the funds are unrecoverable.
+- **Lost viewing key → lost ability to find your own notes.** Even if the wallet survives, an indexer-driven note discovery model needs the viewing key.
+- **Lost spending key → lost ability to spend.** The actual unshield ZK proof requires the spending secret.
+
+A premier privacy product needs a recovery story that doesn't compromise the privacy. Options:
+
+- **Wallet-derived deterministic recovery (the shield-lane W2 recommendation).** Sign a fixed message with the wallet to derive the master seed; everything else is derived from there. Lose the wallet, lose the funds — but the recovery story is "use your wallet, again, on any device" which is what users already understand.
+- **Encrypted backup to the user's choice of cloud provider.** Optional: an encrypted blob containing the master seed, encrypted to a passphrase, that the user uploads to iCloud / Google Drive / Dropbox. Standard pattern from Argent and Soul Wallet.
+- **Social recovery via guardians.** Optional: the user designates 3 guardians (other wallets they trust); 2 of 3 can collectively initiate a recovery flow. The current `privateVaultCrypto.ts` (PBKDF2 + AES-GCM) is the wrong primitive for this — social recovery wants Shamir Secret Sharing or threshold ECDSA, which are well-supported by libraries.
+- **Hardware-backed key for high-value users.** A Ledger app for Vanta that holds the spending key in the secure element. Much harder to lose. Standard implementation pattern; ~6 weeks of work.
+
+The default path should be option 1 (wallet-derived); options 2 and 3 are progressive disclosure for users who want stronger guarantees. Option 4 is a v2 feature.
+
+## F9. Tax, accounting, and B2B treasury features
+
+Privacy doesn't exempt anyone from tax obligations. Most users will need to report shielded transactions to their accountant or tax software. Today there's no path for them to do this without breaking their privacy.
+
+The opportunity: **Vanta produces a privacy-aware tax report that the user can hand to their accountant without exposing the on-chain details to anyone else.** Specifically:
+
+- For each shielded action the user performed, the report contains: action type (shield / send / swap / unshield), amount, asset, USD value at time of action (from a price oracle), counterparty type (self / merchant / unknown), timestamp.
+- The report is signed by Vanta's transparency key so a tax authority can verify it's authentic without Vanta needing to hold per-user data.
+- The report is generated client-side from the user's local note history; Vanta's servers never see it.
+- Standard tax-software export format (CSV, FBAR-compatible JSON, TurboTax-compatible 8949 schedule).
+
+This is a one-month feature that turns Vanta from "thing my accountant doesn't understand" into "the only crypto privacy product my accountant actively prefers." It's a wedge into legitimacy that's still rare in the privacy space.
+
+Adjacent B2B treasury features to follow:
+
+- **Multi-signer shielded balances.** A 2-of-3 multi-sig over the spending key, similar to Squads. Required for corporate treasury use.
+- **Role-based access.** A treasurer can spend; an accountant can view-only; a CEO can sign for amounts above a threshold. Maps to the existing viewing-key / spending-key split, plus a delegation-key concept.
+- **Payroll batch shielded sends.** A single transaction shielded-sends to N employees at once. Currently each Send is one transaction; a batch send is ~50% cost reduction at scale.
+- **Accounting export.** QuickBooks / Xero / Stripe Sigma-compatible. A merchant runs a monthly export and their books reconcile.
+- **Subscription billing with privacy.** The repo has `private-pay-subscription-notes.md`. Subscriptions are the highest-LTV merchant feature in payments and a unique-and-defensible product for a privacy rail. Recurring billing on shielded balances, cancelable mid-month, refunded pro-rata — all the standard SaaS billing primitives, but customers don't expose their identity to each merchant they subscribe to.
+
+## F10. The token / economic model decision
+
+The README states: *"Net Vanta-collected fees are reserved for ecosystem growth, including supply buybacks, marketing, operator infrastructure, security, and product development."* "Supply buybacks" implies a token. No token model is published in the repo.
+
+This is the largest unresolved strategic question I see. Two paths:
+
+- **Path A — No token.** Vanta is a SaaS-shape business. Merchants pay 0.25% per action. Revenue funds the operator infrastructure. Vanta's defensibility is brand, ecosystem integrations, and proof-of-trust packets. Path A is simpler legally (no securities considerations), simpler operationally, and removes the largest distraction from product work. Most successful crypto-adjacent businesses (Phantom, Helius, Triton) take this path.
+- **Path B — Token with utility.** A protocol token used for: (a) governance over operator selection / verifier upgrades, (b) staking for relayer participation, (c) fee discounts for stakers, (d) anonymity-set seeding rewards. Path B is harder legally (US securities concerns, especially post-Howey), more complex operationally, but it's the only way to credibly decentralize the operator long-term. Most privacy protocols take this path (Aztec's AZTEC, Penumbra's UM, Railgun's RAIL).
+
+The current docs gesture at Path B without committing to it. **The single highest-leverage strategic decision Vanta has to make is which path to take, and to publish that decision.** Until it's public, every conversation with a merchant, an investor, or a regulator has to navigate the ambiguity. Pick one and write it down.
+
+If Path B, the token model needs: distribution plan, vesting, utility, governance, regulatory analysis, target jurisdiction. None of these can be hand-waved.
+
+If Path A, the README's "supply buybacks" line should be edited out and the fee structure published as a real merchant pricing page.
+
+## F11. Trust signals worth investing in
+
+For a privacy product, trust signals matter more than feature breadth. Specific trust investments:
+
+- **Bug bounty.** Pre-mainnet, $250k–$1M critical-severity bounty on Cantina or Immunefi. Mid-tier ($25k high-severity, $5k medium) below that. Total annual budget: ~$50k expected payouts plus marketing benefit. Pre-mainnet bounties produce two outcomes: real bugs surface (good), or the program runs quiet for 90 days and that itself is a credibility signal (also good).
+- **A `/security` page.** Published security policy, contact email (`security@vantaprivacy.xyz`), GPG key, scope and rules, hall-of-fame for past disclosures. Standard and missing.
+- **A `/threat-model` page.** Public threat model document covering users, merchants, operators, relayers, counterparties, regulators, and adversaries (chain-analytic, network-level, side-channel, post-quantum). The MISSION.md already requires this for production-ready status; it should also exist as a public artifact.
+- **Open-source the verifier and circuits.** The Noir source is in the repo but the verifier integration and the build pipeline that produces verifying keys should be Apache-2.0 / MIT. An auditor or a curious cryptographer should be able to clone, build, and verify that the deployed program matches the claimed circuits. This is what the audit-package.md should ship with.
+- **Reproducible builds.** Every deployed Solana program has a published build script that anyone can re-run to produce the same on-chain bytecode. Cargo + a deterministic build environment (Docker pinned to a specific image hash). Required for any privacy product that asks users to trust the deployed code.
+- **A "we will never" list.** Public document committing to specific things Vanta will not do: never hold a master decryption key, never sell user data, never accept SDN-listed wallets, never use customer funds for operator liquidity, etc. Concrete, narrow, falsifiable. Trust comes from constraining yourself in public.
+- **An advisory board with names.** Two to four well-known names in cryptography or compliance willing to be publicly associated with Vanta. Even one is a step change in credibility. The names matter more than what they actually do.
+
+## F12. The decentralization question
+
+Today's Vanta is fully operator-controlled. Per the lane deep dives, this is the right place to be for v0 — the operator does most of the work, the user trusts them, the system functions. But every privacy protocol of meaningful size eventually faces: *can we run with no operator?*
+
+The path to operator-optional, in order:
+
+- **Stage 0** (today): single operator, full custody, mock cryptography.
+- **Stage 1** (after the lane work in this review lands): single operator, on-chain proof verification, PDA-owned vault. The operator is a relayer + indexer, not a custodian. **This is the realistic 12-month target.**
+- **Stage 2**: multi-operator. Anyone can run an operator; users pick which one to use; operators compete on UX, fee, and uptime. Requires the on-chain program to accept relayed transactions from any signer. Mostly already true after Stage 1 (per the unshield-lane U2 design).
+- **Stage 3**: trustless indexer. The Merkle tree is reconstructible from chain state alone, so any client can run their own indexer and not depend on Vanta's. Requires the on-chain commitment events to carry enough data for full reconstruction (per shield-W4).
+- **Stage 4**: governance over verifier upgrades. The verifying key embedded in the on-chain program can only be changed via on-chain governance with a public upgrade window. Requires Path B from F10 or a foundation with a published upgrade policy.
+
+Stages 1–3 are pure engineering and should be the project's 1–2 year target. Stage 4 depends on the token decision and probably belongs to year 3+.
+
+The valuable thing about publishing this path early is that merchants and counterparties evaluating Vanta in 2026 can see "where this is going" — which makes integration commitments easier even at Stage 1.
+
+## F13. The premier-suite synthesis
+
+Across this entire review — six lane deep dives, the docs pass, the UI/UX pass, this final pass — what does it take for Vanta to actually become *the* premier privacy suite for Solana?
+
+In one sentence: **a credible non-custodial shielded pool with verifiable trust packets, anchored merchant integrations, a Privacy Pools compliance layer, a real developer SDK, and an operational maturity the shipping rate already demonstrates the team can hit.**
+
+In a longer form, the highest-leverage moves, ordered by leverage-per-week-of-work:
+
+1. **Lift the strategy/pay trust-contract pattern into UI gating across all six lanes** (closes the framing-vs-code gap that makes everything else risky).
+2. **Replace the operator-keypair-in-env vault with a program-owned PDA** (eliminates the single-env-leak custody risk that dwarfs every other operational concern).
+3. **AEAD-wrap every plaintext memo across shield/send/swap/unshield** (closes the largest live privacy leak in the deployed app).
+4. **Lock the Poseidon canonical note schema and rebuild the four entry circuits at depth 20 with real ownership constraints** (turns the cryptographic story from "shaped right" to "actually right").
+5. **Wire `@aztec/bb.js` as the real prover and Light's Groth16 verifier on-chain** (turns the cryptographic claims into cryptographic facts).
+6. **Adopt Privacy Pools association sets and publish the compliance posture publicly** (unlocks merchant adoption that Tornado-shaped privacy can't reach).
+7. **Ship the customer-side wallet flow for Pay** (gives merchants something real to integrate against).
+8. **Sign 5 anchor merchant partners** (solves the empty-anonymity-set problem and the credibility problem at the same time).
+9. **Decide and publish the token model** (removes the strategic ambiguity blocking serious investor and regulatory conversations).
+10. **Build the developer SDK + sandbox + docs** (turns "privacy on Solana" from a research project into a payment processor).
+
+Items 1–5 are technical and the lane deep dives have detailed plans. Item 6 is technical-meets-policy. Item 7 is product. Items 8–10 are go-to-market. They need to ship roughly in parallel — there's no order in which "ship the SDK" and "fix the proofs" can be sequential.
+
+What makes a privacy suite *premier* is not having the most cryptographic features. It's: real merchants accept it, regulators don't shut it down, users can recover their funds, and the trust artifact (the receipt / packet / proof) is something a counterparty's lawyer signs off on. Vanta has built the architectural template for all four. The remaining 12 months are about turning that template into a system real businesses commit revenue flow to.
+
+---
+
+## Closing
+
+This document started as a high-level audit of `vantaprivacy.xyz`. After six lane deep dives, a docs pass, a UI/UX pass, and this final strategic pass, the consolidated picture is clearer than I expected at the outset:
+
+- **The team has good taste.** Every architectural choice in the repo — from the trust-contract pattern in strategy and pay, to the rail-conditional claims in `privacy-rail-contract.md`, to the explicit `proofStatus: "not-provided"` fields in the unshield receipt, to the `claimControls.fully_private_pay_claim: false` runtime values — points the same direction. The honesty is not accidental.
+- **The framework outpaces the implementation.** The patterns required for Vanta to ship credibly already exist in the codebase. They're just not enforced everywhere they need to be.
+- **The gap is plumbing, not invention.** The actual_private_spend circuit shows the team can write a real ZK circuit. The vantaShieldViewingKey shows they can build proper AEAD crypto. The strategy runtime shows they understand fail-closed gating. None of the work in this review's recommendations requires research-level cryptography or novel architecture. It requires connecting components that already exist into one pipeline that ships end-to-end.
+- **The opportunity is real.** Solana lacks a credible privacy-preserving payment rail. Tornado Cash's sanctioning created a market vacuum that no Solana-native product has yet filled. The first product that ships a Privacy-Pools-shaped, merchant-friendly, compliance-aware shielded pool on Solana with a working SDK and 10 anchor merchants is the default choice for the next decade. There's a clear path to being that product, and most of it is in this document.
+
+Vanta isn't there yet. After Codex's three local ZK passes (visible in the progress notes above) it's measurably closer than it was when this review started. The remaining work is substantial but bounded and well-scoped. Most of it is in the team's existing capability range. None of it requires a different team.
+
+What I'd want to see in the next review pass, six months from now: this document's "still open" lists are mostly closed, the trust-contract pattern is wired into UI gating across all six lanes, the on-chain program owns the vaults, the proofs are real and verified on chain, and `vantaprivacy.xyz/.well-known/audit` returns a JSON document I can verify against the deployed program ID. If those things are true, Vanta is the premier privacy suite for Solana. The path to get there is plumbed in the recommendations above.
+
+Good luck.
