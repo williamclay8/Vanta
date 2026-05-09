@@ -458,24 +458,7 @@ export function ShieldPage(_props: ShieldPageProps) {
           .toFixed(9),
       )
     : 0;
-  const pendingNativeSolFromRecentShield =
-    isNativeSolShield &&
-    recentShield?.asset === "SOL" &&
-    (recentShield.claimTier === "local_shield_state" ||
-      recentShield.claimTier === "proof_receipt_verified") &&
-    Number.isFinite(recentShield.resultingShieldedBalance) &&
-    recentShield.resultingShieldedBalance > targetShieldedBalance
-      ? Number(
-          Math.max(0, recentShield.resultingShieldedBalance - targetShieldedBalance).toFixed(9),
-        )
-      : 0;
-  const pendingNativeSolShieldBalance = Number(
-    Math.max(pendingNativeSolShieldEvidenceBalance, pendingNativeSolFromRecentShield).toFixed(9),
-  );
-  const pendingNativeSolShieldBalanceLabel =
-    pendingNativeSolShieldBalance > 0
-      ? formatVantaSolAmount(pendingNativeSolShieldBalance)
-      : null;
+  const hasPendingNativeSolShieldEvidence = pendingNativeSolShieldEvidenceBalance > 0;
   const targetShieldedBalanceReadUnavailable =
     Boolean(walletConnected && capability.targetShieldAsset) &&
     (supportedToken?.status === "error" || Boolean(targetShieldStateError));
@@ -1868,9 +1851,9 @@ export function ShieldPage(_props: ShieldPageProps) {
                     <div className="send-balance-line shield-helper shield-helper--meta">
                       Shielded balance: {targetShieldedBalanceLabel}
                     </div>
-                    {pendingNativeSolShieldBalanceLabel && (
+                    {hasPendingNativeSolShieldEvidence && (
                       <div className="send-balance-line shield-helper shield-helper--meta">
-                        Pending shield-state: {pendingNativeSolShieldBalanceLabel}
+                        Local SOL evidence pending ledger sync
                       </div>
                     )}
                   </div>
