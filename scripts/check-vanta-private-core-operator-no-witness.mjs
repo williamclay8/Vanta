@@ -127,8 +127,8 @@ const { proveAndVerifyVantaPrivateCoreUnshield } = await import(
 const fixture = getVantaPrivateCoreFixedDepthUnshieldFixtureV0();
 const witnessPackage = fixture.validBoundary.noirWitnessPackage;
 assert(
-  witnessPackage.provingTreeContract === "poseidon4-current-sibling-hi-sibling-lo-direction-v0",
-  "Witness package must name the v0 direction-tagged proving tree contract.",
+  witnessPackage.provingTreeContract === "poseidon2-left-right-projected-sibling-v0",
+  "Witness package must name the standard left/right proving tree contract.",
 );
 assert(
   witnessPackage.sourcePublicInputContract ===

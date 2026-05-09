@@ -70,9 +70,9 @@ try {
   printStatus("invalid-consume-context-split fixture write: PASS");
   expectExecuteFailure("invalid-consume-context-split");
 
-  writeFixture("invalid-sibling-limb-collision");
-  printStatus("invalid-sibling-limb-collision fixture write: PASS");
-  expectExecuteFailure("invalid-sibling-limb-collision");
+  writeFixture("invalid-sibling-field");
+  printStatus("invalid-sibling-field fixture write: PASS");
+  expectExecuteFailure("invalid-sibling-field");
 
   writeFixture("valid");
   restoredValidFixture = true;

@@ -12,9 +12,13 @@ const outputPath = resolve(
 const fixtureMode = process.argv[2] ?? "valid";
 
 async function main() {
-  if (fixtureMode !== "valid" && fixtureMode !== "invalid-direction") {
+  if (
+    fixtureMode !== "valid" &&
+    fixtureMode !== "invalid-direction" &&
+    fixtureMode !== "invalid-leaf-index"
+  ) {
     throw new Error(
-      'Expected fixture mode "valid" or "invalid-direction". Example: node scripts/write-vanta-private-core-swap-fixture.mjs invalid-direction',
+      'Expected fixture mode "valid", "invalid-direction", or "invalid-leaf-index". Example: node scripts/write-vanta-private-core-swap-fixture.mjs invalid-direction',
     );
   }
 
@@ -59,10 +63,7 @@ async function main() {
     const compiledPath = join(tempJsDir, "vantaPrivateCoreSwapProof.js");
     const compiledModule = await import(pathToFileURL(compiledPath).href);
     const fixture = compiledModule.getVantaPrivateCoreFixedDepthSwapFixtureV0();
-    const witnessPackage =
-      fixtureMode === "invalid-direction"
-        ? fixture.invalidDirectionWitnessPackage
-        : fixture.validBoundary.noirWitnessPackage;
+    const witnessPackage = createWitnessPackageForMode(fixture, fixtureMode);
     const toml = compiledModule.serializeVantaPrivateCoreNoirSwapWitnessPackageToToml(
       witnessPackage,
     );
@@ -73,6 +74,30 @@ async function main() {
   } finally {
     rmSync(tempRoot, { recursive: true, force: true });
   }
+}
+
+function createWitnessPackageForMode(fixture, mode) {
+  const validWitnessPackage = fixture.validBoundary.noirWitnessPackage;
+
+  if (mode === "valid") {
+    return validWitnessPackage;
+  }
+
+  if (mode === "invalid-direction") {
+    return fixture.invalidDirectionWitnessPackage;
+  }
+
+  if (mode === "invalid-leaf-index") {
+    return {
+      ...validWitnessPackage,
+      privateWitness: {
+        ...validWitnessPackage.privateWitness,
+        input_leaf_index: String(Number(validWitnessPackage.privateWitness.input_leaf_index) + 1),
+      },
+    };
+  }
+
+  throw new Error(`Unsupported fixture mode ${mode}`);
 }
 
 try {

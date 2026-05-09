@@ -4,7 +4,6 @@ import {
   poseidon1,
   poseidon15,
   poseidon2,
-  poseidon4,
   poseidon6,
   poseidon8,
 } from "poseidon-lite";
@@ -48,7 +47,7 @@ export const VANTA_PRIVATE_CORE_AMOUNT_ENCODING_V0 = "u128-2x64-le" as const;
 export const VANTA_PRIVATE_CORE_MERKLE_DIRECTION_BIT_V0 =
   "is_current_right__1_when_sibling_is_left" as const;
 export const VANTA_PRIVATE_CORE_UNSHIELD_PROVING_TREE_CONTRACT_V0 =
-  "poseidon4-current-sibling-hi-sibling-lo-direction-v0" as const;
+  "poseidon2-left-right-projected-sibling-v0" as const;
 export const VANTA_PRIVATE_CORE_UNSHIELD_SOURCE_PUBLIC_INPUT_CONTRACT_V0 =
   "sha256-source-inputs-with-poseidon-consume-context-tag-v0" as const;
 export const VANTA_PRIVATE_CORE_UNSHIELD_CONSUME_CONTEXT_TAG_CONTRACT_V0 =
@@ -171,8 +170,7 @@ export type VantaPrivateCoreNoirUnshieldWitnessPackageV0 = {
     derivation_tag_hi: FieldDecimalString;
     derivation_tag_lo: FieldDecimalString;
     leaf_index: FieldDecimalString;
-    membership_path_hi: FieldDecimalString[];
-    membership_path_lo: FieldDecimalString[];
+    membership_path: FieldDecimalString[];
     membership_path_direction_bits: DirectionBit[];
   };
 };
@@ -364,7 +362,7 @@ export function buildVantaPrivateCoreUnshieldProofBoundary(
     compatibilityNotes: [
       "Current app-side note commitment, Merkle leaf, Merkle node, and nullifier derivations use SHA-256 semantics.",
       "The public consumeContextTag is intentionally the Poseidon proving-lane field encoded as a 32-byte hex tag; it is not the legacy SHA-derived source consume context.",
-      "The Noir Merkle root is a v0 proving tree contract over poseidon4(current, sibling_hi, sibling_lo, direction), not a conventional left/right Merkle tree.",
+      "The Noir Merkle root uses a v0 Poseidon proving-tree contract with projected source siblings and standard left/right parent hashing.",
       "Current owner authorization is only prechecked off-circuit by recomputing the X25519 public key from the supplied secret key.",
       "Current nullifier witness uses noteSecret directly as the v0.1 nullifier key witness.",
     ],
@@ -455,8 +453,9 @@ export function createVantaPrivateCoreNoirUnshieldWitnessPackage(args: {
       derivation_tag_hi: args.privateWitness.noteFieldEncoding.derivationTag.hi,
       derivation_tag_lo: args.privateWitness.noteFieldEncoding.derivationTag.lo,
       leaf_index: String(args.privateWitness.leafIndex),
-      membership_path_hi: args.privateWitness.merklePathEncoding.siblings.map((entry) => entry.hi),
-      membership_path_lo: args.privateWitness.merklePathEncoding.siblings.map((entry) => entry.lo),
+      membership_path: args.privateWitness.merklePathEncoding.siblings.map((entry) =>
+        deriveMerkleSiblingField(entry),
+      ),
       membership_path_direction_bits: args.privateWitness.merklePathEncoding.directionBits,
     },
   };
@@ -674,8 +673,7 @@ export function serializeVantaPrivateCoreNoirUnshieldWitnessPackageToToml(
     `derivation_tag_hi = "${privateWitness.derivation_tag_hi}"`,
     `derivation_tag_lo = "${privateWitness.derivation_tag_lo}"`,
     `leaf_index = "${privateWitness.leaf_index}"`,
-    `membership_path_hi = ${serializeTomlArray(privateWitness.membership_path_hi)}`,
-    `membership_path_lo = ${serializeTomlArray(privateWitness.membership_path_lo)}`,
+    `membership_path = ${serializeTomlArray(privateWitness.membership_path)}`,
     `membership_path_direction_bits = ${serializeTomlArray(privateWitness.membership_path_direction_bits)}`,
   ].join("\n");
 }
@@ -883,16 +881,19 @@ function derivePoseidonMerkleRootField(
   let current = BigInt(leaf);
 
   for (let index = 0; index < path.depth; index += 1) {
+    const sibling = BigInt(deriveMerkleSiblingField(path.siblings[index]));
     const isCurrentRight = path.directionBits[index] === "1" ? 1n : 0n;
-    current = poseidon4([
-      current,
-      BigInt(path.siblings[index].hi),
-      BigInt(path.siblings[index].lo),
-      isCurrentRight,
-    ]);
+    current =
+      isCurrentRight === 1n
+        ? poseidon2([sibling, current])
+        : poseidon2([current, sibling]);
   }
 
   return current.toString(10);
+}
+
+function deriveMerkleSiblingField(sibling: Bytes32EncodingV0): FieldDecimalString {
+  return poseidon2([BigInt(sibling.hi), BigInt(sibling.lo)]).toString(10);
 }
 
 function derivePoseidonNullifierField(

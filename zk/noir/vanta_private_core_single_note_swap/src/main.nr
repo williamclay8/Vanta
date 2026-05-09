@@ -49,8 +49,8 @@ fn hash_merkle_leaf(commitment: Field) -> Field {
     bn254::hash_1([commitment])
 }
 
-fn hash_merkle_node(left: Field, right: Field, is_current_right: Field) -> Field {
-    bn254::hash_3([left, right, is_current_right])
+fn hash_merkle_node(left: Field, right: Field) -> Field {
+    bn254::hash_2([left, right])
 }
 
 fn assert_direction_bit(bit: Field) {
@@ -59,26 +59,39 @@ fn assert_direction_bit(bit: Field) {
 
 fn compute_root(
     leaf: Field,
-    membership_path_hi: [Field; MERKLE_DEPTH],
-    membership_path_lo: [Field; MERKLE_DEPTH],
+    membership_path: [Field; MERKLE_DEPTH],
     membership_path_direction_bits: [Field; MERKLE_DEPTH],
 ) -> Field {
     let mut current = leaf;
 
     for i in 0..MERKLE_DEPTH {
-        let sibling = membership_path_hi[i] + membership_path_lo[i];
+        let sibling = membership_path[i];
         let is_current_right = membership_path_direction_bits[i];
 
         assert_direction_bit(is_current_right);
 
         if is_current_right == 1 {
-            current = hash_merkle_node(sibling, current, is_current_right);
+            current = hash_merkle_node(sibling, current);
         } else {
-            current = hash_merkle_node(current, sibling, is_current_right);
+            current = hash_merkle_node(current, sibling);
         }
     }
 
     current
+}
+
+fn compute_leaf_index(membership_path_direction_bits: [Field; MERKLE_DEPTH]) -> Field {
+    let mut index = 0;
+    let mut bit_weight = 1;
+
+    for i in 0..MERKLE_DEPTH {
+        let is_current_right = membership_path_direction_bits[i];
+        assert_direction_bit(is_current_right);
+        index = index + is_current_right * bit_weight;
+        bit_weight = bit_weight * 2;
+    }
+
+    index
 }
 
 fn derive_nullifier(
@@ -169,8 +182,7 @@ fn main(
     input_derivation_tag_hi: Field,
     input_derivation_tag_lo: Field,
     input_leaf_index: Field,
-    membership_path_hi: [Field; MERKLE_DEPTH],
-    membership_path_lo: [Field; MERKLE_DEPTH],
+    membership_path: [Field; MERKLE_DEPTH],
     membership_path_direction_bits: [Field; MERKLE_DEPTH],
     output_note_type_code: Field,
     output_owner_public_key_hi: Field,
@@ -225,8 +237,7 @@ fn main(
     let input_leaf = hash_merkle_leaf(input_commitment);
     let computed_root = compute_root(
         input_leaf,
-        membership_path_hi,
-        membership_path_lo,
+        membership_path,
         membership_path_direction_bits,
     );
     assert(computed_root == state_root);
@@ -240,6 +251,8 @@ fn main(
         input_leaf,
     );
     assert(computed_input_nullifier == input_nullifier);
+    let computed_input_leaf_index = compute_leaf_index(membership_path_direction_bits);
+    assert(input_leaf_index == computed_input_leaf_index);
 
     let computed_output_commitment = hash_note_commitment(
         output_note_version,

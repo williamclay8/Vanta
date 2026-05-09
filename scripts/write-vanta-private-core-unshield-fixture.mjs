@@ -17,7 +17,7 @@ async function main() {
     "invalid-direction",
     "invalid-leaf-index",
     "invalid-consume-context-split",
-    "invalid-sibling-limb-collision",
+    "invalid-sibling-field",
   ]);
   if (!supportedFixtureModes.has(fixtureMode)) {
     throw new Error(
@@ -139,18 +139,14 @@ function createWitnessPackageForMode(validWitnessPackage, mode) {
     };
   }
 
-  if (mode === "invalid-sibling-limb-collision") {
-    const hi = BigInt(validWitnessPackage.privateWitness.membership_path_hi[0]);
-    const lo = BigInt(validWitnessPackage.privateWitness.membership_path_lo[0]);
+  if (mode === "invalid-sibling-field") {
+    const sibling = BigInt(validWitnessPackage.privateWitness.membership_path[0]);
     return {
       ...validWitnessPackage,
       privateWitness: {
         ...validWitnessPackage.privateWitness,
-        membership_path_hi: validWitnessPackage.privateWitness.membership_path_hi.map((value, index) =>
-          index === 0 ? (hi + 1n).toString(10) : value,
-        ),
-        membership_path_lo: validWitnessPackage.privateWitness.membership_path_lo.map((value, index) =>
-          index === 0 ? (lo - 1n).toString(10) : value,
+        membership_path: validWitnessPackage.privateWitness.membership_path.map((value, index) =>
+          index === 0 ? (sibling + 1n).toString(10) : value,
         ),
       },
     };

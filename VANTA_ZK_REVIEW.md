@@ -90,11 +90,13 @@ All the production-shaped circuits (`vanta_private_core_single_note_*`, `vanta_p
 
 In `vanta_private_core_single_note_send/src/main.nr` and the swap variant, the sibling at each level is computed as `let sibling = membership_path_hi[i] + membership_path_lo[i];`. Many `(hi, lo)` pairs collapse to the same sum, so the split contributes nothing — it just doubles the witness size and adds surface area for a future bug. Either make `hi`/`lo` mean something (e.g., bit-decomposed with range checks) or use a single `Field` per level.
 
+**Codex status, 2026-05-09:** remediated for `vanta_private_core_single_note_send`, `swap`, and `unshield` by replacing split `membership_path_hi` / `membership_path_lo` witnesses with a single `membership_path: [Field; MERKLE_DEPTH]`. The TypeScript witness builders now project source-layer 32-byte siblings into one proving-lane field with Poseidon before Merkle parent hashing.
+
 ### 10. Including `is_current_right` in `hash_merkle_node` is non-standard
 
 `hash_merkle_node(left, right, is_current_right)` mixes the path bit into the parent hash. Once you separately enforce direction-correct ordering (which the code does via the `if is_current_right == 1`), the bit doesn't need to enter the hash. Including it changes the meaning of "tree root" — node at position `(L, R)` produces a different parent depending on whether the prover claims to be the left or the right child during the proof. This is unusual enough that I'd recommend either removing the bit from `hash_merkle_node` (matching standard incremental Merkle trees) or documenting why it's there and making sure the off-chain indexer matches bit-for-bit.
 
-**Codex status, 2026-05-09:** remediated for `canonical_note_membership` and all Private Pool v2 entry circuits by standardizing node hashing on `hash_2(left, right)` / `poseidon2([left, right])`. Direction bits now only select ordering and compute leaf-index consistency. The Private Core single-note send/swap/unshield circuits still need the same convention update.
+**Codex status, 2026-05-09:** remediated for `canonical_note_membership`, all Private Pool v2 entry circuits, and the Private Core single-note send/swap/unshield circuits by standardizing node hashing on `hash_2(left, right)` / `poseidon2([left, right])`. Direction bits now only select ordering and compute leaf-index consistency.
 
 ### 11. Off-chain nullifier replay guard relies on Node single-threading for atomicity
 
@@ -2065,6 +2067,19 @@ Red-first failure observed locally: `npm run zk:merkle-node-hash-contract-check`
 Verification passed locally: `npm run zk:merkle-node-hash-contract-check`, `npm run private-pool-v2:actual-private-spend-circuit-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:claim-circuit-check`, `npm run private-pool-v2:shield-circuit-check`, `npm run private-pool-v2:swap-to-shielded-circuit-check`, `npm run private-pool-v2:public-input-hash-alignment-check`, full `npm run private-pool-v2:verify`, `npm run zk:canonical-note-membership-check`, `npm run private-core:check`, and `git diff --check`.
 
 Still open after this third pass: the Private Core single-note send/swap/unshield circuits still carry the older hi/lo and direction-bit-oriented Merkle surfaces; output append-path semantics for send/swap successors still need real successor append proofs; most active lanes remain depth 3; on-chain proof verification is still not wired; nullifier storage remains fixed/linear; and plaintext memo/privacy architecture work remains.
+
+### Fourth local ZK pass - 2026-05-09
+
+- Extended `npm run zk:merkle-node-hash-contract-check` to cover the Private Core single-note send/swap/unshield circuits and their TypeScript witness builders.
+- Replaced Private Core split Merkle sibling witnesses with single-field `membership_path` arrays across the Noir circuits, witness packages, fixture writers, and operator proof serializer.
+- Projected source-layer 32-byte Merkle siblings into the proving lane with Poseidon before standard parent hashing, then used `hash_2(left, right)` / `poseidon2([left, right])` for every Private Core parent node.
+- Added leaf-index binding to Private Core send and swap, matching the membership convention already present in unshield and the Private Pool v2 entry circuits.
+
+Red-first failures observed locally: the expanded Merkle contract guard failed on the old Private Core send helper; the new send/swap invalid-leaf-index fixtures unexpectedly solved before the leaf-index constraints were added; and the first full `npm run private-core:verify` rerun caught the old operator proof serializer still expecting split sibling arrays.
+
+Verification passed locally: `npm run zk:merkle-node-hash-contract-check`, `npm run private-core:check`, `npm run private-core:send-check`, `npm run private-core:swap-check`, `npm run private-core:prove`, `npm run private-core:send-prove`, `npm run private-core:swap-prove`, focused no-witness/proof-artifact checks, full `npm run private-core:verify`, and `git diff --check`.
+
+Still open after this fourth pass: the proving lanes remain depth 3, source-layer note/tree hashes still carry transitional SHA-style semantics, owner auth remains off-circuit for v0.1, send/swap successor append semantics and Private Pool v2 production verifier wiring remain incomplete, on-chain proof verification is not wired, and this was not pushed or deployed/live.
 
 ---
 

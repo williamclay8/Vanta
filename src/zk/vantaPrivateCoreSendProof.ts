@@ -4,7 +4,6 @@ import {
   poseidon1,
   poseidon15,
   poseidon2,
-  poseidon3,
   poseidon6,
   poseidon8,
 } from "poseidon-lite";
@@ -159,8 +158,7 @@ export type VantaPrivateCoreNoirSendWitnessPackageV0 = {
     input_derivation_tag_hi: FieldDecimalString;
     input_derivation_tag_lo: FieldDecimalString;
     input_leaf_index: FieldDecimalString;
-    membership_path_hi: FieldDecimalString[];
-    membership_path_lo: FieldDecimalString[];
+    membership_path: FieldDecimalString[];
     membership_path_direction_bits: DirectionBit[];
     recipient_note_type_code: FieldDecimalString;
     recipient_owner_public_key_hi: FieldDecimalString;
@@ -420,8 +418,9 @@ export function createVantaPrivateCoreNoirSendWitnessPackage(args: {
       input_derivation_tag_hi: args.privateWitness.inputNoteFieldEncoding.derivationTag.hi,
       input_derivation_tag_lo: args.privateWitness.inputNoteFieldEncoding.derivationTag.lo,
       input_leaf_index: String(args.privateWitness.inputLeafIndex),
-      membership_path_hi: args.privateWitness.merklePathEncoding.siblings.map((entry) => entry.hi),
-      membership_path_lo: args.privateWitness.merklePathEncoding.siblings.map((entry) => entry.lo),
+      membership_path: args.privateWitness.merklePathEncoding.siblings.map((entry) =>
+        deriveMerkleSiblingField(entry),
+      ),
       membership_path_direction_bits: args.privateWitness.merklePathEncoding.directionBits,
       recipient_note_type_code: args.privateWitness.recipientNoteFieldEncoding.noteTypeCode,
       recipient_owner_public_key_hi: args.privateWitness.recipientNoteFieldEncoding.ownerPublicKey.hi,
@@ -515,8 +514,7 @@ export function serializeVantaPrivateCoreNoirSendWitnessPackageToToml(
     `input_derivation_tag_hi = "${privateWitness.input_derivation_tag_hi}"`,
     `input_derivation_tag_lo = "${privateWitness.input_derivation_tag_lo}"`,
     `input_leaf_index = "${privateWitness.input_leaf_index}"`,
-    `membership_path_hi = ${serializeTomlArray(privateWitness.membership_path_hi)}`,
-    `membership_path_lo = ${serializeTomlArray(privateWitness.membership_path_lo)}`,
+    `membership_path = ${serializeTomlArray(privateWitness.membership_path)}`,
     `membership_path_direction_bits = ${serializeTomlArray(privateWitness.membership_path_direction_bits)}`,
     `recipient_note_type_code = "${privateWitness.recipient_note_type_code}"`,
     `recipient_owner_public_key_hi = "${privateWitness.recipient_owner_public_key_hi}"`,
@@ -789,17 +787,19 @@ function derivePoseidonMerkleRootField(
   let current = BigInt(leaf);
 
   for (let index = 0; index < path.depth; index += 1) {
-    const siblingHi = BigInt(path.siblings[index].hi);
-    const siblingLo = BigInt(path.siblings[index].lo);
     const isCurrentRight = path.directionBits[index] === "1" ? 1n : 0n;
-    const sibling = siblingHi + siblingLo;
+    const sibling = BigInt(deriveMerkleSiblingField(path.siblings[index]));
     current =
       isCurrentRight === 1n
-        ? poseidon3([sibling, current, isCurrentRight])
-        : poseidon3([current, sibling, isCurrentRight]);
+        ? poseidon2([sibling, current])
+        : poseidon2([current, sibling]);
   }
 
   return current.toString(10);
+}
+
+function deriveMerkleSiblingField(sibling: Bytes32EncodingV0): FieldDecimalString {
+  return poseidon2([BigInt(sibling.hi), BigInt(sibling.lo)]).toString(10);
 }
 
 function derivePoseidonNullifierField(
