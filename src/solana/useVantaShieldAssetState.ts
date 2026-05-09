@@ -325,7 +325,7 @@ function createLocalNativeSolShieldAccountState(args: {
     description:
       note.lifecycleStatus === "spendable"
         ? "Locally verified native SOL Shield note resolved from transaction evidence."
-        : "Native SOL Shield deposit is pending shield-state reconciliation.",
+        : "Native SOL Shield deposit is pending ledger reconciliation.",
     impact: "public_to_shielded" as const,
     noteId: note.noteId,
     sourceState: "Public Wallet" as const,

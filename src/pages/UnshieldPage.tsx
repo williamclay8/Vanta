@@ -172,7 +172,7 @@ function formatAvailableLaneOptionLabel(option: {
     return spendableLabel;
   }
 
-  const pendingLabel = `${formatUnshieldAmount(option.pendingAmount, "SOL")} pending shield-state`;
+  const pendingLabel = "local SOL evidence pending ledger sync";
 
   return option.amount > 0
     ? `${spendableLabel}, ${pendingLabel}`
@@ -659,12 +659,9 @@ export function UnshieldPage() {
   }, [selectedLane, selectedShieldNote, selectedSolNote]);
   const selectedSolAggregateAmount = sumSpendableAmounts(spendableSolNotes, 9);
   const selectedSolPendingAmount = sumSpendableAmounts(pendingSolNotes, 9);
-  const selectedSolDisplayAmount =
-    selectedSolAggregateAmount > 0 ? selectedSolAggregateAmount : selectedSolPendingAmount;
   const selectedFullAmount =
     selectedLane === "SOL" ? selectedSolNote?.amount ?? 0 : selectedShieldNote?.amount ?? 0;
-  const selectedDisplayAmount =
-    selectedLane === "SOL" ? selectedSolDisplayAmount : selectedFullAmount;
+  const selectedDisplayAmount = selectedFullAmount;
   useEffect(() => {
     if (selectedLane !== "SOL" || !liveSwapPair.solUnshieldOperatorUrl) {
       setSolUnshieldOperatorHealth("idle");
@@ -1903,7 +1900,8 @@ export function UnshieldPage() {
   } else if (selectedLane !== "SOL" && selectedShieldEntry?.error) {
     validationMessage = selectedShieldEntry.error;
   } else if (selectedLane === "SOL" && !selectedSolNote && selectedSolPendingAmount > 0) {
-    validationMessage = `${formatUnshieldAmount(selectedSolPendingAmount, "SOL")} is visible as pending shield-state; wait for ledger reconciliation before unshielding.`;
+    validationMessage =
+      "Local SOL evidence is pending ledger sync; wait for ledger reconciliation before unshielding.";
   } else if (selectedLane === "SOL" && !liveSwapPair.solUnshieldOperatorUrl) {
     validationMessage = "Configure the SOL unshield operator endpoint before shielded SOL can exit.";
   } else if (selectedLane === "SOL" && solUnshieldOperatorHealth === "checking") {
@@ -2615,7 +2613,7 @@ export function UnshieldPage() {
             </div>
             <small>
               {selectedLane === "SOL" && !selectedSolNote && selectedSolPendingAmount > 0
-                ? `${formatUnshieldAmount(selectedSolPendingAmount, "SOL")} pending shield-state`
+                ? "Local SOL evidence pending ledger sync"
                 : `${formatUnshieldAmount(selectedFullAmount, selectedLane)} selected note`}
             </small>
           </div>
@@ -2630,7 +2628,7 @@ export function UnshieldPage() {
                     className="send-balance-line shield-helper shield-helper--meta"
                   >
                     {selectedLane === "SOL" && !selectedSolNote && selectedSolPendingAmount > 0
-                      ? `Pending shield-state: ${formatUnshieldAmount(selectedSolPendingAmount, "SOL")}`
+                      ? "Local SOL evidence pending ledger sync"
                       : `Spendable note: ${formatUnshieldAmount(selectedFullAmount, selectedLane)}`}
                   </div>
                 </div>

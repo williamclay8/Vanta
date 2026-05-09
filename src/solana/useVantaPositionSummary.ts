@@ -119,7 +119,7 @@ export function useVantaPositionSummary(): VantaPositionSummary {
         "Shielded SOL output is now present inside Vanta and can use the constrained SOL unshield lane.";
     } else if (walletConnected && pendingRecoveredShieldedSolBalance > 0) {
       statusLabel =
-        "A recovered SOL deposit is pending shield-state reconciliation before it becomes spendable.";
+        "A recovered SOL deposit is pending ledger reconciliation before it becomes spendable.";
     } else if (walletConnected && spendableNoteCount > 0) {
       const symbols = shieldedTokenPositions.map((position) => position.symbol).join(", ");
       statusLabel = symbols

@@ -1323,7 +1323,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           <div>
             <span>Syncing</span>
             <h3>{formatBalance(recentShield.amount, recentShield.asset)} deposit recorded.</h3>
-            <p>Wait for shield-state reconciliation before sending.</p>
+            <p>Wait for ledger reconciliation before sending.</p>
           </div>
           <div className="send-context-banner__meta">
             <strong>Pending</strong>
