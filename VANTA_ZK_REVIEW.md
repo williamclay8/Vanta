@@ -2388,6 +2388,21 @@ Verification in this slice: `npm run private-pool-v2:send-proof-artifact-consist
 
 Still open after this twenty-fifth local pass: the proof artifact route is local/operator evidence only. Production still needs remote prover/live verifier integration, on-chain proof verification or accepted verifier enforcement, live settlement evidence, relayer separation, anonymity-set evidence, SBF rebuild/redeploy/reinit where relevant, and audit acceptance.
 
+### Twenty-sixth Codex feedback loop - Send discovery/indexer handoff packet
+
+This local slice advances the recipient-grade Send discovery recommendation without opening external Send or upgrading the production privacy claim:
+
+- `src/solana/vantaShieldViewingKey.ts` now derives a local encrypted view tag from the X25519 memo shared secret and memo prefix. The recipient can derive the same tag from the memo body and viewing secret without decrypting the payload; the wrong viewing key derives a different tag.
+- `src/solana/vantaShieldState.ts` now attaches a `vanta-send-discovery-handoff-0.1` object to each dual-AEAD Send memo leg. The handoff is commitment-only: audience, encrypted view tag, memo ciphertext body hash, memo prefix, proof-binding note, and `productionReady: false`.
+- The separated Private Pool v2 indexer role now exposes `POST /v1/send-discovery-packets`, `GET /v1/send-discovery-packets`, and `GET /v1/send-discovery/status`. The packet validator rejects raw recipient, amount, asset, plaintext memo, wallet key, witness/private input, deposit signature, serialized transaction, malformed/mismatched body hashes, duplicate packets, and production-readiness overclaims.
+- Send trust/status surfaces now include a machine-readable discovery handoff packet with the exact blocker ids `send-memo-indexer-body-hash-handoff-not-deployed` and `legacy-v1-send-history-migration-not-scoped`.
+- A read-only review pass caught a future truth-drift path and validator gaps before commit. The final patch now includes deployed discovery handoff and legacy-v1 migration scope in the Send `productionReady` formula, makes the discovery packet schema allowlist-only, rejects raw-field aliases such as `amountBaseUnits`, `recipientAddress`, `ownerPubkey`, `vaultOwner`, `mintAddress`, and `changeAmount`, parses output leaf indices strictly, and restart-tests discovery packet persistence.
+- External Send remains fail-closed until recipient viewing-key exchange or deployed view-tag/indexer discovery is wired; historical v1 plaintext Send history still needs migration or a fresh-v2-only production claim boundary.
+
+Verification in this slice: `npm run actions:memo-encryption-check`, `npm run send:trust-packet-check`, `npm run send:discovery-migration-policy-check`, `npm run send:discovery-indexer-handoff-check`, `npm run mainnet:send-production-check`, `npm run send:production-privacy-claim-gate`, `npm run private-pool-v2:service-network-check`, `npm run private-pool-v2:send-proof-request-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:public-input-hash-alignment-check`, `npm run privacy-rail:contract-check`, `npm run security:limitations-check`, `npm run docs:source-of-truth-check`, `npm run lanes:trust-contract-check`, `npm run programmatic-privacy:contract-check`, `npm run zk:review-findings-ledger-check`, `npm run send:verify`, `npm run build`, and `git diff --check` passed locally before commit.
+
+Still open after this twenty-sixth local pass: the encrypted view-tag/body-hash handoff is local indexer evidence only. Production still needs deployed memo/indexer handoff proving opaque memo bodies and view-tag packets match proof-bound `sha256:` body hashes, recipient viewing-key exchange or deployed discovery UX, legacy v1 history migration or fresh-v2-only scope, live reviewed settlement evidence, relayer separation, anonymity evidence, production replay/idempotency evidence, and audit acceptance.
+
 ---
 
 # UI/UX Pass

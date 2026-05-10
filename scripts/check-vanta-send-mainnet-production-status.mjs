@@ -11,6 +11,10 @@ const sendProofRequestSource = readFileSync(
   resolve(repoRoot, "src/privacy/privatePoolV2ProofRequests.ts"),
   "utf8",
 );
+const sendStatusSource = readFileSync(
+  resolve(repoRoot, "src/readiness/sendMainnetProductionStatus.mjs"),
+  "utf8",
+);
 const sendCircuitSource = readFileSync(
   resolve(repoRoot, "zk/noir/vanta_private_pool_v2_send_entry/src/main.nr"),
   "utf8",
@@ -36,8 +40,20 @@ assert.equal(status.exactSendApprovalScoped, false);
 assert.equal(status.boundedApprovalActive, false);
 assert.equal(status.privateCoreSendNoWitnessBoundaryCovered, true);
 assert.equal(status.privateCoreSendProofArtifactCovered, true);
+assert.equal(status.localViewTagBodyHashHandoffCovered, true);
+assert.equal(status.deployedMemoIndexerHandoffCovered, false);
+assert.equal(status.legacyV1SendHistoryMigrationScoped, false);
+assert.equal(status.sendDiscoveryHandoff.productionReady, false);
+assert.equal(status.sendDiscoveryHandoff.localViewTagBodyHashHandoffCovered, true);
+assert.equal(status.sendDiscoveryHandoff.deployedMemoIndexerHandoffCovered, false);
+assert.equal(status.sendDiscoveryHandoff.legacyV1SendHistoryMigrationScoped, false);
 assert.equal(status.privateCoreOperatorStateRedacted, true);
 assert.equal(status.statefulVerifierIndexerCommitIdempotencyProven, false);
+assert.ok(
+  sendStatusSource.includes("deployedMemoIndexerHandoffCovered &&") &&
+    sendStatusSource.includes("legacyV1SendHistoryMigrationScoped &&"),
+  "Send productionReady formula must include deployed discovery handoff and legacy v1 migration gates.",
+);
 
 const expectedBlockers = [
   "no-reviewed-live-mainnet-send-settlement-evidence",
@@ -64,6 +80,7 @@ for (const [key, command] of Object.entries({
   sendNullifierReplayNoWitness: "npm run private-core:send-nullifier-replay-no-witness-check",
   sendOperatorRedaction: "npm run private-core:send-operator-redaction-check",
   sendProductionPrivacyClaimGate: "npm run send:production-privacy-claim-gate",
+  sendDiscoveryIndexerHandoff: "npm run send:discovery-indexer-handoff-check",
   sendProofArtifactConsistency: "npm run private-core:send-proof-artifact-consistency-check",
   privatePoolV2SendCircuit: "npm run private-pool-v2:send-circuit-check",
   privatePoolV2PublicInputHashAlignment: "npm run private-pool-v2:public-input-hash-alignment-check",

@@ -5,8 +5,12 @@ import { sha256 } from "@noble/hashes/sha256";
 import { bytesToHex, hexToBytes, utf8ToBytes } from "@noble/hashes/utils";
 
 export const VANTA_SHIELD_VIEWING_KEY_VERSION = "vanta-shield-viewing-key-0.1" as const;
+export const VANTA_SHIELD_MEMO_VIEW_TAG_VERSION =
+  "vanta-shield-memo-view-tag-0.1" as const;
 const VANTA_SHIELD_VIEWING_MEMO_VERSION_BYTE = 0x02;
 const VANTA_SHIELD_VIEWING_MEMO_DOMAIN = "vanta-shield-viewing-memo-ecdh-x25519-xchacha20-0.1";
+const VANTA_SHIELD_VIEWING_MEMO_TAG_DOMAIN =
+  "vanta-shield-viewing-memo-tag-x25519-sha256-0.1";
 
 export type VantaShieldViewingKeypair = {
   publicKey: string;
@@ -18,6 +22,12 @@ export type EncryptVantaShieldMemoToViewingKeyArgs = {
   payload: object;
   prefix: string;
   viewingPublicKey: string;
+};
+
+export type VantaShieldMemoViewingKeyPacket = {
+  encryptedViewTag: string;
+  memoText: string;
+  version: typeof VANTA_SHIELD_MEMO_VIEW_TAG_VERSION;
 };
 
 export type DecryptVantaShieldMemoWithViewingKeyArgs = {
@@ -96,6 +106,27 @@ function deriveMemoKey({
   );
 }
 
+function deriveMemoEncryptedViewTag({
+  ephemeralPublicKey,
+  prefix,
+  recipientPublicKey,
+  sharedSecret,
+}: {
+  ephemeralPublicKey: Uint8Array;
+  prefix: string;
+  recipientPublicKey: Uint8Array;
+  sharedSecret: Uint8Array;
+}): string {
+  const material = new Uint8Array([
+    ...utf8ToBytes(VANTA_SHIELD_VIEWING_MEMO_TAG_DOMAIN),
+    ...utf8ToBytes(prefix),
+    ...ephemeralPublicKey,
+    ...recipientPublicKey,
+    ...sharedSecret,
+  ]);
+  return `vtag:${bytesToHex(sha256(material)).slice(0, 16)}`;
+}
+
 export function createVantaShieldViewingKeypair(): VantaShieldViewingKeypair {
   const secretKey = x25519.utils.randomSecretKey();
   return {
@@ -132,6 +163,18 @@ export function encryptVantaShieldMemoToViewingKey({
   prefix,
   viewingPublicKey,
 }: EncryptVantaShieldMemoToViewingKeyArgs): string {
+  return encryptVantaShieldMemoToViewingKeyPacket({
+    payload,
+    prefix,
+    viewingPublicKey,
+  }).memoText;
+}
+
+export function encryptVantaShieldMemoToViewingKeyPacket({
+  payload,
+  prefix,
+  viewingPublicKey,
+}: EncryptVantaShieldMemoToViewingKeyArgs): VantaShieldMemoViewingKeyPacket {
   const recipientPublicKey = requireHexKey(viewingPublicKey, "public key");
   const ephemeralSecretKey = x25519.utils.randomSecretKey();
   const ephemeralPublicKey = x25519.getPublicKey(ephemeralSecretKey);
@@ -153,7 +196,50 @@ export function encryptVantaShieldMemoToViewingKey({
   body.set(nonce, 1 + ephemeralPublicKey.length);
   body.set(ciphertext, 1 + ephemeralPublicKey.length + nonce.length);
 
-  return `${prefix}${base64UrlEncode(body)}`;
+  return {
+    encryptedViewTag: deriveMemoEncryptedViewTag({
+      ephemeralPublicKey,
+      prefix,
+      recipientPublicKey,
+      sharedSecret,
+    }),
+    memoText: `${prefix}${base64UrlEncode(body)}`,
+    version: VANTA_SHIELD_MEMO_VIEW_TAG_VERSION,
+  };
+}
+
+export function deriveVantaShieldMemoEncryptedViewTag({
+  memoText,
+  prefix,
+  viewingSecretKey,
+}: DecryptVantaShieldMemoWithViewingKeyArgs): string | null {
+  const trimmed = memoText.trim();
+  const start = trimmed.indexOf(prefix);
+  if (start === -1) {
+    return null;
+  }
+
+  let body: Uint8Array;
+  try {
+    body = base64UrlDecode(trimmed.slice(start + prefix.length).trim());
+  } catch {
+    return null;
+  }
+
+  if (body.length < 1 + 32 + 24 + 16 || body[0] !== VANTA_SHIELD_VIEWING_MEMO_VERSION_BYTE) {
+    return null;
+  }
+
+  const viewingSecretBytes = requireHexKey(viewingSecretKey, "secret key");
+  const ephemeralPublicKey = body.slice(1, 33);
+  const recipientPublicKey = x25519.getPublicKey(viewingSecretBytes);
+  const sharedSecret = x25519.getSharedSecret(viewingSecretBytes, ephemeralPublicKey);
+  return deriveMemoEncryptedViewTag({
+    ephemeralPublicKey,
+    prefix,
+    recipientPublicKey,
+    sharedSecret,
+  });
 }
 
 export function decryptVantaShieldMemoWithViewingKey<T = unknown>({

@@ -9,6 +9,13 @@ import { createPrivatePoolV2RoleSnapshotStore } from "../src/storage/vantaPrivat
 const serviceVersion = "vanta-private-pool-v2-service-network-0.1";
 const proofBackend = "remote-service";
 const textEncoder = new TextEncoder();
+const sendDiscoveryPacketVersion = "vanta-private-pool-v2-send-discovery-packet-0.1";
+const sendDiscoveryClaimBoundary =
+  "local encrypted-view-tag index only; not production recipient discovery";
+const sendDiscoveryBlockerIds = [
+  "send-memo-indexer-body-hash-handoff-not-deployed",
+  "legacy-v1-send-history-migration-not-scoped",
+];
 
 const roleConfig = {
   indexer: {
@@ -164,6 +171,212 @@ function toBigInt(value, fallback = 0n) {
   return BigInt(String(value));
 }
 
+function assertNonEmptyString(value, fieldName) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`Private Pool v2 Send discovery packet requires ${fieldName}.`);
+  }
+  return value.trim();
+}
+
+function assertSendDiscoveryAllowedKeys(packet) {
+  const allowedKeys = new Set([
+    "audience",
+    "claimBoundary",
+    "encryptedViewTag",
+    "memoCiphertextBodyHash",
+    "memoCiphertextRef",
+    "outputCommitment",
+    "outputLeafIndex",
+    "outputRoot",
+    "packetId",
+    "productionReady",
+    "proofBoundMemoCiphertextBodyHash",
+    "proofReceiptId",
+    "proofReceiptPublicInputCommitment",
+    "recordedAtSlot",
+    "sendPublicInputHash",
+    "treeId",
+    "version",
+  ]);
+
+  for (const key of Object.keys(packet)) {
+    if (!allowedKeys.has(key)) {
+      throw new Error(`Private Pool v2 Send discovery packet includes unsupported field ${key}.`);
+    }
+  }
+}
+
+function assertSendDiscoveryRawFieldsAbsent(value, path = []) {
+  if (!value || typeof value !== "object") {
+    return;
+  }
+
+  const forbiddenKeys = new Set([
+    "amount",
+    "amountBaseUnits",
+    "asset",
+    "changeAmount",
+    "depositSignature",
+    "inputCommitment",
+    "inputLeafIndex",
+    "memo",
+    "mintAddress",
+    "owner",
+    "ownerPubkey",
+    "plaintext",
+    "plaintextMemo",
+    "privateInputs",
+    "rawPrivateInputs",
+    "recipient",
+    "recipientAddress",
+    "seedPhrase",
+    "serializedTransaction",
+    "vaultOwner",
+    "walletPrivateKey",
+    "witness",
+  ]);
+
+  for (const [key, nested] of Object.entries(value)) {
+    if (forbiddenKeys.has(key)) {
+      throw new Error(
+        `Private Pool v2 Send discovery packet must not include raw private field ${[...path, key].join(".")}.`,
+      );
+    }
+    if (Array.isArray(nested)) {
+      nested.forEach((entry, index) => assertSendDiscoveryRawFieldsAbsent(entry, [...path, key, String(index)]));
+    } else if (nested && typeof nested === "object") {
+      assertSendDiscoveryRawFieldsAbsent(nested, [...path, key]);
+    }
+  }
+}
+
+function normalizeSendDiscoveryPacket(packet) {
+  if (!packet || Array.isArray(packet) || typeof packet !== "object") {
+    throw new Error("Private Pool v2 Send discovery packet must be an object.");
+  }
+  assertSendDiscoveryAllowedKeys(packet);
+  assertSendDiscoveryRawFieldsAbsent(packet);
+
+  const version = packet.version === undefined ? sendDiscoveryPacketVersion : String(packet.version);
+  if (version !== sendDiscoveryPacketVersion) {
+    throw new Error(`Private Pool v2 Send discovery packet version must be ${sendDiscoveryPacketVersion}.`);
+  }
+
+  const audience = assertNonEmptyString(packet.audience, "audience");
+  if (!["recipient", "change"].includes(audience)) {
+    throw new Error("Private Pool v2 Send discovery packet audience must be recipient or change.");
+  }
+
+  const encryptedViewTag = assertNonEmptyString(packet.encryptedViewTag, "encryptedViewTag");
+  if (!/^vtag:[0-9a-f]{16}$/u.test(encryptedViewTag)) {
+    throw new Error("Private Pool v2 Send discovery packet encryptedViewTag must be vtag:<16 lowercase hex>.");
+  }
+
+  const memoCiphertextBodyHash = assertNonEmptyString(
+    packet.memoCiphertextBodyHash,
+    "memoCiphertextBodyHash",
+  );
+  if (!/^sha256:[0-9a-f]{64}$/u.test(memoCiphertextBodyHash)) {
+    throw new Error(
+      "Private Pool v2 Send discovery packet memoCiphertextBodyHash must be sha256:<64 lowercase hex>.",
+    );
+  }
+  const proofBoundMemoCiphertextBodyHash =
+    packet.proofBoundMemoCiphertextBodyHash === undefined
+      ? memoCiphertextBodyHash
+      : assertNonEmptyString(
+          packet.proofBoundMemoCiphertextBodyHash,
+          "proofBoundMemoCiphertextBodyHash",
+        );
+  if (proofBoundMemoCiphertextBodyHash !== memoCiphertextBodyHash) {
+    throw new Error(
+      "Private Pool v2 Send discovery packet proofBoundMemoCiphertextBodyHash must match memoCiphertextBodyHash.",
+    );
+  }
+
+  const recordedAtSlot = toBigInt(packet.recordedAtSlot, 1_000_000n);
+  if (recordedAtSlot < 0n) {
+    throw new Error("Private Pool v2 Send discovery packet recordedAtSlot must be non-negative.");
+  }
+
+  if (packet.productionReady !== undefined && packet.productionReady !== false) {
+    throw new Error("Private Pool v2 Send discovery packet productionReady must remain false.");
+  }
+  if (packet.claimBoundary !== undefined && packet.claimBoundary !== sendDiscoveryClaimBoundary) {
+    throw new Error(
+      `Private Pool v2 Send discovery packet claimBoundary must be ${sendDiscoveryClaimBoundary}.`,
+    );
+  }
+
+  const outputLeafIndexSource = packet.outputLeafIndex;
+  if (
+    typeof outputLeafIndexSource !== "number" &&
+    (typeof outputLeafIndexSource !== "string" ||
+      !/^(0|[1-9][0-9]*)$/u.test(outputLeafIndexSource))
+  ) {
+    throw new Error("Private Pool v2 Send discovery packet outputLeafIndex must be a non-negative integer.");
+  }
+
+  const normalized = {
+    audience,
+    claimBoundary: sendDiscoveryClaimBoundary,
+    encryptedViewTag,
+    memoCiphertextBodyHash,
+    memoCiphertextRef:
+      packet.memoCiphertextRef === undefined
+        ? null
+        : assertNonEmptyString(packet.memoCiphertextRef, "memoCiphertextRef"),
+    outputCommitment: assertNonEmptyString(packet.outputCommitment, "outputCommitment"),
+    outputLeafIndex: Number(outputLeafIndexSource),
+    outputRoot: assertNonEmptyString(packet.outputRoot, "outputRoot"),
+    productionReady: false,
+    proofBoundMemoCiphertextBodyHash,
+    proofReceiptId: assertNonEmptyString(packet.proofReceiptId, "proofReceiptId"),
+    proofReceiptPublicInputCommitment: assertNonEmptyString(
+      packet.proofReceiptPublicInputCommitment,
+      "proofReceiptPublicInputCommitment",
+    ),
+    recordedAtSlot,
+    sendPublicInputHash: assertNonEmptyString(packet.sendPublicInputHash, "sendPublicInputHash"),
+    treeId: assertNonEmptyString(packet.treeId, "treeId"),
+    version,
+  };
+
+  if (!Number.isInteger(normalized.outputLeafIndex) || normalized.outputLeafIndex < 0) {
+    throw new Error("Private Pool v2 Send discovery packet outputLeafIndex must be a non-negative integer.");
+  }
+
+  const packetId = hashHex(
+    sendDiscoveryPacketVersion,
+    normalized.audience,
+    normalized.encryptedViewTag,
+    normalized.memoCiphertextBodyHash,
+    normalized.outputCommitment,
+    String(normalized.outputLeafIndex),
+    normalized.treeId,
+  );
+
+  if (packet.packetId !== undefined && packet.packetId !== packetId) {
+    throw new Error("Private Pool v2 Send discovery packet packetId does not match packet contents.");
+  }
+
+  return {
+    ...normalized,
+    packetId,
+  };
+}
+
+function sendDiscoveryStatusPayload(packetCount) {
+  return {
+    blockerIds: sendDiscoveryBlockerIds,
+    claimBoundary: sendDiscoveryClaimBoundary,
+    implemented: true,
+    localPacketCount: packetCount,
+    productionReady: false,
+    version: sendDiscoveryPacketVersion,
+  };
+}
+
 function basePayload(role) {
   const storePath = process.env[roleConfig[role].storeEnv];
   const databaseUrl =
@@ -274,7 +487,9 @@ function writeSnapshot(storePath, snapshot) {
 }
 
 function readIndexerSnapshot(storePath) {
-  return readIndexerSnapshotFromParsed(readSnapshot(storePath, { commitments: [], nullifiers: [] }));
+  return readIndexerSnapshotFromParsed(
+    readSnapshot(storePath, { commitments: [], nullifiers: [], sendDiscoveryPackets: [] }),
+  );
 }
 
 function readIndexerSnapshotFromParsed(parsed) {
@@ -293,6 +508,9 @@ function readIndexerSnapshotFromParsed(parsed) {
           ? null
           : toBigInt(record.spentAtSlot),
     })),
+    sendDiscoveryPackets: (parsed.sendDiscoveryPackets ?? []).map((record) =>
+      normalizeSendDiscoveryPacket(record),
+    ),
   };
 }
 
@@ -304,6 +522,7 @@ function createIndexerState({ snapshotStore, storePath } = {}) {
   let loaded = false;
   let commitments = [];
   let nullifiers = new Map();
+  let sendDiscoveryPackets = [];
 
   async function ensureLoaded() {
     if (loaded) {
@@ -315,6 +534,7 @@ function createIndexerState({ snapshotStore, storePath } = {}) {
       : readIndexerSnapshot(storePath);
     commitments = [...snapshot.commitments];
     nullifiers = new Map(snapshot.nullifiers.map((record) => [record.nullifier, record]));
+    sendDiscoveryPackets = [...snapshot.sendDiscoveryPackets];
     loaded = true;
   }
 
@@ -322,6 +542,7 @@ function createIndexerState({ snapshotStore, storePath } = {}) {
     const snapshot = {
       commitments,
       nullifiers: [...nullifiers.values()],
+      sendDiscoveryPackets,
     };
     if (snapshotStore) {
       await snapshotStore.save(snapshot);
@@ -552,6 +773,16 @@ function createIndexerState({ snapshotStore, storePath } = {}) {
       await save();
       return record;
     },
+    async appendSendDiscoveryPacket(packet) {
+      await ensureLoaded();
+      const record = normalizeSendDiscoveryPacket(packet);
+      if (sendDiscoveryPackets.some((stored) => stored.packetId === record.packetId)) {
+        throw new Error(`Private Pool v2 Send discovery packet ${record.packetId} is already indexed.`);
+      }
+      sendDiscoveryPackets.push(record);
+      await save();
+      return record;
+    },
     currentRoot,
     async getCommitment(commitment) {
       await ensureLoaded();
@@ -568,6 +799,15 @@ function createIndexerState({ snapshotStore, storePath } = {}) {
           record.treeId === treeId &&
           record.leafIndex >= fromLeafIndex &&
           (!assetId || record.assetId === assetId),
+      );
+    },
+    async listSendDiscoveryPackets({ audience, encryptedViewTag, fromSlot = 0n } = {}) {
+      await ensureLoaded();
+      return sendDiscoveryPackets.filter(
+        (record) =>
+          record.recordedAtSlot >= fromSlot &&
+          (!audience || record.audience === audience) &&
+          (!encryptedViewTag || record.encryptedViewTag === encryptedViewTag),
       );
     },
     async registerNullifier({ nullifier, spentAtSlot = 1_000_000n }) {
@@ -1170,6 +1410,45 @@ async function createServiceHandlers(role, {
           spentAtSlot:
             body.spentAtSlot === undefined ? 1_000_000n : toBigInt(body.spentAtSlot),
         }),
+      });
+      return true;
+    }
+
+    if (request.method === "GET" && url.pathname === "/v1/send-discovery/status") {
+      const packets = await indexerState.listSendDiscoveryPackets();
+      sendJson(response, 200, {
+        ...basePayload(role),
+        sendDiscovery: sendDiscoveryStatusPayload(packets.length),
+      });
+      return true;
+    }
+
+    if (request.method === "GET" && url.pathname === "/v1/send-discovery-packets") {
+      const audience = url.searchParams.get("audience") ?? undefined;
+      const encryptedViewTag = url.searchParams.get("encryptedViewTag") ?? undefined;
+      const fromSlot = toBigInt(url.searchParams.get("fromSlot") ?? "0");
+      sendJson(response, 200, {
+        ...basePayload(role),
+        packets: await indexerState.listSendDiscoveryPackets({
+          audience,
+          encryptedViewTag,
+          fromSlot,
+        }),
+        sendDiscovery: sendDiscoveryStatusPayload(
+          (await indexerState.listSendDiscoveryPackets()).length,
+        ),
+      });
+      return true;
+    }
+
+    if (request.method === "POST" && url.pathname === "/v1/send-discovery-packets") {
+      const body = await readRequestBody(request);
+      sendJson(response, 200, {
+        ...basePayload(role),
+        packet: await indexerState.appendSendDiscoveryPacket(body),
+        sendDiscovery: sendDiscoveryStatusPayload(
+          (await indexerState.listSendDiscoveryPackets()).length,
+        ),
       });
       return true;
     }

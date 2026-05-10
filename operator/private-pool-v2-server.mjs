@@ -2262,6 +2262,19 @@ async function statusPayload() {
     readiness,
     receiptCount: receipts.length,
     receiptStorePath: receiptStore.path,
+    sendDiscoveryHandoff: {
+      blockerIds: [
+        "send-memo-indexer-body-hash-handoff-not-deployed",
+        "legacy-v1-send-history-migration-not-scoped",
+      ],
+      claimBoundary:
+        "local encrypted-view-tag index only; not production recipient discovery",
+      indexerEndpoint: "/v1/send-discovery-packets",
+      localRoleServiceEndpointImplemented: true,
+      productionReady: false,
+      statusEndpoint: "/v1/send-discovery/status",
+      version: "vanta-private-pool-v2-send-discovery-packet-0.1",
+    },
     shadowCommitmentCount: shadowCommitments.length,
     shadowCommitmentScheme:
       shadowCommitments[0]?.scheme ??

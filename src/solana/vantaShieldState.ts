@@ -17,6 +17,7 @@ import { hasMatchingNativeSolShieldTransfer } from "@/solana/nativeSolShield";
 import {
   decryptVantaShieldMemoWithViewingKey,
   encryptVantaShieldMemoToViewingKey,
+  encryptVantaShieldMemoToViewingKeyPacket,
 } from "@/solana/vantaShieldViewingKey";
 
 export const VANTA_SHIELD_MEMO_PROGRAM =
@@ -329,9 +330,23 @@ type PreparedSendMemoIds = {
   recipientNoteId?: string;
 };
 
+export type VantaSendDiscoveryHandoff = {
+  audience: "recipient" | "change";
+  bodyHashScheme: "sha256-memo-ciphertext-body";
+  claimBoundary: "local-encrypted-view-tag-body-hash-handoff-not-production-recipient-discovery";
+  encryptedViewTag: string;
+  forbiddenPlaintextFields: readonly string[];
+  memoCiphertextBodyHash: string;
+  memoPrefix: typeof VANTA_SEND_MEMO_PREFIX_V2;
+  productionReady: false;
+  proofBinding: "private-pool-v2-send-public-input-hash-local-only";
+  version: "vanta-send-discovery-handoff-0.1";
+};
+
 type PreparedSendDualAeadMemoLeg = {
   audience: "recipient" | "change";
   ciphertextBodyHash: string;
+  discoveryHandoff: VantaSendDiscoveryHandoff;
   instruction: TransactionInstructionInput;
 };
 
@@ -1194,23 +1209,57 @@ export function createPreparedSendMemo(
 function createPreparedSendDualAeadMemoLeg(
   audience: PreparedSendDualAeadMemoLeg["audience"],
   payload: object,
-  ownerPubkey: string,
   viewingPublicKey: string | null | undefined,
 ): PreparedSendDualAeadMemoLeg {
-  const instruction = createActionMemoInstruction(
-    VANTA_SEND_MEMO_PREFIX_V2,
+  if (!viewingPublicKey) {
+    throw new Error("Vanta action memo encryption requires a Shield viewing public key.");
+  }
+  const encryptedMemo = encryptVantaShieldMemoToViewingKeyPacket({
     payload,
-    ownerPubkey,
-    { viewingPublicKey },
-  );
+    prefix: VANTA_SEND_MEMO_PREFIX_V2,
+    viewingPublicKey,
+  });
+  const instruction = {
+    accounts: [],
+    data: new TextEncoder().encode(encryptedMemo.memoText),
+    programAddress: toAddress(VANTA_SHIELD_MEMO_PROGRAM),
+  };
   const ciphertextBodyHash = memoCiphertextBodyHash(
     decodeMemoInstructionText(instruction),
     VANTA_SEND_MEMO_PREFIX_V2,
   );
+  const discoveryHandoff: VantaSendDiscoveryHandoff = {
+    audience,
+    bodyHashScheme: "sha256-memo-ciphertext-body",
+    claimBoundary:
+      "local-encrypted-view-tag-body-hash-handoff-not-production-recipient-discovery",
+    encryptedViewTag: encryptedMemo.encryptedViewTag,
+    forbiddenPlaintextFields: [
+      "recipient",
+      "owner",
+      "amount",
+      "asset",
+      "plaintextMemo",
+      "inputCommitment",
+      "inputLeafIndex",
+      "depositSignature",
+      "serializedTransaction",
+      "walletPrivateKey",
+      "seedPhrase",
+      "privateInputs",
+      "witness",
+    ],
+    memoCiphertextBodyHash: ciphertextBodyHash,
+    memoPrefix: VANTA_SEND_MEMO_PREFIX_V2,
+    productionReady: false,
+    proofBinding: "private-pool-v2-send-public-input-hash-local-only",
+    version: "vanta-send-discovery-handoff-0.1",
+  };
 
   return {
     audience,
     ciphertextBodyHash,
+    discoveryHandoff,
     instruction,
   };
 }
@@ -1235,7 +1284,6 @@ export function createPreparedSendDualAeadMemo(
       sendNoteId: ids.noteId,
       vaultOwner: payload.vaultOwner,
     } satisfies SendRecipientDiscoveryMemoPayload,
-    payload.owner,
     options.recipientViewingPublicKey,
   );
   const changeMemo =
@@ -1255,7 +1303,6 @@ export function createPreparedSendDualAeadMemo(
             sendNoteId: ids.noteId,
             vaultOwner: payload.vaultOwner,
           } satisfies SendChangeDiscoveryMemoPayload,
-          payload.owner,
           options.changeViewingPublicKey,
         )
       : undefined;

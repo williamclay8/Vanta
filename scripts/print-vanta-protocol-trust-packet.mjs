@@ -80,6 +80,21 @@ const packets = {
       "legacy historical v1 Send memos remain parse-compatible and can expose recipient/amount/change amount",
       "recipient-side discovery still needs a trustable viewing-key exchange or encrypted outbox/view-tag design before external Send can make production privacy claims",
     ],
+    sendDiscoveryHandoff: {
+      blockerIds: [
+        "send-memo-indexer-body-hash-handoff-not-deployed",
+        "legacy-v1-send-history-migration-not-scoped",
+      ],
+      claimBoundary:
+        "local encrypted-view-tag index only; not production recipient discovery",
+      deployedMemoIndexerHandoff: false,
+      freshV2OnlyClaimScoped: false,
+      localIndexerEndpoint: "/v1/send-discovery-packets",
+      localStatusEndpoint: "/v1/send-discovery/status",
+      localViewTagBodyHashHandoff: true,
+      productionReady: false,
+      version: "vanta-private-pool-v2-send-discovery-packet-0.1",
+    },
     proofTranscriptFields: [
       "Private Pool v2 Send proof requests and the local Send circuit bind recipient/change ciphertext body hash limbs into the public input hash",
     ],
@@ -122,6 +137,7 @@ const packets = {
       "npm run send:requires-shielded-state-check",
       "npm run send:balance-ledger-check",
       "npm run send:production-privacy-claim-gate",
+      "npm run send:discovery-indexer-handoff-check",
       "npm run mainnet:send-live-evidence-contract-check",
       "npm run programmatic-privacy:contract-check",
     ],
@@ -189,6 +205,14 @@ const packet = {
   ],
 };
 
+if (packet.action === "send") {
+  packet.remainingBlockers = [
+    ...packet.remainingBlockers,
+    "send-memo-indexer-body-hash-handoff-not-deployed",
+    "legacy-v1-send-history-migration-not-scoped",
+  ];
+}
+
 if (checkMode) {
   assert.equal(packet.action, action);
   assert.equal(packet.claimBoundary.proofBacked, false);
@@ -224,7 +248,28 @@ if (checkMode) {
       ),
       "Send packet must disclose the local proof-request/circuit ciphertext body hash binding.",
     );
+    assert.equal(packet.sendDiscoveryHandoff?.productionReady, false);
+    assert.equal(packet.sendDiscoveryHandoff?.localViewTagBodyHashHandoff, true);
+    assert.equal(packet.sendDiscoveryHandoff?.deployedMemoIndexerHandoff, false);
+    assert.ok(
+      packet.sendDiscoveryHandoff?.blockerIds?.includes(
+        "send-memo-indexer-body-hash-handoff-not-deployed",
+      ),
+      "Send packet must expose the memo/indexer handoff blocker id.",
+    );
+    assert.ok(
+      packet.sendDiscoveryHandoff?.blockerIds?.includes(
+        "legacy-v1-send-history-migration-not-scoped",
+      ),
+      "Send packet must expose the historical v1 migration blocker id.",
+    );
+    assert.ok(
+      packet.remainingBlockers.includes("send-memo-indexer-body-hash-handoff-not-deployed") &&
+        packet.remainingBlockers.includes("legacy-v1-send-history-migration-not-scoped"),
+      "Send packet remainingBlockers must include exact discovery/migration blocker ids.",
+    );
     assert.ok(packet.verificationCommands.includes("npm run actions:memo-encryption-check"));
+    assert.ok(packet.verificationCommands.includes("npm run send:discovery-indexer-handoff-check"));
     assert.ok(
       packet.verificationCommands.includes("npm run private-pool-v2:send-circuit-check"),
     );

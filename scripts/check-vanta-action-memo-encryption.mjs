@@ -248,7 +248,10 @@ try {
     parseSwapMemo,
     parseUnshieldMemo,
   } = shieldStateModule;
-  const { createVantaShieldViewingKeypair } = viewingKeyModule;
+  const {
+    createVantaShieldViewingKeypair,
+    deriveVantaShieldMemoEncryptedViewTag,
+  } = viewingKeyModule;
   const { createVantaPrivatePoolV2SendProofRequest } = proofRequestModule;
 
   const owner = "OwnerWallet111111111111111111111111111111";
@@ -330,6 +333,33 @@ try {
     dualSend.recipientMemoCiphertextBodyHash !== dualSend.changeMemoCiphertextBodyHash,
     "Dual Send recipient and change ciphertext hashes must be distinct.",
   );
+  assert(
+    dualSend.recipientMemo.discoveryHandoff?.version === "vanta-send-discovery-handoff-0.1" &&
+      dualSend.recipientMemo.discoveryHandoff.productionReady === false,
+    "Dual Send recipient memo must expose a local-only discovery handoff.",
+  );
+  assert(
+    dualSend.changeMemo.discoveryHandoff?.version === "vanta-send-discovery-handoff-0.1" &&
+      dualSend.changeMemo.discoveryHandoff.productionReady === false,
+    "Dual Send change memo must expose a local-only discovery handoff.",
+  );
+  assert(
+    /^vtag:[0-9a-f]{16}$/.test(dualSend.recipientMemo.discoveryHandoff.encryptedViewTag) &&
+      /^vtag:[0-9a-f]{16}$/.test(dualSend.changeMemo.discoveryHandoff.encryptedViewTag),
+    "Dual Send discovery handoffs must expose encrypted view tags.",
+  );
+  assert(
+    dualSend.recipientMemo.discoveryHandoff.encryptedViewTag !==
+      dualSend.changeMemo.discoveryHandoff.encryptedViewTag,
+    "Dual Send recipient/change view tags must be distinct.",
+  );
+  assert(
+    dualSend.recipientMemo.discoveryHandoff.memoCiphertextBodyHash ===
+      dualSend.recipientMemoCiphertextBodyHash &&
+      dualSend.changeMemo.discoveryHandoff.memoCiphertextBodyHash ===
+        dualSend.changeMemoCiphertextBodyHash,
+    "Dual Send discovery handoffs must point at the proof-bound memo ciphertext body hashes.",
+  );
   const recipientMemoBodyHashLimbs = memoBodyHashLimbs(dualSend.recipientMemoCiphertextBodyHash);
   const changeMemoBodyHashLimbs = memoBodyHashLimbs(dualSend.changeMemoCiphertextBodyHash);
   const dualSendProofRequest = createVantaPrivatePoolV2SendProofRequest({
@@ -369,6 +399,30 @@ try {
   const changeMemoText = decodeMemoText(dualSend.changeMemo.instruction);
   assert(recipientMemoText.startsWith(VANTA_SEND_MEMO_PREFIX_V2), "Dual Send recipient memo must use v2 AEAD prefix.");
   assert(changeMemoText.startsWith(VANTA_SEND_MEMO_PREFIX_V2), "Dual Send change memo must use v2 AEAD prefix.");
+  assert(
+    deriveVantaShieldMemoEncryptedViewTag({
+      memoText: recipientMemoText,
+      prefix: VANTA_SEND_MEMO_PREFIX_V2,
+      viewingSecretKey: recipientViewingKey.secretKey,
+    }) === dualSend.recipientMemo.discoveryHandoff.encryptedViewTag,
+    "Recipient viewing key must derive the same local discovery tag without decrypting the memo body.",
+  );
+  assert(
+    deriveVantaShieldMemoEncryptedViewTag({
+      memoText: recipientMemoText,
+      prefix: VANTA_SEND_MEMO_PREFIX_V2,
+      viewingSecretKey: wrongViewingKey.secretKey,
+    }) !== dualSend.recipientMemo.discoveryHandoff.encryptedViewTag,
+    "Wrong viewing key must not derive the recipient discovery tag.",
+  );
+  assert(
+    deriveVantaShieldMemoEncryptedViewTag({
+      memoText: changeMemoText,
+      prefix: VANTA_SEND_MEMO_PREFIX_V2,
+      viewingSecretKey: senderViewingKey.secretKey,
+    }) === dualSend.changeMemo.discoveryHandoff.encryptedViewTag,
+    "Sender/change viewing key must derive the same change discovery tag without decrypting the memo body.",
+  );
   assertNoLeak(recipientMemoText, [
     sendPayload.amount,
     sendPayload.changeAmount,

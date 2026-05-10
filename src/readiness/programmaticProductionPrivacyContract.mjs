@@ -37,11 +37,12 @@ const contractRequirements = [
     id: "proof-bound-settlement-receipt",
     status: "partially-satisfied",
     currentTruth:
-      "Local proof and receipt boundaries bind roots, nullifiers, commitments, proof hashes, and Send recipient/change memo ciphertext body-hash limbs; production promotion still needs reviewed live evidence.",
+      "Local proof and receipt boundaries bind roots, nullifiers, commitments, proof hashes, Send recipient/change memo ciphertext body-hash limbs, and a local encrypted view-tag/body-hash indexer handoff; production promotion still needs reviewed live evidence and deployed recipient discovery.",
     requiredEvidenceRefs: [
       "npm run private-core:verify",
       "npm run private-pool-v2:send-proof-request-check",
       "npm run private-pool-v2:send-circuit-check",
+      "npm run send:discovery-indexer-handoff-check",
       "npm run private-pool-v2:verify",
     ],
   },
