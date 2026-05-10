@@ -29,6 +29,10 @@ import {
   validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction,
 } from "../src/privacy/privatePoolV2SolanaSpendTransaction.mjs";
 import { createPostgresSnapshotStore } from "../src/storage/vantaPostgresSnapshotStore.mjs";
+import {
+  assertVantaPrivatePoolV2SendProofArtifactHasNoWitnessMaterial,
+  verifyVantaPrivatePoolV2SendProofArtifact,
+} from "./private-pool-v2-proof-artifact.mjs";
 import { createPrivatePoolV2ReceiptStore } from "./private-pool-v2-store.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -652,6 +656,40 @@ function assertProofSystemCanBackConfiguredSettlement(proof) {
   if (!productionProofBackendSet.has(proof?.proofBackend)) {
     throw new Error(
       `Private Pool v2 real-funds settlement requires a remote production proof backend (${productionProofBackends.join(", ")}); ${proof?.proofBackend ?? "missing"} proofs are local-only or untrusted.`,
+    );
+  }
+}
+
+function assertStrictPrivatePoolV2ProofArtifactBody(body) {
+  if (!body?.proofArtifact) {
+    throw new Error("Private Pool v2 proof artifact verification requires proofArtifact.");
+  }
+
+  for (const forbiddenField of [
+    "noteSecret",
+    "privateInputs",
+    "private_inputs",
+    "privateWitness",
+    "proof",
+    "request",
+    "secret",
+    "sourceArtifacts",
+    "sourcePublicInputs",
+    "witness",
+    "witnessPackage",
+  ]) {
+    if (Object.hasOwn(body, forbiddenField)) {
+      throw new Error(
+        `Private Pool v2 strict no-witness proof-artifact mode rejects ${forbiddenField} material.`,
+      );
+    }
+  }
+
+  assertVantaPrivatePoolV2SendProofArtifactHasNoWitnessMaterial(body);
+
+  if (productionProofSystemRequiredNow()) {
+    throw new Error(
+      "Private Pool v2 production proof-artifact verification requires remote proof artifact verification; the local Send proof-artifact route is not implemented for production proof mode.",
     );
   }
 }
@@ -3029,6 +3067,20 @@ const server = createServer(async (request, response) => {
         receipts,
         receiptCount: receipts.length,
         shadowCommitmentCount: shadowCommitmentsFromReceipts(receipts).length,
+      });
+      return;
+    }
+
+    if (request.method === "POST" && request.url === "/private-pool-v2/proof-artifacts/verify") {
+      const body = await readRequestBody(request);
+      assertStrictPrivatePoolV2ProofArtifactBody(body);
+      const verifiedReceipt = await verifyVantaPrivatePoolV2SendProofArtifact({
+        proofArtifact: body.proofArtifact,
+      });
+      sendJson(response, 200, {
+        kind: "Private Pool V2 Send proof artifact verification",
+        proofTrustBoundary: proofTrustBoundaryPayload(),
+        verifiedReceipt,
       });
       return;
     }

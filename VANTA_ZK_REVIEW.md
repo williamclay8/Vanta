@@ -124,6 +124,8 @@ Earlier production-shaped circuits (`vanta_private_core_single_note_*`, `vanta_p
 
 **Codex status, 2026-05-09:** partially remediated for the Private Pool v2 operator/protocol boundary. Proof receipts now persist `proofSystem` and `proofBackend` through local verifier receipts, remote verifier service receipts, and protocol response types; operator status exposes `settlementPolicy.mockProofRealFundsBlocked`, `settlementPolicy.productionProofSystemRequired`, and `proofTrustBoundary` with accepted production proof systems and backends. Production startup now requires `VANTA_PRIVATE_POOL_V2_RUNTIME_MODE=remote-services`, and real-funds / production-proof mode rejects local `proofSystem: "mock"` plus spoofed `proofSystem: "noir-bb"` receipts that still carry a local proof backend. Mainnet-adjacent actual-private relayer validation now rejects missing/mock proof systems, and SOL-to-shielded route receipts must expose an explicit proof system. The Jupiter SOL-to-shielded adapter now treats mock-proof acceptance as an explicit local/mock execution-mode choice, rejects remote `proofSystem: "mock"` receipts in live mode, and preflights the remote Private Pool proof-trust boundary before signing a live Jupiter swap. Guards: `npm run private-pool-v2:mock-proof-boundary-check`, `npm run private-pool-v2:proof-backend-boundary-check`, `npm run swap:jupiter-sol-to-shielded-adapter-check`, and `npm run swap:capability-check`. This does not replace the mock prover or make the lane live-funds ZK-ready; it makes mock proofs explicit local/no-real-funds evidence only.
 
+**Codex status, 2026-05-10:** partially remediated further for the Private Pool v2 Send proof-artifact lane. The current local Send proof-artifact pass adds a no-witness operator verification route and focused artifact consistency guards, so Send artifacts can be checked without handing private witness material to the operator. The guard now rejects witness/source sidecars, witness aliases such as `witness`, `privateInputs`, `private_inputs`, and `noteSecret`, malformed proof hex, extra public inputs, tampered proof/public-input material, tampered local ACIR bytecode metadata, relabelled `remote-service` artifacts, and all production proof-mode requests to this local-only route. Guards: `npm run private-pool-v2:send-proof-artifact-consistency-check`, `npm run private-pool-v2:send-operator-no-witness-check`, and `npm run send:verify`. This still does not replace the mock/local prover boundary or make Send production-private.
+
 ---
 
 ## Medium findings
@@ -2370,6 +2372,21 @@ This local slice closed stale status/env/doc drift created by the output-record 
 Verification in this slice: `npm run mainnet:private-settlement-check`, `npm run mainnet:readiness-check`, `npm run mainnet:service-contract-check`, `npm run mainnet:service-topology-check`, `npm run mainnet:deployment-manifest-check`, `npm run mainnet:actual-private-settlement-operator-packet-check`, `npm run mainnet:production-service-setup-check`, `npm run docs:source-of-truth-check`, `npm run security:limitations-check`, `npm run operator:runbook-check`, `npm run private-pool-v2:contract-check`, and `npm run private-pool-v2:solana-spend-transaction-check` passed locally before the final ledger/build hygiene rerun.
 
 Still open after this twenty-fourth local pass: this is status-surface and operator-handoff truth hardening only. It does not rebuild the SBF binary, deploy/reinitialize the current ABI, add on-chain proof verification, replace the operator-fed root-history scaffold, refresh live deployment evidence, or change the production-private claim boundary.
+
+### Twenty-fifth Codex feedback loop - Private Pool v2 Send proof-artifact no-witness operator route
+
+This local slice closes the H08 Send proof-artifact feedback-loop gap without upgrading the production privacy claim:
+
+Commit scope: `Add Send proof artifact no-witness route` on `codex/vanta-zk-review-hardening`.
+
+- The Private Pool v2 operator now has a Send proof-artifact verification route that accepts proof artifacts without private witness material.
+- The route verifies the submitted artifact against the local Send circuit/proof-artifact boundary and rejects witness-package leakage, witness aliases, source sidecars, malformed proof hex, extra public inputs, relabelled local artifacts, and production proof-mode use on the operator no-witness path.
+- Send proof-artifact consistency checks now guard that public inputs, proof metadata, proof system/backend metadata, local ACIR bytecode metadata, and proof-request commitments stay aligned across the local artifact route.
+- The H08 mock/local proof boundary remains explicit: this is local proof-artifact evidence only, not a production prover, remote verifier, on-chain verifier, audited proof system, or real-funds settlement boundary.
+
+Verification in this slice: `npm run private-pool-v2:send-proof-artifact-consistency-check`, `npm run private-pool-v2:send-operator-no-witness-check`, `npm run private-pool-v2:proof-backend-boundary-check`, `npm run private-pool-v2:mock-proof-boundary-check`, `npm run private-pool-v2:protocol-client-check`, `npm run private-pool-v2:contract-check`, and `npm run send:verify` passed locally before the final ledger/build hygiene rerun. `npm run private-pool-v2:verify` advanced through the new Send proof-artifact checks and the broader local proof/status checks, then stopped at the expected fail-closed `private-pool-v2:sbf-abi-check` gate because the SBF binary predates the current ABI and local Solana build tooling is missing.
+
+Still open after this twenty-fifth local pass: the proof artifact route is local/operator evidence only. Production still needs remote prover/live verifier integration, on-chain proof verification or accepted verifier enforcement, live settlement evidence, relayer separation, anonymity-set evidence, SBF rebuild/redeploy/reinit where relevant, and audit acceptance.
 
 ---
 

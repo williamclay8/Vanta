@@ -2,6 +2,10 @@ import { Barretenberg, UltraHonkBackend } from "@aztec/bb.js";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import {
+  createVantaPrivatePoolV2ProofArtifactPublicInputCommitment,
+  createVantaPrivatePoolV2ProofArtifactVerifyingKeyMetadata,
+} from "../operator/private-pool-v2-proof-artifact.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const target = process.argv[2] ?? "shield";
@@ -106,25 +110,36 @@ try {
       throw new Error("proof verification returned false");
     }
 
+    const proofReceipt = {
+      backend: "barretenberg-ultrahonk",
+      circuit: config.circuitName,
+      proofBackend: "local-bb-fixture-artifact",
+      proofByteLength: proofData.proof.length,
+      proofHex: Buffer.from(proofData.proof).toString("hex"),
+      proofSystem: "noir-bb",
+      publicInputCommitment: createVantaPrivatePoolV2ProofArtifactPublicInputCommitment(
+        proofData.publicInputs,
+      ),
+      publicInputCount: proofData.publicInputs.length,
+      publicInputLabels: target === "send" ? ["send-public-input-hash"] : [],
+      publicInputs: proofData.publicInputs,
+      verified,
+      ...createVantaPrivatePoolV2ProofArtifactVerifyingKeyMetadata(
+        compiledProgram,
+        config.circuitName,
+      ),
+      ...(target === "send"
+        ? {}
+        : {
+            witnessSource: `target/${config.circuitName}.gz`,
+            bytecodeSource: `target/${config.circuitName}.json`,
+          }),
+    };
+
     mkdirSync(resolve(config.circuitDir, "target"), { recursive: true });
     writeFileSync(
       proofReceiptPath,
-      `${JSON.stringify(
-        {
-          backend: "barretenberg-ultrahonk",
-          circuit: config.circuitName,
-          proofBackend: "local-bb-fixture-artifact",
-          proofByteLength: proofData.proof.length,
-          proofHex: Buffer.from(proofData.proof).toString("hex"),
-          publicInputCount: proofData.publicInputs.length,
-          publicInputs: proofData.publicInputs,
-          verified,
-          witnessSource: `target/${config.circuitName}.gz`,
-          bytecodeSource: `target/${config.circuitName}.json`,
-        },
-        null,
-        2,
-      )}\n`,
+      `${JSON.stringify(proofReceipt, null, 2)}\n`,
     );
 
     console.log("proof generation: PASS");
