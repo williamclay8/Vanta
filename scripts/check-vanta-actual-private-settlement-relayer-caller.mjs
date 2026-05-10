@@ -1,6 +1,9 @@
 import { strict as assert } from "node:assert";
 
-import { createVantaActualPrivateSettlementPlan } from "../src/mainnet/actualPrivateSettlementPlan.mjs";
+import {
+  createVantaActualPrivateSettlementPlan,
+  validateVantaActualPrivateSettlementPlan,
+} from "../src/mainnet/actualPrivateSettlementPlan.mjs";
 import {
   requestVantaActualPrivateSettlementViaRelayer,
   validateVantaActualPrivateOperatorCapability,
@@ -49,6 +52,25 @@ const unshieldPlan = createVantaActualPrivateSettlementPlan({
   unshieldContextTag: "context:actual-private-unshield-demo",
   unshieldPublicInputHash: "public-input-hash:actual-private-unshield-demo",
 });
+assert.throws(
+  () =>
+    createVantaActualPrivateSettlementPlan({
+      ...unshieldPlan.request,
+      nullifier: unshieldPlan.request.nullifierOrReplayCommitment,
+      relayerSerializedTransaction: `base64:${Buffer.from("unshield-spend-tx-drift").toString("base64")}`,
+    }),
+  /only supports relayerSerializedTransaction for send/,
+);
+assert.equal(
+  validateVantaActualPrivateSettlementPlan({
+    ...unshieldPlan,
+    request: {
+      ...unshieldPlan.request,
+      relayerSerializedTransaction: `base64:${Buffer.from("unshield-spend-tx-drift").toString("base64")}`,
+    },
+  }).reason,
+  "relayerSerializedTransaction-only-supported-for-send",
+);
 
 const calls = [];
 const result = await requestVantaActualPrivateSettlementViaRelayer({

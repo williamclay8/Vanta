@@ -111,6 +111,16 @@ function normalizeForJson(value) {
   return value;
 }
 
+function optionalPlainObject(value, fieldName) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  if (Array.isArray(value) || typeof value !== "object") {
+    throw new Error(`Private Pool v2 relayer requires ${fieldName} to be an object.`);
+  }
+  return value;
+}
+
 function sendJson(response, status, payload) {
   response.writeHead(status, { "Content-Type": "application/json" });
   response.end(`${JSON.stringify(normalizeForJson(payload), null, 2)}\n`);
@@ -706,6 +716,8 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
       return claim;
     },
     async submitPrivateSpend({
+      expectedAccounts,
+      expectedPublicInputs,
       proofReceiptId,
       publicInputCommitment,
       serializedTransaction,
@@ -723,18 +735,25 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
         serializedTransaction: String(serializedTransaction),
         settlementId: String(settlementId),
       };
+      const expectedAccountRefs = optionalPlainObject(expectedAccounts, "expectedAccounts");
+      const expectedPublicInputRefs = optionalPlainObject(expectedPublicInputs, "expectedPublicInputs");
+      const liveSubmissionRequest = {
+        ...baseSubmission,
+        ...(expectedAccountRefs ? { expectedAccounts: expectedAccountRefs } : {}),
+        ...(expectedPublicInputRefs ? { expectedPublicInputs: expectedPublicInputRefs } : {}),
+      };
       const liveSubmission = liveSolanaSubmitter
-        ? await liveSolanaSubmitter.submitPrivateSpend(baseSubmission)
+        ? await liveSolanaSubmitter.submitPrivateSpend(liveSubmissionRequest)
         : null;
       const submission = liveSubmission
         ? {
-            ...baseSubmission,
+            ...liveSubmissionRequest,
             relayerId: liveSubmission.relayerId,
             signature: liveSubmission.signature,
             submittedBy: liveSubmission.submittedBy,
           }
         : {
-            ...baseSubmission,
+            ...liveSubmissionRequest,
             relayerId: `vanta-service-relayer:${hashHex(serviceVersion, "private-spend", String(settlementId)).slice(2, 18)}`,
             signature: hashHex(serviceVersion, "private-spend", key, String(serializedTransaction)),
             submittedBy: "relayer",

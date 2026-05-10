@@ -50,6 +50,15 @@ const unshieldPlan = createVantaActualPrivateSettlementPlan({
   unshieldContextTag: "context:actual-private-unshield-demo",
   unshieldPublicInputHash: "public-input-hash:actual-private-unshield-demo",
 });
+assert.throws(
+  () =>
+    createVantaActualPrivateSettlementPlan({
+      ...unshieldPlan.request,
+      nullifier: unshieldPlan.request.nullifierOrReplayCommitment,
+      relayerSerializedTransaction,
+    }),
+  /only supports relayerSerializedTransaction for send/,
+);
 
 assert.equal(plan.operatorEndpoint, "/private-pool-v2/protocol-settlements");
 assert.equal(plan.request.action, "send");
@@ -156,5 +165,19 @@ const rejectedUnshield = {
 
 assert.equal(validateVantaActualPrivateSettlementPlan(rejectedUnshield).accepted, false);
 assert.equal(validateVantaActualPrivateSettlementPlan(rejectedUnshield).reason, "missing-exitTermsCommitment");
+
+const rejectedUnshieldRelayerTransaction = {
+  ...unshieldPlan,
+  request: {
+    ...unshieldPlan.request,
+    relayerSerializedTransaction,
+  },
+};
+
+assert.equal(validateVantaActualPrivateSettlementPlan(rejectedUnshieldRelayerTransaction).accepted, false);
+assert.equal(
+  validateVantaActualPrivateSettlementPlan(rejectedUnshieldRelayerTransaction).reason,
+  "relayerSerializedTransaction-only-supported-for-send",
+);
 
 console.log("Vanta actual-private settlement plan check: PASS");

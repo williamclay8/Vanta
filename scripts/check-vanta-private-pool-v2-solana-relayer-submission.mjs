@@ -7,6 +7,7 @@ import {
   isVantaSolanaTransactionSignature,
 } from "../src/privacy/privatePoolV2SolanaRelayerSubmission.mjs";
 import {
+  VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_MAX_SERIALIZED_TRANSACTION_BYTES,
   buildVantaPrivatePoolV2ActualPrivateSpendTransaction,
   deriveVantaPrivatePoolV2NullifierMarkerAddress,
 } from "../src/privacy/privatePoolV2SolanaSpendTransaction.mjs";
@@ -70,6 +71,47 @@ assert.deepEqual(calls, [
 assert.equal(isVantaSolanaTransactionSignature(validSignature), true);
 assert.equal(isVantaSolanaTransactionSignature("0xnot-a-solana-signature"), false);
 
+const bindingRequiredSubmitter = createVantaPrivatePoolV2SolanaRelayerSubmitter({
+  connection: fakeConnection,
+  deserializeTransaction() {
+    throw new Error("deserialize must not run before expected binding validation");
+  },
+  relayerKeypair: fakeRelayerKeypair,
+  requireExpectedBindings: true,
+});
+await assert.rejects(
+  () =>
+    bindingRequiredSubmitter.submitPrivateSpend({
+      proofReceiptId: "ppv2_requires_bindings",
+      publicInputCommitment: "0xpublic-input",
+      serializedTransaction: `base64:${Buffer.from([9, 8, 7]).toString("base64")}`,
+      settlementId: "settlement:requires-bindings",
+    }),
+  /requires expectedAccounts and expectedPublicInputs/,
+);
+const callsBeforeSemanticReject = calls.length;
+await assert.rejects(
+  () =>
+    submitter.submitPrivateSpend({
+      expectedPublicInputs: {
+        acceptedRoot: "0x" + "44".repeat(32),
+        nullifierOrReplayCommitment: "0x" + "11".repeat(32),
+        outputCommitments: ["0x" + "22".repeat(32), "0x" + "33".repeat(32)],
+        privateSpendPublicInputHash: "0x" + "55".repeat(32),
+      },
+      proofReceiptId: "ppv2_semantic_reject",
+      publicInputCommitment: "0xpublic-input",
+      serializedTransaction: `base64:${Buffer.from([9, 8, 7]).toString("base64")}`,
+      settlementId: "settlement:semantic-reject",
+    }),
+  /Reached end of buffer|invalid|Transaction|version/i,
+);
+assert.deepEqual(
+  calls.slice(callsBeforeSemanticReject),
+  [],
+  "Relayer semantic validation must reject before deserialize, sign, simulate, or send.",
+);
+
 const relayerKeypair = Keypair.generate();
 const spendProgramId = Keypair.generate().publicKey.toBase58();
 const poolState = Keypair.generate().publicKey.toBase58();
@@ -83,6 +125,23 @@ const nullifierMarker = deriveVantaPrivatePoolV2NullifierMarkerAddress({
 });
 const operatorAuthority = relayerKeypair.publicKey.toBase58();
 let submittedSpendTransaction = null;
+const expectedSpendPublicInputs = {
+  acceptedRoot: "0x" + "44".repeat(32),
+  nullifierOrReplayCommitment: "0x" + "11".repeat(32),
+  outputCommitments: ["0x" + "22".repeat(32), "0x" + "33".repeat(32)],
+  privateSpendPublicInputHash: "0x" + "55".repeat(32),
+};
+const expectedSpendAccounts = {
+  nullifierSet,
+  nullifierMarker,
+  operatorAuthority,
+  outputQueue,
+  poolState,
+  programId: spendProgramId,
+  relayerFeePayer: relayerKeypair.publicKey.toBase58(),
+  rootHistory,
+  systemProgram: SystemProgram.programId.toBase58(),
+};
 const builtSpendTransaction = buildVantaPrivatePoolV2ActualPrivateSpendTransaction({
   accounts: [
     { isSigner: false, isWritable: true, pubkey: poolState },
@@ -119,8 +178,11 @@ const builderIntegratedSubmitter = createVantaPrivatePoolV2SolanaRelayerSubmitte
     },
   },
   relayerKeypair,
+  requireExpectedBindings: true,
 });
 const builderIntegratedSubmission = await builderIntegratedSubmitter.submitPrivateSpend({
+  expectedAccounts: expectedSpendAccounts,
+  expectedPublicInputs: expectedSpendPublicInputs,
   proofReceiptId: "ppv2_builder_integrated",
   publicInputCommitment: "0xpublic-input-builder",
   serializedTransaction: builtSpendTransaction.serializedTransaction,
@@ -131,6 +193,67 @@ assert.equal(builderIntegratedSubmission.submittedBy, "relayer");
 assert.equal(builderIntegratedSubmission.relayerId, `solana-relayer:${relayerKeypair.publicKey.toBase58()}`);
 assert.equal(submittedSpendTransaction.message.staticAccountKeys[0].toBase58(), relayerKeypair.publicKey.toBase58());
 assert.notDeepEqual([...submittedSpendTransaction.signatures[0]], new Array(64).fill(0));
+
+await assert.rejects(
+  () =>
+    builderIntegratedSubmitter.submitPrivateSpend({
+      expectedAccounts: expectedSpendAccounts,
+      expectedPublicInputs: {
+        ...expectedSpendPublicInputs,
+        acceptedRoot: "0x" + "66".repeat(32),
+      },
+      proofReceiptId: "ppv2_builder_integrated_bad_root",
+      publicInputCommitment: "0xpublic-input-builder",
+      serializedTransaction: builtSpendTransaction.serializedTransaction,
+      settlementId: "settlement:builder-integrated-bad-root",
+    }),
+  /expectedPublicInputs\.acceptedRoot mismatch/,
+);
+
+await assert.rejects(
+  () =>
+    builderIntegratedSubmitter.submitPrivateSpend({
+      expectedAccounts: {
+        ...expectedSpendAccounts,
+        programId: Keypair.generate().publicKey.toBase58(),
+      },
+      expectedPublicInputs: expectedSpendPublicInputs,
+      proofReceiptId: "ppv2_builder_integrated_bad_program",
+      publicInputCommitment: "0xpublic-input-builder",
+      serializedTransaction: builtSpendTransaction.serializedTransaction,
+      settlementId: "settlement:builder-integrated-bad-program",
+    }),
+  /expectedAccounts\.programId mismatch/,
+);
+
+await assert.rejects(
+  () =>
+    builderIntegratedSubmitter.submitPrivateSpend({
+      expectedAccounts: {},
+      expectedPublicInputs: expectedSpendPublicInputs,
+      proofReceiptId: "ppv2_builder_integrated_missing_accounts",
+      publicInputCommitment: "0xpublic-input-builder",
+      serializedTransaction: builtSpendTransaction.serializedTransaction,
+      settlementId: "settlement:builder-integrated-missing-accounts",
+    }),
+  /requires expected account refs/,
+);
+
+await assert.rejects(
+  () =>
+    builderIntegratedSubmitter.submitPrivateSpend({
+      expectedAccounts: {
+        ...expectedSpendAccounts,
+        nullifierMarker: Keypair.generate().publicKey.toBase58(),
+      },
+      expectedPublicInputs: expectedSpendPublicInputs,
+      proofReceiptId: "ppv2_builder_integrated_bad_marker",
+      publicInputCommitment: "0xpublic-input-builder",
+      serializedTransaction: builtSpendTransaction.serializedTransaction,
+      settlementId: "settlement:builder-integrated-bad-marker",
+    }),
+  /expectedAccounts\.nullifierMarker mismatch/,
+);
 
 const malformedBase64Submitter = createVantaPrivatePoolV2SolanaRelayerSubmitter({
   connection: fakeConnection,
@@ -148,6 +271,19 @@ await assert.rejects(
       settlementId: "settlement:bad-base64",
     }),
   /requires base64 serializedTransaction/,
+);
+
+await assert.rejects(
+  () =>
+    malformedBase64Submitter.submitPrivateSpend({
+      proofReceiptId: "ppv2_oversized",
+      publicInputCommitment: "0xpublic-input",
+      serializedTransaction: `base64:${Buffer.alloc(
+        VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_MAX_SERIALIZED_TRANSACTION_BYTES + 1,
+      ).toString("base64")}`,
+      settlementId: "settlement:oversized",
+    }),
+  /serializedTransaction exceeds 1232 bytes/,
 );
 
 const simulationFailureSubmitter = createVantaPrivatePoolV2SolanaRelayerSubmitter({

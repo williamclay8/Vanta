@@ -4,9 +4,11 @@ import { Keypair, SystemProgram, VersionedTransaction } from "@solana/web3.js";
 
 import {
   SOLANA_MEMO_PROGRAM_ID,
+  VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_MAX_SERIALIZED_TRANSACTION_BYTES,
   VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_TRANSACTION_VERSION,
   buildVantaPrivatePoolV2ActualPrivateSpendTransaction,
   deriveVantaPrivatePoolV2NullifierMarkerAddress,
+  validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction,
 } from "../src/privacy/privatePoolV2SolanaSpendTransaction.mjs";
 
 const relayerFeePayer = Keypair.generate().publicKey.toBase58();
@@ -31,6 +33,23 @@ const instructionDataBase64 = Buffer.concat([
   Buffer.from("44".repeat(32), "hex"),
   Buffer.from("55".repeat(32), "hex"),
 ]).toString("base64");
+const expectedPublicInputs = {
+  acceptedRoot: "0x" + "44".repeat(32),
+  nullifierOrReplayCommitment: "0x" + "11".repeat(32),
+  outputCommitments: ["0x" + "22".repeat(32), "0x" + "33".repeat(32)],
+  privateSpendPublicInputHash: "0x" + "55".repeat(32),
+};
+const expectedAccounts = {
+  nullifierSet,
+  nullifierMarker,
+  operatorAuthority,
+  outputQueue,
+  poolState,
+  programId,
+  relayerFeePayer,
+  rootHistory,
+  systemProgram: SystemProgram.programId.toBase58(),
+};
 
 const built = buildVantaPrivatePoolV2ActualPrivateSpendTransaction({
   accounts: [
@@ -54,9 +73,111 @@ assert.equal(built.programId, programId);
 assert.equal(built.relayerFeePayer, relayerFeePayer);
 assert.equal(built.accountCount, 7);
 assert.match(built.serializedTransaction, /^base64:[A-Za-z0-9+/]+=*$/);
+const validated = validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction({
+  expectedAccounts,
+  expectedPublicInputs,
+  serializedTransaction: built.serializedTransaction,
+});
+assert.equal(validated.nullifier, expectedPublicInputs.nullifierOrReplayCommitment);
+assert.deepEqual(validated.outputCommitments, expectedPublicInputs.outputCommitments);
+assert.equal(validated.acceptedRoot, expectedPublicInputs.acceptedRoot);
+assert.equal(validated.privateSpendPublicInputHash, expectedPublicInputs.privateSpendPublicInputHash);
+assert.equal(validated.programId, programId);
+assert.equal(validated.relayerFeePayer, relayerFeePayer);
 
 const decoded = VersionedTransaction.deserialize(
   Buffer.from(built.serializedTransaction.slice("base64:".length), "base64"),
+);
+
+assert.throws(
+  () =>
+    validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction({
+      expectedAccounts,
+      expectedPublicInputs: {
+        ...expectedPublicInputs,
+        privateSpendPublicInputHash: "0x" + "66".repeat(32),
+      },
+      serializedTransaction: built.serializedTransaction,
+    }),
+  /expectedPublicInputs\.privateSpendPublicInputHash mismatch/,
+);
+
+assert.throws(
+  () =>
+    validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction({
+      expectedAccounts: {
+        ...expectedAccounts,
+        outputQueue: Keypair.generate().publicKey.toBase58(),
+      },
+      expectedPublicInputs,
+      serializedTransaction: built.serializedTransaction,
+    }),
+  /expectedAccounts\.outputQueue mismatch/,
+);
+
+assert.throws(
+  () =>
+    validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction({
+      expectedAccounts: {
+        ...expectedAccounts,
+        nullifierMarker: Keypair.generate().publicKey.toBase58(),
+      },
+      expectedPublicInputs,
+      serializedTransaction: built.serializedTransaction,
+    }),
+  /expectedAccounts\.nullifierMarker mismatch/,
+);
+
+assert.throws(
+  () =>
+    validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction({
+      expectedAccounts: {
+        ...expectedAccounts,
+        nullifierMarker: undefined,
+      },
+      expectedPublicInputs,
+      requireExpectedAccounts: true,
+      serializedTransaction: built.serializedTransaction,
+    }),
+  /requires expected account refs: nullifierMarker/,
+);
+
+assert.throws(
+  () =>
+    validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction({
+      expectedAccounts,
+      expectedPublicInputs: {
+        acceptedRoot: expectedPublicInputs.acceptedRoot,
+        nullifierOrReplayCommitment: expectedPublicInputs.nullifierOrReplayCommitment,
+        outputCommitment: expectedPublicInputs.outputCommitments[0],
+        privateSpendPublicInputHash: expectedPublicInputs.privateSpendPublicInputHash,
+      },
+      requireExpectedPublicInputs: true,
+      serializedTransaction: built.serializedTransaction,
+    }),
+  /requires expected public inputs: outputCommitments/,
+);
+
+assert.throws(
+  () =>
+    validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction({
+      expectedAccounts,
+      expectedPublicInputs,
+      serializedTransaction: `base64:${Buffer.from("not-a-solana-v0-transaction").toString("base64")}`,
+    }),
+  /Reached end of buffer|invalid|Transaction|version/i,
+);
+
+assert.throws(
+  () =>
+    validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction({
+      expectedAccounts,
+      expectedPublicInputs,
+      serializedTransaction: `base64:${Buffer.alloc(
+        VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_MAX_SERIALIZED_TRANSACTION_BYTES + 1,
+      ).toString("base64")}`,
+    }),
+  /serializedTransaction exceeds 1232 bytes/,
 );
 assert.equal(decoded.version, 0);
 assert.equal(decoded.message.staticAccountKeys[0].toBase58(), relayerFeePayer);

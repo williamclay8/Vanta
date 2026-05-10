@@ -8,6 +8,7 @@ import {
 
 export const VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_TRANSACTION_VERSION =
   "vanta-private-pool-v2-solana-spend-transaction-0.2";
+export const VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_MAX_SERIALIZED_TRANSACTION_BYTES = 1232;
 
 export const SOLANA_MEMO_PROGRAM_ID = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
 const SPEND_INSTRUCTION_TAG = 1;
@@ -45,7 +46,7 @@ function requirePublicKey(value, fieldName) {
   }
 }
 
-function requireBase64Bytes(value, fieldName) {
+function requireBase64Bytes(value, fieldName, { maxBytes } = {}) {
   const text = requireText(value, fieldName);
   const base64 = text.startsWith("base64:") ? text.slice("base64:".length) : text;
   if (!/^[A-Za-z0-9+/]+={0,2}$/.test(base64) || base64.length % 4 !== 0) {
@@ -54,6 +55,11 @@ function requireBase64Bytes(value, fieldName) {
   const bytes = Buffer.from(base64, "base64");
   if (bytes.length === 0 || bytes.toString("base64") !== base64) {
     throw new Error(`Vanta Private Pool v2 Solana spend transaction requires base64 ${fieldName}.`);
+  }
+  if (maxBytes && bytes.length > maxBytes) {
+    throw new Error(
+      `Vanta Private Pool v2 Solana spend transaction ${fieldName} exceeds ${maxBytes} bytes.`,
+    );
   }
 
   return bytes;
@@ -67,6 +73,16 @@ function requireSpendInstructionData(bytes) {
   }
 }
 
+function requireSerializedTransaction(value) {
+  return VersionedTransaction.deserialize(
+    requireBase64Bytes(
+      value,
+      "serializedTransaction",
+      { maxBytes: VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_MAX_SERIALIZED_TRANSACTION_BYTES },
+    ),
+  );
+}
+
 function requireHex32(value, fieldName) {
   const text = requireText(value, fieldName);
   const hex = text.startsWith("0x") ? text.slice(2) : text;
@@ -76,8 +92,28 @@ function requireHex32(value, fieldName) {
   return Buffer.from(hex, "hex");
 }
 
+function bytesToHex32(bytes) {
+  return `0x${Buffer.from(bytes).toString("hex")}`;
+}
+
 function spendNullifierBytes(data) {
   return data.subarray(1, 1 + HASH_LEN);
+}
+
+function spendOutput0Bytes(data) {
+  return data.subarray(1 + HASH_LEN, 1 + HASH_LEN * 2);
+}
+
+function spendOutput1Bytes(data) {
+  return data.subarray(1 + HASH_LEN * 2, 1 + HASH_LEN * 3);
+}
+
+function spendAcceptedRootBytes(data) {
+  return data.subarray(1 + HASH_LEN * 3, 1 + HASH_LEN * 4);
+}
+
+function spendPublicInputHashBytes(data) {
+  return data.subarray(1 + HASH_LEN * 4, 1 + HASH_LEN * 5);
 }
 
 function deriveNullifierMarkerPubkey({ programId, poolState, nullifier }) {
@@ -182,6 +218,195 @@ function assertSpendProgramAccountLayout(accounts, data, programId) {
       "Vanta Private Pool v2 Solana spend transaction requires accounts[6] to be the read-only System Program.",
     );
   }
+}
+
+function assertPublicKeyMatches(actual, expected, fieldName) {
+  if (expected === undefined || expected === null || expected === "") {
+    return;
+  }
+  const expectedPubkey = requirePublicKey(expected, fieldName);
+  if (!actual.equals(expectedPubkey)) {
+    throw new Error(`Vanta Private Pool v2 Solana spend transaction ${fieldName} mismatch.`);
+  }
+}
+
+function assertBytesMatch(actual, expected, fieldName) {
+  const expectedBytes = requireHex32(expected, fieldName);
+  if (!Buffer.from(actual).equals(expectedBytes)) {
+    throw new Error(`Vanta Private Pool v2 Solana spend transaction ${fieldName} mismatch.`);
+  }
+}
+
+function normalizeExpectedOutputCommitments(expectedPublicInputs = {}) {
+  if (Array.isArray(expectedPublicInputs.outputCommitments)) {
+    return expectedPublicInputs.outputCommitments;
+  }
+  return [
+    expectedPublicInputs.outputCommitment,
+    expectedPublicInputs.changeOutputCommitment,
+  ];
+}
+
+function assertExpectedPublicInputsComplete(expectedPublicInputs = {}) {
+  const outputCommitments = normalizeExpectedOutputCommitments(expectedPublicInputs);
+  const missing = [];
+  if (!expectedPublicInputs.acceptedRoot) {
+    missing.push("acceptedRoot");
+  }
+  if (!expectedPublicInputs.nullifier && !expectedPublicInputs.nullifierOrReplayCommitment) {
+    missing.push("nullifierOrReplayCommitment");
+  }
+  if (outputCommitments.length !== 2 || outputCommitments.some((commitment) => !commitment)) {
+    missing.push("outputCommitments");
+  }
+  if (!expectedPublicInputs.privateSpendPublicInputHash) {
+    missing.push("privateSpendPublicInputHash");
+  }
+  if (missing.length > 0) {
+    throw new Error(
+      `Vanta Private Pool v2 Solana spend transaction requires expected public inputs: ${missing.join(", ")}.`,
+    );
+  }
+}
+
+function assertExpectedAccountsComplete(expectedAccounts = {}) {
+  const missing = [
+    "programId",
+    "poolState",
+    "nullifierSet",
+    "nullifierMarker",
+    "outputQueue",
+    "rootHistory",
+  ].filter((field) => !expectedAccounts[field]);
+  if (!expectedAccounts.operatorAuthority && !expectedAccounts.relayerFeePayer) {
+    missing.push("operatorAuthority");
+  }
+  if (missing.length > 0) {
+    throw new Error(
+      `Vanta Private Pool v2 Solana spend transaction requires expected account refs: ${missing.join(", ")}.`,
+    );
+  }
+}
+
+function compiledInstructionAccounts(message, instruction) {
+  return instruction.accountKeyIndexes.map((index) => {
+    const pubkey = message.staticAccountKeys[index];
+    if (!pubkey) {
+      throw new Error("Vanta Private Pool v2 Solana spend transaction has an invalid account index.");
+    }
+    return {
+      isSigner: message.isAccountSigner(index),
+      isWritable: message.isAccountWritable(index),
+      pubkey,
+    };
+  });
+}
+
+export function validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction(input = {}) {
+  const transaction = requireSerializedTransaction(input.serializedTransaction);
+  if (transaction.version !== 0) {
+    throw new Error("Vanta Private Pool v2 Solana spend transaction requires a v0 transaction.");
+  }
+  if (transaction.message.addressTableLookups.length > 0) {
+    throw new Error("Vanta Private Pool v2 Solana spend transaction must not use address lookup tables.");
+  }
+  if (transaction.message.compiledInstructions.length !== 1) {
+    throw new Error("Vanta Private Pool v2 Solana spend transaction requires exactly one spend instruction.");
+  }
+
+  const instruction = transaction.message.compiledInstructions[0];
+  const programId = transaction.message.staticAccountKeys[instruction.programIdIndex];
+  if (!programId) {
+    throw new Error("Vanta Private Pool v2 Solana spend transaction has an invalid program id index.");
+  }
+  assertNotMemoProgram(programId);
+  const data = Buffer.from(instruction.data);
+  requireSpendInstructionData(data);
+  const accounts = compiledInstructionAccounts(transaction.message, instruction);
+  assertSpendProgramAccountLayout(accounts, data, programId);
+
+  const expectedAccounts = input.expectedAccounts ?? {};
+  if (input.requireExpectedAccounts) {
+    assertExpectedAccountsComplete(expectedAccounts);
+  }
+  assertPublicKeyMatches(programId, expectedAccounts.programId, "expectedAccounts.programId");
+  assertPublicKeyMatches(accounts[0].pubkey, expectedAccounts.poolState, "expectedAccounts.poolState");
+  assertPublicKeyMatches(accounts[1].pubkey, expectedAccounts.nullifierSet, "expectedAccounts.nullifierSet");
+  assertPublicKeyMatches(accounts[2].pubkey, expectedAccounts.outputQueue, "expectedAccounts.outputQueue");
+  assertPublicKeyMatches(accounts[3].pubkey, expectedAccounts.rootHistory, "expectedAccounts.rootHistory");
+  assertPublicKeyMatches(
+    accounts[4].pubkey,
+    expectedAccounts.nullifierMarker,
+    "expectedAccounts.nullifierMarker",
+  );
+  assertPublicKeyMatches(
+    accounts[5].pubkey,
+    expectedAccounts.operatorAuthority ?? expectedAccounts.relayerFeePayer,
+    "expectedAccounts.operatorAuthority",
+  );
+  assertPublicKeyMatches(
+    transaction.message.staticAccountKeys[0],
+    expectedAccounts.relayerFeePayer ?? expectedAccounts.operatorAuthority,
+    "expectedAccounts.relayerFeePayer",
+  );
+  assertPublicKeyMatches(
+    accounts[6].pubkey,
+    expectedAccounts.systemProgram ?? SystemProgram.programId.toBase58(),
+    "expectedAccounts.systemProgram",
+  );
+
+  const expectedPublicInputs = input.expectedPublicInputs ?? {};
+  if (input.requireExpectedPublicInputs) {
+    assertExpectedPublicInputsComplete(expectedPublicInputs);
+  }
+  if (input.requireExpectedPublicInputs || Object.keys(expectedPublicInputs).length > 0) {
+    const outputCommitments = normalizeExpectedOutputCommitments(expectedPublicInputs);
+    if (outputCommitments.length !== 2 || outputCommitments.some((commitment) => !commitment)) {
+      throw new Error(
+        "Vanta Private Pool v2 Solana spend transaction requires two expected output commitments.",
+      );
+    }
+    assertBytesMatch(
+      spendNullifierBytes(data),
+      expectedPublicInputs.nullifier ?? expectedPublicInputs.nullifierOrReplayCommitment,
+      "expectedPublicInputs.nullifier",
+    );
+    assertBytesMatch(
+      spendOutput0Bytes(data),
+      outputCommitments[0],
+      "expectedPublicInputs.outputCommitments[0]",
+    );
+    assertBytesMatch(
+      spendOutput1Bytes(data),
+      outputCommitments[1],
+      "expectedPublicInputs.outputCommitments[1]",
+    );
+    assertBytesMatch(
+      spendAcceptedRootBytes(data),
+      expectedPublicInputs.acceptedRoot,
+      "expectedPublicInputs.acceptedRoot",
+    );
+    assertBytesMatch(
+      spendPublicInputHashBytes(data),
+      expectedPublicInputs.privateSpendPublicInputHash,
+      "expectedPublicInputs.privateSpendPublicInputHash",
+    );
+  }
+
+  return {
+    acceptedRoot: bytesToHex32(spendAcceptedRootBytes(data)),
+    accountCount: accounts.length,
+    nullifier: bytesToHex32(spendNullifierBytes(data)),
+    outputCommitments: [
+      bytesToHex32(spendOutput0Bytes(data)),
+      bytesToHex32(spendOutput1Bytes(data)),
+    ],
+    privateSpendPublicInputHash: bytesToHex32(spendPublicInputHashBytes(data)),
+    programId: programId.toBase58(),
+    relayerFeePayer: transaction.message.staticAccountKeys[0].toBase58(),
+    transactionVersion: "v0",
+    version: VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_TRANSACTION_VERSION,
+  };
 }
 
 export function createVantaPrivatePoolV2ActualPrivateSpendInstruction(input = {}) {

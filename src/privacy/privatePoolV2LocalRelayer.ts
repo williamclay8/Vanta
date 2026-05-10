@@ -1,6 +1,8 @@
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import type {
+  VantaPrivatePoolV2ActualPrivateSpendExpectedAccounts,
+  VantaPrivatePoolV2ActualPrivateSpendExpectedPublicInputs,
   VantaPrivatePoolV2ClaimQuote,
   VantaPrivatePoolV2Relayer,
 } from "./privatePoolV2Types";
@@ -163,6 +165,8 @@ export class VantaPrivatePoolV2LocalRelayer implements VantaPrivatePoolV2Relayer
   }: {
     proofReceiptId: string;
     publicInputCommitment: string;
+    expectedAccounts?: VantaPrivatePoolV2ActualPrivateSpendExpectedAccounts;
+    expectedPublicInputs?: VantaPrivatePoolV2ActualPrivateSpendExpectedPublicInputs;
     serializedTransaction: string;
     settlementId: string;
   }) {

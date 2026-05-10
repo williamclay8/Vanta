@@ -15,6 +15,7 @@ This review is now an active feedback-loop document, not only a point-in-time au
 | Area | Current local state | Guard |
 | --- | --- | --- |
 | Solana spend authority/root history/nullifier PDA | Spend evidence writes require the initialized operator authority signer; init is one-time, pool state binds the initialized nullifier/output/root-history accounts, spends reject unregistered accepted roots, and replay truth now uses a deterministic nullifier marker PDA instead of a fixed/linear nullifier scan. Reviewed mainnet evidence predates this ABI and remains blocked until SBF rebuild, redeploy, and reinit. | `npm run private-pool-v2:contract-check`; `npm run private-pool-v2:sbf-abi-status`; `npm run private-pool-v2:sbf-abi-check` |
+| Actual-private Solana relayer byte binding | Serialized Private Pool v2 actual-private spend transaction bytes now decode to a single v0 spend instruction and are checked against expected public inputs plus Solana spend account refs before live signing/submission. Service-network and operator handoffs preserve expected bindings, and unshield cannot reuse the Send spend-byte path. | `npm run private-pool-v2:solana-spend-transaction-builder-check`; `npm run private-pool-v2:solana-relayer-submission-check`; `npm run private-pool-v2:service-network-check`; `npm run private-pool-v2:protocol-client-check` |
 | Canonical note membership | Placeholder additive note/tree hashing was replaced with Poseidon note, leaf, and node hashing plus direction/leaf-index constraints; note amount limbs are now `u64` in the local circuit ABI. | `npm run zk:canonical-note-membership-check` |
 | Canonical note proving commitment | `CanonicalNoteArtifacts` now carries both legacy SHA-256 display commitment and Poseidon/BN254 proof-facing `provingCommitment`; Live Shield records both and Live Send preserves the proof-facing commitment through redaction. | `npm run zk:canonical-note-proving-commitment-check` |
 | Private Pool v2 entry circuits | Local fixed-depth lanes now prove input membership and path-based successor append roots for Shield, Send, Swap-to-shielded, Claim, and actual-private spend where applicable. | `npm run private-pool-v2:verify` |
@@ -2290,6 +2291,21 @@ This local slice advances the Send memo/discovery recommendation without upgradi
 Verification in this slice: `npm run actions:memo-encryption-check` passed after adding wrong-key, no-raw-leak, missing-key, and dual-leg parser guards.
 
 Still open after this nineteenth local pass: recipient viewing-key exchange or view-tag/indexer discovery is not wired; ciphertext body hashes are not bound into the Send proof/public-input transcript; historical v1 plaintext chain-history migration remains open; signer/timing and two-output structure remain public; operator/status surfaces still see transition/proof metadata; and no live deployment or audit evidence was refreshed.
+
+### Twentieth Codex feedback loop - actual-private Solana transaction byte binding
+
+This local slice closes the next operator/relayer handoff gap from the feedback pass:
+
+- `src/privacy/privatePoolV2SolanaSpendTransaction.mjs` now exposes `validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction`.
+- The validator decodes the provided base64 serialized transaction, requires a v0 transaction with exactly one spend instruction and no address lookup tables, reuses the seven-account spend layout checks, and compares instruction bytes against expected actual-private public inputs: nullifier, recipient/change output commitments, accepted root, and private-spend public-input hash.
+- Operator submission now validates `relayerSerializedTransaction` before calling the runtime relayer, derives the expected nullifier-marker PDA from the accepted nullifier/root packet, and forwards expected public inputs/account refs to the relayer. When `VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION=true`, the operator also requires the configured Solana spend account refs before live relayer submission.
+- The env-created live Solana relayer submitter now requires `expectedAccounts` and `expectedPublicInputs` before signing, simulating, or sending. The service-network `/v1/private-spends/submit` boundary preserves those expected bindings instead of dropping them.
+- Serialized spend transactions are capped at Solana's 1232-byte transaction size, and `relayerSerializedTransaction` is Send-only until an explicit Unshield relayer byte path exists.
+- Guard coverage now includes mismatched public-input hash/root rejection, mismatched program/account/nullifier-marker rejection, missing binding rejection in live mode, oversized serialized transaction rejection, service-network binding pass-through, Send-only relayer byte plan validation, and the existing printer/protocol/client/caller checks.
+
+Verification in this slice: `npm run private-pool-v2:solana-spend-transaction-builder-check`, `npm run private-pool-v2:solana-spend-transaction-check`, `npm run private-pool-v2:solana-relayer-submission-check`, `npm run private-pool-v2:service-network-check`, `npm run private-pool-v2:protocol-client-check`, `npm run mainnet:actual-private-settlement-plan-check`, `npm run mainnet:actual-private-settlement-relayer-caller-check`, `npm run private-pool-v2:contract-check`, `npm run build`, and `git diff --check` passed locally. Aggregate `npm run private-pool-v2:verify` advanced through local proof generation/status checks and then stopped at the expected fail-closed `private-pool-v2:sbf-abi-check` gate: stale local `.so`, missing `cargo-build-sbf`, and missing `solana` CLI.
+
+Still open after this twentieth local pass: this validates transaction bytes before submission, but the Solana program still does not verify a production proof on-chain, the current SBF binary is still stale, live account refs/deployment evidence were not refreshed, and no auditor has accepted the relayer or custody boundary.
 
 ---
 

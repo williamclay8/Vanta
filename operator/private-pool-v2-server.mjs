@@ -23,6 +23,10 @@ import {
 import { createVantaPrivatePoolV2AnonymitySetReadiness } from "../src/readiness/privatePoolV2AnonymitySetReadiness.mjs";
 import { createNullifierReplayGuard } from "../src/privacy/nullifierReplayGuard.mjs";
 import { createPostgresNullifierReplayStoreFromDatabaseUrl } from "../src/privacy/postgresNullifierReplayStore.mjs";
+import {
+  deriveVantaPrivatePoolV2NullifierMarkerAddress,
+  validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction,
+} from "../src/privacy/privatePoolV2SolanaSpendTransaction.mjs";
 import { createPostgresSnapshotStore } from "../src/storage/vantaPostgresSnapshotStore.mjs";
 import { createPrivatePoolV2ReceiptStore } from "./private-pool-v2-store.mjs";
 
@@ -1985,7 +1989,115 @@ async function checkProofRequestNullifierReplay(request, requestId) {
   };
 }
 
+function actualPrivateSpendSolanaExpectedAccounts(expectedPublicInputs = {}) {
+  const expectedAccounts = {
+    nullifierSet: process.env.VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET,
+    operatorAuthority:
+      process.env.VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET ??
+      process.env.VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OPERATOR_AUTHORITY,
+    outputQueue: process.env.VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE,
+    poolState: process.env.VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE,
+    programId: process.env.VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID,
+    relayerFeePayer:
+      process.env.VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET ??
+      process.env.VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OPERATOR_AUTHORITY,
+    rootHistory: process.env.VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY,
+    systemProgram: process.env.VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_SYSTEM_PROGRAM,
+  };
+
+  if (
+    expectedAccounts.programId &&
+    expectedAccounts.poolState &&
+    (expectedPublicInputs.nullifier || expectedPublicInputs.nullifierOrReplayCommitment)
+  ) {
+    expectedAccounts.nullifierMarker = deriveVantaPrivatePoolV2NullifierMarkerAddress({
+      nullifierHex: expectedPublicInputs.nullifier ?? expectedPublicInputs.nullifierOrReplayCommitment,
+      poolState: expectedAccounts.poolState,
+      programId: expectedAccounts.programId,
+    });
+  }
+
+  return Object.fromEntries(
+    Object.entries(expectedAccounts).filter(([, value]) => typeof value === "string" && value.trim().length > 0),
+  );
+}
+
+function assertActualPrivateSpendSolanaExpectedAccounts(expectedAccounts) {
+  const missing = [
+    "programId",
+    "poolState",
+    "nullifierSet",
+    "nullifierMarker",
+    "outputQueue",
+    "rootHistory",
+    "relayerFeePayer",
+  ].filter((field) => !expectedAccounts[field]);
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Actual-private live relayer submission requires expected Solana spend account refs: ${missing.join(", ")}.`,
+    );
+  }
+}
+
+function actualPrivateSpendSolanaExpectedPublicInputs({
+  acceptedRoot,
+  action,
+  changeOutputCommitment,
+  economicsMode,
+  nullifierOrReplayCommitment,
+  outputCommitment,
+  privateSpendPublicInputHash,
+  sendPublicInputHash,
+}) {
+  const resolvedPublicInputHash = privateSpendPublicInputHash || sendPublicInputHash;
+  if (
+    action !== "send" ||
+    economicsMode !== "committed-economics" ||
+    !acceptedRoot ||
+    !nullifierOrReplayCommitment ||
+    !outputCommitment ||
+    !changeOutputCommitment ||
+    !resolvedPublicInputHash
+  ) {
+    return null;
+  }
+
+  return {
+    acceptedRoot,
+    changeOutputCommitment,
+    nullifierOrReplayCommitment,
+    outputCommitment,
+    privateSpendPublicInputHash: resolvedPublicInputHash,
+  };
+}
+
+function validateActualPrivateSpendRelayerSerializedTransaction({
+  expectedPublicInputs,
+  relayerSerializedTransaction,
+}) {
+  if (!relayerSerializedTransaction) {
+    return null;
+  }
+
+  const expectedAccounts = actualPrivateSpendSolanaExpectedAccounts(expectedPublicInputs);
+  const requireExpectedAccounts =
+    process.env.VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION === "true";
+  if (requireExpectedAccounts) {
+    assertActualPrivateSpendSolanaExpectedAccounts(expectedAccounts);
+  }
+
+  return validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction({
+    expectedAccounts,
+    expectedPublicInputs,
+    requireExpectedAccounts,
+    requireExpectedPublicInputs: true,
+    serializedTransaction: relayerSerializedTransaction,
+  });
+}
+
 async function submitActualPrivateSpendToRelayer({
+  expectedPublicInputs,
   proofReceipt,
   protocolSettlementReceipt,
   relayerSerializedTransaction,
@@ -2001,7 +2113,17 @@ async function submitActualPrivateSpendToRelayer({
     }
   }
 
+  const expectedAccounts = actualPrivateSpendSolanaExpectedAccounts(expectedPublicInputs);
+  if (relayerSerializedTransaction) {
+    validateActualPrivateSpendRelayerSerializedTransaction({
+      expectedPublicInputs,
+      relayerSerializedTransaction,
+    });
+  }
+
   const submission = await runtime.relayer.submitPrivateSpend({
+    expectedAccounts,
+    expectedPublicInputs,
     proofReceiptId: protocolSettlementReceipt.proofReceiptId,
     publicInputCommitment: proofReceipt.publicInputCommitment,
     serializedTransaction:
@@ -2599,6 +2721,22 @@ async function proveAndAcceptProtocolSettlement(body) {
     throw new Error(`Unknown protocol settlement action ${action}.`);
   }
 
+  const actualPrivateSpendRelayerExpectedPublicInputs =
+    actualPrivateSpendSolanaExpectedPublicInputs({
+      acceptedRoot,
+      action,
+      changeOutputCommitment,
+      economicsMode,
+      nullifierOrReplayCommitment,
+      outputCommitment,
+      privateSpendPublicInputHash,
+      sendPublicInputHash,
+    });
+  validateActualPrivateSpendRelayerSerializedTransaction({
+    expectedPublicInputs: actualPrivateSpendRelayerExpectedPublicInputs,
+    relayerSerializedTransaction,
+  });
+
   const proof = await runtime.prover.prove(request);
   assertProofSystemCanBackConfiguredSettlement(proof);
   const requestId =
@@ -2683,6 +2821,7 @@ async function proveAndAcceptProtocolSettlement(body) {
     status: "confirmed",
   };
   const onChainSubmission = await submitActualPrivateSpendToRelayer({
+    expectedPublicInputs: actualPrivateSpendRelayerExpectedPublicInputs,
     proofReceipt,
     protocolSettlementReceipt,
     relayerSerializedTransaction,

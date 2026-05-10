@@ -44,6 +44,28 @@ export type VantaPrivatePoolV2PrivateSpendSubmission = {
   submittedBy: "relayer";
 };
 
+export type VantaPrivatePoolV2ActualPrivateSpendExpectedAccounts = {
+  nullifierMarker?: string;
+  nullifierSet?: string;
+  operatorAuthority?: string;
+  outputQueue?: string;
+  poolState?: string;
+  programId?: string;
+  relayerFeePayer?: string;
+  rootHistory?: string;
+  systemProgram?: string;
+};
+
+export type VantaPrivatePoolV2ActualPrivateSpendExpectedPublicInputs = {
+  acceptedRoot: string;
+  changeOutputCommitment?: string;
+  nullifier?: string;
+  nullifierOrReplayCommitment?: string;
+  outputCommitment?: string;
+  outputCommitments?: readonly [string, string];
+  privateSpendPublicInputHash: string;
+};
+
 export type VantaPrivatePoolV2ProofIntent =
   | "shield"
   | "private-send"
@@ -104,6 +126,8 @@ export interface VantaPrivatePoolV2Relayer {
     serializedTransaction: string;
   }): Promise<{ relayerId: string; signature: string }>;
   submitPrivateSpend?(args: {
+    expectedAccounts?: VantaPrivatePoolV2ActualPrivateSpendExpectedAccounts;
+    expectedPublicInputs?: VantaPrivatePoolV2ActualPrivateSpendExpectedPublicInputs;
     proofReceiptId: string;
     publicInputCommitment: string;
     settlementId: string;

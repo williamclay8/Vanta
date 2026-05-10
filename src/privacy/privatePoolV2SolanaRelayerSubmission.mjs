@@ -1,5 +1,10 @@
 import { Connection, Keypair, VersionedTransaction } from "@solana/web3.js";
 
+import {
+  VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_MAX_SERIALIZED_TRANSACTION_BYTES,
+  validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction,
+} from "./privatePoolV2SolanaSpendTransaction.mjs";
+
 const SOLANA_SIGNATURE_PATTERN = /^[1-9A-HJ-NP-Za-km-z]{64,88}$/;
 
 function requireText(value, fieldName) {
@@ -30,6 +35,11 @@ function decodeSerializedTransaction(value) {
   if (bytes.length === 0 || bytes.toString("base64") !== base64) {
     throw new Error("Vanta Private Pool v2 Solana relayer requires base64 serializedTransaction.");
   }
+  if (bytes.length > VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_MAX_SERIALIZED_TRANSACTION_BYTES) {
+    throw new Error(
+      `Vanta Private Pool v2 Solana relayer serializedTransaction exceeds ${VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_MAX_SERIALIZED_TRANSACTION_BYTES} bytes.`,
+    );
+  }
 
   return Uint8Array.from(bytes);
 }
@@ -43,6 +53,7 @@ export function createVantaPrivatePoolV2SolanaRelayerSubmitter({
   connection,
   deserializeTransaction = VersionedTransaction.deserialize,
   relayerKeypair,
+  requireExpectedBindings = false,
   sendOptions = {},
 } = {}) {
   if (!connection) {
@@ -54,6 +65,8 @@ export function createVantaPrivatePoolV2SolanaRelayerSubmitter({
 
   return {
     async submitPrivateSpend({
+      expectedAccounts,
+      expectedPublicInputs,
       proofReceiptId,
       publicInputCommitment,
       serializedTransaction,
@@ -63,7 +76,29 @@ export function createVantaPrivatePoolV2SolanaRelayerSubmitter({
       requireText(publicInputCommitment, "publicInputCommitment");
       requireText(settlementId, "settlementId");
 
-      const transaction = deserializeTransaction(decodeSerializedTransaction(serializedTransaction));
+      const serializedTransactionBytes = decodeSerializedTransaction(serializedTransaction);
+      if (requireExpectedBindings && (!expectedAccounts || !expectedPublicInputs)) {
+        throw new Error(
+          "Vanta Private Pool v2 Solana relayer requires expectedAccounts and expectedPublicInputs before signing live spend bytes.",
+        );
+      }
+      if (expectedAccounts || expectedPublicInputs) {
+        validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction({
+          expectedAccounts: {
+            ...expectedAccounts,
+            operatorAuthority:
+              expectedAccounts?.operatorAuthority ?? relayerKeypair.publicKey.toBase58(),
+            relayerFeePayer:
+              expectedAccounts?.relayerFeePayer ?? relayerKeypair.publicKey.toBase58(),
+          },
+          expectedPublicInputs,
+          requireExpectedAccounts: requireExpectedBindings,
+          requireExpectedPublicInputs: Boolean(expectedPublicInputs),
+          serializedTransaction,
+        });
+      }
+
+      const transaction = deserializeTransaction(serializedTransactionBytes);
       if (typeof transaction.sign !== "function" || typeof transaction.serialize !== "function") {
         throw new Error("Vanta Private Pool v2 Solana relayer requires a signable transaction.");
       }
@@ -113,5 +148,6 @@ export function createVantaPrivatePoolV2SolanaRelayerSubmitterFromEnv(env = proc
   return createVantaPrivatePoolV2SolanaRelayerSubmitter({
     connection: new Connection(rpcUrl, "confirmed"),
     relayerKeypair: parseKeypairJson(keypairJson),
+    requireExpectedBindings: true,
   });
 }

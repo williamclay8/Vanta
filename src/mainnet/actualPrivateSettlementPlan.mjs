@@ -117,6 +117,9 @@ export function createVantaActualPrivateSettlementPlan(input) {
         };
   const relayerSerializedTransaction = normalizeOptionalBase64Transaction(input.relayerSerializedTransaction);
   if (relayerSerializedTransaction) {
+    if (action !== "send") {
+      throw new Error("Actual-private settlement plan only supports relayerSerializedTransaction for send.");
+    }
     request.relayerSerializedTransaction = relayerSerializedTransaction;
   }
 
@@ -221,6 +224,12 @@ export function validateVantaActualPrivateSettlementPlan(plan) {
     return {
       accepted: false,
       reason: error instanceof Error ? error.message : String(error),
+    };
+  }
+  if (plan.request?.relayerSerializedTransaction && plan.request.action !== "send") {
+    return {
+      accepted: false,
+      reason: "relayerSerializedTransaction-only-supported-for-send",
     };
   }
 

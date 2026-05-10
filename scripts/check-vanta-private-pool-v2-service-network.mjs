@@ -1142,6 +1142,24 @@ try {
 
   const privateSpendSubmission = await requestJson(serviceUrls.get("relayer"), "/v1/private-spends/submit", {
     body: JSON.stringify({
+      expectedAccounts: {
+        nullifierMarker: "marker:service-network-actual-private-nullifier",
+        nullifierSet: "nullifier-set:service-network-actual-private",
+        outputQueue: "output-queue:service-network-actual-private",
+        poolState: "pool-state:service-network-actual-private",
+        programId: "program:service-network-actual-private",
+        relayerFeePayer: "relayer-fee-payer:service-network-actual-private",
+        rootHistory: "root-history:service-network-actual-private",
+      },
+      expectedPublicInputs: {
+        acceptedRoot: "field:service-network-actual-private-root",
+        nullifierOrReplayCommitment: "field:service-network-actual-private-nullifier",
+        outputCommitments: [
+          "field:service-network-actual-private-merchant-output",
+          "field:service-network-actual-private-change-output",
+        ],
+        privateSpendPublicInputHash: "field:service-network-actual-private-public-input-hash",
+      },
       proofReceiptId: actualPrivateSpendReceipt.parsed.receiptId,
       publicInputCommitment: actualPrivateSpendReceipt.parsed.publicInputCommitment,
       serializedTransaction: "serialized-private-spend-service-network-test",
@@ -1158,6 +1176,16 @@ try {
   assert(
     String(privateSpendSubmission.parsed?.signature ?? "").startsWith("0x"),
     "Expected local service-network private spend signature to remain deterministic mock evidence.",
+  );
+  assert(
+    privateSpendSubmission.parsed?.expectedPublicInputs?.privateSpendPublicInputHash ===
+      "field:service-network-actual-private-public-input-hash",
+    "Expected service-network relayer boundary to preserve actual-private expected public inputs.",
+  );
+  assert(
+    privateSpendSubmission.parsed?.expectedAccounts?.nullifierMarker ===
+      "marker:service-network-actual-private-nullifier",
+    "Expected service-network relayer boundary to preserve expected Solana account refs.",
   );
   const duplicatePrivateSpendSubmission = await requestJson(serviceUrls.get("relayer"), "/v1/private-spends/submit", {
     body: JSON.stringify({
