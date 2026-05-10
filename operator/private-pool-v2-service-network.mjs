@@ -7,6 +7,7 @@ import { createVantaPrivatePoolV2SolanaRelayerSubmitterFromEnv } from "../src/pr
 import { createPrivatePoolV2RoleSnapshotStore } from "../src/storage/vantaPrivatePoolV2RoleSnapshotStore.mjs";
 
 const serviceVersion = "vanta-private-pool-v2-service-network-0.1";
+const proofBackend = "remote-service";
 const textEncoder = new TextEncoder();
 
 const roleConfig = {
@@ -588,6 +589,7 @@ function proofResultFor(request) {
   const proofMaterial = hashHex(serviceVersion, "proof", publicInputCommitment);
 
   return {
+    proofBackend,
     proofBytes: [...textEncoder.encode(proofMaterial)],
     proofSystem: "mock",
     publicInputCommitment,
@@ -814,6 +816,7 @@ function proofMatches({ proof, request }) {
   const expected = proofResultFor(request);
   return (
     proof.proofSystem === expected.proofSystem &&
+    proof.proofBackend === expected.proofBackend &&
     proof.publicInputCommitment === expected.publicInputCommitment &&
     proof.verifyingKeyId === expected.verifyingKeyId &&
     JSON.stringify(proof.proofBytes ?? []) === JSON.stringify(expected.proofBytes)
@@ -1206,6 +1209,7 @@ async function createServiceHandlers(role, {
       sendJson(response, 200, {
         ...basePayload(role),
         proofSystem: "mock",
+        proofBackend,
         ready: true,
       });
       return true;
@@ -1322,6 +1326,7 @@ async function createServiceHandlers(role, {
         assetId: String(requestBody.assetId),
         intent: requestBody.intent,
         proofSystem: proof.proofSystem,
+        proofBackend: proof.proofBackend,
         publicInputCommitment: proof.publicInputCommitment,
         receiptId: hashHex(serviceVersion, "receipt", replayKey, proof.publicInputCommitment),
         recordedAtSlot: 1_000_000n,

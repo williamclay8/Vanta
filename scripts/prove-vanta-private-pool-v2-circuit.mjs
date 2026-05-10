@@ -113,6 +113,7 @@ try {
         {
           backend: "barretenberg-ultrahonk",
           circuit: config.circuitName,
+          proofBackend: "local-bb-fixture-artifact",
           proofByteLength: proofData.proof.length,
           proofHex: Buffer.from(proofData.proof).toString("hex"),
           publicInputCount: proofData.publicInputs.length,

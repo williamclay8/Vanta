@@ -261,10 +261,15 @@ export type VantaPrivatePoolV2ShadowCommitments = {
 };
 
 export type VantaPrivatePoolV2ProofSystem = "noir-bb" | "groth16" | "plonk" | "mock";
+export type VantaPrivatePoolV2ProofBackend =
+  | "local-mock"
+  | "local-bb-fixture-artifact"
+  | "remote-service";
 
 export type VantaPrivatePoolV2ProofReceipt = {
   assetId: string;
   intent: "shield" | "private-send" | "swap-to-shielded" | "unshield" | "claim";
+  proofBackend?: VantaPrivatePoolV2ProofBackend;
   proofSystem: VantaPrivatePoolV2ProofSystem;
   publicInputCommitment: string;
   receiptId: string;
@@ -456,6 +461,7 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
   response,
 }: VantaProtocolSettlementValidationInput): VantaProtocolSettlementResponse {
   const receipt = response.protocolSettlementReceipt;
+  const proofBackend = response.proofReceipt?.proofBackend;
   const proofSystem = response.proofReceipt?.proofSystem;
 
   requireProtocolSettlementCondition(
@@ -492,6 +498,17 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
   requireProtocolSettlementCondition(
     !requireProductionProofSystem || proofSystem !== "mock",
     "Private Pool v2 production settlement validation rejects mock proof receipts.",
+  );
+  requireProtocolSettlementCondition(
+    proofBackend === undefined ||
+      proofBackend === "local-mock" ||
+      proofBackend === "local-bb-fixture-artifact" ||
+      proofBackend === "remote-service",
+    "Private Pool v2 proof receipt is missing a recognized proof backend.",
+  );
+  requireProtocolSettlementCondition(
+    !requireProductionProofSystem || proofBackend === "remote-service",
+    "Private Pool v2 production settlement validation requires a remote proof backend.",
   );
   if (request.action === "shield" && request.economicsMode !== "committed-economics") {
     const shieldCapability = request.shieldCapability;

@@ -106,6 +106,7 @@ export function createVantaSendMainnetProductionStatus() {
       sendOperatorRedaction: "npm run private-core:send-operator-redaction-check",
       sendNullifierReplayNoWitness: "npm run private-core:send-nullifier-replay-no-witness-check",
       sendProductionPrivacyClaimGate: "npm run send:production-privacy-claim-gate",
+      sendDiscoveryMigrationPolicy: "npm run send:discovery-migration-policy-check",
       sendLiveEvidenceContract: "npm run mainnet:send-live-evidence-contract-check",
       privatePoolV2SendProofRequest: "npm run private-pool-v2:send-proof-request-check",
       privatePoolV2SendCircuit: "npm run private-pool-v2:send-circuit-check",

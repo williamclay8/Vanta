@@ -600,6 +600,9 @@ const protocolActionProofModes = {
 };
 const productionProofSystems = ["noir-bb", "groth16", "plonk"];
 const productionProofSystemSet = new Set(productionProofSystems);
+const productionProofBackends = ["remote-service"];
+const productionProofBackendSet = new Set(productionProofBackends);
+const localProofBackends = ["local-mock", "local-bb-fixture-artifact"];
 const localBenchmarkProofSystem = "mock";
 
 function hashHex(...parts) {
@@ -620,7 +623,9 @@ function productionProofSystemRequiredNow() {
 
 function proofTrustBoundaryPayload() {
   return {
+    acceptedProductionProofBackends: productionProofBackends,
     acceptedProductionProofSystems: productionProofSystems,
+    localProofBackends,
     localBenchmarkProofSystem,
     mockProofRealFundsAllowed: false,
     mockProofsAcceptedOnlyFor: [
@@ -640,6 +645,12 @@ function assertProofSystemCanBackConfiguredSettlement(proof) {
   if (!productionProofSystemSet.has(proof?.proofSystem)) {
     throw new Error(
       `Private Pool v2 real-funds settlement requires a production ZK proof system (${productionProofSystems.join(", ")}); ${proof?.proofSystem ?? "missing"} proofs are local-benchmark only.`,
+    );
+  }
+
+  if (!productionProofBackendSet.has(proof?.proofBackend)) {
+    throw new Error(
+      `Private Pool v2 real-funds settlement requires a remote production proof backend (${productionProofBackends.join(", ")}); ${proof?.proofBackend ?? "missing"} proofs are local-only or untrusted.`,
     );
   }
 }

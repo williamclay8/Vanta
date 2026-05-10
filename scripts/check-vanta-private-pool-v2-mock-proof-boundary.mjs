@@ -205,6 +205,38 @@ try {
     directMockProof.text || "Expected direct proof production proof-system error.",
   );
   console.log("private-pool-v2 direct mock proof rejection: PASS");
+
+  const spoofedLocalBackendProof = await requestJson("/private-pool-v2/proofs", {
+    body: JSON.stringify({
+      proof: {
+        proofBackend: "local-mock",
+        proofBytes: [1, 2, 3],
+        proofSystem: "noir-bb",
+        publicInputCommitment: "field:spoofed-local-backend-public-input",
+        verifyingKeyId: "mock-verifying-key",
+      },
+      request: {
+        amountBaseUnits: "1",
+        assetId: "hidden:economic-terms",
+        intent: "private-send",
+        publicInputs: [
+          "vanta-private-pool-v2-hidden-economics-proof-request-0.1:version",
+          "intent:private-send",
+          "nullifier:field:spoofed-local-backend-nullifier",
+        ],
+      },
+      requestId: "spoofed-local-backend-proof-boundary",
+    }),
+    method: "POST",
+  });
+  assert(!spoofedLocalBackendProof.ok, "Expected spoofed local-backend proof acceptance to reject.");
+  assert(
+    String(spoofedLocalBackendProof.parsed?.error ?? spoofedLocalBackendProof.text).includes(
+      "requires a remote production proof backend",
+    ),
+    spoofedLocalBackendProof.text || "Expected production proof-backend error.",
+  );
+  console.log("private-pool-v2 spoofed local-backend proof rejection: PASS");
 } catch (error) {
   if (stdout) {
     console.error(stdout);

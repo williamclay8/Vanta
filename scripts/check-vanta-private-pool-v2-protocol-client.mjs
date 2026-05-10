@@ -435,12 +435,10 @@ try {
     poolId: committedSendInputTreeId,
     privateSpendPublicInputHash: "0xcommittedsend_public_input_hash",
   });
-  const committedSendSettlement = await requestVantaPrivatePoolV2ProtocolSettlement({
+  const committedSendRequest = {
     action: "send",
     acceptedRoot: committedSendInputRoot,
     assetCohort: "stablecoin-usdc-v1",
-    authToken,
-    baseUrl,
     changeOutputCommitment: "0xcommittedsend_change_output",
     economicsCommitment: "0xcommittedsend_economics",
     economicsMode: "committed-economics",
@@ -453,6 +451,11 @@ try {
     routeCommitment: "0xcommittedsend_route",
     settlementCommitment: "0xcommittedsend_settlement",
     settlementId: "protocol-client-committed-send",
+  };
+  const committedSendSettlement = await requestVantaPrivatePoolV2ProtocolSettlement({
+    ...committedSendRequest,
+    authToken,
+    baseUrl,
   });
   assert(
     committedSendSettlement?.kind === "protocol_settlement",
@@ -495,6 +498,25 @@ try {
       ),
     "Private Pool v2 production settlement validation rejects mock proof receipts.",
     "Expected production protocol settlement validation to reject local mock proof receipts.",
+  );
+  await assertRejects(
+    () =>
+      Promise.resolve(
+        validateVantaPrivatePoolV2ProtocolSettlementResponse({
+          requireProductionProofSystem: true,
+          request: committedSendRequest,
+          response: {
+            ...committedSendSettlement,
+            proofReceipt: {
+              ...committedSendSettlement.proofReceipt,
+              proofBackend: "local-mock",
+              proofSystem: "noir-bb",
+            },
+          },
+        }),
+      ),
+    "Private Pool v2 production settlement validation requires a remote proof backend.",
+    "Expected production protocol settlement validation to reject spoofed noir-bb local proof backends.",
   );
   assert(
     committedSendProofRequest.amountBaseUnits ===
@@ -652,6 +674,7 @@ try {
     proofReceipt: {
       assetId: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
       intent: "private-send",
+      proofBackend: "local-mock",
       proofSystem: "mock",
       publicInputCommitment: statefulCommittedSendPublicInputCommitment,
       receiptId: "0xstatefulsendreceipt",

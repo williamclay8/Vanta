@@ -22,9 +22,9 @@
   ],
   "lumiBaseline": {
     "branch": "codex/vanta-zk-review-hardening",
-    "lastKnownCommit": "572c46e",
+    "lastKnownCommit": "0b3a2a3",
     "local": "clean at ledger creation",
-    "committed": "572c46e Bind Unshield proof owner key",
+    "committed": "0b3a2a3 Harden mock proof settlement boundary",
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
@@ -67,6 +67,7 @@
         "VANTA_ZK_REVIEW.md#1-the-on-chain-solana-program-does-not-verify-proofs-at-all",
         "programs/vanta_private_pool_v2_spend/src/lib.rs",
         "npm run private-pool-v2:contract-check",
+        "npm run zk:c01-onchain-proof-boundary-check",
         "npm run private-pool-v2:sbf-abi-check"
       ],
       "failureMode": "The local program now gates writes with operator authority, accepted-root scaffolding, and deterministic nullifier-marker PDA replay checks, but no verifier enforces a real proof or verifying-key hash on chain.",
@@ -79,15 +80,17 @@
       "verification": {
         "commands": [
           "npm run private-pool-v2:contract-check",
+          "npm run zk:c01-onchain-proof-boundary-check",
           "npm run private-pool-v2:sbf-abi-check"
         ],
-        "localResult": "contract-check covers the local authority/root/nullifier-marker scaffolding; sbf-abi-check is expected to fail closed until the Solana toolchain rebuilds the current ABI.",
-        "proves": "Local write authority, account binding, accepted-root scaffold, and stale-SBF detection are guarded.",
+        "localResult": "contract-check covers the local authority/root/nullifier-marker scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed truth boundary; sbf-abi-check is expected to fail closed until the Solana toolchain rebuilds the current ABI.",
+        "proves": "Local write authority, account binding, accepted-root scaffold, stale-SBF detection, and the negative C01 truth boundary are guarded.",
         "doesNotProve": "On-chain proof verification, verifying-key enforcement, program-owned tree state, audit acceptance, or live deployment correctness."
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 572c46e"
+          "local feedback loops through 572c46e",
+          "current C01 partial-boundary guard patch"
         ],
         "summary": "Codex hardened the local spend authority/root-history/nullifier-marker ABI and fail-closed SBF status surfaces.",
         "residualRisk": [
@@ -106,10 +109,12 @@
         "watchFiles": [
           "programs/vanta_private_pool_v2_spend/src/lib.rs",
           "scripts/check-vanta-private-pool-v2-sbf-abi-status.mjs",
+          "scripts/check-vanta-zk-c01-onchain-proof-boundary.mjs",
           "operator/private-pool-v2-server.mjs"
         ],
         "watchCommands": [
           "npm run private-pool-v2:contract-check",
+          "npm run zk:c01-onchain-proof-boundary-check",
           "npm run private-pool-v2:sbf-abi-check"
         ]
       },
@@ -468,6 +473,7 @@
         "src/privacy/privatePoolV2LocalProver.ts",
         "operator/jupiter-sol-to-shielded-route-adapter.mjs",
         "npm run private-pool-v2:mock-proof-boundary-check",
+        "npm run private-pool-v2:proof-backend-boundary-check",
         "npm run swap:jupiter-sol-to-shielded-adapter-check",
         "npm run swap:capability-check",
         "npm run private-pool-v2:protocol-client-check"
@@ -475,27 +481,31 @@
       "failureMode": "The local prover returns deterministic hash bytes and verifies by recomputing the same hash.",
       "requiredFix": [
         "Keep proofSystem persisted across receipts and protocol response types.",
+        "Keep proofBackend persisted across proof results, proof receipts, and protocol response types.",
         "Keep production/real-funds modes rejecting proofSystem mock.",
+        "Keep production/real-funds modes rejecting local proofBackend values even if proofSystem is spoofed to noir-bb.",
         "Wire a real prover such as bb.js before production proof claims.",
         "Keep remote-services mode required for production startup."
       ],
       "verification": {
         "commands": [
           "npm run private-pool-v2:mock-proof-boundary-check",
+          "npm run private-pool-v2:proof-backend-boundary-check",
           "npm run swap:jupiter-sol-to-shielded-adapter-check",
           "npm run swap:capability-check",
           "npm run private-pool-v2:protocol-client-check"
         ],
-        "localResult": "Mock-proof boundary, SOL-to-shielded adapter, swap capability, and protocol-client checks pass locally.",
-        "proves": "Mock proofs are explicit and blocked from production/real-funds acceptance paths covered by the guard, including the live Jupiter SOL-to-shielded adapter boundary.",
+        "localResult": "Mock-proof boundary, proof-backend boundary, SOL-to-shielded adapter, swap capability, and protocol-client checks pass locally.",
+        "proves": "Mock proofs and local proof backends are explicit and blocked from production/real-funds acceptance paths covered by the guard, including spoofed noir-bb/local-backend receipts and the live Jupiter SOL-to-shielded adapter boundary.",
         "doesNotProve": "Real proof generation, verifier integration, or live funds ZK readiness."
       },
       "codexRemediation": {
         "commits": [
           "local feedback loops through 572c46e",
-          "current H08 SOL-to-shielded adapter feedback-loop patch"
+          "current H08 SOL-to-shielded adapter feedback-loop patch",
+          "current H08 proof-backend metadata feedback-loop patch"
         ],
-        "summary": "Persisted proofSystem through receipts, guarded production startup and settlement boundaries against mock proofs, and made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary.",
+        "summary": "Persisted proofSystem and proofBackend through proof receipts, guarded production startup and settlement boundaries against mock/local proof evidence, and made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary.",
         "residualRisk": [
           "The mock prover still exists for local evidence.",
           "A real prover and verifier remain open."
@@ -510,6 +520,10 @@
       "staleControl": {
         "watchFiles": [
           "src/privacy/privatePoolV2LocalProver.ts",
+          "src/privacy/privatePoolV2Types.ts",
+          "src/privacy/privatePoolV2LocalVerifierRegistry.ts",
+          "src/privacy/privatePoolV2ProtocolSettlementClient.ts",
+          "scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs",
           "scripts/check-vanta-private-pool-v2-mock-proof-boundary.mjs",
           "operator/jupiter-sol-to-shielded-route-adapter.mjs",
           "scripts/check-vanta-jupiter-sol-to-shielded-adapter.mjs",
@@ -517,6 +531,7 @@
         ],
         "watchCommands": [
           "npm run private-pool-v2:mock-proof-boundary-check",
+          "npm run private-pool-v2:proof-backend-boundary-check",
           "npm run swap:jupiter-sol-to-shielded-adapter-check",
           "npm run swap:capability-check",
           "npm run private-pool-v2:verify"

@@ -3,6 +3,7 @@ import { bytesToHex } from "@noble/hashes/utils.js";
 import type {
   VantaPrivatePoolV2Commitment,
   VantaPrivatePoolV2Indexer,
+  VantaPrivatePoolV2ProofBackend,
   VantaPrivatePoolV2ProofRequest,
   VantaPrivatePoolV2ProofResult,
   VantaPrivatePoolV2ProofSystem,
@@ -81,6 +82,7 @@ export type VantaPrivatePoolV2LocalVerifierRegistryArgs = {
 export type VantaPrivatePoolV2ProofReceipt = {
   assetId: string;
   intent: VantaPrivatePoolV2ProofRequest["intent"];
+  proofBackend?: VantaPrivatePoolV2ProofBackend;
   proofSystem: VantaPrivatePoolV2ProofSystem;
   publicInputCommitment: string;
   receiptId: string;
@@ -540,6 +542,7 @@ export class VantaPrivatePoolV2LocalVerifierRegistry {
     const receipt = {
       assetId: request.assetId,
       intent: request.intent,
+      proofBackend: proof.proofBackend,
       proofSystem: proof.proofSystem,
       publicInputCommitment: proof.publicInputCommitment,
       receiptId: hashParts(

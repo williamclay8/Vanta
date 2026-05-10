@@ -90,8 +90,13 @@ export type VantaPrivatePoolV2ProofRequest = {
 };
 
 export type VantaPrivatePoolV2ProofSystem = "noir-bb" | "groth16" | "plonk" | "mock";
+export type VantaPrivatePoolV2ProofBackend =
+  | "local-mock"
+  | "local-bb-fixture-artifact"
+  | "remote-service";
 
 export type VantaPrivatePoolV2ProofResult = {
+  proofBackend?: VantaPrivatePoolV2ProofBackend;
   publicInputCommitment: string;
   proofBytes: Uint8Array;
   proofSystem: VantaPrivatePoolV2ProofSystem;
@@ -151,6 +156,7 @@ export interface VantaPrivatePoolV2VerifierRegistry {
   }): Promise<{
     assetId: string;
     intent: VantaPrivatePoolV2ProofIntent;
+    proofBackend?: VantaPrivatePoolV2ProofBackend;
     proofSystem: VantaPrivatePoolV2ProofSystem;
     publicInputCommitment: string;
     receiptId: string;

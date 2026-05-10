@@ -2,6 +2,7 @@ import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import {
   VANTA_PRIVATE_POOL_V2_CONTRACT_VERSION,
+  type VantaPrivatePoolV2ProofBackend,
   type VantaPrivatePoolV2ProofRequest,
   type VantaPrivatePoolV2ProofResult,
   type VantaPrivatePoolV2Prover,
@@ -10,6 +11,8 @@ import {
 
 export const VANTA_PRIVATE_POOL_V2_LOCAL_PROVER_SCHEME =
   "sha256-private-pool-v2-local-prover-0.1" as const;
+export const VANTA_PRIVATE_POOL_V2_LOCAL_PROOF_BACKEND =
+  "local-mock" satisfies VantaPrivatePoolV2ProofBackend;
 
 export type VantaPrivatePoolV2LocalProverArgs = {
   enabled?: boolean;
@@ -73,6 +76,7 @@ export class VantaPrivatePoolV2LocalProver implements VantaPrivatePoolV2Prover {
     );
 
     return {
+      proofBackend: VANTA_PRIVATE_POOL_V2_LOCAL_PROOF_BACKEND,
       proofBytes: new TextEncoder().encode(proofMaterial),
       proofSystem: "mock",
       publicInputCommitment,
@@ -107,6 +111,7 @@ export class VantaPrivatePoolV2LocalProver implements VantaPrivatePoolV2Prover {
   }) {
     const expected = await this.prove(request);
     return (
+      proof.proofBackend === expected.proofBackend &&
       proof.proofSystem === expected.proofSystem &&
       proof.publicInputCommitment === expected.publicInputCommitment &&
       proof.verifyingKeyId === expected.verifyingKeyId &&

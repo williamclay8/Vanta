@@ -15,6 +15,8 @@ import {
 } from "./privatePoolV2Types";
 import type { VantaPrivacyNetwork } from "./protocolAdapter";
 
+const VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND = "remote-service" as const;
+
 type FetchLike = (url: string, init?: RequestInit) => Promise<{
   json(): Promise<unknown>;
   ok: boolean;
@@ -102,6 +104,7 @@ function toCommitment(value: any): VantaPrivatePoolV2Commitment {
 
 function toProofResult(value: any): VantaPrivatePoolV2ProofResult {
   return {
+    proofBackend: VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND,
     proofBytes: new Uint8Array(value.proofBytes ?? []),
     proofSystem: value.proofSystem,
     publicInputCommitment: String(value.publicInputCommitment),
@@ -261,6 +264,7 @@ export function createVantaPrivatePoolV2RemoteVerifierRegistry(
       return {
         assetId: String(response.assetId),
         intent: response.intent,
+        proofBackend: response.proofBackend ?? body.proof.proofBackend ?? VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND,
         proofSystem: response.proofSystem ?? body.proof.proofSystem,
         publicInputCommitment: String(response.publicInputCommitment),
         receiptId: String(response.receiptId),
