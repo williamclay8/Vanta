@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { BrandMark } from "@/components/BrandMark";
 import {
@@ -504,7 +504,15 @@ export function AppLayout() {
       </header>
 
       <main className="app-content app-content--minimal" data-route-path={location.pathname}>
-        <Outlet />
+        <Suspense
+          fallback={
+            <div className="app-content__route-loading" role="status">
+              Loading route...
+            </div>
+          }
+        >
+          <Outlet />
+        </Suspense>
       </main>
     </div>
   );

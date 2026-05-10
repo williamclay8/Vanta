@@ -20,6 +20,7 @@
     "lanes:trust-contract-check": "node scripts/check-vanta-lane-trust-contracts.mjs",
     "actions:memo-encryption-check": "node scripts/check-vanta-action-memo-encryption.mjs",
     "docs:source-of-truth-check": "node scripts/check-vanta-docs-source-of-truth.mjs",
+    "performance:route-code-split-check": "node scripts/check-vanta-route-code-split.mjs",
     "mainnet:external-gates-production-claim-check": "node scripts/check-vanta-external-gates-production-claim.mjs",
     "mainnet:transaction-evidence-check": "node scripts/check-vanta-transaction-evidence.mjs",
     "mainnet:transaction-evidence-preview": "node scripts/write-vanta-transaction-evidence.mjs --dry-run",

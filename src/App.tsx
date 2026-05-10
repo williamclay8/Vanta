@@ -1,26 +1,8 @@
-import React, { Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { SolanaProvider } from "@solana/react-hooks";
-import type { WalletConnector } from "@solana/client";
-import { AppLayout } from "@/components/AppLayout";
-import { PrivateVaultProvider } from "@/data/context/PrivateVaultContext";
-import { PrivacyFlowProvider } from "@/data/context/PrivacyFlowContext";
-import { WalletProvider } from "@/data/context/WalletContext";
-import { ActualPrivateSettlementPage } from "@/pages/ActualPrivateSettlementPage";
-import { AppDashboardPage } from "@/pages/AppDashboardPage";
-import { LaunchPage } from "@/pages/LaunchPage";
-import { PayPage } from "@/pages/PayPage";
-import { PrivacyReviewPage } from "@/pages/PrivacyReviewPage";
-import { SendPage } from "@/pages/SendPage";
-import { ShieldPage } from "@/pages/ShieldPage";
-import { StrategyPage } from "@/pages/StrategyPage";
-import { SwapPage } from "@/pages/SwapPage";
-import { UnshieldPage } from "@/pages/UnshieldPage";
-import {
-  createSolanaClient,
-  discoverWalletConnectors,
-  watchVantaWalletStandardConnectors,
-} from "@/solana/client";
+const ProductAppRoot = lazy(() =>
+  import("@/ProductAppRoot").then((m) => ({ default: m.ProductAppRoot })),
+);
 const DocsLayout = lazy(() =>
   import("@/components/DocsLayout").then((m) => ({ default: m.DocsLayout })),
 );
@@ -43,59 +25,34 @@ const DocsRoadmapPage = lazy(() =>
   import("@/pages/DocsRoadmapPage").then((m) => ({ default: m.DocsRoadmapPage })),
 );
 const HomePage = lazy(() => import("@/pages/HomePage").then((m) => ({ default: m.HomePage })));
-
-function getConnectorSignature(connectors: readonly WalletConnector[]) {
-  return connectors
-    .map((connector) => `${connector.id}:${connector.name}:${connector.ready}`)
-    .join("|");
-}
-
-function SolanaRootProvider({ children }: { children: React.ReactNode }) {
-  const [walletConnectors, setWalletConnectors] = React.useState<
-    readonly WalletConnector[]
-  >(() => discoverWalletConnectors());
-  const connectorSignature = React.useMemo(
-    () => getConnectorSignature(walletConnectors),
-    [walletConnectors],
-  );
-  const client = React.useMemo(
-    () => createSolanaClient(walletConnectors),
-    [connectorSignature],
-  );
-
-  React.useEffect(() => {
-    const stopWatching = watchVantaWalletStandardConnectors((nextConnectors) => {
-      setWalletConnectors((currentConnectors) => {
-        const currentSignature = getConnectorSignature(currentConnectors);
-        const nextSignature = getConnectorSignature(nextConnectors);
-
-        return currentSignature === nextSignature
-          ? currentConnectors
-          : nextConnectors;
-      });
-    });
-
-    return stopWatching;
-  }, []);
-
-  React.useEffect(() => () => client.destroy(), [client]);
-
-  return <SolanaProvider client={client}>{children}</SolanaProvider>;
-}
-
-function ProductAppRoot() {
-  return (
-    <SolanaRootProvider>
-      <PrivateVaultProvider>
-        <WalletProvider>
-          <PrivacyFlowProvider>
-            <AppLayout />
-          </PrivacyFlowProvider>
-        </WalletProvider>
-      </PrivateVaultProvider>
-    </SolanaRootProvider>
-  );
-}
+const AppDashboardPage = lazy(() =>
+  import("@/pages/AppDashboardPage").then((m) => ({ default: m.AppDashboardPage })),
+);
+const ShieldPage = lazy(() =>
+  import("@/pages/ShieldPage").then((m) => ({ default: m.ShieldPage })),
+);
+const SendPage = lazy(() =>
+  import("@/pages/SendPage").then((m) => ({ default: m.SendPage })),
+);
+const SwapPage = lazy(() => import("@/pages/SwapPage").then((m) => ({ default: m.SwapPage })));
+const StrategyPage = lazy(() =>
+  import("@/pages/StrategyPage").then((m) => ({ default: m.StrategyPage })),
+);
+const UnshieldPage = lazy(() =>
+  import("@/pages/UnshieldPage").then((m) => ({ default: m.UnshieldPage })),
+);
+const PayPage = lazy(() => import("@/pages/PayPage").then((m) => ({ default: m.PayPage })));
+const LaunchPage = lazy(() =>
+  import("@/pages/LaunchPage").then((m) => ({ default: m.LaunchPage })),
+);
+const PrivacyReviewPage = lazy(() =>
+  import("@/pages/PrivacyReviewPage").then((m) => ({ default: m.PrivacyReviewPage })),
+);
+const ActualPrivateSettlementPage = lazy(() =>
+  import("@/pages/ActualPrivateSettlementPage").then((m) => ({
+    default: m.ActualPrivateSettlementPage,
+  })),
+);
 
 function App() {
   return (

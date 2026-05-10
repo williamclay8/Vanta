@@ -3142,6 +3142,8 @@ Polish that you can't measure is taste. Polish that you can measure is performan
 
 Target: home page Lighthouse mobile score ≥ 95 on every category. Today probably 60-75.
 
+**Codex status, 2026-05-10:** first local P1 remediation landed for route-level code splitting and wallet-adapter deferral. `src/App.tsx` no longer statically imports `/app` pages, Solana wallet providers, or the app shell; `src/ProductAppRoot.tsx` now owns the product shell, wallet providers, and Solana client setup behind the lazy `/app` route. The app pages are lazy imports, and `src/components/AppLayout.tsx` keeps a local Suspense boundary around the route outlet so mobile tab taps do not drop or blank the shell while the next page chunk loads. New guard: `npm run performance:route-code-split-check`. Local verification for this slice: `npm run performance:route-code-split-check`, `npm run build`, `npm run product-ui:browser-check`, `npm run landing:browser-check`, `npm run docs:browser-check`, `npm run mobile:browser-check`, and `git diff --check`. Build output now shows a small `renderApp` entry chunk with separate ProductAppRoot, page, Solana vendor, and private-core chunks instead of one large first-load app bundle. Remaining P1 work: Core Web Vitals budget/Lighthouse CI, CSS purging, font loading, image weight, service worker, and real-user monitoring.
+
 ## P2. Type and numbers
 
 This is a financial product. Numbers and type are the medium. Polish here is differentiation.

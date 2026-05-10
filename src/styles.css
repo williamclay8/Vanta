@@ -1469,6 +1469,14 @@ input {
   padding: 0;
 }
 
+.app-content__route-loading {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
 .app-topbar {
   padding: 14px 16px;
   border-radius: 18px;

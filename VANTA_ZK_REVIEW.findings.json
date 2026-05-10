@@ -88,6 +88,33 @@
         "deployedLive": "not-live-verified"
       },
       "truthBoundary": "This is local source, transaction, operator, and harness hardening. The broad private-pool-v2 aggregate advances through local proof/status checks but stops truthfully at the fail-closed SBF ABI gate. The SBF binary is stale and cannot represent the eight-account ABI until cargo-build-sbf/solana tooling rebuilds and redeploys it; no live output-record evidence, audit acceptance, real funds movement, or production-private claim is created."
+    },
+    {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-10-ROUTE-CODE-SPLIT",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#p1-performance",
+        "src/App.tsx",
+        "src/ProductAppRoot.tsx",
+        "src/components/AppLayout.tsx",
+        "scripts/check-vanta-route-code-split.mjs"
+      ],
+      "summary": "The landing/docs shell now avoids eager app-page and Solana wallet-provider imports; /app lazy-loads the product shell and each product page, with a local app-outlet Suspense boundary preserving mobile shell continuity during chunk loads.",
+      "localVerification": [
+        "npm run performance:route-code-split-check",
+        "npm run build",
+        "npm run product-ui:browser-check",
+        "npm run landing:browser-check",
+        "npm run docs:browser-check",
+        "npm run mobile:browser-check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the current route code-split feedback-loop slice",
+        "committed": "included in the route code-split feedback-loop commit",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is local performance and route-loading polish. It does not prove live deployment performance, Lighthouse budgets, real-user monitoring, CSS purging, service-worker caching, wallet-adapter production behavior, or mobile performance on physical devices."
     }
   ],
   "findings": [
