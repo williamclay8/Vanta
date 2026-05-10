@@ -105,10 +105,14 @@ request shape by registering the nullifier and appending output commitments
 without source wallet, merchant settlement address, raw amount, note secret,
 input commitment, input leaf index, deposit signature, plaintext memo, or
 same-fee-payer linkage. The older stateful Send request remains as a
-compatibility fallback, not the target privacy lane. This is still not a
-completed production private Send rail: live production transition evidence,
-recipient discovery, relayer separation, anonymity evidence, audit, and
-production evidence are still missing.
+compatibility fallback, not the target privacy lane. A local dual-AEAD Send
+memo scaffold can separately seal recipient and change discovery memos and
+emit ciphertext body hashes for later proof binding, but external Send remains
+blocked until recipient viewing-key exchange or view-tag/indexer discovery is
+wired. This is still not a completed production private Send rail: live
+production transition evidence, proof-bound memo ciphertext hashes, relayer
+separation, anonymity evidence, audit, and production evidence are still
+missing.
 
 Current local Private Pool v2 Swap proof requests, executable circuit fixture,
 committed protocol settlement path, and local verifier/indexer acceptance bind

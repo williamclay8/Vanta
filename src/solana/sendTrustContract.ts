@@ -25,7 +25,7 @@ export function getSendTrustContract(): SendTrustContract {
       productionPrivacyClaimsLocked: true,
     },
     visibleStatusCopy:
-      "Fresh v2 Send memos put ciphertext, signer, and timing on chain. Operator/status surfaces still see transition and proof metadata; recipient-grade discovery and proof-bound ciphertext hashes remain open.",
+      "Fresh v2 Send memos put ciphertext, signer, and timing on chain. A local dual-AEAD scaffold can separately seal recipient and change discovery memos with ciphertext hashes, but external Send remains fail-closed until recipient viewing-key exchange and proof-bound ciphertext hashes are wired. Operator/status surfaces still see transition and proof metadata.",
     verificationSurfaces: [
       "npm run send:verify",
       "npm run actions:memo-encryption-check",

@@ -150,6 +150,10 @@ function assertPageViewingKeyContract() {
     sendSource.includes("recipient viewing-key exchange"),
     "Send v2 UI must explain the recipient viewing-key exchange blocker for non-self recipients.",
   );
+  assert(
+    sendSource.includes("External Private Core Send requires recipient viewing-key exchange"),
+    "Send v2 UI must also fail closed before private-core preview/execution for external recipients.",
+  );
 
   const unshieldSource = readFileSync(resolve(repoRoot, "src/pages/UnshieldPage.tsx"), "utf8");
   assert(
@@ -216,12 +220,15 @@ try {
     VANTA_SPENT_MARKER_MEMO_PREFIX_V2,
     VANTA_SWAP_MEMO_PREFIX_V2,
     VANTA_UNSHIELD_MEMO_PREFIX_V2,
+    createPreparedSendDualAeadMemo,
     createPreparedSendMemo,
     createPreparedSolUnshieldMemo,
     createPreparedSwapMemo,
     createPreparedUnshieldMemo,
+    parseSendChangeDiscoveryMemo,
     createSpentMarkerInstruction,
     parseSendMemo,
+    parseSendRecipientDiscoveryMemo,
     parseSolUnshieldMemo,
     parseSpentMarkerMemo,
     parseSwapMemo,
@@ -281,6 +288,87 @@ try {
   assert(
     parseSendMemo(legacySendMemoText, "send-v1")?.recipient === recipient,
     "Send v1 plaintext memo parsing must remain backward compatible without live helpers emitting v1.",
+  );
+  const dualSend = createPreparedSendDualAeadMemo(sendPayload, {
+    changeViewingPublicKey: senderViewingKey.publicKey,
+    recipientViewingPublicKey: recipientViewingKey.publicKey,
+  });
+  assert(
+    dualSend.kind === "vanta-send-dual-aead-scaffold-v0",
+    "Dual Send memo must expose the scaffold version.",
+  );
+  assert(dualSend.noteId === encryptedSend.noteId, "Dual Send memo must preserve the send note id.");
+  assert(
+    dualSend.changeNoteId === encryptedSend.changeNoteId,
+    "Dual Send memo must preserve the change note id.",
+  );
+  assert(dualSend.recipientMemoCiphertextHash.startsWith("sha256:"), "Dual Send recipient memo must expose a ciphertext body hash.");
+  assert(dualSend.changeMemoCiphertextHash?.startsWith("sha256:"), "Dual Send change memo must expose a ciphertext body hash.");
+  assert(
+    dualSend.recipientMemoCiphertextHash !== dualSend.changeMemoCiphertextHash,
+    "Dual Send recipient and change ciphertext hashes must be distinct.",
+  );
+  const recipientMemoText = decodeMemoText(dualSend.recipientMemo.instruction);
+  const changeMemoText = decodeMemoText(dualSend.changeMemo.instruction);
+  assert(recipientMemoText.startsWith(VANTA_SEND_MEMO_PREFIX_V2), "Dual Send recipient memo must use v2 AEAD prefix.");
+  assert(changeMemoText.startsWith(VANTA_SEND_MEMO_PREFIX_V2), "Dual Send change memo must use v2 AEAD prefix.");
+  assertNoLeak(recipientMemoText, [
+    sendPayload.amount,
+    sendPayload.changeAmount,
+    sendPayload.consumedNoteId,
+    sendPayload.owner,
+    sendPayload.recipient,
+    sendPayload.vaultOwner,
+  ]);
+  assertNoLeak(changeMemoText, [
+    sendPayload.amount,
+    sendPayload.changeAmount,
+    sendPayload.consumedNoteId,
+    sendPayload.owner,
+    sendPayload.recipient,
+    sendPayload.vaultOwner,
+  ]);
+  assert(
+    parseSendRecipientDiscoveryMemo(recipientMemoText, "send-recipient-v2", {
+      viewingSecretKey: recipientViewingKey.secretKey,
+    })?.recipient === recipient,
+    "Dual Send recipient memo must decrypt with the recipient viewing key.",
+  );
+  assert(
+    parseSendRecipientDiscoveryMemo(recipientMemoText, "send-recipient-v2", {
+      viewingSecretKey: senderViewingKey.secretKey,
+    }) === null,
+    "Dual Send recipient memo must not decrypt with the sender change viewing key.",
+  );
+  assert(
+    parseSendChangeDiscoveryMemo(changeMemoText, "send-change-v2", {
+      viewingSecretKey: senderViewingKey.secretKey,
+    })?.changeNoteId === dualSend.changeNoteId,
+    "Dual Send change memo must decrypt with the sender viewing key.",
+  );
+  assert(
+    parseSendChangeDiscoveryMemo(changeMemoText, "send-change-v2", {
+      viewingSecretKey: recipientViewingKey.secretKey,
+    }) === null,
+    "Dual Send change memo must not decrypt with the recipient viewing key.",
+  );
+  assert(
+    parseSendMemo(recipientMemoText, "send-recipient-v2", {
+      viewingSecretKey: recipientViewingKey.secretKey,
+    }) === null,
+    "Dual Send discovery memo must not masquerade as the legacy single Send memo payload.",
+  );
+  assertThrowsActionMemoWithoutViewingKey(
+    () => createPreparedSendDualAeadMemo(sendPayload, {
+      changeViewingPublicKey: senderViewingKey.publicKey,
+    }),
+    "Dual Send recipient memo",
+  );
+  assertThrowsActionMemoWithoutViewingKey(
+    () => createPreparedSendDualAeadMemo(sendPayload, {
+      recipientViewingPublicKey: recipientViewingKey.publicKey,
+    }),
+    "Dual Send change memo",
   );
 
   const swapPayload = {

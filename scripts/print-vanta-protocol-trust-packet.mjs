@@ -69,15 +69,16 @@ const packets = {
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Send has a canonical ledger gate, repo-checked no-witness proof-artifact operator boundary, and v2 viewing-key AEAD action memos in the live pages, but recipient discovery is still incomplete, browser Send execution is blocked until a local proof artifact is available, and the lane is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
+        "Send has a canonical ledger gate, repo-checked no-witness proof-artifact operator boundary, v2 viewing-key AEAD action memos in the live pages, and a local dual-AEAD recipient/change memo scaffold, but recipient discovery is still incomplete, browser Send execution is blocked until a local proof artifact is available, and the lane is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
     },
     honestyNote:
       "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in SECURITY_LIMITATIONS.md.",
-    sendMemoMode: "v2-viewing-key-aead-live-legacy-v1-parse-compatible",
+    sendMemoMode: "v2-viewing-key-aead-dual-scaffold-legacy-v1-parse-compatible",
     publicChainVisibleFields: [
       "new live Send action memos expose only the v2 AEAD memo prefix and opaque ciphertext body",
+      "local dual-AEAD scaffold can separately seal recipient and change discovery memos and expose ciphertext body hashes for later proof binding",
       "legacy historical v1 Send memos remain parse-compatible and can expose recipient/amount/change amount",
-      "recipient-side discovery still needs a trustable viewing-key exchange or encrypted outbox design",
+      "recipient-side discovery still needs a trustable viewing-key exchange or encrypted outbox/view-tag design, and ciphertext hashes are not proof-bound yet",
     ],
     spendabilityBasis: "canonical-spendable-note-ledger",
     visibleFields: [
@@ -198,10 +199,18 @@ if (checkMode) {
 
   if (packet.action === "send") {
     assert.equal(packet.spendabilityBasis, "canonical-spendable-note-ledger");
-    assert.equal(packet.sendMemoMode, "v2-viewing-key-aead-live-legacy-v1-parse-compatible");
+    assert.equal(packet.sendMemoMode, "v2-viewing-key-aead-dual-scaffold-legacy-v1-parse-compatible");
     assert.ok(
       packet.publicChainVisibleFields?.some((field) => field.includes("opaque ciphertext")),
       "Send packet must disclose that new action memos are opaque AEAD ciphertext.",
+    );
+    assert.ok(
+      packet.publicChainVisibleFields?.some((field) => field.includes("dual-AEAD scaffold")),
+      "Send packet must disclose the local dual-AEAD memo scaffold without upgrading it to production discovery.",
+    );
+    assert.ok(
+      packet.publicChainVisibleFields?.some((field) => field.includes("not proof-bound yet")),
+      "Send packet must disclose that Send memo ciphertext hashes are not proof-bound yet.",
     );
     assert.ok(packet.verificationCommands.includes("npm run actions:memo-encryption-check"));
     assert.ok(packet.verificationCommands.includes("npm run send:balance-ledger-check"));

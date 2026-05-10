@@ -620,7 +620,11 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     Number.isFinite(parsedAmount) &&
     parsedAmount > 0 &&
     parsedAmount <= maxNoteAmount;
-  const isRecipientValid = recipient.trim().length >= 8;
+  const trimmedRecipient = recipient.trim();
+  const isRecipientValid = trimmedRecipient.length >= 8;
+  const isSelfPrivateCoreRecipient =
+    Boolean(selectedCanonicalSendLedgerNote) &&
+    trimmedRecipient === selectedCanonicalSendLedgerNote?.owner;
   const isRealSendReady =
     selectedSendCapability.status === "live" &&
     Boolean(selectedSpendableNote) &&
@@ -736,6 +740,17 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       };
     }
 
+    if (!isSelfPrivateCoreRecipient) {
+      return {
+        basis,
+        detail:
+          "External Private Core Send requires recipient viewing-key exchange before proof preview or execution.",
+        primaryNote: selectedCanonicalSendLedgerNote,
+        ready: false,
+        statusLabel: "Recipient key required",
+      };
+    }
+
     return {
       basis,
       detail: "Ready from canonical spendable-note ledger.",
@@ -746,6 +761,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   }, [
     isAmountValid,
     isRecipientValid,
+    isSelfPrivateCoreRecipient,
     privateCoreHeldLedgerBindingMatchesSelectedNote,
     privateCoreHeldAmountMatchesLedgerNote,
     privateCoreHoldState,

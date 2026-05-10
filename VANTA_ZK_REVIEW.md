@@ -22,10 +22,10 @@ This review is now an active feedback-loop document, not only a point-in-time au
 | Private Pool v2 Shield/Send/Claim amount range | Shield, Send, and Claim raw amount witnesses are constrained as `u128`; Send also proves a private economics commitment and checks `input_amount == recipient_amount + change_amount`; Claim relayer-fee is constrained as `u128`. | `npm run private-pool-v2:shield-circuit-check`; `npm run private-pool-v2:send-circuit-check`; `npm run private-pool-v2:claim-circuit-check` |
 | Private Core tree hashing | Single-field membership paths and standard Poseidon node hashing are now guarded across send/swap/unshield. | `npm run zk:merkle-node-hash-contract-check` |
 | Private Core Send/Swap/Unshield amount range | Send, Swap, and Unshield amount limbs are now `u64` in the local Noir lanes, with negative fixtures for out-of-range witnesses. | `npm run private-core:send-check`; `npm run private-core:swap-check`; `npm run private-core:check` |
-| Action memo privacy | Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers now fail closed into v2 viewing-key AEAD; v1 plaintext parsing remains only for historical chain memos. External Send v2 currently fails closed until recipient viewing-key exchange is wired. | `npm run actions:memo-encryption-check` |
+| Action memo privacy | Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers now fail closed into v2 viewing-key AEAD; v1 plaintext parsing remains only for historical chain memos. A local Send dual-AEAD scaffold can separately seal recipient/change discovery memos and expose ciphertext body hashes, while external Send remains fail-closed until recipient viewing-key exchange is wired. | `npm run actions:memo-encryption-check` |
 | Owner recovery payload | X25519 + HKDF-SHA256 + XChaCha20-Poly1305 replaced the hand-rolled XOR/SHA path. | `npm run zk:owner-recovery-payload-crypto-check` |
 
-Still not solved: on-chain proof verification/verifying-key enforcement is not wired, root history is only a local operator-authorized fixed-slot scaffold, the output queue is still fixed-capacity, recipient-grade Send discovery/proof-bound ciphertext hashes remain open, no audit has accepted the boundary, the local SBF binary must be rebuilt before it can represent the current ABI, and no live deployment evidence has been refreshed.
+Still not solved: on-chain proof verification/verifying-key enforcement is not wired, root history is only a local operator-authorized fixed-slot scaffold, the output queue is still fixed-capacity, recipient-grade Send discovery still needs viewing-key exchange or view-tag/indexer discovery plus proof-bound ciphertext hashes, no audit has accepted the boundary, the local SBF binary must be rebuilt before it can represent the current ABI, and no live deployment evidence has been refreshed.
 
 ---
 
@@ -172,7 +172,7 @@ The prior feedback loops moved several early items from "recommended" to "locall
 1. **Keep the Solana authority boundary guarded and redeploy/reinit before citing live evidence.** The local branch has the signer gate, but the reviewed mainnet spend-program evidence is pre-authority-ABI and must remain blocked.
 2. **Keep Merkle depth >=20 guarded across active proving lanes and fixtures.** The active Private Pool v2 and Private Core lanes now use depth 20 locally; keep `npm run zk:circuit-soundness-lint` and the focused circuit checks as fail-closed regression gates.
 3. **Keep amount range constraints guarded while the proof lanes mature.** Canonical note membership, Private Pool v2 Shield/Send/Claim, and Private Core Send/Swap/Unshield now use typed amount ABIs with negative range fixtures; future lanes must keep this linted discipline before making production amount-proof claims.
-4. **Finish recipient-grade memo/discovery semantics.** New Send/Swap/Unshield/SOL-Unshield action memos now fail closed into v2 viewing-key AEAD, and external Send v2 now fails closed until recipient viewing-key exchange is wired. Recipient viewing-key exchange, dual recipient/change encryption, ciphertext-hash proof binding, and old v1 chain-history migration remain open.
+4. **Finish recipient-grade memo/discovery semantics.** New Send/Swap/Unshield/SOL-Unshield action memos now fail closed into v2 viewing-key AEAD, external Send v2 now fails closed until recipient viewing-key exchange is wired, and a local Send dual-AEAD scaffold can separately seal recipient/change discovery memos with ciphertext body hashes. Recipient viewing-key exchange or view-tag/indexer discovery, proof-bound ciphertext-hash binding, and old v1 chain-history migration remain open.
 5. **Rebuild/redeploy the Solana PDA-nullifier ABI before citing live replay evidence.** The local source now uses a deterministic nullifier marker PDA for O(1) duplicate rejection, but reviewed mainnet/SBF evidence is stale until rebuilt and redeployed.
 6. **Wire real on-chain proof verification and replace the root-history scaffold with proof-backed tree state.** The local branch now has operator-authorized fixed-slot root-history rejection, but the bigger production piece remains: embed a Groth16/Honk verifier or CPI into a verifier program, commit the verifying-key hash, and make accepted roots come from program-owned shared tree state rather than an operator-fed list.
 
@@ -451,7 +451,7 @@ The trace, end-to-end, when a user clicks *Send* on `/app/send`:
      return { accounts: [], data: new TextEncoder().encode(memoPayload), programAddress: VANTA_SHIELD_MEMO_PROGRAM };
    }
    ```
-   That v1 shape was plaintext JSON to the SPL Memo program. Current fresh helpers fail closed into v2 viewing-key AEAD, but recipient-grade discovery, dual recipient/change encryption, ciphertext-hash proof binding, and historical v1 migration remain open.
+   That v1 shape was plaintext JSON to the SPL Memo program. Current fresh helpers fail closed into v2 viewing-key AEAD, and `createPreparedSendDualAeadMemo` now scaffolds separate recipient/change encrypted discovery memos with ciphertext body hashes. Recipient-grade discovery still needs real recipient viewing-key exchange or view tags, proof-bound ciphertext-hash binding, and historical v1 migration.
 4. **Transaction signing.** The browser asks the user's wallet to sign a transaction whose only meaningful instruction is that memo, plus Helius priority-fee instructions. **No SPL transfer is included.** The vault's USDC ATA is unchanged.
 5. **A second transaction — the "spent marker."** Before the action-memo feedback loop, `src/solana/vantaShieldState.ts:createSpentMarkerInstruction` wrote another plaintext memo with prefix `"vanta:spent-marker:..."` claiming `consumedNoteId` was now spent. Fresh spent-marker helpers now emit v2 AEAD ciphertext; legacy v1 spent markers remain parseable for old chain history.
 6. **Off-chain operator notification.** The browser POSTs to the operator's `/private-core/send-proof` and `/private-core/send-transition` endpoints (see `operator/unshield-server.mjs:873–1190`). The operator:
@@ -461,7 +461,7 @@ The trace, end-to-end, when a user clicks *Send* on `/app/send`:
    - Reserves the input nullifier in an in-memory `privateCoreSendStore`.
    - Persists the proof and send records to JSON files.
 7. **Local bookkeeping.** `src/zk/liveSendBridge.ts:recordCanonicalSendFromLiveSend` writes a record to `localStorage["vanta.zk.phase1.live-send-records.v1"]`. Same shape as the shield bridge's localStorage — a list of canonical notes, indexed by transition signature, redacted on persistence.
-8. **Recipient discovery.** Legacy v1 recipient discovery scanned the Solana memo program for plaintext entries whose `recipient` field matched the recipient pubkey. Fresh v2 memos stop exposing that plaintext field, but production-grade recipient discovery still needs recipient viewing-key exchange or a view-tag/indexer design before Send can claim recipient-private discovery.
+8. **Recipient discovery.** Legacy v1 recipient discovery scanned the Solana memo program for plaintext entries whose `recipient` field matched the recipient pubkey. Fresh v2 memos stop exposing that plaintext field, and the local dual-AEAD scaffold can produce separate recipient/change discovery memo legs. Production-grade recipient discovery still needs recipient viewing-key exchange or a view-tag/indexer design before Send can claim recipient-private discovery.
 
 That's the whole flow.
 
@@ -480,9 +480,9 @@ Honest accounting of where information leaks:
 | Vault owner address | Legacy v1: yes. Fresh v2: ciphertext memo plus signer/timing. | Yes in current operator/user state surfaces. |
 | Timing | Yes | Yes |
 
-For legacy v1 memos, the information that is *not* on chain or at the operator was effectively **none that matters**: a passive observer could read the memo program, decode the JSON, and reconstruct the full transaction graph. Fresh local v2 action memos improve this by emitting ciphertext instead of raw action terms, but that does not make Send production-private: signer/timing remain public, operator/user state surfaces still carry transition metadata, recipient discovery is not solved, and proof-bound ciphertext hashes are not wired.
+For legacy v1 memos, the information that is *not* on chain or at the operator was effectively **none that matters**: a passive observer could read the memo program, decode the JSON, and reconstruct the full transaction graph. Fresh local v2 action memos improve this by emitting ciphertext instead of raw action terms, and the dual-AEAD scaffold splits recipient/change memo bodies for future discovery work. That still does not make Send production-private: signer/timing remain public, operator/user state surfaces still carry transition metadata, recipient discovery is not solved, and proof-bound ciphertext hashes are not wired.
 
-In short: the original reviewed "private send" was a Solana memo with the literal phrase `"recipient":"<address>","amount":"<value>"` written to chain in cleartext. The current local branch no longer emits that v1 plaintext shape for fresh Send action helpers, but the remaining production Send work is still substantial: recipient viewing-key exchange or view tags, dual recipient/change encryption, proof-bound ciphertext hashes, real prover/verifier enforcement, and a production shared tree.
+In short: the original reviewed "private send" was a Solana memo with the literal phrase `"recipient":"<address>","amount":"<value>"` written to chain in cleartext. The current local branch no longer emits that v1 plaintext shape for fresh Send action helpers and now has a local dual recipient/change AEAD scaffold, but the remaining production Send work is still substantial: recipient viewing-key exchange or view tags, proof-bound ciphertext hashes, real prover/verifier enforcement, and a production shared tree.
 
 ## What the operator actually does
 
@@ -504,7 +504,7 @@ There is also a Noir circuit (`zk/noir/vanta_private_pool_v2_send_entry/src/main
 - **No proof the predecessor is unspent.** Nothing in the on-chain artifact prevents a sender from writing two sends against the same predecessor. The off-chain `privateCoreSendStore.reserveInputNullifier` is the only deduplication, and it's in-memory at the operator. If the operator restarts without the persistence file, the dedup state is gone.
 - **The vault holds all the money.** Recipient receiving a send memo doesn't get USDC. They get a claim against the vault. If the vault key is lost, frozen, sanctioned, or rugged, every recipient loses everything.
 - **No anonymity set.** Two senders' memos sit next to each other in the memo program, but nothing combines them into a cryptographic anonymity set. A recipient with a 100 USDC inbound and a sender with a 100 USDC outbound at the same minute are trivially linked by pattern matching.
-- **Recipient privacy is improved but not complete.** Fresh v2 action memos no longer put `recipient` in plaintext, but recipient discovery is not production-grade until Vanta has recipient viewing-key exchange or view-tag/indexer discovery plus proof-bound ciphertext hashes.
+- **Recipient privacy is improved but not complete.** Fresh v2 action memos no longer put `recipient` in plaintext, and a local dual-AEAD scaffold can separate recipient/change discovery memo legs. Recipient discovery is not production-grade until Vanta has recipient viewing-key exchange or view-tag/indexer discovery plus proof-bound ciphertext hashes.
 
 ## What "send actually works" needs to mean
 
@@ -703,7 +703,7 @@ Don't rewrite from scratch. The following pieces are correct or close:
 
 While S1–S5 are in flight:
 
-- **Keep fresh Send memos on the v2 AEAD path.** The original v1 memo bytes were a public ledger of every send; fresh local helpers now fail closed into viewing-key AEAD. The remaining work is recipient-grade discovery, dual recipient/change encryption, proof-bound ciphertext hashes, and historical v1 migration.
+- **Keep fresh Send memos on the v2 AEAD path.** The original v1 memo bytes were a public ledger of every send; fresh local helpers now fail closed into viewing-key AEAD, and a local dual-AEAD scaffold can separately seal recipient/change discovery memo legs. The remaining work is recipient-grade viewing-key exchange or view tags, proof-bound ciphertext hashes, and historical v1 migration.
 - Mark `liveSendBridge.ts:recordCanonicalSendFromLiveSend` and the localStorage list as user-facing diagnostics only. Don't claim the JSON list is "shielded state".
 - Remove `TAG_SPEND = 1` from the on-chain program once `TAG_SEND = 3` exists; a public, unauthenticated append-only nullifier log accessible to any wallet is a denial-of-service that scales with rent (audit item 2).
 - Block the SOL-send capability path with a real refusal: today it returns a soft `unsupported-private-send-asset` blocker; the user can't actually trigger it but the option appears in the asset list. Hide it until the SOL lane exists.
@@ -2276,6 +2276,20 @@ This local slice closed the active-lane toy-depth gap called out in finding 5 an
 Verification in this slice: `npm run zk:circuit-soundness-lint`, `npm run zk:review-guards-check`, `npm run private-pool-v2:public-input-hash-alignment-check`, `npm run private-pool-v2:shield-circuit-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:swap-to-shielded-circuit-check`, `npm run private-pool-v2:actual-private-spend-circuit-check`, `npm run private-pool-v2:claim-circuit-check`, `npm run private-pool-v2:shield-prove`, `npm run private-pool-v2:send-prove`, `npm run private-pool-v2:swap-to-shielded-prove`, `npm run private-pool-v2:actual-private-spend-prove`, `npm run private-pool-v2:claim-prove`, `npm run private-core:check`, `npm run private-core:send-check`, `npm run private-core:swap-check`, `npm run private-core:swap-boundary-check`, `npm run private-core:prove`, `npm run private-core:send-prove`, `npm run private-core:swap-prove`, `npm run private-core:contract-smoke`, `npm run private-core:http-smoke`, `npm run private-pool-v2:actual-private-transaction-rail-check`, `npm run pay:committed-checkout-acceptance-check`, `npm run docs:source-of-truth-check`, `npm run operator:runbook-check`, `npm run security:limitations-check`, `npm run build`, and `git diff --check`. `npm run private-pool-v2:sbf-abi-status-json` still reports the expected external blocker set: `stale-sbf-binary`, `missing-cargo-build-sbf`, and `missing-solana-cli`.
 
 Still open after this eighteenth local pass: depth 20 is locally guarded but not yet live/deployed/audited; recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / proof-bound ciphertext hashes; on-chain proof verification/verifying-key enforcement is not wired; root-history remains operator-fed fixed-slot scaffold rather than proof-backed program-owned tree state; output records remain fixed-capacity; customer-side wallet payment evidence is not production-wired; no audit has accepted the boundary; the local SBF binary still needs a rebuild; and no live deployment evidence was refreshed.
+
+### Nineteenth Codex feedback loop - Send dual-AEAD discovery scaffold
+
+This local slice advances the Send memo/discovery recommendation without upgrading the production privacy claim:
+
+- `src/solana/vantaShieldState.ts` now exposes `createPreparedSendDualAeadMemo`, which creates separate recipient and change memo legs under the existing `vanta:send-note:v2:` AEAD envelope.
+- The recipient leg decrypts only with the recipient viewing key, the change leg decrypts only with the sender/change viewing key, and each leg exposes a domain-separated `sha256:` ciphertext body hash for later proof/public-input binding.
+- `parseSendRecipientDiscoveryMemo` and `parseSendChangeDiscoveryMemo` parse only the new discovery-leg payload shapes, so discovery memos do not masquerade as the legacy single Send payload.
+- `/app/send` remains fail-closed for external recipients on both the live memo path and the private-core preview/execution path until real recipient viewing-key exchange or view-tag/indexer discovery exists.
+- Send trust contracts, trust packets, security limitations, and the privacy-rail contract now distinguish the local dual-AEAD scaffold from production-grade recipient discovery or proof-bound ciphertext hashes.
+
+Verification in this slice: `npm run actions:memo-encryption-check` passed after adding wrong-key, no-raw-leak, missing-key, and dual-leg parser guards.
+
+Still open after this nineteenth local pass: recipient viewing-key exchange or view-tag/indexer discovery is not wired; ciphertext body hashes are not bound into the Send proof/public-input transcript; historical v1 plaintext chain-history migration remains open; signer/timing and two-output structure remain public; operator/status surfaces still see transition/proof metadata; and no live deployment or audit evidence was refreshed.
 
 ---
 

@@ -290,6 +290,59 @@ type SendMemoPayload = {
   vaultOwner: string;
 };
 
+type SendRecipientDiscoveryMemoPayload = {
+  amount: string;
+  asset: "USDC";
+  consumedNoteId?: string;
+  consumedShieldStateSignature?: string;
+  createdAt: number;
+  kind: "send_recipient_note";
+  mintAddress: string;
+  recipient: string;
+  recipientNoteId?: string;
+  sendNoteId: string;
+  vaultOwner: string;
+};
+
+type SendChangeDiscoveryMemoPayload = {
+  amount: string;
+  asset: "USDC";
+  changeNoteId: string;
+  consumedNoteId?: string;
+  consumedShieldStateSignature?: string;
+  createdAt: number;
+  kind: "send_change_note";
+  mintAddress: string;
+  owner: string;
+  sendNoteId: string;
+  vaultOwner: string;
+};
+
+type SendDualAeadMemoOptions = {
+  changeViewingPublicKey?: string | null;
+  recipientViewingPublicKey?: string | null;
+};
+
+type PreparedSendMemoIds = {
+  changeNoteId?: string;
+  noteId: string;
+  recipientNoteId?: string;
+};
+
+type PreparedSendDualAeadMemoLeg = {
+  audience: "recipient" | "change";
+  ciphertextBodyHash: string;
+  instruction: TransactionInstructionInput;
+};
+
+export type PreparedSendDualAeadMemo = PreparedSendMemoIds & {
+  changeMemo?: PreparedSendDualAeadMemoLeg;
+  changeMemoCiphertextHash?: string;
+  kind: "vanta-send-dual-aead-scaffold-v0";
+  recipientMemo: PreparedSendDualAeadMemoLeg;
+  recipientMemoCiphertextHash: string;
+};
+
 type UnshieldMemoPayload = {
   amount: string;
   asset: VantaShieldTokenAsset;
@@ -458,6 +511,34 @@ function base64UrlDecode(value: string): Uint8Array {
     out[i] = binary.charCodeAt(i);
   }
   return out;
+}
+
+function bytesToLowerHex(bytes: Uint8Array) {
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function decodeMemoInstructionText(instruction: TransactionInstructionInput) {
+  return new TextDecoder().decode(instruction.data);
+}
+
+function memoCiphertextBodyHash(memoText: string, prefix: string) {
+  const trimmed = memoText.trim();
+  const start = trimmed.indexOf(prefix);
+  if (start === -1) {
+    throw new Error("Vanta memo ciphertext hash requires the expected memo prefix.");
+  }
+  const ciphertextBody = trimmed.slice(start + prefix.length).trim();
+  if (!ciphertextBody) {
+    throw new Error("Vanta memo ciphertext hash requires a non-empty ciphertext body.");
+  }
+  const domain = utf8ToBytes("vanta-send-memo-ciphertext-body-hash:v0");
+  const prefixBytes = utf8ToBytes(prefix);
+  const bodyBytes = base64UrlDecode(ciphertextBody);
+  const material = new Uint8Array(domain.length + prefixBytes.length + bodyBytes.length);
+  material.set(domain, 0);
+  material.set(prefixBytes, domain.length);
+  material.set(bodyBytes, domain.length + prefixBytes.length);
+  return `sha256:${bytesToLowerHex(sha256(material))}`;
 }
 
 function deriveShieldMemoSymmetricKey(ownerPubkey: string): Uint8Array {
@@ -1055,10 +1136,9 @@ export function createSendMemoInstruction(
   return createPreparedSendMemo(payload, options).instruction;
 }
 
-export function createPreparedSendMemo(
+function createPreparedSendMemoIds(
   payload: Omit<SendMemoPayload, "kind" | "noteId" | "changeNoteId">,
-  options: ShieldMemoEncryptionOptions = {},
-) {
+): PreparedSendMemoIds {
   const noteId = createSendNoteId(payload);
   const recipientNoteId =
     Number(payload.amount) > 0 && payload.recipient === payload.owner
@@ -1089,14 +1169,104 @@ export function createPreparedSendMemo(
 
   return {
     changeNoteId,
+    noteId,
+    recipientNoteId,
+  };
+}
+
+export function createPreparedSendMemo(
+  payload: Omit<SendMemoPayload, "kind" | "noteId" | "changeNoteId">,
+  options: ShieldMemoEncryptionOptions = {},
+) {
+  const ids = createPreparedSendMemoIds(payload);
+
+  return {
+    ...ids,
     instruction: createActionMemoInstruction(VANTA_SEND_MEMO_PREFIX_V2, {
       ...payload,
       kind: "send",
-      noteId,
-      changeNoteId,
+      noteId: ids.noteId,
+      changeNoteId: ids.changeNoteId,
     } satisfies SendMemoPayload, payload.owner, options),
-    noteId,
-    recipientNoteId,
+  };
+}
+
+function createPreparedSendDualAeadMemoLeg(
+  audience: PreparedSendDualAeadMemoLeg["audience"],
+  payload: object,
+  ownerPubkey: string,
+  viewingPublicKey: string | null | undefined,
+): PreparedSendDualAeadMemoLeg {
+  const instruction = createActionMemoInstruction(
+    VANTA_SEND_MEMO_PREFIX_V2,
+    payload,
+    ownerPubkey,
+    { viewingPublicKey },
+  );
+  const ciphertextBodyHash = memoCiphertextBodyHash(
+    decodeMemoInstructionText(instruction),
+    VANTA_SEND_MEMO_PREFIX_V2,
+  );
+
+  return {
+    audience,
+    ciphertextBodyHash,
+    instruction,
+  };
+}
+
+export function createPreparedSendDualAeadMemo(
+  payload: Omit<SendMemoPayload, "kind" | "noteId" | "changeNoteId">,
+  options: SendDualAeadMemoOptions = {},
+): PreparedSendDualAeadMemo {
+  const ids = createPreparedSendMemoIds(payload);
+  const recipientMemo = createPreparedSendDualAeadMemoLeg(
+    "recipient",
+    {
+      amount: payload.amount,
+      asset: payload.asset,
+      consumedNoteId: payload.consumedNoteId,
+      consumedShieldStateSignature: payload.consumedShieldStateSignature,
+      createdAt: payload.createdAt,
+      kind: "send_recipient_note",
+      mintAddress: payload.mintAddress,
+      recipient: payload.recipient,
+      recipientNoteId: ids.recipientNoteId,
+      sendNoteId: ids.noteId,
+      vaultOwner: payload.vaultOwner,
+    } satisfies SendRecipientDiscoveryMemoPayload,
+    payload.owner,
+    options.recipientViewingPublicKey,
+  );
+  const changeMemo =
+    Number(payload.changeAmount) > 0 && ids.changeNoteId
+      ? createPreparedSendDualAeadMemoLeg(
+          "change",
+          {
+            amount: payload.changeAmount,
+            asset: payload.asset,
+            changeNoteId: ids.changeNoteId,
+            consumedNoteId: payload.consumedNoteId,
+            consumedShieldStateSignature: payload.consumedShieldStateSignature,
+            createdAt: payload.createdAt,
+            kind: "send_change_note",
+            mintAddress: payload.mintAddress,
+            owner: payload.owner,
+            sendNoteId: ids.noteId,
+            vaultOwner: payload.vaultOwner,
+          } satisfies SendChangeDiscoveryMemoPayload,
+          payload.owner,
+          options.changeViewingPublicKey,
+        )
+      : undefined;
+
+  return {
+    ...ids,
+    changeMemo,
+    changeMemoCiphertextHash: changeMemo?.ciphertextBodyHash,
+    kind: "vanta-send-dual-aead-scaffold-v0",
+    recipientMemo,
+    recipientMemoCiphertextHash: recipientMemo.ciphertextBodyHash,
   };
 }
 
@@ -1426,6 +1596,108 @@ export function parseSendMemo(
   } catch {
     return null;
   }
+}
+
+export function parseSendRecipientDiscoveryMemo(
+  memo: string | null | undefined,
+  stateSignature: string,
+  options: ShieldMemoDecryptionOptions = {},
+): (SendRecipientDiscoveryMemoPayload & { stateSignature: string }) | null {
+  const parsed = tryDecryptShieldMemoBody<Partial<SendRecipientDiscoveryMemoPayload>>(
+    memo ?? "",
+    VANTA_SEND_MEMO_PREFIX_V2,
+    "",
+    options,
+  );
+
+  if (
+    parsed?.kind !== "send_recipient_note" ||
+    parsed.asset !== "USDC" ||
+    typeof parsed.amount !== "string" ||
+    typeof parsed.createdAt !== "number" ||
+    typeof parsed.mintAddress !== "string" ||
+    typeof parsed.recipient !== "string" ||
+    typeof parsed.sendNoteId !== "string" ||
+    typeof parsed.vaultOwner !== "string"
+  ) {
+    return null;
+  }
+
+  const parsedAmount = Number(parsed.amount);
+  if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    return null;
+  }
+
+  return {
+    amount: parsed.amount,
+    asset: "USDC",
+    consumedNoteId:
+      typeof parsed.consumedNoteId === "string" ? parsed.consumedNoteId : undefined,
+    consumedShieldStateSignature:
+      typeof parsed.consumedShieldStateSignature === "string"
+        ? parsed.consumedShieldStateSignature
+        : undefined,
+    createdAt: parsed.createdAt,
+    kind: "send_recipient_note",
+    mintAddress: parsed.mintAddress,
+    recipient: parsed.recipient,
+    recipientNoteId:
+      typeof parsed.recipientNoteId === "string" ? parsed.recipientNoteId : undefined,
+    sendNoteId: parsed.sendNoteId,
+    stateSignature,
+    vaultOwner: parsed.vaultOwner,
+  };
+}
+
+export function parseSendChangeDiscoveryMemo(
+  memo: string | null | undefined,
+  stateSignature: string,
+  options: ShieldMemoDecryptionOptions = {},
+): (SendChangeDiscoveryMemoPayload & { stateSignature: string }) | null {
+  const parsed = tryDecryptShieldMemoBody<Partial<SendChangeDiscoveryMemoPayload>>(
+    memo ?? "",
+    VANTA_SEND_MEMO_PREFIX_V2,
+    "",
+    options,
+  );
+
+  if (
+    parsed?.kind !== "send_change_note" ||
+    parsed.asset !== "USDC" ||
+    typeof parsed.amount !== "string" ||
+    typeof parsed.changeNoteId !== "string" ||
+    typeof parsed.createdAt !== "number" ||
+    typeof parsed.mintAddress !== "string" ||
+    typeof parsed.owner !== "string" ||
+    typeof parsed.sendNoteId !== "string" ||
+    typeof parsed.vaultOwner !== "string"
+  ) {
+    return null;
+  }
+
+  const parsedAmount = Number(parsed.amount);
+  if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    return null;
+  }
+
+  return {
+    amount: parsed.amount,
+    asset: "USDC",
+    changeNoteId: parsed.changeNoteId,
+    consumedNoteId:
+      typeof parsed.consumedNoteId === "string" ? parsed.consumedNoteId : undefined,
+    consumedShieldStateSignature:
+      typeof parsed.consumedShieldStateSignature === "string"
+        ? parsed.consumedShieldStateSignature
+        : undefined,
+    createdAt: parsed.createdAt,
+    kind: "send_change_note",
+    mintAddress: parsed.mintAddress,
+    owner: parsed.owner,
+    sendNoteId: parsed.sendNoteId,
+    stateSignature,
+    vaultOwner: parsed.vaultOwner,
+  };
 }
 
 export function parseSpentMarkerMemo(
