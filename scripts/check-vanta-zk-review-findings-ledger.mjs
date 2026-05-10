@@ -1,0 +1,173 @@
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const repoRoot = resolve(import.meta.dirname, "..");
+const ledgerPath = resolve(repoRoot, "VANTA_ZK_REVIEW.findings.json");
+const reviewPath = resolve(repoRoot, "VANTA_ZK_REVIEW.md");
+const packagePath = resolve(repoRoot, "package.json");
+
+function readJson(path) {
+  return JSON.parse(readFileSync(path, "utf8"));
+}
+
+function fail(message) {
+  console.error(`Vanta ZK review findings ledger: FAIL - ${message}`);
+  process.exit(1);
+}
+
+function assert(condition, message) {
+  if (!condition) {
+    fail(message);
+  }
+}
+
+assert(existsSync(reviewPath), "missing VANTA_ZK_REVIEW.md");
+assert(existsSync(ledgerPath), "missing VANTA_ZK_REVIEW.findings.json");
+
+const ledgerSource = readFileSync(ledgerPath, "utf8");
+const ledger = readJson(ledgerPath);
+const packageJson = readJson(packagePath);
+const scripts = packageJson.scripts ?? {};
+
+const expectedIds = [
+  "VANTA-ZK-2026-05-09-C01",
+  "VANTA-ZK-2026-05-09-C02",
+  "VANTA-ZK-2026-05-09-C03",
+  "VANTA-ZK-2026-05-09-C04",
+  "VANTA-ZK-2026-05-09-C05",
+  "VANTA-ZK-2026-05-09-H06",
+  "VANTA-ZK-2026-05-09-H07",
+  "VANTA-ZK-2026-05-09-H08",
+  "VANTA-ZK-2026-05-09-M09",
+  "VANTA-ZK-2026-05-09-M10",
+  "VANTA-ZK-2026-05-09-M11",
+  "VANTA-ZK-2026-05-09-M12",
+  "VANTA-ZK-2026-05-09-M13",
+];
+
+const allowedStatuses = new Set([
+  "open",
+  "partial",
+  "remediated-local",
+  "verified-local",
+  "committed",
+  "pushed",
+  "live-verified",
+  "accepted-closed",
+  "blocked",
+  "stale",
+]);
+const allowedSeverities = new Set(["critical", "high", "medium"]);
+const secretLikePatterns = [
+  /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/u,
+  /\b(?:seed phrase|mnemonic|private key)\s*[:=]\s*["'][^"']+["']/iu,
+  /\b(?:sk|secret|api[_-]?key|token)_(?:live|prod|mainnet)_[A-Za-z0-9]{12,}\b/u,
+];
+
+assert(ledger.schemaVersion === 1, "schemaVersion must be 1");
+assert(ledger.reviewDocument === "VANTA_ZK_REVIEW.md", "reviewDocument must point at VANTA_ZK_REVIEW.md");
+assert(Array.isArray(ledger.allowedStatuses), "allowedStatuses must be present");
+assert(Array.isArray(ledger.allowedSeverities), "allowedSeverities must be present");
+assert(Array.isArray(ledger.findings), "findings must be an array");
+
+for (const status of ledger.allowedStatuses) {
+  assert(allowedStatuses.has(status), `unknown allowed status ${status}`);
+}
+for (const severity of ledger.allowedSeverities) {
+  assert(allowedSeverities.has(severity), `unknown allowed severity ${severity}`);
+}
+for (const pattern of secretLikePatterns) {
+  assert(!pattern.test(ledgerSource), "ledger appears to contain a secret-shaped string");
+}
+
+const ids = new Set();
+for (const finding of ledger.findings) {
+  assert(typeof finding.id === "string", "finding is missing id");
+  assert(/^VANTA-ZK-2026-05-09-[CHM]\d{2}$/u.test(finding.id), `${finding.id} is not a stable VANTA ZK finding id`);
+  assert(!ids.has(finding.id), `${finding.id} is duplicated`);
+  ids.add(finding.id);
+
+  assert(Number.isInteger(finding.sourceFindingNumber), `${finding.id} missing numeric sourceFindingNumber`);
+  assert(typeof finding.title === "string" && finding.title.length > 10, `${finding.id} missing useful title`);
+  assert(allowedSeverities.has(finding.severity), `${finding.id} has invalid severity ${finding.severity}`);
+  assert(allowedStatuses.has(finding.status), `${finding.id} has invalid status ${finding.status}`);
+  assert(typeof finding.claimAtRisk === "string" && finding.claimAtRisk.length > 20, `${finding.id} missing claimAtRisk`);
+  assert(typeof finding.failureMode === "string" && finding.failureMode.length > 20, `${finding.id} missing failureMode`);
+  assert(Array.isArray(finding.evidenceRefs) && finding.evidenceRefs.length > 0, `${finding.id} missing evidenceRefs`);
+  assert(Array.isArray(finding.requiredFix) && finding.requiredFix.length > 0, `${finding.id} missing requiredFix`);
+  assert(typeof finding.truthBoundary === "string" && finding.truthBoundary.length > 20, `${finding.id} missing truthBoundary`);
+
+  const verification = finding.verification ?? {};
+  assert(Array.isArray(verification.commands) && verification.commands.length > 0, `${finding.id} missing verification.commands`);
+  assert(typeof verification.localResult === "string" && verification.localResult.length > 10, `${finding.id} missing verification.localResult`);
+  assert(typeof verification.proves === "string" && verification.proves.length > 10, `${finding.id} missing verification.proves`);
+  assert(typeof verification.doesNotProve === "string" && verification.doesNotProve.length > 10, `${finding.id} missing verification.doesNotProve`);
+
+  const remediation = finding.codexRemediation ?? {};
+  assert(Array.isArray(remediation.commits) && remediation.commits.length > 0, `${finding.id} missing codexRemediation.commits`);
+  assert(typeof remediation.summary === "string" && remediation.summary.length > 20, `${finding.id} missing codexRemediation.summary`);
+  assert(Array.isArray(remediation.residualRisk), `${finding.id} missing codexRemediation.residualRisk`);
+
+  const lumi = finding.lumiHygiene ?? {};
+  for (const key of ["local", "committed", "pushed", "deployedLive"]) {
+    assert(typeof lumi[key] === "string" && lumi[key].length > 0, `${finding.id} missing lumiHygiene.${key}`);
+  }
+
+  const staleControl = finding.staleControl ?? {};
+  assert(Array.isArray(staleControl.watchFiles) && staleControl.watchFiles.length > 0, `${finding.id} missing staleControl.watchFiles`);
+  assert(Array.isArray(staleControl.watchCommands) && staleControl.watchCommands.length > 0, `${finding.id} missing staleControl.watchCommands`);
+
+  for (const command of [...verification.commands, ...staleControl.watchCommands]) {
+    const match = /^npm run ([A-Za-z0-9:_-]+)$/u.exec(command);
+    assert(match, `${finding.id} command must be written as "npm run <script>": ${command}`);
+    assert(Object.hasOwn(scripts, match[1]), `${finding.id} references missing package script ${match[1]}`);
+  }
+
+  for (const ref of finding.evidenceRefs) {
+    if (ref.startsWith("npm run ")) {
+      const scriptName = ref.slice("npm run ".length);
+      assert(Object.hasOwn(scripts, scriptName), `${finding.id} evidence references missing package script ${scriptName}`);
+    }
+  }
+
+  if (["live-verified", "accepted-closed"].includes(finding.status)) {
+    const liveEvidence = `${finding.truthBoundary} ${finding.lumiHygiene.deployedLive} ${finding.verification.localResult}`;
+    assert(!/not-live-verified|local/i.test(liveEvidence), `${finding.id} cannot claim ${finding.status} with local or not-live evidence`);
+  }
+}
+
+for (const expectedId of expectedIds) {
+  assert(ids.has(expectedId), `missing expected original review finding ${expectedId}`);
+}
+
+const severityCounts = ledger.findings.reduce((counts, finding) => {
+  counts[finding.severity] = (counts[finding.severity] ?? 0) + 1;
+  return counts;
+}, {});
+assert(severityCounts.critical === 5, "ledger must represent five critical findings");
+assert(severityCounts.high === 3, "ledger must represent three high findings");
+assert(severityCounts.medium === 5, "ledger must represent five medium findings");
+
+assert(
+  scripts["zk:review-findings-ledger-check"] === "node scripts/check-vanta-zk-review-findings-ledger.mjs",
+  "package.json must expose zk:review-findings-ledger-check",
+);
+assert(
+  scripts["zk:review-guards-check"]?.includes("npm run zk:review-findings-ledger-check"),
+  "zk:review-guards-check must include zk:review-findings-ledger-check",
+);
+
+console.log("Vanta ZK review findings ledger: PASS");
+console.log(
+  JSON.stringify(
+    {
+      findings: ledger.findings.length,
+      severityCounts,
+      statuses: [...new Set(ledger.findings.map((finding) => finding.status))].sort(),
+      liveVerifiedCount: ledger.findings.filter((finding) => finding.status === "live-verified").length,
+      acceptedClosedCount: ledger.findings.filter((finding) => finding.status === "accepted-closed").length,
+    },
+    null,
+    2,
+  ),
+);

@@ -1,0 +1,766 @@
+{
+  "schemaVersion": 1,
+  "reviewDocument": "VANTA_ZK_REVIEW.md",
+  "reviewDate": "2026-05-09",
+  "ledgerPurpose": "Machine-readable status ledger for the Claude/Codex VANTA_ZK_REVIEW feedback loop. The prose review remains the narrative stream; this ledger is the handoff contract for finding IDs, status, evidence, residual risk, Lumi hygiene, and stale-control.",
+  "allowedStatuses": [
+    "open",
+    "partial",
+    "remediated-local",
+    "verified-local",
+    "committed",
+    "pushed",
+    "live-verified",
+    "accepted-closed",
+    "blocked",
+    "stale"
+  ],
+  "allowedSeverities": [
+    "critical",
+    "high",
+    "medium"
+  ],
+  "lumiBaseline": {
+    "branch": "codex/vanta-zk-review-hardening",
+    "lastKnownCommit": "66bb1e2",
+    "local": "clean at ledger creation",
+    "committed": "66bb1e2 Bind Send memo body hashes through receipts",
+    "pushed": "not-pushed",
+    "deployedLive": "not-live-verified"
+  },
+  "findings": [
+    {
+      "id": "VANTA-ZK-2026-05-09-C01",
+      "sourceFindingNumber": 1,
+      "title": "On-chain Solana program does not verify proofs",
+      "severity": "critical",
+      "status": "partial",
+      "claimAtRisk": "On-chain private-spend evidence cannot be described as proof-enforced, trustless, or production-private.",
+      "evidenceRefs": [
+        "VANTA_ZK_REVIEW.md#1-the-on-chain-solana-program-does-not-verify-proofs-at-all",
+        "programs/vanta_private_pool_v2_spend/src/lib.rs",
+        "npm run private-pool-v2:contract-check",
+        "npm run private-pool-v2:sbf-abi-check"
+      ],
+      "failureMode": "The local program now gates writes with operator authority, accepted-root scaffolding, and deterministic nullifier-marker PDA replay checks, but no verifier enforces a real proof or verifying-key hash on chain.",
+      "requiredFix": [
+        "Commit a verifying-key hash or verifier program boundary for the active circuit.",
+        "Verify a real proof against the public input hash in-program or via a dedicated verifier CPI.",
+        "Replace operator-fed fixed-slot root-history scaffolding with proof-backed program-owned shared tree state.",
+        "Rebuild, redeploy, and reinitialize before citing live evidence."
+      ],
+      "verification": {
+        "commands": [
+          "npm run private-pool-v2:contract-check",
+          "npm run private-pool-v2:sbf-abi-check"
+        ],
+        "localResult": "contract-check covers the local authority/root/nullifier-marker scaffolding; sbf-abi-check is expected to fail closed until the Solana toolchain rebuilds the current ABI.",
+        "proves": "Local write authority, account binding, accepted-root scaffold, and stale-SBF detection are guarded.",
+        "doesNotProve": "On-chain proof verification, verifying-key enforcement, program-owned tree state, audit acceptance, or live deployment correctness."
+      },
+      "codexRemediation": {
+        "commits": [
+          "local feedback loops through 66bb1e2"
+        ],
+        "summary": "Codex hardened the local spend authority/root-history/nullifier-marker ABI and fail-closed SBF status surfaces.",
+        "residualRisk": [
+          "No production verifier is wired.",
+          "Reviewed mainnet evidence predates the current ABI.",
+          "The accepted-root list remains an operator-authorized scaffold."
+        ]
+      },
+      "lumiHygiene": {
+        "local": "verified locally for scaffold checks",
+        "committed": "through 66bb1e2",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "staleControl": {
+        "watchFiles": [
+          "programs/vanta_private_pool_v2_spend/src/lib.rs",
+          "scripts/check-vanta-private-pool-v2-sbf-abi-status.mjs",
+          "operator/private-pool-v2-server.mjs"
+        ],
+        "watchCommands": [
+          "npm run private-pool-v2:contract-check",
+          "npm run private-pool-v2:sbf-abi-check"
+        ]
+      },
+      "truthBoundary": "Use beta/local-scaffold language until a real verifier, rebuilt SBF binary, redeploy/reinit evidence, and audit acceptance exist."
+    },
+    {
+      "id": "VANTA-ZK-2026-05-09-C02",
+      "sourceFindingNumber": 2,
+      "title": "On-chain spend program was DoS-able through public fixed-slot nullifier writes",
+      "severity": "critical",
+      "status": "verified-local",
+      "claimAtRisk": "Replay protection could be exhausted or misrepresented if the old fixed linear nullifier path returns.",
+      "evidenceRefs": [
+        "VANTA_ZK_REVIEW.md#2-the-on-chain-program-is-trivially-dos-able",
+        "programs/vanta_private_pool_v2_spend/src/lib.rs",
+        "npm run private-pool-v2:contract-check",
+        "npm run private-pool-v2:solana-spend-transaction-check",
+        "npm run private-pool-v2:crucible-check"
+      ],
+      "failureMode": "The old path let arbitrary callers append nullifiers to fixed slots and performed linear duplicate scans.",
+      "requiredFix": [
+        "Keep spend writes behind the initialized operator signer.",
+        "Keep duplicate replay keyed by deterministic nullifier marker PDA.",
+        "Keep mixed child-account triplets rejected by pool-state bindings.",
+        "Rebuild/redeploy the SBF binary before citing live replay evidence."
+      ],
+      "verification": {
+        "commands": [
+          "npm run private-pool-v2:contract-check",
+          "npm run private-pool-v2:solana-spend-transaction-check",
+          "npm run private-pool-v2:crucible-check"
+        ],
+        "localResult": "Local source and harnesses guard signer-gated writes, account bindings, marker PDA duplicate rejection, and transaction layout.",
+        "proves": "The old unauthenticated fixed-slot fill and linear nullifier scan shape is closed in local source.",
+        "doesNotProve": "The live deployed program has this ABI; that remains blocked by SBF rebuild and redeploy evidence."
+      },
+      "codexRemediation": {
+        "commits": [
+          "local feedback loops through 66bb1e2"
+        ],
+        "summary": "Moved replay truth to deterministic marker PDAs and treated the legacy nullifier set as a header/namespace account.",
+        "residualRisk": [
+          "Local ABI is not live until SBF rebuild/redeploy/reinit.",
+          "The broader proof/tree design remains scaffolded."
+        ]
+      },
+      "lumiHygiene": {
+        "local": "verified locally",
+        "committed": "through 66bb1e2",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "staleControl": {
+        "watchFiles": [
+          "programs/vanta_private_pool_v2_spend/src/lib.rs",
+          "scripts/check-vanta-private-pool-v2-solana-spend-transaction-printer.mjs",
+          "scripts/check-vanta-private-pool-v2-solana-spend-transaction-builder.mjs"
+        ],
+        "watchCommands": [
+          "npm run private-pool-v2:contract-check",
+          "npm run private-pool-v2:sbf-abi-check"
+        ]
+      },
+      "truthBoundary": "Local replay hardening can be cited; live replay protection cannot be cited until current SBF evidence exists."
+    },
+    {
+      "id": "VANTA-ZK-2026-05-09-C03",
+      "sourceFindingNumber": 3,
+      "title": "canonical_note_membership used non-cryptographic placeholder hashing",
+      "severity": "critical",
+      "status": "verified-local",
+      "claimAtRisk": "Canonical note membership could be collision-forged if additive placeholders return.",
+      "evidenceRefs": [
+        "VANTA_ZK_REVIEW.md#3-canonical_note_membership-circuit-is-non-cryptographic-placeholder-code",
+        "zk/noir/canonical_note_membership/src/main.nr",
+        "npm run zk:canonical-note-membership-check"
+      ],
+      "failureMode": "Field addition for notes and Merkle nodes provided no meaningful binding.",
+      "requiredFix": [
+        "Keep Poseidon note hashing, Poseidon Merkle leaf/node hashing, direction-bit constraints, and leaf-index binding.",
+        "Keep placeholder-hash regressions covered by ZK review guards."
+      ],
+      "verification": {
+        "commands": [
+          "npm run zk:canonical-note-membership-check",
+          "npm run zk:circuit-soundness-lint"
+        ],
+        "localResult": "Canonical note membership check and circuit lint pass locally.",
+        "proves": "The active canonical note membership circuit no longer uses additive placeholder hashing.",
+        "doesNotProve": "Live production tree population or on-chain verifier enforcement."
+      },
+      "codexRemediation": {
+        "commits": [
+          "local feedback loops through 66bb1e2"
+        ],
+        "summary": "Replaced additive note/tree hashing with Poseidon-backed constraints.",
+        "residualRisk": [
+          "Canonical proof-facing commitments remain part of a broader transitional SHA-256-vs-Poseidon bridge until the shared production tree is finalized."
+        ]
+      },
+      "lumiHygiene": {
+        "local": "verified locally",
+        "committed": "through 66bb1e2",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "staleControl": {
+        "watchFiles": [
+          "zk/noir/canonical_note_membership/src/main.nr",
+          "scripts/check-vanta-canonical-note-membership-circuit.mjs"
+        ],
+        "watchCommands": [
+          "npm run zk:canonical-note-membership-check",
+          "npm run zk:review-guards-check"
+        ]
+      },
+      "truthBoundary": "Cite local circuit soundness improvement only; do not turn it into production anonymity or verifier claims."
+    },
+    {
+      "id": "VANTA-ZK-2026-05-09-C04",
+      "sourceFindingNumber": 4,
+      "title": "Entry circuits skipped Merkle membership or used non-tree append handles",
+      "severity": "critical",
+      "status": "verified-local",
+      "claimAtRisk": "Send, claim, shield, and swap entries could admit invented commitments or meaningless successor roots.",
+      "evidenceRefs": [
+        "VANTA_ZK_REVIEW.md#4-the-entry-circuits-skip-merkle-membership",
+        "zk/noir/vanta_private_pool_v2_send_entry/src/main.nr",
+        "zk/noir/vanta_private_pool_v2_shield_entry/src/main.nr",
+        "zk/noir/vanta_private_pool_v2_swap_to_shielded_entry/src/main.nr",
+        "zk/noir/vanta_private_pool_v2_claim_entry/src/main.nr",
+        "npm run private-pool-v2:send-circuit-check",
+        "npm run private-pool-v2:swap-to-shielded-circuit-check",
+        "npm run private-pool-v2:public-input-hash-alignment-check"
+      ],
+      "failureMode": "Earlier circuits accepted roots as witnesses or used shortcut hash chains instead of membership and append-path constraints.",
+      "requiredFix": [
+        "Keep input commitment membership under the accepted root in active spend-like lanes.",
+        "Keep path-based empty-leaf append proofs for new output commitments.",
+        "Keep successor roots path-derived rather than shortcut hash-derived."
+      ],
+      "verification": {
+        "commands": [
+          "npm run private-pool-v2:send-circuit-check",
+          "npm run private-pool-v2:swap-to-shielded-circuit-check",
+          "npm run private-pool-v2:public-input-hash-alignment-check",
+          "npm run zk:circuit-soundness-lint"
+        ],
+        "localResult": "Focused circuit checks and lint guard the fixed-depth fixture lane.",
+        "proves": "Local Private Pool v2 fixtures constrain membership and successor append roots.",
+        "doesNotProve": "A production shared tree, live populated anonymity set, or on-chain verifier."
+      },
+      "codexRemediation": {
+        "commits": [
+          "22479be",
+          "local feedback loops through 66bb1e2"
+        ],
+        "summary": "Back-ported Merkle membership and path-derived append roots across the local Private Pool v2 fixture lane.",
+        "residualRisk": [
+          "The local Poseidon fixture lane is not the final shared production tree.",
+          "On-chain enforcement remains missing."
+        ]
+      },
+      "lumiHygiene": {
+        "local": "verified locally",
+        "committed": "through 66bb1e2",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "staleControl": {
+        "watchFiles": [
+          "zk/noir/vanta_private_pool_v2_send_entry/src/main.nr",
+          "zk/noir/vanta_private_pool_v2_shield_entry/src/main.nr",
+          "zk/noir/vanta_private_pool_v2_swap_to_shielded_entry/src/main.nr",
+          "scripts/check-vanta-circuit-soundness-lint.mjs"
+        ],
+        "watchCommands": [
+          "npm run private-pool-v2:send-circuit-check",
+          "npm run private-pool-v2:swap-to-shielded-circuit-check",
+          "npm run private-pool-v2:verify"
+        ]
+      },
+      "truthBoundary": "This closes local fixture/circuit gaps but not production shared-tree or live verifier gaps."
+    },
+    {
+      "id": "VANTA-ZK-2026-05-09-C05",
+      "sourceFindingNumber": 5,
+      "title": "Active anonymity-set Merkle depth was 3",
+      "severity": "critical",
+      "status": "verified-local",
+      "claimAtRisk": "Depth-3 lanes cannot support credible anonymity-set claims.",
+      "evidenceRefs": [
+        "VANTA_ZK_REVIEW.md#5-anonymity-set-depth-is-3",
+        "npm run zk:circuit-soundness-lint",
+        "npm run private-pool-v2:shield-circuit-check",
+        "npm run private-core:check"
+      ],
+      "failureMode": "Depth 3 capped the active tree at 8 leaves and made anonymity claims trivial to break.",
+      "requiredFix": [
+        "Keep active Private Pool v2 and Private Core proving lanes at MERKLE_DEPTH 20.",
+        "Keep fixture builders emitting 20-sibling paths.",
+        "Keep the lint fail-closed against active depth-3 regressions."
+      ],
+      "verification": {
+        "commands": [
+          "npm run zk:circuit-soundness-lint",
+          "npm run private-pool-v2:shield-circuit-check",
+          "npm run private-core:check"
+        ],
+        "localResult": "Depth-20 migration is linted and focused checks pass locally.",
+        "proves": "Active local lanes no longer use MERKLE_DEPTH 3.",
+        "doesNotProve": "A populated live anonymity set, shared tree indexer, audit acceptance, or production privacy."
+      },
+      "codexRemediation": {
+        "commits": [
+          "ea08fed",
+          "local feedback loops through 66bb1e2"
+        ],
+        "summary": "Migrated active proving lanes and fixtures to depth 20 and added fail-closed linting.",
+        "residualRisk": [
+          "Depth 20 is necessary but not sufficient; live population and verifier evidence remain open."
+        ]
+      },
+      "lumiHygiene": {
+        "local": "verified locally",
+        "committed": "through 66bb1e2",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "staleControl": {
+        "watchFiles": [
+          "zk/noir",
+          "scripts/check-vanta-circuit-soundness-lint.mjs"
+        ],
+        "watchCommands": [
+          "npm run zk:circuit-soundness-lint",
+          "npm run zk:review-guards-check"
+        ]
+      },
+      "truthBoundary": "Only claim local depth migration; do not claim an anonymity set until live pool evidence exists."
+    },
+    {
+      "id": "VANTA-ZK-2026-05-09-H06",
+      "sourceFindingNumber": 6,
+      "title": "Owner recovery payload crypto was hand-rolled",
+      "severity": "high",
+      "status": "verified-local",
+      "claimAtRisk": "Recovery payload confidentiality and integrity could fail through bespoke XOR/SHA construction weaknesses.",
+      "evidenceRefs": [
+        "VANTA_ZK_REVIEW.md#6-ownerrecoverypayloadcryptots-is-hand-rolled-crypto",
+        "src/zk/crypto/ownerRecoveryPayloadCrypto.ts",
+        "npm run zk:owner-recovery-payload-crypto-check"
+      ],
+      "failureMode": "The old path used caller-supplied nonces, XOR keystream construction, and raw SHA-256 authentication instead of audited AEAD primitives.",
+      "requiredFix": [
+        "Keep X25519 key agreement, HKDF-SHA256 derivation, internally generated XChaCha nonces, and XChaCha20-Poly1305 AEAD.",
+        "Add password-hardening if recoverySecret ever becomes user-typed."
+      ],
+      "verification": {
+        "commands": [
+          "npm run zk:owner-recovery-payload-crypto-check"
+        ],
+        "localResult": "Owner recovery crypto guard passes locally.",
+        "proves": "The local recovery payload helper follows the same AEAD shape as the viewing-key crypto pipeline.",
+        "doesNotProve": "A complete social recovery or password-hardening design."
+      },
+      "codexRemediation": {
+        "commits": [
+          "local feedback loops through 66bb1e2"
+        ],
+        "summary": "Replaced bespoke recovery encryption with X25519/HKDF/XChaCha20-Poly1305.",
+        "residualRisk": [
+          "Password-like recovery inputs still need a dedicated hardening story if introduced."
+        ]
+      },
+      "lumiHygiene": {
+        "local": "verified locally",
+        "committed": "through 66bb1e2",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "staleControl": {
+        "watchFiles": [
+          "src/zk/crypto/ownerRecoveryPayloadCrypto.ts",
+          "scripts/check-vanta-owner-recovery-payload-crypto.mjs"
+        ],
+        "watchCommands": [
+          "npm run zk:owner-recovery-payload-crypto-check"
+        ]
+      },
+      "truthBoundary": "This is local crypto-pipeline remediation, not a full account recovery product."
+    },
+    {
+      "id": "VANTA-ZK-2026-05-09-H07",
+      "sourceFindingNumber": 7,
+      "title": "Private vault PBKDF2-SHA256 iteration count was too low",
+      "severity": "high",
+      "status": "verified-local",
+      "claimAtRisk": "New private-vault envelopes could understate offline-guessing resistance.",
+      "evidenceRefs": [
+        "VANTA_ZK_REVIEW.md#7-pbkdf2-sha256-at-120k-iterations-for-the-private-vault",
+        "src/privateVault/privateVaultCrypto.ts",
+        "npm run private-mode:contract-check"
+      ],
+      "failureMode": "Old v1 payloads used PBKDF2-SHA256 with 120000 iterations.",
+      "requiredFix": [
+        "Keep new v2 private-vault envelopes at 600000 PBKDF2-SHA256 iterations.",
+        "Keep legacy v1 decrypt fallback explicit and non-upgrading until re-encryption.",
+        "Plan Argon2id as the stronger future migration target."
+      ],
+      "verification": {
+        "commands": [
+          "npm run private-mode:contract-check"
+        ],
+        "localResult": "Private-mode contract check covers v2 roundtrip, v1 fallback, downgrade rejection, and wrong-password failure.",
+        "proves": "New local vault encryptions use the higher-iteration v2 envelope and preserve legacy read compatibility.",
+        "doesNotProve": "Existing v1 ciphertexts have been re-encrypted or that Argon2id has landed."
+      },
+      "codexRemediation": {
+        "commits": [
+          "b970af3",
+          "local feedback loops through 66bb1e2"
+        ],
+        "summary": "Added v2 PBKDF2 envelope with 600000 iterations and guarded legacy fallback behavior.",
+        "residualRisk": [
+          "Already-created v1 vault payloads remain weaker until migrated.",
+          "Argon2id remains open."
+        ]
+      },
+      "lumiHygiene": {
+        "local": "verified locally",
+        "committed": "through 66bb1e2",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "staleControl": {
+        "watchFiles": [
+          "src/privateVault/privateVaultCrypto.ts",
+          "scripts/check-vanta-private-mode-contract.mjs"
+        ],
+        "watchCommands": [
+          "npm run private-mode:contract-check"
+        ]
+      },
+      "truthBoundary": "Claim v2 envelope hardening only; do not claim all historical vault data is upgraded."
+    },
+    {
+      "id": "VANTA-ZK-2026-05-09-H08",
+      "sourceFindingNumber": 8,
+      "title": "Local prover is mock and must not advance real-funds settlement",
+      "severity": "high",
+      "status": "partial",
+      "claimAtRisk": "Mock proof receipts could be mistaken for production cryptographic proofs.",
+      "evidenceRefs": [
+        "VANTA_ZK_REVIEW.md#8-local-prover-is-not-a-prover-by-design",
+        "src/privacy/privatePoolV2LocalProver.ts",
+        "npm run private-pool-v2:mock-proof-boundary-check",
+        "npm run private-pool-v2:protocol-client-check"
+      ],
+      "failureMode": "The local prover returns deterministic hash bytes and verifies by recomputing the same hash.",
+      "requiredFix": [
+        "Keep proofSystem persisted across receipts and protocol response types.",
+        "Keep production/real-funds modes rejecting proofSystem mock.",
+        "Wire a real prover such as bb.js before production proof claims.",
+        "Keep remote-services mode required for production startup."
+      ],
+      "verification": {
+        "commands": [
+          "npm run private-pool-v2:mock-proof-boundary-check",
+          "npm run private-pool-v2:protocol-client-check"
+        ],
+        "localResult": "Mock-proof boundary and protocol-client checks pass locally.",
+        "proves": "Mock proofs are explicit and blocked from production/real-funds acceptance paths covered by the guard.",
+        "doesNotProve": "Real proof generation, verifier integration, or live funds ZK readiness."
+      },
+      "codexRemediation": {
+        "commits": [
+          "local feedback loops through 66bb1e2"
+        ],
+        "summary": "Persisted proofSystem through receipts and guarded production startup and settlement boundaries against mock proofs.",
+        "residualRisk": [
+          "The mock prover still exists for local evidence.",
+          "A real prover and verifier remain open."
+        ]
+      },
+      "lumiHygiene": {
+        "local": "verified locally for boundary checks",
+        "committed": "through 66bb1e2",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "staleControl": {
+        "watchFiles": [
+          "src/privacy/privatePoolV2LocalProver.ts",
+          "scripts/check-vanta-private-pool-v2-mock-proof-boundary.mjs",
+          "operator/private-pool-v2-server.mjs"
+        ],
+        "watchCommands": [
+          "npm run private-pool-v2:mock-proof-boundary-check",
+          "npm run private-pool-v2:verify"
+        ]
+      },
+      "truthBoundary": "Say mock proofs are local/no-real-funds evidence only until a real prover/verifier lane is wired and accepted."
+    },
+    {
+      "id": "VANTA-ZK-2026-05-09-M09",
+      "sourceFindingNumber": 9,
+      "title": "membership_path_hi plus membership_path_lo collapsed witness meaning",
+      "severity": "medium",
+      "status": "verified-local",
+      "claimAtRisk": "Merkle sibling witness encoding could be ambiguous or misleading.",
+      "evidenceRefs": [
+        "VANTA_ZK_REVIEW.md#9-membership_path_hi--membership_path_lo-adds-no-security",
+        "zk/noir/vanta_private_core_single_note_send/src/main.nr",
+        "zk/noir/vanta_private_core_single_note_swap/src/main.nr",
+        "zk/noir/vanta_private_core_single_note_unshield/src/main.nr",
+        "npm run zk:merkle-node-hash-contract-check"
+      ],
+      "failureMode": "Distinct hi/lo witness pairs collapsed to the same sibling field through addition.",
+      "requiredFix": [
+        "Keep single Field membership_path arrays in Private Core lanes.",
+        "Keep off-chain witness builders projecting 32-byte siblings into one proof-lane field."
+      ],
+      "verification": {
+        "commands": [
+          "npm run zk:merkle-node-hash-contract-check",
+          "npm run private-core:check"
+        ],
+        "localResult": "Merkle node hash contract and Private Core checks pass locally.",
+        "proves": "The covered Private Core lanes no longer add hi/lo membership-path limbs.",
+        "doesNotProve": "Production tree/indexer soundness."
+      },
+      "codexRemediation": {
+        "commits": [
+          "local feedback loops through 66bb1e2"
+        ],
+        "summary": "Replaced split membership path witnesses with single-field siblings across covered Private Core lanes.",
+        "residualRisk": [
+          "Future lanes must not reintroduce split-limb additive sibling encoding."
+        ]
+      },
+      "lumiHygiene": {
+        "local": "verified locally",
+        "committed": "through 66bb1e2",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "staleControl": {
+        "watchFiles": [
+          "zk/noir/vanta_private_core_single_note_send/src/main.nr",
+          "zk/noir/vanta_private_core_single_note_swap/src/main.nr",
+          "zk/noir/vanta_private_core_single_note_unshield/src/main.nr",
+          "scripts/check-vanta-merkle-node-hash-contract.mjs"
+        ],
+        "watchCommands": [
+          "npm run zk:merkle-node-hash-contract-check"
+        ]
+      },
+      "truthBoundary": "This is a witness-shape cleanup in local circuits, not a production privacy guarantee."
+    },
+    {
+      "id": "VANTA-ZK-2026-05-09-M10",
+      "sourceFindingNumber": 10,
+      "title": "Merkle node hash included the direction bit",
+      "severity": "medium",
+      "status": "verified-local",
+      "claimAtRisk": "Tree root semantics could diverge between circuit and standard/off-chain Merkle implementations.",
+      "evidenceRefs": [
+        "VANTA_ZK_REVIEW.md#10-including-is_current_right-in-hash_merkle_node-is-non-standard",
+        "npm run zk:merkle-node-hash-contract-check",
+        "npm run zk:circuit-soundness-lint"
+      ],
+      "failureMode": "Mixing the path direction bit into parent hashing made the same left/right pair hash differently based on proof position.",
+      "requiredFix": [
+        "Keep node hashing standardized on hash_2(left, right) or poseidon2([left, right]).",
+        "Keep direction bits only selecting child order and leaf-index consistency."
+      ],
+      "verification": {
+        "commands": [
+          "npm run zk:merkle-node-hash-contract-check",
+          "npm run zk:circuit-soundness-lint"
+        ],
+        "localResult": "Merkle contract check and lint pass locally.",
+        "proves": "Covered circuits no longer include direction bits in node hash primitives.",
+        "doesNotProve": "External indexer agreement for a final production tree."
+      },
+      "codexRemediation": {
+        "commits": [
+          "local feedback loops through 66bb1e2"
+        ],
+        "summary": "Standardized Poseidon Merkle parent hashing across covered Canonical, Private Pool v2, and Private Core lanes.",
+        "residualRisk": [
+          "Any new circuit lane must be added to the same lint/contract coverage."
+        ]
+      },
+      "lumiHygiene": {
+        "local": "verified locally",
+        "committed": "through 66bb1e2",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "staleControl": {
+        "watchFiles": [
+          "zk/noir",
+          "scripts/check-vanta-merkle-node-hash-contract.mjs",
+          "scripts/check-vanta-circuit-soundness-lint.mjs"
+        ],
+        "watchCommands": [
+          "npm run zk:merkle-node-hash-contract-check",
+          "npm run zk:circuit-soundness-lint"
+        ]
+      },
+      "truthBoundary": "Claim standard local hash semantics only for covered lanes."
+    },
+    {
+      "id": "VANTA-ZK-2026-05-09-M11",
+      "sourceFindingNumber": 11,
+      "title": "Off-chain nullifier replay guard needed transactional concurrency safety",
+      "severity": "medium",
+      "status": "verified-local",
+      "claimAtRisk": "The durable operator replay store could race under concurrent submissions.",
+      "evidenceRefs": [
+        "VANTA_ZK_REVIEW.md#11-off-chain-nullifier-replay-guard-relies-on-node-single-threading-for-atomicity",
+        "src/privacy/postgresNullifierReplayStore.mjs",
+        "scripts/check-vanta-postgres-nullifier-replay-store.mjs",
+        "npm run nullifier:replay-guard-check"
+      ],
+      "failureMode": "A SELECT-then-INSERT shape would not be atomic under real Postgres concurrency.",
+      "requiredFix": [
+        "Keep reservation implemented with transaction-backed INSERT ON CONFLICT behavior.",
+        "Keep duplicate classification and acceptance mutation on the same transaction client.",
+        "Keep reservationMode and uniqueness scope exposed in operator status."
+      ],
+      "verification": {
+        "commands": [
+          "npm run nullifier:replay-guard-check"
+        ],
+        "localResult": "Replay guard check covers transaction markers, rollback/release, pooled-client use, duplicate behavior, and request-id conflicts.",
+        "proves": "The durable local Postgres adapter has an atomic reservation contract.",
+        "doesNotProve": "A production Postgres deployment has been exercised live."
+      },
+      "codexRemediation": {
+        "commits": [
+          "local feedback loops through 66bb1e2"
+        ],
+        "summary": "Upgraded the durable replay store to a transaction-backed insert-on-conflict reservation contract.",
+        "residualRisk": [
+          "No live deployment evidence was refreshed."
+        ]
+      },
+      "lumiHygiene": {
+        "local": "verified locally",
+        "committed": "through 66bb1e2",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "staleControl": {
+        "watchFiles": [
+          "src/privacy/postgresNullifierReplayStore.mjs",
+          "scripts/check-vanta-postgres-nullifier-replay-store.mjs",
+          "operator/private-pool-v2-server.mjs"
+        ],
+        "watchCommands": [
+          "npm run nullifier:replay-guard-check"
+        ]
+      },
+      "truthBoundary": "Cite durable-store local concurrency hardening; do not cite production replay evidence without live deployment checks."
+    },
+    {
+      "id": "VANTA-ZK-2026-05-09-M12",
+      "sourceFindingNumber": 12,
+      "title": "Shield circuit revealed economics in public inputs",
+      "severity": "medium",
+      "status": "verified-local",
+      "claimAtRisk": "Shield could overstate economic privacy if raw asset/amount fields remain public.",
+      "evidenceRefs": [
+        "VANTA_ZK_REVIEW.md#12-shield-circuit-reveals-economics-in-public-inputs",
+        "zk/noir/vanta_private_pool_v2_shield_entry/src/main.nr",
+        "npm run private-pool-v2:shield-circuit-check",
+        "npm run private-pool-v2:public-input-hash-alignment-check"
+      ],
+      "failureMode": "The original Shield public-input bag exposed source mint, target mint, target asset, and amount.",
+      "requiredFix": [
+        "Keep raw economics private and bind them through a Poseidon economics commitment.",
+        "Keep committed protocol requests using the circuit-aligned proof request builder.",
+        "Keep production privacy status false until caller-supplied circuit-aligned commitments and live evidence exist."
+      ],
+      "verification": {
+        "commands": [
+          "npm run private-pool-v2:shield-circuit-check",
+          "npm run private-pool-v2:public-input-hash-alignment-check",
+          "npm run private-pool-v2:protocol-client-check"
+        ],
+        "localResult": "Shield circuit, public-input alignment, and protocol-client checks pass locally.",
+        "proves": "Local Shield proof requests bind hidden economics through a commitment rather than raw public fields.",
+        "doesNotProve": "Production Shield economic privacy, live evidence, or audit acceptance."
+      },
+      "codexRemediation": {
+        "commits": [
+          "local feedback loops through 66bb1e2"
+        ],
+        "summary": "Moved Shield economics into a private Poseidon commitment and guarded the committed protocol path.",
+        "residualRisk": [
+          "Operator/capability paths can still carry locally generated commitment handles.",
+          "No live deployment evidence was refreshed."
+        ]
+      },
+      "lumiHygiene": {
+        "local": "verified locally",
+        "committed": "through 66bb1e2",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "staleControl": {
+        "watchFiles": [
+          "zk/noir/vanta_private_pool_v2_shield_entry/src/main.nr",
+          "src/privacy/privatePoolV2ProofRequests.ts",
+          "scripts/check-vanta-private-pool-v2-shield-circuit.mjs"
+        ],
+        "watchCommands": [
+          "npm run private-pool-v2:shield-circuit-check",
+          "npm run private-pool-v2:public-input-hash-alignment-check"
+        ]
+      },
+      "truthBoundary": "Claim local committed-economics Shield boundary only; production privacy claims remain locked."
+    },
+    {
+      "id": "VANTA-ZK-2026-05-09-M13",
+      "sourceFindingNumber": 13,
+      "title": "Frontend could expose operator tokens through VITE envs",
+      "severity": "medium",
+      "status": "verified-local",
+      "claimAtRisk": "Browser bundles might leak operator/auth-token/secret-shaped VITE values.",
+      "evidenceRefs": [
+        "VANTA_ZK_REVIEW.md#13-frontend-exposes-operator-tokens-through-vite_-envs",
+        "scripts/check-vanta-frontend-operator-env-exposure.mjs",
+        "npm run frontend:operator-env-exposure-check"
+      ],
+      "failureMode": "Production bundles could contain secret-shaped VITE keys or canary values.",
+      "requiredFix": [
+        "Keep browser routes from reading operator/private API keys.",
+        "Keep canary-based dist scanning for forbidden VITE exposure.",
+        "Probe or redeploy live bundles before claiming the deployed site is clean."
+      ],
+      "verification": {
+        "commands": [
+          "npm run frontend:operator-env-exposure-check"
+        ],
+        "localResult": "Frontend exposure guard builds with forbidden canaries and scans dist locally.",
+        "proves": "The repo-local production bundle guard rejects forbidden browser token exposure.",
+        "doesNotProve": "The currently deployed website bundle was probed or redeployed."
+      },
+      "codexRemediation": {
+        "commits": [
+          "local feedback loops through 66bb1e2"
+        ],
+        "summary": "Removed browser swap route VITE_JUPITER_API_KEY use and added a production-bundle exposure guard.",
+        "residualRisk": [
+          "No live deployed bundle was checked in this pass."
+        ]
+      },
+      "lumiHygiene": {
+        "local": "verified locally",
+        "committed": "through 66bb1e2",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "staleControl": {
+        "watchFiles": [
+          "src",
+          "scripts/check-vanta-frontend-operator-env-exposure.mjs",
+          "vite.config.ts"
+        ],
+        "watchCommands": [
+          "npm run frontend:operator-env-exposure-check"
+        ]
+      },
+      "truthBoundary": "Repo-local bundle exposure guard only; live-site exposure needs deployment or external probe evidence."
+    }
+  ]
+}

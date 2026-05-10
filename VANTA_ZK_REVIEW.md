@@ -10,7 +10,7 @@
 
 ## Codex current local state - 2026-05-09
 
-This review is now an active feedback-loop document, not only a point-in-time audit. The current branch has locally remediated several original findings while preserving the beta/non-production truth:
+This review is now an active feedback-loop document, not only a point-in-time audit. The current branch has locally remediated several original findings while preserving the beta/non-production truth. The machine-readable handoff ledger for stable finding IDs, status, evidence, residual risk, Lumi hygiene, and stale-control is `VANTA_ZK_REVIEW.findings.json`, guarded by `npm run zk:review-findings-ledger-check` and included in `npm run zk:review-guards-check`.
 
 | Area | Current local state | Guard |
 | --- | --- | --- |
