@@ -75,7 +75,8 @@ That command already covers:
 
 The supported unshield lane still keeps these assumptions explicit:
 
-- owner authorization remains off-circuit
+- source-layer X25519 owner authorization remains off-circuit
+- the Unshield Noir lane binds a Poseidon proof-owner key derived from the owner secret
 - proving-lane truth remains distinct from broader source-layer artifacts
 - root validity/currentness still comes from the narrow operator-backed state model
 - release recording is operator truth, not yet a final-form product settlement rail
@@ -88,7 +89,7 @@ The following are still outside the supported unshield lane:
 - generalized release assets
 - decentralized relayer semantics
 - final-form product settlement semantics
-- in-circuit owner authorization
+- full source-layer/X25519 owner authorization inside Noir
 
 ## Practical interpretation
 

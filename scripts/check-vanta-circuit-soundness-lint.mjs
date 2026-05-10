@@ -10,6 +10,15 @@ const noirFiles = execFileSync("git", ["ls-files"], {
 })
   .split("\n")
   .filter((path) => path.startsWith("zk/noir/") && path.endsWith("/src/main.nr"));
+const privateCoreHarnessFiles = execFileSync("git", ["ls-files"], {
+  cwd: repoRoot,
+  encoding: "utf8",
+})
+  .split("\n")
+  .filter(
+    (path) =>
+      path.startsWith("scripts/check-vanta-private-core-") && path.endsWith(".mjs"),
+  );
 
 const forbiddenPatterns = [
   {
@@ -19,6 +28,18 @@ const forbiddenPatterns = [
   {
     pattern: /assert\(\s*[A-Za-z_][A-Za-z0-9_]*\s*==\s*sender_secret_key_hi\s*\+\s*sender_secret_key_lo\s*\)/u,
     message: "sender secret liveness must not be a restated witness sum",
+  },
+  {
+    pattern: /owner_auth_placeholder/u,
+    message: "owner auth placeholder must not be reintroduced",
+  },
+  {
+    pattern: /owner_secret_key_hi\s*\+\s*owner_secret_key_lo\s*!=\s*0/u,
+    message: "owner secret liveness must be a key relation, not a nonzero witness sum",
+  },
+  {
+    pattern: /assert\(\s*owner_public_key_lo\s*==\s*owner_public_key_lo\s*\)/u,
+    message: "owner public key self-equality does not constrain the witness",
   },
   {
     pattern: /input_asset_id_hi\s*\+\s*input_asset_id_lo\s*!=\s*output_asset_id_hi\s*\+\s*output_asset_id_lo/u,
@@ -118,6 +139,13 @@ for (const file of noirFiles) {
     if (occurrences < 2) {
       failures.push(`${file}: public input ${inputName} appears only in the ABI`);
     }
+  }
+}
+
+for (const file of privateCoreHarnessFiles) {
+  const source = readFileSync(resolve(repoRoot, file), "utf8");
+  if (/circuitMerkleDepth:\s*3\b/u.test(source)) {
+    failures.push(`${file}: Private Core harness must not request stale circuitMerkleDepth 3`);
   }
 }
 

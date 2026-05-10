@@ -713,16 +713,17 @@ The operator contract now freezes the narrow zk-v1 contract surface explicitly:
 - `supportedProofSystem = noir-acir-ultrahonk-bbjs`
 - `supportedUnshieldCircuit = vanta_private_core_single_note_unshield`
 - `supportedSendCircuit = vanta_private_core_single_note_send`
-- `supportedUnshieldMerkleDepth = 3`
-- `supportedSendMerkleDepth = 3`
+- `supportedUnshieldMerkleDepth = 20`
+- `supportedSendMerkleDepth = 20`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`
 - `supportedReleaseRootPolicy = latest-registered-root`
 - `supportedReleaseExecutionModel = operator-recorded-mainnet-release`
 - `supportedReleaseAtomicityModel = operator-local-atomic-consume-and-release-record`
 - `supportedReleasePersistenceModel = json-store-v1`
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
-- `supportedOwnerAuthorizationMode = off-circuit-prechecked-v0-1`
+- `supportedOwnerAuthorizationMode = x25519-secret-prechecked-off-circuit`
 - `ownerAuthorizationDecision = accepted-v1-off-circuit-precheck`
+- `supportedUnshieldProofOwnerKeyMode = poseidon-proof-owner-key-v0`
 - `sourceArtifactTruthBasis = source-layer-artifact-bundle`
 - `provingArtifactTruthBasis = verified-proving-public-input-vector`
 - `sourceProvingRelationship = explicit-split-no-implicit-equality`
@@ -740,14 +741,16 @@ The live operator summary layers dynamic verifier-side state on top of that cont
 - latest send resulting-root continuity and registration status
 - boundary status / boundary note
 - summary generation time
-- `supportedUnshieldMerkleDepth = 3`
-- `supportedSendMerkleDepth = 3`
+- `supportedUnshieldMerkleDepth = 20`
+- `supportedSendMerkleDepth = 20`
 - `supportedReleaseAuthorizationBasis = proof-backed-consume`
 - `supportedReleaseRootPolicy = latest-registered-root`
 - `supportedReleaseExecutionModel = operator-recorded-mainnet-release`
 - `supportedReleaseAtomicityModel = operator-local-atomic-consume-and-release-record`
 - `supportedReleasePersistenceModel = json-store-v1`
+- `supportedOwnerAuthorizationMode = x25519-secret-prechecked-off-circuit`
 - `ownerAuthorizationDecision = accepted-v1-off-circuit-precheck`
+- `supportedUnshieldProofOwnerKeyMode = poseidon-proof-owner-key-v0`
 - `sourceArtifactTruthBasis = source-layer-artifact-bundle`
 - `provingArtifactTruthBasis = verified-proving-public-input-vector`
 - `sourceProvingRelationship = explicit-split-no-implicit-equality`

@@ -249,7 +249,7 @@ const firstTransition = privateCore.buildVantaPrivateCoreSendTransition({
 const firstBoundary = sendProof.buildVantaPrivateCoreSendProofBoundary({
   transition: firstTransition,
   senderSecretKey: firstSender.secretKey,
-  circuitMerkleDepth: 3,
+  circuitMerkleDepth: 20,
   requireNontrivialMerklePath: true,
 });
 
@@ -270,7 +270,7 @@ try {
     heldNote: firstHeldSender,
     ownerSecretKey: firstSender.secretKey,
     releaseDestination,
-    circuitMerkleDepth: 3,
+    circuitMerkleDepth: 20,
     requireNontrivialMerklePath: true,
   });
   const firstInputSourceArtifacts =
@@ -314,7 +314,7 @@ try {
   const secondBoundary = sendProof.buildVantaPrivateCoreSendProofBoundary({
     transition: secondTransition,
     senderSecretKey: firstRecipient.secretKey,
-    circuitMerkleDepth: 3,
+    circuitMerkleDepth: 20,
     requireNontrivialMerklePath: true,
   });
 
@@ -322,7 +322,7 @@ try {
     heldNote: heldFirstRecipient,
     ownerSecretKey: firstRecipient.secretKey,
     releaseDestination,
-    circuitMerkleDepth: 3,
+    circuitMerkleDepth: 20,
     requireNontrivialMerklePath: true,
   });
   const secondInputSourceArtifacts =
@@ -363,7 +363,7 @@ try {
     heldNote: finalHeldRecipient,
     ownerSecretKey: finalRecipient.secretKey,
     releaseDestination,
-    circuitMerkleDepth: 3,
+    circuitMerkleDepth: 20,
     requireNontrivialMerklePath: true,
   });
   const finalSourceArtifacts =

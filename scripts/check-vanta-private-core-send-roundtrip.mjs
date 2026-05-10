@@ -265,7 +265,7 @@ try {
     ownerSecretKey: sender.secretKey,
     releaseDestination:
       "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-    circuitMerkleDepth: 3,
+    circuitMerkleDepth: 20,
     requireNontrivialMerklePath: true,
   });
   const inputSourceArtifacts = privateCore.deriveVantaPrivateCoreSourceArtifactsFromHeldNote(heldInput);

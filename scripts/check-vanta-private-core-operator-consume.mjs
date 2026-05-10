@@ -132,6 +132,51 @@ try {
   }
   printStatus("operator source/public consistency gate: PASS");
 
+  for (const sourceOwnerCase of [
+    {
+      expectedMessage: "missing source owner public key metadata",
+      label: "missing-source-owner",
+      mutateWitnessPackage: (candidate) => {
+        const { source_owner_public_key_hi, source_owner_public_key_lo, ...restPrivateWitness } =
+          candidate.privateWitness;
+        void source_owner_public_key_hi;
+        void source_owner_public_key_lo;
+        return {
+          ...candidate,
+          privateWitness: restPrivateWitness,
+        };
+      },
+    },
+    {
+      expectedMessage: "owner secret does not derive the note owner public key",
+      label: "tampered-source-owner",
+      mutateWitnessPackage: (candidate) => ({
+        ...candidate,
+        privateWitness: {
+          ...candidate.privateWitness,
+          source_owner_public_key_lo: (
+            BigInt(candidate.privateWitness.source_owner_public_key_lo) + 1n
+          ).toString(10),
+        },
+      }),
+    },
+  ]) {
+    try {
+      await proveAndVerifyVantaPrivateCoreUnshield({
+        witnessPackage: sourceOwnerCase.mutateWitnessPackage(witnessPackage),
+      });
+      throw new Error(
+        `operator proof seam unexpectedly accepted ${sourceOwnerCase.label} metadata`,
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!message.includes(sourceOwnerCase.expectedMessage)) {
+        throw error;
+      }
+    }
+  }
+  printStatus("operator source-owner metadata gate: PASS");
+
   try {
     assertVantaPrivateCoreSourceArtifactConsistency(
       {

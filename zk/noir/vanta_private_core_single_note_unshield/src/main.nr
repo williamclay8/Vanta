@@ -95,6 +95,8 @@ fn compute_leaf_index(membership_path_direction_bits: [Field; MERKLE_DEPTH]) -> 
 }
 
 fn derive_nullifier(
+    owner_public_key_hi: Field,
+    owner_public_key_lo: Field,
     note_secret_hi: Field,
     note_secret_lo: Field,
     note_nonce_hi: Field,
@@ -102,13 +104,25 @@ fn derive_nullifier(
     state_root: Field,
     merkle_leaf: Field,
 ) -> Field {
-    bn254::hash_6([
+    bn254::hash_8([
+        owner_public_key_hi,
+        owner_public_key_lo,
         note_secret_hi,
         note_secret_lo,
         note_nonce_hi,
         note_nonce_lo,
         state_root,
         merkle_leaf,
+    ])
+}
+
+fn derive_owner_public_key(
+    owner_secret_key_hi: Field,
+    owner_secret_key_lo: Field,
+) -> Field {
+    bn254::hash_2([
+        owner_secret_key_hi,
+        owner_secret_key_lo,
     ])
 }
 
@@ -216,7 +230,16 @@ fn main(
     );
     assert(computed_root == state_root);
 
+    let computed_owner_public_key = derive_owner_public_key(
+        owner_secret_key_hi,
+        owner_secret_key_lo,
+    );
+    assert(owner_public_key_hi == 0);
+    assert(owner_public_key_lo == computed_owner_public_key);
+
     let computed_nullifier = derive_nullifier(
+        owner_public_key_hi,
+        owner_public_key_lo,
         note_secret_hi,
         note_secret_lo,
         note_nonce_hi,
@@ -251,9 +274,4 @@ fn main(
         note_version,
     );
     assert(computed_unshield_economic_terms_hash == unshield_economic_terms_hash);
-
-    // v0.1 assumption: owner secret ownership is still prechecked off-circuit.
-    // Reject an all-zero placeholder secret so the owner-auth witness is not a
-    // no-op while the full in-circuit key relation remains future work.
-    assert(owner_secret_key_hi + owner_secret_key_lo != 0);
 }

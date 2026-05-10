@@ -23,6 +23,7 @@ This review is now an active feedback-loop document, not only a point-in-time au
 | Private Pool v2 Shield/Send/Claim amount range | Shield, Send, and Claim raw amount witnesses are constrained as `u128`; Send also proves a private economics commitment and checks `input_amount == recipient_amount + change_amount`; Claim relayer-fee is constrained as `u128`. | `npm run private-pool-v2:shield-circuit-check`; `npm run private-pool-v2:send-circuit-check`; `npm run private-pool-v2:claim-circuit-check` |
 | Private Core tree hashing | Single-field membership paths and standard Poseidon node hashing are now guarded across send/swap/unshield. | `npm run zk:merkle-node-hash-contract-check` |
 | Private Core Send/Swap/Unshield amount range | Send, Swap, and Unshield amount limbs are now `u64` in the local Noir lanes, with negative fixtures for out-of-range witnesses. | `npm run private-core:send-check`; `npm run private-core:swap-check`; `npm run private-core:check` |
+| Private Core Unshield proof-owner binding | Unshield now binds a Poseidon proof-owner key derived from the owner secret into the proving note commitment/nullifier while preserving source-layer X25519 owner auth as an off-circuit/operator precheck. | `npm run private-core:check`; `npm run private-core:prove`; `npm run private-core:consume-check` |
 | Action memo privacy | Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers now fail closed into v2 viewing-key AEAD; v1 plaintext parsing remains only for historical chain memos. A local Send dual-AEAD scaffold can separately seal recipient/change discovery memos and expose `sha256:` ciphertext body hashes, and the Private Pool v2 Send proof-request/circuit lane now binds recipient/change body-hash limbs into the Send public-input hash. External Send remains fail-closed until recipient viewing-key exchange or view-tag/indexer discovery is wired. | `npm run actions:memo-encryption-check`; `npm run private-pool-v2:send-proof-request-check`; `npm run private-pool-v2:send-circuit-check`; `npm run private-pool-v2:public-input-hash-alignment-check` |
 | Owner recovery payload | X25519 + HKDF-SHA256 + XChaCha20-Poly1305 replaced the hand-rolled XOR/SHA path. | `npm run zk:owner-recovery-payload-crypto-check` |
 
@@ -1149,11 +1150,11 @@ There is **no Groth16 verifier**, **no Merkle root check**, **no on-chain progra
 `zk/noir/vanta_private_core_single_note_unshield/src/main.nr` exists and is more substantial than the send/swap entry circuits:
 
 - **Real Merkle membership.** `compute_root(leaf, membership_path, direction_bits) == state_root` is asserted. Good.
-- **Real nullifier derivation.** `nullifier = poseidon(note_secret, note_nonce, state_root, leaf)`. Good.
+- **Real nullifier derivation.** The original reviewed state used `nullifier = poseidon(note_secret, note_nonce, state_root, leaf)`. The current local lane now also binds the Poseidon proof-owner key into that nullifier.
 - **Leaf-index consistency check.** `compute_leaf_index(direction_bits) == leaf_index` — also good.
 - **Bound consume-context tag and economics hash** in the public inputs.
 
-But it inherits the recurring problems and adds one of its own:
+At review time it inherited the recurring problems and added one of its own:
 
 - `MERKLE_DEPTH = 3` (audit item 5 — the maximum 8 leaves per tree means no anonymity set).
 - The `(hi, lo)` sibling split that contributes nothing (audit item 9).
@@ -1166,9 +1167,11 @@ But it inherits the recurring problems and adds one of its own:
    ```
    The comment is unusually candid: *"v0.1 assumption: owner authorization remains prechecked off-circuit. Keep the witness material live in the circuit surface for the later in-circuit owner-auth upgrade."*
 
-   So the circuit takes `owner_secret_key_hi/lo` as a witness, **does nothing with it**, and explicitly defers ownership authorization to the operator's wallet-signature check. As a result: **the circuit does not prove note ownership.** A prover who has sniffed someone else's note material (e.g., from chain memos) can construct a perfectly valid unshield proof for that note. Note ownership is enforced exclusively by `intent.requester == intent.owner` plus the Ed25519 signature in the intent — both off-chain, both at the operator's discretion.
+   So the reviewed circuit took `owner_secret_key_hi/lo` as a witness, **did nothing with it**, and explicitly deferred ownership authorization to the operator's wallet-signature check. As a result, that reviewed version **did not prove note ownership.**
 
-The circuit is also not wired into the live unshield path. The release-receipt's `proofStatus: "not-provided-..."` makes that explicit. Even though the circuit exists and produces fixtures, the operator's `/unshield` endpoint never calls a Noir verifier or a Groth16 verifier. The Noir code is decoration.
+**Codex status, 2026-05-10:** locally remediated for the current Unshield proving lane. `vanta_private_core_single_note_unshield` now derives `owner_public_key_lo = poseidon2(owner_secret_key_hi, owner_secret_key_lo)`, requires `owner_public_key_hi = 0`, binds that proof-owner key into the proving note commitment and nullifier, and adds an `invalid-owner-secret` fixture that fails at the owner-key assertion. The app/operator witness path preserves the source X25519 owner key separately as `source_owner_public_key_*` and continues to precheck the X25519 source-owner relation off-circuit. Residual caveat: this is a Poseidon proof-owner binding, not an in-circuit proof of X25519 ownership; strict no-witness production owner authorization and on-chain release enforcement remain open.
+
+The reviewed circuit was also not wired into the legacy/operator-direct `/unshield` path. The release-receipt's historical `proofStatus: "not-provided-..."` made that explicit. The current Private Core proof lane now has `/private-core/unshield-proof` and proof-backed consume checks; the remaining warning is narrower: the legacy direct `/unshield` custody/release path must not be described as the same thing as the Private Core verified proof lane.
 
 ## The "transition-authorized" path
 
@@ -1245,7 +1248,7 @@ Replace `vanta_private_core_single_note_unshield/src/main.nr` with a circuit tha
 Notes:
 
 - **Drop `MERKLE_DEPTH = 3` for 20.** Drop the hi/lo sibling split. Drop the direction bit in the node hash (audit items 5, 9, 10).
-- **Delete the `owner_auth_placeholder` line.** Replace it with constraint #6 above. This is the single most important change in this circuit — it converts ownership from "operator trusts the wallet signature" to "the proof demonstrates knowledge of the spending secret that defines this note."
+- **Delete the `owner_auth_placeholder` line.** Locally done for the current proving lane with a Poseidon proof-owner key relation. The remaining Target A version still needs the final source/key-model decision and on-chain verifier/release enforcement.
 - **Full-note exit only.** A note must be unshielded in full. Partial exits route through the send circuit first to split into (exit-portion, change-portion), then unshield the exit-portion. This mirrors UTXO design and keeps the unshield circuit minimal.
 - **Bind `exit_destination` into public inputs.** The destination is part of the proof statement so it can't be swapped after the fact by anyone (operator, MEV bot, indexer). The on-chain program will read the destination from instruction data and check the proof's public-input hash includes it.
 
@@ -1334,8 +1337,8 @@ Effort: 3–5 days. The bulk of the work is rewriting `operator/unshield-server.
 
 ## Where the existing code helps
 
-- `src/zk/vantaPrivateCoreUnshieldProof.ts` — extensive field encoding, identical pattern to the send proof. The encoding is fine; what's missing is a real prover and verifier. Survives U1 with minor edits.
-- `vanta_private_core_single_note_unshield/src/main.nr` — about 80% of the circuit is correct. Delete the dead `owner_auth_placeholder` line, add ownership constraint #6, fix Merkle depth and node hash, and you're done.
+- `src/zk/vantaPrivateCoreUnshieldProof.ts` — extensive field encoding, identical pattern to the send proof. The current local branch now keeps source X25519 owner-key metadata separate from the Poseidon proof-owner key used by the Noir lane.
+- `vanta_private_core_single_note_unshield/src/main.nr` — the local branch has deleted the dead `owner_auth_placeholder`, added the proof-owner key relation, fixed depth to 20, and uses standard Poseidon node hashing. Remaining Target A work is on-chain verifier/release enforcement and the final source-owner key model.
 - `operator/release-record-store.mjs` — stays useful as an audit/metrics log, just stops being a security boundary.
 - The `proofStatus: "not-provided"` field in the release receipt — KEEP this. After Target A, set it to `groth16-bn254-verified-onchain` or similar; clients can refuse anything other than the verified value. The fact that the field exists with self-disclaiming defaults is actually good practice that should survive.
 
@@ -2322,6 +2325,19 @@ This local slice closes the proof/public-input half of the nineteenth Send dual-
 Verification in this slice: `npm run private-pool-v2:send-proof-request-check`, `npm run private-pool-v2:public-input-hash-alignment-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:send-prove`, `npm run private-pool-v2:local-runtime-check`, `npm run private-pool-v2:restart-check`, and `npm run private-pool-v2:protocol-client-check` passed locally before the broader truth/docs gates.
 
 Still open after this twenty-first local pass: recipient viewing-key exchange or view-tag/indexer discovery is not wired; exact body-hash production handoff to a deployed memo/indexer surface is not live; historical v1 plaintext chain-history migration remains open; signer/timing and two-output structure remain public; operator/status surfaces still see transition/proof metadata; on-chain proof verification/verifying-key enforcement remains unwired; the SBF binary still needs rebuild; and no live deployment or audit evidence was refreshed.
+
+### Twenty-second Codex feedback loop - Unshield proof-owner binding
+
+- Replaced the Unshield circuit's owner-auth placeholder/liveness shape with a Poseidon proof-owner key relation: `owner_public_key_lo = poseidon2(owner_secret_key_hi, owner_secret_key_lo)` with `owner_public_key_hi = 0`.
+- Bound the proof-owner key into the Unshield proving note commitment and nullifier so changing the owner secret breaks the proof lane instead of remaining a no-op witness.
+- Preserved the source-layer X25519 owner public key as required separate witness-package metadata for app/operator source consistency checks; this keeps the current payload/source identity model honest without claiming Noir proves X25519.
+- Kept `ownerAuthorizationMode = x25519-secret-prechecked-off-circuit` for source/operator status and added `provingOwnerKeyMode = poseidon-proof-owner-key-v0` for the Noir proof-owner relation, avoiding a contract-string fork where one field means two things.
+- Added an `invalid-owner-secret` Noir fixture and extended `npm run private-core:check` plus `npm run zk:circuit-soundness-lint` coverage so owner-auth placeholders and nonzero-secret liveness regressions fail closed.
+- Repaired stale Private Core roundtrip/restart harness requests that still asked the depth-20 Unshield circuit to prove 3-sibling witnesses, then guarded `circuitMerkleDepth: 3` from reappearing in Private Core harnesses.
+
+Verification passed locally for this slice: `npm run private-core:check`, `npm run private-core:prove`, `npm run private-core:consume-check`, `npm run private-core:operator-no-witness-check`, `npm run private-core:contract-smoke`, `npm run private-core:http-smoke`, `npm run private-core:privacy-boundary-check`, `npm run private-core:unshield-committed-settlement-check`, `npm run private-core:economic-leak-check`, `npm run docs:source-of-truth-check`, `npm run security:limitations-check`, `npm run build`, `npm run zk:review-guards-check`, `npm run private-core:send-roundtrip-check`, full `npm run private-core:verify`, and `git diff --check`.
+
+Still open after this twenty-second local pass: source-layer X25519 ownership is still prechecked outside Noir, strict no-witness owner-authorization artifacts remain blocked, on-chain proof verification and PDA/program-owned release enforcement are not wired, no audit has accepted the boundary, and no live deployment evidence was refreshed.
 
 ---
 

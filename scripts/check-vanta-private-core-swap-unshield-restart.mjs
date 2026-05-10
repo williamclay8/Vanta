@@ -246,7 +246,7 @@ const transition = privateCore.buildVantaPrivateCoreSwapTransition({
 const swapBoundary = swapProof.buildVantaPrivateCoreSwapProofBoundary({
   transition,
   senderSecretKey: sender.secretKey,
-  circuitMerkleDepth: 3,
+  circuitMerkleDepth: 20,
   requireNontrivialMerklePath: true,
 });
 
@@ -267,7 +267,7 @@ try {
     heldNote: heldInput,
     ownerSecretKey: sender.secretKey,
     releaseDestination,
-    circuitMerkleDepth: 3,
+    circuitMerkleDepth: 20,
     requireNontrivialMerklePath: true,
   });
   const inputSourceArtifacts = privateCore.deriveVantaPrivateCoreSourceArtifactsFromHeldNote(heldInput);
@@ -309,7 +309,7 @@ try {
     heldNote: heldOutput,
     ownerSecretKey: recipient.secretKey,
     releaseDestination,
-    circuitMerkleDepth: 3,
+    circuitMerkleDepth: 20,
     requireNontrivialMerklePath: true,
   });
   const outputSourceArtifacts = privateCore.deriveVantaPrivateCoreSourceArtifactsFromHeldNote(heldOutput);

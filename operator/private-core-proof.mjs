@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { Barretenberg, UltraHonkBackend } from "@aztec/bb.js";
 import { x25519 } from "@noble/curves/ed25519.js";
 import { sha256 } from "@noble/hashes/sha2.js";
-import { poseidon8 } from "poseidon-lite";
+import { poseidon2, poseidon8 } from "poseidon-lite";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
@@ -910,9 +910,15 @@ function assertWitnessPackagePublicInputConsistency(witnessPackage) {
     throw new Error("Private-core witness package is missing source public inputs.");
   }
   const privateWitness = witnessPackage.privateWitness;
-  const ownerPublicKey = decodeBytes32FromTwoU128Be(
-    privateWitness.owner_public_key_hi,
-    privateWitness.owner_public_key_lo,
+  if (
+    privateWitness.source_owner_public_key_hi === undefined ||
+    privateWitness.source_owner_public_key_lo === undefined
+  ) {
+    throw new Error("Private-core witness package is missing source owner public key metadata.");
+  }
+  const sourceOwnerPublicKey = decodeBytes32FromTwoU128Be(
+    privateWitness.source_owner_public_key_hi,
+    privateWitness.source_owner_public_key_lo,
   );
   const ownerSecretKey = decodeBytes32FromTwoU128Be(
     privateWitness.owner_secret_key_hi,
@@ -920,8 +926,19 @@ function assertWitnessPackagePublicInputConsistency(witnessPackage) {
   );
   const derivedOwnerPublicKey = deriveX25519PublicKey(ownerSecretKey);
 
-  if (ownerPublicKey !== derivedOwnerPublicKey) {
+  if (sourceOwnerPublicKey !== derivedOwnerPublicKey) {
     throw new Error("Private-core witness package owner secret does not derive the note owner public key.");
+  }
+
+  const proofOwnerPublicKey = poseidon2([
+    BigInt(privateWitness.owner_secret_key_hi),
+    BigInt(privateWitness.owner_secret_key_lo),
+  ]).toString(10);
+  if (
+    String(privateWitness.owner_public_key_hi) !== "0" ||
+    String(privateWitness.owner_public_key_lo) !== proofOwnerPublicKey
+  ) {
+    throw new Error("Private-core witness package owner secret does not derive the proving owner public key.");
   }
 
   const decodedReleaseDestination = decodeBytes32FromTwoU128Be(
@@ -1318,6 +1335,12 @@ function deriveSourceNoteCommitmentFromWitnessPackage(witnessPackage) {
   const sourcePublicInputs = witnessPackage.sourcePublicInputs;
   const publicInputs = witnessPackage.publicInputs;
   const privateWitness = witnessPackage.privateWitness;
+  if (
+    privateWitness.source_owner_public_key_hi === undefined ||
+    privateWitness.source_owner_public_key_lo === undefined
+  ) {
+    throw new Error("Private-core witness package is missing source owner public key metadata.");
+  }
 
   const encodedNote = concatBytes(
     encodeDomain("vanta.private-core.note.v0"),
@@ -1327,8 +1350,8 @@ function deriveSourceNoteCommitmentFromWitnessPackage(witnessPackage) {
     encodeU128(BigInt(String(sourcePublicInputs.amount))),
     hexToBytes(
       decodeBytes32FromTwoU128Be(
-        privateWitness.owner_public_key_hi,
-        privateWitness.owner_public_key_lo,
+        privateWitness.source_owner_public_key_hi,
+        privateWitness.source_owner_public_key_lo,
       ),
     ),
     hexToBytes(decodeBytes32FromTwoU128Be(privateWitness.note_nonce_hi, privateWitness.note_nonce_lo)),

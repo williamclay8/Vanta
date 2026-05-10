@@ -51,10 +51,16 @@ The repo now also freezes the current nullifier-key decision explicitly:
 That means:
 - the app or operator path may recompute the owner public key from the supplied secret material
 - the first Noir unshield circuit does not need to prove X25519 ownership in-circuit
+- the current Unshield proof lane may separately bind a Poseidon proof-owner key derived from the owner secret
 
 This is acceptable for `v1` only if:
 - the assumption is stated explicitly in product and protocol docs
 - the implementation does not imply stronger proof guarantees than it actually provides
+
+Current Unshield nuance:
+- source-layer owner identity remains `x25519-secret-prechecked-off-circuit`
+- the Noir proving lane now derives and constrains a Poseidon proof-owner key from the supplied owner secret
+- this is a real proof-owner binding for the proving note, but not an in-circuit proof that the X25519 source owner key was derived inside Noir
 
 This should be treated as:
 - an allowed `v1` limitation
@@ -117,7 +123,7 @@ Those are necessary, but still not sufficient, for product `v1`.
 
 The following do not need to be finished before the narrowest plausible `zk v1`:
 
-- in-circuit owner authorization
+- full source-layer owner authorization inside Noir
 - multi-note proofs
 - joins and splits
 - private swap
@@ -132,7 +138,7 @@ These remain valid follow-up targets.
 
 Before `zk v1` is called finished, the repo and docs should not be ambiguous about:
 
-- whether owner auth is off-circuit or in-circuit
+- whether source-layer owner auth is off-circuit and whether a lane also has a proof-owner key binding
 - whether proof verification is modeled or real
 - whether root validity/currentness is modeled or real
 - whether nullifier uniqueness is enforced in the real consume path

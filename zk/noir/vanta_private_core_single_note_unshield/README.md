@@ -4,7 +4,7 @@
 
 - `MERKLE_DEPTH = 20`
 - proving lane: `poseidon-bn254-proving-lane-v0`
-- owner authorization: prechecked off-circuit
+- owner authorization: source-layer X25519 prechecked off-circuit; Noir proof lane binds a Poseidon proof-owner key
 
 ## Deterministic fixture source
 
@@ -48,6 +48,7 @@ This command:
 - runs `nargo check`
 - verifies the valid proving path succeeds
 - verifies the invalid-direction witness fails
+- verifies the invalid-owner-secret witness fails against the proof-owner key constraint
 - restores the repo to the valid fixture state
 
 4. Run the canonical local proof-generation command when you want one real proof and verification pass for the current lane:
@@ -150,5 +151,7 @@ nargo execute
 
 This circuit path now uses a real Poseidon-based proving lane for the Noir boundary.
 It is still a narrow v0.1 path, but it is no longer using the earlier additive placeholder hash lane.
+The owner witness is no longer a liveness placeholder: the circuit derives the proof-owner key from the owner secret and binds that key into the proving note commitment and nullifier.
+The source note owner key remains X25519 and is still prechecked outside Noir, so do not describe this lane as proving X25519 ownership in-circuit.
 
 The new proof-generation command is a real local proving path, but it is not yet the same thing as product-path proof generation and verification inside the live app or operator flow.

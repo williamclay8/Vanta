@@ -4,7 +4,6 @@ import {
   poseidon1,
   poseidon15,
   poseidon2,
-  poseidon6,
   poseidon8,
 } from "poseidon-lite";
 import {
@@ -38,6 +37,8 @@ export const VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_V0 =
 export const VANTA_PRIVATE_CORE_UNSHIELD_BACKEND_V0 = "noir-barretenberg" as const;
 export const VANTA_PRIVATE_CORE_UNSHIELD_OWNER_AUTH_MODE_V0 =
   "x25519-secret-prechecked-off-circuit" as const;
+export const VANTA_PRIVATE_CORE_UNSHIELD_PROOF_OWNER_KEY_MODE_V0 =
+  "poseidon-proof-owner-key-v0" as const;
 export const VANTA_PRIVATE_CORE_NULLIFIER_KEY_MODE_V0 =
   "note-secret-as-nullifier-key-v0" as const;
 export const VANTA_PRIVATE_CORE_BYTES32_ENCODING_V0 = "bytes32-2x128-be" as const;
@@ -137,6 +138,7 @@ export type VantaPrivateCoreNoirUnshieldWitnessPackageV0 = {
   proofVersion: typeof VANTA_PRIVATE_CORE_UNSHIELD_PROOF_VERSION_V0;
   merkleDepth: typeof VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_MERKLE_DEPTH_V0;
   provingHashLane: typeof VANTA_PRIVATE_CORE_UNSHIELD_PROVING_HASH_LANE_V0;
+  provingOwnerKeyMode: typeof VANTA_PRIVATE_CORE_UNSHIELD_PROOF_OWNER_KEY_MODE_V0;
   provingTreeContract: typeof VANTA_PRIVATE_CORE_UNSHIELD_PROVING_TREE_CONTRACT_V0;
   sourcePublicInputContract: typeof VANTA_PRIVATE_CORE_UNSHIELD_SOURCE_PUBLIC_INPUT_CONTRACT_V0;
   consumeContextTagContract: typeof VANTA_PRIVATE_CORE_UNSHIELD_CONSUME_CONTEXT_TAG_CONTRACT_V0;
@@ -157,6 +159,8 @@ export type VantaPrivateCoreNoirUnshieldWitnessPackageV0 = {
     amount_lo: FieldDecimalString;
     amount_hi: FieldDecimalString;
     note_type_code: FieldDecimalString;
+    source_owner_public_key_hi: FieldDecimalString;
+    source_owner_public_key_lo: FieldDecimalString;
     owner_public_key_hi: FieldDecimalString;
     owner_public_key_lo: FieldDecimalString;
     owner_secret_key_hi: FieldDecimalString;
@@ -232,6 +236,7 @@ export type VantaPrivateCoreProofBoundaryConfigurationSummaryV0 = {
   backend: typeof VANTA_PRIVATE_CORE_UNSHIELD_BACKEND_V0;
   merkleDepth: typeof VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_MERKLE_DEPTH_V0;
   provingHashLane: typeof VANTA_PRIVATE_CORE_UNSHIELD_PROVING_HASH_LANE_V0;
+  provingOwnerKeyMode: typeof VANTA_PRIVATE_CORE_UNSHIELD_PROOF_OWNER_KEY_MODE_V0;
   ownerAuthorizationMode: typeof VANTA_PRIVATE_CORE_UNSHIELD_OWNER_AUTH_MODE_V0;
   nullifierKeyMode: typeof VANTA_PRIVATE_CORE_NULLIFIER_KEY_MODE_V0;
 };
@@ -290,12 +295,19 @@ export function buildVantaPrivateCoreUnshieldProofBoundary(
     args.heldNote.witness.proof,
     selectedCircuitDepth,
   );
-  const provingNoteCommitment = derivePoseidonNoteCommitmentField(noteFieldEncoding);
+  const ownerSecretKeyEncoding = encodeBytes32ToTwoU128Be(args.ownerSecretKey);
+  const provingOwnerPublicKey = derivePoseidonOwnerPublicKeyEncoding(ownerSecretKeyEncoding);
+  const provingNoteFieldEncoding = {
+    ...noteFieldEncoding,
+    ownerPublicKey: provingOwnerPublicKey,
+  };
+  const provingNoteCommitment = derivePoseidonNoteCommitmentField(provingNoteFieldEncoding);
   const provingMerkleLeaf = derivePoseidonMerkleLeafField(provingNoteCommitment);
   const provingStateRoot = derivePoseidonMerkleRootField(provingMerkleLeaf, merklePathEncoding);
   const provingNullifier = derivePoseidonNullifierField(
-    noteFieldEncoding.noteSecret,
-    noteFieldEncoding.noteNonce,
+    provingNoteFieldEncoding.ownerPublicKey,
+    provingNoteFieldEncoding.noteSecret,
+    provingNoteFieldEncoding.noteNonce,
     provingStateRoot,
     provingMerkleLeaf,
   );
@@ -363,7 +375,7 @@ export function buildVantaPrivateCoreUnshieldProofBoundary(
       "Current app-side note commitment, Merkle leaf, Merkle node, and nullifier derivations use SHA-256 semantics.",
       "The public consumeContextTag is intentionally the Poseidon proving-lane field encoded as a 32-byte hex tag; it is not the legacy SHA-derived source consume context.",
       "The Noir Merkle root uses a v0 Poseidon proving-tree contract with projected source siblings and standard left/right parent hashing.",
-      "Current owner authorization is only prechecked off-circuit by recomputing the X25519 public key from the supplied secret key.",
+      "The source-layer owner key remains X25519-prechecked for payload compatibility; the Noir proving lane now binds a Poseidon proof-owner key derived from the supplied owner secret.",
       "Current nullifier witness uses noteSecret directly as the v0.1 nullifier key witness.",
     ],
     publicInputs,
@@ -378,15 +390,23 @@ export function createVantaPrivateCoreNoirUnshieldWitnessPackage(args: {
 }): VantaPrivateCoreNoirUnshieldWitnessPackageV0 {
   const releaseDestinationEncoding = encodeBytes32ToTwoU128Be(args.publicInputs.releaseDestination);
   const assetEncoding = encodeBytes32ToTwoU128Be(args.publicInputs.assetId);
-  const commitmentField = derivePoseidonNoteCommitmentField(args.privateWitness.noteFieldEncoding);
+  const sourceOwnerPublicKey = args.privateWitness.noteFieldEncoding.ownerPublicKey;
+  const ownerSecretKeyEncoding = encodeBytes32ToTwoU128Be(args.privateWitness.ownerSecretKey);
+  const provingOwnerPublicKey = derivePoseidonOwnerPublicKeyEncoding(ownerSecretKeyEncoding);
+  const provingNoteFieldEncoding = {
+    ...args.privateWitness.noteFieldEncoding,
+    ownerPublicKey: provingOwnerPublicKey,
+  };
+  const commitmentField = derivePoseidonNoteCommitmentField(provingNoteFieldEncoding);
   const merkleLeafField = derivePoseidonMerkleLeafField(commitmentField);
   const stateRootField = derivePoseidonMerkleRootField(
     merkleLeafField,
     args.privateWitness.merklePathEncoding,
   );
   const nullifierField = derivePoseidonNullifierField(
-    args.privateWitness.noteFieldEncoding.noteSecret,
-    args.privateWitness.noteFieldEncoding.noteNonce,
+    provingNoteFieldEncoding.ownerPublicKey,
+    provingNoteFieldEncoding.noteSecret,
+    provingNoteFieldEncoding.noteNonce,
     stateRootField,
     merkleLeafField,
   );
@@ -420,6 +440,7 @@ export function createVantaPrivateCoreNoirUnshieldWitnessPackage(args: {
     proofVersion: VANTA_PRIVATE_CORE_UNSHIELD_PROOF_VERSION_V0,
     merkleDepth: VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_MERKLE_DEPTH_V0,
     provingHashLane: VANTA_PRIVATE_CORE_UNSHIELD_PROVING_HASH_LANE_V0,
+    provingOwnerKeyMode: VANTA_PRIVATE_CORE_UNSHIELD_PROOF_OWNER_KEY_MODE_V0,
     provingTreeContract: VANTA_PRIVATE_CORE_UNSHIELD_PROVING_TREE_CONTRACT_V0,
     sourcePublicInputContract: VANTA_PRIVATE_CORE_UNSHIELD_SOURCE_PUBLIC_INPUT_CONTRACT_V0,
     consumeContextTagContract: VANTA_PRIVATE_CORE_UNSHIELD_CONSUME_CONTEXT_TAG_CONTRACT_V0,
@@ -440,10 +461,12 @@ export function createVantaPrivateCoreNoirUnshieldWitnessPackage(args: {
       amount_lo: args.privateWitness.noteFieldEncoding.amount.lo,
       amount_hi: args.privateWitness.noteFieldEncoding.amount.hi,
       note_type_code: args.privateWitness.noteFieldEncoding.noteTypeCode,
-      owner_public_key_hi: args.privateWitness.noteFieldEncoding.ownerPublicKey.hi,
-      owner_public_key_lo: args.privateWitness.noteFieldEncoding.ownerPublicKey.lo,
-      owner_secret_key_hi: encodeBytes32ToTwoU128Be(args.privateWitness.ownerSecretKey).hi,
-      owner_secret_key_lo: encodeBytes32ToTwoU128Be(args.privateWitness.ownerSecretKey).lo,
+      source_owner_public_key_hi: sourceOwnerPublicKey.hi,
+      source_owner_public_key_lo: sourceOwnerPublicKey.lo,
+      owner_public_key_hi: provingOwnerPublicKey.hi,
+      owner_public_key_lo: provingOwnerPublicKey.lo,
+      owner_secret_key_hi: ownerSecretKeyEncoding.hi,
+      owner_secret_key_lo: ownerSecretKeyEncoding.lo,
       note_nonce_hi: args.privateWitness.noteFieldEncoding.noteNonce.hi,
       note_nonce_lo: args.privateWitness.noteFieldEncoding.noteNonce.lo,
       note_secret_hi: args.privateWitness.noteFieldEncoding.noteSecret.hi,
@@ -464,8 +487,8 @@ export function createVantaPrivateCoreNoirUnshieldWitnessPackage(args: {
 export function deriveVantaPrivateCoreProvingArtifactsFromBoundary(
   boundary: VantaPrivateCoreUnshieldProofBoundaryV0,
 ): VantaPrivateCoreProvingArtifactBundleV0 {
-  const provingNoteCommitment = derivePoseidonNoteCommitmentField(
-    boundary.privateWitness.noteFieldEncoding,
+  const provingNoteCommitment = derivePoseidonNoteCommitmentFieldFromNoirWitness(
+    boundary.noirWitnessPackage,
   );
   const provingMerkleLeaf = derivePoseidonMerkleLeafField(provingNoteCommitment);
 
@@ -547,6 +570,7 @@ export function summarizeVantaPrivateCoreProofBoundaryConfiguration(
     backend: boundary.backend,
     merkleDepth: boundary.noirWitnessPackage.merkleDepth,
     provingHashLane: boundary.noirWitnessPackage.provingHashLane,
+    provingOwnerKeyMode: boundary.noirWitnessPackage.provingOwnerKeyMode,
     ownerAuthorizationMode: boundary.privateWitness.ownerAuthorizationMode,
     nullifierKeyMode: boundary.privateWitness.nullifierKeyMode,
   };
@@ -914,13 +938,80 @@ function deriveMerkleSiblingField(sibling: Bytes32EncodingV0): FieldDecimalStrin
   return poseidon2([BigInt(sibling.hi), BigInt(sibling.lo)]).toString(10);
 }
 
+function derivePoseidonOwnerPublicKeyEncoding(
+  ownerSecretKey: Bytes32EncodingV0,
+): Bytes32EncodingV0 {
+  return {
+    encoding: VANTA_PRIVATE_CORE_BYTES32_ENCODING_V0,
+    sourceHex: zeroHex32(),
+    hi: "0",
+    lo: poseidon2([BigInt(ownerSecretKey.hi), BigInt(ownerSecretKey.lo)]).toString(10),
+  };
+}
+
+function derivePoseidonNoteCommitmentFieldFromNoirWitness(
+  witnessPackage: VantaPrivateCoreNoirUnshieldWitnessPackageV0,
+): FieldDecimalString {
+  const privateWitness = witnessPackage.privateWitness;
+  const noteFieldEncoding = {
+    noteVersion: witnessPackage.publicInputs.note_version,
+    noteTypeCode: privateWitness.note_type_code,
+    assetId: {
+      encoding: VANTA_PRIVATE_CORE_BYTES32_ENCODING_V0,
+      sourceHex: zeroHex32(),
+      hi: privateWitness.asset_id_hi,
+      lo: privateWitness.asset_id_lo,
+    },
+    amount: {
+      encoding: VANTA_PRIVATE_CORE_AMOUNT_ENCODING_V0,
+      sourceDecimal: "0",
+      lo: privateWitness.amount_lo,
+      hi: privateWitness.amount_hi,
+    },
+    ownerPublicKey: {
+      encoding: VANTA_PRIVATE_CORE_BYTES32_ENCODING_V0,
+      sourceHex: zeroHex32(),
+      hi: privateWitness.owner_public_key_hi,
+      lo: privateWitness.owner_public_key_lo,
+    },
+    noteNonce: {
+      encoding: VANTA_PRIVATE_CORE_BYTES32_ENCODING_V0,
+      sourceHex: zeroHex32(),
+      hi: privateWitness.note_nonce_hi,
+      lo: privateWitness.note_nonce_lo,
+    },
+    noteSecret: {
+      encoding: VANTA_PRIVATE_CORE_BYTES32_ENCODING_V0,
+      sourceHex: zeroHex32(),
+      hi: privateWitness.note_secret_hi,
+      lo: privateWitness.note_secret_lo,
+    },
+    blinding: {
+      encoding: VANTA_PRIVATE_CORE_BYTES32_ENCODING_V0,
+      sourceHex: zeroHex32(),
+      hi: privateWitness.blinding_hi,
+      lo: privateWitness.blinding_lo,
+    },
+    derivationTag: {
+      encoding: VANTA_PRIVATE_CORE_BYTES32_ENCODING_V0,
+      sourceHex: zeroHex32(),
+      hi: privateWitness.derivation_tag_hi,
+      lo: privateWitness.derivation_tag_lo,
+    },
+  };
+  return derivePoseidonNoteCommitmentField(noteFieldEncoding);
+}
+
 function derivePoseidonNullifierField(
+  ownerPublicKey: Bytes32EncodingV0,
   noteSecret: Bytes32EncodingV0,
   noteNonce: Bytes32EncodingV0,
   stateRoot: FieldDecimalString,
   merkleLeafField: FieldDecimalString,
 ): FieldDecimalString {
-  return poseidon6([
+  return poseidon8([
+    BigInt(ownerPublicKey.hi),
+    BigInt(ownerPublicKey.lo),
     BigInt(noteSecret.hi),
     BigInt(noteSecret.lo),
     BigInt(noteNonce.hi),

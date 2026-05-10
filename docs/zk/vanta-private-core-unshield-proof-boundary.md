@@ -35,10 +35,11 @@ The first single-note unshield proof should establish:
 2. the note commitment recomputes correctly
 3. the note commitment maps to the Merkle leaf correctly
 4. the Merkle path yields the public `state_root`
-5. the witness package prechecks owner-side authorization off-circuit for consume
-6. the derived nullifier matches the public nullifier
-7. the public `unshield_economic_terms_hash` binds `release_destination`, `asset_id`, `amount`, and `note_version`
-8. the proof is specific to that consume action through `consume_context_tag`
+5. the witness package prechecks source-layer X25519 owner authorization off-circuit for consume
+6. the circuit derives a Poseidon proof-owner key from the owner secret and binds it into the proving note
+7. the derived nullifier matches the public nullifier
+8. the public `unshield_economic_terms_hash` binds `release_destination`, `asset_id`, `amount`, and `note_version`
+9. the proof is specific to that consume action through `consume_context_tag`
 
 ## Public Inputs
 
@@ -65,21 +66,28 @@ The first single-note unshield proof should establish:
 
 ## Current Blockers
 
-### 1. Owner authorization is not yet proven in-circuit
+### 1. Source-layer X25519 owner identity is not proven inside Noir
 
-The current boundary can precheck that the supplied X25519 secret key derives the note owner public key.
-That is honest and useful, but it is still outside the circuit.
-Strict no-witness operator mode therefore fails closed for proof-artifact consume until Vanta has a validated owner-authorization artifact.
+The current Unshield circuit no longer has a no-op owner witness.
+It derives `owner_public_key_lo = poseidon2(owner_secret_key_hi, owner_secret_key_lo)`, requires `owner_public_key_hi = 0`, and uses that proof-owner key in the proving note commitment and nullifier.
 
-### 2. Merkle depth is not yet globally frozen
+The source note owner key remains the X25519 key used by the app payloads and is still prechecked outside Noir.
+That means the circuit proves knowledge of the current Poseidon proof-owner secret, but it does not prove the X25519 source-owner relation inside Noir.
+Strict no-witness operator mode therefore still fails closed for proof-artifact consume until Vanta has a validated source-owner authorization artifact or a final spending-key model that removes the split.
 
-The current app tree is variable-depth.
-The first Groth16 circuit should pin one exact depth and reject mismatched witness depth.
+Machine-readable surfaces should keep this split explicit:
+- `ownerAuthorizationMode = x25519-secret-prechecked-off-circuit`
+- `provingOwnerKeyMode = poseidon-proof-owner-key-v0`
+
+### 2. Merkle depth is fixed for this lane, but global state is still operator-backed
+
+The current Unshield proving lane pins `MERKLE_DEPTH = 20` and rejects malformed direction bits, leaf indices, and siblings.
+The broader live state model is still operator-backed and not an on-chain shared commitment tree.
 
 ### 3. Current demo fixtures can be too trivial
 
-A one-leaf tree yields a zero-depth proof path.
-That is valid for the current app seam, but not a strong first proving fixture.
+The current fixed-depth fixture is intentionally nontrivial and includes negative cases for direction bits, leaf index, consume-context split, sibling tampering, amount range, and owner-secret mismatch.
+Future fixtures should keep adding negative cases as the boundary grows.
 
 ## Repo Artifacts
 

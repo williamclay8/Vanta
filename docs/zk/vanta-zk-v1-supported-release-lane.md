@@ -76,7 +76,8 @@ The supported release lane still keeps these assumptions explicit:
 
 - release truth is operator-backed state, not a final settlement rail
 - root validity/currentness comes from the narrow operator-backed state model
-- owner authorization remains off-circuit
+- source-layer X25519 owner authorization remains off-circuit
+- proof-owner binding is a proving-lane property, not a final release-settlement authority
 - proving-lane truth remains distinct from broader source-layer artifacts
 
 ## Not part of the supported lane
@@ -86,7 +87,7 @@ The following are still outside the supported release lane:
 - final-form settlement semantics
 - generalized release assets
 - decentralized relayer semantics
-- in-circuit owner authorization
+- full source-layer/X25519 owner authorization inside Noir
 - non-operator-backed release execution
 
 ## Practical interpretation

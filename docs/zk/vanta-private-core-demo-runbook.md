@@ -315,7 +315,8 @@ Use this framing:
 
 - this is the first real Vanta Private Core zk boundary
 - it is still narrow and single-note
-- owner auth remains off-circuit in the current v0.1 lane
+- source-layer X25519 owner auth remains off-circuit in the current v0.1 lane
+- the Unshield proof lane now binds a Poseidon proof-owner key derived from the owner secret
 - the source-layer and proving-lane split is still explicit
 - this is not the final full privacy protocol yet
 

@@ -78,6 +78,10 @@ try {
   printStatus("invalid-amount-range fixture write: PASS");
   expectExecuteFailure("invalid-amount-range");
 
+  writeFixture("invalid-owner-secret");
+  printStatus("invalid-owner-secret fixture write: PASS");
+  expectExecuteFailure("invalid-owner-secret");
+
   writeFixture("valid");
   restoredValidFixture = true;
   printStatus("fixture restore: PASS");

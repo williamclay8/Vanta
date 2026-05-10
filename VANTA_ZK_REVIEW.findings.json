@@ -28,6 +28,33 @@
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
+  "activeFeedbackLoops": [
+    {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-10-UNSHIELD-PROOF-OWNER",
+      "status": "verified-local-in-feedback-loop-commit",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#unshield-deep-dive",
+        "zk/noir/vanta_private_core_single_note_unshield/src/main.nr",
+        "src/zk/vantaPrivateCoreUnshieldProof.ts",
+        "operator/private-core-proof.mjs"
+      ],
+      "summary": "Unshield now binds a Poseidon proof-owner key derived from the owner secret into the proving note commitment and nullifier while preserving source-layer X25519 owner authorization as a separate off-circuit/operator precheck.",
+      "localVerification": [
+        "npm run private-core:check",
+        "npm run private-core:prove",
+        "npm run private-core:consume-check",
+        "npm run private-core:send-roundtrip-check",
+        "npm run private-core:verify"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the current feedback-loop slice",
+        "committed": "included in the feedback-loop commit that contains this ledger entry",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a local Poseidon proof-owner binding, not an in-circuit proof of X25519 ownership, no-witness production owner authorization, on-chain verifier enforcement, audit acceptance, or live deployment evidence."
+    }
+  ],
   "findings": [
     {
       "id": "VANTA-ZK-2026-05-09-C01",
