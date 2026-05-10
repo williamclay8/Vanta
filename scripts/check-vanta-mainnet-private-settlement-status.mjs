@@ -34,13 +34,13 @@ assert.equal(result.privacyRailCanClaimMeaningfulPrivacy, false);
 assert.equal(result.settlementReadiness, "no-real-funds-production-smoke-only");
 assert.deepEqual(result.spendProgramCompatibilityStatus, {
   version: "vanta-private-pool-v2-spend-program-compatibility-0.1",
-  status: "blocked-pre-authority-abi-evidence",
-  currentLocalAbi: "operator-authority-gated-spend-v1",
+  status: "blocked-pre-output-record-pda-abi-evidence",
+  currentLocalAbi: "output-record-pda-eight-account-spend-v1",
   reviewedMainnetEvidenceAbi: "pre-authority-gate-spend-v1",
   compatibleWithCurrentLocalAbi: false,
-  blocker: "mainnet-spend-program-evidence-pre-authority-abi-incompatible",
+  blocker: "mainnet-spend-program-evidence-pre-output-record-pda-abi-incompatible",
   requiredAction:
-    "Redeploy and reinitialize the spend program/accounts with operator authority before using the reviewed mainnet evidence for current ABI claims.",
+    "Rebuild, redeploy, and reinitialize the spend program/accounts with operator authority, root-history binding, nullifier-marker PDAs, and output-record PDAs before using reviewed mainnet evidence for current ABI claims.",
 });
 assert.equal(result.routeHealthPublicPassed, true);
 assert.equal(result.routeHealthAuthenticatedPassed, true);
@@ -158,7 +158,7 @@ const expectedMeaningfulPrivacyBlockedBy = [
   "no-independent-production-relayer-separation-review",
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
-  "mainnet-spend-program-evidence-pre-authority-abi-incompatible",
+  "mainnet-spend-program-evidence-pre-output-record-pda-abi-incompatible",
   ...(result.boundedRealFundsApprovalWindowActive ? [] : ["no-active-actual-private-settlement-approval-window"]),
 ];
 assert.deepEqual(result.meaningfulPrivacyBlockedBy, [...new Set(expectedMeaningfulPrivacyBlockedBy)]);
@@ -188,8 +188,8 @@ assert.ok(
   "Private settlement status must expose observed mainnet spend-program evidence without promoting readiness.",
 );
 assert.ok(
-  result.deploymentTruth.includes("reviewed spend-program evidence predates the current authority-gated spend ABI"),
-  "Private settlement status must disclose that reviewed spend evidence predates the authority-gated ABI.",
+  result.deploymentTruth.includes("reviewed spend-program evidence predates the current output-record PDA eight-account spend ABI"),
+  "Private settlement status must disclose that reviewed spend evidence predates the output-record PDA ABI.",
 );
 assert.ok(
   result.deploymentTruth.includes("must not be presented as live mainnet private settlement"),

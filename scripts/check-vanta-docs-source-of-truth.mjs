@@ -32,7 +32,7 @@ for (const lane of ["Shield", "Send", "Swap", "Unshield", "Strategy", "Pay"]) {
 }
 
 for (const phrase of [
-  "Last updated: 2026-05-09",
+  "Last updated: 2026-05-10",
   "productionReady",
   "Verifier present",
   "Vault custody model",
@@ -55,7 +55,7 @@ for (const phrase of [
   requirePhrase(sourceOfTruth, phrase, "docs/docs-source-of-truth.md");
 }
 
-requirePhrase(limitations, "Last validated against repo-local code: 2026-05-09", "SECURITY_LIMITATIONS.md");
+requirePhrase(limitations, "Last validated against repo-local code: 2026-05-10", "SECURITY_LIMITATIONS.md");
 requirePhrase(docsContent, "test checkout", "src/docs/docsContent.ts");
 requirePhrase(privacyModel, 'What "shielded state" means today', "docs/privacy-model.md");
 requirePhrase(canonicalNote, "Transitional Hash Surface Today", "docs/zk/canonical-note-schema.md");

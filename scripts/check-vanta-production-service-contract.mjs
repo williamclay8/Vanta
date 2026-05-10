@@ -20,6 +20,20 @@ for (const serviceId of requiredServices) {
   assert.ok(service.securityRequirements.includes("durable-storage-required"), `${serviceId} must require durable storage.`);
 }
 
+const relayer = contract.services.find((candidate) => candidate.id === "relayer");
+const operator = contract.services.find((candidate) => candidate.id === "operator");
+for (const envName of [
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID",
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE",
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET",
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE",
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY",
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY",
+]) {
+  assert.ok(relayer.requiredEnv.includes(envName), `relayer must require ${envName}.`);
+  assert.ok(operator.requiredEnv.includes(envName), `operator must require ${envName}.`);
+}
+
 assert.ok(
   contract.crossServiceRequirements.includes("mutual-service-authentication"),
   "Missing mutual service authentication requirement.",

@@ -61,6 +61,8 @@ const requiredPhrases = [
   "npm run private-pool-v2:service-network-check",
   "npm run private-pool-v2:role-storage-check",
   "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL",
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY",
+  "root-history account",
   "npm run wallet:signing-safety-check",
   "npm run wallet:transaction-safety-check",
   "npm run wallet:backed-simulation-check",

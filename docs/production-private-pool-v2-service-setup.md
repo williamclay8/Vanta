@@ -87,6 +87,7 @@ The production operator should receive these from Doppler or the approved produc
 - `VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN` from `VANTA_RELAYER_AUTH_TOKEN_REF`
 - `VANTA_PRIVATE_POOL_V2_VERIFIER_URL` from `VANTA_VERIFIER_URL_REF`
 - `VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN` from `VANTA_VERIFIER_AUTH_TOKEN_REF`
+- `VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID`, `VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE`, `VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET`, `VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE`, `VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY`, and `VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY` from the reviewed current spend-program account refs. The current local ABI is the output-record PDA eight-account spend ABI; old pre-authority or pre-output-record refs must not be reused.
 - `VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL`, `VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL`, `VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL`, and `VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL` from production database refs, never from git or chat.
 - `VANTA_PRIVATE_POOL_V2_DATABASE_URL` from a production database ref for the operator shared settlement store, never from git or chat.
 - `SOLANA_RPC_URL` from an approved production Solana RPC ref for the SOL unshield release lane.

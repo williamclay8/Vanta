@@ -52,6 +52,7 @@ const solanaSpendAccountRefs = {
   outputQueueRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE_REF",
   poolStateRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE_REF",
   programIdRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID_REF",
+  rootHistoryRef: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY_REF",
 };
 const solanaSpendRuntimeEnv = {
   authority: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY",
@@ -59,6 +60,7 @@ const solanaSpendRuntimeEnv = {
   outputQueue: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE",
   poolState: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE",
   programId: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID",
+  rootHistory: "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY",
 };
 
 function readManifestServices() {
@@ -102,6 +104,7 @@ function shellExports(refs) {
     `export ${solanaSpendRuntimeEnv.poolState}="<${solanaSpendAccountRefs.poolStateRef}>"`,
     `export ${solanaSpendRuntimeEnv.nullifierSet}="<${solanaSpendAccountRefs.nullifierSetRef}>"`,
     `export ${solanaSpendRuntimeEnv.outputQueue}="<${solanaSpendAccountRefs.outputQueueRef}>"`,
+    `export ${solanaSpendRuntimeEnv.rootHistory}="<${solanaSpendAccountRefs.rootHistoryRef}>"`,
     `export ${solanaSpendRuntimeEnv.authority}="<${solanaSpendAccountRefs.authorityRef}>"`,
     ...planRefExports,
     `export VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_JSON='<VALIDATED_PRIVATE_SETTLEMENT_PLAN_JSON>'`,

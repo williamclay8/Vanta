@@ -27,6 +27,20 @@ for (const serviceId of requiredServices) {
   );
 }
 
+const relayer = topology.services.find((candidate) => candidate.id === "relayer");
+const operator = topology.services.find((candidate) => candidate.id === "operator");
+for (const secretName of [
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID",
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE",
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET",
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE",
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY",
+  "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY",
+]) {
+  assert.ok(relayer.requiredSecrets.includes(secretName), `relayer must require ${secretName}.`);
+  assert.ok(operator.requiredSecrets.includes(secretName), `operator must require ${secretName}.`);
+}
+
 const requiredEdges = [
   ["operator", "indexer"],
   ["operator", "prover"],

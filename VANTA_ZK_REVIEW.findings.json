@@ -22,9 +22,9 @@
   ],
   "lumiBaseline": {
     "branch": "codex/vanta-zk-review-hardening",
-    "lastKnownCommit": "this output-record PDA feedback-loop commit",
-    "local": "clean after verified output-record PDA feedback-loop slice",
-    "committed": "Move spend outputs to PDA records",
+    "lastKnownCommit": "this status-surface ABI truth feedback-loop commit",
+    "local": "clean after verified status-surface ABI truth feedback-loop slice",
+    "committed": "status-surface ABI truth feedback-loop commit",
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
@@ -115,6 +115,41 @@
         "deployedLive": "not-live-verified"
       },
       "truthBoundary": "This is local performance and route-loading polish. It does not prove live deployment performance, Lighthouse budgets, real-user monitoring, CSS purging, service-worker caching, wallet-adapter production behavior, or mobile performance on physical devices."
+    },
+    {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-10-STATUS-SURFACE-ABI-TRUTH",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#codex-current-local-state---2026-05-10",
+        "src/readiness/mainnetPrivateSettlementStatus.mjs",
+        "src/readiness/productionServiceContract.mjs",
+        "src/readiness/productionServiceTopology.mjs",
+        "ops/mainnet/private-pool-v2-services.manifest.json",
+        "scripts/print-vanta-actual-private-settlement-operator-packet.mjs",
+        "docs/operator-runbook.md"
+      ],
+      "summary": "Status, readiness, service, operator-packet, setup-doc, runbook, and env-example surfaces now name the current output-record PDA eight-account spend ABI and require the root-history account ref alongside the spend program/pool/nullifier/output/authority refs.",
+      "localVerification": [
+        "npm run mainnet:private-settlement-check",
+        "npm run mainnet:readiness-check",
+        "npm run mainnet:service-contract-check",
+        "npm run mainnet:service-topology-check",
+        "npm run mainnet:deployment-manifest-check",
+        "npm run mainnet:actual-private-settlement-operator-packet-check",
+        "npm run mainnet:production-service-setup-check",
+        "npm run docs:source-of-truth-check",
+        "npm run security:limitations-check",
+        "npm run operator:runbook-check",
+        "npm run private-pool-v2:contract-check",
+        "npm run private-pool-v2:solana-spend-transaction-check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the current status-surface ABI truth feedback-loop slice",
+        "committed": "included in the status-surface ABI truth feedback-loop commit",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is local status, docs, and operator-handoff truth hardening. It does not rebuild or redeploy the SBF binary, reinitialize mainnet accounts, add on-chain proof verification, replace the operator-fed root-history scaffold, refresh live deployment evidence, or make production-private claims."
     }
   ],
   "findings": [

@@ -621,13 +621,15 @@ VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID=<private-pool-v2-program-id>
 VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE=<pool-state-account>
 VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET=<nullifier-set-account>
 VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE=<output-queue-account>
+VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY=<root-history-account>
 VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY=<operator-authority-public-key>
 ```
 
 The spend program stores `VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY`
-during init and requires that same read-only authority account to sign every
-spend evidence append. The helper only builds transaction bytes; the relayer
-must sign as that configured authority before submission.
+during init and requires that same writable authority signer plus the bound
+root-history account for every spend evidence append. The helper only builds
+transaction bytes; the relayer must sign as that configured authority before
+submission.
 
 Provide either explicit instruction bytes:
 

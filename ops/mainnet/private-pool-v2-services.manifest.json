@@ -156,6 +156,7 @@
           "poolStateRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE_REF",
           "nullifierSetRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET_REF",
           "outputQueueRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE_REF",
+          "rootHistoryRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY_REF",
           "authorityRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY_REF"
         },
         "lastVerifiedAt": "2026-04-30T03:07:57Z",
@@ -179,6 +180,7 @@
         { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY", "required": true }
       ],
       "healthChecks": ["/health", "/v1/claims/quote"],
@@ -340,6 +342,15 @@
           "relayerUrlRef": "VANTA_RELAYER_URL_REF",
           "verifierUrlRef": "VANTA_VERIFIER_URL_REF"
         },
+        "spendProgramAccountRefs": {
+          "kind": "public-solana-account-refs",
+          "programIdRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID_REF",
+          "poolStateRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE_REF",
+          "nullifierSetRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET_REF",
+          "outputQueueRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE_REF",
+          "rootHistoryRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY_REF",
+          "authorityRef": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY_REF"
+        },
         "lastVerifiedAt": "2026-04-30T03:07:10Z",
         "lastVerifiedHealthRef": "curl -fsS https://vanta-prod-private-pool-v2-operator.onrender.com/health",
         "productionReady": false,
@@ -362,6 +373,12 @@
         { "name": "VANTA_PRIVATE_POOL_V2_VERIFIER_URL", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY", "required": true },
         { "name": "VANTA_MAINNET_TOKEN_MINT", "required": true },
         { "name": "VANTA_MAINNET_VAULT_OWNER", "required": true },
         { "name": "VANTA_MAINNET_VAULT_SIGNER_SECRET_KEY", "required": true },

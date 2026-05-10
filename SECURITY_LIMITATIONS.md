@@ -1,6 +1,6 @@
 # Vanta Security Limitations
 
-Last validated against repo-local code: 2026-05-09. Live deployment evidence was not refreshed for this branch.
+Last validated against repo-local code: 2026-05-10. Live deployment evidence was not refreshed for this branch.
 
 This page says what Vanta is allowed to claim today.
 

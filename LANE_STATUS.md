@@ -1,6 +1,6 @@
 # Vanta Lane Status
 
-Last updated: 2026-05-09. This page is repo-local truth for reviewers; it is not live deployment evidence.
+Last updated: 2026-05-10. This page is repo-local truth for reviewers; it is not live deployment evidence.
 
 | Lane | Current target | trust-contract `productionReady` | Verifier present | Vault custody model | Claim-controls flags | Reviewer command |
 | --- | --- | --- | --- | --- | --- | --- |
