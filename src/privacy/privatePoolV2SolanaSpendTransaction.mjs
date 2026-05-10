@@ -7,7 +7,7 @@ import {
 } from "@solana/web3.js";
 
 export const VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_TRANSACTION_VERSION =
-  "vanta-private-pool-v2-solana-spend-transaction-0.2";
+  "vanta-private-pool-v2-solana-spend-transaction-0.3";
 export const VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_MAX_SERIALIZED_TRANSACTION_BYTES = 1232;
 
 export const SOLANA_MEMO_PROGRAM_ID = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
@@ -15,6 +15,7 @@ const SPEND_INSTRUCTION_TAG = 1;
 const SPEND_INSTRUCTION_LEN = 161;
 const HASH_LEN = 32;
 const NULLIFIER_MARKER_SEED = Buffer.from("vanta2nul", "utf8");
+const OUTPUT_RECORD_SEED = Buffer.from("vanta2out", "utf8");
 
 const forbiddenPublicSpendTerms = [
   "amount",
@@ -123,6 +124,13 @@ function deriveNullifierMarkerPubkey({ programId, poolState, nullifier }) {
   )[0];
 }
 
+function deriveOutputRecordPubkey({ programId, poolState, publicInputHash }) {
+  return PublicKey.findProgramAddressSync(
+    [OUTPUT_RECORD_SEED, poolState.toBuffer(), Buffer.from(publicInputHash)],
+    programId,
+  )[0];
+}
+
 export function deriveVantaPrivatePoolV2NullifierMarkerAddress(input = {}) {
   const programId = requirePublicKey(input.programId, "programId");
   const poolState = requirePublicKey(input.poolState, "poolState");
@@ -138,6 +146,23 @@ export function deriveVantaPrivatePoolV2NullifierMarkerAddress(input = {}) {
     throw new Error("Vanta Private Pool v2 Solana spend transaction requires a 32-byte nullifier.");
   }
   return deriveNullifierMarkerPubkey({ programId, poolState, nullifier }).toBase58();
+}
+
+export function deriveVantaPrivatePoolV2OutputRecordAddress(input = {}) {
+  const programId = requirePublicKey(input.programId, "programId");
+  const poolState = requirePublicKey(input.poolState, "poolState");
+  let publicInputHash;
+  if (input.instructionDataBase64) {
+    const data = requireBase64Bytes(input.instructionDataBase64, "instructionDataBase64");
+    requireSpendInstructionData(data);
+    publicInputHash = spendPublicInputHashBytes(data);
+  } else {
+    publicInputHash = requireHex32(input.publicInputHashHex, "publicInputHashHex");
+  }
+  if (publicInputHash.length !== HASH_LEN) {
+    throw new Error("Vanta Private Pool v2 Solana spend transaction requires a 32-byte public input hash.");
+  }
+  return deriveOutputRecordPubkey({ programId, poolState, publicInputHash }).toBase58();
 }
 
 function assertNotMemoProgram(programId) {
@@ -172,9 +197,9 @@ function normalizeAccountMeta(account, index) {
 }
 
 function assertSpendProgramAccountLayout(accounts, data, programId) {
-  if (accounts.length !== 7) {
+  if (accounts.length !== 8) {
     throw new Error(
-      "Vanta Private Pool v2 Solana spend transaction requires exactly 7 spend accounts: pool, nullifier set, output queue, root history, nullifier marker, operator authority, and system program.",
+      "Vanta Private Pool v2 Solana spend transaction requires exactly 8 spend accounts: pool, nullifier set, output index, root history, nullifier marker, output record PDA, operator authority, and system program.",
     );
   }
   if (!accounts[0].isWritable || accounts[0].isSigner) {
@@ -186,7 +211,7 @@ function assertSpendProgramAccountLayout(accounts, data, programId) {
     );
   }
   if (!accounts[2].isWritable || accounts[2].isSigner) {
-    throw new Error("Vanta Private Pool v2 Solana spend transaction requires accounts[2] to be the writable output queue.");
+    throw new Error("Vanta Private Pool v2 Solana spend transaction requires accounts[2] to be the writable output index.");
   }
   if (accounts[3].isSigner || accounts[3].isWritable) {
     throw new Error(
@@ -208,14 +233,29 @@ function assertSpendProgramAccountLayout(accounts, data, programId) {
       "Vanta Private Pool v2 Solana spend transaction requires accounts[4] to match the spend nullifier PDA marker.",
     );
   }
-  if (!accounts[5].isSigner || !accounts[5].isWritable) {
+  if (!accounts[5].isWritable || accounts[5].isSigner) {
     throw new Error(
-      "Vanta Private Pool v2 Solana spend transaction requires accounts[5] to be the writable operator authority signer.",
+      "Vanta Private Pool v2 Solana spend transaction requires accounts[5] to be the writable output record PDA.",
     );
   }
-  if (accounts[6].isSigner || accounts[6].isWritable || !accounts[6].pubkey.equals(SystemProgram.programId)) {
+  const expectedOutputRecord = deriveOutputRecordPubkey({
+    poolState: accounts[0].pubkey,
+    programId,
+    publicInputHash: spendPublicInputHashBytes(data),
+  });
+  if (!accounts[5].pubkey.equals(expectedOutputRecord)) {
     throw new Error(
-      "Vanta Private Pool v2 Solana spend transaction requires accounts[6] to be the read-only System Program.",
+      "Vanta Private Pool v2 Solana spend transaction requires accounts[5] to match the spend output record PDA.",
+    );
+  }
+  if (!accounts[6].isSigner || !accounts[6].isWritable) {
+    throw new Error(
+      "Vanta Private Pool v2 Solana spend transaction requires accounts[6] to be the writable operator authority signer.",
+    );
+  }
+  if (accounts[7].isSigner || accounts[7].isWritable || !accounts[7].pubkey.equals(SystemProgram.programId)) {
+    throw new Error(
+      "Vanta Private Pool v2 Solana spend transaction requires accounts[7] to be the read-only System Program.",
     );
   }
 }
@@ -275,6 +315,7 @@ function assertExpectedAccountsComplete(expectedAccounts = {}) {
     "poolState",
     "nullifierSet",
     "nullifierMarker",
+    "outputRecord",
     "outputQueue",
     "rootHistory",
   ].filter((field) => !expectedAccounts[field]);
@@ -341,6 +382,11 @@ export function validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransactio
   );
   assertPublicKeyMatches(
     accounts[5].pubkey,
+    expectedAccounts.outputRecord,
+    "expectedAccounts.outputRecord",
+  );
+  assertPublicKeyMatches(
+    accounts[6].pubkey,
     expectedAccounts.operatorAuthority ?? expectedAccounts.relayerFeePayer,
     "expectedAccounts.operatorAuthority",
   );
@@ -350,7 +396,7 @@ export function validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransactio
     "expectedAccounts.relayerFeePayer",
   );
   assertPublicKeyMatches(
-    accounts[6].pubkey,
+    accounts[7].pubkey,
     expectedAccounts.systemProgram ?? SystemProgram.programId.toBase58(),
     "expectedAccounts.systemProgram",
   );
@@ -401,6 +447,7 @@ export function validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransactio
       bytesToHex32(spendOutput0Bytes(data)),
       bytesToHex32(spendOutput1Bytes(data)),
     ],
+    outputRecord: accounts[5].pubkey.toBase58(),
     privateSpendPublicInputHash: bytesToHex32(spendPublicInputHashBytes(data)),
     programId: programId.toBase58(),
     relayerFeePayer: transaction.message.staticAccountKeys[0].toBase58(),
@@ -434,7 +481,7 @@ export function buildVantaPrivatePoolV2ActualPrivateSpendTransaction(input = {})
   const relayerFeePayer = requirePublicKey(input.relayerFeePayer, "relayerFeePayer");
   const recentBlockhash = requireText(input.recentBlockhash, "recentBlockhash");
   const instruction = createVantaPrivatePoolV2ActualPrivateSpendInstruction(input);
-  const operatorAuthority = instruction.keys[5]?.pubkey;
+  const operatorAuthority = instruction.keys[6]?.pubkey;
   if (!operatorAuthority || !operatorAuthority.equals(relayerFeePayer)) {
     throw new Error(
       "Vanta Private Pool v2 Solana spend transaction currently requires relayerFeePayer to equal operatorAuthority until operator co-signing is implemented.",

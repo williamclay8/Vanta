@@ -6,7 +6,10 @@ import { fileURLToPath } from "node:url";
 
 import { Keypair, SystemProgram } from "@solana/web3.js";
 
-import { deriveVantaPrivatePoolV2NullifierMarkerAddress } from "../src/privacy/privatePoolV2SolanaSpendTransaction.mjs";
+import {
+  deriveVantaPrivatePoolV2NullifierMarkerAddress,
+  deriveVantaPrivatePoolV2OutputRecordAddress,
+} from "../src/privacy/privatePoolV2SolanaSpendTransaction.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const scriptPath = resolve(repoRoot, "scripts/print-vanta-private-pool-v2-solana-spend-transaction.mjs");
@@ -22,6 +25,11 @@ const nullifierMarker = deriveVantaPrivatePoolV2NullifierMarkerAddress({
   nullifierHex: "0x" + "11".repeat(32),
   poolState,
   programId,
+});
+const outputRecord = deriveVantaPrivatePoolV2OutputRecordAddress({
+  poolState,
+  programId,
+  publicInputHashHex: "0x" + "44".repeat(32),
 });
 const operatorAuthority = relayerFeePayer;
 
@@ -42,6 +50,7 @@ const result = spawnSync(process.execPath, [scriptPath], {
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE: outputQueue,
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY: rootHistory,
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_MARKER: nullifierMarker,
+    VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_RECORD: outputRecord,
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY: operatorAuthority,
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE: poolState,
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID: programId,
@@ -77,6 +86,7 @@ const jsonResult = spawnSync(process.execPath, [scriptPath, "--json"], {
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE: outputQueue,
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY: rootHistory,
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_MARKER: nullifierMarker,
+    VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_RECORD: outputRecord,
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_SYSTEM_PROGRAM: SystemProgram.programId.toBase58(),
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE: poolState,
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID: programId,
@@ -84,9 +94,10 @@ const jsonResult = spawnSync(process.execPath, [scriptPath, "--json"], {
 });
 assert.equal(jsonResult.status, 0, jsonResult.stderr || jsonResult.stdout);
 const json = JSON.parse(jsonResult.stdout);
-assert.equal(json.accountCount, 7);
+assert.equal(json.accountCount, 8);
 assert.equal(json.nullifierMarker, nullifierMarker);
 assert.equal(json.operatorAuthority, operatorAuthority);
+assert.equal(json.outputRecord, outputRecord);
 assert.equal(json.rootHistory, rootHistory);
 
 assert.equal(

@@ -7,8 +7,6 @@ const OUTPUT_MAGIC = Buffer.from("VNTA2OUT", "ascii");
 const VERSION = 1;
 const HEADER_LEN = 16;
 const COUNT_OFFSET = 12;
-const HASH_LEN = 32;
-const OUTPUT_RECORD_LEN = HASH_LEN * 3;
 const MINIMUM_DISTINCT_COMMITMENTS = 1024;
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -126,29 +124,20 @@ async function measureConfiguredOutputQueue({ outputQueue: outputQueueAddress, r
 
 function measureOutputQueueData(data) {
   if (data.length < HEADER_LEN || !data.subarray(0, 8).equals(OUTPUT_MAGIC) || data[8] !== VERSION) {
-    throw new Error("Output queue account data is not an initialized Vanta Private Pool v2 output queue.");
+    throw new Error("Output index account data is not an initialized Vanta Private Pool v2 output index.");
   }
 
   const outputRecordCount = data.readUInt32LE(COUNT_OFFSET);
-  const capacity = Math.floor((data.length - HEADER_LEN) / OUTPUT_RECORD_LEN);
-  if (outputRecordCount > capacity) {
-    throw new Error("Output queue record count exceeds account capacity.");
-  }
-
-  const commitments = [];
-  for (let index = 0; index < outputRecordCount; index += 1) {
-    const start = HEADER_LEN + index * OUTPUT_RECORD_LEN;
-    commitments.push(data.subarray(start, start + HASH_LEN).toString("hex"));
-    commitments.push(data.subarray(start + HASH_LEN, start + HASH_LEN * 2).toString("hex"));
-  }
+  const reviewedCommitmentCount = reviewedOutputCommitmentCount(review);
 
   return {
-    source: "provided-output-queue-data",
+    note: "The migrated Solana output_queue account is an index header only; output commitments live in deterministic output-record PDAs and must be supplied by reviewed indexer/operator evidence.",
+    outputCommitmentSource: "reviewed-indexer-evidence",
+    source: "provided-output-index-data",
     status: "read",
     outputRecordCount,
-    outputCommitmentCount: commitments.length,
-    distinctCommitmentCount: new Set(commitments).size,
-    capacity,
+    outputCommitmentCount: reviewedCommitmentCount,
+    distinctCommitmentCount: reviewedCommitmentCount,
   };
 }
 

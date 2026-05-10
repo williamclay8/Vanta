@@ -48,6 +48,7 @@ export type VantaPrivatePoolV2ActualPrivateSpendExpectedAccounts = {
   nullifierMarker?: string;
   nullifierSet?: string;
   operatorAuthority?: string;
+  outputRecord?: string;
   outputQueue?: string;
   poolState?: string;
   programId?: string;

@@ -1201,6 +1201,7 @@ try {
         nullifierMarker: "marker:service-network-actual-private-nullifier",
         nullifierSet: "nullifier-set:service-network-actual-private",
         outputQueue: "output-queue:service-network-actual-private",
+        outputRecord: "output-record:service-network-actual-private-public-input-hash",
         poolState: "pool-state:service-network-actual-private",
         programId: "program:service-network-actual-private",
         relayerFeePayer: "relayer-fee-payer:service-network-actual-private",
@@ -1241,6 +1242,11 @@ try {
     privateSpendSubmission.parsed?.expectedAccounts?.nullifierMarker ===
       "marker:service-network-actual-private-nullifier",
     "Expected service-network relayer boundary to preserve expected Solana account refs.",
+  );
+  assert(
+    privateSpendSubmission.parsed?.expectedAccounts?.outputRecord ===
+      "output-record:service-network-actual-private-public-input-hash",
+    "Expected service-network relayer boundary to preserve expected output-record account refs.",
   );
   const duplicatePrivateSpendSubmission = await requestJson(serviceUrls.get("relayer"), "/v1/private-spends/submit", {
     body: JSON.stringify({

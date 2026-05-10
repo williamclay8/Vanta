@@ -38,10 +38,12 @@ assert.equal(metrics.productionReady, false);
 assert.equal(metrics.configuredSolanaRefs.programIdRef, "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID_REF");
 assert.equal(metrics.configuredSolanaRefs.outputQueueRef, "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE_REF");
 assert.equal(metrics.liveSolanaOutputQueueMeasurement.status, "read");
+assert.equal(metrics.liveSolanaOutputQueueMeasurement.source, "provided-output-index-data");
+assert.equal(metrics.liveSolanaOutputQueueMeasurement.outputCommitmentSource, "reviewed-indexer-evidence");
 assert.equal(metrics.liveSolanaOutputQueueMeasurement.outputRecordCount, 1);
 assert.equal(metrics.liveSolanaOutputQueueMeasurement.outputCommitmentCount, 2);
 assert.equal(metrics.liveSolanaOutputQueueMeasurement.distinctCommitmentCount, 2);
-assert.equal(metrics.liveSolanaOutputQueueMeasurement.capacity, 2);
+assert.equal("capacity" in metrics.liveSolanaOutputQueueMeasurement, false);
 assert.equal(metrics.currentMainnetSpendEvidence.observedOutputCommitments, 2);
 assert.equal(metrics.currentMainnetSpendEvidence.status, "reviewed-blocked");
 assert.ok(metrics.blockers.includes("measured-below-threshold"));
@@ -64,13 +66,9 @@ console.log("Vanta Private Pool v2 anonymity-set metrics check: PASS");
 
 function createOutputQueueDataBase64() {
   const headerLength = 16;
-  const outputRecordLength = 96;
-  const data = Buffer.alloc(headerLength + outputRecordLength * 2);
+  const data = Buffer.alloc(headerLength);
   data.write("VNTA2OUT", 0, "ascii");
   data[8] = 1;
   data.writeUInt32LE(1, 12);
-  Buffer.alloc(32, 0x22).copy(data, headerLength);
-  Buffer.alloc(32, 0x33).copy(data, headerLength + 32);
-  Buffer.alloc(32, 0x44).copy(data, headerLength + 64);
   return data.toString("base64");
 }

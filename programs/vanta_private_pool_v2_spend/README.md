@@ -5,13 +5,13 @@ Small native Rust Solana program for anchoring Vanta actual-private spend eviden
 This is intentionally minimal:
 
 - no Anchor
-- only a System Program CPI to create the deterministic nullifier marker PDA
+- only System Program CPIs to create deterministic nullifier marker and output record PDAs
 - no token movement
 - no secrets
 - no deploy configuration
 - no proof verification
 
-It anchors the public evidence produced by an already-verified private spend lane: an accepted root, one nullifier marker PDA, two output commitments, and a public input hash.
+It anchors the public evidence from an operator-accepted off-chain private spend packet: an accepted root, one nullifier marker PDA, one deterministic output record PDA, two output commitments, and a public input hash.
 The program now fail-closes writes behind the operator authority captured during init; it still does not verify proofs or prove that the accepted root came from a program-owned Merkle tree.
 
 ## Instructions
@@ -40,7 +40,7 @@ Minimum account data sizes:
 
 - `pool_state`: 184 bytes
 - `nullifier_set`: `16 + 32 * slot_count` bytes
-- `output_queue`: `16 + 96 * slot_count` bytes
+- `output_queue`: 16-byte output index header
 - `root_history`: `16 + 32 * slot_count` bytes
 
 ### `2` - register root
@@ -76,8 +76,9 @@ Spend accounts:
 3. `output_queue` writable
 4. `root_history` read-only
 5. `nullifier_marker` writable PDA derived from `["vanta2nul", pool_state, nullifier]`
-6. `operator_authority` signer, writable; must match the pubkey stored during init and funds marker creation
-7. `system_program` read-only
+6. `output_record` writable PDA derived from `["vanta2out", pool_state, publicInputHash]`
+7. `operator_authority` signer, writable; must match the pubkey stored during init and funds marker/output-record creation
+8. `system_program` read-only
 
 Spend instruction data is exactly 161 bytes:
 
@@ -93,8 +94,10 @@ Behavior:
 - verifies the supplied `nullifier_set`, `output_queue`, and `root_history` match the pubkeys stored in `pool_state` during init
 - verifies account headers were initialized
 - rejects spends whose accepted root has not been registered in `root_history`
+- preflights the deterministic nullifier marker and output record PDAs before creating either account
 - creates or verifies the deterministic nullifier marker PDA and rejects duplicate nullifiers
-- appends `output0`, `output1`, and `publicInputHash` as a fixed output record
+- creates the deterministic output record PDA and records the output index, `pool_state`, `output0`, `output1`, and `publicInputHash`
+- increments the output index header count
 - increments the pool spend count
 - records the latest public input hash in `pool_state`
 
@@ -116,7 +119,7 @@ cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml
 
 - `1`: duplicate nullifier
 - `2`: reserved legacy nullifier set full code
-- `3`: output queue full
+- `3`: output index count exhausted
 - `4`: invalid or uninitialized account header
 - `5`: pool and output counts disagree
 - `6`: signer is not the initialized operator authority
@@ -126,3 +129,4 @@ cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml
 - `10`: duplicate accepted root
 - `11`: spend references an unregistered accepted root
 - `12`: supplied nullifier marker PDA does not match the expected nullifier marker
+- `13`: supplied output record PDA does not match the expected output record

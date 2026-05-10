@@ -483,7 +483,7 @@
     "private-pool-v2:solana-spend-transaction-check": "node scripts/check-vanta-private-pool-v2-solana-spend-transaction-printer.mjs",
     "private-pool-v2:mainnet-spend-program-smoke": "node scripts/run-vanta-private-pool-v2-mainnet-spend-program-smoke.mjs",
     "private-pool-v2:spend-program-smoke": "node scripts/run-vanta-private-pool-v2-mainnet-spend-program-smoke.mjs",
-    "private-pool-v2:crucible-check": "cargo build --manifest-path fuzz/vanta_private_pool_v2_spend/Cargo.toml --features invariant_test && crucible run vanta_private_pool_v2_spend invariant_test -C fuzz/vanta_private_pool_v2_spend --binary-in fuzz/vanta_private_pool_v2_spend/target/debug/invariant_test --dry-run",
+    "private-pool-v2:crucible-check": "npm run private-pool-v2:sbf-abi-check && cargo build --manifest-path fuzz/vanta_private_pool_v2_spend/Cargo.toml --features invariant_test && crucible run vanta_private_pool_v2_spend invariant_test -C fuzz/vanta_private_pool_v2_spend --binary-in fuzz/vanta_private_pool_v2_spend/target/debug/invariant_test --dry-run",
     "shield:executability-claims-check": "node scripts/check-vanta-shield-executability-claims.mjs"
   },
   "dependencies": {

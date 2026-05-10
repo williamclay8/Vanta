@@ -25,6 +25,7 @@ import { createNullifierReplayGuard } from "../src/privacy/nullifierReplayGuard.
 import { createPostgresNullifierReplayStoreFromDatabaseUrl } from "../src/privacy/postgresNullifierReplayStore.mjs";
 import {
   deriveVantaPrivatePoolV2NullifierMarkerAddress,
+  deriveVantaPrivatePoolV2OutputRecordAddress,
   validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction,
 } from "../src/privacy/privatePoolV2SolanaSpendTransaction.mjs";
 import { createPostgresSnapshotStore } from "../src/storage/vantaPostgresSnapshotStore.mjs";
@@ -2044,6 +2045,17 @@ function actualPrivateSpendSolanaExpectedAccounts(expectedPublicInputs = {}) {
       programId: expectedAccounts.programId,
     });
   }
+  if (
+    expectedAccounts.programId &&
+    expectedAccounts.poolState &&
+    expectedPublicInputs.privateSpendPublicInputHash
+  ) {
+    expectedAccounts.outputRecord = deriveVantaPrivatePoolV2OutputRecordAddress({
+      poolState: expectedAccounts.poolState,
+      programId: expectedAccounts.programId,
+      publicInputHashHex: expectedPublicInputs.privateSpendPublicInputHash,
+    });
+  }
 
   return Object.fromEntries(
     Object.entries(expectedAccounts).filter(([, value]) => typeof value === "string" && value.trim().length > 0),
@@ -2057,6 +2069,7 @@ function assertActualPrivateSpendSolanaExpectedAccounts(expectedAccounts) {
     "nullifierSet",
     "nullifierMarker",
     "outputQueue",
+    "outputRecord",
     "rootHistory",
     "relayerFeePayer",
   ].filter((field) => !expectedAccounts[field]);

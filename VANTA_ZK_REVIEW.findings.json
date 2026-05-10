@@ -22,9 +22,9 @@
   ],
   "lumiBaseline": {
     "branch": "codex/vanta-zk-review-hardening",
-    "lastKnownCommit": "0b3a2a3",
-    "local": "clean at ledger creation",
-    "committed": "0b3a2a3 Harden mock proof settlement boundary",
+    "lastKnownCommit": "this output-record PDA feedback-loop commit",
+    "local": "clean after verified output-record PDA feedback-loop slice",
+    "committed": "Move spend outputs to PDA records",
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
@@ -53,6 +53,41 @@
         "deployedLive": "not-live-verified"
       },
       "truthBoundary": "This is a local Poseidon proof-owner binding, not an in-circuit proof of X25519 ownership, no-witness production owner authorization, on-chain verifier enforcement, audit acceptance, or live deployment evidence."
+    },
+    {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-10-OUTPUT-RECORD-PDA",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#1-the-on-chain-solana-program-does-not-verify-proofs-at-all",
+        "VANTA_ZK_REVIEW.md#2-the-on-chain-program-is-trivially-dos-able",
+        "programs/vanta_private_pool_v2_spend/src/lib.rs",
+        "fuzz/vanta_private_pool_v2_spend/src/main.rs",
+        "src/privacy/privatePoolV2SolanaSpendTransaction.mjs"
+      ],
+      "summary": "The local Solana spend ABI now treats output_queue as an output index header and stores each spend's output evidence in a deterministic output-record PDA derived from [\"vanta2out\", pool_state, publicInputHash].",
+      "localVerification": [
+        "cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
+        "cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
+        "cargo check --manifest-path fuzz/vanta_private_pool_v2_spend/Cargo.toml --features invariant_test",
+        "npm run private-pool-v2:solana-spend-transaction-builder-check",
+        "npm run private-pool-v2:solana-spend-transaction-check",
+        "npm run private-pool-v2:solana-relayer-submission-check",
+        "npm run private-pool-v2:service-network-check",
+        "npm run private-pool-v2:protocol-client-check",
+        "npm run private-pool-v2:anonymity-set-metrics-check",
+        "npm run private-pool-v2:contract-check",
+        "npm run private-pool-v2:sbf-abi-status-json",
+        "npm run private-core:check",
+        "npm run build",
+        "npm run private-pool-v2:verify (expected fail-closed at private-pool-v2:sbf-abi-check)"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the current output-record feedback-loop slice",
+        "committed": "Move spend outputs to PDA records",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is local source, transaction, operator, and harness hardening. The broad private-pool-v2 aggregate advances through local proof/status checks but stops truthfully at the fail-closed SBF ABI gate. The SBF binary is stale and cannot represent the eight-account ABI until cargo-build-sbf/solana tooling rebuilds and redeploys it; no live output-record evidence, audit acceptance, real funds movement, or production-private claim is created."
     }
   ],
   "findings": [
@@ -70,7 +105,7 @@
         "npm run zk:c01-onchain-proof-boundary-check",
         "npm run private-pool-v2:sbf-abi-check"
       ],
-      "failureMode": "The local program now gates writes with operator authority, accepted-root scaffolding, and deterministic nullifier-marker PDA replay checks, but no verifier enforces a real proof or verifying-key hash on chain.",
+      "failureMode": "The local program now gates writes with operator authority, accepted-root scaffolding, deterministic nullifier-marker PDA replay checks, and deterministic output-record PDA writes, but no verifier enforces a real proof or verifying-key hash on chain.",
       "requiredFix": [
         "Commit a verifying-key hash or verifier program boundary for the active circuit.",
         "Verify a real proof against the public input hash in-program or via a dedicated verifier CPI.",
@@ -83,16 +118,15 @@
           "npm run zk:c01-onchain-proof-boundary-check",
           "npm run private-pool-v2:sbf-abi-check"
         ],
-        "localResult": "contract-check covers the local authority/root/nullifier-marker scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed truth boundary; sbf-abi-check is expected to fail closed until the Solana toolchain rebuilds the current ABI.",
-        "proves": "Local write authority, account binding, accepted-root scaffold, stale-SBF detection, and the negative C01 truth boundary are guarded.",
+        "localResult": "contract-check covers the local authority/root/nullifier-marker/output-record scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed truth boundary; sbf-abi-check is expected to fail closed until the Solana toolchain rebuilds the current ABI.",
+        "proves": "Local write authority, account binding, accepted-root scaffold, deterministic output-record PDA binding, stale-SBF detection, and the negative C01 truth boundary are guarded.",
         "doesNotProve": "On-chain proof verification, verifying-key enforcement, program-owned tree state, audit acceptance, or live deployment correctness."
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 572c46e",
-          "current C01 partial-boundary guard patch"
+          "local feedback loops through the output-record PDA feedback-loop commit"
         ],
-        "summary": "Codex hardened the local spend authority/root-history/nullifier-marker ABI and fail-closed SBF status surfaces.",
+        "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI and fail-closed SBF status surfaces.",
         "residualRisk": [
           "No production verifier is wired.",
           "Reviewed mainnet evidence predates the current ABI.",
@@ -101,7 +135,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally for scaffold checks",
-        "committed": "through 572c46e",
+        "committed": "through the output-record PDA feedback-loop commit",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -110,7 +144,8 @@
           "programs/vanta_private_pool_v2_spend/src/lib.rs",
           "scripts/check-vanta-private-pool-v2-sbf-abi-status.mjs",
           "scripts/check-vanta-zk-c01-onchain-proof-boundary.mjs",
-          "operator/private-pool-v2-server.mjs"
+          "operator/private-pool-v2-server.mjs",
+          "src/privacy/privatePoolV2SolanaSpendTransaction.mjs"
         ],
         "watchCommands": [
           "npm run private-pool-v2:contract-check",
@@ -126,18 +161,21 @@
       "title": "On-chain spend program was DoS-able through public fixed-slot nullifier writes",
       "severity": "critical",
       "status": "verified-local",
-      "claimAtRisk": "Replay protection could be exhausted or misrepresented if the old fixed linear nullifier path returns.",
+      "claimAtRisk": "Replay/output evidence protection could be exhausted or misrepresented if old fixed linear nullifier or fixed output-slot paths return.",
       "evidenceRefs": [
         "VANTA_ZK_REVIEW.md#2-the-on-chain-program-is-trivially-dos-able",
         "programs/vanta_private_pool_v2_spend/src/lib.rs",
         "npm run private-pool-v2:contract-check",
         "npm run private-pool-v2:solana-spend-transaction-check",
-        "npm run private-pool-v2:crucible-check"
+        "npm run private-pool-v2:solana-relayer-submission-check",
+        "npm run private-pool-v2:anonymity-set-metrics-check",
+        "npm run private-pool-v2:sbf-abi-status-json"
       ],
-      "failureMode": "The old path let arbitrary callers append nullifiers to fixed slots and performed linear duplicate scans.",
+      "failureMode": "The old path let arbitrary callers append nullifiers to fixed slots, performed linear duplicate scans, and kept output records in a fixed-capacity output queue.",
       "requiredFix": [
         "Keep spend writes behind the initialized operator signer.",
         "Keep duplicate replay keyed by deterministic nullifier marker PDA.",
+        "Keep output evidence keyed by deterministic output-record PDA.",
         "Keep mixed child-account triplets rejected by pool-state bindings.",
         "Rebuild/redeploy the SBF binary before citing live replay evidence."
       ],
@@ -145,25 +183,28 @@
         "commands": [
           "npm run private-pool-v2:contract-check",
           "npm run private-pool-v2:solana-spend-transaction-check",
-          "npm run private-pool-v2:crucible-check"
+          "npm run private-pool-v2:solana-relayer-submission-check",
+          "npm run private-pool-v2:anonymity-set-metrics-check",
+          "npm run private-pool-v2:sbf-abi-status-json"
         ],
-        "localResult": "Local source and harnesses guard signer-gated writes, account bindings, marker PDA duplicate rejection, and transaction layout.",
-        "proves": "The old unauthenticated fixed-slot fill and linear nullifier scan shape is closed in local source.",
-        "doesNotProve": "The live deployed program has this ABI; that remains blocked by SBF rebuild and redeploy evidence."
+        "localResult": "Local native Rust tests/checks, the invariant harness compile check, and JS/contract guards cover signer-gated writes, account bindings, marker PDA duplicate rejection, output-record PDA duplicate rejection, transaction layout, and output-index-only metrics. The bytecode Crucible lane is expected-blocked because private-pool-v2:crucible-check now starts with private-pool-v2:sbf-abi-check and the local SBF/toolchain status is blocked.",
+        "proves": "The old unauthenticated fixed-slot fill, linear nullifier scan, and fixed output-slot shape are closed in local source and transaction/operator contracts.",
+        "doesNotProve": "The rebuilt SBF bytecode or live deployed program has this ABI; that remains blocked by SBF rebuild/redeploy evidence, cargo-build-sbf availability, and Solana CLI availability."
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 572c46e"
+          "local feedback loops through the output-record PDA feedback-loop commit"
         ],
-        "summary": "Moved replay truth to deterministic marker PDAs and treated the legacy nullifier set as a header/namespace account.",
+        "summary": "Moved replay truth to deterministic marker PDAs, treated the legacy nullifier set as a header/namespace account, and moved output evidence to deterministic output-record PDAs.",
         "residualRisk": [
           "Local ABI is not live until SBF rebuild/redeploy/reinit.",
+          "Crucible bytecode execution is deliberately blocked until the stale SBF binary is rebuilt for the current ABI.",
           "The broader proof/tree design remains scaffolded."
         ]
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 572c46e",
+        "committed": "through the output-record PDA feedback-loop commit",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -171,14 +212,16 @@
         "watchFiles": [
           "programs/vanta_private_pool_v2_spend/src/lib.rs",
           "scripts/check-vanta-private-pool-v2-solana-spend-transaction-printer.mjs",
-          "scripts/check-vanta-private-pool-v2-solana-spend-transaction-builder.mjs"
+          "scripts/check-vanta-private-pool-v2-solana-spend-transaction-builder.mjs",
+          "fuzz/vanta_private_pool_v2_spend/src/main.rs",
+          "scripts/print-vanta-private-pool-v2-anonymity-set-metrics.mjs"
         ],
         "watchCommands": [
           "npm run private-pool-v2:contract-check",
           "npm run private-pool-v2:sbf-abi-check"
         ]
       },
-      "truthBoundary": "Local replay hardening can be cited; live replay protection cannot be cited until current SBF evidence exists."
+      "truthBoundary": "Local replay hardening can be cited; live replay protection and bytecode-level Crucible proof cannot be cited until current SBF evidence exists."
     },
     {
       "id": "VANTA-ZK-2026-05-09-C03",

@@ -10,6 +10,7 @@ import {
   VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_MAX_SERIALIZED_TRANSACTION_BYTES,
   buildVantaPrivatePoolV2ActualPrivateSpendTransaction,
   deriveVantaPrivatePoolV2NullifierMarkerAddress,
+  deriveVantaPrivatePoolV2OutputRecordAddress,
 } from "../src/privacy/privatePoolV2SolanaSpendTransaction.mjs";
 
 const validSignature = "4".repeat(88);
@@ -123,6 +124,11 @@ const nullifierMarker = deriveVantaPrivatePoolV2NullifierMarkerAddress({
   poolState,
   programId: spendProgramId,
 });
+const outputRecord = deriveVantaPrivatePoolV2OutputRecordAddress({
+  poolState,
+  programId: spendProgramId,
+  publicInputHashHex: "0x" + "55".repeat(32),
+});
 const operatorAuthority = relayerKeypair.publicKey.toBase58();
 let submittedSpendTransaction = null;
 const expectedSpendPublicInputs = {
@@ -136,6 +142,7 @@ const expectedSpendAccounts = {
   nullifierMarker,
   operatorAuthority,
   outputQueue,
+  outputRecord,
   poolState,
   programId: spendProgramId,
   relayerFeePayer: relayerKeypair.publicKey.toBase58(),
@@ -149,6 +156,7 @@ const builtSpendTransaction = buildVantaPrivatePoolV2ActualPrivateSpendTransacti
     { isSigner: false, isWritable: true, pubkey: outputQueue },
     { isSigner: false, isWritable: false, pubkey: rootHistory },
     { isSigner: false, isWritable: true, pubkey: nullifierMarker },
+    { isSigner: false, isWritable: true, pubkey: outputRecord },
     { isSigner: true, isWritable: true, pubkey: operatorAuthority },
     { isSigner: false, isWritable: false, pubkey: SystemProgram.programId.toBase58() },
   ],
@@ -253,6 +261,22 @@ await assert.rejects(
       settlementId: "settlement:builder-integrated-bad-marker",
     }),
   /expectedAccounts\.nullifierMarker mismatch/,
+);
+
+await assert.rejects(
+  () =>
+    builderIntegratedSubmitter.submitPrivateSpend({
+      expectedAccounts: {
+        ...expectedSpendAccounts,
+        outputRecord: Keypair.generate().publicKey.toBase58(),
+      },
+      expectedPublicInputs: expectedSpendPublicInputs,
+      proofReceiptId: "ppv2_builder_integrated_bad_output_record",
+      publicInputCommitment: "0xpublic-input-builder",
+      serializedTransaction: builtSpendTransaction.serializedTransaction,
+      settlementId: "settlement:builder-integrated-bad-output-record",
+    }),
+  /expectedAccounts\.outputRecord mismatch/,
 );
 
 const malformedBase64Submitter = createVantaPrivatePoolV2SolanaRelayerSubmitter({

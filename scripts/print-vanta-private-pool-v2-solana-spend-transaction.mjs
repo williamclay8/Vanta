@@ -3,6 +3,7 @@ import { Connection, SystemProgram } from "@solana/web3.js";
 import {
   buildVantaPrivatePoolV2ActualPrivateSpendTransaction,
   deriveVantaPrivatePoolV2NullifierMarkerAddress,
+  deriveVantaPrivatePoolV2OutputRecordAddress,
 } from "../src/privacy/privatePoolV2SolanaSpendTransaction.mjs";
 
 function readRequiredEnv(name) {
@@ -78,6 +79,13 @@ const nullifierMarker =
     poolState,
     programId,
   });
+const outputRecord =
+  readOptionalEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_RECORD")
+  || deriveVantaPrivatePoolV2OutputRecordAddress({
+    instructionDataBase64,
+    poolState,
+    programId,
+  });
 
 const built = buildVantaPrivatePoolV2ActualPrivateSpendTransaction({
   accounts: [
@@ -107,6 +115,11 @@ const built = buildVantaPrivatePoolV2ActualPrivateSpendTransaction({
       pubkey: nullifierMarker,
     },
     {
+      isSigner: false,
+      isWritable: true,
+      pubkey: outputRecord,
+    },
+    {
       isSigner: true,
       isWritable: true,
       pubkey: readRequiredEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY"),
@@ -131,6 +144,7 @@ if (process.argv.includes("--json")) {
     lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
     nullifierMarker,
     operatorAuthority: readRequiredEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY"),
+    outputRecord,
     programId: built.programId,
     relayerFeePayer: built.relayerFeePayer,
     rootHistory: readRequiredEnv("VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY"),

@@ -24,10 +24,12 @@ const MAX_SOL_AT_RISK = Number.parseFloat(process.env.VANTA_PRIVATE_POOL_V2_SPEN
 
 const POOL_STATE_LEN = 184;
 const NULLIFIER_SET_LEN = 16 + 32 * SLOT_COUNT;
-const OUTPUT_QUEUE_LEN = 16 + 96 * SLOT_COUNT;
+const OUTPUT_QUEUE_LEN = 16;
 const ROOT_HISTORY_LEN = 16 + 32 * SLOT_COUNT;
 const NULLIFIER_MARKER_LEN = 16 + 32 * 2;
+const OUTPUT_RECORD_PDA_LEN = 16 + 8 + 32 * 4;
 const NULLIFIER_MARKER_SEED = Buffer.from("vanta2nul");
+const OUTPUT_RECORD_SEED = Buffer.from("vanta2out");
 
 if (!Number.isInteger(SLOT_COUNT) || SLOT_COUNT < 2 || SLOT_COUNT > 64) {
   throw new Error("VANTA_PRIVATE_POOL_V2_MAINNET_SMOKE_SLOT_COUNT must be an integer from 2 to 64.");
@@ -41,8 +43,13 @@ const nullifierSet = Keypair.generate();
 const outputQueue = Keypair.generate();
 const rootHistory = Keypair.generate();
 const nullifier = bytes32(0x11);
+const publicInputHash = bytes32(0x55);
 const [nullifierMarker] = PublicKey.findProgramAddressSync(
   [NULLIFIER_MARKER_SEED, poolState.publicKey.toBuffer(), nullifier],
+  programId,
+);
+const [outputRecord] = PublicKey.findProgramAddressSync(
+  [OUTPUT_RECORD_SEED, poolState.publicKey.toBuffer(), publicInputHash],
   programId,
 );
 
@@ -86,7 +93,7 @@ const spendPayload = Buffer.concat([
   bytes32(0x22),
   bytes32(0x33),
   acceptedRoot,
-  bytes32(0x55),
+  publicInputHash,
 ]);
 const spendTx = new Transaction().add(new TransactionInstruction({
   keys: spendAccountMetas(),
@@ -148,6 +155,7 @@ console.log(JSON.stringify({
   poolState: poolState.publicKey.toBase58(),
   nullifierSet: nullifierSet.publicKey.toBase58(),
   outputQueue: outputQueue.publicKey.toBase58(),
+  outputRecord: outputRecord.toBase58(),
   rootHistory: rootHistory.publicKey.toBase58(),
   nullifierMarker: nullifierMarker.toBase58(),
   slotCount: SLOT_COUNT,
@@ -165,6 +173,7 @@ console.log(JSON.stringify({
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_POOL_STATE: poolState.publicKey.toBase58(),
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_SET: nullifierSet.publicKey.toBase58(),
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE: outputQueue.publicKey.toBase58(),
+    VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_RECORD: outputRecord.toBase58(),
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_ROOT_HISTORY: rootHistory.publicKey.toBase58(),
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_NULLIFIER_MARKER: nullifierMarker.toBase58(),
     VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_AUTHORITY: payer.publicKey.toBase58(),
@@ -188,6 +197,7 @@ async function estimateRent() {
     + await connection.getMinimumBalanceForRentExemption(OUTPUT_QUEUE_LEN)
     + await connection.getMinimumBalanceForRentExemption(ROOT_HISTORY_LEN)
     + await connection.getMinimumBalanceForRentExemption(NULLIFIER_MARKER_LEN)
+    + await connection.getMinimumBalanceForRentExemption(OUTPUT_RECORD_PDA_LEN)
   );
 }
 
@@ -208,6 +218,7 @@ function spendAccountMetas() {
     { pubkey: outputQueue.publicKey, isSigner: false, isWritable: true },
     { pubkey: rootHistory.publicKey, isSigner: false, isWritable: false },
     { pubkey: nullifierMarker, isSigner: false, isWritable: true },
+    { pubkey: outputRecord, isSigner: false, isWritable: true },
     { pubkey: payer.publicKey, isSigner: true, isWritable: true },
     { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
   ];
