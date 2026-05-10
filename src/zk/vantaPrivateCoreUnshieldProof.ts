@@ -54,7 +54,7 @@ export const VANTA_PRIVATE_CORE_UNSHIELD_CONSUME_CONTEXT_TAG_CONTRACT_V0 =
   "poseidon-proving-lane-public-field-v0" as const;
 export const VANTA_PRIVATE_CORE_UNSHIELD_CONSUME_CONTEXT_DOMAIN_V0 =
   "vanta.private-core.unshield-consume-context.v0" as const;
-export const VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_MERKLE_DEPTH_V0 = 3 as const;
+export const VANTA_PRIVATE_CORE_UNSHIELD_CIRCUIT_MERKLE_DEPTH_V0 = 20 as const;
 export const VANTA_PRIVATE_CORE_UNSHIELD_PROVING_HASH_LANE_V0 =
   "poseidon-bn254-proving-lane-v0" as const;
 
@@ -785,10 +785,10 @@ function collectProofBoundaryBlockers(args: {
 
   if (
     args.circuitMerkleDepth !== undefined &&
-    args.circuitMerkleDepth !== args.heldNote.witness.proof.path.length
+    args.heldNote.witness.proof.path.length > args.circuitMerkleDepth
   ) {
     blockers.push(
-      `witness path depth ${args.heldNote.witness.proof.path.length} does not match declared circuit depth ${args.circuitMerkleDepth}`,
+      `witness path depth ${args.heldNote.witness.proof.path.length} exceeds declared circuit depth ${args.circuitMerkleDepth}`,
     );
   }
 
@@ -813,18 +813,36 @@ function encodeMerklePath(
   proof: MerkleProofV0,
   expectedDepth: number,
 ): VantaPrivateCoreMerklePathEncodingV0 {
-  if (proof.path.length !== expectedDepth) {
+  if (proof.path.length > expectedDepth) {
     throw new Error(
-      `Merkle proof depth ${proof.path.length} does not match fixed circuit depth ${expectedDepth}.`,
+      `Merkle proof depth ${proof.path.length} exceeds fixed circuit depth ${expectedDepth}.`,
     );
+  }
+
+  const siblings = proof.path.map((entry) => encodeBytes32ToTwoU128Be(entry.sibling));
+
+  while (siblings.length < expectedDepth) {
+    siblings.push(encodeBytes32ToTwoU128Be(zeroHex32()));
   }
 
   return {
     depth: expectedDepth,
     directionBitEncoding: VANTA_PRIVATE_CORE_MERKLE_DIRECTION_BIT_V0,
-    siblings: proof.path.map((entry) => encodeBytes32ToTwoU128Be(entry.sibling)),
-    directionBits: proof.path.map((entry) => (entry.direction === "left" ? "1" : "0")),
+    siblings,
+    directionBits: Array.from({ length: expectedDepth }, (_, index) => {
+      const proofStep = proof.path[index];
+
+      if (proofStep !== undefined) {
+        return proofStep.direction === "left" ? "1" : "0";
+      }
+
+      return directionBitForLeafIndex(proof.leafIndex, index);
+    }),
   };
+}
+
+function directionBitForLeafIndex(leafIndex: number, bitIndex: number): DirectionBit {
+  return ((BigInt(leafIndex) >> BigInt(bitIndex)) & 1n) === 1n ? "1" : "0";
 }
 
 function derivePublicKeyFromSecretKey(secretKey: Bytes32Hex): Bytes32Hex {
@@ -1071,6 +1089,10 @@ function hexToBytes(value: Bytes32Hex): Uint8Array {
 
 function toHex32(value: Uint8Array): Bytes32Hex {
   return `0x${Array.from(value, (byte) => byte.toString(16).padStart(2, "0")).join("")}` as Bytes32Hex;
+}
+
+function zeroHex32(): Bytes32Hex {
+  return "0x0000000000000000000000000000000000000000000000000000000000000000";
 }
 
 function encodeFieldToPublicPair(value: FieldDecimalString): PublicFieldEncodingV0 {

@@ -37,7 +37,7 @@ export const VANTA_PRIVATE_CORE_SWAP_MERKLE_DIRECTION_BIT_V0 =
   "is_current_right__1_when_sibling_is_left" as const;
 export const VANTA_PRIVATE_CORE_SWAP_CONTEXT_DOMAIN_V0 =
   "vanta.private-core.swap-context.v0" as const;
-export const VANTA_PRIVATE_CORE_SWAP_CIRCUIT_MERKLE_DEPTH_V0 = 3 as const;
+export const VANTA_PRIVATE_CORE_SWAP_CIRCUIT_MERKLE_DEPTH_V0 = 20 as const;
 export const VANTA_PRIVATE_CORE_SWAP_PROVING_HASH_LANE_V0 =
   "poseidon-bn254-proving-lane-v0" as const;
 
@@ -650,9 +650,9 @@ function collectSwapProofBoundaryBlockers(args: {
     blockers.push("Swap output amount must be greater than zero.");
   }
 
-  if (args.transition.input.witness.proof.path.length !== args.circuitMerkleDepth) {
+  if (args.transition.input.witness.proof.path.length > args.circuitMerkleDepth) {
     blockers.push(
-      `Input Merkle path depth ${String(args.transition.input.witness.proof.path.length)} does not match fixed swap circuit depth ${String(args.circuitMerkleDepth)}.`,
+      `Input Merkle path depth ${String(args.transition.input.witness.proof.path.length)} exceeds fixed swap circuit depth ${String(args.circuitMerkleDepth)}.`,
     );
   }
 
@@ -690,18 +690,36 @@ function encodeMerklePath(
   proof: MerkleProofV0,
   circuitDepth: number,
 ): VantaPrivateCoreMerklePathEncodingV0 {
-  if (proof.path.length !== circuitDepth) {
+  if (proof.path.length > circuitDepth) {
     throw new Error(
       `Cannot encode Merkle path of depth ${String(proof.path.length)} for swap circuit depth ${String(circuitDepth)}.`,
     );
   }
 
+  const siblings = proof.path.map((node) => encodeBytes32ToTwoU128Be(node.sibling));
+
+  while (siblings.length < circuitDepth) {
+    siblings.push(encodeBytes32ToTwoU128Be(zeroHex32()));
+  }
+
   return {
     depth: circuitDepth,
     directionBitEncoding: VANTA_PRIVATE_CORE_SWAP_MERKLE_DIRECTION_BIT_V0,
-    siblings: proof.path.map((node) => encodeBytes32ToTwoU128Be(node.sibling)),
-    directionBits: proof.path.map((node) => (node.direction === "left" ? "1" : "0")),
+    siblings,
+    directionBits: Array.from({ length: circuitDepth }, (_, index) => {
+      const proofStep = proof.path[index];
+
+      if (proofStep !== undefined) {
+        return proofStep.direction === "left" ? "1" : "0";
+      }
+
+      return directionBitForLeafIndex(proof.leafIndex, index);
+    }),
   };
+}
+
+function directionBitForLeafIndex(leafIndex: number, bitIndex: number): DirectionBit {
+  return ((BigInt(leafIndex) >> BigInt(bitIndex)) & 1n) === 1n ? "1" : "0";
 }
 
 function derivePoseidonSwapContextField(args: {
@@ -928,6 +946,10 @@ function concatBytes(...chunks: Uint8Array[]): Uint8Array {
 
 function toHex32(bytes: Uint8Array): Bytes32Hex {
   return `0x${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}` as Bytes32Hex;
+}
+
+function zeroHex32(): Bytes32Hex {
+  return "0x0000000000000000000000000000000000000000000000000000000000000000";
 }
 
 function toRepeatedByteHex(byte: number): Bytes32Hex {

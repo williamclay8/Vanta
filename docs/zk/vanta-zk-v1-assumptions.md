@@ -90,7 +90,7 @@ This means `v1` does not require full hash convergence everywhere, but it does r
 
 The current single-note unshield lane is the executable baseline:
 
-- `MERKLE_DEPTH = 3`
+- `MERKLE_DEPTH = 20`
 - fixed deterministic fixtures
 - `poseidon-bn254-proving-lane-v0`
 - canonical regression command: `npm run private-core:check`

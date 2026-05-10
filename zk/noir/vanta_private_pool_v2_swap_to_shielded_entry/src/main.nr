@@ -1,6 +1,6 @@
 use ::poseidon::poseidon::bn254;
 
-global MERKLE_DEPTH: u32 = 3;
+global MERKLE_DEPTH: u32 = 20;
 
 fn compute_nullifier_or_replay_commitment(
     input_commitment: Field,
@@ -59,9 +59,19 @@ fn compute_root(
 fn compute_leaf_index_from_direction_bits(
     direction_bits: [Field; MERKLE_DEPTH],
 ) -> Field {
-    direction_bits[0]
-        + direction_bits[1] * 2
-        + direction_bits[2] * 4
+    let mut leaf_index = 0;
+    let mut bit_weight = 1;
+
+    for i in 0..MERKLE_DEPTH {
+        let direction_bit = direction_bits[i];
+
+        assert_direction_bit(direction_bit);
+
+        leaf_index = leaf_index + direction_bit * bit_weight;
+        bit_weight = bit_weight * 2;
+    }
+
+    leaf_index
 }
 
 fn bind_swap_public_inputs(

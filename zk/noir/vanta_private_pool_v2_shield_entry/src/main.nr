@@ -1,6 +1,6 @@
 use ::poseidon::poseidon::bn254;
 
-global MERKLE_DEPTH: u32 = 3;
+global MERKLE_DEPTH: u32 = 20;
 
 fn hash_merkle_leaf(commitment: Field) -> Field {
     bn254::hash_1([commitment])
@@ -40,9 +40,19 @@ fn compute_root_from_leaf(
 fn compute_leaf_index_from_direction_bits(
     append_path_direction_bits: [Field; MERKLE_DEPTH],
 ) -> Field {
-    append_path_direction_bits[0]
-        + append_path_direction_bits[1] * 2
-        + append_path_direction_bits[2] * 4
+    let mut leaf_index = 0;
+    let mut bit_weight = 1;
+
+    for i in 0..MERKLE_DEPTH {
+        let direction_bit = append_path_direction_bits[i];
+
+        assert_direction_bit(direction_bit);
+
+        leaf_index = leaf_index + direction_bit * bit_weight;
+        bit_weight = bit_weight * 2;
+    }
+
+    leaf_index
 }
 
 fn bind_shield_public_inputs(

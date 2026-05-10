@@ -1,4 +1,8 @@
 import { poseidon1, poseidon2, poseidon3, poseidon4, poseidon11 } from "poseidon-lite";
+import {
+  buildVantaPrivatePoolV2SparseMerkleTree,
+  directionBitsForLeafIndex,
+} from "./privatePoolV2MerkleFixtureHelpers";
 import { createVantaPrivatePoolV2ClaimProofRequest } from "./privatePoolV2ProofRequests";
 import type {
   VantaPrivatePoolV2ClaimQuote,
@@ -17,8 +21,8 @@ export type VantaPrivatePoolV2ClaimCircuitWitness = {
   input_commitment: bigint;
   input_root: bigint;
   leaf_index: bigint;
-  membership_path: readonly [bigint, bigint, bigint];
-  membership_path_direction_bits: readonly [bigint, bigint, bigint];
+  membership_path: readonly bigint[];
+  membership_path_direction_bits: readonly bigint[];
   nullifier: bigint;
   owner_commitment: bigint;
   owner_secret: bigint;
@@ -48,8 +52,8 @@ const DEFAULT_WITNESS_BASE = {
   destination: 909n,
   input_commitment: 808n,
   leaf_index: 5n,
-  membership_path: [1111n, 1222n, 1333n] as const,
-  membership_path_direction_bits: [1n, 0n, 1n] as const,
+  membership_path: [] as readonly bigint[],
+  membership_path_direction_bits: [] as readonly bigint[],
   owner_commitment: 505n,
   owner_secret: 303n,
   quote_expires_at_slot: 1_000_150n,
@@ -59,9 +63,22 @@ const DEFAULT_WITNESS_BASE = {
   tree_id: 606n,
 };
 
+const DEFAULT_TREE = buildVantaPrivatePoolV2SparseMerkleTree({
+  leaves: [
+    {
+      leafIndex: DEFAULT_WITNESS_BASE.leaf_index,
+      leafValue: DEFAULT_WITNESS_BASE.input_commitment,
+    },
+  ],
+});
+
 const DEFAULT_WITH_ROOT = {
   ...DEFAULT_WITNESS_BASE,
-  input_root: computeVantaPrivatePoolV2ClaimInputRoot(DEFAULT_WITNESS_BASE),
+  input_root: DEFAULT_TREE.root,
+  membership_path: DEFAULT_TREE.pathForLeaf(DEFAULT_WITNESS_BASE.leaf_index),
+  membership_path_direction_bits: directionBitsForLeafIndex(
+    DEFAULT_WITNESS_BASE.leaf_index,
+  ),
 };
 
 const DEFAULT_WITNESS = {

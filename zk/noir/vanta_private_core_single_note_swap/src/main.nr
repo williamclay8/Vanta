@@ -1,6 +1,6 @@
 use ::poseidon::poseidon::bn254;
 
-global MERKLE_DEPTH: u32 = 3;
+global MERKLE_DEPTH: u32 = 20;
 
 fn hash_note_header(note_version: Field, note_type_code: Field) -> Field {
     bn254::hash_2([note_version, note_type_code])

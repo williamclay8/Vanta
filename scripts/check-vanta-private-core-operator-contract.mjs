@@ -217,8 +217,8 @@ try {
     contractState.parsed?.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
     contractState.parsed?.supportedUnshieldCircuit !== "vanta_private_core_single_note_unshield" ||
     contractState.parsed?.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
-    contractState.parsed?.supportedUnshieldMerkleDepth !== 3 ||
-    contractState.parsed?.supportedSendMerkleDepth !== 3 ||
+    contractState.parsed?.supportedUnshieldMerkleDepth !== 20 ||
+    contractState.parsed?.supportedSendMerkleDepth !== 20 ||
     contractState.parsed?.supportedReleaseV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedReleaseV1DecisionNote !== "string" ||
     contractState.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||

@@ -118,7 +118,7 @@ The current executable circuit remains intentionally narrow:
 
 - one input note
 - one output note
-- fixed `MERKLE_DEPTH = 3`
+- fixed `MERKLE_DEPTH = 20`
 - off-circuit owner auth for `v0.1`
 
 ## Immediate next implementation target

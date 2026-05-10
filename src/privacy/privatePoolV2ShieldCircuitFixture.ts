@@ -1,4 +1,8 @@
 import { poseidon1, poseidon2, poseidon3, poseidon5, poseidon8 } from "poseidon-lite";
+import {
+  directionBitsForLeafIndex,
+  emptyMerklePathForLeafIndex,
+} from "./privatePoolV2MerkleFixtureHelpers";
 import { createVantaPrivatePoolV2ShieldProofRequest } from "./privatePoolV2ProofRequests";
 import type {
   VantaPrivatePoolV2Commitment,
@@ -10,8 +14,8 @@ export const VANTA_PRIVATE_POOL_V2_SHIELD_CIRCUIT_FIXTURE_VERSION =
 
 export type VantaPrivatePoolV2ShieldCircuitWitness = {
   amount: bigint;
-  append_path: readonly [bigint, bigint, bigint];
-  append_path_direction_bits: readonly [bigint, bigint, bigint];
+  append_path: readonly bigint[];
+  append_path_direction_bits: readonly bigint[];
   economics_blinding: bigint;
   economics_commitment: bigint;
   leaf_index: bigint;
@@ -43,8 +47,8 @@ export type VantaPrivatePoolV2ShieldCircuitFixtureMode =
 
 const DEFAULT_WITNESS_BASE = {
   amount: 1_000_000n,
-  append_path: [1111n, 1222n, 1333n] as const,
-  append_path_direction_bits: [1n, 0n, 1n] as const,
+  append_path: emptyMerklePathForLeafIndex(5n),
+  append_path_direction_bits: directionBitsForLeafIndex(5n),
   economics_blinding: 9191n,
   leaf_index: 5n,
   output_commitment: 808n,
@@ -154,8 +158,8 @@ export function computeVantaPrivatePoolV2ShieldRootFromLeaf({
   pathDirectionBits,
 }: {
   leaf_value: bigint;
-  path: readonly [bigint, bigint, bigint];
-  pathDirectionBits: readonly [bigint, bigint, bigint];
+  path: readonly bigint[];
+  pathDirectionBits: readonly bigint[];
 }) {
   return path.reduce(
     (current, sibling, index) =>

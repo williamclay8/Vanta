@@ -287,8 +287,8 @@ try {
     initialSummaryState.parsed?.supportedUnshieldCircuit !==
       "vanta_private_core_single_note_unshield" ||
     initialSummaryState.parsed?.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
-    initialSummaryState.parsed?.supportedUnshieldMerkleDepth !== 3 ||
-    initialSummaryState.parsed?.supportedSendMerkleDepth !== 3 ||
+    initialSummaryState.parsed?.supportedUnshieldMerkleDepth !== 20 ||
+    initialSummaryState.parsed?.supportedSendMerkleDepth !== 20 ||
     initialSummaryState.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     initialSummaryState.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     initialSummaryState.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -1021,8 +1021,8 @@ try {
     summaryStateAfterConsume.parsed?.supportedUnshieldCircuit !==
       "vanta_private_core_single_note_unshield" ||
     summaryStateAfterConsume.parsed?.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
-    summaryStateAfterConsume.parsed?.supportedUnshieldMerkleDepth !== 3 ||
-    summaryStateAfterConsume.parsed?.supportedSendMerkleDepth !== 3 ||
+    summaryStateAfterConsume.parsed?.supportedUnshieldMerkleDepth !== 20 ||
+    summaryStateAfterConsume.parsed?.supportedSendMerkleDepth !== 20 ||
     summaryStateAfterConsume.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     summaryStateAfterConsume.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     summaryStateAfterConsume.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -1138,8 +1138,8 @@ try {
     summaryStateAfterRelease.parsed?.supportedUnshieldCircuit !==
       "vanta_private_core_single_note_unshield" ||
     summaryStateAfterRelease.parsed?.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
-    summaryStateAfterRelease.parsed?.supportedUnshieldMerkleDepth !== 3 ||
-    summaryStateAfterRelease.parsed?.supportedSendMerkleDepth !== 3 ||
+    summaryStateAfterRelease.parsed?.supportedUnshieldMerkleDepth !== 20 ||
+    summaryStateAfterRelease.parsed?.supportedSendMerkleDepth !== 20 ||
     summaryStateAfterRelease.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     summaryStateAfterRelease.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     summaryStateAfterRelease.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||

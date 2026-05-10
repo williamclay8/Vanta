@@ -340,8 +340,8 @@ try {
     preRestartSummary.parsed?.supportedUnshieldCircuit !==
       "vanta_private_core_single_note_unshield" ||
     preRestartSummary.parsed?.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
-    preRestartSummary.parsed?.supportedUnshieldMerkleDepth !== 3 ||
-    preRestartSummary.parsed?.supportedSendMerkleDepth !== 3 ||
+    preRestartSummary.parsed?.supportedUnshieldMerkleDepth !== 20 ||
+    preRestartSummary.parsed?.supportedSendMerkleDepth !== 20 ||
     preRestartSummary.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     preRestartSummary.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     preRestartSummary.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||
@@ -448,8 +448,8 @@ try {
     postRestartSummary.parsed?.supportedUnshieldCircuit !==
       "vanta_private_core_single_note_unshield" ||
     postRestartSummary.parsed?.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
-    postRestartSummary.parsed?.supportedUnshieldMerkleDepth !== 3 ||
-    postRestartSummary.parsed?.supportedSendMerkleDepth !== 3 ||
+    postRestartSummary.parsed?.supportedUnshieldMerkleDepth !== 20 ||
+    postRestartSummary.parsed?.supportedSendMerkleDepth !== 20 ||
     postRestartSummary.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     postRestartSummary.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     postRestartSummary.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||

@@ -129,6 +129,15 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
+if (depth3Open.length > 0) {
+  console.error("Vanta circuit soundness lint: FAIL");
+  console.error("Active proving lanes must use MERKLE_DEPTH = 20 before depth migration is closed.");
+  for (const file of depth3Open) {
+    console.error(`- ${file}: still uses MERKLE_DEPTH = 3`);
+  }
+  process.exit(1);
+}
+
 console.log("Vanta circuit soundness lint: PASS");
 console.log(
   JSON.stringify(

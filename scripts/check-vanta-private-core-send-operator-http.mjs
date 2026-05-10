@@ -330,8 +330,8 @@ try {
     summaryState.parsed?.supportedUnshieldCircuit !==
       "vanta_private_core_single_note_unshield" ||
     summaryState.parsed?.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
-    summaryState.parsed?.supportedUnshieldMerkleDepth !== 3 ||
-    summaryState.parsed?.supportedSendMerkleDepth !== 3 ||
+    summaryState.parsed?.supportedUnshieldMerkleDepth !== 20 ||
+    summaryState.parsed?.supportedSendMerkleDepth !== 20 ||
     summaryState.parsed?.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     summaryState.parsed?.supportedReleaseRootPolicy !== "latest-registered-root" ||
     summaryState.parsed?.ownerAuthorizationMode !== "x25519-secret-prechecked-off-circuit" ||

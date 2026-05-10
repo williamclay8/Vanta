@@ -2673,8 +2673,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     parsed.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
     parsed.supportedUnshieldCircuit !== "vanta_private_core_single_note_unshield" ||
     parsed.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
-    parsed.supportedUnshieldMerkleDepth !== 3 ||
-    parsed.supportedSendMerkleDepth !== 3 ||
+    parsed.supportedUnshieldMerkleDepth !== 20 ||
+    parsed.supportedSendMerkleDepth !== 20 ||
     parsed.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     parsed.supportedReleaseRootPolicy !== "latest-registered-root" ||
     parsed.supportedReleaseExecutionModel !== "operator-recorded-mainnet-release" ||
@@ -2884,8 +2884,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedProofSystem: "noir-acir-ultrahonk-bbjs",
     supportedUnshieldCircuit: "vanta_private_core_single_note_unshield",
     supportedSendCircuit: "vanta_private_core_single_note_send",
-    supportedUnshieldMerkleDepth: 3,
-    supportedSendMerkleDepth: 3,
+    supportedUnshieldMerkleDepth: 20,
+    supportedSendMerkleDepth: 20,
     supportedReleaseAuthorizationBasis: "proof-backed-consume",
     supportedReleaseRootPolicy: "latest-registered-root",
     supportedReleaseExecutionModel: "operator-recorded-mainnet-release",
@@ -3323,8 +3323,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     parsed.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
     parsed.supportedUnshieldCircuit !== "vanta_private_core_single_note_unshield" ||
     parsed.supportedSendCircuit !== "vanta_private_core_single_note_send" ||
-    parsed.supportedUnshieldMerkleDepth !== 3 ||
-    parsed.supportedSendMerkleDepth !== 3 ||
+    parsed.supportedUnshieldMerkleDepth !== 20 ||
+    parsed.supportedSendMerkleDepth !== 20 ||
     parsed.supportedReleaseAuthorizationBasis !== "proof-backed-consume" ||
     parsed.supportedReleaseRootPolicy !== "latest-registered-root" ||
     parsed.supportedReleaseExecutionModel !== "operator-recorded-mainnet-release" ||
@@ -3458,8 +3458,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedProofSystem: "noir-acir-ultrahonk-bbjs",
     supportedUnshieldCircuit: "vanta_private_core_single_note_unshield",
     supportedSendCircuit: "vanta_private_core_single_note_send",
-    supportedUnshieldMerkleDepth: 3,
-    supportedSendMerkleDepth: 3,
+    supportedUnshieldMerkleDepth: 20,
+    supportedSendMerkleDepth: 20,
     supportedReleaseAuthorizationBasis: "proof-backed-consume",
     supportedReleaseRootPolicy: "latest-registered-root",
     supportedReleaseExecutionModel: "operator-recorded-mainnet-release",

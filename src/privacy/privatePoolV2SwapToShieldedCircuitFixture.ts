@@ -1,4 +1,8 @@
 import { poseidon1, poseidon2, poseidon12 } from "poseidon-lite";
+import {
+  buildVantaPrivatePoolV2SparseMerkleTree,
+  directionBitsForLeafIndex,
+} from "./privatePoolV2MerkleFixtureHelpers";
 import { createVantaPrivatePoolV2SwapToShieldedProofRequest } from "./privatePoolV2ProofRequests";
 import type { VantaPrivatePoolV2ProofRequest } from "./privatePoolV2Types";
 
@@ -10,11 +14,11 @@ export type VantaPrivatePoolV2SwapToShieldedCircuitWitness = {
   input_commitment: bigint;
   input_leaf_index: bigint;
   input_root: bigint;
-  membership_path: readonly [bigint, bigint, bigint];
-  membership_path_direction_bits: readonly [bigint, bigint, bigint];
+  membership_path: readonly bigint[];
+  membership_path_direction_bits: readonly bigint[];
   nullifier_or_replay_commitment: bigint;
-  output_append_path: readonly [bigint, bigint, bigint];
-  output_append_path_direction_bits: readonly [bigint, bigint, bigint];
+  output_append_path: readonly bigint[];
+  output_append_path_direction_bits: readonly bigint[];
   output_commitment: bigint;
   output_leaf_index: bigint;
   output_root: bigint;
@@ -44,8 +48,8 @@ const DEFAULT_WITNESS_BASE = {
   economics_commitment: 808n,
   input_commitment: 303n,
   input_leaf_index: 5n,
-  membership_path: [1202n, 1303n, 1404n] as const,
-  membership_path_direction_bits: [1n, 0n, 1n] as const,
+  membership_path: [] as readonly bigint[],
+  membership_path_direction_bits: [] as readonly bigint[],
   output_commitment: 1201n,
   output_leaf_index: 6n,
   owner_commitment: 606n,
@@ -131,8 +135,8 @@ export function computeVantaPrivatePoolV2SwapToShieldedRootFromLeaf({
   pathDirectionBits,
 }: {
   leafValue: bigint;
-  path: readonly [bigint, bigint, bigint];
-  pathDirectionBits: readonly [bigint, bigint, bigint];
+  path: readonly bigint[];
+  pathDirectionBits: readonly bigint[];
 }) {
   return path.reduce(
     (current, sibling, index) =>
@@ -227,77 +231,41 @@ function forgeVantaPrivatePoolV2SwapToShieldedInputMembership(
   };
 }
 
-function forgePath(path: readonly [bigint, bigint, bigint]) {
-  return [path[0] + 1n, path[1], path[2]] as const;
-}
-
-function toPathTuple(path: readonly bigint[]) {
-  return [path[0] ?? 0n, path[1] ?? 0n, path[2] ?? 0n] as const;
-}
-
-function directionBitsForIndex(index: bigint) {
-  return [index & 1n, (index >> 1n) & 1n, (index >> 2n) & 1n] as const;
-}
-
-function buildLayers(leaves: readonly bigint[]) {
-  let current = leaves.map((leaf) =>
-    computeVantaPrivatePoolV2SwapToShieldedLeafValue(leaf),
-  );
-  const layers: bigint[][] = [current];
-
-  while (current.length > 1) {
-    const next: bigint[] = [];
-
-    for (let index = 0; index < current.length; index += 2) {
-      const left = current[index] ?? current[index - 1] ?? 0n;
-      const right = current[index + 1] ?? left;
-      next.push(poseidon2([left, right]));
-    }
-
-    layers.push(next);
-    current = next;
-  }
-
-  return layers;
-}
-
-function rootForLeaves(leaves: readonly bigint[]) {
-  const layers = buildLayers(leaves);
-  return layers[layers.length - 1]?.[0] ?? computeVantaPrivatePoolV2SwapToShieldedLeafValue(0n);
-}
-
-function pathForLeaf(leaves: readonly bigint[], leafIndex: bigint) {
-  const layers = buildLayers(leaves);
-  const path: bigint[] = [];
-  let currentIndex = Number(leafIndex);
-
-  for (let depth = 0; depth < 3; depth += 1) {
-    const layer = layers[depth] ?? [];
-    const isRight = currentIndex % 2 === 1;
-    const siblingIndex = isRight ? currentIndex - 1 : currentIndex + 1;
-    path.push(layer[siblingIndex] ?? layer[currentIndex] ?? 0n);
-    currentIndex = Math.floor(currentIndex / 2);
-  }
-
-  return toPathTuple(path);
+function forgePath(path: readonly bigint[]) {
+  return path.map((value, index) => (index === 0 ? value + 1n : value));
 }
 
 function buildVantaPrivatePoolV2SwapToShieldedTree(
   witness: typeof DEFAULT_WITNESS_BASE,
 ) {
-  const emptyLeaves = Array.from({ length: 8 }, () => 0n);
-  const inputLeaves = [...emptyLeaves];
-  inputLeaves[Number(witness.input_leaf_index)] = witness.input_commitment;
-  const outputLeaves = [...inputLeaves];
-  outputLeaves[Number(witness.output_leaf_index)] = witness.output_commitment;
+  const inputTree = buildVantaPrivatePoolV2SparseMerkleTree({
+    leaves: [
+      {
+        leafIndex: witness.input_leaf_index,
+        leafValue: witness.input_commitment,
+      },
+    ],
+  });
+  const outputTree = buildVantaPrivatePoolV2SparseMerkleTree({
+    leaves: [
+      {
+        leafIndex: witness.input_leaf_index,
+        leafValue: witness.input_commitment,
+      },
+      {
+        leafIndex: witness.output_leaf_index,
+        leafValue: witness.output_commitment,
+      },
+    ],
+  });
 
   return {
-    input_root: rootForLeaves(inputLeaves),
-    membership_path: pathForLeaf(inputLeaves, witness.input_leaf_index),
-    membership_path_direction_bits: directionBitsForIndex(witness.input_leaf_index),
-    output_append_path: pathForLeaf(inputLeaves, witness.output_leaf_index),
-    output_append_path_direction_bits: directionBitsForIndex(witness.output_leaf_index),
-    output_root: rootForLeaves(outputLeaves),
+    input_root: inputTree.root,
+    membership_path: inputTree.pathForLeaf(witness.input_leaf_index),
+    membership_path_direction_bits: directionBitsForLeafIndex(witness.input_leaf_index),
+    output_append_path: inputTree.pathForLeaf(witness.output_leaf_index),
+    output_append_path_direction_bits: directionBitsForLeafIndex(witness.output_leaf_index),
+    output_root: outputTree.root,
   };
 }
 

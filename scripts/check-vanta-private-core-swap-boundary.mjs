@@ -65,8 +65,8 @@ if (boundary.readiness !== "ready") {
 if (boundary.blockers.length !== 0) {
   throw new Error(`expected zero swap boundary blockers, received ${boundary.blockers.length}`);
 }
-if (boundary.noirWitnessPackage.merkleDepth !== 3) {
-  throw new Error(`expected swap witness merkle depth 3, received ${String(boundary.noirWitnessPackage.merkleDepth)}`);
+if (boundary.noirWitnessPackage.merkleDepth !== 20) {
+  throw new Error(`expected swap witness merkle depth 20, received ${String(boundary.noirWitnessPackage.merkleDepth)}`);
 }
 if (boundary.publicInputs.inputAssetId === boundary.publicInputs.outputAssetId) {
   throw new Error("expected swap boundary to change assets");

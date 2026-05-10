@@ -39,6 +39,7 @@ function patchRelativeImports(relativePath) {
   const filePath = join(tempJsDir, relativePath.replace(/\.ts$/, ".js"));
   const source = readFileSync(filePath, "utf8")
     .replace(/from "\.\/privatePoolV2ProofRequests"/g, 'from "./privatePoolV2ProofRequests.js"')
+    .replace(/from "\.\/privatePoolV2MerkleFixtureHelpers"/g, 'from "./privatePoolV2MerkleFixtureHelpers.js"')
     .replace(/from "\.\/privatePoolV2Types"/g, 'from "./privatePoolV2Types.js"');
   writeFileSync(filePath, source);
 }
@@ -46,6 +47,7 @@ function patchRelativeImports(relativePath) {
 try {
   mkdirSync(tempTsDir, { recursive: true });
   copySource("protocolAdapter.ts");
+  copySource("privatePoolV2MerkleFixtureHelpers.ts");
   copySource("privatePoolV2Types.ts");
   copySource("privatePoolV2ProofRequests.ts");
   copySource("privatePoolV2ShieldCircuitFixture.ts");
@@ -55,6 +57,7 @@ try {
     [
       join(tempTsDir, "privatePoolV2Types.ts"),
       join(tempTsDir, "protocolAdapter.ts"),
+      join(tempTsDir, "privatePoolV2MerkleFixtureHelpers.ts"),
       join(tempTsDir, "privatePoolV2ProofRequests.ts"),
       join(tempTsDir, "privatePoolV2ShieldCircuitFixture.ts"),
       "--target",
@@ -73,6 +76,7 @@ try {
   );
 
   patchRelativeImports("privatePoolV2ProofRequests.ts");
+  patchRelativeImports("privatePoolV2MerkleFixtureHelpers.ts");
   patchRelativeImports("privatePoolV2ShieldCircuitFixture.ts");
 
   const fixtureModule = await import(

@@ -1,6 +1,6 @@
 use ::poseidon::poseidon::bn254;
 
-global MERKLE_DEPTH: u32 = 3;
+global MERKLE_DEPTH: u32 = 20;
 
 fn hash_merkle_leaf(commitment: Field) -> Field {
     bn254::hash_1([commitment])
@@ -44,9 +44,19 @@ fn compute_nullifier(input_commitment: Field, note_secret: Field, pool_id: Field
 fn compute_leaf_index_from_direction_bits(
     membership_path_direction_bits: [Field; MERKLE_DEPTH],
 ) -> Field {
-    membership_path_direction_bits[0]
-        + membership_path_direction_bits[1] * 2
-        + membership_path_direction_bits[2] * 4
+    let mut leaf_index = 0;
+    let mut bit_weight = 1;
+
+    for i in 0..MERKLE_DEPTH {
+        let direction_bit = membership_path_direction_bits[i];
+
+        assert_direction_bit(direction_bit);
+
+        leaf_index = leaf_index + direction_bit * bit_weight;
+        bit_weight = bit_weight * 2;
+    }
+
+    leaf_index
 }
 
 fn bind_private_spend_public_inputs(
@@ -60,19 +70,15 @@ fn bind_private_spend_public_inputs(
     output_commitment_0: Field,
     output_commitment_1: Field,
     context_hash: Field,
-    membership_path_direction_bits: [Field; MERKLE_DEPTH],
 ) -> Field {
     let output_commitment_hash = bn254::hash_2([
         output_commitment_0,
         output_commitment_1,
     ]);
-    let membership_binding = bn254::hash_6([
+    let membership_binding = bn254::hash_3([
         accepted_root,
         input_commitment,
         leaf_index,
-        membership_path_direction_bits[0],
-        membership_path_direction_bits[1],
-        membership_path_direction_bits[2],
     ]);
 
     bn254::hash_11([
@@ -132,7 +138,6 @@ fn main(
         output_commitment_0,
         output_commitment_1,
         context_hash,
-        membership_path_direction_bits,
     );
 
     assert(computed_public_input_hash == private_spend_public_input_hash);

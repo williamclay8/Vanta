@@ -11,6 +11,7 @@ const outputPath = resolve(
 const fixtureMode = process.argv[2] ?? "valid";
 const sourceFiles = [
   "protocolAdapter.ts",
+  "privatePoolV2MerkleFixtureHelpers.ts",
   "privatePoolV2Types.ts",
   "privatePoolV2ProofRequests.ts",
   "privatePoolV2SendCircuitFixture.ts",

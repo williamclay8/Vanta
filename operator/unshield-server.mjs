@@ -442,8 +442,8 @@ const PRIVATE_CORE_OPERATOR_WITNESS_MATERIAL_POLICY =
     : "local-prover-dev-accepts-private-witness-material";
 const PRIVATE_CORE_SUPPORTED_UNSHIELD_CIRCUIT = "vanta_private_core_single_note_unshield";
 const PRIVATE_CORE_SUPPORTED_SEND_CIRCUIT = "vanta_private_core_single_note_send";
-const PRIVATE_CORE_SUPPORTED_UNSHIELD_MERKLE_DEPTH = 3;
-const PRIVATE_CORE_SUPPORTED_SEND_MERKLE_DEPTH = 3;
+const PRIVATE_CORE_SUPPORTED_UNSHIELD_MERKLE_DEPTH = 20;
+const PRIVATE_CORE_SUPPORTED_SEND_MERKLE_DEPTH = 20;
 const PRIVATE_CORE_RELEASE_AUTHORIZATION_BASIS = "proof-backed-consume";
 const PRIVATE_CORE_RELEASE_ROOT_POLICY = "latest-registered-root";
 const PRIVATE_CORE_RELEASE_EXECUTION_MODEL = "operator-recorded-mainnet-release";

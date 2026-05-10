@@ -2,7 +2,7 @@
 
 ## Fixed v0.1 circuit choice
 
-- `MERKLE_DEPTH = 3`
+- `MERKLE_DEPTH = 20`
 - proving lane: `poseidon-bn254-proving-lane-v0`
 - owner authorization: prechecked off-circuit
 

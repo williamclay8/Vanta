@@ -93,13 +93,13 @@ Recommended first circuit workspace:
 
 The first fixed-depth circuit path uses:
 
-- `MERKLE_DEPTH = 3`
+- `MERKLE_DEPTH = 20`
 
 Why:
 - depth `0` is trivial and not acceptable
 - depth `1` is still too small to feel like a real retained-state path
-- depth `3` is still easy to inspect while forcing:
-  - multiple Merkle rounds
+- depth `20` matches the minimum active-lane anonymity target while still forcing:
+  - full fixed-depth Merkle rounds
   - deterministic sibling ordering
   - a nontrivial retained fixture
   - exercise of odd-leaf duplication through a five-leaf fixture

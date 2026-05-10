@@ -18,13 +18,14 @@ This review is now an active feedback-loop document, not only a point-in-time au
 | Canonical note membership | Placeholder additive note/tree hashing was replaced with Poseidon note, leaf, and node hashing plus direction/leaf-index constraints; note amount limbs are now `u64` in the local circuit ABI. | `npm run zk:canonical-note-membership-check` |
 | Canonical note proving commitment | `CanonicalNoteArtifacts` now carries both legacy SHA-256 display commitment and Poseidon/BN254 proof-facing `provingCommitment`; Live Shield records both and Live Send preserves the proof-facing commitment through redaction. | `npm run zk:canonical-note-proving-commitment-check` |
 | Private Pool v2 entry circuits | Local fixed-depth lanes now prove input membership and path-based successor append roots for Shield, Send, Swap-to-shielded, Claim, and actual-private spend where applicable. | `npm run private-pool-v2:verify` |
+| Active proving-lane Merkle depth | Private Pool v2 Shield/Send/Swap-to-shielded/Claim/actual-private-spend and Private Core Send/Swap/Unshield now use `MERKLE_DEPTH = 20`; fixture builders emit 20-sibling paths with sparse depth-20 trees; the depth lint now fails closed if active lanes regress to depth 3. | `npm run zk:circuit-soundness-lint`; `npm run private-pool-v2:shield-circuit-check`; `npm run private-core:check` |
 | Private Pool v2 Shield/Send/Claim amount range | Shield, Send, and Claim raw amount witnesses are constrained as `u128`; Send also proves a private economics commitment and checks `input_amount == recipient_amount + change_amount`; Claim relayer-fee is constrained as `u128`. | `npm run private-pool-v2:shield-circuit-check`; `npm run private-pool-v2:send-circuit-check`; `npm run private-pool-v2:claim-circuit-check` |
 | Private Core tree hashing | Single-field membership paths and standard Poseidon node hashing are now guarded across send/swap/unshield. | `npm run zk:merkle-node-hash-contract-check` |
 | Private Core Send/Swap/Unshield amount range | Send, Swap, and Unshield amount limbs are now `u64` in the local Noir lanes, with negative fixtures for out-of-range witnesses. | `npm run private-core:send-check`; `npm run private-core:swap-check`; `npm run private-core:check` |
 | Action memo privacy | Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers now fail closed into v2 viewing-key AEAD; v1 plaintext parsing remains only for historical chain memos. External Send v2 currently fails closed until recipient viewing-key exchange is wired. | `npm run actions:memo-encryption-check` |
 | Owner recovery payload | X25519 + HKDF-SHA256 + XChaCha20-Poly1305 replaced the hand-rolled XOR/SHA path. | `npm run zk:owner-recovery-payload-crypto-check` |
 
-Still not solved: active proving lanes are still depth 3, on-chain proof verification/verifying-key enforcement is not wired, root history is only a local operator-authorized fixed-slot scaffold, the output queue is still fixed-capacity, no audit has accepted the boundary, the local SBF binary must be rebuilt before it can represent the current ABI, and no live deployment evidence has been refreshed.
+Still not solved: on-chain proof verification/verifying-key enforcement is not wired, root history is only a local operator-authorized fixed-slot scaffold, the output queue is still fixed-capacity, recipient-grade Send discovery/proof-bound ciphertext hashes remain open, no audit has accepted the boundary, the local SBF binary must be rebuilt before it can represent the current ABI, and no live deployment evidence has been refreshed.
 
 ---
 
@@ -86,9 +87,9 @@ A prover can spend any commitment they invent against any root they like. Use `v
 
 ### 5. Anonymity-set depth is 3
 
-All the production-shaped circuits (`vanta_private_core_single_note_*`, `vanta_private_pool_v2_actual_private_spend_entry`) declare `global MERKLE_DEPTH: u32 = 3;`. That is a maximum of **8 leaves per tree**. Tornado Cash uses depth 20–32 (1M–4B leaves). With depth 3 there is no anonymity set; even on the cleanest deployment, the recipient set is small enough to deanonymize trivially. The `canonical_note_membership` circuit is depth 20 and now locally repaired, but that does not migrate the active proving lanes. Decide on a real depth (≥20) and migrate.
+Earlier production-shaped circuits (`vanta_private_core_single_note_*`, `vanta_private_pool_v2_*_entry`) declared `global MERKLE_DEPTH: u32 = 3;`, a maximum of **8 leaves per tree**. Tornado Cash uses depth 20–32 (1M–4B leaves). With depth 3 there is no anonymity set; even on the cleanest deployment, the recipient set is small enough to deanonymize trivially. The `canonical_note_membership` circuit was already depth 20; the active proving lanes needed the same migration.
 
-**Codex status, 2026-05-09:** still open for active proving lanes. The `canonical_note_membership` hash caveat is now stale because that circuit was repaired, but active Private Pool v2 and Private Core proving lanes still use depth 3 and do not provide a meaningful anonymity set.
+**Codex status, 2026-05-09:** remediated locally for active fixed-depth proving lanes. Private Pool v2 Shield/Send/Swap-to-shielded/Claim/actual-private-spend and Private Core Send/Swap/Unshield now use `MERKLE_DEPTH = 20`; fixture builders emit 20-sibling paths using sparse depth-20 tree helpers; Private Core proof boundaries pad shorter source-layer proofs into the fixed depth-20 proving lane; operator contract/status expectations now report depth 20; and `npm run zk:circuit-soundness-lint` fails closed if any active Noir lane regresses to depth 3. Residual caveat: depth 20 is necessary but not sufficient for production privacy until the shared pool has real populated anonymity-set evidence, on-chain verifier enforcement, audit acceptance, and live deployment evidence.
 
 ---
 
@@ -169,7 +170,7 @@ In `vanta_private_core_single_note_send/src/main.nr` and the swap variant, the s
 The prior feedback loops moved several early items from "recommended" to "locally guarded." From here, the highest-leverage order is:
 
 1. **Keep the Solana authority boundary guarded and redeploy/reinit before citing live evidence.** The local branch has the signer gate, but the reviewed mainnet spend-program evidence is pre-authority-ABI and must remain blocked.
-2. **Bump Merkle depth to >=20 across active proving lanes and fixtures.** The repaired canonical membership target is depth 20, but Private Pool v2 and Private Core lanes still use depth 3.
+2. **Keep Merkle depth >=20 guarded across active proving lanes and fixtures.** The active Private Pool v2 and Private Core lanes now use depth 20 locally; keep `npm run zk:circuit-soundness-lint` and the focused circuit checks as fail-closed regression gates.
 3. **Keep amount range constraints guarded while the proof lanes mature.** Canonical note membership, Private Pool v2 Shield/Send/Claim, and Private Core Send/Swap/Unshield now use typed amount ABIs with negative range fixtures; future lanes must keep this linted discipline before making production amount-proof claims.
 4. **Finish recipient-grade memo/discovery semantics.** New Send/Swap/Unshield/SOL-Unshield action memos now fail closed into v2 viewing-key AEAD, and external Send v2 now fails closed until recipient viewing-key exchange is wired. Recipient viewing-key exchange, dual recipient/change encryption, ciphertext-hash proof binding, and old v1 chain-history migration remain open.
 5. **Rebuild/redeploy the Solana PDA-nullifier ABI before citing live replay evidence.** The local source now uses a deterministic nullifier marker PDA for O(1) duplicate rejection, but reviewed mainnet/SBF evidence is stale until rebuilt and redeployed.
@@ -2261,6 +2262,21 @@ Red-first checks observed during this slice: `npm run pay:merchant-api-check` in
 
 Still open after this seventeenth local pass: customer-side wallet payment evidence is still not wired for production, the current typed reference is only a shape guard rather than chain-finality/session-binding verification, active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / proof-bound ciphertext hashes, on-chain proof verification/verifying-key enforcement is not wired, root-history is still a fixed-slot operator-fed scaffold rather than proof-backed program-owned tree state, output records remain fixed-capacity, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
 
+### Eighteenth Codex feedback loop - depth-20 active proving lanes
+
+This local slice closed the active-lane toy-depth gap called out in finding 5 and the recommended order:
+
+- Private Pool v2 Shield, Send, Swap-to-shielded, Claim, and actual-private-spend circuits now declare `MERKLE_DEPTH = 20`.
+- Private Core Send, Swap, and Unshield circuits now declare `MERKLE_DEPTH = 20`; their proof-boundary builders pad shorter source-layer proofs into 20-sibling proving-lane witnesses instead of blocking on the source tree's current small demo height.
+- Private Pool v2 fixture builders now use `privatePoolV2MerkleFixtureHelpers.ts` to emit coherent sparse depth-20 paths without allocating a full `2^20` leaf tree.
+- Actual-private spend public-input binding now uses the compact `(accepted_root, input_commitment, leaf_index)` membership binding, while the 20 private direction bits remain circuit-checked against the supplied path and leaf index.
+- Private Core operator contract/status expectations now advertise supported Send/Unshield depth 20.
+- `npm run zk:circuit-soundness-lint` now fails closed if any active Noir lane regresses to `MERKLE_DEPTH = 3`; it reports `depth20MigrationStatus: "complete"` after this slice.
+
+Verification in this slice: `npm run zk:circuit-soundness-lint`, `npm run zk:review-guards-check`, `npm run private-pool-v2:public-input-hash-alignment-check`, `npm run private-pool-v2:shield-circuit-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:swap-to-shielded-circuit-check`, `npm run private-pool-v2:actual-private-spend-circuit-check`, `npm run private-pool-v2:claim-circuit-check`, `npm run private-pool-v2:shield-prove`, `npm run private-pool-v2:send-prove`, `npm run private-pool-v2:swap-to-shielded-prove`, `npm run private-pool-v2:actual-private-spend-prove`, `npm run private-pool-v2:claim-prove`, `npm run private-core:check`, `npm run private-core:send-check`, `npm run private-core:swap-check`, `npm run private-core:swap-boundary-check`, `npm run private-core:prove`, `npm run private-core:send-prove`, `npm run private-core:swap-prove`, `npm run private-core:contract-smoke`, `npm run private-core:http-smoke`, `npm run private-pool-v2:actual-private-transaction-rail-check`, `npm run pay:committed-checkout-acceptance-check`, `npm run docs:source-of-truth-check`, `npm run operator:runbook-check`, `npm run security:limitations-check`, `npm run build`, and `git diff --check`. `npm run private-pool-v2:sbf-abi-status-json` still reports the expected external blocker set: `stale-sbf-binary`, `missing-cargo-build-sbf`, and `missing-solana-cli`.
+
+Still open after this eighteenth local pass: depth 20 is locally guarded but not yet live/deployed/audited; recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / proof-bound ciphertext hashes; on-chain proof verification/verifying-key enforcement is not wired; root-history remains operator-fed fixed-slot scaffold rather than proof-backed program-owned tree state; output records remain fixed-capacity; customer-side wallet payment evidence is not production-wired; no audit has accepted the boundary; the local SBF binary still needs a rebuild; and no live deployment evidence was refreshed.
+
 ---
 
 # UI/UX Pass
@@ -2718,20 +2734,23 @@ Adjacent B2B treasury features to follow:
 - **Accounting export.** QuickBooks / Xero / Stripe Sigma-compatible. A merchant runs a monthly export and their books reconcile.
 - **Subscription billing with privacy.** The repo has `private-pay-subscription-notes.md`. Subscriptions are the highest-LTV merchant feature in payments and a unique-and-defensible product for a privacy rail. Recurring billing on shielded balances, cancelable mid-month, refunded pro-rata — all the standard SaaS billing primitives, but customers don't expose their identity to each merchant they subscribe to.
 
-## F10. The token / economic model decision
+## F10. The token, the product, and the relationship between them
 
-The README states: *"Net Vanta-collected fees are reserved for ecosystem growth, including supply buybacks, marketing, operator infrastructure, security, and product development."* "Supply buybacks" implies a token. No token model is published in the repo.
+A `$VANTA` token exists, launched on Bags at contract address `9yqv319Boij6kUfD6CAzXEGYk7pHUfda37ye6FQmBAGS`. The README's reference to "supply buybacks" is therefore backed by a real on-chain instrument, not aspirational framing. This is a constraint to factor into the rest of the review, not a strategic question to answer.
 
-This is the largest unresolved strategic question I see. Two paths:
+Three observations that follow from the token's existence, none of which should drive the technical or product roadmap:
 
-- **Path A — No token.** Vanta is a SaaS-shape business. Merchants pay 0.25% per action. Revenue funds the operator infrastructure. Vanta's defensibility is brand, ecosystem integrations, and proof-of-trust packets. Path A is simpler legally (no securities considerations), simpler operationally, and removes the largest distraction from product work. Most successful crypto-adjacent businesses (Phantom, Helius, Triton) take this path.
-- **Path B — Token with utility.** A protocol token used for: (a) governance over operator selection / verifier upgrades, (b) staking for relayer participation, (c) fee discounts for stakers, (d) anonymity-set seeding rewards. Path B is harder legally (US securities concerns, especially post-Howey), more complex operationally, but it's the only way to credibly decentralize the operator long-term. Most privacy protocols take this path (Aztec's AZTEC, Penumbra's UM, Railgun's RAIL).
+- **The "Why Vanta exists" story stays product-first.** The premier-suite case is that Vanta is the credible private-settlement rail for Solana stablecoin flows. Merchants integrate because the product works and because trust packets are useful, not because they're token holders. Letting the token become the headline weakens the merchant pitch — most regulated counterparties evaluate "is there a token" as a *risk*, not a feature. The product copy on `/`, `/docs`, `/app/pay`, and merchant-facing collateral should treat the token as a public artifact of the project, not as a reason to use it.
+- **The token enables specific moves the rest of this review proposes, when they make sense product-first.** Anonymity-set seeding subsidies (F2), anchor-merchant token grants (F3), buyback transparency as a trust signal (F11), governance over verifier upgrades (F12 Stage 4) — each of these has a token-aware version and a token-free version. Pick the version that's right for the product reason, then use the token where it actually adds clarity. Don't manufacture utility just to give the token a job.
+- **The token launch venue carries connotation.** Bags is a Solana launchpad associated more with memecoin distribution than with infrastructure-protocol fundraising. That's not disqualifying — many serious projects launch via unconventional venues — but it means the token's framing in product copy and investor/merchant conversations needs to actively distinguish "$VANTA, the utility token of the privacy suite" from "$VANTA, a memecoin." A short tokenomics page at `/token` covering supply, distribution, the buyback formula, on-chain links to the contract, and any utility hooks (fee discounts, staking, governance) is the cheapest way to do this. It also lets the token live as one part of the product surface without colonizing the rest.
 
-The current docs gesture at Path B without committing to it. **The single highest-leverage strategic decision Vanta has to make is which path to take, and to publish that decision.** Until it's public, every conversation with a merchant, an investor, or a regulator has to navigate the ambiguity. Pick one and write it down.
+Concrete next moves, optional but available:
 
-If Path B, the token model needs: distribution plan, vesting, utility, governance, regulatory analysis, target jurisdiction. None of these can be hand-waved.
+- **Make the buyback formula explicit and on-chain-verifiable.** Publish "X% of net protocol fees, executed monthly via on-chain swap from $USDC into $VANTA, transactions linked from `/token`." The buyback transactions can themselves run privately through Vanta — a flagship use of the product, demonstrating the privacy thesis on the project's own treasury operations. Privacy applied to a buyback is a story; transparency about the formula and the executed-tx links is the trust mechanism that lets a sophisticated holder verify it.
+- **Token-paid fee discount as a soft utility hook.** Merchants paying the 0.25% fee in `$VANTA` get a discount (e.g., 0.20%). The discount is small enough that it doesn't drive merchant choice, large enough that it gives the token a non-speculative reason to be held. Implement only if it doesn't add operator complexity.
+- **Reserve `$VANTA` for the eventual decentralization stages, not the current product.** Per F12, the path from "single operator" to "anyone-can-operate" to "trustless" is multi-year. Token-holder governance over verifier upgrades and operator selection is the natural fit *at that stage*, not earlier. Trying to ship governance now turns into a distraction from the cryptographic and product work that's actually blocking premier-suite status.
 
-If Path A, the README's "supply buybacks" line should be edited out and the fee structure published as a real merchant pricing page.
+The default recommendation for the next 12 months: ship the technical and product work documented in this review, ignore the token's market price, treat `$VANTA` as a public artifact of the project that exists alongside the product rather than embedded in it. Revisit specific token-aware mechanisms (governance, staking, deeper utility) once the lane work has shipped and there's a non-custodial pool worth governing.
 
 ## F11. Trust signals worth investing in
 
@@ -2755,7 +2774,7 @@ The path to operator-optional, in order:
 - **Stage 1** (after the lane work in this review lands): single operator, on-chain proof verification, PDA-owned vault. The operator is a relayer + indexer, not a custodian. **This is the realistic 12-month target.**
 - **Stage 2**: multi-operator. Anyone can run an operator; users pick which one to use; operators compete on UX, fee, and uptime. Requires the on-chain program to accept relayed transactions from any signer. Mostly already true after Stage 1 (per the unshield-lane U2 design).
 - **Stage 3**: trustless indexer. The Merkle tree is reconstructible from chain state alone, so any client can run their own indexer and not depend on Vanta's. Requires the on-chain commitment events to carry enough data for full reconstruction (per shield-W4).
-- **Stage 4**: governance over verifier upgrades. The verifying key embedded in the on-chain program can only be changed via on-chain governance with a public upgrade window. Requires Path B from F10 or a foundation with a published upgrade policy.
+- **Stage 4**: governance over verifier upgrades. The verifying key embedded in the on-chain program can only be changed via on-chain governance with a public upgrade window. The natural mechanism is `$VANTA`-holder voting once the protocol is mature enough to merit it; until then, a foundation or multi-sig with a published upgrade policy is the safer interim.
 
 Stages 1–3 are pure engineering and should be the project's 1–2 year target. Stage 4 depends on the token decision and probably belongs to year 3+.
 
@@ -2777,7 +2796,7 @@ In a longer form, the highest-leverage moves, ordered by leverage-per-week-of-wo
 6. **Adopt Privacy Pools association sets and publish the compliance posture publicly** (unlocks merchant adoption that Tornado-shaped privacy can't reach).
 7. **Ship the customer-side wallet flow for Pay** (gives merchants something real to integrate against).
 8. **Sign 5 anchor merchant partners** (solves the empty-anonymity-set problem and the credibility problem at the same time).
-9. **Decide and publish the token model** (removes the strategic ambiguity blocking serious investor and regulatory conversations).
+9. **Publish a tokenomics page at `/token`** covering supply, distribution, the `9yqv319Boij6kUfD6CAzXEGYk7pHUfda37ye6FQmBAGS` contract, the buyback formula, and any utility hooks — a short factual artifact that lets `$VANTA` exist alongside the product without colonizing the merchant pitch.
 10. **Build the developer SDK + sandbox + docs** (turns "privacy on Solana" from a research project into a payment processor).
 
 Items 1–5 are technical and the lane deep dives have detailed plans. Item 6 is technical-meets-policy. Item 7 is product. Items 8–10 are go-to-market. They need to ship roughly in parallel — there's no order in which "ship the SDK" and "fix the proofs" can be sequential.
@@ -2954,7 +2973,7 @@ This is 200 lines of WebGL and 50 lines of copy. It would take a week to build w
 The current docs are correctly framed but feel like documentation. What if they felt like a *publication*?
 
 - Each doc page has a byline ("Written by the Vanta team, last reviewed 2026-05-09").
-- Each major release ships with a long-form essay on `vantaprivacy.xyz/log`. Not a changelog. A piece of writing. *"Why we are not a token-based protocol (yet)."* *"What Privacy Pools means for Solana."* *"The decision to use Poseidon."* These are the documents that get linked in cryptography Twitter and that build technical credibility over years.
+- Each major release ships with a long-form essay on `vantaprivacy.xyz/log`. Not a changelog. A piece of writing. *"What Privacy Pools means for Solana."* *"The decision to use Poseidon."* *"How Vanta runs its own buybacks privately."* These are the documents that get linked in cryptography Twitter and that build technical credibility over years.
 - The newsletter is real. Monthly. One voice (preferably an actual named person on the team). Long-form, technical, opinionated. Substack or self-hosted. Subscribers measured in hundreds before launch, thousands after.
 - A `/manifesto` page distinct from the docs. The principles. Updated rarely. The thing the founder would defend in writing.
 - A `/people` page with the team. Real names, real photos, real backgrounds. Privacy is a trust product; trust comes from people users can identify.

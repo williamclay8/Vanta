@@ -1,6 +1,6 @@
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
-import { poseidon2, poseidon6, poseidon11 } from "poseidon-lite";
+import { poseidon2, poseidon3, poseidon11 } from "poseidon-lite";
 
 export const VANTA_ACTUAL_PRIVATE_TRANSACTION_RAIL_VERSION =
   "vanta-actual-private-transaction-rail-0.1" as const;
@@ -97,14 +97,6 @@ function fieldString(value: bigint) {
   return value.toString(10);
 }
 
-function directionBitsForLeafIndex(leafIndex: number): readonly [bigint, bigint, bigint] {
-  return [
-    BigInt(leafIndex & 1),
-    BigInt((leafIndex >> 1) & 1),
-    BigInt((leafIndex >> 2) & 1),
-  ] as const;
-}
-
 export function computeVantaActualPrivateSpendPublicInputHash({
   acceptedRoot,
   assetCohort,
@@ -126,17 +118,13 @@ export function computeVantaActualPrivateSpendPublicInputHash({
   poolId: string;
   requestVersion?: string;
 }) {
-  const directionBits = directionBitsForLeafIndex(inputLeafIndex);
   const outputCommitment0 = fieldFromTerm("actual-private-output-commitment-0", outputCommitments[0]);
   const outputCommitment1 = fieldFromTerm("actual-private-output-commitment-1", outputCommitments[1]);
   const outputCommitmentHash = poseidon2([outputCommitment0, outputCommitment1]);
-  const membershipBinding = poseidon6([
+  const membershipBinding = poseidon3([
     fieldFromTerm("actual-private-accepted-root", acceptedRoot),
     fieldFromTerm("actual-private-input-commitment", inputCommitment),
     BigInt(inputLeafIndex),
-    directionBits[0],
-    directionBits[1],
-    directionBits[2],
   ]);
 
   return fieldString(

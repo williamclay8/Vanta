@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { poseidon2, poseidon3, poseidon4, poseidon5, poseidon6, poseidon8, poseidon11 } from "poseidon-lite";
+import { poseidon2, poseidon3, poseidon4, poseidon5, poseidon8, poseidon11 } from "poseidon-lite";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-pool-v2-hash-alignment-"));
@@ -11,6 +11,7 @@ const tempJsDir = join(tempRoot, "js");
 
 const sourceFiles = [
   "protocolAdapter.ts",
+  "privatePoolV2MerkleFixtureHelpers.ts",
   "privatePoolV2Types.ts",
   "privatePoolV2ProofRequests.ts",
   "privatePoolV2ShieldCircuitFixture.ts",
@@ -567,13 +568,10 @@ try {
     actualPrivateSpendWitness.output_commitment_0,
     actualPrivateSpendWitness.output_commitment_1,
   ]);
-  const actualPrivateSpendMembershipBinding = poseidon6([
+  const actualPrivateSpendMembershipBinding = poseidon3([
     actualPrivateSpendWitness.accepted_root,
     actualPrivateSpendWitness.input_commitment,
     actualPrivateSpendWitness.leaf_index,
-    actualPrivateSpendWitness.membership_path_direction_bits[0],
-    actualPrivateSpendWitness.membership_path_direction_bits[1],
-    actualPrivateSpendWitness.membership_path_direction_bits[2],
   ]);
   const actualPrivateSpendPreimage = poseidon11([
     actualPrivateSpendWitness.request_version,

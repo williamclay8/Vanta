@@ -18,7 +18,7 @@ The goal is to make the first honest proof lane real, repeatable, and inspectabl
 The repo contains a fixed-depth Noir circuit for the first Vanta Private Core single-note unshield path, and that circuit has been validated with both a passing and failing witness.
 
 Current circuit scope:
-- fixed `MERKLE_DEPTH = 3`
+- fixed `MERKLE_DEPTH = 20`
 - note commitment recomputation
 - note commitment to Merkle leaf mapping
 - fixed-depth Merkle root recomputation

@@ -1,4 +1,8 @@
 import { poseidon1, poseidon2, poseidon4, poseidon11 } from "poseidon-lite";
+import {
+  buildVantaPrivatePoolV2SparseMerkleTree,
+  directionBitsForLeafIndex,
+} from "./privatePoolV2MerkleFixtureHelpers";
 import { createVantaPrivatePoolV2SendProofRequest } from "./privatePoolV2ProofRequests";
 import type { VantaPrivatePoolV2ProofRequest } from "./privatePoolV2Types";
 
@@ -17,17 +21,17 @@ export type VantaPrivatePoolV2SendCircuitWitness = {
   input_commitment: bigint;
   input_leaf_index: bigint;
   input_root: bigint;
-  membership_path: readonly [bigint, bigint, bigint];
-  membership_path_direction_bits: readonly [bigint, bigint, bigint];
+  membership_path: readonly bigint[];
+  membership_path_direction_bits: readonly bigint[];
   nullifier: bigint;
   owner_commitment: bigint;
   owner_secret: bigint;
-  change_append_path: readonly [bigint, bigint, bigint];
-  change_append_path_direction_bits: readonly [bigint, bigint, bigint];
+  change_append_path: readonly bigint[];
+  change_append_path_direction_bits: readonly bigint[];
   recipient_amount: bigint;
   recipient_leaf_index: bigint;
-  recipient_append_path: readonly [bigint, bigint, bigint];
-  recipient_append_path_direction_bits: readonly [bigint, bigint, bigint];
+  recipient_append_path: readonly bigint[];
+  recipient_append_path_direction_bits: readonly bigint[];
   recipient_output_commitment: bigint;
   recipient_output_root: bigint;
   request_version: bigint;
@@ -70,8 +74,8 @@ const DEFAULT_WITNESS_BASE = {
   input_amount: DEFAULT_WITNESS_ECONOMICS.input_amount,
   input_commitment: 303n,
   input_leaf_index: 5n,
-  membership_path: [1202n, 1303n, 1404n] as const,
-  membership_path_direction_bits: [1n, 0n, 1n] as const,
+  membership_path: [] as readonly bigint[],
+  membership_path_direction_bits: [] as readonly bigint[],
   owner_commitment: 606n,
   owner_secret: 404n,
   recipient_amount: DEFAULT_WITNESS_ECONOMICS.recipient_amount,
@@ -180,8 +184,8 @@ export function computeVantaPrivatePoolV2SendRootFromLeaf({
   pathDirectionBits,
 }: {
   leafValue: bigint;
-  path: readonly [bigint, bigint, bigint];
-  pathDirectionBits: readonly [bigint, bigint, bigint];
+  path: readonly bigint[];
+  pathDirectionBits: readonly bigint[];
 }) {
   return path.reduce(
     (current, sibling, index) =>
@@ -324,83 +328,60 @@ function forgeVantaPrivatePoolV2SendInputMembership(
   };
 }
 
-function forgePath(path: readonly [bigint, bigint, bigint]) {
-  return [path[0] + 1n, path[1], path[2]] as const;
-}
-
-function toPathTuple(path: readonly bigint[]) {
-  return [path[0] ?? 0n, path[1] ?? 0n, path[2] ?? 0n] as const;
-}
-
-function directionBitsForIndex(index: bigint) {
-  return [index & 1n, (index >> 1n) & 1n, (index >> 2n) & 1n] as const;
-}
-
-function buildLayers(leaves: readonly bigint[]) {
-  let current = leaves.map((leaf) => computeVantaPrivatePoolV2SendLeafValue(leaf));
-  const layers: bigint[][] = [current];
-
-  while (current.length > 1) {
-    const next: bigint[] = [];
-
-    for (let index = 0; index < current.length; index += 2) {
-      const left = current[index] ?? current[index - 1] ?? 0n;
-      const right = current[index + 1] ?? left;
-      next.push(poseidon2([left, right]));
-    }
-
-    layers.push(next);
-    current = next;
-  }
-
-  return layers;
-}
-
-function rootForLeaves(leaves: readonly bigint[]) {
-  const layers = buildLayers(leaves);
-  return layers[layers.length - 1]?.[0] ?? computeVantaPrivatePoolV2SendLeafValue(0n);
-}
-
-function pathForLeaf(leaves: readonly bigint[], leafIndex: bigint) {
-  const layers = buildLayers(leaves);
-  const path: bigint[] = [];
-  let currentIndex = Number(leafIndex);
-
-  for (let depth = 0; depth < 3; depth += 1) {
-    const layer = layers[depth] ?? [];
-    const isRight = currentIndex % 2 === 1;
-    const siblingIndex = isRight ? currentIndex - 1 : currentIndex + 1;
-    path.push(layer[siblingIndex] ?? layer[currentIndex] ?? 0n);
-    currentIndex = Math.floor(currentIndex / 2);
-  }
-
-  return toPathTuple(path);
+function forgePath(path: readonly bigint[]) {
+  return path.map((value, index) => (index === 0 ? value + 1n : value));
 }
 
 function buildVantaPrivatePoolV2SendTrees(
   witness: typeof DEFAULT_WITNESS_BASE,
 ) {
-  const emptyLeaves = Array.from({ length: 8 }, () => 0n);
-  const inputIndex = Number(witness.input_leaf_index);
-  const recipientIndex = Number(witness.recipient_leaf_index);
-  const changeIndex = Number(witness.change_leaf_index);
-  const inputLeaves = [...emptyLeaves];
-  inputLeaves[inputIndex] = witness.input_commitment;
-  const recipientLeaves = [...inputLeaves];
-  recipientLeaves[recipientIndex] = witness.recipient_output_commitment;
-  const changeLeaves = [...recipientLeaves];
-  changeLeaves[changeIndex] = witness.change_output_commitment;
+  const inputTree = buildVantaPrivatePoolV2SparseMerkleTree({
+    leaves: [
+      {
+        leafIndex: witness.input_leaf_index,
+        leafValue: witness.input_commitment,
+      },
+    ],
+  });
+  const recipientTree = buildVantaPrivatePoolV2SparseMerkleTree({
+    leaves: [
+      {
+        leafIndex: witness.input_leaf_index,
+        leafValue: witness.input_commitment,
+      },
+      {
+        leafIndex: witness.recipient_leaf_index,
+        leafValue: witness.recipient_output_commitment,
+      },
+    ],
+  });
+  const changeTree = buildVantaPrivatePoolV2SparseMerkleTree({
+    leaves: [
+      {
+        leafIndex: witness.input_leaf_index,
+        leafValue: witness.input_commitment,
+      },
+      {
+        leafIndex: witness.recipient_leaf_index,
+        leafValue: witness.recipient_output_commitment,
+      },
+      {
+        leafIndex: witness.change_leaf_index,
+        leafValue: witness.change_output_commitment,
+      },
+    ],
+  });
 
   return {
-    changeAppendPath: pathForLeaf(recipientLeaves, witness.change_leaf_index),
-    changeAppendPathDirectionBits: directionBitsForIndex(witness.change_leaf_index),
-    changeOutputRoot: rootForLeaves(changeLeaves),
-    inputMembershipPath: pathForLeaf(inputLeaves, witness.input_leaf_index),
-    inputMembershipPathDirectionBits: directionBitsForIndex(witness.input_leaf_index),
-    inputRoot: rootForLeaves(inputLeaves),
-    recipientAppendPath: pathForLeaf(inputLeaves, witness.recipient_leaf_index),
-    recipientAppendPathDirectionBits: directionBitsForIndex(witness.recipient_leaf_index),
-    recipientOutputRoot: rootForLeaves(recipientLeaves),
+    changeAppendPath: recipientTree.pathForLeaf(witness.change_leaf_index),
+    changeAppendPathDirectionBits: directionBitsForLeafIndex(witness.change_leaf_index),
+    changeOutputRoot: changeTree.root,
+    inputMembershipPath: inputTree.pathForLeaf(witness.input_leaf_index),
+    inputMembershipPathDirectionBits: directionBitsForLeafIndex(witness.input_leaf_index),
+    inputRoot: inputTree.root,
+    recipientAppendPath: inputTree.pathForLeaf(witness.recipient_leaf_index),
+    recipientAppendPathDirectionBits: directionBitsForLeafIndex(witness.recipient_leaf_index),
+    recipientOutputRoot: recipientTree.root,
   };
 }
 

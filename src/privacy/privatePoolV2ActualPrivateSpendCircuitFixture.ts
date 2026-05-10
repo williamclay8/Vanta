@@ -1,4 +1,8 @@
-import { poseidon1, poseidon2, poseidon3, poseidon6, poseidon11 } from "poseidon-lite";
+import { poseidon1, poseidon2, poseidon3, poseidon11 } from "poseidon-lite";
+import {
+  buildVantaPrivatePoolV2SparseMerkleTree,
+  directionBitsForLeafIndex,
+} from "./privatePoolV2MerkleFixtureHelpers";
 import { createVantaPrivatePoolV2ActualPrivateSpendProofRequest } from "./privatePoolV2ProofRequests";
 import type { VantaPrivatePoolV2ProofRequest } from "./privatePoolV2Types";
 
@@ -11,8 +15,8 @@ export type VantaPrivatePoolV2ActualPrivateSpendCircuitWitness = {
   context_hash: bigint;
   input_commitment: bigint;
   leaf_index: bigint;
-  membership_path: readonly [bigint, bigint, bigint];
-  membership_path_direction_bits: readonly [bigint, bigint, bigint];
+  membership_path: readonly bigint[];
+  membership_path_direction_bits: readonly bigint[];
   nullifier: bigint;
   note_secret: bigint;
   output_commitment_0: bigint;
@@ -40,8 +44,8 @@ const DEFAULT_WITNESS_BASE = {
   context_hash: 909n,
   input_commitment: 404n,
   leaf_index: 5n,
-  membership_path: [505n, 606n, 707n],
-  membership_path_direction_bits: [1n, 0n, 1n],
+  membership_path: [] as readonly bigint[],
+  membership_path_direction_bits: [] as readonly bigint[],
   note_secret: 303n,
   output_commitment_0: 1001n,
   output_commitment_1: 1002n,
@@ -52,9 +56,22 @@ const DEFAULT_WITNESS_BASE = {
   "accepted_root" | "nullifier"
 >;
 
+const DEFAULT_TREE = buildVantaPrivatePoolV2SparseMerkleTree({
+  leaves: [
+    {
+      leafIndex: DEFAULT_WITNESS_BASE.leaf_index,
+      leafValue: DEFAULT_WITNESS_BASE.input_commitment,
+    },
+  ],
+});
+
 const DEFAULT_WITH_ROOT = {
   ...DEFAULT_WITNESS_BASE,
-  accepted_root: computeVantaPrivatePoolV2ActualPrivateSpendRoot(DEFAULT_WITNESS_BASE),
+  accepted_root: DEFAULT_TREE.root,
+  membership_path: DEFAULT_TREE.pathForLeaf(DEFAULT_WITNESS_BASE.leaf_index),
+  membership_path_direction_bits: directionBitsForLeafIndex(
+    DEFAULT_WITNESS_BASE.leaf_index,
+  ),
 };
 
 const DEFAULT_WITNESS = {
@@ -119,13 +136,10 @@ export function computeVantaPrivatePoolV2ActualPrivateSpendPublicInputHash(
     witness.output_commitment_0,
     witness.output_commitment_1,
   ]);
-  const membershipBinding = poseidon6([
+  const membershipBinding = poseidon3([
     witness.accepted_root,
     witness.input_commitment,
     witness.leaf_index,
-    witness.membership_path_direction_bits[0],
-    witness.membership_path_direction_bits[1],
-    witness.membership_path_direction_bits[2],
   ]);
 
   return poseidon11([
@@ -156,7 +170,13 @@ export function createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture({
       : mode === "invalid-nullifier"
         ? { ...witness, nullifier: witness.nullifier + 1n }
         : mode === "invalid-direction-bit"
-          ? { ...witness, membership_path_direction_bits: [2n, 0n, 1n] as const }
+          ? {
+              ...witness,
+              membership_path_direction_bits:
+                witness.membership_path_direction_bits.map((bit, index) =>
+                  index === 0 ? 2n : bit,
+                ),
+            }
           : mode === "invalid-leaf-index"
             ? { ...witness, leaf_index: witness.leaf_index + 1n }
             : witness;
