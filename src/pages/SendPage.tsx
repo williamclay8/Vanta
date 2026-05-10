@@ -24,6 +24,7 @@ import {
 } from "@/solana/shieldConfig";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import {
+  createPreparedSendDualAeadMemo,
   createPreparedSendMemo,
   createSpentMarkerInstruction,
   type VantaShieldAccountState,
@@ -1259,6 +1260,39 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         );
       }
 
+      if (!selectedCanonicalSendLedgerNote) {
+        throw new Error("Private Core Send requires a canonical Send ledger note before body-hash binding.");
+      }
+
+      if (!viewingKey?.publicKey) {
+        throw new Error("Private Core Send memo body-hash binding requires your Shield viewing key to be ready.");
+      }
+
+      const preparedPrivateCoreSendMemo = createPreparedSendDualAeadMemo(
+        {
+          amount: formatBaseUnits(
+            BigInt(privateCoreSendPreview.sendAmountBaseUnits),
+            DEFAULT_USDC_DECIMALS,
+          ),
+          asset: "USDC",
+          changeAmount: formatBaseUnits(
+            BigInt(privateCoreSendPreview.changeAmountBaseUnits),
+            DEFAULT_USDC_DECIMALS,
+          ),
+          consumedNoteId: selectedCanonicalSendLedgerNote.noteId,
+          consumedShieldStateSignature: selectedCanonicalSendLedgerNote.stateSignature,
+          createdAt: Date.now(),
+          mintAddress: selectedCanonicalSendLedgerNote.mintAddress,
+          owner: selectedCanonicalSendLedgerNote.owner,
+          recipient: trimmedRecipient,
+          vaultOwner: selectedCanonicalSendLedgerNote.vaultOwner,
+        },
+        {
+          changeViewingPublicKey: viewingKey.publicKey,
+          recipientViewingPublicKey: viewingKey.publicKey,
+        },
+      );
+
       if (privateCoreHoldState) {
         await ensurePrivateCoreOperatorRootKnown({
           proofBoundary: buildVantaPrivateCoreUnshieldProofBoundary({
@@ -1279,7 +1313,11 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         resultingRoot: previewResult.resultingRoot,
       });
       runPrivateCoreSendTransition(privateCoreSendPreview.transition, {
+        changeMemoCiphertextBodyHash:
+          preparedPrivateCoreSendMemo.changeMemoCiphertextBodyHash,
         releaseCandidateId: sendReceipt.releaseCandidateId ?? releaseCandidateId,
+        recipientMemoCiphertextBodyHash:
+          preparedPrivateCoreSendMemo.recipientMemoCiphertextBodyHash,
       });
       const summaryState = await refreshPrivateCoreOperatorSummary();
 

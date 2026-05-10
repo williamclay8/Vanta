@@ -130,6 +130,7 @@ for (const phrase of [
   "Current checked refs:",
   "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in `SECURITY_LIMITATIONS.md`.",
   "swap-to-shielded nullifier registration and output append atomically.",
+  "ciphertext body hash limbs into the",
   "unshield replay/nullifier registration and exit transition atomically.",
   "live venue privacy",
   "ops/mainnet/private-pool-v2-nullifier-replay.evidence.json",

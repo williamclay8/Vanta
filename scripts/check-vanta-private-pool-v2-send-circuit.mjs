@@ -141,6 +141,24 @@ try {
     console.log("invalid-amount-range fixture: expected failure observed");
   }
 
+  writeFixture("invalid-memo-ciphertext-hash");
+  console.log("invalid-memo-ciphertext-hash fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-memo-ciphertext-hash fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-memo-ciphertext-hash fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-memo-ciphertext-hash fixture: expected failure observed");
+  }
+
   writeFixture("forged-recipient-append-path");
   console.log("forged-recipient-append-path fixture write: PASS");
 

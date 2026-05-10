@@ -132,6 +132,12 @@ assert.ok(
     .requiredEvidenceRefs.includes("npm run mainnet:shared-cohort-next-action-check"),
   "Live shared pool requirement must name the shared-cohort next-action check.",
 );
+assert.ok(
+  requirements
+    .get("proof-bound-settlement-receipt")
+    .currentTruth.includes("memo ciphertext body-hash limbs"),
+  "Proof-bound settlement receipt requirement must mention local Send ciphertext body-hash limb binding.",
+);
 assert.equal(contract.currentSignals.liveMainnetPrivateSettlementAvailable, false);
 assert.equal(contract.currentSignals.meaningfulPrivacyReady, false);
 assert.equal(contract.currentSignals.auditedSharedAnonymitySetAvailable, false);
@@ -149,6 +155,9 @@ for (const command of [
   "npm run mainnet:private-settlement-check",
   "npm run mainnet:actual-private-settlement-lineage-check",
   "npm run mainnet:shared-cohort-next-action-check",
+  "npm run private-pool-v2:send-proof-request-check",
+  "npm run private-pool-v2:send-circuit-check",
+  "npm run private-pool-v2:public-input-hash-alignment-check",
   "npm run private-pool-v2:anonymity-set-readiness-check",
   "npm run private-pool-v2:relayer-separation-evidence-check",
   "npm run shield:trust-packet-check",

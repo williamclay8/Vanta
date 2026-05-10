@@ -37,8 +37,13 @@ const contractRequirements = [
     id: "proof-bound-settlement-receipt",
     status: "partially-satisfied",
     currentTruth:
-      "Local proof and receipt boundaries bind roots, nullifiers, commitments, and proof hashes; production promotion still needs reviewed live evidence.",
-    requiredEvidenceRefs: ["npm run private-core:verify", "npm run private-pool-v2:verify"],
+      "Local proof and receipt boundaries bind roots, nullifiers, commitments, proof hashes, and Send recipient/change memo ciphertext body-hash limbs; production promotion still needs reviewed live evidence.",
+    requiredEvidenceRefs: [
+      "npm run private-core:verify",
+      "npm run private-pool-v2:send-proof-request-check",
+      "npm run private-pool-v2:send-circuit-check",
+      "npm run private-pool-v2:verify",
+    ],
   },
   {
     id: "production-replay-resistance",
@@ -162,6 +167,9 @@ export function createVantaProgrammaticProductionPrivacyContract() {
       "npm run mainnet:private-settlement-check",
       "npm run mainnet:shared-cohort-next-action-check",
       "npm run mainnet:actual-private-settlement-lineage-check",
+      "npm run private-pool-v2:send-proof-request-check",
+      "npm run private-pool-v2:send-circuit-check",
+      "npm run private-pool-v2:public-input-hash-alignment-check",
       "npm run private-pool-v2:anonymity-set-readiness-check",
       "npm run private-pool-v2:relayer-separation-evidence-check",
       "npm run shield:trust-packet-check",

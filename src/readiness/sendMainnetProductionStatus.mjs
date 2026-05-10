@@ -54,6 +54,8 @@ export function createVantaSendMainnetProductionStatus() {
     ...(exactSendApprovalScoped ? [] : ["no-exact-send-bounded-approval-window"]),
     ...(boundedApprovalActive ? [] : realFundsApproval.mainnetFundsBlockedBy),
     ...(privateCoreOperatorStateRedacted ? [] : ["private-core-send-operator-state-exposes-raw-economic-terms"]),
+    "send-memo-indexer-body-hash-handoff-not-deployed",
+    "legacy-v1-send-history-migration-not-scoped",
     ...(statefulVerifierIndexerCommitIdempotencyProven
       ? []
       : ["stateful-verifier-indexer-commit-idempotency-not-proven"]),
@@ -107,6 +109,7 @@ export function createVantaSendMainnetProductionStatus() {
       sendLiveEvidenceContract: "npm run mainnet:send-live-evidence-contract-check",
       privatePoolV2SendProofRequest: "npm run private-pool-v2:send-proof-request-check",
       privatePoolV2SendCircuit: "npm run private-pool-v2:send-circuit-check",
+      privatePoolV2PublicInputHashAlignment: "npm run private-pool-v2:public-input-hash-alignment-check",
       actualPrivateSpendCircuit: "npm run private-pool-v2:actual-private-spend-circuit-check",
       liveSendSettlementEvidence: "npm run mainnet:actual-private-settlement-review-check",
       publicTranscriptReview: "npm run private-pool-v2:production-privacy-reviewer-packet-check",
@@ -125,12 +128,14 @@ export function createVantaSendMainnetProductionStatus() {
       "Record reviewed live mainnet shared-cohort deposit evidence.",
       "Record reviewed live relayer-submitted private Send settlement evidence for the active approval window.",
       "Record live nullifier replay rejection evidence against the production store after the Send settlement.",
+      "Deploy memo/indexer handoff proving opaque memo bodies match proof-bound sha256: body hashes before claiming production recipient discovery.",
+      "Migrate or segregate legacy v1 plaintext Send history, or scope production claims to fresh v2 sends only.",
       "Record an independent public-transcript review packet proving source wallet, recipient/merchant address, raw amount, input commitment, input leaf index, deposit signature, plaintext memo, and same-fee-payer linkage are absent.",
       "Record independent reviewer or audit acceptance for the circuit boundary, relayer separation, and anonymity-set measurement.",
     ],
     safety:
       "No auth tokens, database URLs, wallet keys, signed transactions, seed phrases, or raw private inputs are printed.",
     truth:
-      "Send has local safe-send, canonical ledger gating, a repo-checked no-witness proof-artifact Private Core Send operator boundary, hidden-economics Private Pool v2 request coverage, local circuit coverage, actual-private membership circuit coverage, and no-funds operator smoke coverage. Browser Send execution is fail-closed until a local proof artifact is available, and this Private Core lane is not the production actual-private settlement lane. Send must not be called mainnet-production-private until live reviewed settlement evidence, exact active real-funds approval, audited/shared anonymity-set evidence, relayer separation review, production replay evidence, transcript review, idempotent verifier/indexer commit recovery, and deployed raw-term-safe production operator surfaces are all present.",
+      "Send has local safe-send, canonical ledger gating, a repo-checked no-witness proof-artifact Private Core Send operator boundary, hidden-economics Private Pool v2 request coverage, local recipient/change memo ciphertext body-hash binding in the Private Pool v2 Send proof-request/circuit public-input hash, actual-private membership circuit coverage, and no-funds operator smoke coverage. Browser Send execution is fail-closed until a local proof artifact is available, and this Private Core lane is not the production actual-private settlement lane. Send must not be called mainnet-production-private until recipient discovery/view tags, deployed memo/indexer handoff proving opaque memo bodies match proof-bound sha256: body hashes, legacy v1 plaintext Send history migration or fresh-v2-only scope, live reviewed settlement evidence, exact active real-funds approval, audited/shared anonymity-set evidence, relayer separation review, production replay evidence, transcript review, idempotent verifier/indexer commit recovery, and deployed raw-term-safe production operator surfaces are all present.",
   };
 }

@@ -210,6 +210,7 @@ async function loadFixtureRuntime() {
   const sendRequest = createVantaPrivatePoolV2SendProofRequest({
     assetIdCommitment: "field:restart-send-asset-id-commitment",
     changeLeafIndex: String(sendChangeCommitment.leafIndex),
+    changeMemoCiphertextBodyHash: `sha256:${"dd".repeat(32)}`,
     changeOutputCommitment: sendChangeCommitment.commitment,
     changeOutputRoot: sendChangeCommitment.merkleRoot,
     economicsCommitment: "field:restart-send-economics-commitment",
@@ -218,6 +219,7 @@ async function loadFixtureRuntime() {
     nullifier: "field:restart-send-nullifier",
     ownerCommitment: "field:restart-second-owner",
     recipientLeafIndex: String(sendRecipientCommitment.leafIndex),
+    recipientMemoCiphertextBodyHash: `sha256:${"cc".repeat(32)}`,
     recipientOutputCommitment: sendRecipientCommitment.commitment,
     recipientOutputRoot: sendRecipientCommitment.merkleRoot,
     sendContextTag: "field:restart-send-context-tag",

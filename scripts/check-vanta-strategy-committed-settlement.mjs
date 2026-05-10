@@ -154,6 +154,21 @@ assert.equal(sendRequest.changeOutputCommitment, packet.send.changeCommitment);
 assert.equal(sendRequest.outputRoot, packet.send.resultingRoot);
 assert.equal(sendRequest.changeOutputRoot, packet.send.resultingRoot);
 assert.equal(sendRequest.sendPublicInputHash, packet.send.proofPublicInputs.send_economic_terms_hash);
+assert.match(
+  sendRequest.recipientMemoCiphertextBodyHash,
+  /^sha256:[0-9a-f]{64}$/u,
+  "send request must carry a recipient memo ciphertext body hash for the committed Send proof request",
+);
+assert.match(
+  sendRequest.changeMemoCiphertextBodyHash,
+  /^sha256:[0-9a-f]{64}$/u,
+  "send request must carry a change memo ciphertext body hash when a change output exists",
+);
+assert.notEqual(
+  sendRequest.recipientMemoCiphertextBodyHash,
+  sendRequest.changeMemoCiphertextBodyHash,
+  "recipient and change memo body hashes must stay domain-separated",
+);
 
 assert.equal(swapRequest.economicsMode, "committed-economics");
 assert.match(

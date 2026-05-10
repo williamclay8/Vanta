@@ -43,6 +43,8 @@ const expectedBlockers = [
   "no-reviewed-live-mainnet-send-settlement-evidence",
   "no-exact-send-bounded-approval-window",
   ...(status.currentApproval.approvalWindowStatus === "active" ? [] : ["bounded-approval-window-expired"]),
+  "send-memo-indexer-body-hash-handoff-not-deployed",
+  "legacy-v1-send-history-migration-not-scoped",
   "stateful-verifier-indexer-commit-idempotency-not-proven",
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
@@ -64,6 +66,7 @@ for (const [key, command] of Object.entries({
   sendProductionPrivacyClaimGate: "npm run send:production-privacy-claim-gate",
   sendProofArtifactConsistency: "npm run private-core:send-proof-artifact-consistency-check",
   privatePoolV2SendCircuit: "npm run private-pool-v2:send-circuit-check",
+  privatePoolV2PublicInputHashAlignment: "npm run private-pool-v2:public-input-hash-alignment-check",
   privatePoolV2SendProofRequest: "npm run private-pool-v2:send-proof-request-check",
   privatePoolV2Verify: "npm run private-pool-v2:verify",
   realFundsApprovalStatus: "npm run --silent mainnet:real-funds-approval-status-json",
@@ -73,6 +76,24 @@ for (const [key, command] of Object.entries({
   walletSigningStatus: "npm run mainnet:wallet-signing-status-check",
 })) {
   assert.equal(status.evidenceRefs[key], command, `Send status evidence ref mismatch for ${key}.`);
+}
+
+for (const phrase of [
+  "Deploy memo/indexer handoff proving opaque memo bodies match proof-bound sha256: body hashes",
+  "Migrate or segregate legacy v1 plaintext Send history",
+]) {
+  assert.ok(
+    status.requiredBeforeProduction.includes(phrase) ||
+      status.requiredBeforeProduction.some((requirement) => requirement.includes(phrase)),
+    `Send status requiredBeforeProduction missing phrase: ${phrase}`,
+  );
+}
+
+for (const phrase of [
+  "deployed memo/indexer handoff proving opaque memo bodies match proof-bound sha256: body hashes",
+  "legacy v1 plaintext Send history migration or fresh-v2-only scope",
+]) {
+  assert.ok(status.truth.includes(phrase), `Send status truth missing phrase: ${phrase}`);
 }
 
 for (const phrase of [
@@ -87,6 +108,7 @@ for (const phrase of [
   "VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID",
   "VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS",
   "send-public-input-hash",
+  "recipient-memo-ciphertext-body-hash-hi",
   "operatorVisibleTerms",
 ]) {
   assert.ok(sendProofRequestSource.includes(phrase), `Send proof request must preserve ${phrase}.`);
@@ -96,6 +118,7 @@ for (const phrase of [
   "compute_nullifier",
   "recipient_output_root",
   "change_output_root",
+  "recipient_memo_ciphertext_body_hash_hi",
   "send_public_input_hash",
 ]) {
   assert.ok(sendCircuitSource.includes(phrase), `Send circuit must preserve ${phrase}.`);

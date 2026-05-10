@@ -30,6 +30,7 @@ function serializeProofRequest(request: VantaPrivatePoolV2ProofRequest) {
     assetId: request.assetId,
     circuitPublicInputs: [...circuitPublicInputs],
     intent: request.intent,
+    publicInputs: [...request.publicInputs],
   });
 }
 

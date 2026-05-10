@@ -58,10 +58,12 @@ const laneContracts = [
 const laneSpecificMarkers = {
   "src/solana/sendTrustContract.ts": [
     "Fresh v2 Send memos put ciphertext, signer, and timing on chain.",
-    "local dual-AEAD scaffold can separately seal recipient and change discovery memos with ciphertext hashes",
-    "external Send remains fail-closed until recipient viewing-key exchange",
+    "local dual-AEAD scaffold can separately seal recipient and change discovery memos with ciphertext body hashes",
+    "Private Pool v2 Send proof-request/circuit lane locally binds those body-hash limbs",
+    "External Send remains fail-closed until recipient viewing-key exchange",
     "Operator/status surfaces still see transition and proof metadata",
-    "proof-bound ciphertext hashes are wired",
+    "npm run private-pool-v2:send-circuit-check",
+    "npm run private-pool-v2:public-input-hash-alignment-check",
   ],
 };
 

@@ -105,14 +105,14 @@ try {
     patchRelativeImports(file);
   }
 
-	  const {
-	    computeVantaPrivatePoolV2UnshieldPublicInputHash,
-	    createVantaPrivatePoolV2UnshieldProofRequest,
-	  } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ProofRequests.js")).href);
-	  const {
-	    computeVantaPrivatePoolV2ShieldPublicInputHash,
-	    createVantaPrivatePoolV2ShieldCircuitFixture,
-	  } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ShieldCircuitFixture.js")).href);
+  const {
+    computeVantaPrivatePoolV2UnshieldPublicInputHash,
+    createVantaPrivatePoolV2UnshieldProofRequest,
+  } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ProofRequests.js")).href);
+  const {
+    computeVantaPrivatePoolV2ShieldPublicInputHash,
+    createVantaPrivatePoolV2ShieldCircuitFixture,
+  } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ShieldCircuitFixture.js")).href);
   const {
     computeVantaPrivatePoolV2ClaimPublicInputHash,
     createVantaPrivatePoolV2ClaimCircuitFixture,
@@ -284,6 +284,10 @@ try {
       "change-output-commitment",
       "change-leaf-index",
       "change-output-root",
+      "recipient-memo-ciphertext-body-hash-hi",
+      "recipient-memo-ciphertext-body-hash-lo",
+      "change-memo-ciphertext-body-hash-hi",
+      "change-memo-ciphertext-body-hash-lo",
       "asset-id-commitment",
       "economics-commitment",
       "owner-commitment",
@@ -300,6 +304,30 @@ try {
   assertValue(sendMap, "change-output-commitment", sendWitness.change_output_commitment, "send");
   assertValue(sendMap, "change-leaf-index", sendWitness.change_leaf_index, "send");
   assertValue(sendMap, "change-output-root", sendWitness.change_output_root, "send");
+  assertValue(
+    sendMap,
+    "recipient-memo-ciphertext-body-hash-hi",
+    sendWitness.recipient_memo_ciphertext_body_hash_hi,
+    "send",
+  );
+  assertValue(
+    sendMap,
+    "recipient-memo-ciphertext-body-hash-lo",
+    sendWitness.recipient_memo_ciphertext_body_hash_lo,
+    "send",
+  );
+  assertValue(
+    sendMap,
+    "change-memo-ciphertext-body-hash-hi",
+    sendWitness.change_memo_ciphertext_body_hash_hi,
+    "send",
+  );
+  assertValue(
+    sendMap,
+    "change-memo-ciphertext-body-hash-lo",
+    sendWitness.change_memo_ciphertext_body_hash_lo,
+    "send",
+  );
   assertValue(sendMap, "asset-id-commitment", sendWitness.asset_id_commitment, "send");
   assertValue(sendMap, "economics-commitment", sendWitness.economics_commitment, "send");
   assertValue(sendMap, "owner-commitment", sendWitness.owner_commitment, "send");
@@ -310,6 +338,12 @@ try {
     sendWitness.recipient_output_root,
     sendWitness.change_leaf_index,
     sendWitness.change_output_root,
+  ]);
+  const sendMemoCiphertextBinding = poseidon4([
+    sendWitness.recipient_memo_ciphertext_body_hash_hi,
+    sendWitness.recipient_memo_ciphertext_body_hash_lo,
+    sendWitness.change_memo_ciphertext_body_hash_hi,
+    sendWitness.change_memo_ciphertext_body_hash_lo,
   ]);
   const sendRecipientPreviousRoot = computeVantaPrivatePoolV2SendRootFromLeaf({
     leafValue: 0n,
@@ -332,6 +366,10 @@ try {
     pathDirectionBits: sendWitness.change_append_path_direction_bits,
   });
   assert(sendOutputTransition > 0n, "Expected send output transition to be derived.");
+  assert(
+    sendMemoCiphertextBinding > 0n,
+    "Expected send memo ciphertext body hash binding to be derived.",
+  );
   assert(
     sendRecipientPreviousRoot === sendWitness.input_root,
     "Expected send recipient append path to prove an empty slot under input root.",
@@ -367,63 +405,63 @@ try {
       JSON.stringify([`send-public-input-hash:${send.sendPublicInputHash.toString(10)}`]),
     "Expected send proof request to expose only the computed hash on the circuit-public lane.",
   );
-	  console.log("private pool v2 send public-input hash alignment: PASS");
+  console.log("private pool v2 send public-input hash alignment: PASS");
 
-	  const unshieldArgs = {
-	    economicsCommitment: "501",
-	    exitTermsCommitment: "502",
-	    inputCommitment: "503",
-	    inputRoot: "504",
-	    nullifierOrReplayCommitment: "505",
-	    ownerCommitment: "506",
-	    routeCommitment: "507",
-	    settlementCommitment: "508",
-	    unshieldContextTag: "509",
-	  };
-	  const unshield = {
-	    proofRequest: createVantaPrivatePoolV2UnshieldProofRequest(unshieldArgs),
-	    unshieldPublicInputHash: computeVantaPrivatePoolV2UnshieldPublicInputHash(unshieldArgs),
-	  };
-	  const unshieldEntries = parsePublicInputs(unshield.proofRequest.publicInputs);
-	  const unshieldMap = toMap(unshieldEntries);
+  const unshieldArgs = {
+    economicsCommitment: "501",
+    exitTermsCommitment: "502",
+    inputCommitment: "503",
+    inputRoot: "504",
+    nullifierOrReplayCommitment: "505",
+    ownerCommitment: "506",
+    routeCommitment: "507",
+    settlementCommitment: "508",
+    unshieldContextTag: "509",
+  };
+  const unshield = {
+    proofRequest: createVantaPrivatePoolV2UnshieldProofRequest(unshieldArgs),
+    unshieldPublicInputHash: computeVantaPrivatePoolV2UnshieldPublicInputHash(unshieldArgs),
+  };
+  const unshieldEntries = parsePublicInputs(unshield.proofRequest.publicInputs);
+  const unshieldMap = toMap(unshieldEntries);
 
-	  assertOrder(
-	    unshieldEntries,
-	    [
-	      "vanta-private-pool-v2-unshield-proof-request-0.1",
-	      "input-root",
-	      "input-commitment",
-	      "nullifier-or-replay-commitment",
-	      "settlement-commitment",
-	      "route-commitment",
-	      "exit-terms-commitment",
-	      "economics-commitment",
-	      "owner-commitment",
-	      "unshield-context-tag",
-	    ],
-	    "unshield",
-	  );
-	  for (const [label, value] of [
-	    ["input-root", unshieldArgs.inputRoot],
-	    ["input-commitment", unshieldArgs.inputCommitment],
-	    ["nullifier-or-replay-commitment", unshieldArgs.nullifierOrReplayCommitment],
-	    ["settlement-commitment", unshieldArgs.settlementCommitment],
-	    ["route-commitment", unshieldArgs.routeCommitment],
-	    ["exit-terms-commitment", unshieldArgs.exitTermsCommitment],
-	    ["economics-commitment", unshieldArgs.economicsCommitment],
-	    ["owner-commitment", unshieldArgs.ownerCommitment],
-	    ["unshield-context-tag", unshieldArgs.unshieldContextTag],
-	  ]) {
-	    assertValue(unshieldMap, label, value, "unshield");
-	  }
-	  assert(
-	    JSON.stringify(unshield.proofRequest.circuitPublicInputs) ===
-	      JSON.stringify([`unshield-public-input-hash:${unshield.unshieldPublicInputHash}`]),
-	    "Expected unshield proof request to expose only the computed hash on the circuit-public lane.",
-	  );
-	  console.log("private pool v2 unshield public-input hash alignment: PASS");
+  assertOrder(
+    unshieldEntries,
+    [
+      "vanta-private-pool-v2-unshield-proof-request-0.1",
+      "input-root",
+      "input-commitment",
+      "nullifier-or-replay-commitment",
+      "settlement-commitment",
+      "route-commitment",
+      "exit-terms-commitment",
+      "economics-commitment",
+      "owner-commitment",
+      "unshield-context-tag",
+    ],
+    "unshield",
+  );
+  for (const [label, value] of [
+    ["input-root", unshieldArgs.inputRoot],
+    ["input-commitment", unshieldArgs.inputCommitment],
+    ["nullifier-or-replay-commitment", unshieldArgs.nullifierOrReplayCommitment],
+    ["settlement-commitment", unshieldArgs.settlementCommitment],
+    ["route-commitment", unshieldArgs.routeCommitment],
+    ["exit-terms-commitment", unshieldArgs.exitTermsCommitment],
+    ["economics-commitment", unshieldArgs.economicsCommitment],
+    ["owner-commitment", unshieldArgs.ownerCommitment],
+    ["unshield-context-tag", unshieldArgs.unshieldContextTag],
+  ]) {
+    assertValue(unshieldMap, label, value, "unshield");
+  }
+  assert(
+    JSON.stringify(unshield.proofRequest.circuitPublicInputs) ===
+      JSON.stringify([`unshield-public-input-hash:${unshield.unshieldPublicInputHash}`]),
+    "Expected unshield proof request to expose only the computed hash on the circuit-public lane.",
+  );
+  console.log("private pool v2 unshield public-input hash alignment: PASS");
 
-	  const swap = createVantaPrivatePoolV2SwapToShieldedCircuitFixture();
+  const swap = createVantaPrivatePoolV2SwapToShieldedCircuitFixture();
   const swapEntries = parsePublicInputs(swap.proofRequest.publicInputs);
   const swapMap = toMap(swapEntries);
   const swapWitness = swap.witness;

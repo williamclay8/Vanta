@@ -107,12 +107,14 @@ input commitment, input leaf index, deposit signature, plaintext memo, or
 same-fee-payer linkage. The older stateful Send request remains as a
 compatibility fallback, not the target privacy lane. A local dual-AEAD Send
 memo scaffold can separately seal recipient and change discovery memos and
-emit ciphertext body hashes for later proof binding, but external Send remains
+emit `sha256:` ciphertext body hashes. The local Private Pool v2 Send proof
+request and circuit bind recipient/change ciphertext body hash limbs into the
+Send public-input hash, but external Send remains
 blocked until recipient viewing-key exchange or view-tag/indexer discovery is
 wired. This is still not a completed production private Send rail: live
-production transition evidence, proof-bound memo ciphertext hashes, relayer
-separation, anonymity evidence, audit, and production evidence are still
-missing.
+production transition evidence, external discovery, historical v1 migration,
+relayer separation, anonymity evidence, audit, and production evidence are
+still missing.
 
 Current local Private Pool v2 Swap proof requests, executable circuit fixture,
 committed protocol settlement path, and local verifier/indexer acceptance bind

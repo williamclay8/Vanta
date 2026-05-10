@@ -61,6 +61,18 @@ async function expectRejection(action, expectedMessage) {
   throw new Error(`Expected rejection containing "${expectedMessage}".`);
 }
 
+function memoBodyHash(byteHex) {
+  return `sha256:${byteHex.repeat(32)}`;
+}
+
+function memoBodyHashLimbs(bodyHash) {
+  const digestHex = bodyHash.slice("sha256:".length);
+  return {
+    hi: BigInt(`0x${digestHex.slice(0, 32)}`).toString(10),
+    lo: BigInt(`0x${digestHex.slice(32)}`).toString(10),
+  };
+}
+
 try {
   mkdirSync(tempTsDir, { recursive: true });
 
@@ -102,9 +114,19 @@ try {
     "Expected createVantaPrivatePoolV2SendProofRequest export.",
   );
 
+  const recipientMemoCiphertextBodyHash = memoBodyHash("11");
+  const recipientMemoCiphertextBodyHashLimbs = memoBodyHashLimbs(
+    recipientMemoCiphertextBodyHash,
+  );
+  const changeMemoCiphertextBodyHash = memoBodyHash("22");
+  const changeMemoCiphertextBodyHashLimbs = memoBodyHashLimbs(
+    changeMemoCiphertextBodyHash,
+  );
+
   const request = createVantaPrivatePoolV2SendProofRequest({
     assetIdCommitment: "field:asset",
     changeLeafIndex: "43",
+    changeMemoCiphertextBodyHash,
     changeOutputCommitment: "field:change-output",
     changeOutputRoot: "field:change-root",
     economicsCommitment: "field:economics",
@@ -113,6 +135,7 @@ try {
     nullifier: "field:nullifier",
     ownerCommitment: "field:owner",
     recipientLeafIndex: "42",
+    recipientMemoCiphertextBodyHash,
     recipientOutputCommitment: "field:recipient-output",
     recipientOutputRoot: "field:recipient-root",
     sendContextTag: "field:send-context",
@@ -141,6 +164,10 @@ try {
         "change-output-commitment:field:change-output",
         "change-leaf-index:43",
         "change-output-root:field:change-root",
+        `recipient-memo-ciphertext-body-hash-hi:${recipientMemoCiphertextBodyHashLimbs.hi}`,
+        `recipient-memo-ciphertext-body-hash-lo:${recipientMemoCiphertextBodyHashLimbs.lo}`,
+        `change-memo-ciphertext-body-hash-hi:${changeMemoCiphertextBodyHashLimbs.hi}`,
+        `change-memo-ciphertext-body-hash-lo:${changeMemoCiphertextBodyHashLimbs.lo}`,
         "asset-id-commitment:field:asset",
         "economics-commitment:field:economics",
         "owner-commitment:field:owner",
@@ -182,6 +209,7 @@ try {
     nullifier: "field:nullifier",
     ownerCommitment: "field:owner",
     recipientLeafIndex: "42",
+    recipientMemoCiphertextBodyHash,
     recipientOutputCommitment: "field:recipient-output",
     recipientOutputRoot: "field:recipient-root",
     sendContextTag: "field:send-context",
@@ -190,7 +218,34 @@ try {
     noChangeRequest.publicInputs.includes("change-output-commitment:0"),
     "Expected no-change private-send request to bind a zero change commitment.",
   );
+  assert(
+    noChangeRequest.publicInputs.includes("change-memo-ciphertext-body-hash-hi:0") &&
+      noChangeRequest.publicInputs.includes("change-memo-ciphertext-body-hash-lo:0"),
+    "Expected no-change private-send request to bind zero change memo ciphertext body hash limbs.",
+  );
   console.log("private-pool-v2 send proof request no-change binding: PASS");
+
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2SendProofRequest({
+        assetIdCommitment: "field:asset",
+        changeLeafIndex: "43",
+        changeOutputCommitment: "field:change-output",
+        changeOutputRoot: "field:change-root",
+        economicsCommitment: "field:economics",
+        inputCommitment: "field:input-note",
+        inputRoot: "field:input-root",
+        nullifier: "field:nullifier",
+        ownerCommitment: "field:owner",
+        recipientLeafIndex: "42",
+        recipientMemoCiphertextBodyHash,
+        recipientOutputCommitment: "field:recipient-output",
+        recipientOutputRoot: "field:recipient-root",
+        sendContextTag: "field:send-context",
+      }),
+    "change memo ciphertext body hash",
+  );
+  console.log("private-pool-v2 send proof request change memo guard: PASS");
 
   await expectRejection(
     () =>
@@ -204,6 +259,7 @@ try {
         nullifier: " ",
         ownerCommitment: "field:owner",
         recipientLeafIndex: "42",
+        recipientMemoCiphertextBodyHash,
         recipientOutputCommitment: "field:recipient-output",
         recipientOutputRoot: "field:recipient-root",
         sendContextTag: "field:send-context",
@@ -224,6 +280,7 @@ try {
         nullifier: "field:nullifier",
         ownerCommitment: "field:owner",
         recipientLeafIndex: "42",
+        recipientMemoCiphertextBodyHash,
         recipientOutputCommitment: "",
         recipientOutputRoot: "field:recipient-root",
         sendContextTag: "field:send-context",
@@ -231,6 +288,55 @@ try {
     "recipient output commitment",
   );
   console.log("private-pool-v2 send proof request recipient guard: PASS");
+
+  for (const [bodyHash, message] of [
+    [" ", "non-empty recipient memo ciphertext body hash"],
+    [`sha512:${"11".repeat(32)}`, "sha256:<64 lowercase hex>"],
+    [`sha256:${"gg".repeat(32)}`, "sha256:<64 lowercase hex>"],
+    [`sha256:${"11".repeat(31)}`, "sha256:<64 lowercase hex>"],
+    [`sha256:${"00".repeat(32)}`, "zero memo ciphertext body hash limbs"],
+  ]) {
+    await expectRejection(
+      () =>
+        createVantaPrivatePoolV2SendProofRequest({
+          assetIdCommitment: "field:asset",
+          changeLeafIndex: "43",
+          changeOutputRoot: "field:change-root",
+          economicsCommitment: "field:economics",
+          inputCommitment: "field:input-note",
+          inputRoot: "field:input-root",
+          nullifier: "field:nullifier",
+          ownerCommitment: "field:owner",
+          recipientLeafIndex: "42",
+          recipientMemoCiphertextBodyHash: bodyHash,
+          recipientOutputCommitment: "field:recipient-output",
+          recipientOutputRoot: "field:recipient-root",
+          sendContextTag: "field:send-context",
+        }),
+      message,
+    );
+  }
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2SendProofRequest({
+        assetIdCommitment: "field:asset",
+        changeLeafIndex: "43",
+        changeMemoCiphertextBodyHash: `sha256:${"00".repeat(32)}`,
+        changeOutputRoot: "field:change-root",
+        economicsCommitment: "field:economics",
+        inputCommitment: "field:input-note",
+        inputRoot: "field:input-root",
+        nullifier: "field:nullifier",
+        ownerCommitment: "field:owner",
+        recipientLeafIndex: "42",
+        recipientMemoCiphertextBodyHash,
+        recipientOutputCommitment: "field:recipient-output",
+        recipientOutputRoot: "field:recipient-root",
+        sendContextTag: "field:send-context",
+      }),
+    "zero memo ciphertext body hash limbs",
+  );
+  console.log("private-pool-v2 send proof request memo ciphertext body hash guard: PASS");
 } catch (error) {
   const stdout = String(error.stdout ?? "");
   const stderr = String(error.stderr ?? "");

@@ -6,6 +6,7 @@ const contextSource = readFileSync(
   resolve(repoRoot, "src/data/context/PrivacyFlowContext.tsx"),
   "utf8",
 );
+const sendPageSource = readFileSync(resolve(repoRoot, "src/pages/SendPage.tsx"), "utf8");
 const packageJson = JSON.parse(readFileSync(resolve(repoRoot, "package.json"), "utf8"));
 
 function assert(condition, message) {
@@ -60,6 +61,17 @@ try {
     "Expected private-core send to build a committed-economics settlement packet.",
   );
   assert(
+    sendPageSource.includes("createPreparedSendDualAeadMemo(") &&
+      sendPageSource.includes("recipientMemoCiphertextBodyHash") &&
+      sendPageSource.includes("changeMemoCiphertextBodyHash"),
+    "Expected Send page to compute dual-AEAD memo body hashes before recording Private Core Send settlement.",
+  );
+  assert(
+    runSource.includes("Private Core Send settlement requires a recipient memo ciphertext body hash") &&
+      runSource.includes("Private Core Send settlement requires a change memo ciphertext body hash when change exists"),
+    "Expected private-core send settlement to fail closed when required memo body hashes are missing.",
+  );
+  assert(
     settlementCall.includes('action: "send"'),
     "Expected the private-core send settlement call to preserve send action.",
   );
@@ -88,6 +100,7 @@ try {
     "outputLeafIndex:",
     "outputRoot:",
     "ownerCommitment:",
+    "recipientMemoCiphertextBodyHash:",
     "routeCommitment:",
     "sendContextTag:",
     "sendPublicInputHash:",
@@ -98,6 +111,10 @@ try {
       `Expected private-core send committed settlement to include ${committedField.slice(0, -1)}.`,
     );
   }
+  assert(
+    runSource.includes("changeMemoCiphertextBodyHash: committedSendSettlement.changeMemoCiphertextBodyHash"),
+    "Expected private-core send committed settlement to include change memo body hash when change exists.",
+  );
 
   assert(
     packageJson.scripts?.["private-core:verify"]?.includes(

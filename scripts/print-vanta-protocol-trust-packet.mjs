@@ -69,16 +69,19 @@ const packets = {
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Send has a canonical ledger gate, repo-checked no-witness proof-artifact operator boundary, v2 viewing-key AEAD action memos in the live pages, and a local dual-AEAD recipient/change memo scaffold, but recipient discovery is still incomplete, browser Send execution is blocked until a local proof artifact is available, and the lane is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
+        "Send has a canonical ledger gate, repo-checked no-witness proof-artifact operator boundary, v2 viewing-key AEAD action memos in the live pages, local dual-AEAD recipient/change memo scaffolding, and local Private Pool v2 proof-request/circuit binding for recipient/change memo ciphertext body hashes, but recipient discovery is still incomplete, browser Send execution is blocked until a local proof artifact is available, and the lane is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
     },
     honestyNote:
       "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in SECURITY_LIMITATIONS.md.",
     sendMemoMode: "v2-viewing-key-aead-dual-scaffold-legacy-v1-parse-compatible",
     publicChainVisibleFields: [
       "new live Send action memos expose only the v2 AEAD memo prefix and opaque ciphertext body",
-      "local dual-AEAD scaffold can separately seal recipient and change discovery memos and expose ciphertext body hashes for later proof binding",
+      "local dual-AEAD scaffold can separately seal recipient and change discovery memos and expose sha256 ciphertext body hashes",
       "legacy historical v1 Send memos remain parse-compatible and can expose recipient/amount/change amount",
-      "recipient-side discovery still needs a trustable viewing-key exchange or encrypted outbox/view-tag design, and ciphertext hashes are not proof-bound yet",
+      "recipient-side discovery still needs a trustable viewing-key exchange or encrypted outbox/view-tag design before external Send can make production privacy claims",
+    ],
+    proofTranscriptFields: [
+      "Private Pool v2 Send proof requests and the local Send circuit bind recipient/change ciphertext body hash limbs into the public input hash",
     ],
     spendabilityBasis: "canonical-spendable-note-ledger",
     visibleFields: [
@@ -113,6 +116,9 @@ const packets = {
       "npm run private-core:send-nullifier-replay-no-witness-check",
       "npm run private-core:send-committed-settlement-check",
       "npm run actions:memo-encryption-check",
+      "npm run private-pool-v2:send-proof-request-check",
+      "npm run private-pool-v2:send-circuit-check",
+      "npm run private-pool-v2:public-input-hash-alignment-check",
       "npm run send:requires-shielded-state-check",
       "npm run send:balance-ledger-check",
       "npm run send:production-privacy-claim-gate",
@@ -209,10 +215,19 @@ if (checkMode) {
       "Send packet must disclose the local dual-AEAD memo scaffold without upgrading it to production discovery.",
     );
     assert.ok(
-      packet.publicChainVisibleFields?.some((field) => field.includes("not proof-bound yet")),
-      "Send packet must disclose that Send memo ciphertext hashes are not proof-bound yet.",
+      !packet.publicChainVisibleFields?.some((field) => field.includes("proof requests")),
+      "Send packet must keep local proof transcript binding out of public-chain visible fields.",
+    );
+    assert.ok(
+      packet.proofTranscriptFields?.some((field) =>
+        field.includes("public input hash") && field.includes("ciphertext body hash limbs"),
+      ),
+      "Send packet must disclose the local proof-request/circuit ciphertext body hash binding.",
     );
     assert.ok(packet.verificationCommands.includes("npm run actions:memo-encryption-check"));
+    assert.ok(
+      packet.verificationCommands.includes("npm run private-pool-v2:send-circuit-check"),
+    );
     assert.ok(packet.verificationCommands.includes("npm run send:balance-ledger-check"));
     assert.ok(
       packet.verificationCommands.includes("npm run private-core:send-operator-no-witness-check"),

@@ -303,6 +303,7 @@ try {
   const sendProofRequest = createVantaPrivatePoolV2SendProofRequest({
     assetIdCommitment: "field:send-asset-id-commitment",
     changeLeafIndex: String(sendChangePlanningCommitment.leafIndex),
+    changeMemoCiphertextBodyHash: `sha256:${"bb".repeat(32)}`,
     changeOutputCommitment: sendChangePlanningCommitment.commitment,
     changeOutputRoot: sendChangePlanningCommitment.merkleRoot,
     economicsCommitment: "field:send-economics-commitment",
@@ -311,6 +312,7 @@ try {
     nullifier: "field:send-nullifier",
     ownerCommitment: "field:send-owner-commitment",
     recipientLeafIndex: String(sendRecipientPlanningCommitment.leafIndex),
+    recipientMemoCiphertextBodyHash: `sha256:${"aa".repeat(32)}`,
     recipientOutputCommitment: sendRecipientPlanningCommitment.commitment,
     recipientOutputRoot: sendRecipientPlanningCommitment.merkleRoot,
     sendContextTag: "field:send-context-tag",
@@ -327,6 +329,48 @@ try {
     indexer: sendVerifierIndexer,
     prover,
   });
+  for (const [label, malformedRequest] of [
+    [
+      "malformed recipient memo hash limb",
+      {
+        ...sendProofRequest,
+        publicInputs: sendProofRequest.publicInputs.map((input) =>
+          input.startsWith("recipient-memo-ciphertext-body-hash-hi:")
+            ? "recipient-memo-ciphertext-body-hash-hi:not-a-u128"
+            : input,
+        ),
+      },
+    ],
+    [
+      "zero recipient memo hash limbs",
+      {
+        ...sendProofRequest,
+        publicInputs: sendProofRequest.publicInputs.map((input) => {
+          if (input.startsWith("recipient-memo-ciphertext-body-hash-hi:")) {
+            return "recipient-memo-ciphertext-body-hash-hi:0";
+          }
+          if (input.startsWith("recipient-memo-ciphertext-body-hash-lo:")) {
+            return "recipient-memo-ciphertext-body-hash-lo:0";
+          }
+          return input;
+        }),
+      },
+    ],
+  ]) {
+    const malformedProof = await prover.prove(malformedRequest);
+    let rejectedMalformedSend = false;
+    try {
+      await sendVerifierRegistry.acceptProof({
+        proof: malformedProof,
+        request: malformedRequest,
+      });
+    } catch {
+      rejectedMalformedSend = true;
+    }
+    assert(rejectedMalformedSend, `Expected local verifier to reject ${label}.`);
+  }
+  console.log("local verifier private-send memo limb guard: PASS");
+
   const sendReceipt = await sendVerifierRegistry.acceptProof({
     proof: sendProof,
     request: sendProofRequest,

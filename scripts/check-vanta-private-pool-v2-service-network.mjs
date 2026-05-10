@@ -527,6 +527,10 @@ try {
       "change-output-commitment:field:service-network-send-change-output",
       "change-leaf-index:2",
       `change-output-root:${sendChangeRoot}`,
+      "recipient-memo-ciphertext-body-hash-hi:111",
+      "recipient-memo-ciphertext-body-hash-lo:222",
+      "change-memo-ciphertext-body-hash-hi:333",
+      "change-memo-ciphertext-body-hash-lo:444",
       "asset-id-commitment:field:service-network-send-asset",
       "economics-commitment:field:service-network-send-economics",
       "owner-commitment:field:service-network-send-owner",
@@ -539,6 +543,57 @@ try {
     method: "POST",
   });
   assert(privateSendProof.ok, privateSendProof.text || "Expected private-send proof response.");
+  for (const [label, malformedRequest] of [
+    [
+      "malformed recipient memo hash limb",
+      {
+        ...privateSendRequest,
+        publicInputs: privateSendRequest.publicInputs.map((input) =>
+          input.startsWith("recipient-memo-ciphertext-body-hash-hi:")
+            ? "recipient-memo-ciphertext-body-hash-hi:not-a-u128"
+            : input,
+        ),
+      },
+    ],
+    [
+      "zero recipient memo hash limbs",
+      {
+        ...privateSendRequest,
+        publicInputs: privateSendRequest.publicInputs.map((input) => {
+          if (input.startsWith("recipient-memo-ciphertext-body-hash-hi:")) {
+            return "recipient-memo-ciphertext-body-hash-hi:0";
+          }
+          if (input.startsWith("recipient-memo-ciphertext-body-hash-lo:")) {
+            return "recipient-memo-ciphertext-body-hash-lo:0";
+          }
+          return input;
+        }),
+      },
+    ],
+  ]) {
+    const malformedPrivateSendProof = await requestJson(serviceUrls.get("prover"), "/v1/proofs", {
+      body: JSON.stringify({ request: malformedRequest }),
+      headers: { Authorization: `Bearer ${authToken}` },
+      method: "POST",
+    });
+    assert(
+      malformedPrivateSendProof.ok,
+      malformedPrivateSendProof.text || `Expected ${label} proof response.`,
+    );
+    const malformedPrivateSendReceipt = await requestJson(
+      serviceUrls.get("verifier"),
+      "/v1/proofs/accept",
+      {
+        body: JSON.stringify({
+          proof: malformedPrivateSendProof.parsed,
+          request: malformedRequest,
+        }),
+        headers: { Authorization: `Bearer ${authToken}` },
+        method: "POST",
+      },
+    );
+    assert(!malformedPrivateSendReceipt.ok, `Expected service network to reject ${label}.`);
+  }
   const privateSendReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
     body: JSON.stringify({ proof: privateSendProof.parsed, request: privateSendRequest }),
     headers: { Authorization: `Bearer ${authToken}` },

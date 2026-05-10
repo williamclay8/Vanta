@@ -3,6 +3,8 @@ import { bytesToHex } from "@noble/hashes/utils.js";
 
 import {
   VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
+  createVantaPrivatePoolV2ActualPrivateSpendProofRequest,
+  createVantaPrivatePoolV2SendProofRequest,
   createVantaPrivatePoolV2ShieldProofRequest,
   createVantaPrivatePoolV2SwapToShieldedProofRequest,
 } from "./privatePoolV2ProofRequests";
@@ -67,6 +69,7 @@ export type VantaCommittedEconomicsSettlementTerms = {
   assetIdCommitment?: string;
   assetCohort?: string;
   changeLeafIndex?: string;
+  changeMemoCiphertextBodyHash?: string;
   changeOutputCommitment?: string;
   changeOutputRoot?: string;
   economicsCommitment: string;
@@ -82,6 +85,7 @@ export type VantaCommittedEconomicsSettlementTerms = {
   poolId?: string;
   privateSpendContextHash?: string;
   privateSpendPublicInputHash?: string;
+  recipientMemoCiphertextBodyHash?: string;
   routeCommitment: string;
   sendContextTag?: string;
   sendPublicInputHash?: string;
@@ -106,6 +110,7 @@ export type VantaRawProtocolSettlementRequest = {
   assetIdCommitment?: never;
   assetCohort?: never;
   changeLeafIndex?: never;
+  changeMemoCiphertextBodyHash?: never;
   changeOutputCommitment?: never;
   changeOutputRoot?: never;
   inputRoot?: never;
@@ -120,6 +125,7 @@ export type VantaRawProtocolSettlementRequest = {
   poolId?: never;
   privateSpendContextHash?: never;
   privateSpendPublicInputHash?: never;
+  recipientMemoCiphertextBodyHash?: never;
   routeCommitment?: never;
   sendContextTag?: never;
   sendPublicInputHash?: never;
@@ -151,6 +157,7 @@ type VantaCommittedEconomicsProtocolSettlementRequestBase = {
 type VantaCommittedEconomicsSendSettlementTerms = VantaCommittedEconomicsSettlementTerms & {
   assetIdCommitment: string;
   changeLeafIndex: string;
+  changeMemoCiphertextBodyHash?: string;
   changeOutputCommitment: string;
   changeOutputRoot: string;
   inputCommitment: string;
@@ -158,6 +165,7 @@ type VantaCommittedEconomicsSendSettlementTerms = VantaCommittedEconomicsSettlem
   outputCommitment: string;
   outputLeafIndex: string;
   outputRoot: string;
+  recipientMemoCiphertextBodyHash: string;
   sendContextTag: string;
   sendPublicInputHash: string;
 };
@@ -424,6 +432,7 @@ function expectedLocalProofPublicInputCommitment(request: {
     assetId: request.assetId,
     circuitPublicInputs: [...(request.circuitPublicInputs ?? request.publicInputs)],
     intent: request.intent,
+    publicInputs: [...request.publicInputs],
   });
 
   return hashProtocolSettlementParts(
@@ -667,6 +676,29 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
     }
     if (request.action === "send") {
       const proofReceipt = response.proofReceipt;
+      const hasNonzeroStatefulChangeOutput =
+        typeof request.changeOutputCommitment === "string" &&
+        request.changeOutputCommitment.trim() !== "0";
+      const statefulSendRequest =
+        typeof request.assetIdCommitment === "string" &&
+        typeof request.changeLeafIndex === "string" &&
+        typeof request.changeOutputCommitment === "string" &&
+        typeof request.changeOutputRoot === "string" &&
+        typeof request.inputCommitment === "string" &&
+        typeof request.inputRoot === "string" &&
+        typeof request.outputLeafIndex === "string" &&
+        typeof request.outputRoot === "string" &&
+        typeof request.recipientMemoCiphertextBodyHash === "string" &&
+        (!hasNonzeroStatefulChangeOutput ||
+          typeof request.changeMemoCiphertextBodyHash === "string") &&
+        typeof request.sendContextTag === "string";
+      const actualPrivateSendRequest =
+        typeof request.acceptedRoot === "string" &&
+        typeof request.assetCohort === "string" &&
+        typeof request.changeOutputCommitment === "string" &&
+        typeof request.outputCommitment === "string" &&
+        typeof request.poolId === "string" &&
+        typeof request.privateSpendContextHash === "string";
       requireProtocolSettlementCondition(
         proofReceipt?.intent === "private-send",
         "Committed Send protocol settlement proof receipt intent is not private-send.",
@@ -680,6 +712,75 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
           proofReceipt.replayKey === `private-send:${request.nullifierOrReplayCommitment}`,
         "Committed Send proof receipt replay key does not match the request nullifier/replay commitment.",
       );
+      if (statefulSendRequest) {
+        const expectedSendProofRequest = createVantaPrivatePoolV2SendProofRequest({
+          assetIdCommitment: request.assetIdCommitment!,
+          changeLeafIndex: request.changeLeafIndex!,
+          changeMemoCiphertextBodyHash: request.changeMemoCiphertextBodyHash,
+          changeOutputCommitment: request.changeOutputCommitment!,
+          changeOutputRoot: request.changeOutputRoot!,
+          economicsCommitment: request.economicsCommitment,
+          inputCommitment: request.inputCommitment!,
+          inputRoot: request.inputRoot!,
+          nullifier: request.nullifierOrReplayCommitment,
+          ownerCommitment: request.ownerCommitment,
+          recipientLeafIndex: request.outputLeafIndex!,
+          recipientMemoCiphertextBodyHash: request.recipientMemoCiphertextBodyHash!,
+          recipientOutputCommitment: request.outputCommitment!,
+          recipientOutputRoot: request.outputRoot!,
+          sendContextTag: request.sendContextTag!,
+          sendPublicInputHash: request.sendPublicInputHash,
+        });
+        requireProtocolSettlementCondition(
+          proofReceipt?.publicInputCommitment ===
+            expectedLocalProofPublicInputCommitment(expectedSendProofRequest),
+          "Committed Send proof receipt public input commitment does not match the request.",
+        );
+        for (const [fieldName, fieldValue] of [
+          ["assetIdCommitment", request.assetIdCommitment],
+          ["inputCommitment", request.inputCommitment],
+          ["inputRoot", request.inputRoot],
+          ["outputCommitment", request.outputCommitment],
+          ["outputLeafIndex", request.outputLeafIndex],
+          ["outputRoot", request.outputRoot],
+          ["recipientMemoCiphertextBodyHash", request.recipientMemoCiphertextBodyHash],
+          ["sendContextTag", request.sendContextTag],
+          ["sendPublicInputHash", request.sendPublicInputHash],
+        ] as const) {
+          requireProtocolSettlementCondition(
+            typeof fieldValue === "string" && fieldValue.trim().length > 0,
+            `Committed Send protocol settlement request is missing ${fieldName}.`,
+          );
+        }
+        if (hasNonzeroStatefulChangeOutput) {
+          requireProtocolSettlementCondition(
+            typeof request.changeMemoCiphertextBodyHash === "string" &&
+              request.changeMemoCiphertextBodyHash.trim().length > 0,
+            "Committed Send protocol settlement request is missing changeMemoCiphertextBodyHash.",
+          );
+        }
+      } else if (actualPrivateSendRequest) {
+        const expectedActualPrivateSpendProofRequest =
+          createVantaPrivatePoolV2ActualPrivateSpendProofRequest({
+            acceptedRoot: request.acceptedRoot!,
+            assetCohort: request.assetCohort!,
+            contextHash: request.privateSpendContextHash!,
+            nullifier: request.nullifierOrReplayCommitment,
+            outputCommitments: [request.outputCommitment!, request.changeOutputCommitment!],
+            poolId: request.poolId!,
+            privateSpendPublicInputHash:
+              request.privateSpendPublicInputHash ?? request.sendPublicInputHash,
+          });
+        requireProtocolSettlementCondition(
+          proofReceipt?.publicInputCommitment ===
+            expectedLocalProofPublicInputCommitment(expectedActualPrivateSpendProofRequest),
+          "Committed Send proof receipt public input commitment does not match the request.",
+        );
+      } else {
+        throw new Error(
+          "Committed Send protocol settlement requires actual-private send fields or full stateful send terms.",
+        );
+      }
     }
     if (request.action === "shield") {
       const proofReceipt = response.proofReceipt;
@@ -784,6 +885,7 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
   baseUrl = defaultPrivatePoolOperatorUrl(),
   changeLeafIndex,
   changeOutputCommitment,
+  changeMemoCiphertextBodyHash,
   changeOutputRoot,
   destination,
   economicsCommitment,
@@ -801,6 +903,7 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
   poolId,
   privateSpendContextHash,
   privateSpendPublicInputHash,
+  recipientMemoCiphertextBodyHash,
   routeCommitment,
   sendContextTag,
   sendPublicInputHash,
@@ -827,6 +930,7 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
       ...(assetCohort ? { assetCohort } : {}),
       asset,
       ...(changeLeafIndex ? { changeLeafIndex } : {}),
+      ...(changeMemoCiphertextBodyHash ? { changeMemoCiphertextBodyHash } : {}),
       ...(changeOutputCommitment ? { changeOutputCommitment } : {}),
       ...(changeOutputRoot ? { changeOutputRoot } : {}),
       destination,
@@ -845,6 +949,7 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
       ...(poolId ? { poolId } : {}),
       ...(privateSpendContextHash ? { privateSpendContextHash } : {}),
       ...(privateSpendPublicInputHash ? { privateSpendPublicInputHash } : {}),
+      ...(recipientMemoCiphertextBodyHash ? { recipientMemoCiphertextBodyHash } : {}),
       ...(routeCommitment ? { routeCommitment } : {}),
       ...(sendContextTag ? { sendContextTag } : {}),
       ...(sendPublicInputHash ? { sendPublicInputHash } : {}),
@@ -881,6 +986,7 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
       authToken,
       baseUrl,
       changeLeafIndex,
+      changeMemoCiphertextBodyHash,
       changeOutputCommitment,
       changeOutputRoot,
       destination,
@@ -899,6 +1005,7 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
       poolId,
       privateSpendContextHash,
       privateSpendPublicInputHash,
+      recipientMemoCiphertextBodyHash,
       routeCommitment,
       sendContextTag,
       sendPublicInputHash,

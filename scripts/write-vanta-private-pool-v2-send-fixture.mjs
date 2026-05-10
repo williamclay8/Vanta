@@ -25,11 +25,12 @@ if (
   fixtureMode !== "invalid-amount-conservation" &&
   fixtureMode !== "invalid-amount-range" &&
   fixtureMode !== "invalid-binding" &&
+  fixtureMode !== "invalid-memo-ciphertext-hash" &&
   fixtureMode !== "invalid-nullifier" &&
   fixtureMode !== "invalid-output-root"
 ) {
   console.error(
-    'Expected fixture mode "valid", "forged-input-membership", "forged-recipient-append-path", "forged-change-append-path", "invalid-amount-conservation", "invalid-amount-range", "invalid-binding", "invalid-nullifier", or "invalid-output-root".',
+    'Expected fixture mode "valid", "forged-input-membership", "forged-recipient-append-path", "forged-change-append-path", "invalid-amount-conservation", "invalid-amount-range", "invalid-binding", "invalid-memo-ciphertext-hash", "invalid-nullifier", or "invalid-output-root".',
   );
   process.exit(1);
 }

@@ -23,10 +23,10 @@ This review is now an active feedback-loop document, not only a point-in-time au
 | Private Pool v2 Shield/Send/Claim amount range | Shield, Send, and Claim raw amount witnesses are constrained as `u128`; Send also proves a private economics commitment and checks `input_amount == recipient_amount + change_amount`; Claim relayer-fee is constrained as `u128`. | `npm run private-pool-v2:shield-circuit-check`; `npm run private-pool-v2:send-circuit-check`; `npm run private-pool-v2:claim-circuit-check` |
 | Private Core tree hashing | Single-field membership paths and standard Poseidon node hashing are now guarded across send/swap/unshield. | `npm run zk:merkle-node-hash-contract-check` |
 | Private Core Send/Swap/Unshield amount range | Send, Swap, and Unshield amount limbs are now `u64` in the local Noir lanes, with negative fixtures for out-of-range witnesses. | `npm run private-core:send-check`; `npm run private-core:swap-check`; `npm run private-core:check` |
-| Action memo privacy | Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers now fail closed into v2 viewing-key AEAD; v1 plaintext parsing remains only for historical chain memos. A local Send dual-AEAD scaffold can separately seal recipient/change discovery memos and expose ciphertext body hashes, while external Send remains fail-closed until recipient viewing-key exchange is wired. | `npm run actions:memo-encryption-check` |
+| Action memo privacy | Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers now fail closed into v2 viewing-key AEAD; v1 plaintext parsing remains only for historical chain memos. A local Send dual-AEAD scaffold can separately seal recipient/change discovery memos and expose `sha256:` ciphertext body hashes, and the Private Pool v2 Send proof-request/circuit lane now binds recipient/change body-hash limbs into the Send public-input hash. External Send remains fail-closed until recipient viewing-key exchange or view-tag/indexer discovery is wired. | `npm run actions:memo-encryption-check`; `npm run private-pool-v2:send-proof-request-check`; `npm run private-pool-v2:send-circuit-check`; `npm run private-pool-v2:public-input-hash-alignment-check` |
 | Owner recovery payload | X25519 + HKDF-SHA256 + XChaCha20-Poly1305 replaced the hand-rolled XOR/SHA path. | `npm run zk:owner-recovery-payload-crypto-check` |
 
-Still not solved: on-chain proof verification/verifying-key enforcement is not wired, root history is only a local operator-authorized fixed-slot scaffold, the output queue is still fixed-capacity, recipient-grade Send discovery still needs viewing-key exchange or view-tag/indexer discovery plus proof-bound ciphertext hashes, no audit has accepted the boundary, the local SBF binary must be rebuilt before it can represent the current ABI, and no live deployment evidence has been refreshed.
+Still not solved: on-chain proof verification/verifying-key enforcement is not wired, root history is only a local operator-authorized fixed-slot scaffold, the output queue is still fixed-capacity, recipient-grade Send discovery still needs viewing-key exchange or view-tag/indexer discovery and historical v1 migration, no audit has accepted the boundary, the local SBF binary must be rebuilt before it can represent the current ABI, and no live deployment evidence has been refreshed.
 
 ---
 
@@ -84,7 +84,7 @@ But the `send_entry`, `claim_entry`, `shield_entry`, and `swap_to_shielded_entry
 
 A prover can spend any commitment they invent against any root they like. Use `vanta_private_pool_v2_actual_private_spend_entry` as the template and back-port real Merkle membership + an incremental-Merkle-tree append (e.g., zero-padded fixed-depth tree with Poseidon node hashing) into all four entry circuits.
 
-**Codex status, 2026-05-09:** remediated locally for the fixed-depth Private Pool v2 circuit/fixture lane. Private Pool v2 `send_entry`, `claim_entry`, and `swap_to_shielded_entry` now prove input commitment membership under `input_root` and reject forged input-root fixtures; `shield_entry` now proves a path-based empty-leaf append to the output commitment; and `send_entry` / `swap_to_shielded_entry` now prove successor output roots from private append-path witnesses instead of transitional `hash_3(previous_root, output_commitment, leaf_index)` handles. Guards: `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:swap-to-shielded-circuit-check`, `npm run private-pool-v2:public-input-hash-alignment-check`, `npm run private-pool-v2:contract-check`, and `npm run zk:merkle-node-hash-contract-check`. Residual caveat: these are local Poseidon fixture/circuit append proofs, not a production shared tree, not the SHA-256 local indexer root scheme, not depth-20 anonymity, and not on-chain verifier enforcement.
+**Codex status, 2026-05-09:** remediated locally for the fixed-depth Private Pool v2 circuit/fixture lane. Private Pool v2 `send_entry`, `claim_entry`, and `swap_to_shielded_entry` now prove input commitment membership under `input_root` and reject forged input-root fixtures; `shield_entry` now proves a path-based empty-leaf append to the output commitment; and `send_entry` / `swap_to_shielded_entry` now prove successor output roots from private append-path witnesses instead of transitional `hash_3(previous_root, output_commitment, leaf_index)` handles. Guards: `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:swap-to-shielded-circuit-check`, `npm run private-pool-v2:public-input-hash-alignment-check`, `npm run private-pool-v2:contract-check`, and `npm run zk:merkle-node-hash-contract-check`. Residual caveat: these are local Poseidon fixture/circuit append proofs, not a production shared tree, not the SHA-256 local indexer root scheme, not a populated/live/audited depth-20 anonymity set, and not on-chain verifier enforcement.
 
 ### 5. Anonymity-set depth is 3
 
@@ -173,7 +173,7 @@ The prior feedback loops moved several early items from "recommended" to "locall
 1. **Keep the Solana authority boundary guarded and redeploy/reinit before citing live evidence.** The local branch has the signer gate, but the reviewed mainnet spend-program evidence is pre-authority-ABI and must remain blocked.
 2. **Keep Merkle depth >=20 guarded across active proving lanes and fixtures.** The active Private Pool v2 and Private Core lanes now use depth 20 locally; keep `npm run zk:circuit-soundness-lint` and the focused circuit checks as fail-closed regression gates.
 3. **Keep amount range constraints guarded while the proof lanes mature.** Canonical note membership, Private Pool v2 Shield/Send/Claim, and Private Core Send/Swap/Unshield now use typed amount ABIs with negative range fixtures; future lanes must keep this linted discipline before making production amount-proof claims.
-4. **Finish recipient-grade memo/discovery semantics.** New Send/Swap/Unshield/SOL-Unshield action memos now fail closed into v2 viewing-key AEAD, external Send v2 now fails closed until recipient viewing-key exchange is wired, and a local Send dual-AEAD scaffold can separately seal recipient/change discovery memos with ciphertext body hashes. Recipient viewing-key exchange or view-tag/indexer discovery, proof-bound ciphertext-hash binding, and old v1 chain-history migration remain open.
+4. **Finish recipient-grade memo/discovery semantics.** New Send/Swap/Unshield/SOL-Unshield action memos now fail closed into v2 viewing-key AEAD, external Send v2 now fails closed until recipient viewing-key exchange is wired, and a local Send dual-AEAD scaffold can separately seal recipient/change discovery memos with ciphertext body hashes. Recipient viewing-key exchange or view-tag/indexer discovery, production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces, and old v1 chain-history migration remain open.
 5. **Rebuild/redeploy the Solana PDA-nullifier ABI before citing live replay evidence.** The local source now uses a deterministic nullifier marker PDA for O(1) duplicate rejection, but reviewed mainnet/SBF evidence is stale until rebuilt and redeployed.
 6. **Wire real on-chain proof verification and replace the root-history scaffold with proof-backed tree state.** The local branch now has operator-authorized fixed-slot root-history rejection, but the bigger production piece remains: embed a Groth16/Honk verifier or CPI into a verifier program, commit the verifying-key hash, and make accepted roots come from program-owned shared tree state rather than an operator-fed list.
 
@@ -199,7 +199,7 @@ The trace, from the user clicking *Shield* to the final state:
    - Inserts the commitment into `AppendOnlyShieldedState` (a hash-chain, not a Merkle tree — see `src/zk/shieldedState.ts:deriveShieldedStateRoot`).
    - Persists the record list to `localStorage` under key `vanta.zk.phase1.live-shield-records.v1`.
 5. **The Noir circuit is not executed.** `zk/noir/vanta_private_pool_v2_shield_entry/src/main.nr` exists and has fixtures, but no runtime path turns a live SPL deposit into a Noir-witnessed proof. The `src/privacy/privatePoolV2LocalProver.ts` is wired into protocol-shaped paths, but it returns a SHA-256 of the request bytes — not a real proof.
-6. **The Solana program is not invoked.** `programs/vanta_private_pool_v2_spend` only exposes `TAG_INIT` and `TAG_SPEND`. **There is no shield instruction.** Even if there were, see items 1 and 2 in the main audit — the program performs no proof verification and has no signer gate.
+6. **The Solana program is not invoked.** `programs/vanta_private_pool_v2_spend` only exposes `TAG_INIT` and `TAG_SPEND`. **There is no shield instruction.** Even if there were, see items 1 and 2 in the main audit: the current local source has an operator-authority signer gate for spend, but the reviewed/live SBF evidence is stale and the program still performs no production proof verification.
 
 ## What that adds up to
 
@@ -452,7 +452,7 @@ The trace, end-to-end, when a user clicks *Send* on `/app/send`:
      return { accounts: [], data: new TextEncoder().encode(memoPayload), programAddress: VANTA_SHIELD_MEMO_PROGRAM };
    }
    ```
-   That v1 shape was plaintext JSON to the SPL Memo program. Current fresh helpers fail closed into v2 viewing-key AEAD, and `createPreparedSendDualAeadMemo` now scaffolds separate recipient/change encrypted discovery memos with ciphertext body hashes. Recipient-grade discovery still needs real recipient viewing-key exchange or view tags, proof-bound ciphertext-hash binding, and historical v1 migration.
+   That v1 shape was plaintext JSON to the SPL Memo program. Current fresh helpers fail closed into v2 viewing-key AEAD, and `createPreparedSendDualAeadMemo` now scaffolds separate recipient/change encrypted discovery memos with ciphertext body hashes. Recipient-grade discovery still needs real recipient viewing-key exchange or view tags, production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces, and historical v1 migration.
 4. **Transaction signing.** The browser asks the user's wallet to sign a transaction whose only meaningful instruction is that memo, plus Helius priority-fee instructions. **No SPL transfer is included.** The vault's USDC ATA is unchanged.
 5. **A second transaction — the "spent marker."** Before the action-memo feedback loop, `src/solana/vantaShieldState.ts:createSpentMarkerInstruction` wrote another plaintext memo with prefix `"vanta:spent-marker:..."` claiming `consumedNoteId` was now spent. Fresh spent-marker helpers now emit v2 AEAD ciphertext; legacy v1 spent markers remain parseable for old chain history.
 6. **Off-chain operator notification.** The browser POSTs to the operator's `/private-core/send-proof` and `/private-core/send-transition` endpoints (see `operator/unshield-server.mjs:873–1190`). The operator:
@@ -481,9 +481,9 @@ Honest accounting of where information leaks:
 | Vault owner address | Legacy v1: yes. Fresh v2: ciphertext memo plus signer/timing. | Yes in current operator/user state surfaces. |
 | Timing | Yes | Yes |
 
-For legacy v1 memos, the information that is *not* on chain or at the operator was effectively **none that matters**: a passive observer could read the memo program, decode the JSON, and reconstruct the full transaction graph. Fresh local v2 action memos improve this by emitting ciphertext instead of raw action terms, and the dual-AEAD scaffold splits recipient/change memo bodies for future discovery work. That still does not make Send production-private: signer/timing remain public, operator/user state surfaces still carry transition metadata, recipient discovery is not solved, and proof-bound ciphertext hashes are not wired.
+For legacy v1 memos, the information that is *not* on chain or at the operator was effectively **none that matters**: a passive observer could read the memo program, decode the JSON, and reconstruct the full transaction graph. Fresh local v2 action memos improve this by emitting ciphertext instead of raw action terms, and the dual-AEAD scaffold splits recipient/change memo bodies for future discovery work. That still does not make Send production-private: signer/timing remain public, operator/user state surfaces still carry transition metadata, recipient discovery is not solved, and the production wiring from locally proof-bound ciphertext body-hash limbs to deployed memo/indexer surfaces is not live.
 
-In short: the original reviewed "private send" was a Solana memo with the literal phrase `"recipient":"<address>","amount":"<value>"` written to chain in cleartext. The current local branch no longer emits that v1 plaintext shape for fresh Send action helpers and now has a local dual recipient/change AEAD scaffold, but the remaining production Send work is still substantial: recipient viewing-key exchange or view tags, proof-bound ciphertext hashes, real prover/verifier enforcement, and a production shared tree.
+In short: the original reviewed "private send" was a Solana memo with the literal phrase `"recipient":"<address>","amount":"<value>"` written to chain in cleartext. The current local branch no longer emits that v1 plaintext shape for fresh Send action helpers and now has a local dual recipient/change AEAD scaffold, but the remaining production Send work is still substantial: recipient viewing-key exchange or view tags, production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces, real prover/verifier enforcement, and a production shared tree.
 
 ## What the operator actually does
 
@@ -505,7 +505,7 @@ There is also a Noir circuit (`zk/noir/vanta_private_pool_v2_send_entry/src/main
 - **No proof the predecessor is unspent.** Nothing in the on-chain artifact prevents a sender from writing two sends against the same predecessor. The off-chain `privateCoreSendStore.reserveInputNullifier` is the only deduplication, and it's in-memory at the operator. If the operator restarts without the persistence file, the dedup state is gone.
 - **The vault holds all the money.** Recipient receiving a send memo doesn't get USDC. They get a claim against the vault. If the vault key is lost, frozen, sanctioned, or rugged, every recipient loses everything.
 - **No anonymity set.** Two senders' memos sit next to each other in the memo program, but nothing combines them into a cryptographic anonymity set. A recipient with a 100 USDC inbound and a sender with a 100 USDC outbound at the same minute are trivially linked by pattern matching.
-- **Recipient privacy is improved but not complete.** Fresh v2 action memos no longer put `recipient` in plaintext, and a local dual-AEAD scaffold can separate recipient/change discovery memo legs. Recipient discovery is not production-grade until Vanta has recipient viewing-key exchange or view-tag/indexer discovery plus proof-bound ciphertext hashes.
+- **Recipient privacy is improved but not complete.** Fresh v2 action memos no longer put `recipient` in plaintext, and a local dual-AEAD scaffold can separate recipient/change discovery memo legs. Recipient discovery is not production-grade until Vanta has recipient viewing-key exchange or view-tag/indexer discovery plus production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces.
 
 ## What "send actually works" needs to mean
 
@@ -541,8 +541,10 @@ Replace `zk/noir/vanta_private_pool_v2_send_entry/src/main.nr` (and consolidate 
 //   new_root                   — root after both insertions
 //   new_recipient_leaf_index   — position of recipient_commitment
 //   new_change_leaf_index      — position of change_commitment
-//   recipient_memo_ciphertext_hash
-//   change_memo_ciphertext_hash
+//   recipient_memo_ciphertext_body_hash_hi
+//   recipient_memo_ciphertext_body_hash_lo
+//   change_memo_ciphertext_body_hash_hi
+//   change_memo_ciphertext_body_hash_lo
 //
 // Private witnesses:
 //   input_note: (asset_id, amount, owner_pubkey, blinding, derivation_tag)
@@ -606,7 +608,7 @@ The memo content is the *new note's* secrets that only the recipient needs (asse
 
 Two memos per send: one for recipient (sealed to recipient's viewing key), one for the sender's own change note (sealed to sender's own viewing key — same code path, recipient is self).
 
-The pre-image of `recipient_memo_ciphertext_hash` (bound into the circuit at S1 step 11) is the entire base64url body. The on-chain program writes this body to the program's `memo_log` account, so chain observers see opaque bytes only.
+The pre-image of `recipient_memo_ciphertext_body_hash_hi/lo` (bound into the circuit at S1 step 11 in the current local Private Pool v2 Send lane) is the exact `sha256:` ciphertext body split into two 128-bit limbs. A future on-chain memo/indexer surface must write the matching opaque body bytes so chain observers see ciphertext only.
 
 `vantaShieldViewingKey.ts` is already correct AEAD code. The only new work is wiring its `encryptVantaShieldMemoToViewingKey` into `createPreparedSendMemo` instead of the JSON stringify, and adding a parallel call for the change memo. Effort: 1–2 days.
 
@@ -651,7 +653,7 @@ Program logic:
 
 Critical: this instruction does **not move tokens**. The vault PDA (introduced in W4 from the shield section) is untouched. Token movement only happens at the shield (deposit) and unshield (withdraw) boundaries. Inside the pool — send and swap — only commitments and nullifiers move. This is what gives you a real anonymity set: every send adds two leaves to the same shared tree as everyone else's shield deposits and other sends. The recipient is just whoever can later prove ownership of the leaf at `new_recipient_leaf_index`.
 
-Replace the current spend instruction (`TAG_SPEND = 1`) with this. The current one (audit item 1) verifies nothing and is callable by anyone; once `TAG_SEND` exists with real proof verification, the legacy spend tag should be removed entirely so there is no "unauthenticated append" instruction reachable on the program.
+Replace the current spend instruction (`TAG_SPEND = 1`) with this. The older reviewed spend path verified nothing and was unauthenticated; the current local source adds an operator-authority signer gate but still lacks on-chain proof verification and still has stale live/SBF evidence. Once `TAG_SEND` exists with real proof verification, the legacy spend tag should be removed entirely so there is no append-only fallback instruction reachable on the program.
 
 Effort: 2–3 weeks, gated on the Groth16 verifier work from W6.
 
@@ -704,7 +706,7 @@ Don't rewrite from scratch. The following pieces are correct or close:
 
 While S1–S5 are in flight:
 
-- **Keep fresh Send memos on the v2 AEAD path.** The original v1 memo bytes were a public ledger of every send; fresh local helpers now fail closed into viewing-key AEAD, and a local dual-AEAD scaffold can separately seal recipient/change discovery memo legs. The remaining work is recipient-grade viewing-key exchange or view tags, proof-bound ciphertext hashes, and historical v1 migration.
+- **Keep fresh Send memos on the v2 AEAD path.** The original v1 memo bytes were a public ledger of every send; fresh local helpers now fail closed into viewing-key AEAD, and a local dual-AEAD scaffold can separately seal recipient/change discovery memo legs. The remaining work is recipient-grade viewing-key exchange or view tags, production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces, and historical v1 migration.
 - Mark `liveSendBridge.ts:recordCanonicalSendFromLiveSend` and the localStorage list as user-facing diagnostics only. Don't claim the JSON list is "shielded state".
 - Remove `TAG_SPEND = 1` from the on-chain program once `TAG_SEND = 3` exists; a public, unauthenticated append-only nullifier log accessible to any wallet is a denial-of-service that scales with rent (audit item 2).
 - Block the SOL-send capability path with a real refusal: today it returns a soft `unsupported-private-send-asset` blocker; the user can't actually trigger it but the option appears in the asset list. Hide it until the SOL lane exists.
@@ -726,7 +728,7 @@ Total: about 7–9 calendar weeks for one developer once shield W1+W2+W4+W6 land
 
 If you want a single PR to make on the send lane that materially advances this without breaking the existing UI:
 
-> **Completed locally for the current browser helpers: fresh send memos now emit `vanta:send-note:v2:` AEAD ciphertext, and recipient discovery attempts v2 decryption before falling back to historical v1 plaintext. Keep the guard, then finish recipient-grade discovery plus proof-bound recipient/change ciphertext commitments.**
+> **Completed locally for the current browser helpers: fresh send memos now emit `vanta:send-note:v2:` AEAD ciphertext, recipient discovery attempts v2 decryption before falling back to historical v1 plaintext, and the later Private Pool v2 Send lane locally binds recipient/change ciphertext body-hash limbs. Keep the guard, then finish recipient-grade discovery plus deployed memo/indexer handoff.**
 
 This local change closes the largest fresh send memo privacy leak (the plaintext recipient/amount). It does not touch the proof or the trust model - those still need S1+S3+S4 - but it removes the fresh public broadcast of send economics while preserving historical v1 parsing.
 
@@ -1058,7 +1060,7 @@ Pair it with two small repairs:
 
 ## Cross-lane summary
 
-After all three deep dives, the unifying observation is that **none of the three lanes today produce or verify a real ZK proof on chain**. Fresh local action memos no longer leak full economic terms as plaintext Solana memo bytes, but historical v1 records, operator/status metadata, venue execution, recipient discovery, and proof-bound ciphertext hashes remain unresolved. The crypto, the circuits, and the on-chain program all exist, but they still are not wired together as a single end-to-end production pipeline.
+After all three deep dives, the unifying observation is that **none of the three lanes today produce or verify a real ZK proof on chain**. Fresh local action memos no longer leak full economic terms as plaintext Solana memo bytes, but historical v1 records, operator/status metadata, venue execution, recipient discovery, and production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces remain unresolved. The crypto, the circuits, and the on-chain program all exist, but they still are not wired together as a single end-to-end production pipeline.
 
 The minimum repair that moves the project from "custodial app with privacy theming" to "alpha-but-real shielded pool" is:
 
@@ -1296,7 +1298,7 @@ Effort: 2 weeks, gated on shield W4 (vault PDA) and shield W6 (Groth16 verifier)
 
 Same fix as send-S2 and swap-X2. Before the action-memo feedback loop, `vanta:unshield-note:v1:` wrote plaintext JSON via the same `createMemoInstruction` helper. Fresh unshield and SOL-unshield helpers now emit v2 AEAD ciphertext sealed to the user's viewing key, while parsers keep v1 plaintext fallback for historical chain records.
 
-In Target A, the memo is optional - the on-chain `UnshieldEvent` is enough for the indexer to track activity. But the memo is still useful because the viewing-key-encrypted body lets the user reconstruct their own exit history from chain alone. Keep fresh memos encrypted and add proof-bound ciphertext/hash discipline before claiming more.
+In Target A, the memo is optional - the on-chain `UnshieldEvent` is enough for the indexer to track activity. But the memo is still useful because the viewing-key-encrypted body lets the user reconstruct their own exit history from chain alone. Keep fresh memos encrypted and add per-lane body-hash commitment discipline plus production discovery discipline before claiming more.
 
 Effort: 1–2 days.
 
@@ -1339,7 +1341,7 @@ Effort: 3–5 days. The bulk of the work is rewriting `operator/unshield-server.
 
 ## What to delete or quarantine
 
-- **Keep fresh Unshield memos on the v2 AEAD path.** Same as send and swap: the original plaintext memo issue is locally remediated for fresh helpers, while proof-bound ciphertext hashes and production verifier enforcement remain open.
+- **Keep fresh Unshield memos on the v2 AEAD path.** Same as send and swap: the original plaintext memo issue is locally remediated for fresh helpers, while per-lane proof-bound ciphertext discipline and production verifier enforcement remain open.
 - **Keep the transition-authorized path removed.** The local branch removed the browser/operator sentinel path; every current public-exit request should require a real Ed25519 wallet signature until the real proof path replaces the custody model.
 - **Mandate vault keypair rotation before launch.** As long as Target A isn't shipped, the configured `vaultOwner` private key is the entire security model. Rotate it on a schedule, never reuse keys across environments, and audit who has env access.
 - **Add a safety check that refuses unshield if `proofStatus !== "verified"`** in user-facing copy. Today the field says "not-provided" and the UI renders the unshield as if it were a private exit. Make the copy match the field.
@@ -1386,7 +1388,7 @@ Pair this with adding a CI assertion that fails the build if `vaultSignerSecretK
 
 After all four lane deep dives, the consolidated priority list:
 
-1. **Keep fresh action memos encrypted** across shield, send, swap, unshield, and spent markers. The v2 AEAD prefix bump is now local; remaining work is recipient-grade discovery, proof-bound ciphertext/hash discipline, and historical v1 compatibility management.
+1. **Keep fresh action memos encrypted** across shield, send, swap, unshield, and spent markers. The v2 AEAD prefix bump is now local, and the Private Pool v2 Send lane locally binds recipient/change ciphertext body-hash limbs; remaining work is recipient-grade discovery, production memo/indexer handoff, historical v1 compatibility management, and verifier/on-chain enforcement.
 2. **Keep the transition-authorized unshield bypass removed** and replace the remaining `vault keypair in env` custody model with a PDA-owned vault plus program-enforced release. The bypass removal is local; the custody migration is still the highest-leverage unshield fix.
 3. **Lock the Poseidon note schema** (shield W1) and rebuild the four entry circuits on top of it (shield, send, swap, unshield) at depth 20 with real Merkle membership and ownership constraints. The actual_private_spend circuit is the template; everything else gets the same shape.
 4. **Wire a real prover** (`@aztec/bb.js` or snarkjs) into the browser, replace the mock prover, and embed a Groth16 verifier in the on-chain program (Light's `groth16-solana` is the reference).
@@ -1449,7 +1451,7 @@ Strategy is a *composition* lane. It doesn't introduce new privacy primitives; i
 - **Settle to private balance** = the final hop is a send-to-self into the shielded pool. Inherits send's privacy properties.
 - **Settle to public destination** = the final hop is an unshield. Inherits unshield's privacy properties.
 
-If send leaks plaintext memos with `amount, recipient, asset` (it did in the original v1 action-memo shape), then every Stealth DCA child order leaks the same information N times. Fresh v2 action memos improve that specific leak, but Strategy still inherits Send's unfinished recipient discovery and proof-bound ciphertext work. If swap requires a custodial liquidity wallet (it does today), then every Strategy child swap goes through that same wallet. If unshield reveals the destination on chain and forces destination-equals-owner (it does today), then "settle to public destination" forces the entire strategy's output to land in the original initiator's wallet, defeating the strategy-level privacy framing entirely.
+If send leaks plaintext memos with `amount, recipient, asset` (it did in the original v1 action-memo shape), then every Stealth DCA child order leaks the same information N times. Fresh v2 action memos and local Send body-hash proof binding improve that specific leak, but Strategy still inherits Send's unfinished recipient discovery, production memo/indexer handoff, historical v1 migration, and verifier/on-chain enforcement work. If swap requires a custodial liquidity wallet (it does today), then every Strategy child swap goes through that same wallet. If unshield reveals the destination on chain and forces destination-equals-owner (it does today), then "settle to public destination" forces the entire strategy's output to land in the original initiator's wallet, defeating the strategy-level privacy framing entirely.
 
 **Strategy cannot be more private than the sum of its child legs.** And the child legs today, as documented in the previous deep dives, are not private at all.
 
@@ -1607,7 +1609,7 @@ The four economic lanes (shield, send, swap, unshield) are positioned as private
 
 The single most leveraged sequence of fixes:
 
-1. **Keep fresh action memos on v2 AEAD and finish recipient discovery.** Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers now fail closed into viewing-key AEAD; recipient viewing-key exchange, view tags/indexer discovery, proof-bound ciphertext hashes, and historical v1 migration remain open.
+1. **Keep fresh action memos on v2 AEAD and finish recipient discovery.** Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers now fail closed into viewing-key AEAD; recipient viewing-key exchange, view tags/indexer discovery, production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces, and historical v1 migration remain open.
 2. **Keep the strategy/pay trust-contract pattern lifted into the other four lanes** — make UI copy derive from explicit `claimControls` objects so the product never claims more than the code can support.
 3. **Migrate the vault from operator-keypair-in-env to a program-owned PDA** (shield W4, unshield U2). Removes the entire single-env-var custody risk.
 4. **Lock the Poseidon note schema** (shield W1) and rebuild the four entry circuits on top of it (shield W3, send S1, swap X1, unshield U1) at depth 20 with real Merkle membership and real ownership constraints.
@@ -1909,7 +1911,7 @@ The four economic lanes (shield, send, swap, unshield) now have better local hon
 
 The single most leveraged sequence of fixes, updated:
 
-1. **Keep fresh action memos on v2 AEAD and finish recipient discovery.** Fresh Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers no longer emit plaintext v1 memos; view-tag/indexer discovery, recipient key exchange, ciphertext-hash proof binding, and historical v1 migration remain open.
+1. **Keep fresh action memos on v2 AEAD and finish recipient discovery.** Fresh Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers no longer emit plaintext v1 memos; local Send proof requests/circuits now bind recipient/change ciphertext body-hash limbs, while view-tag/indexer discovery, recipient key exchange, production memo/indexer handoff, and historical v1 migration remain open.
 2. **Keep the strategy-lane and pay-lane trust-contract pattern lifted into the other four lanes** — make UI copy derive from explicit `claimControls` objects so the product never claims more than the code can support. **Wire those claim-controls into UI gating, not just static returns.**
 3. **Migrate the vault from operator-keypair-in-env to a program-owned PDA** (shield W4, unshield U2). Removes the entire single-env-var custody risk.
 4. **Lock the Poseidon note schema** (shield W1) and rebuild the four entry circuits on top of it (shield W3, send S1, swap X1, unshield U1) at depth 20 with real Merkle membership and real ownership constraints.
@@ -2192,7 +2194,7 @@ This local slice moved the Solana spend-program review item from "root history a
 
 Verification caveat: this is still not on-chain proof verification. The root-history list is operator-authorized and program-bound, but it is not yet proof-backed by a program-owned Merkle tree or a verifying-key hash. The local SBF `.so` is currently older than `src/lib.rs`, and `cargo-build-sbf` / `solana` CLI availability is a toolchain blocker for rebuild/deploy/reinit evidence.
 
-Still open after this twelfth local pass: active proving lanes remain `MERKLE_DEPTH = 3`, amount range/carry discipline beyond Private Pool v2 Send and Private Core Send/Swap is incomplete, recipient-grade Send discovery still needs viewing-key exchange / dual recipient-change encryption / ciphertext-hash proof binding, on-chain proof verification/verifying-key enforcement is not wired, root-history is only a fixed-slot operator-fed scaffold, fixed-capacity/O(n) nullifier storage still needs PDA/sharded redesign, no audit has accepted the boundary, and no live deployment evidence was refreshed.
+Still open after this twelfth local pass, before the later depth-20, dual-AEAD, and body-hash binding loops: active proving lanes remain `MERKLE_DEPTH = 3`, amount range/carry discipline beyond Private Pool v2 Send and Private Core Send/Swap is incomplete, recipient-grade Send discovery still needs viewing-key exchange / dual recipient-change encryption / then-unwired ciphertext body-hash proof binding, on-chain proof verification/verifying-key enforcement is not wired, root-history is only a fixed-slot operator-fed scaffold, fixed-capacity/O(n) nullifier storage still needs PDA/sharded redesign, no audit has accepted the boundary, and no live deployment evidence was refreshed.
 
 ### Thirteenth Codex feedback loop - action memo, amount-range, Unshield auth, and Pay truth gates
 
@@ -2206,7 +2208,7 @@ This local slice closed the next review-loop footguns that could make beta surfa
 
 Verification run during this slice so far: `npm run actions:memo-encryption-check`, `npm run truth:privacy-claim-gate`, `npm run lanes:trust-contract-check`, `npm run unshield:public-exit-surface-check`, `npm run private-core:send-check`, `npm run private-core:swap-check`, `npm run private-core:check`, `npm run zk:review-guards-check`, `cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml`, `cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml`, `npm run private-pool-v2:contract-check`, `npm run private-pool-v2:solana-spend-transaction-builder-check`, `npm run private-pool-v2:solana-spend-transaction-check`, `npm run private-pool-v2:solana-relayer-submission-check`, `npm run pay:merchant-api-check`, `npm run pay:production-readiness-contract-check`, `npm run pay:doc-truth-check`, and `npm run docs:source-of-truth-check`.
 
-Still open after this thirteenth local pass: active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery and proof-bound ciphertext hashes remain open, on-chain proof verification/verifying-key enforcement is not wired, root-history and nullifier storage remain fixed-slot local scaffolds, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
+Still open after this thirteenth local pass: active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery and production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces remain open, on-chain proof verification/verifying-key enforcement is not wired, root-history and nullifier storage remain fixed-slot local scaffolds, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
 
 ### Fourteenth Codex feedback loop - amount ranges, Send recipient fail-close, and Pay false-ready guard
 
@@ -2223,18 +2225,18 @@ Red-first checks observed during this slice: `npm run private-pool-v2:claim-circ
 
 Broader verification after this pass included `npm run private-core:check`, `npm run pay:verify`, `npm run send:verify`, `npm run private-pool-v2:contract-check`, `npm run private-pool-v2:solana-spend-transaction-builder-check`, `npm run private-pool-v2:sbf-abi-status-json`, and `git diff --check`. `npm run private-pool-v2:verify` advanced through the local runtime, proof-request, circuit, and proof lanes, then stopped at the intentional strict SBF ABI gate because the local `.so` predates `src/lib.rs` and this machine is missing `cargo-build-sbf` and `solana`.
 
-Still open after this fourteenth local pass: active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / proof-bound ciphertext hashes, on-chain proof verification/verifying-key enforcement is not wired, root-history and nullifier storage remain fixed-slot local scaffolds, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
+Still open after this fourteenth local pass: active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces, on-chain proof verification/verifying-key enforcement is not wired, root-history and nullifier storage remain fixed-slot local scaffolds, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
 
 ### Fifteenth Codex feedback loop - Send recipient privacy framing
 
 This local slice tightened the Send page's product-truth contract from "v2 AEAD exists" to "what is visible today":
 
-- `src/solana/sendTrustContract.ts` now tells users that fresh v2 Send memos still put ciphertext, signer, and timing on chain; current operator/status surfaces still see transition and proof metadata; and recipient-grade discovery plus proof-bound ciphertext hashes remain open.
+- `src/solana/sendTrustContract.ts` now tells users that fresh v2 Send memos still put ciphertext, signer, and timing on chain; current operator/status surfaces still see transition and proof metadata; and recipient-grade discovery plus production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces remain open.
 - `npm run lanes:trust-contract-check` now guards that exact Send framing so future UI copy cannot regress back into a vague recipient-privacy claim.
 
 Red-first check observed during this slice: `npm run lanes:trust-contract-check` initially failed on the missing Send visibility markers, then passed after the shared trust-contract copy was updated.
 
-Still open after this fifteenth local pass, before the later Solana PDA-nullifier loop: active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / proof-bound ciphertext hashes, on-chain proof verification/verifying-key enforcement is not wired, root-history and nullifier storage remain fixed-slot local scaffolds, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
+Still open after this fifteenth local pass, before the later Solana PDA-nullifier loop: active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces, on-chain proof verification/verifying-key enforcement is not wired, root-history and nullifier storage remain fixed-slot local scaffolds, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
 
 ### Sixteenth Codex feedback loop - Solana nullifier PDA ABI
 
@@ -2248,7 +2250,7 @@ This local slice moved the Solana spend-program DoS finding from "fixed/linear n
 
 Verification in this slice: `cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml`, `cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml`, `cargo check --manifest-path fuzz/vanta_private_pool_v2_spend/Cargo.toml`, `npm run private-pool-v2:solana-spend-transaction-builder-check`, `npm run private-pool-v2:solana-spend-transaction-check`, `npm run private-pool-v2:solana-relayer-submission-check`, `npm run private-pool-v2:contract-check`, `npm run private-pool-v2:sbf-abi-status`, `npm run private-pool-v2:crucible-check`, `npm run build`, and `git diff --check`. `npm run private-pool-v2:sbf-abi-check` failed as expected with `stale-sbf-binary`, `missing-cargo-build-sbf`, and `missing-solana-cli`.
 
-Still open after this sixteenth local pass: active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / proof-bound ciphertext hashes, on-chain proof verification/verifying-key enforcement is not wired, root-history is still a fixed-slot operator-fed scaffold rather than proof-backed program-owned tree state, output records remain fixed-capacity, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
+Still open after this sixteenth local pass: active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces, on-chain proof verification/verifying-key enforcement is not wired, root-history is still a fixed-slot operator-fed scaffold rather than proof-backed program-owned tree state, output records remain fixed-capacity, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
 
 ### Seventeenth Codex feedback loop - Pay evidence reference shape
 
@@ -2261,7 +2263,7 @@ This local slice closed the follow-up claim-drift gap where any non-empty string
 
 Red-first checks observed during this slice: `npm run pay:merchant-api-check` initially accepted `not-an-evidence-ref`, and `npm run pay:doc-truth-check` initially failed on the missing typed-evidence doc marker. Both passed after the runtime and docs were updated.
 
-Still open after this seventeenth local pass: customer-side wallet payment evidence is still not wired for production, the current typed reference is only a shape guard rather than chain-finality/session-binding verification, active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / proof-bound ciphertext hashes, on-chain proof verification/verifying-key enforcement is not wired, root-history is still a fixed-slot operator-fed scaffold rather than proof-backed program-owned tree state, output records remain fixed-capacity, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
+Still open after this seventeenth local pass: customer-side wallet payment evidence is still not wired for production, the current typed reference is only a shape guard rather than chain-finality/session-binding verification, active proving lanes remain `MERKLE_DEPTH = 3`, recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces, on-chain proof verification/verifying-key enforcement is not wired, root-history is still a fixed-slot operator-fed scaffold rather than proof-backed program-owned tree state, output records remain fixed-capacity, no audit has accepted the boundary, the local SBF binary still needs a rebuild, and no live deployment evidence was refreshed.
 
 ### Eighteenth Codex feedback loop - depth-20 active proving lanes
 
@@ -2276,7 +2278,7 @@ This local slice closed the active-lane toy-depth gap called out in finding 5 an
 
 Verification in this slice: `npm run zk:circuit-soundness-lint`, `npm run zk:review-guards-check`, `npm run private-pool-v2:public-input-hash-alignment-check`, `npm run private-pool-v2:shield-circuit-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:swap-to-shielded-circuit-check`, `npm run private-pool-v2:actual-private-spend-circuit-check`, `npm run private-pool-v2:claim-circuit-check`, `npm run private-pool-v2:shield-prove`, `npm run private-pool-v2:send-prove`, `npm run private-pool-v2:swap-to-shielded-prove`, `npm run private-pool-v2:actual-private-spend-prove`, `npm run private-pool-v2:claim-prove`, `npm run private-core:check`, `npm run private-core:send-check`, `npm run private-core:swap-check`, `npm run private-core:swap-boundary-check`, `npm run private-core:prove`, `npm run private-core:send-prove`, `npm run private-core:swap-prove`, `npm run private-core:contract-smoke`, `npm run private-core:http-smoke`, `npm run private-pool-v2:actual-private-transaction-rail-check`, `npm run pay:committed-checkout-acceptance-check`, `npm run docs:source-of-truth-check`, `npm run operator:runbook-check`, `npm run security:limitations-check`, `npm run build`, and `git diff --check`. `npm run private-pool-v2:sbf-abi-status-json` still reports the expected external blocker set: `stale-sbf-binary`, `missing-cargo-build-sbf`, and `missing-solana-cli`.
 
-Still open after this eighteenth local pass: depth 20 is locally guarded but not yet live/deployed/audited; recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / proof-bound ciphertext hashes; on-chain proof verification/verifying-key enforcement is not wired; root-history remains operator-fed fixed-slot scaffold rather than proof-backed program-owned tree state; output records remain fixed-capacity; customer-side wallet payment evidence is not production-wired; no audit has accepted the boundary; the local SBF binary still needs a rebuild; and no live deployment evidence was refreshed.
+Still open after this eighteenth local pass: depth 20 is locally guarded but not yet live/deployed/audited; recipient-grade Send discovery still needs real viewing-key exchange / view tags / dual recipient-change encryption / production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces; on-chain proof verification/verifying-key enforcement is not wired; root-history remains operator-fed fixed-slot scaffold rather than proof-backed program-owned tree state; output records remain fixed-capacity; customer-side wallet payment evidence is not production-wired; no audit has accepted the boundary; the local SBF binary still needs a rebuild; and no live deployment evidence was refreshed.
 
 ### Nineteenth Codex feedback loop - Send dual-AEAD discovery scaffold
 
@@ -2286,11 +2288,11 @@ This local slice advances the Send memo/discovery recommendation without upgradi
 - The recipient leg decrypts only with the recipient viewing key, the change leg decrypts only with the sender/change viewing key, and each leg exposes a domain-separated `sha256:` ciphertext body hash for later proof/public-input binding.
 - `parseSendRecipientDiscoveryMemo` and `parseSendChangeDiscoveryMemo` parse only the new discovery-leg payload shapes, so discovery memos do not masquerade as the legacy single Send payload.
 - `/app/send` remains fail-closed for external recipients on both the live memo path and the private-core preview/execution path until real recipient viewing-key exchange or view-tag/indexer discovery exists.
-- Send trust contracts, trust packets, security limitations, and the privacy-rail contract now distinguish the local dual-AEAD scaffold from production-grade recipient discovery or proof-bound ciphertext hashes.
+- Send trust contracts, trust packets, security limitations, and the privacy-rail contract now distinguish the local dual-AEAD scaffold from production-grade recipient discovery. This was upgraded in the twenty-first local pass so the proof request/circuit locally binds the body-hash limbs while deployed memo/indexer handoff remains open.
 
 Verification in this slice: `npm run actions:memo-encryption-check` passed after adding wrong-key, no-raw-leak, missing-key, and dual-leg parser guards.
 
-Still open after this nineteenth local pass: recipient viewing-key exchange or view-tag/indexer discovery is not wired; ciphertext body hashes are not bound into the Send proof/public-input transcript; historical v1 plaintext chain-history migration remains open; signer/timing and two-output structure remain public; operator/status surfaces still see transition/proof metadata; and no live deployment or audit evidence was refreshed.
+Still open after this nineteenth local pass, before the twenty-first local proof-binding patch: recipient viewing-key exchange or view-tag/indexer discovery was not wired; ciphertext body hashes were not yet bound into the Send proof/public-input transcript; historical v1 plaintext chain-history migration remained open; signer/timing and two-output structure remained public; operator/status surfaces still saw transition/proof metadata; and no live deployment or audit evidence was refreshed.
 
 ### Twentieth Codex feedback loop - actual-private Solana transaction byte binding
 
@@ -2306,6 +2308,20 @@ This local slice closes the next operator/relayer handoff gap from the feedback 
 Verification in this slice: `npm run private-pool-v2:solana-spend-transaction-builder-check`, `npm run private-pool-v2:solana-spend-transaction-check`, `npm run private-pool-v2:solana-relayer-submission-check`, `npm run private-pool-v2:service-network-check`, `npm run private-pool-v2:protocol-client-check`, `npm run mainnet:actual-private-settlement-plan-check`, `npm run mainnet:actual-private-settlement-relayer-caller-check`, `npm run private-pool-v2:contract-check`, `npm run build`, and `git diff --check` passed locally. Aggregate `npm run private-pool-v2:verify` advanced through local proof generation/status checks and then stopped at the expected fail-closed `private-pool-v2:sbf-abi-check` gate: stale local `.so`, missing `cargo-build-sbf`, and missing `solana` CLI.
 
 Still open after this twentieth local pass: this validates transaction bytes before submission, but the Solana program still does not verify a production proof on-chain, the current SBF binary is still stale, live account refs/deployment evidence were not refreshed, and no auditor has accepted the relayer or custody boundary.
+
+### Twenty-first Codex feedback loop - Send ciphertext body-hash proof binding
+
+This local slice closes the proof/public-input half of the nineteenth Send dual-AEAD scaffold without upgrading the production privacy claim:
+
+- `src/privacy/privatePoolV2ProofRequests.ts` now accepts raw `sha256:<64 lowercase hex>` recipient/change memo ciphertext body hashes, splits each digest into two 128-bit decimal Field limbs, emits four stable public-input labels after `change-output-root`, and uses zero limbs only for an absent no-change memo.
+- `src/privacy/privatePoolV2SendCircuitFixture.ts` and `zk/noir/vanta_private_pool_v2_send_entry/src/main.nr` now compute `poseidon4([recipient_hi, recipient_lo, change_hi, change_lo])` and include that memo binding in the outer Send `poseidon12` public-input hash.
+- The negative Send circuit fixture now mutates a memo hash limb while preserving the public hash from the unmutated proof request, so the failure proves the memo binding rather than recomputing around the mutation.
+- Local runtime, restart, operator, protocol-client, trust-packet, security-limitations, mainnet status, programmatic privacy, and privacy-rail checks now understand that the body-hash binding is local proof-request/circuit evidence, not external recipient discovery or production-private Send.
+- `send:verify` now includes `private-pool-v2:send-circuit-check` and `private-pool-v2:public-input-hash-alignment-check` alongside the Send proof-request check.
+
+Verification in this slice: `npm run private-pool-v2:send-proof-request-check`, `npm run private-pool-v2:public-input-hash-alignment-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:send-prove`, `npm run private-pool-v2:local-runtime-check`, `npm run private-pool-v2:restart-check`, and `npm run private-pool-v2:protocol-client-check` passed locally before the broader truth/docs gates.
+
+Still open after this twenty-first local pass: recipient viewing-key exchange or view-tag/indexer discovery is not wired; exact body-hash production handoff to a deployed memo/indexer surface is not live; historical v1 plaintext chain-history migration remains open; signer/timing and two-output structure remain public; operator/status surfaces still see transition/proof metadata; on-chain proof verification/verifying-key enforcement remains unwired; the SBF binary still needs rebuild; and no live deployment or audit evidence was refreshed.
 
 ---
 
@@ -2434,7 +2450,7 @@ The flow indicator is excellent — exactly the kind of visual chunking the rest
 - **The flow indicator is in the right place but only used here, on Swap, and on Pay.** Make it a shared `<LaneFlowIndicator>` component used by Shield, Send, Swap, and Unshield, with the current step animated (a subtle horizontal sweep light that moves left to right on the active step every 4 seconds).
 - **Recipient input needs help.** Today it's a plain text input that takes a Solana base58 address. Real privacy products show: address validation as you type, optional ENS / .sol name resolution (Bonfida), recent-recipients dropdown, paste-detection that flips to checksum-validated state, QR-code scan button on mobile. Stripe handles "recipient" inputs better than Vanta does today, and Vanta is moving more sensitive data.
 - **The "you send / they receive / your change" three-output pattern is the unique-selling-point of shielded send.** Today it's three labeled rows in a list. Make it a small visual: one input note splitting into two output notes via a Y-shape, with the amounts animated as you adjust. This is the only place in the entire product where the user sees the UTXO-style note model directly. Lean into it.
-- **Recipient privacy framing is currently a footnote.** The note "Send and execute through private-state flows instead of exposing every product step to users" is on the home page, not on Send. Send itself doesn't tell the user what's actually private about the current beta Send lane. After the v2 AEAD memo work, safer copy should say: "Visible on chain for fresh v2 memos: ciphertext, signer, and timing. Visible to current operator/status surfaces: transition/proof metadata. Production recipient privacy still needs view-tag/indexer discovery and proof-bound ciphertext hashes."
+- **Recipient privacy framing is currently a footnote.** The note "Send and execute through private-state flows instead of exposing every product step to users" is on the home page, not on Send. Send itself doesn't tell the user what's actually private about the current beta Send lane. After the v2 AEAD memo work, safer copy should say: "Visible on chain for fresh v2 memos: ciphertext, signer, and timing. Visible to current operator/status surfaces: transition/proof metadata. Production recipient privacy still needs view-tag/indexer discovery and production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces."
 
 ### `/app/swap` — Swap
 
@@ -2820,7 +2836,7 @@ In a longer form, the highest-leverage moves, ordered by leverage-per-week-of-wo
 
 1. **Lift the strategy/pay trust-contract pattern into UI gating across all six lanes** (closes the framing-vs-code gap that makes everything else risky).
 2. **Replace the operator-keypair-in-env vault with a program-owned PDA** (eliminates the single-env-leak custody risk that dwarfs every other operational concern).
-3. **Keep fresh action memos on v2 AEAD and finish recipient discovery/proof binding** (fresh helpers no longer emit plaintext v1 action memos; view-tag/indexer discovery, recipient key exchange, ciphertext-hash proof binding, and legacy v1 migration remain).
+3. **Keep fresh action memos on v2 AEAD and finish recipient discovery/proof binding** (fresh helpers no longer emit plaintext v1 action memos; local Send proof requests/circuits now bind recipient/change ciphertext body-hash limbs, while view-tag/indexer discovery, recipient key exchange, production memo/indexer handoff, and legacy v1 migration remain).
 4. **Lock the Poseidon canonical note schema and rebuild the four entry circuits at depth 20 with real ownership constraints** (turns the cryptographic story from "shaped right" to "actually right").
 5. **Wire `@aztec/bb.js` as the real prover and Light's Groth16 verifier on-chain** (turns the cryptographic claims into cryptographic facts).
 6. **Adopt Privacy Pools association sets and publish the compliance posture publicly** (unlocks merchant adoption that Tornado-shaped privacy can't reach).

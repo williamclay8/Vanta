@@ -337,10 +337,10 @@ type PreparedSendDualAeadMemoLeg = {
 
 export type PreparedSendDualAeadMemo = PreparedSendMemoIds & {
   changeMemo?: PreparedSendDualAeadMemoLeg;
-  changeMemoCiphertextHash?: string;
+  changeMemoCiphertextBodyHash?: string;
   kind: "vanta-send-dual-aead-scaffold-v0";
   recipientMemo: PreparedSendDualAeadMemoLeg;
-  recipientMemoCiphertextHash: string;
+  recipientMemoCiphertextBodyHash: string;
 };
 
 type UnshieldMemoPayload = {
@@ -1263,10 +1263,10 @@ export function createPreparedSendDualAeadMemo(
   return {
     ...ids,
     changeMemo,
-    changeMemoCiphertextHash: changeMemo?.ciphertextBodyHash,
+    changeMemoCiphertextBodyHash: changeMemo?.ciphertextBodyHash,
     kind: "vanta-send-dual-aead-scaffold-v0",
     recipientMemo,
-    recipientMemoCiphertextHash: recipientMemo.ciphertextBodyHash,
+    recipientMemoCiphertextBodyHash: recipientMemo.ciphertextBodyHash,
   };
 }
 

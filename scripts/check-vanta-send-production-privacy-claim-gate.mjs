@@ -23,19 +23,23 @@ function runJson(command, args) {
 const packageJson = JSON.parse(readFileSync(resolve(repoRoot, "package.json"), "utf8"));
 const scripts = packageJson.scripts ?? {};
 const requiredCommands = [
+  "private-core:send-check",
   "private-core:send-operator-no-witness-check",
   "private-core:send-proof-artifact-consistency-check",
   "private-core:send-operator-redaction-check",
   "private-core:send-nullifier-replay-no-witness-check",
+  "private-pool-v2:send-proof-request-check",
+  "private-pool-v2:send-circuit-check",
+  "private-pool-v2:public-input-hash-alignment-check",
   "send:production-privacy-claim-gate",
   "mainnet:send-live-evidence-contract-check",
+  "programmatic-privacy:contract-check",
 ];
 
 for (const command of requiredCommands) {
   assert(typeof scripts[command] === "string", `Missing Send production privacy guard ${command}.`);
   assert(
-    scripts["send:verify"]?.includes(`npm run ${command}`) ||
-      command === "mainnet:send-live-evidence-contract-check",
+    scripts["send:verify"]?.includes(`npm run ${command}`),
     `send:verify does not include ${command}.`,
   );
 }

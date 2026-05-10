@@ -96,6 +96,10 @@ fn bind_send_public_inputs(
     economics_commitment: Field,
     owner_commitment: Field,
     send_context_tag: Field,
+    recipient_memo_ciphertext_body_hash_hi: Field,
+    recipient_memo_ciphertext_body_hash_lo: Field,
+    change_memo_ciphertext_body_hash_hi: Field,
+    change_memo_ciphertext_body_hash_lo: Field,
     recipient_leaf_index: Field,
     recipient_output_root: Field,
     change_leaf_index: Field,
@@ -107,8 +111,14 @@ fn bind_send_public_inputs(
         change_leaf_index,
         change_output_root,
     ]);
+    let memo_discovery = bn254::hash_4([
+        recipient_memo_ciphertext_body_hash_hi,
+        recipient_memo_ciphertext_body_hash_lo,
+        change_memo_ciphertext_body_hash_hi,
+        change_memo_ciphertext_body_hash_lo,
+    ]);
 
-    bn254::hash_11([
+    bn254::hash_12([
         request_version,
         input_root,
         input_commitment,
@@ -120,6 +130,7 @@ fn bind_send_public_inputs(
         owner_commitment,
         send_context_tag,
         output_transition,
+        memo_discovery,
     ])
 }
 
@@ -138,6 +149,10 @@ fn main(
     economics_commitment: Field,
     owner_commitment: Field,
     send_context_tag: Field,
+    recipient_memo_ciphertext_body_hash_hi: Field,
+    recipient_memo_ciphertext_body_hash_lo: Field,
+    change_memo_ciphertext_body_hash_hi: Field,
+    change_memo_ciphertext_body_hash_lo: Field,
     recipient_leaf_index: Field,
     recipient_output_root: Field,
     recipient_append_path: [Field; MERKLE_DEPTH],
@@ -226,6 +241,10 @@ fn main(
         economics_commitment,
         owner_commitment,
         send_context_tag,
+        recipient_memo_ciphertext_body_hash_hi,
+        recipient_memo_ciphertext_body_hash_lo,
+        change_memo_ciphertext_body_hash_hi,
+        change_memo_ciphertext_body_hash_lo,
         recipient_leaf_index,
         recipient_output_root,
         change_leaf_index,

@@ -109,6 +109,20 @@ function localSwapProofPublicInputCommitment({
     assetId: privatePoolV2HiddenEconomicsAssetId,
     circuitPublicInputs: [`swap-public-input-hash:${swapPublicInputHash}`],
     intent: "swap-to-shielded",
+    publicInputs: [
+      "vanta-private-pool-v2-swap-to-shielded-proof-request-0.1:version",
+      `input-root:${inputRoot}`,
+      `input-commitment:${inputCommitment}`,
+      `nullifier-or-replay-commitment:${nullifierOrReplayCommitment}`,
+      `settlement-commitment:${settlementCommitment}`,
+      `route-commitment:${routeCommitment}`,
+      `economics-commitment:${economicsCommitment}`,
+      `output-commitment:${outputCommitment}`,
+      `output-leaf-index:${outputLeafIndex}`,
+      `output-root:${outputRoot}`,
+      `owner-commitment:${ownerCommitment}`,
+      `swap-context-tag:${swapContextTag}`,
+    ],
   });
 
   return hashProtocolSettlementParts(

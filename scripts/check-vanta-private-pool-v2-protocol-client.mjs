@@ -37,6 +37,7 @@ function expectedLocalPublicInputCommitment(request) {
     assetId: request.assetId,
     circuitPublicInputs: [...(request.circuitPublicInputs ?? request.publicInputs)],
     intent: request.intent,
+    publicInputs: [...request.publicInputs],
   });
 
   return hashHex(localProverScheme, "public-inputs", serializedRequest);
@@ -562,6 +563,147 @@ try {
     "Committed Send proof receipt replay key does not match",
     "Expected committed Send response validation to reject a spliced replay key.",
   );
+  await assertRejects(
+    () =>
+      Promise.resolve(
+        validateVantaPrivatePoolV2ProtocolSettlementResponse({
+          request: {
+            action: "send",
+            acceptedRoot: committedSendInputRoot,
+            assetCohort: "stablecoin-usdc-v1",
+            changeOutputCommitment: "0xcommittedsend_change_output",
+            economicsCommitment: "0xcommittedsend_economics",
+            economicsMode: "committed-economics",
+            nullifierOrReplayCommitment: "0xcommittedsend_replay",
+            outputCommitment: "0xcommittedsend_recipient_output",
+            ownerCommitment: "0xcommittedsend_owner",
+            poolId: committedSendInputTreeId,
+            privateSpendContextHash: "0xcommittedsend_context",
+            privateSpendPublicInputHash: "0xcommittedsend_public_input_hash",
+            routeCommitment: "0xcommittedsend_route",
+            settlementCommitment: "0xcommittedsend_settlement",
+            settlementId: "protocol-client-committed-send",
+          },
+          response: {
+            ...committedSendSettlement,
+            proofReceipt: {
+              ...committedSendSettlement.proofReceipt,
+              publicInputCommitment: "0xwrong_committedsend_public_input_commitment",
+            },
+            protocolSettlementReceipt: {
+              ...committedSendSettlement.protocolSettlementReceipt,
+              proofReceiptPublicInputCommitment:
+                "0xwrong_committedsend_public_input_commitment",
+            },
+          },
+        }),
+      ),
+    "Committed Send proof receipt public input commitment does not match",
+    "Expected committed Send response validation to reject a spliced public input commitment.",
+  );
+
+  const statefulCommittedSendRequest = {
+    action: "send",
+    assetIdCommitment: "0xstatefulsend_asset",
+    changeLeafIndex: "2",
+    changeMemoCiphertextBodyHash: `sha256:${"22".repeat(32)}`,
+    changeOutputCommitment: "0xstatefulsend_change_output",
+    changeOutputRoot: "0xstatefulsend_change_root",
+    economicsCommitment: "0xstatefulsend_economics",
+    economicsMode: "committed-economics",
+    inputCommitment: "0xstatefulsend_input",
+    inputRoot: "0xstatefulsend_input_root",
+    nullifierOrReplayCommitment: "0xstatefulsend_replay",
+    outputCommitment: "0xstatefulsend_recipient_output",
+    outputLeafIndex: "1",
+    outputRoot: "0xstatefulsend_recipient_root",
+    ownerCommitment: "0xstatefulsend_owner",
+    recipientMemoCiphertextBodyHash: `sha256:${"11".repeat(32)}`,
+    routeCommitment: "0xstatefulsend_route",
+    sendContextTag: "0xstatefulsend_context",
+    sendPublicInputHash: "0xstatefulsend_public_input_hash",
+    settlementCommitment: "0xstatefulsend_settlement",
+    settlementId: "protocol-client-stateful-send",
+  };
+  const statefulCommittedSendProofRequest = createVantaPrivatePoolV2SendProofRequest({
+    assetIdCommitment: statefulCommittedSendRequest.assetIdCommitment,
+    changeLeafIndex: statefulCommittedSendRequest.changeLeafIndex,
+    changeMemoCiphertextBodyHash:
+      statefulCommittedSendRequest.changeMemoCiphertextBodyHash,
+    changeOutputCommitment: statefulCommittedSendRequest.changeOutputCommitment,
+    changeOutputRoot: statefulCommittedSendRequest.changeOutputRoot,
+    economicsCommitment: statefulCommittedSendRequest.economicsCommitment,
+    inputCommitment: statefulCommittedSendRequest.inputCommitment,
+    inputRoot: statefulCommittedSendRequest.inputRoot,
+    nullifier: statefulCommittedSendRequest.nullifierOrReplayCommitment,
+    ownerCommitment: statefulCommittedSendRequest.ownerCommitment,
+    recipientLeafIndex: statefulCommittedSendRequest.outputLeafIndex,
+    recipientMemoCiphertextBodyHash:
+      statefulCommittedSendRequest.recipientMemoCiphertextBodyHash,
+    recipientOutputCommitment: statefulCommittedSendRequest.outputCommitment,
+    recipientOutputRoot: statefulCommittedSendRequest.outputRoot,
+    sendContextTag: statefulCommittedSendRequest.sendContextTag,
+    sendPublicInputHash: statefulCommittedSendRequest.sendPublicInputHash,
+  });
+  const statefulCommittedSendPublicInputCommitment =
+    expectedLocalPublicInputCommitment(statefulCommittedSendProofRequest);
+  const statefulCommittedSendResponse = {
+    kind: "protocol_settlement",
+    proofReceipt: {
+      assetId: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
+      intent: "private-send",
+      proofSystem: "mock",
+      publicInputCommitment: statefulCommittedSendPublicInputCommitment,
+      receiptId: "0xstatefulsendreceipt",
+      recordedAtSlot: "1",
+      replayKey: "private-send:0xstatefulsend_replay",
+    },
+    protocolSettlementReceipt: {
+      action: "send",
+      economicsCommitment: statefulCommittedSendRequest.economicsCommitment,
+      economicsMode: "committed-economics",
+      id: "proto_stateful_send",
+      object: "protocol_settlement_receipt",
+      proofReceiptId: "ppv2_statefulsendreceipt",
+      proofReceiptPublicInputCommitment: statefulCommittedSendPublicInputCommitment,
+      settlementCommitment: statefulCommittedSendRequest.settlementCommitment,
+      settlementId: statefulCommittedSendRequest.settlementId,
+      status: "confirmed",
+    },
+  };
+  validateVantaPrivatePoolV2ProtocolSettlementResponse({
+    request: statefulCommittedSendRequest,
+    response: statefulCommittedSendResponse,
+  });
+  await assertRejects(
+    () =>
+      Promise.resolve(
+        validateVantaPrivatePoolV2ProtocolSettlementResponse({
+          request: {
+            ...statefulCommittedSendRequest,
+            recipientMemoCiphertextBodyHash: `sha256:${"33".repeat(32)}`,
+          },
+          response: statefulCommittedSendResponse,
+        }),
+      ),
+    "Committed Send proof receipt public input commitment does not match",
+    "Expected committed Send validation to reject a spliced recipient memo body hash with the same send public-input hash.",
+  );
+  await assertRejects(
+    () =>
+      Promise.resolve(
+        validateVantaPrivatePoolV2ProtocolSettlementResponse({
+          request: {
+            ...statefulCommittedSendRequest,
+            changeMemoCiphertextBodyHash: undefined,
+          },
+          response: statefulCommittedSendResponse,
+        }),
+      ),
+    "Committed Send protocol settlement requires actual-private send fields or full stateful send terms",
+    "Expected committed Send validation to reject missing change memo body hash for nonzero change outputs.",
+  );
+
   const committedSendReplayCheck = await requestJson("/private-pool-v2/nullifier-replay-checks", {
     body: JSON.stringify({
       intent: "private-send",

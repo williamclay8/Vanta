@@ -79,6 +79,7 @@ export type VantaPrivatePoolV2HiddenEconomicsProofRequestArgs = {
 export type VantaPrivatePoolV2SendProofRequestArgs = {
   assetIdCommitment: string;
   changeLeafIndex: string;
+  changeMemoCiphertextBodyHash?: string;
   changeOutputCommitment?: string;
   changeOutputRoot: string;
   economicsCommitment: string;
@@ -87,10 +88,16 @@ export type VantaPrivatePoolV2SendProofRequestArgs = {
   nullifier: string;
   ownerCommitment: string;
   recipientLeafIndex: string;
+  recipientMemoCiphertextBodyHash: string;
   recipientOutputCommitment: string;
   recipientOutputRoot: string;
   sendContextTag: string;
   sendPublicInputHash?: string;
+};
+
+export type VantaPrivatePoolV2MemoCiphertextBodyHashLimbs = {
+  hi: string;
+  lo: string;
 };
 
 export type VantaPrivatePoolV2UnshieldProofRequestArgs = {
@@ -140,6 +147,50 @@ function hashParts(...parts: readonly string[]) {
   return `0x${bytesToHex(
     sha256(new TextEncoder().encode(parts.join("\u001f"))),
   )}`;
+}
+
+const VANTA_PRIVATE_POOL_V2_MEMO_CIPHERTEXT_BODY_HASH_PATTERN =
+  /^sha256:([0-9a-f]{64})$/;
+
+export const VANTA_PRIVATE_POOL_V2_ZERO_MEMO_CIPHERTEXT_BODY_HASH_LIMBS = {
+  hi: "0",
+  lo: "0",
+} as const satisfies VantaPrivatePoolV2MemoCiphertextBodyHashLimbs;
+
+const VANTA_PRIVATE_POOL_V2_ZERO_MEMO_CIPHERTEXT_BODY_HASH_DIGEST =
+  "0".repeat(64);
+
+export function splitVantaPrivatePoolV2MemoCiphertextBodyHash(
+  value: string | null | undefined,
+  fieldName: string,
+): VantaPrivatePoolV2MemoCiphertextBodyHashLimbs {
+  if (value === undefined || value === null) {
+    return VANTA_PRIVATE_POOL_V2_ZERO_MEMO_CIPHERTEXT_BODY_HASH_LIMBS;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new Error(`Private-send proof request requires a non-empty ${fieldName}.`);
+  }
+
+  const match = VANTA_PRIVATE_POOL_V2_MEMO_CIPHERTEXT_BODY_HASH_PATTERN.exec(trimmed);
+  if (!match) {
+    throw new Error(
+      `Private-send proof request requires ${fieldName} to match sha256:<64 lowercase hex>.`,
+    );
+  }
+
+  const digestHex = match[1] ?? "";
+  if (digestHex === VANTA_PRIVATE_POOL_V2_ZERO_MEMO_CIPHERTEXT_BODY_HASH_DIGEST) {
+    throw new Error(
+      "Private-send proof request reserves zero memo ciphertext body hash limbs for an absent no-change memo.",
+    );
+  }
+
+  return {
+    hi: BigInt(`0x${digestHex.slice(0, 32)}`).toString(10),
+    lo: BigInt(`0x${digestHex.slice(32)}`).toString(10),
+  };
 }
 
 export function computeVantaPrivatePoolV2UnshieldPublicInputHash({
@@ -463,6 +514,7 @@ export function createVantaPrivatePoolV2HiddenEconomicsProofRequest({
 export function createVantaPrivatePoolV2SendProofRequest({
   assetIdCommitment,
   changeLeafIndex,
+  changeMemoCiphertextBodyHash,
   changeOutputCommitment = "0",
   changeOutputRoot,
   economicsCommitment,
@@ -471,11 +523,38 @@ export function createVantaPrivatePoolV2SendProofRequest({
   nullifier,
   ownerCommitment,
   recipientLeafIndex,
+  recipientMemoCiphertextBodyHash,
   recipientOutputCommitment,
   recipientOutputRoot,
   sendContextTag,
   sendPublicInputHash,
 }: VantaPrivatePoolV2SendProofRequestArgs): VantaPrivatePoolV2ProofRequest {
+  if (recipientMemoCiphertextBodyHash === undefined || recipientMemoCiphertextBodyHash === null) {
+    throw new Error("Private-send proof request requires a recipient memo ciphertext body hash.");
+  }
+
+  const trimmedChangeOutputCommitment = changeOutputCommitment.trim();
+  if (
+    trimmedChangeOutputCommitment &&
+    trimmedChangeOutputCommitment !== "0" &&
+    (changeMemoCiphertextBodyHash === undefined || changeMemoCiphertextBodyHash === null)
+  ) {
+    throw new Error(
+      "Private-send proof request requires a change memo ciphertext body hash for nonzero change outputs.",
+    );
+  }
+
+  const recipientMemoCiphertextBodyHashLimbs =
+    splitVantaPrivatePoolV2MemoCiphertextBodyHash(
+      recipientMemoCiphertextBodyHash,
+      "recipient memo ciphertext body hash",
+    );
+  const changeMemoCiphertextBodyHashLimbs =
+    splitVantaPrivatePoolV2MemoCiphertextBodyHash(
+      changeMemoCiphertextBodyHash,
+      "change memo ciphertext body hash",
+    );
+
   if (!inputRoot.trim()) {
     throw new Error("Private-send proof request requires an input root.");
   }
@@ -546,6 +625,10 @@ export function createVantaPrivatePoolV2SendProofRequest({
       `change-output-commitment:${changeOutputCommitment}`,
       `change-leaf-index:${changeLeafIndex}`,
       `change-output-root:${changeOutputRoot}`,
+      `recipient-memo-ciphertext-body-hash-hi:${recipientMemoCiphertextBodyHashLimbs.hi}`,
+      `recipient-memo-ciphertext-body-hash-lo:${recipientMemoCiphertextBodyHashLimbs.lo}`,
+      `change-memo-ciphertext-body-hash-hi:${changeMemoCiphertextBodyHashLimbs.hi}`,
+      `change-memo-ciphertext-body-hash-lo:${changeMemoCiphertextBodyHashLimbs.lo}`,
       `asset-id-commitment:${assetIdCommitment}`,
       `economics-commitment:${economicsCommitment}`,
       `owner-commitment:${ownerCommitment}`,

@@ -109,6 +109,21 @@ function requirePublicInput(request: VantaPrivatePoolV2ProofRequest, prefix: str
   return value;
 }
 
+const U128_MAX = (1n << 128n) - 1n;
+
+function requirePublicInputU128(request: VantaPrivatePoolV2ProofRequest, prefix: string) {
+  const value = requirePublicInput(request, prefix);
+  if (!/^(0|[1-9][0-9]*)$/u.test(value)) {
+    throw new Error(`Proof receipt requires public input ${prefix} to be a decimal u128 limb.`);
+  }
+
+  if (BigInt(value) > U128_MAX) {
+    throw new Error(`Proof receipt requires public input ${prefix} to fit in u128.`);
+  }
+
+  return value;
+}
+
 function replayKeyForRequest(request: VantaPrivatePoolV2ProofRequest) {
   if (request.intent === "shield") {
     const outputCommitment = readPublicInput(request, "output-commitment:");
@@ -191,9 +206,47 @@ function assertShadowCommitmentsMatchRequest(request: VantaPrivatePoolV2ProofReq
 }
 
 function isStatefulPrivateSendRequest(request: VantaPrivatePoolV2ProofRequest) {
-  return request.publicInputs.some((input) =>
+  const hasStatefulVersion = request.publicInputs.some((input) =>
     input.startsWith("vanta-private-pool-v2-send-proof-request-0.1:version"),
   );
+
+  if (!hasStatefulVersion) {
+    return false;
+  }
+
+  const changeOutputCommitment = readPublicInput(request, "change-output-commitment:");
+  const recipientMemoHashHi = requirePublicInputU128(
+    request,
+    "recipient-memo-ciphertext-body-hash-hi:",
+  );
+  const recipientMemoHashLo = requirePublicInputU128(
+    request,
+    "recipient-memo-ciphertext-body-hash-lo:",
+  );
+  const changeMemoHashHi = requirePublicInputU128(
+    request,
+    "change-memo-ciphertext-body-hash-hi:",
+  );
+  const changeMemoHashLo = requirePublicInputU128(
+    request,
+    "change-memo-ciphertext-body-hash-lo:",
+  );
+  if (recipientMemoHashHi === "0" && recipientMemoHashLo === "0") {
+    throw new Error("Private-send proof receipt requires a nonzero recipient memo ciphertext body hash.");
+  }
+
+  if (
+    changeOutputCommitment &&
+    changeOutputCommitment !== "0" &&
+    changeMemoHashHi === "0" &&
+    changeMemoHashLo === "0"
+  ) {
+    throw new Error(
+      "Private-send proof receipt requires a change memo ciphertext body hash for nonzero change outputs.",
+    );
+  }
+
+  return true;
 }
 
 function isActualPrivateSpendRequest(request: VantaPrivatePoolV2ProofRequest) {

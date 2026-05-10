@@ -200,7 +200,9 @@ function buildPrivateCoreUnshieldCommittedSettlement(args: {
 }
 
 function buildPrivateCoreSendCommittedSettlement(args: {
+  changeMemoCiphertextBodyHash?: string;
   proofBoundary: VantaPrivateCoreSendProofBoundaryV0;
+  recipientMemoCiphertextBodyHash: string;
   result: SendResultV0;
   ownerPublicKey: string;
 }) {
@@ -254,6 +256,7 @@ function buildPrivateCoreSendCommittedSettlement(args: {
 
   return {
     assetIdCommitment,
+    changeMemoCiphertextBodyHash: args.changeMemoCiphertextBodyHash,
     changeLeafIndex,
     changeOutputCommitment: changeCommitment,
     changeOutputRoot,
@@ -269,6 +272,7 @@ function buildPrivateCoreSendCommittedSettlement(args: {
     outputLeafIndex: result.recipient.insertionIndex.toString(10),
     outputRoot: result.recipient.root,
     ownerCommitment,
+    recipientMemoCiphertextBodyHash: args.recipientMemoCiphertextBodyHash,
     routeCommitment,
     sendContextTag: sourceInputs.sendContextTag ?? hashPrivatePoolV2CommittedTerm(
       "vanta.private-core.send.context-tag.v0",
@@ -567,7 +571,9 @@ type PrivacyFlowContextValue = {
   runPrivateCoreSendTransition: (
     transition: SendTransitionV0,
     options?: {
+      changeMemoCiphertextBodyHash?: string;
       releaseCandidateId?: string | null;
+      recipientMemoCiphertextBodyHash: string;
     },
   ) => {
     nextHoldState: VantaPrivateCoreHoldState | null;
@@ -2187,9 +2193,20 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     (
       transition: SendTransitionV0,
       options?: {
+        changeMemoCiphertextBodyHash?: string;
         releaseCandidateId?: string | null;
+        recipientMemoCiphertextBodyHash: string;
       },
     ) => {
+      if (!options?.recipientMemoCiphertextBodyHash) {
+        throw new Error("Private Core Send settlement requires a recipient memo ciphertext body hash.");
+      }
+      if (transition.change !== null && !options.changeMemoCiphertextBodyHash) {
+        throw new Error(
+          "Private Core Send settlement requires a change memo ciphertext body hash when change exists.",
+        );
+      }
+
       const result = privateCoreLedger.send(transition);
       const nextShieldState =
         result.change !== null
@@ -2245,7 +2262,9 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         senderSecretKey: privateCoreOwner.secretKey,
       });
       const committedSendSettlement = buildPrivateCoreSendCommittedSettlement({
+        changeMemoCiphertextBodyHash: options.changeMemoCiphertextBodyHash,
         proofBoundary,
+        recipientMemoCiphertextBodyHash: options.recipientMemoCiphertextBodyHash,
         result,
         ownerPublicKey: privateCoreOwner.publicKey,
       });
@@ -2253,6 +2272,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         action: "send",
         assetIdCommitment: committedSendSettlement.assetIdCommitment,
         changeLeafIndex: committedSendSettlement.changeLeafIndex,
+        changeMemoCiphertextBodyHash: committedSendSettlement.changeMemoCiphertextBodyHash,
         changeOutputCommitment: committedSendSettlement.changeOutputCommitment,
         changeOutputRoot: committedSendSettlement.changeOutputRoot,
         economicsCommitment: committedSendSettlement.economicsCommitment,
@@ -2264,6 +2284,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         outputLeafIndex: committedSendSettlement.outputLeafIndex,
         outputRoot: committedSendSettlement.outputRoot,
         ownerCommitment: committedSendSettlement.ownerCommitment,
+        recipientMemoCiphertextBodyHash: committedSendSettlement.recipientMemoCiphertextBodyHash,
         routeCommitment: committedSendSettlement.routeCommitment,
         sendContextTag: committedSendSettlement.sendContextTag,
         sendPublicInputHash: committedSendSettlement.sendPublicInputHash,

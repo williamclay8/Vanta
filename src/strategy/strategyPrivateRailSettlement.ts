@@ -29,6 +29,10 @@ function hashCommitment(...parts: readonly string[]) {
   return `0x${bytesToHex(sha256(new TextEncoder().encode(parts.join("\u001f"))))}`;
 }
 
+function memoCiphertextBodyHash(...parts: readonly string[]) {
+  return `sha256:${bytesToHex(sha256(new TextEncoder().encode(parts.join("\u001f"))))}`;
+}
+
 function leafIndexFor(index: number) {
   return String(index);
 }
@@ -73,6 +77,25 @@ export function createStrategyPrivateRailCommittedSettlementRequests({
       "send-economics",
       packet.send.proofPublicInputs.send_economic_terms_hash,
     );
+    const sendRecipientMemoCiphertextBodyHash = memoCiphertextBodyHash(
+      STRATEGY_PRIVATE_RAIL_COMMITTED_SETTLEMENT_VERSION,
+      "send-recipient-memo-body-hash",
+      sendSettlementId,
+      packet.send.inputNullifier,
+      packet.send.recipientCommitment,
+      packet.send.resultingRoot,
+    );
+    const sendChangeMemoCiphertextBodyHash =
+      packet.send.changeCommitment === null
+        ? undefined
+        : memoCiphertextBodyHash(
+            STRATEGY_PRIVATE_RAIL_COMMITTED_SETTLEMENT_VERSION,
+            "send-change-memo-body-hash",
+            sendSettlementId,
+            packet.send.inputNullifier,
+            packet.send.changeCommitment,
+            packet.send.resultingRoot,
+          );
     const sendSettlementCommitment = hashCommitment(
       STRATEGY_PRIVATE_RAIL_COMMITTED_SETTLEMENT_VERSION,
       "send-settlement",
@@ -82,6 +105,8 @@ export function createStrategyPrivateRailCommittedSettlementRequests({
       packet.send.recipientCommitment,
       packet.send.changeCommitment ?? "0",
       packet.send.resultingRoot,
+      sendRecipientMemoCiphertextBodyHash,
+      sendChangeMemoCiphertextBodyHash ?? "0",
     );
     const recipientLeafIndex = leafIndexFor(packetIndex * 2 + 1);
     const changeLeafIndex = leafIndexFor(packetIndex * 2 + 2);
@@ -96,6 +121,9 @@ export function createStrategyPrivateRailCommittedSettlementRequests({
         packet.send.proofPublicInputs.send_economic_terms_hash,
       ),
       changeLeafIndex,
+      ...(sendChangeMemoCiphertextBodyHash
+        ? { changeMemoCiphertextBodyHash: sendChangeMemoCiphertextBodyHash }
+        : {}),
       changeOutputCommitment: packet.send.changeCommitment ?? "0",
       changeOutputRoot: packet.send.resultingRoot,
       economicsCommitment: sendEconomicsCommitment,
@@ -112,6 +140,7 @@ export function createStrategyPrivateRailCommittedSettlementRequests({
         packet.send.inputNullifier,
       ),
       quoteHandleCommitment: sendQuoteHandleCommitment,
+      recipientMemoCiphertextBodyHash: sendRecipientMemoCiphertextBodyHash,
       routeCommitment: sendRouteHandleCommitment,
       routeHandleCommitment: sendRouteHandleCommitment,
       sendContextTag: hashCommitment(

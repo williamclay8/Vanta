@@ -9,6 +9,9 @@ const tempTsDir = join(tempRoot, "ts");
 const tempJsDir = join(tempRoot, "js");
 
 const sourceFiles = [
+  "privacy/protocolAdapter.ts",
+  "privacy/privatePoolV2Types.ts",
+  "privacy/privatePoolV2ProofRequests.ts",
   "solana/vantaShieldViewingKey.ts",
   "solana/vantaShieldState.ts",
 ];
@@ -119,6 +122,14 @@ function assertThrowsActionMemoWithoutViewingKey(fn, label) {
   assert(threw, `${label} must fail closed instead of creating fresh v1 plaintext without a viewing key.`);
 }
 
+function memoBodyHashLimbs(bodyHash) {
+  const digestHex = bodyHash.slice("sha256:".length);
+  return {
+    hi: BigInt(`0x${digestHex.slice(0, 32)}`).toString(10),
+    lo: BigInt(`0x${digestHex.slice(32)}`).toString(10),
+  };
+}
+
 function legacyMemo(prefix, payload) {
   return `${prefix}${JSON.stringify(payload)}`;
 }
@@ -213,6 +224,9 @@ try {
   const viewingKeyModule = await import(
     pathToFileURL(join(tempJsDir, "solana/vantaShieldViewingKey.js")).href
   );
+  const proofRequestModule = await import(
+    pathToFileURL(join(tempJsDir, "privacy/privatePoolV2ProofRequests.js")).href
+  );
 
   const {
     VANTA_SEND_MEMO_PREFIX_V2,
@@ -235,6 +249,7 @@ try {
     parseUnshieldMemo,
   } = shieldStateModule;
   const { createVantaShieldViewingKeypair } = viewingKeyModule;
+  const { createVantaPrivatePoolV2SendProofRequest } = proofRequestModule;
 
   const owner = "OwnerWallet111111111111111111111111111111";
   const recipient = "RecipientWallet11111111111111111111111111";
@@ -302,11 +317,53 @@ try {
     dualSend.changeNoteId === encryptedSend.changeNoteId,
     "Dual Send memo must preserve the change note id.",
   );
-  assert(dualSend.recipientMemoCiphertextHash.startsWith("sha256:"), "Dual Send recipient memo must expose a ciphertext body hash.");
-  assert(dualSend.changeMemoCiphertextHash?.startsWith("sha256:"), "Dual Send change memo must expose a ciphertext body hash.");
   assert(
-    dualSend.recipientMemoCiphertextHash !== dualSend.changeMemoCiphertextHash,
+    /^sha256:[0-9a-f]{64}$/.test(dualSend.recipientMemoCiphertextBodyHash),
+    "Dual Send recipient memo must expose a sha256 ciphertext body hash.",
+  );
+  assert(
+    dualSend.changeMemoCiphertextBodyHash !== undefined &&
+      /^sha256:[0-9a-f]{64}$/.test(dualSend.changeMemoCiphertextBodyHash),
+    "Dual Send change memo must expose a sha256 ciphertext body hash.",
+  );
+  assert(
+    dualSend.recipientMemoCiphertextBodyHash !== dualSend.changeMemoCiphertextBodyHash,
     "Dual Send recipient and change ciphertext hashes must be distinct.",
+  );
+  const recipientMemoBodyHashLimbs = memoBodyHashLimbs(dualSend.recipientMemoCiphertextBodyHash);
+  const changeMemoBodyHashLimbs = memoBodyHashLimbs(dualSend.changeMemoCiphertextBodyHash);
+  const dualSendProofRequest = createVantaPrivatePoolV2SendProofRequest({
+    assetIdCommitment: "field:asset",
+    changeLeafIndex: "2",
+    changeMemoCiphertextBodyHash: dualSend.changeMemoCiphertextBodyHash,
+    changeOutputCommitment: "field:change-output",
+    changeOutputRoot: "field:change-root",
+    economicsCommitment: "field:economics",
+    inputCommitment: "field:input",
+    inputRoot: "field:root",
+    nullifier: "field:nullifier",
+    ownerCommitment: "field:owner",
+    recipientLeafIndex: "1",
+    recipientMemoCiphertextBodyHash: dualSend.recipientMemoCiphertextBodyHash,
+    recipientOutputCommitment: "field:recipient-output",
+    recipientOutputRoot: "field:recipient-root",
+    sendContextTag: "field:context",
+    sendPublicInputHash: "field:send-public-input-hash",
+  });
+  assert(
+    dualSendProofRequest.publicInputs.includes(
+      `recipient-memo-ciphertext-body-hash-hi:${recipientMemoBodyHashLimbs.hi}`,
+    ) &&
+      dualSendProofRequest.publicInputs.includes(
+        `recipient-memo-ciphertext-body-hash-lo:${recipientMemoBodyHashLimbs.lo}`,
+      ) &&
+      dualSendProofRequest.publicInputs.includes(
+        `change-memo-ciphertext-body-hash-hi:${changeMemoBodyHashLimbs.hi}`,
+      ) &&
+      dualSendProofRequest.publicInputs.includes(
+        `change-memo-ciphertext-body-hash-lo:${changeMemoBodyHashLimbs.lo}`,
+      ),
+    "Dual Send memo body hashes must feed the exact Private Pool v2 Send proof-request public inputs.",
   );
   const recipientMemoText = decodeMemoText(dualSend.recipientMemo.instruction);
   const changeMemoText = decodeMemoText(dualSend.changeMemo.instruction);
