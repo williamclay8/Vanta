@@ -40,6 +40,7 @@ const privatePoolV2HiddenEconomicsAssetId = "hidden:economic-terms";
 const privatePoolV2LocalProverScheme = "sha256-private-pool-v2-local-prover-0.1";
 const privatePoolV2SwapToShieldedProofRequestVersion =
   "vanta-private-pool-v2-swap-to-shielded-proof-request-0.1";
+const productionProofSystems = new Set(["noir-bb", "groth16", "plonk"]);
 
 const defaultMainnetAssets = {
   BONK: {
@@ -138,7 +139,7 @@ function requireSettlementCondition(condition, message) {
   }
 }
 
-function validateCommittedSwapSettlementResponse({ request, response }) {
+function validateCommittedSwapSettlementResponse({ allowMockProofs = false, request, response }) {
   const receipt = response?.protocolSettlementReceipt;
   const proofReceipt = response?.proofReceipt;
   const expectedProofPublicInputCommitment = localSwapProofPublicInputCommitment(request);
@@ -183,12 +184,13 @@ function validateCommittedSwapSettlementResponse({ request, response }) {
     proofReceipt?.assetId === privatePoolV2HiddenEconomicsAssetId,
     "Private Pool v2 proof receipt must use the hidden-economics asset sentinel.",
   );
+  if (!allowMockProofs && proofReceipt?.proofSystem === "mock") {
+    throw new Error("Private Pool v2 live SOL-to-shielded settlement cannot accept mock proof receipts.");
+  }
   requireSettlementCondition(
-    proofReceipt?.proofSystem === "noir-bb" ||
-      proofReceipt?.proofSystem === "groth16" ||
-      proofReceipt?.proofSystem === "plonk" ||
-      proofReceipt?.proofSystem === "mock",
-    "Private Pool v2 proof receipt must expose a recognized proof system.",
+    productionProofSystems.has(proofReceipt?.proofSystem) ||
+      (allowMockProofs && proofReceipt?.proofSystem === "mock"),
+    "Private Pool v2 proof receipt must expose a recognized proof system for this execution mode.",
   );
   requireSettlementCondition(
     proofReceipt?.replayKey === `swap-to-shielded:${request.nullifierOrReplayCommitment}`,
@@ -637,6 +639,7 @@ async function requestProtocolSettlement({ body, outputLeafIndex, publicSwapSign
       replayKey: `swap-to-shielded:${nullifierOrReplayCommitment}`,
     };
     return validateCommittedSwapSettlementResponse({
+      allowMockProofs: true,
       request: expectedSettlementRequest,
       response: {
         kind: "protocol_settlement",
@@ -693,9 +696,50 @@ async function requestProtocolSettlement({ body, outputLeafIndex, publicSwapSign
   }
 
   return validateCommittedSwapSettlementResponse({
+    allowMockProofs: false,
     request: expectedSettlementRequest,
     response: payload,
   });
+}
+
+async function assertLivePrivatePoolProofBoundary() {
+  if (executionMode !== "live") {
+    return;
+  }
+
+  if (!privatePoolOperatorUrl) {
+    throw new Error("Live execution requires VANTA_PRIVATE_POOL_V2_OPERATOR_URL for proof-backed settlement.");
+  }
+
+  const response = await fetch(`${privatePoolOperatorUrl}/state/private-pool-v2-status`, {
+    headers: {
+      ...(privatePoolAuthToken ? { Authorization: `Bearer ${privatePoolAuthToken}` } : {}),
+    },
+    signal: AbortSignal.timeout(15_000),
+  });
+  const status = await response.json();
+  if (!response.ok) {
+    throw new Error(status.error ?? `Private Pool v2 status failed with HTTP ${response.status}.`);
+  }
+
+  const proofTrustBoundary = status?.proofTrustBoundary;
+  if (!proofTrustBoundary || proofTrustBoundary.mockProofRealFundsAllowed !== false) {
+    throw new Error("Live SOL-to-shielded execution requires the operator to block mock proofs from real-funds settlement.");
+  }
+  if (proofTrustBoundary.productionProofSystemRequired !== true) {
+    throw new Error("Live SOL-to-shielded execution requires production proof-system policy.");
+  }
+  if (proofTrustBoundary.productionProofSystemRequiredNow !== true) {
+    throw new Error("Live SOL-to-shielded execution requires production proof-system enforcement to be active now.");
+  }
+  if (
+    !Array.isArray(proofTrustBoundary.acceptedProductionProofSystems) ||
+    !proofTrustBoundary.acceptedProductionProofSystems.some((proofSystem) =>
+      productionProofSystems.has(proofSystem),
+    )
+  ) {
+    throw new Error("Live SOL-to-shielded execution requires at least one accepted production proof system.");
+  }
 }
 
 async function handleQuote(body) {
@@ -741,6 +785,7 @@ async function handleExecute(body) {
 
   const state = assertExecutionAllowed(body.inputAmount);
   const outputLeafIndex = String((state.executions ?? []).length);
+  await assertLivePrivatePoolProofBoundary();
   const publicSwapSignature =
     executionMode === "mock"
       ? hashHex("mock-jupiter-swap", body.quoteId, body.transitionNoteId)

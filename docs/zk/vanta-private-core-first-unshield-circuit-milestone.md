@@ -23,8 +23,8 @@ Current circuit scope:
 - note commitment to Merkle leaf mapping
 - fixed-depth Merkle root recomputation
 - nullifier recomputation
-- public binding of `asset_id`, `amount`, and `note_version`
-- public binding of `release_destination`
+- public binding of `unshield_economic_terms_hash` and `note_version`
+- private witness copies of `release_destination`, `asset_id`, and `amount` recompute that economic-terms hash
 - public binding of `consume_context_tag`
 
 ## Validation status
@@ -76,7 +76,8 @@ That command:
 
 This is an important step beyond witness solving alone, but it should still be read honestly as:
 - a real local backend-style proof path
-- not yet full product-path proof integration
+- a narrow operator-backed integration path for local proof execution and consume checks
+- not production or mainnet settlement readiness
 
 The repo now also has an operator-backed consume seam check:
 
@@ -173,7 +174,7 @@ This remains an explicitly narrow v0.1 proving lane.
 
 Known limitations:
 - the circuit now uses a dedicated Poseidon proving lane, `poseidon-bn254-proving-lane-v0`, while the broader app-side hash surfaces remain transitional
-- owner authorization remains prevalidated off-circuit
+- source-layer X25519 owner authorization remains prevalidated off-circuit; the Unshield lane now additionally binds a Poseidon proof-owner key inside Noir, which is not the same as proving source X25519 ownership in-circuit
 - this milestone covers only the first single-note unshield consume proof, not send, swap, batching, recursion, or full product integration
 
 These are known follow-up items, not blockers to the milestone itself.

@@ -345,8 +345,8 @@ These commands cover:
 - operator contract and summary snapshot coherence across app, CLI, and regression surfaces
 - dedicated operator shipping decision endpoint and CLI/check surfaces
 - frozen operator contract surface:
-  - `contractVersion = 21`
-  - `summaryVersion = 45`
+  - `contractVersion = 22`
+  - `summaryVersion = 46`
   - `supportedSendV1Decision = accepted-narrow-v1-path`
   - `supportedUnshieldV1Decision = accepted-narrow-v1-path`
   - `supportedReleaseV1Decision = accepted-narrow-v1-path`
@@ -673,8 +673,8 @@ If no operator is reachable, `private-core:shipping-status-json` now prints a ma
 `private-core:shipping-check-json` is the machine-readable ready-gate form of that same command: it exits zero only for `Ready narrow v1`, prints the compact readiness JSON on success, and on blocked paths emits the JSON surface to stderr before the structured `Shipping status:` / `Shipping note:` lines.
 
 The operator contract now freezes the narrow zk-v1 contract surface explicitly:
-- `contractVersion = 17`
-- `summaryVersion = 41`
+- `contractVersion = 22`
+- `summaryVersion = 46`
 - `supportedShippingDecisionVersion = 1`
 - `supportedShippingDecisionKind = narrow-private-core-zk-v1-shipping`
 - `supportedOperatorSnapshotVersion = 1`

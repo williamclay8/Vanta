@@ -96,7 +96,7 @@ That command now covers:
 
 The supported `v1` lane currently keeps these assumptions explicit:
 
-- owner authorization remains off-circuit
+- source-layer owner authorization remains off-circuit; Send does not yet include the separate Poseidon proof-owner binding that the Unshield proving lane now has
 - proving-lane truth remains distinct from source-layer artifacts
 - root validity/currentness is enforced by the narrow operator-backed state model
 - resulting-root provenance is a proof-linked-input expected root plus downstream recipient/change output-root registration

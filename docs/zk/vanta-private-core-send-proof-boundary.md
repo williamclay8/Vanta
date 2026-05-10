@@ -89,7 +89,7 @@ The current private witness includes:
 
 For this frozen `v0.1` boundary:
 
-- owner authorization remains off-circuit, matching the current unshield lane
+- source-layer owner authorization remains off-circuit; unlike the current Unshield proving lane, Send does not yet add a separate Poseidon proof-owner binding
 - proving validity is Poseidon-lane truth
 - source-layer send artifacts remain distinct from proving-lane artifacts
 - the first send circuit should target:

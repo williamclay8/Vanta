@@ -22,9 +22,9 @@
   ],
   "lumiBaseline": {
     "branch": "codex/vanta-zk-review-hardening",
-    "lastKnownCommit": "66bb1e2",
+    "lastKnownCommit": "572c46e",
     "local": "clean at ledger creation",
-    "committed": "66bb1e2 Bind Send memo body hashes through receipts",
+    "committed": "572c46e Bind Unshield proof owner key",
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
@@ -87,7 +87,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 66bb1e2"
+          "local feedback loops through 572c46e"
         ],
         "summary": "Codex hardened the local spend authority/root-history/nullifier-marker ABI and fail-closed SBF status surfaces.",
         "residualRisk": [
@@ -98,7 +98,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally for scaffold checks",
-        "committed": "through 66bb1e2",
+        "committed": "through 572c46e",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -148,7 +148,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 66bb1e2"
+          "local feedback loops through 572c46e"
         ],
         "summary": "Moved replay truth to deterministic marker PDAs and treated the legacy nullifier set as a header/namespace account.",
         "residualRisk": [
@@ -158,7 +158,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 66bb1e2",
+        "committed": "through 572c46e",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -203,7 +203,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 66bb1e2"
+          "local feedback loops through 572c46e"
         ],
         "summary": "Replaced additive note/tree hashing with Poseidon-backed constraints.",
         "residualRisk": [
@@ -212,7 +212,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 66bb1e2",
+        "committed": "through 572c46e",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -265,7 +265,7 @@
       "codexRemediation": {
         "commits": [
           "22479be",
-          "local feedback loops through 66bb1e2"
+          "local feedback loops through 572c46e"
         ],
         "summary": "Back-ported Merkle membership and path-derived append roots across the local Private Pool v2 fixture lane.",
         "residualRisk": [
@@ -275,7 +275,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 66bb1e2",
+        "committed": "through 572c46e",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -326,7 +326,7 @@
       "codexRemediation": {
         "commits": [
           "ea08fed",
-          "local feedback loops through 66bb1e2"
+          "local feedback loops through 572c46e"
         ],
         "summary": "Migrated active proving lanes and fixtures to depth 20 and added fail-closed linting.",
         "residualRisk": [
@@ -335,7 +335,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 66bb1e2",
+        "committed": "through 572c46e",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -378,7 +378,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 66bb1e2"
+          "local feedback loops through 572c46e"
         ],
         "summary": "Replaced bespoke recovery encryption with X25519/HKDF/XChaCha20-Poly1305.",
         "residualRisk": [
@@ -387,7 +387,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 66bb1e2",
+        "committed": "through 572c46e",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -431,7 +431,7 @@
       "codexRemediation": {
         "commits": [
           "b970af3",
-          "local feedback loops through 66bb1e2"
+          "local feedback loops through 572c46e"
         ],
         "summary": "Added v2 PBKDF2 envelope with 600000 iterations and guarded legacy fallback behavior.",
         "residualRisk": [
@@ -441,7 +441,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 66bb1e2",
+        "committed": "through 572c46e",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -466,7 +466,10 @@
       "evidenceRefs": [
         "VANTA_ZK_REVIEW.md#8-local-prover-is-not-a-prover-by-design",
         "src/privacy/privatePoolV2LocalProver.ts",
+        "operator/jupiter-sol-to-shielded-route-adapter.mjs",
         "npm run private-pool-v2:mock-proof-boundary-check",
+        "npm run swap:jupiter-sol-to-shielded-adapter-check",
+        "npm run swap:capability-check",
         "npm run private-pool-v2:protocol-client-check"
       ],
       "failureMode": "The local prover returns deterministic hash bytes and verifies by recomputing the same hash.",
@@ -479,17 +482,20 @@
       "verification": {
         "commands": [
           "npm run private-pool-v2:mock-proof-boundary-check",
+          "npm run swap:jupiter-sol-to-shielded-adapter-check",
+          "npm run swap:capability-check",
           "npm run private-pool-v2:protocol-client-check"
         ],
-        "localResult": "Mock-proof boundary and protocol-client checks pass locally.",
-        "proves": "Mock proofs are explicit and blocked from production/real-funds acceptance paths covered by the guard.",
+        "localResult": "Mock-proof boundary, SOL-to-shielded adapter, swap capability, and protocol-client checks pass locally.",
+        "proves": "Mock proofs are explicit and blocked from production/real-funds acceptance paths covered by the guard, including the live Jupiter SOL-to-shielded adapter boundary.",
         "doesNotProve": "Real proof generation, verifier integration, or live funds ZK readiness."
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 66bb1e2"
+          "local feedback loops through 572c46e",
+          "current H08 SOL-to-shielded adapter feedback-loop patch"
         ],
-        "summary": "Persisted proofSystem through receipts and guarded production startup and settlement boundaries against mock proofs.",
+        "summary": "Persisted proofSystem through receipts, guarded production startup and settlement boundaries against mock proofs, and made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary.",
         "residualRisk": [
           "The mock prover still exists for local evidence.",
           "A real prover and verifier remain open."
@@ -497,7 +503,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally for boundary checks",
-        "committed": "through 66bb1e2",
+        "committed": "through 572c46e",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -505,10 +511,14 @@
         "watchFiles": [
           "src/privacy/privatePoolV2LocalProver.ts",
           "scripts/check-vanta-private-pool-v2-mock-proof-boundary.mjs",
+          "operator/jupiter-sol-to-shielded-route-adapter.mjs",
+          "scripts/check-vanta-jupiter-sol-to-shielded-adapter.mjs",
           "operator/private-pool-v2-server.mjs"
         ],
         "watchCommands": [
           "npm run private-pool-v2:mock-proof-boundary-check",
+          "npm run swap:jupiter-sol-to-shielded-adapter-check",
+          "npm run swap:capability-check",
           "npm run private-pool-v2:verify"
         ]
       },
@@ -544,7 +554,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 66bb1e2"
+          "local feedback loops through 572c46e"
         ],
         "summary": "Replaced split membership path witnesses with single-field siblings across covered Private Core lanes.",
         "residualRisk": [
@@ -553,7 +563,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 66bb1e2",
+        "committed": "through 572c46e",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -598,7 +608,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 66bb1e2"
+          "local feedback loops through 572c46e"
         ],
         "summary": "Standardized Poseidon Merkle parent hashing across covered Canonical, Private Pool v2, and Private Core lanes.",
         "residualRisk": [
@@ -607,7 +617,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 66bb1e2",
+        "committed": "through 572c46e",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -653,7 +663,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 66bb1e2"
+          "local feedback loops through 572c46e"
         ],
         "summary": "Upgraded the durable replay store to a transaction-backed insert-on-conflict reservation contract.",
         "residualRisk": [
@@ -662,7 +672,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 66bb1e2",
+        "committed": "through 572c46e",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -709,7 +719,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 66bb1e2"
+          "local feedback loops through 572c46e"
         ],
         "summary": "Moved Shield economics into a private Poseidon commitment and guarded the committed protocol path.",
         "residualRisk": [
@@ -719,7 +729,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 66bb1e2",
+        "committed": "through 572c46e",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -764,7 +774,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 66bb1e2"
+          "local feedback loops through 572c46e"
         ],
         "summary": "Removed browser swap route VITE_JUPITER_API_KEY use and added a production-bundle exposure guard.",
         "residualRisk": [
@@ -773,7 +783,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 66bb1e2",
+        "committed": "through 572c46e",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },

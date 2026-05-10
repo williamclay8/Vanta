@@ -27,6 +27,26 @@ assert.match(serverSource, /outputLeafIndex/);
 assert.match(serverSource, /publicSwapSignature/);
 assert.match(serverSource, /validateCommittedSwapSettlementResponse/);
 assert.match(serverSource, /return validateCommittedSwapSettlementResponse/);
+assert.match(
+  serverSource,
+  /allowMockProofs/,
+  "Jupiter adapter settlement validation must make mock-proof acceptance an explicit local-mode choice.",
+);
+assert.match(
+  serverSource,
+  /assertLivePrivatePoolProofBoundary/,
+  "Jupiter adapter live execution must preflight the Private Pool proof boundary before signing a mainnet swap.",
+);
+assert.match(
+  serverSource,
+  /proofTrustBoundary\.mockProofRealFundsAllowed !== false/,
+  "Jupiter adapter live preflight must require the remote operator to block mock proofs from real-funds settlement.",
+);
+assert.match(
+  serverSource,
+  /proofReceipt\?\.proofSystem === "mock"/,
+  "Jupiter adapter live settlement validation must explicitly reject mock proof receipts.",
+);
 assert.match(serverSource, /receipt\.economicsCommitment === request\.economicsCommitment/);
 assert.doesNotMatch(serverSource, /mainnetReady: false/);
 const liveSettlementValidationIndex = serverSource.indexOf(

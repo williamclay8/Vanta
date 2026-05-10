@@ -91,7 +91,7 @@ The current private witness includes:
 
 For this frozen `v0.1` boundary:
 
-- owner authorization remains off-circuit, matching the current send and unshield lanes
+- source-layer owner authorization remains off-circuit; unlike the current Unshield proving lane, Swap does not yet add a separate Poseidon proof-owner binding
 - proving validity is Poseidon-lane truth
 - source-layer swap artifacts remain distinct from proving-lane artifacts
 - pricing, quote freshness, and venue execution remain operator-backed and off-circuit

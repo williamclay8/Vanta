@@ -140,10 +140,15 @@ Those two hash lanes are intentionally explicit and not treated as implicitly eq
 
 As of 2026-04-24, Unshield matches Send and Swap's hash-bound proof posture: raw destination, asset, and amount are no longer Noir public inputs. They remain visible at the operator/request and exit-settlement layer, so this is not a `v2-hidden-economic-terms` claim.
 
-## Recommended Next Implementation Step
+## Current Maintenance Step
 
-Implement the first Noir circuit against the exact public/private witness package emitted by:
+Preserve the implemented Unshield Noir lane against the exact public/private witness package emitted by:
 
 - `buildVantaPrivateCoreUnshieldProofBoundary(...)`
 
-Then choose one nontrivial retained fixture whose Merkle path depth matches the selected circuit constant.
+Keep the X25519 source-owner authorization precheck and Poseidon proof-owner key binding explicit as separate source/operator and proving-lane facts. Guard the lane with:
+
+- `npm run private-core:check`
+- `npm run private-core:prove`
+- `npm run private-core:consume-check`
+- `npm run private-core:verify`

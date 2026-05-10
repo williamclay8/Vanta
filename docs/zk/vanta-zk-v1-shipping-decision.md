@@ -70,7 +70,7 @@ This decision does **not** mean the broader Vanta privacy suite is finished.
 It does **not** upgrade the current assumptions into final-form protocol claims.
 The following still remain explicit limitations of the shipped narrow `v1`:
 
-- owner authorization remains off-circuit
+- source-layer X25519 owner authorization remains off-circuit; Unshield also has a Poseidon proof-owner key binding in the proving lane, which is not final source-owner authorization inside Noir
 - release remains the accepted operator-recorded mainnet release model
 - nullifier-key choice remains the accepted temporary `v1` choice
 - swap is not part of the minimum finish line
