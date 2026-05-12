@@ -659,7 +659,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the C01 reserved proof-carrying spend ABI feedback-loop slice",
-        "committed": "14022f1 (Reserve proof-carrying spend ABI)",
+        "committed": "68b8c9c (Preflight proof-carrying spend ABI)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -721,7 +721,8 @@
         "commits": [
           "5c23f77 (Move spend outputs to PDA records)",
           "698ca41 (C01 proof-field fail-closed feedback loop)",
-          "14022f1 (Reserve proof-carrying spend ABI)"
+          "14022f1 (Reserve proof-carrying spend ABI)",
+          "68b8c9c (Preflight proof-carrying spend ABI)"
         ],
       "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, proof-like transaction-field rejection for the current no-verifier spend ABI, a verifier-backend contract guard for the future tag 3 lane, and a reserved tag 3 proof-carrying spend ABI that preflights the future account/verifier-key contract and fails closed before proof verification or mutation.",
         "residualRisk": [
@@ -734,7 +735,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally for scaffold, proof-field boundary, and reserved proof-carrying ABI checks",
-        "committed": "14022f1 (Reserve proof-carrying spend ABI)",
+        "committed": "68b8c9c (Preflight proof-carrying spend ABI)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
