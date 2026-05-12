@@ -27,6 +27,12 @@ const visibleStrategyCopy = [
   "Treasury wallet",
   "Use funds from",
   "Proceeds go to",
+  "Child-order schedule",
+  "Strategy preview ledger",
+  "Child trades",
+  "Average child size",
+  "Cadence estimate",
+  "Settlement target",
   "No wallet connected",
   "Connected wallet",
   "Uses shielded funds under Vanta private owner",
@@ -227,6 +233,26 @@ if (!pageSource.includes('className="module-page__hero send-page__hero strategy-
 
 if (!pageSource.includes('className="send-card send-card--workspace strategy-card strategy-card--primary"')) {
   failures.push("Strategy page primary panel must use the shared action-tab workspace card classes.");
+}
+
+if (
+  !pageSource.includes('className="strategy-timeline"') ||
+  !pageSource.includes("formatStrategyOrderTitle") ||
+  !stylesSource.includes(".strategy-timeline")
+) {
+  failures.push("Strategy page must render a child-order timeline with hover detail.");
+}
+
+if (
+  !pageSource.includes('className="strategy-preview-ledger"') ||
+  !pageSource.includes("strategyPreviewLedger") ||
+  !stylesSource.includes(".strategy-preview-ledger")
+) {
+  failures.push("Strategy page must render a human-readable preview ledger.");
+}
+
+if (!pageSource.includes('className="strategy-mode__spark"') || !stylesSource.includes(".strategy-mode__spark")) {
+  failures.push("Strategy mode toggle must include per-mode visual tick previews.");
 }
 
 if (

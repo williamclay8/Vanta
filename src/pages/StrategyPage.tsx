@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
@@ -51,6 +51,18 @@ type StrategySelectOptionConfig = {
   value: string;
 };
 type StrategySelectOption = string | StrategySelectOptionConfig;
+type StrategyTimelineOrder = {
+  ariaLabel: string;
+  style: CSSProperties;
+  title: string;
+};
+type StrategyPreviewLedger = {
+  averageChildSize: string;
+  cadenceEstimate: string;
+  childTrades: string;
+  settlementTarget: string;
+  summary: string;
+};
 
 const strategyAssets = ["SOL", "JUP", "BONK", "WIF"];
 const supportedSlicePolicies = ["Randomized sizing", "Fixed count"] as const;
@@ -74,6 +86,25 @@ const customDurationErrorId = "strategy-custom-duration-error";
 const maxSlippageErrorId = "strategy-max-slippage-error";
 const strategyModeDca = ("Stealth" + " DCA") as StrategyMode;
 const strategyModeTwap = ("Private" + " TWAP") as StrategyMode;
+const strategyModePreviews: Record<
+  StrategyMode,
+  {
+    hoverCopy: string;
+    shortCopy: string;
+    ticks: readonly number[];
+  }
+> = {
+  "Stealth DCA": {
+    hoverCopy: "Irregular child-order sizing and cadence preview.",
+    shortCopy: "Irregular sizing and cadence",
+    ticks: [16, 29, 21, 34, 19, 27, 38, 24],
+  },
+  "Private TWAP": {
+    hoverCopy: "Evenly spaced child-order schedule preview.",
+    shortCopy: "Even spacing across the window",
+    ticks: [26, 26, 26, 26, 26, 26, 26, 26],
+  },
+};
 const strategyPricing = describePricingForSurface("strategy");
 const strategyReviewCta = "Review strategy settings";
 const strategyEnvironmentUnavailableCopy =
@@ -112,6 +143,78 @@ function abbreviatePrivateOwner(value: string) {
 
 function formatStrategyModeLabel(mode: StrategyMode): StrategyModeLabel {
   return mode === strategyModeTwap ? "Preview TWAP" : "Preview DCA";
+}
+
+function formatStrategyMoney(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 0,
+    style: "currency",
+    currency: "USD",
+  }).format(value);
+}
+
+function formatStrategyWindow(hours: number): string {
+  if (hours >= 24 && hours % 24 === 0) {
+    const days = hours / 24;
+    return `${days} ${days === 1 ? "day" : "days"}`;
+  }
+
+  return `${hours} ${hours === 1 ? "hour" : "hours"}`;
+}
+
+function formatStrategyMinutes(minutes: number): string {
+  if (minutes >= 60 && minutes % 60 === 0) {
+    const hours = minutes / 60;
+    return `${hours} ${hours === 1 ? "hour" : "hours"}`;
+  }
+
+  return `${minutes} min`;
+}
+
+function createStrategyPreviewLedger(plan: VantaStrategyPlan, settlementTarget: string): StrategyPreviewLedger {
+  const childCount = plan.childOrders.length;
+  const averageInterval = Math.max(1, Math.round((plan.windowHours * 60) / Math.max(1, childCount)));
+  const intervalDeltas = plan.childOrders.slice(1).map((order, index) =>
+    Math.abs(order.scheduledAtMinute - plan.childOrders[index].scheduledAtMinute - averageInterval),
+  );
+  const jitter = intervalDeltas.length > 0 ? Math.max(...intervalDeltas) : 0;
+  const cadenceEstimate = `Every ${formatStrategyMinutes(averageInterval)} +/- ${formatStrategyMinutes(jitter)} jitter`;
+  const childTrades = `~${childCount}`;
+  const averageChildSize = formatStrategyMoney(plan.averageChildSize);
+  const windowLabel = formatStrategyWindow(plan.windowHours);
+  const summary = `This ${formatStrategyModeLabel(plan.mode)} preview produces ${childTrades} child trades over ${windowLabel}, averaging ${averageChildSize}, with ${cadenceEstimate.toLowerCase()} and settlement to ${settlementTarget}.`;
+
+  return {
+    averageChildSize,
+    cadenceEstimate,
+    childTrades,
+    settlementTarget,
+    summary,
+  };
+}
+
+function formatStrategyOrderTitle(order: VantaStrategyPlan["childOrders"][number]): string {
+  return `Child ${order.index}: ${formatStrategyMoney(order.notional)} at minute ${order.scheduledAtMinute}`;
+}
+
+function createStrategyTimelineOrders(plan: VantaStrategyPlan): StrategyTimelineOrder[] {
+  const totalMinutes = Math.max(1, plan.windowHours * 60);
+  const maxNotional = Math.max(...plan.childOrders.map((order) => order.notional), 1);
+
+  return plan.childOrders.map((order) => {
+    const left = Math.min(100, Math.max(0, (order.scheduledAtMinute / totalMinutes) * 100));
+    const height = 18 + (order.notional / maxNotional) * 42;
+    const title = formatStrategyOrderTitle(order);
+
+    return {
+      ariaLabel: title,
+      style: {
+        "--strategy-order-height": `${height.toFixed(2)}px`,
+        "--strategy-order-left": `${left.toFixed(4)}%`,
+      } as CSSProperties,
+      title,
+    };
+  });
 }
 
 function describeFundingWallet(input: {
@@ -265,6 +368,14 @@ export function StrategyPage() {
       urgency: form.urgency,
     });
   }, [effectiveTimeWindow, form, parsedAmount.value, parsedSlippage.value, strategyPair]);
+  const strategyPreviewLedger = useMemo(
+    () => (strategyPlan ? createStrategyPreviewLedger(strategyPlan, form.destination) : null),
+    [form.destination, strategyPlan],
+  );
+  const strategyTimelineOrders = useMemo(
+    () => (strategyPlan ? createStrategyTimelineOrders(strategyPlan) : []),
+    [strategyPlan],
+  );
 
   const environmentBlockingIssues = isBetaMode ? [strategyEnvironmentUnavailableCopy] : [];
   const fundingBlockingIssues = useMemo(() => {
@@ -364,9 +475,21 @@ export function StrategyPage() {
                     onClick={() => {
                       updateForm("mode", mode);
                     }}
+                    title={strategyModePreviews[mode].hoverCopy}
                     type="button"
                   >
-                    {formatStrategyModeLabel(mode)}
+                    <span className="strategy-mode__spark" aria-hidden="true">
+                      {strategyModePreviews[mode].ticks.map((height, index) => (
+                        <span
+                          key={`${mode}-${index}`}
+                          style={{ "--strategy-mode-tick-height": `${height}px` } as CSSProperties}
+                        />
+                      ))}
+                    </span>
+                    <span className="strategy-mode__content">
+                      <span>{formatStrategyModeLabel(mode)}</span>
+                      <small>{strategyModePreviews[mode].shortCopy}</small>
+                    </span>
                   </button>
                 ))}
               </div>
@@ -436,6 +559,54 @@ export function StrategyPage() {
                   </small>
                 ) : null}
               </label>
+            ) : null}
+
+            {strategyPlan && strategyPreviewLedger ? (
+              <section className="strategy-preview-workbench" aria-label="Strategy preview">
+                <div className="strategy-timeline" aria-label="Child-order schedule">
+                  <div className="strategy-preview-heading">
+                    <span className="strategy-kicker">Child-order schedule</span>
+                    <strong>{strategyPreviewLedger.childTrades} preview orders</strong>
+                  </div>
+                  <div className="strategy-timeline__rail">
+                    {strategyTimelineOrders.map((order, index) => (
+                      <span
+                        aria-label={order.ariaLabel}
+                        className="strategy-timeline__mark"
+                        key={`${strategyPlan.id}-${index}`}
+                        role="img"
+                        style={order.style}
+                        tabIndex={0}
+                        title={order.title}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="strategy-preview-ledger" aria-label="Strategy preview ledger">
+                  <div className="strategy-preview-heading">
+                    <span className="strategy-kicker">Strategy preview ledger</span>
+                    <p>{strategyPreviewLedger.summary}</p>
+                  </div>
+                  <div className="strategy-preview-ledger__grid">
+                    <div>
+                      <span>Child trades</span>
+                      <strong>{strategyPreviewLedger.childTrades}</strong>
+                    </div>
+                    <div>
+                      <span>Average child size</span>
+                      <strong>{strategyPreviewLedger.averageChildSize}</strong>
+                    </div>
+                    <div>
+                      <span>Cadence estimate</span>
+                      <strong>{strategyPreviewLedger.cadenceEstimate}</strong>
+                    </div>
+                    <div>
+                      <span>Settlement target</span>
+                      <strong>{strategyPreviewLedger.settlementTarget}</strong>
+                    </div>
+                  </div>
+                </div>
+              </section>
             ) : null}
 
             <details className="strategy-advanced">

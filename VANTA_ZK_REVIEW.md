@@ -2593,12 +2593,15 @@ Per the strategy-lane deep dive, this is preview-only. The form is good — the 
 **Recommendations:**
 
 - **The form is the product, but it's not visually presented as one.** Imagine a strategy form that, as you adjust inputs, shows the resulting child-order schedule as a horizontal timeline with N tick marks across a bar — sized by notional, colored by readiness, with hover for per-child detail. As the user changes "Time window: 6h → 24h" the marks redistribute live. As they change "Slice policy: Fixed count → Randomized sizing" the mark heights vary. This single visualization makes Stealth DCA *feel* stealthy in a way no copy can.
+  > **Completed locally:** `/app/strategy` now renders a `strategyPlan.childOrders`-driven child-order timeline with notional-sized marks and hover/focus detail for each preview child order.
 - **Strategy mode toggle needs life.** Stealth DCA vs Private TWAP is a meaningful product choice. Today it's a `<select>` dropdown. Make it a 2-card toggle with explanatory copy on hover: Stealth DCA showing many small irregular ticks; Private TWAP showing many evenly-spaced small ticks. Visual difference makes the choice memorable.
+  > **Completed locally:** the mode toggle now renders two visual mode cards with irregular DCA ticks, even TWAP ticks, and hover copy tied to the selected preview behavior.
 - **Funding source is confusing.** The user picks "Connected wallet / Public wallet balance / Vanta private balance." Two of those mean essentially the same thing. Consolidate to "Public wallet" vs "Vanta private balance" with help text explaining the shield-first requirement.
   > **Completed locally:** Strategy funding choices are now only `Vanta private balance` and `Public wallet`; `createStrategyPlan` rejects stale direct `Connected wallet` / `Public wallet balance` funding-source inputs, and the public-wallet help text now names the shield-first requirement.
 - **The unimplemented policies (Min/max child size, Venue threshold, Volatility-aware, Liquidity-aware) — per the strategy-lane deep dive — should not be selectable until Y4 lands.** Today they're typeable inert options. Show them as disabled "Coming soon" entries.
   > **Completed locally:** those four policies now render as disabled `Coming soon` options, and `createStrategyPlan` fails closed if a direct caller tries to pass them before Y4.
 - **Add a strategy preview ledger.** As the user designs the strategy, a side panel shows: "This strategy will produce ~24 child trades over 24 hours, averaging $10,416 each, executed every 60 minutes ± 17 minutes of jitter, settling to your Vanta private balance." That's the "hash-bound packet preview" reframed as something a human actually wants to read.
+  > **Completed locally:** the Strategy preview ledger now summarizes child count, average child size, cadence estimate, settlement target, and a human-readable one-line preview from the local plan.
 
 ### `/app/pay` — Pay
 
