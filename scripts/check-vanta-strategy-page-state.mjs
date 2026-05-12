@@ -32,7 +32,15 @@ function assertComingSoonDisabledOption(policy) {
 }
 
 assert.equal(STRATEGY_CUSTOM_TIME_WINDOW, "Custom");
-assert.deepEqual(strategyFundingSources, ["Vanta private balance", "Public wallet balance", "Connected wallet"]);
+assert.deepEqual(strategyFundingSources, ["Vanta private balance", "Public wallet"]);
+assert.ok(
+  !strategyFundingSources.includes("Connected wallet"),
+  "Connected wallet must not remain as a separate funding source; use Public wallet.",
+);
+assert.ok(
+  !strategyFundingSources.includes("Public wallet balance"),
+  "Funding source copy must consolidate Public wallet balance into Public wallet.",
+);
 for (const policy of [...comingSoonSlicePolicies, ...comingSoonTimingPolicies]) {
   assertComingSoonDisabledOption(policy);
 }
@@ -85,7 +93,7 @@ assert.deepEqual(
   {
     blockingIssues: [
       "Live execution is unavailable in this environment.",
-      "Shield funds into your Vanta private balance before live execution.",
+      "Shield funds from your public wallet into your Vanta private balance before live execution.",
     ],
     ctaLabel: "Review strategy settings",
     destination: "Connected wallet",
@@ -114,24 +122,6 @@ assert.equal(
     isBetaMode: true,
   }).submitDisabled,
   true,
-);
-assert.deepEqual(
-  createStrategyCapabilityState({
-    destination: "Vanta private balance",
-    fundingSource: strategyFundingSources[2],
-    hasErrors: false,
-    isBetaMode: false,
-  }),
-  {
-    blockingIssues: ["Connect a wallet so Vanta knows which public wallet this choice means."],
-    ctaLabel: "Review strategy settings",
-    destination: "Vanta private balance",
-    fundingSource: strategyFundingSources[2],
-    livePrerequisitesMet: false,
-    mode: "preview_only",
-    requiresPrivateFunding: false,
-    submitDisabled: false,
-  },
 );
 assert.deepEqual(
   createStrategyCapabilityState({
@@ -193,6 +183,11 @@ for (const timingPolicy of comingSoonTimingPolicies) {
     `${timingPolicy} must fail before creating a silent inert strategy plan.`,
   );
 }
+assert.throws(
+  () => createStrategyPlan({ ...baseStrategyInput, fundingSource: "Connected wallet" }),
+  /consolidated into Public wallet/u,
+  "Connected wallet must not survive as a direct planner funding source.",
+);
 const updatedStrategyInput = {
   ...baseStrategyInput,
   landingMode: "Bundle-preferred",

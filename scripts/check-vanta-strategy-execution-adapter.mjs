@@ -4,7 +4,7 @@ import { createStrategyPlan } from "../src/strategy/strategyPlanner.mjs";
 
 const basePlan = createStrategyPlan({
   destination: "Vanta private balance",
-  fundingSource: "Public wallet balance",
+  fundingSource: "Public wallet",
   landingMode: "Protected landing",
   maxSlippageBps: 50,
   mode: "Stealth DCA",

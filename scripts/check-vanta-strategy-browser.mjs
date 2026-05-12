@@ -243,13 +243,19 @@ try {
           { kind: "no_console_errors" },
         ],
       },
-      { action: "select_option", selector: 'select[aria-label="Use funds from"]', value: "Public wallet balance" },
+      { action: "select_option", selector: 'select[aria-label="Use funds from"]', value: "Public wallet" },
       {
         action: "assert",
         checks: [
           { kind: "text_visible", text: "Review strategy settings" },
-          { kind: "text_visible", text: "Shield funds into your Vanta private balance before live execution." },
-          { kind: "text_visible", text: "Connect a wallet to choose which public balance funds this strategy." },
+          {
+            kind: "text_visible",
+            text: "Shield funds from your public wallet into your Vanta private balance before live execution.",
+          },
+          {
+            kind: "text_visible",
+            text: "Connect a wallet to choose the public wallet, then shield funds before live execution.",
+          },
           { kind: "text_hidden", text: "Live execution is unavailable in this environment." },
           {
             kind: "text_visible",
@@ -265,7 +271,10 @@ try {
           { kind: "text_hidden", text: "Strategy plan ready" },
           { kind: "text_hidden", text: "Ready for your review" },
           { kind: "text_hidden", text: "Execution preview" },
-          { kind: "text_visible", text: "Shield funds into your Vanta private balance before live execution." },
+          {
+            kind: "text_visible",
+            text: "Shield funds from your public wallet into your Vanta private balance before live execution.",
+          },
           { kind: "text_hidden", text: "Strategy settings saved" },
           { kind: "no_console_errors" },
         ],
@@ -306,11 +315,14 @@ try {
           { kind: "no_console_errors" },
         ],
       },
-      { action: "select_option", selector: 'select[aria-label="Use funds from"]', value: "Connected wallet" },
+      { action: "select_option", selector: 'select[aria-label="Use funds from"]', value: "Public wallet" },
       {
         action: "assert",
         checks: [
-          { kind: "text_visible", text: "Connect a wallet so Vanta knows which public wallet this choice means." },
+          {
+            kind: "text_visible",
+            text: "Connect a wallet to choose the public wallet, then shield funds before live execution.",
+          },
           { kind: "text_hidden", text: "Live execution is unavailable in this environment." },
           { kind: "text_visible", text: "Review strategy settings" },
           { kind: "no_console_errors" },

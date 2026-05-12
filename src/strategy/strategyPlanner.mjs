@@ -1,8 +1,9 @@
 const FUNDING_ACTIONS = {
-  "Connected wallet": "connect-wallet-before-live-run",
-  "Public wallet balance": "deposit-to-private-before-live-run",
+  "Public wallet": "deposit-to-private-before-live-run",
   "Vanta private balance": "use-private-balance",
 };
+const SUPPORTED_FUNDING_SOURCES = new Set(["Public wallet", "Vanta private balance"]);
+const CONSOLIDATED_PUBLIC_FUNDING_SOURCES = new Set(["Connected wallet", "Public wallet balance"]);
 
 const HOURS_BY_WINDOW = {
   "6 hours": 6,
@@ -87,6 +88,18 @@ function assertSupportedStrategyPolicies(input) {
   });
 }
 
+function assertSupportedFundingSource(value) {
+  if (SUPPORTED_FUNDING_SOURCES.has(value)) {
+    return;
+  }
+
+  if (CONSOLIDATED_PUBLIC_FUNDING_SOURCES.has(value)) {
+    throw new Error(`Strategy funding source '${value}' has been consolidated into Public wallet.`);
+  }
+
+  throw new Error(`Strategy funding source '${value}' is unsupported.`);
+}
+
 function chooseSliceCount(input) {
   const hours = parseWindowHours(input.timeWindow);
 
@@ -151,6 +164,7 @@ export function createStrategyPlan(input) {
   }
 
   assertSupportedStrategyPolicies(input);
+  assertSupportedFundingSource(input.fundingSource);
 
   const random = createRandom(
     [

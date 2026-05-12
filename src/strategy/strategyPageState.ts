@@ -10,16 +10,15 @@ type StrategyParsedDuration = {
 
 export const STRATEGY_CUSTOM_TIME_WINDOW = "Custom";
 export const STRATEGY_FUNDING_SOURCE_PRIVATE_BALANCE = "Vanta private balance";
-export const STRATEGY_FUNDING_SOURCE_PUBLIC_BALANCE = "Public wallet balance";
-export const STRATEGY_FUNDING_SOURCE_CONNECTED_WALLET = "Connected wallet";
+export const STRATEGY_FUNDING_SOURCE_PUBLIC_WALLET = "Public wallet";
+export const STRATEGY_FUNDING_SOURCE_PUBLIC_BALANCE = STRATEGY_FUNDING_SOURCE_PUBLIC_WALLET;
 export const STRATEGY_DESTINATION_PRIVATE_BALANCE = "Vanta private balance";
 export const STRATEGY_DESTINATION_CONNECTED_WALLET = "Connected wallet";
 export const STRATEGY_DESTINATION_TREASURY_WALLET = "Treasury wallet";
 
 export const strategyFundingSources = [
   STRATEGY_FUNDING_SOURCE_PRIVATE_BALANCE,
-  STRATEGY_FUNDING_SOURCE_PUBLIC_BALANCE,
-  STRATEGY_FUNDING_SOURCE_CONNECTED_WALLET,
+  STRATEGY_FUNDING_SOURCE_PUBLIC_WALLET,
 ] as const;
 export const strategyDestinations = [
   STRATEGY_DESTINATION_PRIVATE_BALANCE,
@@ -171,11 +170,7 @@ export function createStrategyCapabilityState(input: {
   }
 
   if (input.fundingSource === STRATEGY_FUNDING_SOURCE_PUBLIC_BALANCE) {
-    blockingIssues.push("Shield funds into your Vanta private balance before live execution.");
-  }
-
-  if (input.fundingSource === STRATEGY_FUNDING_SOURCE_CONNECTED_WALLET) {
-    blockingIssues.push("Connect a wallet so Vanta knows which public wallet this choice means.");
+    blockingIssues.push("Shield funds from your public wallet into your Vanta private balance before live execution.");
   }
 
   const mode: StrategyCapabilityMode = input.isBetaMode || !livePrerequisitesMet ? "preview_only" : "eligible_to_create";

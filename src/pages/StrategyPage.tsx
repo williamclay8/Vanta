@@ -10,7 +10,6 @@ import {
   STRATEGY_DESTINATION_CONNECTED_WALLET,
   STRATEGY_DESTINATION_PRIVATE_BALANCE,
   STRATEGY_DESTINATION_TREASURY_WALLET,
-  STRATEGY_FUNDING_SOURCE_CONNECTED_WALLET,
   STRATEGY_FUNDING_SOURCE_PRIVATE_BALANCE,
   STRATEGY_FUNDING_SOURCE_PUBLIC_BALANCE,
   createStrategyCapabilityState,
@@ -80,9 +79,7 @@ const strategyReviewCta = "Review strategy settings";
 const strategyEnvironmentUnavailableCopy =
   "Beta mode keeps Strategy visible while live execution stays locked.";
 const strategyPublicFundingCopy =
-  "Shield funds into your Vanta private balance before live execution.";
-const strategyConnectedWalletCopy =
-  "Connect a wallet so Vanta knows which public wallet this choice means.";
+  "Shield funds from your public wallet into your Vanta private balance before live execution.";
 const strategySettingsActionHint =
   "Keep settings editable while live strategy execution remains unavailable.";
 const strategyRouteNote =
@@ -129,13 +126,11 @@ function describeFundingWallet(input: {
 
   if (input.fundingSource === STRATEGY_FUNDING_SOURCE_PUBLIC_BALANCE) {
     return input.walletConnected && input.walletAddressShort
-      ? `Uses public funds from connected wallet ${input.walletAddressShort}; Vanta must shield them before live execution.`
-      : "Connect a wallet to choose which public balance funds this strategy.";
+      ? `Uses public wallet ${input.walletAddressShort}; Vanta must shield funds into your private balance before live execution.`
+      : "Connect a wallet to choose the public wallet, then shield funds before live execution.";
   }
 
-  return input.walletConnected && input.walletAddressShort
-    ? `Uses connected wallet ${input.walletAddressShort}.`
-    : "Connect a wallet so Vanta knows which public wallet this choice means.";
+  return "Choose whether this preview starts from a public wallet or Vanta private balance.";
 }
 
 function describeDestinationWallet(input: {
@@ -275,10 +270,6 @@ export function StrategyPage() {
   const fundingBlockingIssues = useMemo(() => {
     if (form.fundingSource === STRATEGY_FUNDING_SOURCE_PUBLIC_BALANCE) {
       return [strategyPublicFundingCopy];
-    }
-
-    if (form.fundingSource === STRATEGY_FUNDING_SOURCE_CONNECTED_WALLET) {
-      return [strategyConnectedWalletCopy];
     }
 
     return [];

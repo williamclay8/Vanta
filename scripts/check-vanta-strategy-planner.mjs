@@ -38,12 +38,17 @@ assert.ok(
 
 const publicFundedPlan = createStrategyPlan({
   ...baseInput,
-  fundingSource: "Public wallet balance",
+  fundingSource: "Public wallet",
 });
 assert.equal(
   publicFundedPlan.fundingAction,
   "deposit-to-private-before-live-run",
   "public wallet funding should require a private-balance deposit before a live run",
+);
+assert.throws(
+  () => createStrategyPlan({ ...baseInput, fundingSource: "Connected wallet" }),
+  /consolidated into Public wallet/u,
+  "Connected wallet funding must not silently survive as a third public-wallet option.",
 );
 
 const twapPlan = createStrategyPlan({
