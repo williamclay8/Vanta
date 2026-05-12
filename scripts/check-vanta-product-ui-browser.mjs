@@ -77,6 +77,14 @@ function runBrowserBatch() {
       checks: [
         { kind: "url_contains", text: "/app/shield" },
         { kind: "selector_visible", selector: ".app-header" },
+        { kind: "selector_visible", selector: ".system-status-strip" },
+        { kind: "text_visible", text: "Trust status" },
+        { kind: "text_visible", text: "Shield: Claim locked" },
+        { kind: "text_visible", text: "Send: Claim locked" },
+        { kind: "text_visible", text: "Swap: Claim locked" },
+        { kind: "text_visible", text: "Unshield: Claim locked" },
+        { kind: "text_visible", text: "Strategy: Claim locked" },
+        { kind: "text_visible", text: "Pay: Claim locked" },
         { kind: "text_visible", text: "Shield" },
         { kind: "no_console_errors" },
       ],
@@ -88,6 +96,14 @@ function runBrowserBatch() {
       checks: [
         { kind: "url_contains", text: "/app/shield" },
         { kind: "selector_visible", selector: ".app-header" },
+        { kind: "selector_visible", selector: ".system-status-strip" },
+        { kind: "text_visible", text: "Trust status" },
+        { kind: "text_visible", text: "Shield: Claim locked" },
+        { kind: "text_visible", text: "Send: Claim locked" },
+        { kind: "text_visible", text: "Swap: Claim locked" },
+        { kind: "text_visible", text: "Unshield: Claim locked" },
+        { kind: "text_visible", text: "Strategy: Claim locked" },
+        { kind: "text_visible", text: "Pay: Claim locked" },
         { kind: "text_visible", text: "Shield" },
         { kind: "no_console_errors" },
       ],
@@ -139,6 +155,14 @@ function runBrowserBatch() {
       action: "assert",
       checks: [
         { kind: "url_contains", text: "/app/shield" },
+        { kind: "selector_visible", selector: ".system-status-strip" },
+        { kind: "text_visible", text: "Trust status" },
+        { kind: "text_visible", text: "Shield: Claim locked" },
+        { kind: "text_visible", text: "Send: Claim locked" },
+        { kind: "text_visible", text: "Swap: Claim locked" },
+        { kind: "text_visible", text: "Unshield: Claim locked" },
+        { kind: "text_visible", text: "Strategy: Claim locked" },
+        { kind: "text_visible", text: "Pay: Claim locked" },
         { kind: "text_visible", text: "Shield" },
         { kind: "no_console_errors" },
       ],
@@ -159,6 +183,14 @@ function runBrowserBatch() {
       action: "assert",
       checks: [
         { kind: "url_contains", text: "/app/strategy" },
+        { kind: "selector_visible", selector: ".system-status-strip" },
+        { kind: "text_visible", text: "Trust status" },
+        { kind: "text_visible", text: "Shield: Claim locked" },
+        { kind: "text_visible", text: "Send: Claim locked" },
+        { kind: "text_visible", text: "Swap: Claim locked" },
+        { kind: "text_visible", text: "Unshield: Claim locked" },
+        { kind: "text_visible", text: "Strategy: Claim locked" },
+        { kind: "text_visible", text: "Pay: Claim locked" },
         { kind: "text_visible", text: "Strategy" },
         { kind: "no_console_errors" },
       ],
@@ -179,6 +211,14 @@ function runBrowserBatch() {
       action: "assert",
       checks: [
         { kind: "url_contains", text: "/app/pay" },
+        { kind: "selector_visible", selector: ".system-status-strip" },
+        { kind: "text_visible", text: "Trust status" },
+        { kind: "text_visible", text: "Shield: Claim locked" },
+        { kind: "text_visible", text: "Send: Claim locked" },
+        { kind: "text_visible", text: "Swap: Claim locked" },
+        { kind: "text_visible", text: "Unshield: Claim locked" },
+        { kind: "text_visible", text: "Strategy: Claim locked" },
+        { kind: "text_visible", text: "Pay: Claim locked" },
         { kind: "text_visible", text: "Pay" },
         { kind: "no_console_errors" },
       ],
@@ -363,6 +403,105 @@ function assertActionTabsStayMinimal() {
   }
 }
 
+function assertSystemStatusStripLayout() {
+  for (const route of ["/app/shield", "/app/strategy", "/app/pay"]) {
+    for (const width of [1440, 768, 390, 360, 320]) {
+      execFileSync(
+        "gsd-browser",
+        ["--session", browserSession, "set-viewport", "--width", String(width), "--height", "900"],
+        { stdio: "ignore" },
+      );
+      execFileSync("gsd-browser", ["--session", browserSession, "navigate", `${baseUrl}${route}`], {
+        stdio: "ignore",
+      });
+      execFileSync("gsd-browser", ["--session", browserSession, "wait-for", "--condition", "network_idle"], {
+        stdio: "ignore",
+      });
+
+      const rawResult = execFileSync(
+        "gsd-browser",
+        [
+          "--session",
+          browserSession,
+          "--json",
+          "eval",
+          `(() => {
+            const strip = document.querySelector(".system-status-strip");
+            const header = document.querySelector(".app-header");
+            const tabs = document.querySelector(".app-header__tabs");
+            const bodyText = document.body.innerText;
+
+            if (
+              !(strip instanceof HTMLElement) ||
+              !(header instanceof HTMLElement) ||
+              !(tabs instanceof HTMLElement)
+            ) {
+              return {
+                ok: false,
+                reason: "system status strip, app header, or tabs missing",
+                route: window.location.pathname,
+                width: window.innerWidth,
+              };
+            }
+
+            const stripRect = strip.getBoundingClientRect();
+            const headerRect = header.getBoundingClientRect();
+            const tabsRect = tabs.getBoundingClientRect();
+            const documentOverflow =
+              Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) -
+              window.innerWidth;
+            const stripOverflow = strip.scrollWidth - strip.clientWidth;
+            const headerOverflow = header.scrollWidth - header.clientWidth;
+            const stripBeforeHeader = stripRect.bottom <= headerRect.top + 2;
+            const tabsReachable =
+              tabsRect.width > 0 &&
+              tabsRect.height > 0 &&
+              tabsRect.top < window.innerHeight &&
+              tabsRect.bottom > 0;
+            const requiredStatusMarkers = [
+              "Shield: Claim locked",
+              "Send: Claim locked",
+              "Swap: Claim locked",
+              "Unshield: Claim locked",
+              "Strategy: Claim locked",
+              "Pay: Claim locked",
+            ];
+            const missingMarkers = requiredStatusMarkers.filter((marker) => !bodyText.includes(marker));
+
+            return {
+              ok:
+                documentOverflow <= 2 &&
+                stripOverflow <= 2 &&
+                headerOverflow <= 2 &&
+                stripBeforeHeader &&
+                tabsReachable &&
+                missingMarkers.length === 0,
+              documentOverflow,
+              headerOverflow,
+              headerTop: headerRect.top,
+              missingMarkers,
+              route: window.location.pathname,
+              stripBottom: stripRect.bottom,
+              stripOverflow,
+              tabsReachable,
+              width: window.innerWidth,
+            };
+          })()`,
+        ],
+        { encoding: "utf8" },
+      );
+
+      const result = JSON.parse(rawResult);
+      const rawValue = result.result ?? result.value ?? result;
+      const value = typeof rawValue === "string" ? JSON.parse(rawValue) : rawValue;
+
+      if (!value.ok) {
+        throw new Error(`System status strip layout failed: ${JSON.stringify(value)}`);
+      }
+    }
+  }
+}
+
 function assertUnshieldAssetSelectorStaysCompact() {
   for (const width of [1440, 390]) {
     execFileSync(
@@ -516,6 +655,7 @@ try {
   assertSendWorkspaceCardCentered();
   assertDesktopProductTabsFit();
   assertActionTabsStayMinimal();
+  assertSystemStatusStripLayout();
   assertUnshieldAssetSelectorStaysCompact();
   console.log("vanta product ui browser check: PASS");
 } catch (error) {

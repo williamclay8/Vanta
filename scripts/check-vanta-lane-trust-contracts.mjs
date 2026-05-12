@@ -24,6 +24,26 @@ function requireMarkers(path, markers) {
   return source;
 }
 
+const bannedClaimMarkers = [
+  "fully private",
+  "anonymous",
+  "untraceable",
+  "production-ready private",
+  "production-ready",
+  "mainnet-ready private",
+  "mainnet-ready",
+];
+
+function checkBannedClaims(path, source) {
+  const normalizedSource = source.toLocaleLowerCase("en-US");
+
+  for (const banned of bannedClaimMarkers) {
+    if (normalizedSource.includes(banned)) {
+      failures.push(`Banned lane trust claim found in ${path}: ${banned}`);
+    }
+  }
+}
+
 const laneContracts = [
   {
     claim: "fullyPrivateShieldClaim: false",
@@ -98,17 +118,8 @@ for (const contract of laneContracts) {
     "claimControls.productionPrivacyClaimsLocked",
   ]);
 
-  for (const banned of [
-    "Fully private",
-    "Anonymous",
-    "Untraceable",
-    "Production-ready private",
-    "Mainnet-ready private",
-  ]) {
-    if (source.includes(banned) || pageSource.includes(banned)) {
-      failures.push(`Banned lane trust claim found for ${contract.path}: ${banned}`);
-    }
-  }
+  checkBannedClaims(contract.path, source);
+  checkBannedClaims(contract.page, pageSource);
 }
 
 const packageSource = sourceOf("package.json");
@@ -123,6 +134,58 @@ const reviewSource = sourceOf("VANTA_ZK_REVIEW.md");
 if (!reviewSource.includes("lane trust contracts")) {
   failures.push("VANTA_ZK_REVIEW.md must record the lane trust contracts feedback-loop status.");
 }
+
+const laneTrustStatusSource = requireMarkers("src/trust/laneTrustStatus.ts", [
+  "getLaneTrustStatuses",
+  "getShieldTrustContract",
+  "getSendTrustContract",
+  "getSwapTrustContract",
+  "getUnshieldTrustContract",
+  "getStrategyPrivateRailTrustContract",
+  "getVantaPayReceiptPrivacyContract",
+  "fully_private_pay_claim",
+  "production_privacy_claims_locked",
+  "productionPrivacyClaimsLocked",
+  "productionPrivacyClaimsLocked: controls.production_privacy_claims_locked",
+  "fullyPrivateClaim",
+  "liveProductionClaim: false",
+  "mainnetReady: false",
+  "claimLocked",
+  "Shield",
+  "Send",
+  "Swap",
+  "Unshield",
+  "Strategy",
+  "Pay",
+]);
+
+const systemStatusStripSource = requireMarkers("src/components/SystemStatusStrip.tsx", [
+  "getLaneTrustStatuses",
+  "system-status-strip",
+  "aria-label=\"Vanta lane trust status\"",
+  "Claim locked",
+  "Shield: Claim locked",
+  "Send: Claim locked",
+  "Swap: Claim locked",
+  "Unshield: Claim locked",
+  "Strategy: Claim locked",
+  "Pay: Claim locked",
+]);
+
+const appLayoutSource = requireMarkers("src/components/AppLayout.tsx", [
+  "SystemStatusStrip",
+  "<SystemStatusStrip showBetaMode={isBetaMode} />",
+]);
+
+requireMarkers("src/styles.css", [
+  ".system-status-strip",
+  ".system-status-strip__lanes",
+  "overflow-wrap: anywhere",
+]);
+
+checkBannedClaims("src/trust/laneTrustStatus.ts", laneTrustStatusSource);
+checkBannedClaims("src/components/SystemStatusStrip.tsx", systemStatusStripSource);
+checkBannedClaims("src/components/AppLayout.tsx", appLayoutSource);
 
 if (failures.length > 0) {
   console.error("Vanta lane trust contracts check: FAIL");

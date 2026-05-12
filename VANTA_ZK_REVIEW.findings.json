@@ -22,9 +22,9 @@
   ],
   "lumiBaseline": {
     "branch": "codex/vanta-zk-review-hardening",
-    "lastKnownCommit": "commit containing the owner-context record-source import/export UX feedback-loop ledger entry",
-    "local": "verified locally for the owner-context record-source import/export UX feedback-loop slice",
-    "committed": "included in the commit containing the owner-context record-source import/export UX feedback-loop ledger entry",
+    "lastKnownCommit": "commit containing the all-lane trust status strip feedback-loop ledger entry",
+    "local": "verified locally for the all-lane trust status strip feedback-loop slice",
+    "committed": "included in the commit containing the all-lane trust status strip feedback-loop ledger entry",
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
@@ -244,6 +244,34 @@
         "deployedLive": "not-live-verified"
       },
       "truthBoundary": "This is a local product import/export verification UX for non-secret record-source packets. It is not legacy-record migration, not viewing-key memo discovery by itself, not live deployment evidence, and not proof that old random-seeded records are recoverable."
+    },
+    {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-12-ALL-LANE-TRUST-STATUS-STRIP",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#13-frontend-exposes-operator-tokens-through-vite_-envs",
+        "src/trust/laneTrustStatus.ts",
+        "src/components/SystemStatusStrip.tsx",
+        "src/components/AppLayout.tsx",
+        "scripts/check-vanta-lane-trust-contracts.mjs",
+        "scripts/check-vanta-product-ui-browser.mjs"
+      ],
+      "summary": "The app shell now derives one compact all-lane trust status strip from Shield, Send, Swap, Unshield, Strategy, and Pay trust/privacy contracts. The strip normalizes Pay's snake-case claim controls into the shared claim-locked status shape, keeps beta/test-mode truth in the shell, and browser-checks the strip on Shield, Strategy, and Pay routes across desktop and narrow mobile widths.",
+      "localVerification": [
+        "npm run lanes:trust-contract-check",
+        "npm run pay:receipt-privacy-contract-check",
+        "npm run strategy:private-rail-trust-contract-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run build",
+        "npm run product-ui:browser-check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the all-lane trust status strip feedback-loop slice",
+        "committed": "included in the all-lane trust status strip feedback-loop commit",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is local UI and guard truth-surfacing for beta claim locks across six lanes. It does not make any lane production-private, mainnet-ready, audited, live deployed, or proof of operator/live settlement correctness."
     },
     {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-SINGLE-NOTE-LEGACY-LANE-FREEZE",

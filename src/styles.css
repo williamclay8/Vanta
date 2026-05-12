@@ -756,6 +756,91 @@ input {
   line-height: 1.35;
 }
 
+.system-status-strip {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.system-status-strip__topline,
+.system-status-strip__details summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.system-status-strip__topline span {
+  min-width: 0;
+}
+
+.system-status-strip__details {
+  width: 100%;
+  min-width: 0;
+}
+
+.system-status-strip__details summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.system-status-strip__details summary::-webkit-details-marker {
+  display: none;
+}
+
+.system-status-strip__count {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.system-status-strip__summary {
+  min-width: 0;
+  color: var(--muted-strong);
+  overflow-wrap: anywhere;
+}
+
+.system-status-strip__lanes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.system-status-strip__lanes li {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(246, 248, 245, 0.035);
+  box-shadow: inset 0 0 0 1px rgba(246, 248, 245, 0.08);
+}
+
+.system-status-strip__lane-name {
+  color: var(--foreground);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.system-status-strip__lanes small,
+.system-status-strip__lanes code {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.system-status-strip__lanes code {
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+}
+
 .app-header__brand {
   min-height: 44px;
   min-width: 0;
@@ -6681,6 +6766,21 @@ input {
     text-align: left;
   }
 
+  .system-status-strip {
+    gap: 8px;
+  }
+
+  .system-status-strip__topline,
+  .system-status-strip__details summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .system-status-strip__lanes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .app-header__tabs-rail {
     grid-area: tabs;
     display: grid;
@@ -7016,6 +7116,15 @@ input {
     min-width: 108px;
     align-items: flex-start;
     padding-inline: 13px;
+  }
+
+  .system-status-strip__lanes {
+    grid-template-columns: 1fr;
+  }
+
+  .system-status-strip__count,
+  .system-status-strip__summary {
+    font-size: 0.72rem;
   }
 
   .review-row {

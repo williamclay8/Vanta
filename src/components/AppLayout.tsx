@@ -5,6 +5,7 @@ import {
   createMobileWalletOpenLinks,
   shouldShowMobileWalletPrompt,
 } from "@/components/MobileWalletOpenPrompt";
+import { SystemStatusStrip } from "@/components/SystemStatusStrip";
 import { isBetaMode } from "@/config/deploymentMode";
 import { useWalletState } from "@/data/context/WalletContext";
 import { getPeerOnrampAvailability } from "@/peer/peerConfig";
@@ -266,12 +267,7 @@ export function AppLayout() {
       <div className="app-shell__glow app-shell__glow--left" aria-hidden="true" />
       <div className="app-shell__glow app-shell__glow--right" aria-hidden="true" />
 
-      {isBetaMode && (
-        <div className="beta-mode-banner" role="status">
-          <strong>Test mode</strong>
-          <span>No funds move in this mode. Live private settlement stays blocked until evidence, approval, audit, replay, and operator-surface gates clear.</span>
-        </div>
-      )}
+      <SystemStatusStrip showBetaMode={isBetaMode} />
 
       {showRouteWalletPrompt && !walletPickerOpen && mobileWalletOpenLinks.length > 0 && (
         <div className="mobile-wallet-open-prompt" role="status">
