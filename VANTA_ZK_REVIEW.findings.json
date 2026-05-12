@@ -194,6 +194,7 @@
         "programs/vanta_private_pool_v2_spend/src/lib.rs",
         "npm run private-pool-v2:contract-check",
         "npm run zk:c01-onchain-proof-boundary-check",
+        "npm run private-pool-v2:onchain-unshield-custody-check",
         "npm run private-pool-v2:sbf-abi-check"
       ],
       "failureMode": "The local program now gates writes with operator authority, accepted-root scaffolding, deterministic nullifier-marker PDA replay checks, and deterministic output-record PDA writes, but no verifier enforces a real proof or verifying-key hash on chain.",
@@ -201,17 +202,19 @@
         "Commit a verifying-key hash or verifier program boundary for the active circuit.",
         "Verify a real proof against the public input hash in-program or via a dedicated verifier CPI.",
         "Replace operator-fed fixed-slot root-history scaffolding with proof-backed program-owned shared tree state.",
+        "Replace the operator-keypair Unshield release path with program-owned vault custody and a proof-verified TAG_UNSHIELD release instruction.",
         "Rebuild, redeploy, and reinitialize before citing live evidence."
       ],
       "verification": {
         "commands": [
           "npm run private-pool-v2:contract-check",
           "npm run zk:c01-onchain-proof-boundary-check",
+          "npm run private-pool-v2:onchain-unshield-custody-check",
           "npm run private-pool-v2:sbf-abi-check"
         ],
-        "localResult": "contract-check covers the local authority/root/nullifier-marker/output-record scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed truth boundary; sbf-abi-check is expected to fail closed until the Solana toolchain rebuilds the current ABI.",
-        "proves": "Local write authority, account binding, accepted-root scaffold, deterministic output-record PDA binding, stale-SBF detection, and the negative C01 truth boundary are guarded.",
-        "doesNotProve": "On-chain proof verification, verifying-key enforcement, program-owned tree state, audit acceptance, or live deployment correctness."
+        "localResult": "contract-check covers the local authority/root/nullifier-marker/output-record scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed proof truth boundary; onchain-unshield-custody-check preserves the blocked operator-keypair/public-exit custody truth boundary; sbf-abi-check is expected to fail closed until the Solana toolchain rebuilds the current ABI.",
+        "proves": "Local write authority, account binding, accepted-root scaffold, deterministic output-record PDA binding, explicit blocked Unshield custody status, stale-SBF detection, and the negative C01 truth boundary are guarded.",
+        "doesNotProve": "On-chain proof verification, verifying-key enforcement, program-owned tree state, program-owned vault custody, proof-verified TAG_UNSHIELD release, audit acceptance, or live deployment correctness."
       },
       "codexRemediation": {
         "commits": [
@@ -235,16 +238,20 @@
           "programs/vanta_private_pool_v2_spend/src/lib.rs",
           "scripts/check-vanta-private-pool-v2-sbf-abi-status.mjs",
           "scripts/check-vanta-zk-c01-onchain-proof-boundary.mjs",
+          "scripts/check-vanta-private-pool-v2-onchain-unshield-custody.mjs",
+          "src/readiness/unshieldMainnetProductionStatus.mjs",
+          "operator/unshield-server.mjs",
           "operator/private-pool-v2-server.mjs",
           "src/privacy/privatePoolV2SolanaSpendTransaction.mjs"
         ],
         "watchCommands": [
           "npm run private-pool-v2:contract-check",
           "npm run zk:c01-onchain-proof-boundary-check",
+          "npm run private-pool-v2:onchain-unshield-custody-check",
           "npm run private-pool-v2:sbf-abi-check"
         ]
       },
-      "truthBoundary": "Use beta/local-scaffold language until a real verifier, rebuilt SBF binary, redeploy/reinit evidence, and audit acceptance exist."
+      "truthBoundary": "Use beta/local-scaffold language until a real verifier, program-owned tree state, program-owned vault custody with proof-verified TAG_UNSHIELD release, rebuilt SBF binary, redeploy/reinit evidence, and audit acceptance exist."
     },
     {
       "id": "VANTA-ZK-2026-05-09-C02",

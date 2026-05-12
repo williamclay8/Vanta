@@ -432,6 +432,8 @@ While the above is in flight, the existing repo should:
 
 **Codex status, 2026-05-11:** partially remediated locally for the beta custody fallback. The browser Shield config and local Unshield operator no longer silently fall back to the hard-coded regular-wallet vault owner. Shield execution now requires an explicitly configured vault owner; configured wallet vaults are machine-marked as `operator-configured-wallet` with `productionCustodyReady: false`, while derived vault PDA paths stay blocked until a deployed vault init/release program exists. Guards: `npm run shield:user-vault-check`, `npm run shield:executability-claims-check`, `npm run unshield:sol-operator-endpoint-check`, and `npm run shield:production-assets-check`. This does not create a program-owned vault, migrate existing deployment env, rotate any live keys, or make Shield production-custodial-safe.
 
+**Codex status, 2026-05-12:** added a machine-readable Unshield custody truth guard. `npm run private-pool-v2:onchain-unshield-custody-check` now asserts that the current release model is blocked as an operator-keypair public exit, that `productionCustodyReady` remains false, that `program-owned-vault-pda-not-deployed` / `tag-unshield-not-implemented` / `onchain-unshield-proof-verifier-not-wired` / `operator-vault-keypair-env-release-still-active` stay visible in Unshield production status, and that the program has not silently grown `TAG_UNSHIELD` without replacing this negative guard with positive proof-verifier and PDA-release assertions. This is a blocker guard, not the custody migration itself.
+
 ## Files most directly impacted
 
 For Codex (or any next agent) picking this up, here's where the work lands:

@@ -36,6 +36,13 @@ assert.equal(
   "postgres-jsonb-snapshot-store",
 );
 assert.equal(status.runtimeProductionControls.operatorEventSinkProductionReady, false);
+assert.equal(status.onchainUnshieldCustody.version, "vanta-onchain-unshield-custody-status-0.1");
+assert.equal(status.onchainUnshieldCustody.status, "blocked");
+assert.equal(status.onchainUnshieldCustody.currentReleaseModel, "operator-keypair-public-exit");
+assert.equal(status.onchainUnshieldCustody.productionCustodyReady, false);
+assert.equal(status.onchainUnshieldCustody.programOwnedVaultReady, false);
+assert.equal(status.onchainUnshieldCustody.onchainUnshieldInstructionReady, false);
+assert.equal(status.onchainUnshieldCustody.onchainProofVerifierReady, false);
 for (const blocker of [
   "observability-provider-controls-pending",
   "real-funds-readiness-pending",
@@ -56,6 +63,10 @@ const expectedBlockers = [
   "no-exact-unshield-bounded-approval-window",
   "observability-provider-controls-pending",
   "operator-event-sink-not-production-ready",
+  "program-owned-vault-pda-not-deployed",
+  "tag-unshield-not-implemented",
+  "onchain-unshield-proof-verifier-not-wired",
+  "operator-vault-keypair-env-release-still-active",
   ...(status.currentApproval.approvalWindowStatus === "active" ? [] : ["bounded-approval-window-expired"]),
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
@@ -75,6 +86,7 @@ for (const [key, command] of Object.entries({
   unshieldPublicExitSurface: "npm run unshield:public-exit-surface-check",
   unshieldActualPrivatePlan: "npm run mainnet:actual-private-settlement-plan-check",
   unshieldActualPrivatePlanJson: "npm run mainnet:actual-private-settlement-plan-json-check",
+  onchainUnshieldCustody: "npm run private-pool-v2:onchain-unshield-custody-check",
   runtimeProductionControls: "npm run mainnet:abuse-observability-runtime-status-auth",
   serviceDeploymentStatus: "npm run mainnet:service-deployment-status-check",
   walletSigningStatus: "npm run mainnet:wallet-signing-status-check",
@@ -132,6 +144,16 @@ assert.equal(
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:unshield-production-check"),
   "mainnet:preflight must include the Unshield production status check.",
+);
+assert.equal(
+  packageJson.scripts["private-pool-v2:onchain-unshield-custody-check"],
+  "node scripts/check-vanta-private-pool-v2-onchain-unshield-custody.mjs",
+);
+assert.ok(
+  packageJson.scripts["zk:review-guards-check"].includes(
+    "npm run private-pool-v2:onchain-unshield-custody-check",
+  ),
+  "zk:review-guards-check must include the Unshield custody guard.",
 );
 
 const serialized = JSON.stringify(status);

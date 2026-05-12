@@ -18,6 +18,16 @@ if (checkMode) {
   assert.equal(status.noFundsOperatorEndpointCovered, true);
   assert.equal(status.liveSettlementProven, false);
   assert.equal(status.boundedApprovalActive, false);
+  assert.equal(status.onchainUnshieldCustody.productionCustodyReady, false);
+  assert.equal(status.onchainUnshieldCustody.currentReleaseModel, "operator-keypair-public-exit");
+  assert.ok(
+    status.blockers.includes("program-owned-vault-pda-not-deployed"),
+    "Unshield production status must expose the missing program-owned vault blocker.",
+  );
+  assert.ok(
+    status.blockers.includes("tag-unshield-not-implemented"),
+    "Unshield production status must expose the missing TAG_UNSHIELD blocker.",
+  );
   assert.ok(
     status.blockers.includes("no-reviewed-live-mainnet-unshield-settlement-evidence"),
     "Unshield production status must expose the missing reviewed live settlement blocker.",
@@ -35,6 +45,10 @@ if (checkMode) {
   );
   assert.equal(status.evidenceRefs.unshieldNoFundsEndpoint, "npm run unshield:sol-operator-endpoint-check");
   assert.equal(status.evidenceRefs.privateCoreVerify, "npm run private-core:verify");
+  assert.equal(
+    status.evidenceRefs.onchainUnshieldCustody,
+    "npm run private-pool-v2:onchain-unshield-custody-check",
+  );
   assert.ok(status.truth.includes("must not be called mainnet-production-ready"));
   assert.ok(status.safety.includes("No auth tokens"));
 }
@@ -48,6 +62,9 @@ if (jsonMode || checkMode) {
   console.log(`- noFundsOperatorEndpointCovered: ${String(status.noFundsOperatorEndpointCovered)}`);
   console.log(`- liveSettlementProven: ${String(status.liveSettlementProven)}`);
   console.log(`- boundedApprovalActive: ${String(status.boundedApprovalActive)}`);
+  console.log(
+    `- onchainUnshieldCustody: ${status.onchainUnshieldCustody.currentReleaseModel} (${status.onchainUnshieldCustody.status})`,
+  );
   console.log(`- productionReady: ${String(status.productionReady)}`);
   console.log(`- blockers: ${status.blockers.join(", ")}`);
 }

@@ -74,12 +74,49 @@ function createUnshieldRuntimeProductionControlsStatus() {
   };
 }
 
+function createOnchainUnshieldCustodyStatus() {
+  return {
+    version: "vanta-onchain-unshield-custody-status-0.1",
+    status: "blocked",
+    custodyModel: "operator-keypair-in-env",
+    currentReleaseModel: "operator-keypair-public-exit",
+    productionCustodyReady: false,
+    programOwnedVaultReady: false,
+    programOwnedVaultPdaReady: false,
+    onchainUnshieldInstructionReady: false,
+    tagUnshieldReleaseReady: false,
+    onchainProofVerifierReady: false,
+    blockers: [
+      "program-owned-vault-pda-not-deployed",
+      "tag-unshield-not-implemented",
+      "onchain-unshield-proof-verifier-not-wired",
+      "operator-vault-keypair-env-release-still-active",
+    ],
+    checkedRefs: {
+      custodyGuard: "npm run private-pool-v2:onchain-unshield-custody-check",
+      userVaultOwner: "npm run shield:user-vault-check",
+      publicExitSurface: "npm run unshield:public-exit-surface-check",
+      solOperatorEndpoint: "npm run unshield:sol-operator-endpoint-check",
+      onchainProofBoundary: "npm run zk:c01-onchain-proof-boundary-check",
+    },
+    requiredBeforeProduction: [
+      "Deploy a program-owned vault PDA or equivalent on-chain custody account for Shielded funds.",
+      "Add an on-chain TAG_UNSHIELD release instruction that consumes a nullifier and releases from the program-owned vault.",
+      "Verify a real Unshield proof or verifier CPI on chain before PDA-signed release.",
+      "Remove operator vault-keypair release authority from the production Unshield path.",
+    ],
+    truth:
+      "Current Unshield release remains an operator-keypair public exit: the operator signs SPL/SOL transfers from the configured vault owner. This is beta custodial infrastructure, not program-owned on-chain custody.",
+  };
+}
+
 export function createVantaUnshieldMainnetProductionStatus() {
   const privateSettlement = createVantaMainnetPrivateSettlementStatus();
   const realFundsApproval = createVantaMainnetRealFundsApprovalStatus();
   const walletSigning = createVantaWalletSigningStatus();
   const actualPrivateUnshieldPlan = createLocalActualPrivateUnshieldPlanStatus();
   const runtimeProductionControls = createUnshieldRuntimeProductionControlsStatus();
+  const onchainUnshieldCustody = createOnchainUnshieldCustodyStatus();
 
   const localLaneCovered =
     walletSigning.protocolPagesWithSafeSendAdoption.includes("Unshield") &&
@@ -105,6 +142,7 @@ export function createVantaUnshieldMainnetProductionStatus() {
     noFundsOperatorEndpointCovered &&
     liveSettlementProven &&
     boundedApprovalActive &&
+    onchainUnshieldCustody.productionCustodyReady &&
     privateSettlement.auditedSharedAnonymitySetAvailable &&
     privateSettlement.liveMainnetPrivateSettlementAvailable &&
     privateSettlement.privacyClaimAllowed;
@@ -113,6 +151,7 @@ export function createVantaUnshieldMainnetProductionStatus() {
     ...(localLaneCovered ? [] : ["unshield-safe-send-or-message-intent-boundary-missing"]),
     ...(actualPrivateUnshieldPlan.localPlanCovered ? [] : ["actual-private-unshield-plan-missing"]),
     ...(runtimeProductionControls.covered ? [] : runtimeProductionControls.pending),
+    ...(onchainUnshieldCustody.productionCustodyReady ? [] : onchainUnshieldCustody.blockers),
     ...(noFundsOperatorEndpointCovered ? [] : ["unshield-production-operator-smoke-or-replay-evidence-missing"]),
     ...(liveSettlementProven ? [] : ["no-reviewed-live-mainnet-unshield-settlement-evidence"]),
     ...(exactUnshieldApprovalScoped ? [] : ["no-exact-unshield-bounded-approval-window"]),
@@ -137,6 +176,7 @@ export function createVantaUnshieldMainnetProductionStatus() {
     blockers: [...new Set(blockers)],
     actualPrivateUnshieldPlan,
     runtimeProductionControls,
+    onchainUnshieldCustody,
     currentApproval: {
       actionRef: realFundsApproval.approvalActionRef,
       approvalWindowRef: realFundsApproval.approvalWindowRef,
@@ -154,6 +194,7 @@ export function createVantaUnshieldMainnetProductionStatus() {
       privateCoreVerify: "npm run private-core:verify",
       unshieldActualPrivatePlan: "npm run mainnet:actual-private-settlement-plan-check",
       unshieldActualPrivatePlanJson: "npm run mainnet:actual-private-settlement-plan-json-check",
+      onchainUnshieldCustody: "npm run private-pool-v2:onchain-unshield-custody-check",
       runtimeProductionControls: "npm run mainnet:abuse-observability-runtime-status-auth",
       serviceDeploymentStatus: "npm run mainnet:service-deployment-status-check",
       mainnetPreflight: "npm run mainnet:preflight",
@@ -164,11 +205,12 @@ export function createVantaUnshieldMainnetProductionStatus() {
       "Record reviewed live relayer-submitted spend or unshield settlement evidence for the active approval window.",
       "Record live nullifier replay rejection evidence against the production store after the settlement.",
       "Record independent reviewer or audit acceptance for the public transcript and anonymity-set measurement.",
+      ...onchainUnshieldCustody.requiredBeforeProduction,
       "Keep Unshield wallet approvals behind safe-send transaction summaries and typed message-intent boundaries.",
     ],
     safety:
       "No auth tokens, database URLs, wallet keys, signed transactions, seed phrases, or raw private inputs are printed.",
     truth:
-      "Unshield has local no-funds operator and wallet-safety coverage, but it must not be called mainnet-production-ready until live reviewed settlement evidence, active real-funds approval, audited/shared anonymity-set evidence, and production replay evidence are all present.",
+      "Unshield has local no-funds operator and wallet-safety coverage, but the current release model is still an operator-keypair public exit rather than program-owned on-chain custody. It must not be called mainnet-production-ready until live reviewed settlement evidence, active real-funds approval, program-owned vault custody with on-chain TAG_UNSHIELD proof-verified release, audited/shared anonymity-set evidence, and production replay evidence are all present.",
   };
 }
