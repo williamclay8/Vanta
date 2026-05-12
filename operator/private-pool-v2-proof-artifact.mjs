@@ -11,6 +11,11 @@ const claimCircuitDir = resolve(repoRoot, "zk/noir/vanta_private_pool_v2_claim_e
 const claimCircuitName = "vanta_private_pool_v2_claim_entry";
 const sendCircuitDir = resolve(repoRoot, "zk/noir/vanta_private_pool_v2_send_entry");
 const sendCircuitName = "vanta_private_pool_v2_send_entry";
+const swapToShieldedCircuitDir = resolve(
+  repoRoot,
+  "zk/noir/vanta_private_pool_v2_swap_to_shielded_entry",
+);
+const swapToShieldedCircuitName = "vanta_private_pool_v2_swap_to_shielded_entry";
 const actualPrivateSpendCircuitDir = resolve(
   repoRoot,
   "zk/noir/vanta_private_pool_v2_actual_private_spend_entry",
@@ -37,6 +42,13 @@ const proofArtifactCircuitProfiles = {
     label: "Private Pool v2 Send",
     publicInputLabels: ["send-public-input-hash"],
     verifiedPublicInputKey: "sendPublicInputHash",
+  },
+  [swapToShieldedCircuitName]: {
+    circuitDir: swapToShieldedCircuitDir,
+    circuitName: swapToShieldedCircuitName,
+    label: "Private Pool v2 Swap-to-shielded",
+    publicInputLabels: ["swap-public-input-hash"],
+    verifiedPublicInputKey: "swapPublicInputHash",
   },
   [actualPrivateSpendCircuitName]: {
     circuitDir: actualPrivateSpendCircuitDir,
@@ -90,6 +102,7 @@ const forbiddenStringFragments = [
   "vanta_private_pool_v2_shield_entry.gz",
   "vanta_private_pool_v2_claim_entry.gz",
   "vanta_private_pool_v2_send_entry.gz",
+  "vanta_private_pool_v2_swap_to_shielded_entry.gz",
   "vanta_private_pool_v2_actual_private_spend_entry.gz",
 ];
 
@@ -290,6 +303,13 @@ export function normalizeVantaPrivatePoolV2ClaimProofArtifact(proofArtifact) {
   );
 }
 
+export function normalizeVantaPrivatePoolV2SwapToShieldedProofArtifact(proofArtifact) {
+  return normalizeVantaPrivatePoolV2ProofArtifact(
+    proofArtifact,
+    proofArtifactCircuitProfiles[swapToShieldedCircuitName],
+  );
+}
+
 export function normalizeVantaPrivatePoolV2ActualPrivateSpendProofArtifact(proofArtifact) {
   return normalizeVantaPrivatePoolV2ProofArtifact(
     proofArtifact,
@@ -394,6 +414,13 @@ export async function verifyVantaPrivatePoolV2ClaimProofArtifact(args) {
   return await verifyVantaPrivatePoolV2ProofArtifact(
     args,
     proofArtifactCircuitProfiles[claimCircuitName],
+  );
+}
+
+export async function verifyVantaPrivatePoolV2SwapToShieldedProofArtifact(args) {
+  return await verifyVantaPrivatePoolV2ProofArtifact(
+    args,
+    proofArtifactCircuitProfiles[swapToShieldedCircuitName],
   );
 }
 

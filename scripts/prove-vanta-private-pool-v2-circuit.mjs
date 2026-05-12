@@ -39,6 +39,8 @@ const targets = {
       repoRoot,
       "scripts/write-vanta-private-pool-v2-swap-to-shielded-fixture.mjs",
     ),
+    noWitnessProofArtifact: true,
+    publicInputLabels: ["swap-public-input-hash"],
   },
   "actual-private-spend": {
     circuitDir: resolve(repoRoot, "zk/noir/vanta_private_pool_v2_actual_private_spend_entry"),
