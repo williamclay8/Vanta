@@ -27,7 +27,7 @@ const requiredPhrases = [
   "not a browser/runtime prover",
   "reserved Private Pool v2 tag `3` proof-carrying spend ABI is source/local rebuilt-SBF fail-closed scaffolding",
   "returns custom error `14` before reading or mutating accounts",
-  "reserved source-only `TAG_UNSHIELD = 6` ABI now fails closed before reading or mutating accounts and cannot release funds",
+  "reserved source-only `TAG_UNSHIELD = 6` ABI now validates a root/nullifier/vault-authority preflight and then fails closed before nullifier consume, proof verification, token/system CPI, custody transfer, or fund release",
   "transition-field drift",
   "request-metadata drift",
   "Private Pool v2 anonymity-set readiness is now a checked fail-closed operator/readiness surface",

@@ -10,6 +10,7 @@ use std::rc::Rc;
 const TAG_INIT: u8 = 0;
 const TAG_SPEND: u8 = 1;
 const TAG_REGISTER_ROOT: u8 = 2;
+const TAG_UNSHIELD: u8 = 6;
 
 const VERSION: u8 = 1;
 const POOL_MAGIC: &[u8; 8] = b"VNTA2POL";
@@ -20,6 +21,7 @@ const OUTPUT_RECORD_MAGIC: &[u8; 8] = b"VNTA2ORC";
 const ROOT_MAGIC: &[u8; 8] = b"VNTA2ROT";
 const NULLIFIER_MARKER_SEED: &[u8] = b"vanta2nul";
 const OUTPUT_RECORD_SEED: &[u8] = b"vanta2out";
+const VAULT_AUTHORITY_SEED: &[u8] = b"vanta2vault";
 
 const HEADER_LEN: usize = 16;
 const COUNT_OFFSET: usize = 12;
@@ -32,6 +34,8 @@ const POOL_OUTPUT_QUEUE_OFFSET: usize = 120;
 const POOL_ROOT_HISTORY_OFFSET: usize = 152;
 
 const HASH_LEN: usize = 32;
+const EXIT_AMOUNT_LEN: usize = 8;
+const RESERVED_GROTH16_PROOF_LEN: usize = 256;
 const OUTPUT_RECORD_PDA_LEN: usize = HEADER_LEN + 8 + HASH_LEN * 4;
 const OUTPUT_RECORD_INDEX_OFFSET: usize = HEADER_LEN;
 const OUTPUT_RECORD_POOL_OFFSET: usize = HEADER_LEN + 8;
@@ -51,6 +55,8 @@ const ERR_DUPLICATE_ROOT: u32 = 10;
 const ERR_UNKNOWN_ACCEPTED_ROOT: u32 = 11;
 const ERR_NULLIFIER_MARKER_MISMATCH: u32 = 12;
 const ERR_OUTPUT_RECORD_MISMATCH: u32 = 13;
+const ERR_UNSHIELD_RELEASE_NOT_WIRED: u32 = 15;
+const ERR_VAULT_AUTHORITY_MISMATCH: u32 = 16;
 
 #[derive(Clone)]
 struct OutputRecord {
@@ -309,6 +315,86 @@ impl VantaPrivatePoolV2Spend {
             before,
             self.snapshot_accounts_for_payload(&payload),
             "duplicate output-record call mutated state"
+        );
+    }
+
+    pub fn action_unshield_preflight(&mut self, seed: u64, selector: u8) {
+        if !self.initialized || self.state_error_code.is_some() {
+            return;
+        }
+
+        let mode = selector % 6;
+        let accepted_root = match mode {
+            1 => make_hash(seed, 44),
+            _ => self
+                .accepted_roots
+                .last()
+                .copied()
+                .unwrap_or(make_hash(seed, 4)),
+        };
+        let mut payload = unshield_payload(seed, accepted_root);
+        if mode == 5 {
+            let Some(consumed) = self.accepted_nullifiers.last().copied() else {
+                return;
+            };
+            payload = unshield_payload_with_nullifier(seed, accepted_root, consumed);
+        }
+
+        self.ensure_unshield_placeholders(&payload);
+        let (data, accounts, expected_code) = match mode {
+            0 => (
+                payload.data.clone(),
+                self.unshield_accounts_for_payload(&payload),
+                self.accepted_roots
+                    .is_empty()
+                    .then_some(ERR_UNKNOWN_ACCEPTED_ROOT)
+                    .or(Some(ERR_UNSHIELD_RELEASE_NOT_WIRED)),
+            ),
+            1 => (
+                payload.data.clone(),
+                self.unshield_accounts_for_payload(&payload),
+                Some(ERR_UNKNOWN_ACCEPTED_ROOT),
+            ),
+            2 => (
+                payload.data.clone(),
+                self.unshield_accounts_with_wrong_marker(&payload),
+                self.accepted_roots
+                    .is_empty()
+                    .then_some(ERR_UNKNOWN_ACCEPTED_ROOT)
+                    .or(Some(ERR_NULLIFIER_MARKER_MISMATCH)),
+            ),
+            3 => (
+                payload.data.clone(),
+                self.unshield_accounts_with_wrong_vault(&payload),
+                self.accepted_roots
+                    .is_empty()
+                    .then_some(ERR_UNKNOWN_ACCEPTED_ROOT)
+                    .or(Some(ERR_VAULT_AUTHORITY_MISMATCH)),
+            ),
+            4 => (
+                payload.data.clone(),
+                self.unshield_accounts_with_writable_vault(&payload),
+                self.accepted_roots
+                    .is_empty()
+                    .then_some(ERR_UNKNOWN_ACCEPTED_ROOT),
+            ),
+            _ => (
+                vec![TAG_UNSHIELD],
+                self.unshield_accounts_for_payload(&payload),
+                None,
+            ),
+        };
+
+        let before = self.snapshot_account_metas(&accounts);
+        let outcome = self.call_unsigned(data, accounts.clone());
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+        if let Some(code) = expected_code {
+            fuzz_assert_eq!(outcome.as_ref().and_then(TxOutcome::error_code), Some(code));
+        }
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_account_metas(&accounts),
+            "unshield preflight mutated account bytes or lamports"
         );
     }
 
@@ -678,6 +764,42 @@ impl VantaPrivatePoolV2Spend {
         ]
     }
 
+    fn unshield_accounts_for_payload(&self, payload: &UnshieldPayload) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
+            AccountMeta::new_readonly(self.vault_authority_pubkey(&payload.exit_asset_id), false),
+        ]
+    }
+
+    fn unshield_accounts_with_wrong_marker(&self, payload: &UnshieldPayload) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new(self.wrong_nullifier_set, false),
+            AccountMeta::new_readonly(self.vault_authority_pubkey(&payload.exit_asset_id), false),
+        ]
+    }
+
+    fn unshield_accounts_with_wrong_vault(&self, payload: &UnshieldPayload) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
+            AccountMeta::new_readonly(self.wrong_root_history, false),
+        ]
+    }
+
+    fn unshield_accounts_with_writable_vault(&self, payload: &UnshieldPayload) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
+            AccountMeta::new(self.vault_authority_pubkey(&payload.exit_asset_id), false),
+        ]
+    }
+
     fn root_registration_accounts(&self) -> Vec<AccountMeta> {
         vec![
             AccountMeta::new_readonly(self.pool_state, false),
@@ -754,9 +876,24 @@ impl VantaPrivatePoolV2Spend {
         accounts
     }
 
+    fn snapshot_account_metas(&self, accounts: &[AccountMeta]) -> Vec<(u64, Vec<u8>)> {
+        accounts
+            .iter()
+            .map(|meta| {
+                let account = self.ctx.get_account(&meta.pubkey).unwrap();
+                (account.lamports, account.data)
+            })
+            .collect()
+    }
+
     fn ensure_spend_placeholders(&mut self, payload: &SpendPayload) {
         self.ensure_marker_placeholder(&payload.nullifier);
         self.ensure_output_record_placeholder(&payload.public_input_hash);
+    }
+
+    fn ensure_unshield_placeholders(&mut self, payload: &UnshieldPayload) {
+        self.ensure_marker_placeholder(&payload.nullifier);
+        self.ensure_vault_authority_placeholder(&payload.exit_asset_id);
     }
 
     fn ensure_marker_placeholder(&mut self, nullifier: &[u8; HASH_LEN]) {
@@ -782,6 +919,21 @@ impl VantaPrivatePoolV2Spend {
         self.ctx
             .create_account()
             .pubkey(record)
+            .lamports(0)
+            .owner(system_program::ID)
+            .size(0)
+            .create()
+            .unwrap();
+    }
+
+    fn ensure_vault_authority_placeholder(&mut self, exit_asset_id: &[u8; HASH_LEN]) {
+        let vault_authority = self.vault_authority_pubkey(exit_asset_id);
+        if self.ctx.get_account(&vault_authority).is_ok() {
+            return;
+        }
+        self.ctx
+            .create_account()
+            .pubkey(vault_authority)
             .lamports(0)
             .owner(system_program::ID)
             .size(0)
@@ -855,6 +1007,18 @@ impl VantaPrivatePoolV2Spend {
         .0
     }
 
+    fn vault_authority_pubkey(&self, exit_asset_id: &[u8; HASH_LEN]) -> Pubkey {
+        Pubkey::find_program_address(
+            &[
+                VAULT_AUTHORITY_SEED,
+                self.pool_state.as_ref(),
+                exit_asset_id,
+            ],
+            &self.program_id,
+        )
+        .0
+    }
+
     fn account_data(&self, pubkey: Pubkey) -> Vec<u8> {
         self.ctx.get_account(&pubkey).unwrap().data
     }
@@ -867,6 +1031,13 @@ struct SpendPayload {
     output0: [u8; HASH_LEN],
     output1: [u8; HASH_LEN],
     public_input_hash: [u8; HASH_LEN],
+}
+
+#[derive(Clone)]
+struct UnshieldPayload {
+    data: Vec<u8>,
+    nullifier: [u8; HASH_LEN],
+    exit_asset_id: [u8; HASH_LEN],
 }
 
 fn spend_payload(seed: u64, accepted_root: [u8; HASH_LEN]) -> SpendPayload {
@@ -889,6 +1060,31 @@ fn spend_payload(seed: u64, accepted_root: [u8; HASH_LEN]) -> SpendPayload {
     }
 }
 
+fn unshield_payload(seed: u64, accepted_root: [u8; HASH_LEN]) -> UnshieldPayload {
+    unshield_payload_with_nullifier(seed, accepted_root, make_hash(seed, 61))
+}
+
+fn unshield_payload_with_nullifier(
+    seed: u64,
+    accepted_root: [u8; HASH_LEN],
+    nullifier: [u8; HASH_LEN],
+) -> UnshieldPayload {
+    let exit_destination = make_hash(seed, 62);
+    let exit_asset_id = make_hash(seed, 63);
+    let public_input_hash = make_hash(seed, 64);
+    UnshieldPayload {
+        data: unshield_data(
+            nullifier,
+            accepted_root,
+            exit_destination,
+            exit_asset_id,
+            public_input_hash,
+        ),
+        nullifier,
+        exit_asset_id,
+    }
+}
+
 fn spend_data(
     nullifier: [u8; HASH_LEN],
     output0: [u8; HASH_LEN],
@@ -904,6 +1100,30 @@ fn spend_data(
     data.extend_from_slice(&accepted_root);
     data.extend_from_slice(&public_input_hash);
     data
+}
+
+fn unshield_data(
+    nullifier: [u8; HASH_LEN],
+    accepted_root: [u8; HASH_LEN],
+    exit_destination: [u8; HASH_LEN],
+    exit_asset_id: [u8; HASH_LEN],
+    public_input_hash: [u8; HASH_LEN],
+) -> Vec<u8> {
+    let mut data =
+        Vec::with_capacity(1 + HASH_LEN * 5 + EXIT_AMOUNT_LEN + RESERVED_GROTH16_PROOF_LEN);
+    data.push(TAG_UNSHIELD);
+    data.extend_from_slice(&nullifier);
+    data.extend_from_slice(&accepted_root);
+    data.extend_from_slice(&exit_destination);
+    data.extend_from_slice(&exit_asset_id);
+    data.extend_from_slice(&seeded_exit_amount(&exit_asset_id));
+    data.extend_from_slice(&public_input_hash);
+    data.extend_from_slice(&[6; RESERVED_GROTH16_PROOF_LEN]);
+    data
+}
+
+fn seeded_exit_amount(exit_asset_id: &[u8; HASH_LEN]) -> [u8; EXIT_AMOUNT_LEN] {
+    exit_asset_id[0..EXIT_AMOUNT_LEN].try_into().unwrap()
 }
 
 fn register_root_data(root: [u8; HASH_LEN]) -> Vec<u8> {

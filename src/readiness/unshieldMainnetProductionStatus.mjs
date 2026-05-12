@@ -76,21 +76,26 @@ function createUnshieldRuntimeProductionControlsStatus() {
 
 function createOnchainUnshieldCustodyStatus() {
   return {
-    version: "vanta-onchain-unshield-custody-status-0.1",
+    version: "vanta-onchain-unshield-custody-status-0.2",
     status: "blocked",
     custodyModel: "operator-keypair-in-env",
     currentReleaseModel: "operator-keypair-public-exit",
     productionCustodyReady: false,
     programOwnedVaultReady: false,
     programOwnedVaultPdaReady: false,
+    sourceOnlyVaultAuthorityPreflightReady: true,
+    sourceOnlyRootPreflightReady: true,
+    sourceOnlyNullifierMarkerPreflightReady: true,
     onchainUnshieldInstructionReady: false,
-    onchainUnshieldInstructionStatus: "reserved-fail-closed-source-only",
+    onchainUnshieldInstructionStatus: "reserved-fail-closed-vault-preflight-source-only",
     tagUnshieldReleaseReady: false,
+    tokenCpiReleaseReady: false,
     onchainProofVerifierReady: false,
     blockers: [
       "program-owned-vault-pda-not-deployed",
       "tag-unshield-reserved-fail-closed",
       "onchain-unshield-proof-verifier-not-wired",
+      "tag-unshield-token-cpi-release-not-wired",
       "operator-vault-keypair-env-release-still-active",
     ],
     checkedRefs: {
@@ -102,12 +107,13 @@ function createOnchainUnshieldCustodyStatus() {
     },
     requiredBeforeProduction: [
       "Deploy a program-owned vault PDA or equivalent on-chain custody account for Shielded funds.",
-      "Replace the reserved fail-closed TAG_UNSHIELD source ABI with an on-chain release instruction that consumes a nullifier and releases from the program-owned vault.",
+      "Replace the reserved fail-closed TAG_UNSHIELD preflight source ABI with an on-chain release instruction that consumes a nullifier and releases from the program-owned vault.",
       "Verify a real Unshield proof or verifier CPI on chain before PDA-signed release.",
+      "Wire token CPI release from the program-owned custody account after proof and nullifier checks.",
       "Remove operator vault-keypair release authority from the production Unshield path.",
     ],
     truth:
-      "Current Unshield release remains an operator-keypair public exit: the operator signs SPL/SOL transfers from the configured vault owner. The local TAG_UNSHIELD source ABI is reserved fail-closed and cannot release funds. This is beta custodial infrastructure, not program-owned on-chain custody.",
+      "Current Unshield release remains an operator-keypair public exit: the operator signs SPL/SOL transfers from the configured vault owner. The local TAG_UNSHIELD source ABI is reserved fail-closed with source-only root/nullifier/vault-authority preflight and cannot release funds. This is beta custodial infrastructure, not program-owned on-chain custody.",
   };
 }
 

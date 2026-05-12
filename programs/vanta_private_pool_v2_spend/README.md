@@ -124,22 +124,33 @@ C01 verifier backend contract:
 - `local-acir-bytecode-hash-not-production-vk` is local fixture metadata and must not be accepted as a production verifying key
 - a future positive verifier lane must use `production-verifying-key-hash` evidence and replace the fail-closed custom error `14` boundary with reviewed verifier tests
 
-### `6` - proof-verified unshield release (reserved, fail closed)
+### `6` - proof-verified unshield release preflight (reserved, fail closed)
 
 Reserves the future program-owned vault release ABI. It is intentionally not accepted yet.
 
-Instruction data is exactly 393 bytes:
+Unshield preflight accounts:
+
+1. `pool_state` read-only, program-owned
+2. `root_history` read-only, program-owned, bound in `pool_state`
+3. `nullifier_marker` writable PDA derived from `["vanta2nul", pool_state, nullifier]`
+4. `vault_authority` read-only, non-signer PDA derived from `["vanta2vault", pool_state, exitAssetId]`
+
+Instruction data is exactly 425 bytes:
 
 ```text
-[6, nullifier:32, exitDestination:32, exitAssetId:32, exitAmountLeU64:8, publicInputHash:32, groth16Proof:256]
+[6, nullifier:32, acceptedRoot:32, exitDestination:32, exitAssetId:32, exitAmountLeU64:8, publicInputHash:32, groth16Proof:256]
 ```
 
 Behavior today:
 
-- checks only the reserved payload length and that the public release fields / proof are not all-zero placeholders
-- returns custom error `15` before reading or mutating any accounts
+- checks the reserved payload length and that the public release fields / proof are not all-zero placeholders
+- verifies the supplied `root_history` account is initialized and matches the pubkey stored in `pool_state`
+- rejects unshield preflights whose `acceptedRoot` has not been registered in `root_history`
+- preflights the deterministic nullifier marker PDA without creating or mutating it
+- preflights the deterministic vault-authority PDA without token accounts or SPL Token CPI
+- returns custom error `15` after preflight and before mutating accounts
 - does not perform token CPIs, PDA-signed release, custody transfer, nullifier consume, or proof verification
-- must not be used as program-owned vault or proof-verified release evidence until the actual verifier, vault PDA account model, token CPI, SBF rebuild, redeploy/reinit, and live/audit evidence exist
+- must not be used as program-owned vault or proof-verified release evidence until the actual verifier, token CPI, SBF rebuild, redeploy/reinit, and live/audit evidence exist
 
 ## Build
 
@@ -178,3 +189,4 @@ cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml
 - `13`: supplied output record PDA does not match the expected output record
 - `14`: proof-carrying spend ABI is reserved and the verifier is not wired
 - `15`: proof-verified unshield release ABI is reserved and release custody is not wired
+- `16`: supplied Unshield vault authority PDA does not match the expected pool/asset vault authority

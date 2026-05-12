@@ -27,6 +27,7 @@ const OUTPUT_RECORD_MAGIC: &[u8; 8] = b"VNTA2ORC";
 const ROOT_MAGIC: &[u8; 8] = b"VNTA2ROT";
 const NULLIFIER_MARKER_SEED: &[u8] = b"vanta2nul";
 const OUTPUT_RECORD_SEED: &[u8] = b"vanta2out";
+const VAULT_AUTHORITY_SEED: &[u8] = b"vanta2vault";
 
 const HEADER_LEN: usize = 16;
 const COUNT_OFFSET: usize = 12;
@@ -44,7 +45,11 @@ const SPEND_PAYLOAD_LEN: usize = 1 + HASH_LEN * 5;
 const RESERVED_GROTH16_PROOF_LEN: usize = 256;
 const SPEND_WITH_PROOF_PAYLOAD_LEN: usize =
     SPEND_PAYLOAD_LEN + HASH_LEN + RESERVED_GROTH16_PROOF_LEN;
-const UNSHIELD_PUBLIC_INPUT_HASH_OFFSET: usize = HASH_LEN * 3 + EXIT_AMOUNT_LEN;
+const UNSHIELD_ACCEPTED_ROOT_OFFSET: usize = HASH_LEN;
+const UNSHIELD_EXIT_DESTINATION_OFFSET: usize = HASH_LEN * 2;
+const UNSHIELD_EXIT_ASSET_ID_OFFSET: usize = HASH_LEN * 3;
+const UNSHIELD_EXIT_AMOUNT_OFFSET: usize = HASH_LEN * 4;
+const UNSHIELD_PUBLIC_INPUT_HASH_OFFSET: usize = UNSHIELD_EXIT_AMOUNT_OFFSET + EXIT_AMOUNT_LEN;
 const UNSHIELD_PROOF_OFFSET: usize = UNSHIELD_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN;
 const UNSHIELD_PAYLOAD_LEN: usize = 1 + UNSHIELD_PROOF_OFFSET + RESERVED_GROTH16_PROOF_LEN;
 const REGISTER_ROOT_PAYLOAD_LEN: usize = 1 + HASH_LEN;
@@ -72,6 +77,7 @@ const ERR_NULLIFIER_MARKER_MISMATCH: u32 = 12;
 const ERR_OUTPUT_RECORD_MISMATCH: u32 = 13;
 const ERR_PROOF_VERIFIER_NOT_WIRED: u32 = 14;
 const ERR_UNSHIELD_RELEASE_NOT_WIRED: u32 = 15;
+const ERR_VAULT_AUTHORITY_MISMATCH: u32 = 16;
 
 pub fn process_instruction(
     program_id: &Pubkey,
@@ -254,7 +260,7 @@ fn process_register_root(
     let root_history = next_account_info(&mut account_iter)?;
     let authority = next_account_info(&mut account_iter)?;
 
-    require_program_account(program_id, pool_state)?;
+    require_readonly_program_account(program_id, pool_state)?;
     require_writable_program_account(program_id, root_history)?;
 
     let pool_data = pool_state.try_borrow_data()?;
@@ -301,19 +307,21 @@ fn process_spend_with_proof(
     Err(ProgramError::Custom(ERR_PROOF_VERIFIER_NOT_WIRED))
 }
 
-fn process_unshield(_program_id: &Pubkey, _accounts: &[AccountInfo], rest: &[u8]) -> ProgramResult {
+fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) -> ProgramResult {
     if rest.len() + 1 != UNSHIELD_PAYLOAD_LEN {
         return Err(ProgramError::InvalidInstructionData);
     }
 
     let nullifier = &rest[0..HASH_LEN];
-    let exit_destination = &rest[HASH_LEN..HASH_LEN * 2];
-    let exit_asset_id = &rest[HASH_LEN * 2..HASH_LEN * 3];
-    let exit_amount = &rest[HASH_LEN * 3..UNSHIELD_PUBLIC_INPUT_HASH_OFFSET];
+    let accepted_root = &rest[UNSHIELD_ACCEPTED_ROOT_OFFSET..UNSHIELD_EXIT_DESTINATION_OFFSET];
+    let exit_destination = &rest[UNSHIELD_EXIT_DESTINATION_OFFSET..UNSHIELD_EXIT_ASSET_ID_OFFSET];
+    let exit_asset_id = &rest[UNSHIELD_EXIT_ASSET_ID_OFFSET..UNSHIELD_EXIT_AMOUNT_OFFSET];
+    let exit_amount = &rest[UNSHIELD_EXIT_AMOUNT_OFFSET..UNSHIELD_PUBLIC_INPUT_HASH_OFFSET];
     let public_input_hash = &rest[UNSHIELD_PUBLIC_INPUT_HASH_OFFSET..UNSHIELD_PROOF_OFFSET];
     let proof = &rest[UNSHIELD_PROOF_OFFSET..UNSHIELD_PROOF_OFFSET + RESERVED_GROTH16_PROOF_LEN];
 
     if nullifier.iter().all(|byte| *byte == 0)
+        || accepted_root.iter().all(|byte| *byte == 0)
         || exit_destination.iter().all(|byte| *byte == 0)
         || exit_asset_id.iter().all(|byte| *byte == 0)
         || exit_amount.iter().all(|byte| *byte == 0)
@@ -323,7 +331,29 @@ fn process_unshield(_program_id: &Pubkey, _accounts: &[AccountInfo], rest: &[u8]
         return Err(ProgramError::InvalidInstructionData);
     }
 
-    msg!("vanta_private_pool_v2_spend: proof-verified unshield release ABI is reserved; release not wired");
+    let mut account_iter = accounts.iter();
+    let pool_state = next_account_info(&mut account_iter)?;
+    let root_history = next_account_info(&mut account_iter)?;
+    let nullifier_marker = next_account_info(&mut account_iter)?;
+    let vault_authority = next_account_info(&mut account_iter)?;
+
+    require_program_account(program_id, pool_state)?;
+    require_readonly_program_account(program_id, root_history)?;
+    require_writable_account(nullifier_marker)?;
+
+    let pool_data = pool_state.try_borrow_data()?;
+    let root_data = root_history.try_borrow_data()?;
+    require_pool_header(&pool_data)?;
+    require_pool_root_history_binding(&pool_data, root_history)?;
+    require_fixed_slot_header(&root_data, ROOT_MAGIC, HASH_LEN)?;
+    if !fixed_slot_contains(&root_data, HASH_LEN, accepted_root)? {
+        return Err(ProgramError::Custom(ERR_UNKNOWN_ACCEPTED_ROOT));
+    }
+
+    require_nullifier_marker_available(program_id, pool_state, nullifier_marker, nullifier)?;
+    require_vault_authority(program_id, pool_state, vault_authority, exit_asset_id)?;
+
+    msg!("vanta_private_pool_v2_spend: proof-verified unshield release ABI passed root/nullifier/vault-authority preflight; release not wired");
     Err(ProgramError::Custom(ERR_UNSHIELD_RELEASE_NOT_WIRED))
 }
 
@@ -615,6 +645,29 @@ fn require_nullifier_marker(
             != nullifier
     {
         return Err(ProgramError::Custom(ERR_NULLIFIER_MARKER_MISMATCH));
+    }
+    Ok(())
+}
+
+fn require_vault_authority(
+    program_id: &Pubkey,
+    pool_state: &AccountInfo,
+    vault_authority: &AccountInfo,
+    exit_asset_id: &[u8],
+) -> ProgramResult {
+    if exit_asset_id.len() != HASH_LEN {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let (expected_authority, _) = Pubkey::find_program_address(
+        &[VAULT_AUTHORITY_SEED, pool_state.key.as_ref(), exit_asset_id],
+        program_id,
+    );
+    if expected_authority != *vault_authority.key {
+        return Err(ProgramError::Custom(ERR_VAULT_AUTHORITY_MISMATCH));
+    }
+    if vault_authority.is_writable || vault_authority.is_signer {
+        return Err(ProgramError::InvalidAccountData);
     }
     Ok(())
 }
@@ -1146,23 +1199,148 @@ mod tests {
     }
 
     #[test]
-    fn unshield_release_rejects_before_state_mutation_until_custody_is_wired() {
+    fn unshield_release_preflights_vault_authority_before_fail_closed_release() {
         let program_id = Pubkey::new_unique();
-        let account_key = Pubkey::new_unique();
-        let mut lamports = 1_000_000;
-        let mut account_data = vec![8; POOL_STATE_LEN];
-        let before = account_data.clone();
+        let pool_state = Pubkey::new_unique();
+        let nullifier_set = Pubkey::new_unique();
+        let output_queue = Pubkey::new_unique();
+        let root_history = Pubkey::new_unique();
+        let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &[1; HASH_LEN]);
+        let vault_authority = vault_authority_pubkey(&program_id, &pool_state, &[3; HASH_LEN]);
+        let authority = Pubkey::new_unique();
+        let mut pool_lamports = 1_000_000;
+        let mut nullifier_lamports = 1_000_000;
+        let mut output_lamports = 1_000_000;
+        let mut root_lamports = 1_000_000;
+        let mut marker_lamports = 1_000_000;
+        let mut vault_lamports = 0;
+        let mut authority_lamports = 1_000_000;
+        let mut pool_data = vec![0; POOL_STATE_LEN];
+        let mut nullifier_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut output_data = vec![0; HEADER_LEN];
+        let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut marker_data = vec![0; NULLIFIER_MARKER_LEN];
+        let mut vault_data = [];
+        let mut signer_data = [];
 
         {
-            let account = account_info(
-                &account_key,
+            let pool = account_info(
+                &pool_state,
                 &program_id,
                 true,
-                true,
-                &mut lamports,
-                &mut account_data,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
             );
-            let accounts = vec![account];
+            let nullifier = account_info(
+                &nullifier_set,
+                &program_id,
+                true,
+                false,
+                &mut nullifier_lamports,
+                &mut nullifier_data,
+            );
+            let output = account_info(
+                &output_queue,
+                &program_id,
+                true,
+                false,
+                &mut output_lamports,
+                &mut output_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                false,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let accounts = vec![pool, nullifier, output, roots, authority_info];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &[TAG_INIT]),
+                Ok(())
+            );
+        }
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                false,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let accounts = vec![pool, roots, authority_info];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &register_root_instruction()),
+                Ok(())
+            );
+        }
+
+        let before = (pool_data.clone(), root_data.clone(), marker_data.clone());
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                false,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let marker = account_info(
+                &nullifier_marker,
+                &program_id,
+                true,
+                false,
+                &mut marker_lamports,
+                &mut marker_data,
+            );
+            let vault = account_info(
+                &vault_authority,
+                &system_program::ID,
+                false,
+                false,
+                &mut vault_lamports,
+                &mut vault_data,
+            );
+            let accounts = vec![pool, roots, marker, vault];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &unshield_instruction()),
@@ -1170,16 +1348,16 @@ mod tests {
             );
         }
 
-        assert_eq!(before, account_data);
+        assert_eq!(before, (pool_data, root_data, marker_data));
     }
 
     #[test]
-    fn unshield_release_reserved_shape_does_not_require_accounts() {
+    fn unshield_release_reserved_shape_requires_preflight_accounts() {
         let program_id = Pubkey::new_unique();
 
         assert_eq!(
             process_instruction(&program_id, &[], &unshield_instruction()),
-            Err(ProgramError::Custom(ERR_UNSHIELD_RELEASE_NOT_WIRED))
+            Err(ProgramError::NotEnoughAccountKeys)
         );
     }
 
@@ -1206,9 +1384,22 @@ mod tests {
 
         for (start, end) in [
             (1, 1 + HASH_LEN),
-            (1 + HASH_LEN, 1 + HASH_LEN * 2),
-            (1 + HASH_LEN * 2, 1 + HASH_LEN * 3),
-            (1 + HASH_LEN * 3, 1 + UNSHIELD_PUBLIC_INPUT_HASH_OFFSET),
+            (
+                1 + UNSHIELD_ACCEPTED_ROOT_OFFSET,
+                1 + UNSHIELD_EXIT_DESTINATION_OFFSET,
+            ),
+            (
+                1 + UNSHIELD_EXIT_DESTINATION_OFFSET,
+                1 + UNSHIELD_EXIT_ASSET_ID_OFFSET,
+            ),
+            (
+                1 + UNSHIELD_EXIT_ASSET_ID_OFFSET,
+                1 + UNSHIELD_EXIT_AMOUNT_OFFSET,
+            ),
+            (
+                1 + UNSHIELD_EXIT_AMOUNT_OFFSET,
+                1 + UNSHIELD_PUBLIC_INPUT_HASH_OFFSET,
+            ),
             (
                 1 + UNSHIELD_PUBLIC_INPUT_HASH_OFFSET,
                 1 + UNSHIELD_PROOF_OFFSET,
@@ -1222,6 +1413,353 @@ mod tests {
                 Err(ProgramError::InvalidInstructionData)
             );
         }
+    }
+
+    #[test]
+    fn unshield_release_rejects_unbound_preflight_accounts_without_mutation() {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let nullifier_set = Pubkey::new_unique();
+        let output_queue = Pubkey::new_unique();
+        let root_history = Pubkey::new_unique();
+        let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &[1; HASH_LEN]);
+        let wrong_nullifier_marker = Pubkey::new_unique();
+        let vault_authority = vault_authority_pubkey(&program_id, &pool_state, &[3; HASH_LEN]);
+        let wrong_vault_authority = Pubkey::new_unique();
+        let authority = Pubkey::new_unique();
+        let mut pool_lamports = 1_000_000;
+        let mut nullifier_lamports = 1_000_000;
+        let mut output_lamports = 1_000_000;
+        let mut root_lamports = 1_000_000;
+        let mut marker_lamports = 1_000_000;
+        let mut wrong_marker_lamports = 1_000_000;
+        let mut consumed_marker_lamports = 1_000_000;
+        let mut vault_lamports = 0;
+        let mut wrong_vault_lamports = 0;
+        let mut authority_lamports = 1_000_000;
+        let mut pool_data = vec![0; POOL_STATE_LEN];
+        let mut nullifier_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut output_data = vec![0; HEADER_LEN];
+        let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut marker_data = vec![0; NULLIFIER_MARKER_LEN];
+        let mut wrong_marker_data = vec![0; NULLIFIER_MARKER_LEN];
+        let mut consumed_marker_data = vec![0; NULLIFIER_MARKER_LEN];
+        let mut vault_data = [];
+        let mut wrong_vault_data = [];
+        let mut signer_data = [];
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                true,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let nullifier = account_info(
+                &nullifier_set,
+                &program_id,
+                true,
+                false,
+                &mut nullifier_lamports,
+                &mut nullifier_data,
+            );
+            let output = account_info(
+                &output_queue,
+                &program_id,
+                true,
+                false,
+                &mut output_lamports,
+                &mut output_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                false,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let accounts = vec![pool, nullifier, output, roots, authority_info];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &[TAG_INIT]),
+                Ok(())
+            );
+        }
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                false,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let accounts = vec![pool, roots, authority_info];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &register_root_instruction()),
+                Ok(())
+            );
+        }
+
+        let before = (
+            pool_data.clone(),
+            root_data.clone(),
+            marker_data.clone(),
+            wrong_marker_data.clone(),
+        );
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                false,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let marker = account_info(
+                &nullifier_marker,
+                &program_id,
+                true,
+                false,
+                &mut marker_lamports,
+                &mut marker_data,
+            );
+            let vault = account_info(
+                &vault_authority,
+                &system_program::ID,
+                false,
+                false,
+                &mut vault_lamports,
+                &mut vault_data,
+            );
+            let accounts = vec![pool, roots, marker, vault];
+
+            assert_eq!(
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &unshield_instruction_with_accepted_root([9; HASH_LEN])
+                ),
+                Err(ProgramError::Custom(ERR_UNKNOWN_ACCEPTED_ROOT))
+            );
+        }
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                false,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let marker = account_info(
+                &wrong_nullifier_marker,
+                &program_id,
+                true,
+                false,
+                &mut wrong_marker_lamports,
+                &mut wrong_marker_data,
+            );
+            let vault = account_info(
+                &vault_authority,
+                &system_program::ID,
+                false,
+                false,
+                &mut vault_lamports,
+                &mut vault_data,
+            );
+            let accounts = vec![pool, roots, marker, vault];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &unshield_instruction()),
+                Err(ProgramError::Custom(ERR_NULLIFIER_MARKER_MISMATCH))
+            );
+        }
+
+        consumed_marker_data[..8].copy_from_slice(NULLIFIER_MARKER_MAGIC);
+        consumed_marker_data[8] = VERSION;
+        assert_eq!(write_count(&mut consumed_marker_data, 1), Ok(()));
+        consumed_marker_data[NULLIFIER_MARKER_POOL_OFFSET..NULLIFIER_MARKER_POOL_OFFSET + HASH_LEN]
+            .copy_from_slice(pool_state.as_ref());
+        consumed_marker_data
+            [NULLIFIER_MARKER_NULLIFIER_OFFSET..NULLIFIER_MARKER_NULLIFIER_OFFSET + HASH_LEN]
+            .copy_from_slice(&[1; HASH_LEN]);
+        let before_duplicate_marker = consumed_marker_data.clone();
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                false,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let marker = account_info(
+                &nullifier_marker,
+                &program_id,
+                true,
+                false,
+                &mut consumed_marker_lamports,
+                &mut consumed_marker_data,
+            );
+            let vault = account_info(
+                &vault_authority,
+                &system_program::ID,
+                false,
+                false,
+                &mut vault_lamports,
+                &mut vault_data,
+            );
+            let accounts = vec![pool, roots, marker, vault];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &unshield_instruction()),
+                Err(ProgramError::Custom(ERR_DUPLICATE_NULLIFIER))
+            );
+        }
+        assert_eq!(before_duplicate_marker, consumed_marker_data);
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                false,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let marker = account_info(
+                &nullifier_marker,
+                &program_id,
+                true,
+                false,
+                &mut marker_lamports,
+                &mut marker_data,
+            );
+            let vault = account_info(
+                &vault_authority,
+                &system_program::ID,
+                true,
+                false,
+                &mut vault_lamports,
+                &mut vault_data,
+            );
+            let accounts = vec![pool, roots, marker, vault];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &unshield_instruction()),
+                Err(ProgramError::InvalidAccountData)
+            );
+        }
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                false,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let marker = account_info(
+                &nullifier_marker,
+                &program_id,
+                true,
+                false,
+                &mut marker_lamports,
+                &mut marker_data,
+            );
+            let vault = account_info(
+                &wrong_vault_authority,
+                &system_program::ID,
+                false,
+                false,
+                &mut wrong_vault_lamports,
+                &mut wrong_vault_data,
+            );
+            let accounts = vec![pool, roots, marker, vault];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &unshield_instruction()),
+                Err(ProgramError::Custom(ERR_VAULT_AUTHORITY_MISMATCH))
+            );
+        }
+
+        assert_eq!(
+            before,
+            (pool_data, root_data, marker_data, wrong_marker_data)
+        );
     }
 
     #[test]
@@ -2215,6 +2753,18 @@ mod tests {
         .0
     }
 
+    fn vault_authority_pubkey(
+        program_id: &Pubkey,
+        pool_state: &Pubkey,
+        exit_asset_id: &[u8],
+    ) -> Pubkey {
+        Pubkey::find_program_address(
+            &[VAULT_AUTHORITY_SEED, pool_state.as_ref(), exit_asset_id],
+            program_id,
+        )
+        .0
+    }
+
     fn spend_instruction() -> Vec<u8> {
         spend_instruction_with(
             [1; HASH_LEN],
@@ -2257,9 +2807,14 @@ mod tests {
     }
 
     fn unshield_instruction() -> Vec<u8> {
+        unshield_instruction_with_accepted_root([4; HASH_LEN])
+    }
+
+    fn unshield_instruction_with_accepted_root(accepted_root: [u8; HASH_LEN]) -> Vec<u8> {
         let mut data = Vec::with_capacity(UNSHIELD_PAYLOAD_LEN);
         data.push(TAG_UNSHIELD);
         data.extend_from_slice(&[1; HASH_LEN]);
+        data.extend_from_slice(&accepted_root);
         data.extend_from_slice(&[2; HASH_LEN]);
         data.extend_from_slice(&[3; HASH_LEN]);
         data.extend_from_slice(&[4; EXIT_AMOUNT_LEN]);

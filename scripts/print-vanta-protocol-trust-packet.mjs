@@ -171,19 +171,22 @@ const packets = {
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Unshield currently releases through an operator-keypair public exit. The local TAG_UNSHIELD source ABI is reserved fail-closed and cannot release funds. This is not a production-private exit or custody claim until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
+        "Unshield currently releases through an operator-keypair public exit. The local TAG_UNSHIELD source ABI preflights root, nullifier, and vault-authority accounts, then fails closed before proof verification, token CPI, custody transfer, or fund release. This is not a production-private exit or custody claim until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
     },
     custodyBoundary: {
       productionCustodyReady: false,
       programOwnedVaultReady: false,
+      sourceOnlyVaultAuthorityPreflightReady: true,
+      sourceOnlyRootPreflightReady: true,
       onchainUnshieldInstructionReady: false,
       blockerIds: [
         "program-owned-vault-pda-not-deployed",
         "tag-unshield-reserved-fail-closed",
+        "tag-unshield-token-cpi-release-not-wired",
       ],
       guardCommand: "npm run private-pool-v2:onchain-unshield-custody-check",
       safeReleaseBoundary:
-        "Current release model is operator-keypair public exit; local TAG_UNSHIELD is reserved fail-closed and cannot release funds; production custody requires program-owned vault custody and on-chain TAG_UNSHIELD proof-verified release.",
+        "Current release model is operator-keypair public exit; local TAG_UNSHIELD is source-only preflight and cannot release funds; production custody requires program-owned vault custody, proof verification, nullifier consume, and on-chain TAG_UNSHIELD token CPI release.",
     },
     honestyNote:
       "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in SECURITY_LIMITATIONS.md.",
@@ -241,6 +244,7 @@ if (packet.action === "unshield") {
     ...packet.remainingBlockers,
     "program-owned-vault-pda-not-deployed",
     "tag-unshield-reserved-fail-closed",
+    "tag-unshield-token-cpi-release-not-wired",
   ];
 }
 
@@ -333,6 +337,8 @@ if (checkMode) {
     assert.equal(packet.currentReleaseModel, "operator-keypair-public-exit");
     assert.equal(packet.custodyBoundary?.productionCustodyReady, false);
     assert.equal(packet.custodyBoundary?.programOwnedVaultReady, false);
+    assert.equal(packet.custodyBoundary?.sourceOnlyVaultAuthorityPreflightReady, true);
+    assert.equal(packet.custodyBoundary?.sourceOnlyRootPreflightReady, true);
     assert.equal(packet.custodyBoundary?.onchainUnshieldInstructionReady, false);
     assert.equal(
       packet.custodyBoundary?.guardCommand,
@@ -341,6 +347,7 @@ if (checkMode) {
     for (const blocker of [
       "program-owned-vault-pda-not-deployed",
       "tag-unshield-reserved-fail-closed",
+      "tag-unshield-token-cpi-release-not-wired",
     ]) {
       assert.ok(
         packet.custodyBoundary?.blockerIds?.includes(blocker),
@@ -356,8 +363,12 @@ if (checkMode) {
       "Unshield packet must name the current operator-keypair public-exit release model.",
     );
     assert.ok(
-      packet.claimBoundary.safeClaim.includes("reserved fail-closed and cannot release funds"),
-      "Unshield packet must name the reserved fail-closed TAG_UNSHIELD boundary.",
+      packet.claimBoundary.safeClaim.includes("preflights root, nullifier, and vault-authority accounts"),
+      "Unshield packet must name the source-only TAG_UNSHIELD preflight boundary.",
+    );
+    assert.ok(
+      packet.claimBoundary.safeClaim.includes("fails closed before proof verification, token CPI, custody transfer, or fund release"),
+      "Unshield packet must name the fail-closed release boundary.",
     );
     assert.ok(
       packet.claimBoundary.safeClaim.includes(
