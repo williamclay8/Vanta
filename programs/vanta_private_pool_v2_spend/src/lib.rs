@@ -15,6 +15,7 @@ entrypoint!(process_instruction);
 const TAG_INIT: u8 = 0;
 const TAG_SPEND: u8 = 1;
 const TAG_REGISTER_ROOT: u8 = 2;
+const TAG_SPEND_WITH_PROOF: u8 = 3;
 
 const VERSION: u8 = 1;
 const POOL_MAGIC: &[u8; 8] = b"VNTA2POL";
@@ -38,6 +39,9 @@ const POOL_ROOT_HISTORY_OFFSET: usize = 152;
 
 const HASH_LEN: usize = 32;
 const SPEND_PAYLOAD_LEN: usize = 1 + HASH_LEN * 5;
+const RESERVED_GROTH16_PROOF_LEN: usize = 256;
+const SPEND_WITH_PROOF_PAYLOAD_LEN: usize =
+    SPEND_PAYLOAD_LEN + HASH_LEN + RESERVED_GROTH16_PROOF_LEN;
 const REGISTER_ROOT_PAYLOAD_LEN: usize = 1 + HASH_LEN;
 const OUTPUT_RECORD_PDA_LEN: usize = HEADER_LEN + 8 + HASH_LEN * 4;
 const OUTPUT_RECORD_INDEX_OFFSET: usize = HEADER_LEN;
@@ -61,6 +65,7 @@ const ERR_DUPLICATE_ROOT: u32 = 10;
 const ERR_UNKNOWN_ACCEPTED_ROOT: u32 = 11;
 const ERR_NULLIFIER_MARKER_MISMATCH: u32 = 12;
 const ERR_OUTPUT_RECORD_MISMATCH: u32 = 13;
+const ERR_PROOF_VERIFIER_NOT_WIRED: u32 = 14;
 
 pub fn process_instruction(
     program_id: &Pubkey,
@@ -75,6 +80,7 @@ pub fn process_instruction(
         TAG_INIT => process_init(program_id, accounts, rest),
         TAG_SPEND => process_spend(program_id, accounts, rest),
         TAG_REGISTER_ROOT => process_register_root(program_id, accounts, rest),
+        TAG_SPEND_WITH_PROOF => process_spend_with_proof(program_id, accounts, rest),
         _ => Err(ProgramError::InvalidInstructionData),
     }
 }
@@ -267,6 +273,25 @@ fn process_register_root(
 
     msg!("vanta_private_pool_v2_spend: registered accepted root");
     Ok(())
+}
+
+fn process_spend_with_proof(
+    _program_id: &Pubkey,
+    _accounts: &[AccountInfo],
+    rest: &[u8],
+) -> ProgramResult {
+    if rest.len() + 1 != SPEND_WITH_PROOF_PAYLOAD_LEN {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let verifier_key_hash = &rest[160..192];
+    let proof = &rest[192..448];
+    if verifier_key_hash.iter().all(|byte| *byte == 0) || proof.iter().all(|byte| *byte == 0) {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    msg!("vanta_private_pool_v2_spend: proof-carrying spend ABI is reserved; verifier not wired");
+    Err(ProgramError::Custom(ERR_PROOF_VERIFIER_NOT_WIRED))
 }
 
 fn require_program_account(program_id: &Pubkey, account: &AccountInfo) -> ProgramResult {
@@ -1020,6 +1045,70 @@ mod tests {
                 root_data,
                 marker_data
             )
+        );
+    }
+
+    #[test]
+    fn proof_carrying_spend_rejects_before_state_mutation_until_verifier_is_wired() {
+        let program_id = Pubkey::new_unique();
+        let account_key = Pubkey::new_unique();
+        let mut lamports = 1_000_000;
+        let mut account_data = vec![9; POOL_STATE_LEN];
+        let before = account_data.clone();
+
+        {
+            let account = account_info(
+                &account_key,
+                &program_id,
+                true,
+                false,
+                &mut lamports,
+                &mut account_data,
+            );
+            let accounts = vec![account];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &spend_with_proof_instruction()),
+                Err(ProgramError::Custom(ERR_PROOF_VERIFIER_NOT_WIRED))
+            );
+        }
+
+        assert_eq!(before, account_data);
+    }
+
+    #[test]
+    fn proof_carrying_spend_requires_exact_reserved_payload_length() {
+        let program_id = Pubkey::new_unique();
+
+        assert_eq!(
+            process_instruction(&program_id, &[], &[TAG_SPEND_WITH_PROOF]),
+            Err(ProgramError::InvalidInstructionData)
+        );
+
+        let mut too_long = spend_with_proof_instruction();
+        too_long.push(1);
+        assert_eq!(
+            process_instruction(&program_id, &[], &too_long),
+            Err(ProgramError::InvalidInstructionData)
+        );
+    }
+
+    #[test]
+    fn proof_carrying_spend_rejects_zero_verifier_or_proof_placeholders() {
+        let program_id = Pubkey::new_unique();
+
+        let mut zero_verifier_key_hash = spend_with_proof_instruction();
+        zero_verifier_key_hash[SPEND_PAYLOAD_LEN..SPEND_PAYLOAD_LEN + HASH_LEN].fill(0);
+        assert_eq!(
+            process_instruction(&program_id, &[], &zero_verifier_key_hash),
+            Err(ProgramError::InvalidInstructionData)
+        );
+
+        let mut zero_proof = spend_with_proof_instruction();
+        zero_proof[SPEND_PAYLOAD_LEN + HASH_LEN..SPEND_WITH_PROOF_PAYLOAD_LEN].fill(0);
+        assert_eq!(
+            process_instruction(&program_id, &[], &zero_proof),
+            Err(ProgramError::InvalidInstructionData)
         );
     }
 
@@ -2038,6 +2127,20 @@ mod tests {
         data.extend_from_slice(&output1);
         data.extend_from_slice(&accepted_root);
         data.extend_from_slice(&public_input_hash);
+        data
+    }
+
+    fn spend_with_proof_instruction() -> Vec<u8> {
+        let mut data = spend_instruction_with(
+            [1; HASH_LEN],
+            [2; HASH_LEN],
+            [3; HASH_LEN],
+            [4; HASH_LEN],
+            [5; HASH_LEN],
+        );
+        data[0] = TAG_SPEND_WITH_PROOF;
+        data.extend_from_slice(&[6; HASH_LEN]);
+        data.extend_from_slice(&[7; RESERVED_GROTH16_PROOF_LEN]);
         data
     }
 

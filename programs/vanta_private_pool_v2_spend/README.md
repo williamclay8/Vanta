@@ -101,6 +101,22 @@ Behavior:
 - increments the pool spend count
 - records the latest public input hash in `pool_state`
 
+### `3` - proof-carrying spend (reserved, fail closed)
+
+Reserves the future proof-carrying verifier ABI. It is intentionally not accepted yet.
+
+Instruction data is exactly 449 bytes:
+
+```text
+[3, nullifier:32, output0:32, output1:32, acceptedRoot:32, publicInputHash:32, verifierKeyHash:32, groth16Proof:256]
+```
+
+Behavior today:
+
+- checks only the reserved payload length and that `verifierKeyHash` / `groth16Proof` are not all-zero placeholders
+- returns custom error `14` before reading or mutating any accounts
+- must not be used as proof-enforced spend evidence until the actual Groth16 verifier, verifying-key commitment, SBF rebuild, redeploy/reinit, and live/audit evidence exist
+
 ## Build
 
 If the Solana SBF toolchain is installed:
@@ -130,3 +146,4 @@ cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml
 - `11`: spend references an unregistered accepted root
 - `12`: supplied nullifier marker PDA does not match the expected nullifier marker
 - `13`: supplied output record PDA does not match the expected output record
+- `14`: proof-carrying spend ABI is reserved and the verifier is not wired

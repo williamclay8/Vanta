@@ -21,6 +21,8 @@ const requiredPhrases = [
   "local-bb-fixture-artifact",
   "private-spend-public-input-hash",
   "not a witness-driven runtime prover",
+  "reserved Private Pool v2 tag `3` proof-carrying spend ABI is source-only fail-closed scaffolding",
+  "returns custom error `14` before reading or mutating accounts",
   "transition-field drift",
   "request-metadata drift",
   "Private Pool v2 anonymity-set readiness is now a checked fail-closed operator/readiness surface",

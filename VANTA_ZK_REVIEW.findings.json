@@ -22,9 +22,9 @@
   ],
   "lumiBaseline": {
     "branch": "codex/vanta-zk-review-hardening",
-    "lastKnownCommit": "commit containing the all-lane trust status strip feedback-loop ledger entry",
-    "local": "verified locally for the all-lane trust status strip feedback-loop slice",
-    "committed": "included in the commit containing the all-lane trust status strip feedback-loop ledger entry",
+    "lastKnownCommit": "4f1fa49",
+    "local": "verified locally through the H08 local bb fixture proof-result feedback-loop slice before the current C01 reserved proof-carrying ABI work",
+    "committed": "4f1fa49 (Bind local bb fixture proof results)",
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
@@ -45,7 +45,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the local bb fixture prover focused guard and proof-backend boundary guard",
-        "committed": "pending this local bb fixture proof-result feedback-loop commit",
+        "committed": "4f1fa49 (Bind local bb fixture proof results)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -484,7 +484,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the Claim proof-artifact no-witness feedback-loop slice",
-        "committed": "pending this Claim proof-artifact no-witness feedback-loop commit",
+        "committed": "dc3cfd0 (Claim proof-artifact no-witness feedback loop)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -510,7 +510,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the remote proof-artifact boundary feedback-loop slice",
-        "committed": "pending this remote proof-artifact boundary feedback-loop commit",
+        "committed": "b6b97e3 (remote proof-artifact boundary) and 6fe5bdc (remote verifier receipt transcript binding)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -549,11 +549,37 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the C01 spend ABI proof-field fail-closed feedback-loop slice",
-        "committed": "pending this C01 proof-field fail-closed feedback-loop commit",
+        "committed": "698ca41 (C01 spend ABI proof-field fail-closed feedback loop)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
       "truthBoundary": "This is local transaction-boundary truth hardening for the current no-verifier ABI. It is not proof-byte support, on-chain proof verification, verifying-key enforcement, rebuilt SBF/live program evidence, audit acceptance, real-funds readiness, or live deployment evidence."
+    },
+    {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-12-C01-RESERVED-PROOF-CARRYING-SPEND-ABI",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#still-open-1--embed-a-groth16-verifier-in-the-program",
+        "programs/vanta_private_pool_v2_spend/src/lib.rs",
+        "programs/vanta_private_pool_v2_spend/README.md",
+        "scripts/check-vanta-private-pool-v2-sbf-abi-status.mjs",
+        "scripts/check-vanta-private-pool-v2-solana-spend-transaction-builder.mjs",
+        "scripts/check-vanta-zk-c01-onchain-proof-boundary.mjs"
+      ],
+      "summary": "The Solana spend program source now reserves tag 3 as a 449-byte proof-carrying spend ABI shape, but it only validates the reserved payload shape and nonzero verifier placeholders before returning custom error 14 without reading or mutating accounts. The current tag-1 transaction builder remains the only live builder path and rejects tag 3.",
+      "localVerification": [
+        "npm run zk:c01-onchain-proof-boundary-check",
+        "npm run private-pool-v2:solana-spend-transaction-builder-check",
+        "npm run private-pool-v2:sbf-abi-status-json",
+        "npm run private-pool-v2:sbf-abi-check (expected fail-closed: stale-sbf-binary, missing-cargo-build-sbf, missing-solana-cli)"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the C01 reserved proof-carrying spend ABI feedback-loop slice",
+        "committed": "included in this C01 reserved proof-carrying spend ABI feedback-loop commit",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a source-only reserved verifier-boundary scaffold. It is not a Groth16 verifier, not proof-byte acceptance, not verifying-key enforcement, not rebuilt SBF/live program evidence, not audit acceptance, and not real-funds readiness."
     }
   ],
   "findings": [
@@ -567,20 +593,24 @@
       "evidenceRefs": [
         "VANTA_ZK_REVIEW.md#1-the-on-chain-solana-program-does-not-verify-proofs-at-all",
         "programs/vanta_private_pool_v2_spend/src/lib.rs",
+        "programs/vanta_private_pool_v2_spend/README.md",
         "npm run private-pool-v2:contract-check",
         "npm run zk:c01-onchain-proof-boundary-check",
         "npm run private-pool-v2:solana-spend-transaction-builder-check",
+        "npm run private-pool-v2:solana-spend-transaction-check",
         "npm run private-pool-v2:solana-relayer-submission-check",
         "npm run private-pool-v2:service-network-check",
         "npm run mainnet:actual-private-settlement-operator-packet-check",
         "npm run private-pool-v2:onchain-unshield-custody-check",
+        "npm run private-pool-v2:sbf-abi-status-json",
         "npm run private-pool-v2:sbf-abi-check"
       ],
-      "failureMode": "The local program now gates writes with operator authority, accepted-root scaffolding, deterministic nullifier-marker PDA replay checks, and deterministic output-record PDA writes, but no verifier enforces a real proof or verifying-key hash on chain, and the current 161-byte spend ABI carries no proof bytes.",
+      "failureMode": "The local program now gates writes with operator authority, accepted-root scaffolding, deterministic nullifier-marker PDA replay checks, and deterministic output-record PDA writes, but no verifier enforces a real proof or verifying-key hash on chain, and the current 161-byte spend ABI carries no proof bytes. A separate reserved tag 3 proof-carrying spend ABI exists in source as a 449-byte fail-closed shape, but it returns custom error 14 before reading or mutating accounts and the current transaction builder rejects tag 3.",
       "requiredFix": [
         "Commit a verifying-key hash or verifier program boundary for the active circuit.",
         "Verify a real proof against the public input hash in-program or via a dedicated verifier CPI.",
-        "Keep onChainVerifier, proofBytes, proofArtifact, verifyingKeyHash, verifierProgramId, and related proof-like transaction fields rejected until a proof-carrying verifier ABI exists.",
+        "Keep onChainVerifier, proofBytes, proofArtifact, verifyingKeyHash, verifierProgramId, and related proof-like transaction fields rejected by live submitter surfaces until a proof-carrying verifier ABI exists.",
+        "Keep the reserved tag 3 proof-carrying ABI returning custom error 14 before account reads or writes until a real verifier, verifying-key commitment, and positive verifier tests replace the scaffold.",
         "Replace operator-fed fixed-slot root-history scaffolding with proof-backed program-owned shared tree state.",
         "Replace the operator-keypair Unshield release path with program-owned vault custody and a proof-verified TAG_UNSHIELD release instruction.",
         "Rebuild, redeploy, and reinitialize before citing live evidence."
@@ -590,39 +620,45 @@
           "npm run private-pool-v2:contract-check",
           "npm run zk:c01-onchain-proof-boundary-check",
           "npm run private-pool-v2:solana-spend-transaction-builder-check",
+          "npm run private-pool-v2:solana-spend-transaction-check",
           "npm run private-pool-v2:solana-relayer-submission-check",
           "npm run private-pool-v2:service-network-check",
           "npm run mainnet:actual-private-settlement-operator-packet-check",
           "npm run private-pool-v2:onchain-unshield-custody-check",
+          "npm run private-pool-v2:sbf-abi-status-json",
           "npm run private-pool-v2:sbf-abi-check"
         ],
-        "localResult": "contract-check covers the local authority/root/nullifier-marker/output-record scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed proof truth boundary and no-proof-bytes ABI truth; solana-spend-transaction-builder-check rejects proof-like builder/validation fields for the current no-verifier ABI; relayer, service-network, and operator-packet checks reject or omit proof-like spend fields before any handoff can imply verifier support; onchain-unshield-custody-check preserves the blocked operator-keypair/public-exit custody truth boundary; sbf-abi-check is expected to fail closed until the Solana toolchain rebuilds the current ABI.",
-        "proves": "Local write authority, account binding, accepted-root scaffold, deterministic output-record PDA binding, current-ABI proof-field rejection across builder/relayer/service-network/operator-packet surfaces, explicit blocked Unshield custody status, stale-SBF detection, and the negative C01 truth boundary are guarded.",
-        "doesNotProve": "On-chain proof verification, verifying-key enforcement, program-owned tree state, program-owned vault custody, proof-verified TAG_UNSHIELD release, audit acceptance, or live deployment correctness."
+        "localResult": "Rust tests/checks cover the source-level reserved tag 3 proof-carrying ABI shape, malformed/all-zero placeholder rejection, and the custom-error-14 no-mutation behavior; contract-check covers the local authority/root/nullifier-marker/output-record scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed proof truth boundary, no-proof-bytes tag-1 ABI truth, and reserved tag-3 fail-closed truth; solana-spend-transaction-builder-check rejects tag 3 and proof-like builder/validation fields for the current no-verifier live builder; relayer, service-network, and operator-packet checks reject or omit proof-like spend fields before any handoff can imply verifier support; onchain-unshield-custody-check preserves the blocked operator-keypair/public-exit custody truth boundary; sbf-abi-status-json reports the reserved source-only ABI status; sbf-abi-check is expected to fail closed until the Solana toolchain rebuilds the current ABI.",
+        "proves": "Local write authority, account binding, accepted-root scaffold, deterministic output-record PDA binding, current-ABI proof-field rejection across builder/relayer/service-network/operator-packet surfaces, reserved tag-3 fail-closed/no-mutation source behavior, explicit blocked Unshield custody status, stale-SBF detection, and the negative C01 truth boundary are guarded.",
+        "doesNotProve": "On-chain proof verification, proof-carrying spend acceptance, verifying-key enforcement, rebuilt SBF bytecode for tag 3, program-owned tree state, program-owned vault custody, proof-verified TAG_UNSHIELD release, audit acceptance, or live deployment correctness."
       },
       "codexRemediation": {
         "commits": [
           "local feedback loops through the output-record PDA feedback-loop commit",
-          "current C01 proof-field fail-closed feedback-loop commit"
+          "698ca41 (C01 proof-field fail-closed feedback loop)",
+          "current C01 reserved proof-carrying spend ABI feedback-loop commit"
         ],
-        "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, and proof-like transaction-field rejection for the current no-verifier spend ABI.",
+        "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, proof-like transaction-field rejection for the current no-verifier spend ABI, and a reserved tag 3 proof-carrying spend ABI that fails closed before state reads or writes.",
         "residualRisk": [
           "No production verifier is wired.",
           "The current spend instruction still carries hashes only, not proof bytes.",
+          "Reserved tag 3 always returns custom error 14 and cannot be cited as proof support.",
           "Reviewed mainnet evidence predates the current ABI.",
           "The accepted-root list remains an operator-authorized scaffold."
         ]
       },
       "lumiHygiene": {
-        "local": "verified locally for scaffold and proof-field boundary checks",
-        "committed": "included in this C01 proof-field fail-closed feedback-loop commit",
+        "local": "verified locally for scaffold, proof-field boundary, and reserved proof-carrying ABI checks",
+        "committed": "included in this C01 reserved proof-carrying spend ABI feedback-loop commit",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
       "staleControl": {
         "watchFiles": [
           "programs/vanta_private_pool_v2_spend/src/lib.rs",
+          "programs/vanta_private_pool_v2_spend/README.md",
           "scripts/check-vanta-private-pool-v2-sbf-abi-status.mjs",
+          "scripts/check-vanta-private-pool-v2-solana-spend-transaction-builder.mjs",
           "scripts/check-vanta-zk-c01-onchain-proof-boundary.mjs",
           "scripts/check-vanta-private-pool-v2-onchain-unshield-custody.mjs",
           "src/readiness/unshieldMainnetProductionStatus.mjs",
@@ -638,10 +674,12 @@
           "npm run private-pool-v2:contract-check",
           "npm run zk:c01-onchain-proof-boundary-check",
           "npm run private-pool-v2:solana-spend-transaction-builder-check",
+          "npm run private-pool-v2:solana-spend-transaction-check",
           "npm run private-pool-v2:solana-relayer-submission-check",
           "npm run private-pool-v2:service-network-check",
           "npm run mainnet:actual-private-settlement-operator-packet-check",
           "npm run private-pool-v2:onchain-unshield-custody-check",
+          "npm run private-pool-v2:sbf-abi-status-json",
           "npm run private-pool-v2:sbf-abi-check"
         ]
       },
@@ -1088,12 +1126,12 @@
           "current H08 remote-service proof-boundary feedback-loop patch",
           "current H08 Send strict expected-input binding feedback-loop patch",
           "current H08 Shield proof-artifact no-witness feedback-loop patch",
-          "current H08 Claim proof-artifact no-witness feedback-loop patch",
+          "dc3cfd0 (Claim proof-artifact no-witness feedback loop)",
           "current H08 Swap-to-shielded proof-artifact no-witness feedback-loop patch",
           "current H08 Shield operator request-binding feedback-loop patch",
-          "current H08 remote proof-artifact boundary feedback-loop patch",
-          "current H08 remote proof-artifact transcript-binding feedback-loop patch",
-          "current H08 local bb fixture proof-result adapter feedback-loop patch"
+          "b6b97e3 (remote proof-artifact boundary feedback loop)",
+          "6fe5bdc (remote verifier receipt transcript-binding feedback loop)",
+          "4f1fa49 (Bind local bb fixture proof results)"
         ],
         "summary": "Persisted proofSystem and proofBackend through proof receipts, guarded production startup and settlement boundaries against mock/local proof evidence, made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary, added local no-witness Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof-artifact checks with alias/tamper/metadata/relabel guards, required Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator proof-artifact verification to bind matching expected public-input hashes where operator routes exist, rejects unbound extra expected-input keys, kept Shield operator artifact verification read-only with receipt/settlement count checks, added a production proof-artifact verifier handoff that delegates remote-service artifacts to the configured verifier registry while rejecting local fixture artifacts, relabelled-local key ids, local/mocked verifier responses, and remote receipt transcript drift, hardened the remote-services client so remote prover/verifier responses cannot launder mock/local proof metadata or witness sidecars into remote-service evidence, and added an opt-in actual-private-spend local bb fixture proof-result adapter that is exact-fixture-request-bound and still local/no-real-funds only.",
         "residualRisk": [
@@ -1110,7 +1148,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally for boundary, remote proof-artifact boundary/transcript binding, local bb fixture proof-result adapter, Shield proof-artifact, Shield operator, Claim proof-artifact, Claim operator, Swap-to-shielded proof-artifact, Swap-to-shielded operator, Send proof-artifact, actual-private-spend proof-artifact, Send operator, actual-private-spend operator, local-prover, local-verifier, build, and full private-pool-v2:verify until the expected SBF ABI/toolchain gate",
-        "committed": "pending this local bb fixture proof-result feedback-loop commit",
+        "committed": "4f1fa49 (Bind local bb fixture proof results)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },

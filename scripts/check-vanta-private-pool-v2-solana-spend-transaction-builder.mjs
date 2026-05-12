@@ -40,6 +40,16 @@ const instructionDataBase64 = Buffer.concat([
   Buffer.from("44".repeat(32), "hex"),
   Buffer.from("55".repeat(32), "hex"),
 ]).toString("base64");
+const proofCarryingInstructionDataBase64 = Buffer.concat([
+  Buffer.from([3]),
+  Buffer.from("11".repeat(32), "hex"),
+  Buffer.from("22".repeat(32), "hex"),
+  Buffer.from("33".repeat(32), "hex"),
+  Buffer.from("44".repeat(32), "hex"),
+  Buffer.from("55".repeat(32), "hex"),
+  Buffer.from("66".repeat(32), "hex"),
+  Buffer.from("77".repeat(256), "hex"),
+]).toString("base64");
 const expectedPublicInputs = {
   acceptedRoot: "0x" + "44".repeat(32),
   nullifierOrReplayCommitment: nullifierHex,
@@ -134,6 +144,11 @@ assert.equal(
 assert.equal(
   deriveVantaPrivatePoolV2OutputRecordAddress({ instructionDataBase64, poolState, programId }),
   outputRecord,
+);
+assert.throws(
+  () => build({ instructionDataBase64: proofCarryingInstructionDataBase64 }),
+  /requires tag=1 and 161-byte spend instruction data/,
+  "proof-carrying tag remains fail-closed in the current no-verifier transaction builder",
 );
 
 assert.throws(
