@@ -130,6 +130,7 @@ try {
   assert.equal(walletEvidence.recoveryClass, "wallet-derived-cross-device-candidate");
   assert.equal(walletEvidence.evidenceSource, "owner-key-hierarchy-v0.1");
   assert.equal(walletEvidence.crossDeviceCandidate, true);
+  assert.equal(walletEvidence.importRequiredForCrossDevice, true);
   assert.equal(walletEvidence.rawRecoveryMaterialStored, false);
   assert.equal(walletEvidence.hierarchyVersion, "vanta-shield-owner-key-hierarchy-0.1");
   assert.match(walletEvidence.derivationContextReferenceHash, /^sha256:[0-9a-f]{64}$/u);
@@ -143,6 +144,14 @@ try {
     }),
     false,
     "wallet-derived evidence must not validate with a false cross-device candidate flag.",
+  );
+  assert.equal(
+    evidence.isOwnerContextRecoveryEvidence({
+      ...walletEvidence,
+      importRequiredForCrossDevice: false,
+    }),
+    false,
+    "wallet-derived evidence must keep record-source import required for cross-device use.",
   );
   assert.equal(
     evidence.isOwnerContextRecoveryEvidence({

@@ -174,7 +174,7 @@ function normalizeOwnerContextRecoveryEvidence(
       if (
         evidence.evidenceSource !== "owner-key-hierarchy-v0.1" ||
         evidence.crossDeviceCandidate !== true ||
-        evidence.importRequiredForCrossDevice !== false ||
+        evidence.importRequiredForCrossDevice !== true ||
         evidence.hierarchyVersion !== VANTA_SHIELD_OWNER_KEY_HIERARCHY_VERSION ||
         !isNonEmptyString(evidence.ownerPublicKey) ||
         !isValidOwnerContextReferenceHash(evidence.derivationContextReferenceHash) ||
@@ -193,7 +193,7 @@ function normalizeOwnerContextRecoveryEvidence(
         recoverySecretReferenceHash: evidence.recoverySecretReferenceHash,
         crossDeviceCandidate: true,
         rawRecoveryMaterialStored: false,
-        importRequiredForCrossDevice: false,
+        importRequiredForCrossDevice: true,
         truth: OWNER_CONTEXT_RECOVERY_TRUTHS[evidence.recoveryClass],
       };
 
@@ -302,7 +302,7 @@ function createEvidenceFromOwnerContext(
     ),
     crossDeviceCandidate: walletDerived,
     rawRecoveryMaterialStored: false,
-    importRequiredForCrossDevice: !walletDerived,
+    importRequiredForCrossDevice: true,
     truth: walletDerived
       ? OWNER_CONTEXT_RECOVERY_TRUTHS["wallet-derived-cross-device-candidate"]
       : OWNER_CONTEXT_RECOVERY_TRUTHS["legacy-random-local-only"],

@@ -22,9 +22,9 @@
   ],
   "lumiBaseline": {
     "branch": "codex/vanta-zk-review-hardening",
-    "lastKnownCommit": "this owner-context recovery evidence feedback-loop commit",
-    "local": "verified locally for the owner-context recovery evidence feedback-loop slice",
-    "committed": "owner-context recovery evidence feedback-loop commit",
+    "lastKnownCommit": "this owner-context record-source import proof feedback-loop commit",
+    "local": "verified locally for the owner-context record-source import proof feedback-loop slice",
+    "committed": "owner-context record-source import proof feedback-loop commit",
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
@@ -215,6 +215,31 @@
         "deployedLive": "not-live-verified"
       },
       "truthBoundary": "This is non-secret classification, persistence sanitation, diagnostics, and UI truth-surfacing for owner-context recovery evidence. It is not legacy-record migration, a complete cross-device import/recovery UX, live deployment evidence, audit acceptance, or proof that old random-seeded records are recoverable."
+    },
+    {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-12-OWNER-CONTEXT-RECORD-SOURCE-IMPORT",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#partially-remediated-3--new-live-records-use-wallet-derived-owner-context-recovery-evidence-and-record-source-import-proof",
+        "src/zk/ownerContextRecordSourceImport.ts",
+        "src/zk/ownerContextRecoveryEvidence.ts",
+        "src/zk/ownerKeyHierarchy.ts",
+        "src/pages/ShieldPage.tsx",
+        "scripts/check-vanta-owner-context-record-source-import.mjs"
+      ],
+      "summary": "Wallet-derived owner-context evidence now remains a cross-device candidate while still marking record-source import as required. A new non-secret record-source import packet rejects raw owner material, verifies same-wallet second-device owner-context reconstruction against imported evidence, and keeps legacy local-only records from being promoted.",
+      "localVerification": [
+        "npm run zk:owner-context-record-source-import-check",
+        "npm run zk:owner-context-recovery-evidence-check",
+        "npm run zk:review-guards-check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the owner-context record-source import proof feedback-loop slice",
+        "committed": "included in the owner-context record-source import proof feedback-loop commit",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a local reviewer-visible import proof contract and Shield UI truth boundary. It is not a finished product import/export UX, not legacy-record migration, not viewing-key memo discovery by itself, not live deployment evidence, and not proof that old random-seeded records are recoverable."
     }
   ],
   "findings": [

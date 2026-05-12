@@ -1813,6 +1813,16 @@ export function ShieldPage(_props: ShieldPageProps) {
     : shieldOwnerContext.canRequestOwnerContext
       ? "Approve the owner-key message before Shield records can carry non-secret recovery evidence."
       : "This wallet session cannot create owner recovery evidence until message signing is available.";
+  const recordSourceImportProofLabel = shieldOwnerContext.ownerContext
+    ? isWalletDerivedOwnerContext(shieldOwnerContext.ownerContext)
+      ? "record source required"
+      : "legacy local-only"
+    : "not ready";
+  const recordSourceImportProofDetail = shieldOwnerContext.ownerContext
+    ? isWalletDerivedOwnerContext(shieldOwnerContext.ownerContext)
+      ? "A second device can only prove the same owner context after importing a non-secret record source packet; viewing-key backup may still be required for memo discovery."
+      : "Legacy local-only records are not promoted by the record source import proof."
+    : "Record source import proof starts after wallet-derived owner evidence exists.";
 
   const routeLabel = capability.routeLabel;
 
@@ -2000,9 +2010,16 @@ export function ShieldPage(_props: ShieldPageProps) {
                       <span>Owner recovery evidence</span>
                       <strong>{ownerRecoveryEvidenceLabel}</strong>
                     </div>
+                    <div className="review-row">
+                      <span>Record source import proof</span>
+                      <strong>{recordSourceImportProofLabel}</strong>
+                    </div>
                   </div>
                   <p className="shield-helper shield-helper--meta">
                     {ownerRecoveryEvidenceDetail}
+                  </p>
+                  <p className="shield-helper shield-helper--meta">
+                    {recordSourceImportProofDetail}
                   </p>
                   <div className="shield-viewing-key-panel__actions">
                     <button
