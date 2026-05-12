@@ -149,6 +149,20 @@ assert.equal(
 );
 assert.equal(result.privateSettlementApprovalScoped, result.realFundsApprovalActionRef.startsWith("actual-private/"));
 assert.equal(result.noRealFundsSmokeOnly, true);
+assert.match(result.localRepositoryTruth.branch, /^[A-Za-z0-9._/-]+$/);
+assert.match(result.localRepositoryTruth.headCommit, /^[0-9a-f]{7,40}$/);
+assert.equal(typeof result.localRepositoryTruth.workingTreeClean, "boolean");
+assert.equal(typeof result.localRepositoryTruth.statusShort, "string");
+assert.equal(result.deploymentEvidenceFreshness.evidenceRef, "ops/mainnet/service-deployment.evidence.json");
+assert.match(result.deploymentEvidenceFreshness.routeHealthLastCheckedAt, /^\d{4}-\d{2}-\d{2}T/);
+assert.equal(result.deploymentEvidenceFreshness.lastStatusRef, "npm run mainnet:service-deployment-status-check");
+assert.equal(result.deploymentEvidenceFreshness.reviewedAgainstCurrentLocalCommit, false);
+assert.equal(result.deploymentEvidenceFreshness.currentLocalCommit, result.localRepositoryTruth.headCommit);
+assert.equal(result.deploymentEvidenceFreshness.liveDeploymentVerifiedForCurrentLocalCommit, false);
+assert.ok(
+  result.deploymentEvidenceFreshness.liveDeploymentTruth.includes("not proof that the currently checked local commit is pushed or live"),
+  "Private settlement status must expose deployment freshness truth.",
+);
 const expectedMeaningfulPrivacyBlockedBy = [
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
@@ -182,6 +196,18 @@ assert.deepEqual(result.checkedEvidenceRefs, [
 assert.ok(
   result.deploymentTruth.includes("no-real-funds production smoke coverage"),
   "Private settlement status must preserve the no-real-funds production smoke truth.",
+);
+assert.ok(
+  result.deploymentTruth.includes("historical authenticated route-health"),
+  "Private settlement status must identify route-health evidence as historical.",
+);
+assert.ok(
+  result.deploymentTruth.includes(`local commit ${result.localRepositoryTruth.headCommit}`),
+  "Private settlement status must bind deployment truth to the current local commit.",
+);
+assert.ok(
+  result.deploymentTruth.includes("is not proof that local commit"),
+  "Private settlement status must not imply current local commit is live.",
 );
 assert.ok(
   result.deploymentTruth.includes("observed mainnet spend-program evidence"),

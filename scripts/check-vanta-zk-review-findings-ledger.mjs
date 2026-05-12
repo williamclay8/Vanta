@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -19,6 +20,42 @@ function assert(condition, message) {
   if (!condition) {
     fail(message);
   }
+}
+
+function git(args) {
+  return spawnSync("git", args, {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+}
+
+function findCommitHash(value) {
+  return /\b([0-9a-f]{7,40})\b/u.exec(String(value))?.[1] ?? null;
+}
+
+function assertKnownAncestorCommit(value, label) {
+  const hash = findCommitHash(value);
+  assert(hash, `${label} must include a concrete git commit hash`);
+
+  const revParse = git(["rev-parse", "--verify", `${hash}^{commit}`]);
+  assert(revParse.status === 0, `${label} references unknown commit ${hash}`);
+
+  const mergeBase = git(["merge-base", "--is-ancestor", hash, "HEAD"]);
+  assert(mergeBase.status === 0, `${label} commit ${hash} is not an ancestor of HEAD`);
+}
+
+function assertPinnedCommittedText(value, label) {
+  assert(typeof value === "string" && value.length > 0, `${label} must be a non-empty string`);
+  assert(
+    !/\bincluded in (?:the|this|a)\b/iu.test(value),
+    `${label} must pin a commit instead of saying "${value}"`,
+  );
+  assert(
+    !/\bcurrent\b.*\b(?:feedback-loop )?(?:patch|commit)\b/iu.test(value),
+    `${label} must pin a commit instead of saying "${value}"`,
+  );
+  assertKnownAncestorCommit(value, label);
 }
 
 assert(existsSync(reviewPath), "missing VANTA_ZK_REVIEW.md");
@@ -70,6 +107,8 @@ assert(Array.isArray(ledger.allowedStatuses), "allowedStatuses must be present")
 assert(Array.isArray(ledger.allowedSeverities), "allowedSeverities must be present");
 assert(Array.isArray(ledger.activeFeedbackLoops), "activeFeedbackLoops must be an array");
 assert(Array.isArray(ledger.findings), "findings must be an array");
+assertKnownAncestorCommit(ledger.lumiBaseline?.lastKnownCommit, "lumiBaseline.lastKnownCommit");
+assertPinnedCommittedText(ledger.lumiBaseline?.committed, "lumiBaseline.committed");
 
 for (const status of ledger.allowedStatuses) {
   assert(allowedStatuses.has(status), `unknown allowed status ${status}`);
@@ -103,6 +142,7 @@ for (const loop of ledger.activeFeedbackLoops) {
   for (const key of ["local", "committed", "pushed", "deployedLive"]) {
     assert(typeof lumi[key] === "string" && lumi[key].length > 0, `${loop.id} missing lumiHygiene.${key}`);
   }
+  assertPinnedCommittedText(lumi.committed, `${loop.id} lumiHygiene.committed`);
 
   for (const command of loop.localVerification) {
     if (!command.startsWith("npm run ")) {
@@ -138,6 +178,9 @@ for (const finding of ledger.findings) {
 
   const remediation = finding.codexRemediation ?? {};
   assert(Array.isArray(remediation.commits) && remediation.commits.length > 0, `${finding.id} missing codexRemediation.commits`);
+  for (const [index, commitRef] of remediation.commits.entries()) {
+    assertPinnedCommittedText(commitRef, `${finding.id} codexRemediation.commits[${index}]`);
+  }
   assert(typeof remediation.summary === "string" && remediation.summary.length > 20, `${finding.id} missing codexRemediation.summary`);
   assert(Array.isArray(remediation.residualRisk), `${finding.id} missing codexRemediation.residualRisk`);
 
@@ -145,6 +188,7 @@ for (const finding of ledger.findings) {
   for (const key of ["local", "committed", "pushed", "deployedLive"]) {
     assert(typeof lumi[key] === "string" && lumi[key].length > 0, `${finding.id} missing lumiHygiene.${key}`);
   }
+  assertPinnedCommittedText(lumi.committed, `${finding.id} lumiHygiene.committed`);
 
   const staleControl = finding.staleControl ?? {};
   assert(Array.isArray(staleControl.watchFiles) && staleControl.watchFiles.length > 0, `${finding.id} missing staleControl.watchFiles`);

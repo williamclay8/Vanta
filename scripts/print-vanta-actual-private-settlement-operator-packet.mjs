@@ -1,8 +1,11 @@
 import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 
 import { createVantaMainnetRealFundsApprovalStatus } from "../src/readiness/mainnetRealFundsApprovalStatus.mjs";
 
 const packagePath = new URL("../package.json", import.meta.url);
+const repoRootPath = new URL("..", import.meta.url);
+const sbfAbiStatusPath = new URL("./check-vanta-private-pool-v2-sbf-abi-status.mjs", import.meta.url);
 const servicesManifestPath = new URL("../ops/mainnet/private-pool-v2-services.manifest.json", import.meta.url);
 
 const approvalStatus = createVantaMainnetRealFundsApprovalStatus();
@@ -114,8 +117,21 @@ function shellExports(refs) {
   ];
 }
 
+function loadSbfAbiStatus() {
+  const run = spawnSync("node", [sbfAbiStatusPath.pathname, "--json"], {
+    cwd: repoRootPath,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (run.status !== 0) {
+    throw new Error(run.stderr || run.stdout || "Unable to read Private Pool v2 SBF ABI status.");
+  }
+  return JSON.parse(run.stdout);
+}
+
 const refs = serviceRefs();
 const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
+const sbfAbiStatus = loadSbfAbiStatus();
 
 const packet = {
   version: "vanta-actual-private-settlement-operator-packet-0.1",
@@ -173,6 +189,19 @@ const packet = {
       "verifierProgramId",
       "verifyingKeyHash",
     ],
+  },
+  solanaSpendSbfAbiStatus: {
+    status: sbfAbiStatus.status,
+    abiFresh: sbfAbiStatus.abiFresh,
+    blockers: sbfAbiStatus.blockers,
+    buildToolchainAvailable: sbfAbiStatus.buildToolchainAvailable,
+    deployToolchainAvailable: sbfAbiStatus.deployToolchainAvailable,
+    sourceOnlyReservedSpendStatus: sbfAbiStatus.abi.proofCarryingSpendStatus,
+    sourceOnlyReservedUnshieldStatus: sbfAbiStatus.abi.proofVerifiedUnshieldStatus,
+    checkCommand: sbfAbiStatus.checkCommand,
+    rebuildCommand: "cargo-build-sbf --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
+    truthBoundary:
+      "The current source reserves proof-carrying spend and proof-verified Unshield ABI shapes, but the SBF ABI is not fresh until cargo-build-sbf rebuilds the program and the Solana CLI can verify or deploy the matching bytecode.",
   },
   shellExportTemplate: shellExports(refs),
   forbiddenOutputValues: [

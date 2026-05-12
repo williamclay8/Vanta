@@ -22,9 +22,9 @@
   ],
   "lumiBaseline": {
     "branch": "codex/vanta-zk-review-hardening",
-    "lastKnownCommit": "edd3bcd",
-    "local": "verified locally through the owner-context legacy quarantine policy slice before the current actual-private-spend witness-input prover work",
-    "committed": "edd3bcd (Quarantine legacy owner context records)",
+    "lastKnownCommit": "3c39fbc",
+    "local": "verified locally through the actual-private-spend witness-input prover slice before the current readiness hygiene work",
+    "committed": "3c39fbc (Add actual-private witness proof path)",
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
@@ -48,7 +48,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the witness-input prover, proof-backend boundary, contract, security-limitations, local-prover, local-verifier, status, docs, and ZK review guard checks",
-        "committed": "included in the feedback-loop commit containing this ledger entry",
+        "committed": "3c39fbc (Add actual-private witness proof path)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -96,7 +96,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the Send local bb fixture prover focused guard, proof-backend boundary guard, Send proof-artifact guard, local-verifier guard, and send:verify lane",
-        "committed": "included in the feedback-loop commit containing this ledger entry",
+        "committed": "977aad2 (Bind Send local bb fixture proof results)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -121,7 +121,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the current feedback-loop slice",
-        "committed": "included in the feedback-loop commit that contains this ledger entry",
+        "committed": "572c46e (Bind Unshield proof owner key)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -152,15 +152,15 @@
         "npm run private-pool-v2:sbf-abi-status-json",
         "npm run private-core:check",
         "npm run build",
-        "npm run private-pool-v2:verify (expected fail-closed at private-pool-v2:sbf-abi-check)"
+        "npm run private-pool-v2:verify"
       ],
       "lumiHygiene": {
         "local": "verified locally for the current output-record feedback-loop slice",
-        "committed": "Move spend outputs to PDA records",
+        "committed": "5c23f77 (Move spend outputs to PDA records)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
-      "truthBoundary": "This is local source, transaction, operator, and harness hardening. The broad private-pool-v2 aggregate advances through local proof/status checks but stops truthfully at the fail-closed SBF ABI gate. The SBF binary is stale and cannot represent the eight-account ABI until cargo-build-sbf/solana tooling rebuilds and redeploys it; no live output-record evidence, audit acceptance, real funds movement, or production-private claim is created."
+      "truthBoundary": "This is local source, transaction, operator, bytecode, and harness hardening. The broad private-pool-v2 aggregate now has fresh local SBF ABI evidence for the eight-account output-record PDA ABI and a passing local Crucible dry-run, but this is not redeployed/reinitialized live program evidence, audit acceptance, real funds movement, or a production-private claim."
     },
     {
       "id": "VANTA-ZK-FEEDBACK-2026-05-10-ROUTE-CODE-SPLIT",
@@ -183,7 +183,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the current route code-split feedback-loop slice",
-        "committed": "included in the route code-split feedback-loop commit",
+        "committed": "776f972 (Split product app route bundle)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -218,7 +218,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the current status-surface ABI truth feedback-loop slice",
-        "committed": "included in the status-surface ABI truth feedback-loop commit",
+        "committed": "d6092df (Refresh spend ABI status surfaces)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -243,11 +243,11 @@
         "npm run private-pool-v2:protocol-client-check",
         "npm run private-pool-v2:contract-check",
         "npm run send:verify",
-        "npm run private-pool-v2:verify (expected fail-closed at private-pool-v2:sbf-abi-check)"
+        "npm run private-pool-v2:verify"
       ],
       "lumiHygiene": {
         "local": "verified locally for the current Send proof-artifact no-witness feedback-loop slice",
-        "committed": "included in the Send proof-artifact no-witness feedback-loop commit",
+        "committed": "6b495e7 (Add Send proof artifact no-witness route)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -283,7 +283,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the owner-context recovery evidence feedback-loop slice",
-        "committed": "included in the owner-context recovery evidence feedback-loop commit",
+        "committed": "215a891 (Classify owner recovery evidence)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -312,7 +312,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the owner-context record-source import/export UX feedback-loop slice",
-        "committed": "included in the owner-context record-source import/export UX feedback-loop commit",
+        "committed": "510aea6 (Prove owner context record imports)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -337,7 +337,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the owner-context legacy quarantine policy feedback-loop slice",
-        "committed": "included in the owner-context legacy quarantine policy feedback-loop commit",
+        "committed": "edd3bcd (Quarantine legacy owner context records)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -365,7 +365,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the all-lane trust status strip feedback-loop slice",
-        "committed": "included in the all-lane trust status strip feedback-loop commit",
+        "committed": "077b74a (Add all-lane trust status strip)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -393,7 +393,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the Private Core single-note legacy-lane freeze feedback-loop slice",
-        "committed": "included in the commit containing this Private Core single-note legacy-lane freeze feedback-loop ledger entry",
+        "committed": "089b339 (Freeze Private Core single-note lanes)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -422,7 +422,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the Send memo body-hash field feedback-loop slice",
-        "committed": "included in the commit containing this Send memo body-hash field feedback-loop ledger entry",
+        "committed": "57aa1e3 (Consolidate Send memo hash fields)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -453,7 +453,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the Unshield reserved TAG_UNSHIELD fail-closed custody feedback-loop slice",
-        "committed": "included in the commit containing this Unshield reserved TAG_UNSHIELD feedback-loop ledger entry",
+        "committed": "233f1a7 (Reserve unshield release ABI)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -477,7 +477,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the Actual Private Spend operator no-witness feedback-loop slice",
-        "committed": "included in the commit containing this Actual Private Spend operator no-witness feedback-loop ledger entry",
+        "committed": "4492643 (Bind actual private spend artifacts)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -501,7 +501,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the Send strict expected-public-input binding feedback-loop slice",
-        "committed": "included in the commit containing this Send strict expected-public-input binding feedback-loop ledger entry",
+        "committed": "81ed24b (Require Send artifact expected input) and a601206 (Bind Send artifact expected inputs)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -529,11 +529,11 @@
         "npm run private-pool-v2:contract-check",
         "npm run private-pool-v2:local-verifier-check",
         "npm run shield:verify",
-        "npm run private-pool-v2:verify (expected fail-closed at private-pool-v2:sbf-abi-check)"
+        "npm run private-pool-v2:verify"
       ],
       "lumiHygiene": {
         "local": "verified locally for the Shield proof-artifact no-witness feedback-loop slice",
-        "committed": "included in the commit containing this Shield proof-artifact no-witness feedback-loop ledger entry",
+        "committed": "c9bdb04 (Add Shield proof artifact guard) and d1ece75 (Bind Shield artifact expected inputs)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -628,7 +628,7 @@
         "npm run private-pool-v2:solana-spend-transaction-check",
         "npm run build",
         "npm run private-pool-v2:sbf-abi-status-json",
-        "npm run private-pool-v2:sbf-abi-check (expected fail-closed: stale-sbf-binary, missing-cargo-build-sbf, missing-solana-cli)"
+        "npm run private-pool-v2:sbf-abi-check"
       ],
       "lumiHygiene": {
         "local": "verified locally for the C01 spend ABI proof-field fail-closed feedback-loop slice",
@@ -654,11 +654,11 @@
         "npm run zk:c01-onchain-proof-boundary-check",
         "npm run private-pool-v2:solana-spend-transaction-builder-check",
         "npm run private-pool-v2:sbf-abi-status-json",
-        "npm run private-pool-v2:sbf-abi-check (expected fail-closed: stale-sbf-binary, missing-cargo-build-sbf, missing-solana-cli)"
+        "npm run private-pool-v2:sbf-abi-check"
       ],
       "lumiHygiene": {
         "local": "verified locally for the C01 reserved proof-carrying spend ABI feedback-loop slice",
-        "committed": "included in this C01 reserved proof-carrying spend ABI feedback-loop commit",
+        "committed": "14022f1 (Reserve proof-carrying spend ABI)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -711,15 +711,15 @@
           "npm run private-pool-v2:sbf-abi-status-json",
           "npm run private-pool-v2:sbf-abi-check"
         ],
-        "localResult": "Rust tests/checks cover the source-level reserved tag 3 proof-carrying ABI shape, malformed/all-zero placeholder rejection, and the custom-error-14 no-mutation behavior; contract-check covers the local authority/root/nullifier-marker/output-record scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed proof truth boundary, no-proof-bytes tag-1 ABI truth, and reserved tag-3 fail-closed truth; solana-spend-transaction-builder-check rejects tag 3 and proof-like builder/validation fields for the current no-verifier live builder; relayer, service-network, and operator-packet checks reject or omit proof-like spend fields before any handoff can imply verifier support; onchain-unshield-custody-check preserves the blocked operator-keypair/public-exit custody truth boundary; sbf-abi-status-json reports the reserved source-only ABI status; sbf-abi-check is expected to fail closed until the Solana toolchain rebuilds the current ABI.",
-        "proves": "Local write authority, account binding, accepted-root scaffold, deterministic output-record PDA binding, current-ABI proof-field rejection across builder/relayer/service-network/operator-packet surfaces, reserved tag-3 fail-closed/no-mutation source behavior, explicit blocked Unshield custody status, stale-SBF detection, and the negative C01 truth boundary are guarded.",
-        "doesNotProve": "On-chain proof verification, proof-carrying spend acceptance, verifying-key enforcement, rebuilt SBF bytecode for tag 3, program-owned tree state, program-owned vault custody, proof-verified TAG_UNSHIELD release, audit acceptance, or live deployment correctness."
+        "localResult": "Rust tests/checks cover the source-level reserved tag 3 proof-carrying ABI shape, malformed/all-zero placeholder rejection, and the custom-error-14 no-mutation behavior; contract-check covers the local authority/root/nullifier-marker/output-record scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed proof truth boundary, no-proof-bytes tag-1 ABI truth, and reserved tag-3 fail-closed truth; solana-spend-transaction-builder-check rejects tag 3 and proof-like builder/validation fields for the current no-verifier live builder; relayer, service-network, and operator-packet checks reject or omit proof-like spend fields before any handoff can imply verifier support; onchain-unshield-custody-check preserves the blocked operator-keypair/public-exit custody truth boundary; sbf-abi-status-json now discovers the installed Solana active-release toolchain and reports the locally rebuilt SBF ABI as fresh; sbf-abi-check passes locally.",
+        "proves": "Local write authority, account binding, accepted-root scaffold, deterministic output-record PDA binding, current-ABI proof-field rejection across builder/relayer/service-network/operator-packet surfaces, reserved tag-3 fail-closed/no-mutation source behavior, explicit blocked Unshield custody status, local rebuilt-SBF freshness for the current source ABI, and the negative C01 truth boundary are guarded.",
+        "doesNotProve": "On-chain proof verification, proof-carrying spend acceptance, verifying-key enforcement, deployed/live SBF bytecode for tag 3, program-owned tree state, program-owned vault custody, proof-verified TAG_UNSHIELD release, audit acceptance, or live deployment correctness."
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through the output-record PDA feedback-loop commit",
+          "5c23f77 (Move spend outputs to PDA records)",
           "698ca41 (C01 proof-field fail-closed feedback loop)",
-          "current C01 reserved proof-carrying spend ABI feedback-loop commit"
+          "14022f1 (Reserve proof-carrying spend ABI)"
         ],
         "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, proof-like transaction-field rejection for the current no-verifier spend ABI, and a reserved tag 3 proof-carrying spend ABI that fails closed before state reads or writes.",
         "residualRisk": [
@@ -732,7 +732,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally for scaffold, proof-field boundary, and reserved proof-carrying ABI checks",
-        "committed": "included in this C01 reserved proof-carrying spend ABI feedback-loop commit",
+        "committed": "14022f1 (Reserve proof-carrying spend ABI)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -800,13 +800,13 @@
           "npm run private-pool-v2:anonymity-set-metrics-check",
           "npm run private-pool-v2:sbf-abi-status-json"
         ],
-        "localResult": "Local native Rust tests/checks, the invariant harness compile check, and JS/contract guards cover signer-gated writes, account bindings, marker PDA duplicate rejection, output-record PDA duplicate rejection, transaction layout, and output-index-only metrics. The bytecode Crucible lane is expected-blocked because private-pool-v2:crucible-check now starts with private-pool-v2:sbf-abi-check and the local SBF/toolchain status is blocked.",
+        "localResult": "Local native Rust tests/checks, the invariant harness compile check, the fresh local SBF ABI check, the Crucible dry-run, and JS/contract guards cover signer-gated writes, account bindings, marker PDA duplicate rejection, output-record PDA duplicate rejection, transaction layout, and output-index-only metrics.",
         "proves": "The old unauthenticated fixed-slot fill, linear nullifier scan, and fixed output-slot shape are closed in local source and transaction/operator contracts.",
         "doesNotProve": "The rebuilt SBF bytecode or live deployed program has this ABI; that remains blocked by SBF rebuild/redeploy evidence, cargo-build-sbf availability, and Solana CLI availability."
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through the output-record PDA feedback-loop commit"
+          "5c23f77 (Move spend outputs to PDA records)"
         ],
         "summary": "Moved replay truth to deterministic marker PDAs, treated the legacy nullifier set as a header/namespace account, and moved output evidence to deterministic output-record PDAs.",
         "residualRisk": [
@@ -817,7 +817,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through the output-record PDA feedback-loop commit",
+        "committed": "through 5c23f77",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -1200,28 +1200,28 @@
           "npm run private-pool-v2:actual-private-spend-operator-no-witness-check",
           "npm run private-pool-v2:local-verifier-check"
         ],
-        "localResult": "Mock-proof boundary, proof-backend boundary, remote-services, remote proof-artifact boundary with transcript binding, local bb fixture proof-result adapters, the actual-private-spend witness-input prover guard, SOL-to-shielded adapter, swap capability, protocol-client, Shield proof-artifact consistency, Shield operator no-witness, Claim proof-artifact consistency, Claim operator no-witness, Swap-to-shielded proof-artifact consistency, Swap-to-shielded operator no-witness, Send proof-artifact consistency, actual-private-spend proof-artifact consistency, Send operator no-witness, actual-private-spend operator no-witness, send:verify, local-prover, and the expanded local-verifier check pass locally. A full private-pool-v2:verify run advanced through the H08 handoff, local bb fixture adapter, local proof-artifact, circuit, proving, and status lanes before stopping at the expected SBF ABI gate: stale-sbf-binary, missing-cargo-build-sbf, missing-solana-cli.",
+        "localResult": "Mock-proof boundary, proof-backend boundary, remote-services, remote proof-artifact boundary with transcript binding, local bb fixture proof-result adapters, the actual-private-spend witness-input prover guard, SOL-to-shielded adapter, swap capability, protocol-client, Shield proof-artifact consistency, Shield operator no-witness, Claim proof-artifact consistency, Claim operator no-witness, Swap-to-shielded proof-artifact consistency, Swap-to-shielded operator no-witness, Send proof-artifact consistency, actual-private-spend proof-artifact consistency, Send operator no-witness, actual-private-spend operator no-witness, send:verify, local-prover, local-verifier, fresh local SBF ABI status, and the Crucible dry-run check pass locally. The local SBF/toolchain gate is no longer the active blocker after the active-release Solana toolchain rebuild; H08 remains partial because browser/Web Worker proving, production remote proving, on-chain verifier enforcement, audit acceptance, and live settlement evidence are still absent.",
         "proves": "Mock proofs and local proof backends are explicit and blocked from production/real-funds acceptance paths covered by the guard, including spoofed noir-bb/local-backend receipts, relabelled Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof artifacts, witness-alias sidecars, remote prover mock/local-backend responses, remote verifier local-backend requests, and the live Jupiter SOL-to-shielded adapter boundary. Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof artifacts can be checked locally without accepting private witness material; actual-private-spend also has a strict local witness-input proof path that validates canonical fields, a depth-20 path, derived leaf index, recomputed root/nullifier, unique outputs, and derived private-spend-public-input-hash before emitting a no-witness local-bb-derived-artifact. Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator verification require matching expected public-input hashes and reject unbound extra expected-input keys; the opt-in actual-private-spend and Send local bb artifact adapters return noir-bb local artifacts only for exact verified proof-request transcripts, reject private-spend-public-input-hash or send-public-input-hash mismatch, transition-field drift, request-metadata drift, cross-target artifacts, disabled mode, artifact relabeling, malformed local ACIR metadata, and proof-result tampering, and leave the default local prover on mock/local-mock. Shield operator verification is explicitly read-only and checks receipt/settlement counts do not change; the production-mode proof-artifact verifier-handoff guard delegates remote-service artifacts to the configured verifier registry in a local harness, rejects local fixture artifacts, relabelled local verifying-key ids, mock proof systems, local verifying-key hashes, and witness aliases, requires the returned remote verifier receipt transcript to match the submitted artifact across ACIR hash, circuit, backend/runtime metadata, proof system/backend, proof bytes, public inputs/labels/commitment, and verifying-key fields, and still appends no receipts or settlements; and proof-system/backend metadata plus local ACIR bytecode metadata remain guarded against mock/local production misuse.",
         "doesNotProve": "Browser/Web Worker prover plumbing, a production remote prover, live verifier, on-chain proof verifier, audit acceptance, live settlement evidence, or real-funds ZK readiness."
       },
       "codexRemediation": {
         "commits": [
           "local feedback loops through 572c46e",
-          "current H08 SOL-to-shielded adapter feedback-loop patch",
-          "current H08 proof-backend metadata feedback-loop patch",
-          "current H08 Send proof-artifact no-witness feedback-loop commit",
-          "current H08 actual-private-spend proof-artifact feedback-loop patch",
-          "current H08 remote-service proof-boundary feedback-loop patch",
-          "current H08 Send strict expected-input binding feedback-loop patch",
-          "current H08 Shield proof-artifact no-witness feedback-loop patch",
+          "5a6d1fd (Harden proof backend feedback guards)",
+          "25a9d14 (Harden remote proof service boundary)",
+          "6b495e7 (Add Send proof artifact no-witness route)",
+          "9b57f23 (Verify actual private spend artifacts)",
+          "b6b97e3 (Add remote proof artifact boundary)",
+          "81ed24b (Require Send artifact expected input)",
+          "c9bdb04 (Add Shield proof artifact guard)",
           "dc3cfd0 (Claim proof-artifact no-witness feedback loop)",
-          "current H08 Swap-to-shielded proof-artifact no-witness feedback-loop patch",
-          "current H08 Shield operator request-binding feedback-loop patch",
+          "a46f576 (Add Swap proof artifact guard)",
+          "d1ece75 (Bind Shield artifact expected inputs)",
           "b6b97e3 (remote proof-artifact boundary feedback loop)",
           "6fe5bdc (remote verifier receipt transcript-binding feedback loop)",
           "4f1fa49 (Bind local bb fixture proof results)",
-          "current H08 Send local bb fixture proof-result feedback-loop patch",
-          "current H08 actual-private-spend witness-input proof path patch"
+          "977aad2 (Bind Send local bb fixture proof results)",
+          "3c39fbc (Add actual-private witness proof path)"
         ],
         "summary": "Persisted proofSystem and proofBackend through proof receipts, guarded production startup and settlement boundaries against mock/local proof evidence, made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary, added local no-witness Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof-artifact checks with alias/tamper/metadata/relabel guards, required Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator proof-artifact verification to bind matching expected public-input hashes where operator routes exist, rejects unbound extra expected-input keys, kept Shield operator artifact verification read-only with receipt/settlement count checks, added a production proof-artifact verifier handoff that delegates remote-service artifacts to the configured verifier registry while rejecting local fixture artifacts, relabelled-local key ids, local/mocked verifier responses, and remote receipt transcript drift, hardened the remote-services client so remote prover/verifier responses cannot launder mock/local proof metadata or witness sidecars into remote-service evidence, added opt-in actual-private-spend and Send local bb fixture proof-result adapters that are exact-fixture-request-bound and still local/no-real-funds only, and added a strict actual-private-spend local witness-input proof path that emits no-witness local-bb-derived-artifacts for derived requests.",
         "residualRisk": [
@@ -1238,8 +1238,8 @@
         ]
       },
       "lumiHygiene": {
-        "local": "verified locally for boundary, remote proof-artifact boundary/transcript binding, actual-private-spend witness-input proof path, actual-private-spend and Send local bb fixture proof-result adapters, Shield proof-artifact, Shield operator, Claim proof-artifact, Claim operator, Swap-to-shielded proof-artifact, Swap-to-shielded operator, Send proof-artifact, actual-private-spend proof-artifact, Send operator, actual-private-spend operator, send:verify, local-prover, local-verifier, build, and full private-pool-v2:verify until the expected SBF ABI/toolchain gate",
-        "committed": "included in the feedback-loop commit containing the current actual-private-spend witness-input proof path patch",
+        "local": "verified locally for boundary, remote proof-artifact boundary/transcript binding, actual-private-spend witness-input proof path, actual-private-spend and Send local bb fixture proof-result adapters, Shield proof-artifact, Shield operator, Claim proof-artifact, Claim operator, Swap-to-shielded proof-artifact, Swap-to-shielded operator, Send proof-artifact, actual-private-spend proof-artifact, Send operator, actual-private-spend operator, send:verify, local-prover, local-verifier, build, fresh local SBF ABI status, and Crucible dry-run",
+        "committed": "through 3c39fbc",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -1337,8 +1337,8 @@
       "codexRemediation": {
         "commits": [
           "local feedback loops through 572c46e",
-          "current Private Core context-tag split feedback-loop patch",
-          "current Private Core single-note legacy-lane freeze feedback-loop patch"
+          "58e6935 (Harden Private Core context tags)",
+          "089b339 (Freeze Private Core single-note lanes)"
         ],
         "summary": "Replaced split membership path witnesses with single-field siblings across covered Private Core lanes, tightened Send/Swap context-tag public-input splits to zero-high-limb canonical encoding, and marked the single-note circuit family as active-v0 legacy/deprecated-for-new-architecture compatibility lanes in machine-readable operator/docs surfaces.",
         "residualRisk": [
@@ -1348,7 +1348,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally for context-tag split hardening",
-        "committed": "included in this Private Core context-tag split feedback-loop commit",
+        "committed": "through 089b339",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },

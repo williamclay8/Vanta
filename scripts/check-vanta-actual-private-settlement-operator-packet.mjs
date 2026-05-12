@@ -120,6 +120,22 @@ assert.deepEqual(packet.solanaSpendProofBoundary, {
     "verifyingKeyHash",
   ],
 });
+assert.equal(packet.solanaSpendSbfAbiStatus.checkCommand, "npm run private-pool-v2:sbf-abi-check");
+assert.equal(
+  packet.solanaSpendSbfAbiStatus.rebuildCommand,
+  "cargo-build-sbf --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
+);
+assert.equal(packet.solanaSpendSbfAbiStatus.sourceOnlyReservedSpendStatus, "fail-closed-source-only");
+assert.equal(packet.solanaSpendSbfAbiStatus.sourceOnlyReservedUnshieldStatus, "fail-closed-source-only");
+assert.equal(typeof packet.solanaSpendSbfAbiStatus.status, "string");
+assert.equal(typeof packet.solanaSpendSbfAbiStatus.abiFresh, "boolean");
+assert.equal(typeof packet.solanaSpendSbfAbiStatus.buildToolchainAvailable, "boolean");
+assert.equal(typeof packet.solanaSpendSbfAbiStatus.deployToolchainAvailable, "boolean");
+assert.ok(Array.isArray(packet.solanaSpendSbfAbiStatus.blockers));
+assert.ok(
+  packet.solanaSpendSbfAbiStatus.truthBoundary.includes("not fresh until cargo-build-sbf rebuilds"),
+  "Operator packet must carry SBF ABI freshness truth.",
+);
 
 assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_ACTUAL_PRIVATE_MAINNET_WALLET_PUBLIC_KEY_REF")));
 assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN")));

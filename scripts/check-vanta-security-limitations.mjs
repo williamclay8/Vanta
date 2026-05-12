@@ -25,7 +25,7 @@ const requiredPhrases = [
   "actual-private-spend and Send",
   "local actual-private-spend witness-input proof path",
   "not a browser/runtime prover",
-  "reserved Private Pool v2 tag `3` proof-carrying spend ABI is source-only fail-closed scaffolding",
+  "reserved Private Pool v2 tag `3` proof-carrying spend ABI is source/local rebuilt-SBF fail-closed scaffolding",
   "returns custom error `14` before reading or mutating accounts",
   "reserved source-only `TAG_UNSHIELD = 6` ABI now fails closed before reading or mutating accounts and cannot release funds",
   "transition-field drift",

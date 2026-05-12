@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 import { createVantaMainnetRealFundsApprovalStatus } from "./mainnetRealFundsApprovalStatus.mjs";
@@ -15,13 +16,37 @@ const actualPrivateSettlementReviewPath = new URL(
   "../../ops/mainnet/actual-private-mainnet-settlement-review.evidence.json",
   import.meta.url,
 );
+const serviceDeploymentEvidencePath = new URL("../../ops/mainnet/service-deployment.evidence.json", import.meta.url);
+const repoRoot = new URL("../..", import.meta.url);
+
+function gitValue(args) {
+  const result = spawnSync("git", args, {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  return result.status === 0 ? result.stdout.trim() : null;
+}
+
+function createLocalRepositoryTruth() {
+  const status = gitValue(["status", "--short"]) ?? "";
+  return {
+    branch: gitValue(["branch", "--show-current"]) ?? "unknown",
+    headCommit: gitValue(["rev-parse", "--short", "HEAD"]) ?? "unknown",
+    headCommitIso: gitValue(["show", "-s", "--format=%cI", "HEAD"]) ?? null,
+    statusShort: status,
+    workingTreeClean: status.length === 0,
+  };
+}
 
 export function createVantaMainnetPrivateSettlementStatus() {
   const productionSmokeEvidence = JSON.parse(readFileSync(productionSmokeEvidencePath, "utf8"));
   const routeHealthEvidence = JSON.parse(readFileSync(routeHealthEvidencePath, "utf8"));
   const nullifierReplayEvidence = JSON.parse(readFileSync(nullifierReplayEvidencePath, "utf8"));
+  const serviceDeploymentEvidence = JSON.parse(readFileSync(serviceDeploymentEvidencePath, "utf8"));
   const actualPrivateSettlementEvidence = JSON.parse(readFileSync(actualPrivateSettlementEvidencePath, "utf8"));
   const actualPrivateSettlementReview = JSON.parse(readFileSync(actualPrivateSettlementReviewPath, "utf8"));
+  const localRepositoryTruth = createLocalRepositoryTruth();
   const realFundsApproval = createVantaMainnetRealFundsApprovalStatus();
   const anonymitySetReadiness = createVantaPrivatePoolV2AnonymitySetReadiness();
   const privacyRail = createVantaPrivacyRailContract({ activeRailId: "vanta-private-pool-v2" });
@@ -62,6 +87,17 @@ export function createVantaMainnetPrivateSettlementStatus() {
     requiredAction:
       "Rebuild, redeploy, and reinitialize the spend program/accounts with operator authority, root-history binding, nullifier-marker PDAs, and output-record PDAs before using reviewed mainnet evidence for current ABI claims.",
   };
+  const deploymentEvidenceFreshness = {
+    evidenceRef: "ops/mainnet/service-deployment.evidence.json",
+    routeHealthLastCheckedAt: serviceDeploymentEvidence.routeHealthLastCheckedAt,
+    lastStatusRef: serviceDeploymentEvidence.lastStatusRef,
+    reviewedAgainstCurrentLocalCommit: false,
+    currentLocalCommit: localRepositoryTruth.headCommit,
+    currentLocalCommitIso: localRepositoryTruth.headCommitIso,
+    liveDeploymentVerifiedForCurrentLocalCommit: false,
+    liveDeploymentTruth:
+      "The service-deployment evidence is historical sanitized route-health/deployment evidence. It is not proof that the currently checked local commit is pushed or live.",
+  };
   const meaningfulPrivacyBlockedBy = [
     "no-proven-audited-shared-anonymity-set",
     "no-proven-live-mainnet-private-settlement-evidence",
@@ -95,7 +131,8 @@ export function createVantaMainnetPrivateSettlementStatus() {
       "ops/mainnet/service-deployment.evidence.json",
       "ops/mainnet/mainnet-real-funds-approval.evidence.json",
     ],
-    deploymentTruth: `Vanta Private Pool v2 currently has authenticated route-health across deployed production role services, no-real-funds production smoke coverage, a deployed final replay protocol layer, and observed mainnet spend-program evidence, but the reviewed spend-program evidence predates the current output-record PDA eight-account spend ABI and it still must not be presented as live mainnet private settlement because there is no proven audited shared anonymity set, no reviewed shared-cohort deposit evidence, no reviewed live production replay rejection, and ${approvalWindowTruth}.`,
+    deploymentEvidenceFreshness,
+    deploymentTruth: `Vanta Private Pool v2 has historical authenticated route-health across deployed production role services, no-real-funds production smoke coverage, a deployed final replay protocol layer, and observed mainnet spend-program evidence, but the checked deployment evidence is not proof that local commit ${localRepositoryTruth.headCommit} is pushed or live; the reviewed spend-program evidence predates the current output-record PDA eight-account spend ABI; and it still must not be presented as live mainnet private settlement because there is no proven audited shared anonymity set, no reviewed shared-cohort deposit evidence, no reviewed live production replay rejection, and ${approvalWindowTruth}.`,
     actualPrivateMainnetEvidence: {
       evidenceRefs: actualPrivateSettlementEvidence.evidenceRefs,
       evidenceStatus: actualPrivateSettlementEvidence.currentStatus,
@@ -137,6 +174,7 @@ export function createVantaMainnetPrivateSettlementStatus() {
     lastRouteHealthRef: routeHealthEvidence.lastAuthenticatedReadinessRef,
     lastSmokeRef: "npm run mainnet:private-pool-v2-production-smoke-check",
     liveMainnetPrivateSettlementAvailable: false,
+    localRepositoryTruth,
     mainnetReady: false,
     meaningfulPrivacyReady: false,
     meaningfulPrivacyBlockedBy: [

@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -20,6 +21,26 @@ function requirePhrase(source, phrase, relativePath) {
 function rejectPhrase(source, phrase, relativePath) {
   if (source.includes(phrase)) {
     throw new Error(`${relativePath} still contains stale phrase: ${phrase}`);
+  }
+}
+
+function requireGitAncestor(shortHash, relativePath) {
+  const revParse = spawnSync("git", ["rev-parse", "--verify", `${shortHash}^{commit}`], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (revParse.status !== 0) {
+    throw new Error(`${relativePath} references unknown reviewed commit ${shortHash}.`);
+  }
+
+  const mergeBase = spawnSync("git", ["merge-base", "--is-ancestor", shortHash, "HEAD"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (mergeBase.status !== 0) {
+    throw new Error(`${relativePath} reviewed commit ${shortHash} is not an ancestor of HEAD.`);
   }
 }
 
@@ -46,7 +67,8 @@ for (const lane of ["Shield", "Send", "Swap", "Unshield", "Strategy", "Pay"]) {
 }
 
 for (const phrase of [
-  "Last updated: 2026-05-10",
+  "Last updated: 2026-05-12",
+  "Reviewed local feedback commit:",
   "productionReady",
   "Verifier present",
   "Vault custody model",
@@ -55,6 +77,12 @@ for (const phrase of [
 ]) {
   requirePhrase(laneStatus, phrase, "LANE_STATUS.md");
 }
+rejectPhrase(laneStatus, "Last updated: 2026-05-10", "LANE_STATUS.md");
+const laneStatusCommitMatch = /Reviewed local feedback commit:\s*`([0-9a-f]{7,40})`/u.exec(laneStatus);
+if (!laneStatusCommitMatch) {
+  throw new Error("LANE_STATUS.md must pin the reviewed local feedback commit.");
+}
+requireGitAncestor(laneStatusCommitMatch[1], "LANE_STATUS.md");
 
 for (const phrase of [
   "Markdown docs are the canonical source of truth",

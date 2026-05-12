@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
+import { homedir } from "node:os";
 import { resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -43,9 +44,29 @@ const expectedSourceMarkers = [
 
 function commandStatus(command, args = ["--version"]) {
   const result = spawnSync(command, args, { encoding: "utf8", stdio: "pipe" });
+  if (result.status !== 0) {
+    const activeReleaseCommand = resolve(
+      homedir(),
+      ".local/share/solana/install/active_release/bin",
+      command,
+    );
+    if (existsSync(activeReleaseCommand)) {
+      const activeReleaseResult = spawnSync(activeReleaseCommand, args, { encoding: "utf8", stdio: "pipe" });
+      return {
+        available: activeReleaseResult.status === 0,
+        command,
+        resolvedCommand: activeReleaseCommand,
+        status: activeReleaseResult.status,
+        stderr: activeReleaseResult.stderr?.trim() || "",
+        stdout: activeReleaseResult.stdout?.trim() || "",
+      };
+    }
+  }
+
   return {
     available: result.status === 0,
     command,
+    resolvedCommand: result.status === 0 ? command : null,
     status: result.status,
     stderr: result.stderr?.trim() || "",
     stdout: result.stdout?.trim() || "",
@@ -154,8 +175,10 @@ if (jsonMode) {
   console.log(`- abiFresh: ${String(result.abiFresh)}`);
   console.log(`- sourceNewest: ${newestSource ? `${newestSource.path} @ ${newestSource.mtimeIso}` : "missing"}`);
   console.log(`- sbf: ${sbfStatus.exists ? `${sbfStatus.path} @ ${sbfStatus.mtimeIso}` : "missing"}`);
-  console.log(`- cargo-build-sbf: ${cargoBuildSbf.available ? cargoBuildSbf.stdout : "missing"}`);
-  console.log(`- solana: ${solanaCli.available ? solanaCli.stdout : "missing"}`);
+  console.log(
+    `- cargo-build-sbf: ${cargoBuildSbf.available ? `${cargoBuildSbf.stdout} (${cargoBuildSbf.resolvedCommand})` : "missing"}`,
+  );
+  console.log(`- solana: ${solanaCli.available ? `${solanaCli.stdout} (${solanaCli.resolvedCommand})` : "missing"}`);
   console.log(`- blockers: ${blockers.length === 0 ? "none" : blockers.join(", ")}`);
   console.log("- rebuild command: cargo-build-sbf --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml");
   console.log("- check command: npm run private-pool-v2:sbf-abi-check");

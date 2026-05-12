@@ -142,6 +142,12 @@ If the Solana SBF toolchain is installed:
 cargo-build-sbf --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml
 ```
 
+If the Solana installer active release exists but is not on the shell `PATH`, prefix it for manual rebuilds:
+
+```bash
+PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH" cargo-build-sbf --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml
+```
+
 Native Rust check:
 
 ```bash
