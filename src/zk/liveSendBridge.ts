@@ -28,6 +28,10 @@ import {
   type CanonicalLifecycleRecordLinkage,
 } from "./canonicalLifecycleLinkage";
 import { listCanonicalShieldRecords } from "./liveShieldBridge";
+import {
+  createOwnerContextRecoveryEvidence,
+  type OwnerContextRecoveryEvidence,
+} from "./ownerContextRecoveryEvidence";
 
 const LIVE_SEND_RECORDS_STORAGE_KEY = "vanta.zk.phase1.live-send-records.v1";
 const DEFAULT_USDC_DECIMALS = 6;
@@ -83,6 +87,7 @@ export type LiveSendCanonicalSuccessorRecord = {
     ownerPublicKeyCommitment: string;
   };
   artifacts: LiveSendSuccessorArtifacts;
+  ownerContextEvidence?: OwnerContextRecoveryEvidence;
   insertion: {
     index: number;
     root: string;
@@ -125,6 +130,7 @@ export type LiveSendCanonicalRecord = {
   };
   predecessor: CanonicalPredecessorReference;
   consumption?: CanonicalLifecycleConsumptionRecord;
+  ownerContextEvidence?: OwnerContextRecoveryEvidence;
   successors: LiveSendCanonicalSuccessorRecord[];
   diagnosticStorage: BrowserLocalShieldedStateDiagnostic;
 };
@@ -148,6 +154,9 @@ export type LiveSendDiagnosticsSummary = {
   spentMarkerSignature?: string;
   storageRole: BrowserLocalShieldedStateDiagnostic["storageRole"];
   privacyPrimitive: false;
+  ownerRecoveryClass: OwnerContextRecoveryEvidence["recoveryClass"];
+  ownerRecoveryEvidenceSource: OwnerContextRecoveryEvidence["evidenceSource"];
+  ownerRecoveryCrossDeviceCandidate: boolean;
   recipient: string;
   successors: Array<{
     kind: "recipient" | "change";
@@ -161,6 +170,9 @@ export type LiveSendDiagnosticsSummary = {
     amountDisplay: string;
     assetId: string;
     ownerPublicKey: string;
+    ownerRecoveryClass: OwnerContextRecoveryEvidence["recoveryClass"];
+    ownerRecoveryEvidenceSource: OwnerContextRecoveryEvidence["evidenceSource"];
+    ownerRecoveryCrossDeviceCandidate: boolean;
     liveNoteId?: string;
     liveStateSignature?: string;
   }>;
@@ -266,6 +278,7 @@ export async function recordCanonicalSendFromLiveSend(
     },
     predecessor,
     consumption,
+    ownerContextEvidence: createOwnerContextRecoveryEvidence({ ownerContext }),
     successors,
     diagnosticStorage: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
   };
@@ -330,6 +343,15 @@ export function listCanonicalSendDiagnosticsSummaries(): LiveSendDiagnosticsSumm
         record.diagnosticStorage?.storageRole ??
         BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC.storageRole,
       privacyPrimitive: false as const,
+      ownerRecoveryClass:
+        record.ownerContextEvidence?.recoveryClass ??
+        createOwnerContextRecoveryEvidence({}).recoveryClass,
+      ownerRecoveryEvidenceSource:
+        record.ownerContextEvidence?.evidenceSource ??
+        createOwnerContextRecoveryEvidence({}).evidenceSource,
+      ownerRecoveryCrossDeviceCandidate:
+        record.ownerContextEvidence?.crossDeviceCandidate ??
+        createOwnerContextRecoveryEvidence({}).crossDeviceCandidate,
       recipient: record.liveSend.recipient ?? record.liveSend.redactedRecipientReference ?? "redacted",
       successors: record.successors.map((successor) => ({
         kind: successor.kind,
@@ -349,6 +371,15 @@ export function listCanonicalSendDiagnosticsSummaries(): LiveSendDiagnosticsSumm
           successor.canonicalNote?.ownerPublicKey ??
           successor.redactedCanonicalNote?.ownerPublicKeyCommitment ??
           "redacted",
+        ownerRecoveryClass:
+          successor.ownerContextEvidence?.recoveryClass ??
+          createOwnerContextRecoveryEvidence({}).recoveryClass,
+        ownerRecoveryEvidenceSource:
+          successor.ownerContextEvidence?.evidenceSource ??
+          createOwnerContextRecoveryEvidence({}).evidenceSource,
+        ownerRecoveryCrossDeviceCandidate:
+          successor.ownerContextEvidence?.crossDeviceCandidate ??
+          createOwnerContextRecoveryEvidence({}).crossDeviceCandidate,
         liveNoteId: successor.liveNoteId ?? successor.liveNoteReferenceHash,
         liveStateSignature: successor.liveStateSignature ?? successor.liveStateSignatureHash,
       })),
@@ -392,6 +423,9 @@ async function createSuccessorRecord(args: {
     amountDisplay: args.amountDisplay,
     canonicalNote: serializedCanonicalNote,
     artifacts,
+    ownerContextEvidence: createOwnerContextRecoveryEvidence({
+      ownerContext: args.ownerContext,
+    }),
     insertion: {
       index: insertion.index,
       root: insertion.snapshot.root.value,
@@ -585,6 +619,9 @@ function redactLiveSendRecordForPersistence(record: LiveSendCanonicalRecord): Li
         : undefined,
       nullifierBasis: record.predecessor.nullifierBasis,
     },
+    ownerContextEvidence: createOwnerContextRecoveryEvidence({
+      existingEvidence: record.ownerContextEvidence,
+    }),
     successors: record.successors.map(redactLiveSendSuccessorForPersistence),
     diagnosticStorage:
       record.diagnosticStorage ?? BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
@@ -605,6 +642,9 @@ function redactLiveSendSuccessorForPersistence(
         }
       : successor.redactedCanonicalNote,
     artifacts: redactLiveSendArtifactsForPersistence(successor.artifacts),
+    ownerContextEvidence: createOwnerContextRecoveryEvidence({
+      existingEvidence: successor.ownerContextEvidence,
+    }),
     insertion: successor.insertion,
     liveNoteReferenceHash: redactLiveSendReference(
       "predecessor-note-id",

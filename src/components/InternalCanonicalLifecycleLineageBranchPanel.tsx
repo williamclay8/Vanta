@@ -1,3 +1,5 @@
+import type { CanonicalLifecycleBranchPathSummary } from "@/zk/liveLifecycleInspection";
+
 function abbreviate(value: string | undefined) {
   if (!value) return "Unavailable";
   return value.length > 20 ? `${value.slice(0, 10)}...${value.slice(-6)}` : value;
@@ -20,7 +22,20 @@ function formatTimestamp(value: number) {
   });
 }
 
-export function InternalCanonicalLifecycleLineageBranchPanel({ branch }: { branch: any }) {
+function formatOwnerRecoveryEvidence(branch: CanonicalLifecycleBranchPathSummary) {
+  const recoveryClass = branch.ownerRecoveryClass ?? "missing-owner-context-evidence";
+  const evidenceSource = branch.ownerRecoveryEvidenceSource ?? "missing-owner-context-evidence";
+  const recoveryRead = branch.ownerRecoveryCrossDeviceCandidate
+    ? "cross-device candidate; import path still required"
+    : "local-only evidence";
+  return `${recoveryClass}; source ${evidenceSource}; ${recoveryRead}; owner key ref ${abbreviate(branch.ownerPublicKey)}`;
+}
+
+export function InternalCanonicalLifecycleLineageBranchPanel({
+  branch,
+}: {
+  branch: CanonicalLifecycleBranchPathSummary;
+}) {
   return (
     <>
       <div className="review-row"><span>Field manifest</span><strong>{branch.fieldConversionManifestSummary ?? "Unavailable"}</strong></div>
@@ -89,7 +104,7 @@ export function InternalCanonicalLifecycleLineageBranchPanel({ branch }: { branc
         </div>
       ) : null}
       <div className="review-row"><span>Continuity read</span><strong>{branch.continuitySummary}</strong></div>
-      <div className="review-row"><span>Owner hint</span><strong>{abbreviate(branch.ownerPublicKey)}</strong></div>
+      <div className="review-row"><span>Owner recovery evidence</span><strong>{formatOwnerRecoveryEvidence(branch)}</strong></div>
       {branch.downstreamEvents.length > 0 ? (
         <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
           {branch.downstreamEvents.map((downstreamEvent: any) => (

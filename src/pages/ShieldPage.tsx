@@ -66,6 +66,7 @@ import {
 } from "@/solana/vantaShieldState";
 import { recordCanonicalShieldFromLiveShield } from "@/zk/liveShieldBridge";
 import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
+import { isWalletDerivedOwnerContext } from "@/zk/ownerContextRecoveryEvidence";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 
 type ShieldPageProps = {
@@ -1798,6 +1799,21 @@ export function ShieldPage(_props: ShieldPageProps) {
     validationMessage = `Insufficient ${selectedSourceAsset.symbol} balance.`;
   }
 
+  const ownerRecoveryEvidenceLabel = shieldOwnerContext.ownerContext
+    ? isWalletDerivedOwnerContext(shieldOwnerContext.ownerContext)
+      ? "wallet-derived candidate"
+      : "legacy local-only"
+    : shieldOwnerContext.canRequestOwnerContext
+      ? "needs wallet approval"
+      : "unavailable";
+  const ownerRecoveryEvidenceDetail = shieldOwnerContext.ownerContext
+    ? isWalletDerivedOwnerContext(shieldOwnerContext.ownerContext)
+      ? "Fresh Shield records retain non-secret wallet-derived evidence; another device still needs an imported record source before recovery is real."
+      : "Fresh Shield records from this context are legacy local-only records unless you export and import the matching recovery material."
+    : shieldOwnerContext.canRequestOwnerContext
+      ? "Approve the owner-key message before Shield records can carry non-secret recovery evidence."
+      : "This wallet session cannot create owner recovery evidence until message signing is available.";
+
   const routeLabel = capability.routeLabel;
 
   return (
@@ -1978,6 +1994,15 @@ export function ShieldPage(_props: ShieldPageProps) {
                   <p className="shield-helper shield-helper--meta">
                     Lets this browser recognize your shielded notes. Back it up if you use Vanta
                     on another device.
+                  </p>
+                  <div className="review-list">
+                    <div className="review-row">
+                      <span>Owner recovery evidence</span>
+                      <strong>{ownerRecoveryEvidenceLabel}</strong>
+                    </div>
+                  </div>
+                  <p className="shield-helper shield-helper--meta">
+                    {ownerRecoveryEvidenceDetail}
                   </p>
                   <div className="shield-viewing-key-panel__actions">
                     <button

@@ -22,8 +22,11 @@ import {
   createCanonicalLineageId,
   type CanonicalLifecycleRecordLinkage,
 } from "./canonicalLifecycleLinkage";
-import { sha256 } from "@noble/hashes/sha2.js";
-import { bytesToHex } from "@noble/hashes/utils.js";
+import {
+  createOwnerContextRecoveryEvidence,
+  createOwnerContextReferenceHash,
+  type OwnerContextRecoveryEvidence,
+} from "./ownerContextRecoveryEvidence";
 import type { LiveShieldTokenAssetKey } from "@/solana/shieldConfig";
 
 const LIVE_SHIELD_RECORDS_STORAGE_KEY = "vanta.zk.phase1.live-shield-records.v1";
@@ -61,6 +64,7 @@ export type LiveShieldCanonicalRecord = {
   };
   ownerContext?: CanonicalNoteOwnerContext;
   redactedOwnerContext?: LiveShieldRedactedOwnerContext;
+  ownerContextEvidence?: OwnerContextRecoveryEvidence;
   canonicalNote: SerializedCanonicalNoteV1;
   artifacts: CanonicalNoteArtifacts;
   insertion: {
@@ -97,6 +101,9 @@ export type LiveShieldCanonicalDiagnosticsSummary = {
   stateSignature: string;
   storageRole: BrowserLocalShieldedStateDiagnostic["storageRole"];
   privacyPrimitive: false;
+  ownerRecoveryClass: OwnerContextRecoveryEvidence["recoveryClass"];
+  ownerRecoveryEvidenceSource: OwnerContextRecoveryEvidence["evidenceSource"];
+  ownerRecoveryCrossDeviceCandidate: boolean;
 };
 
 export async function recordCanonicalShieldFromLiveShield(
@@ -139,6 +146,7 @@ export async function recordCanonicalShieldFromLiveShield(
       vaultOwner: input.vaultOwner,
     },
     ownerContext,
+    ownerContextEvidence: createOwnerContextRecoveryEvidence({ ownerContext }),
     canonicalNote: toSerializedCanonicalNote(canonicalNote),
     artifacts,
     insertion: {
@@ -210,6 +218,21 @@ export function listCanonicalShieldDiagnosticsSummaries(): LiveShieldCanonicalDi
         record.diagnosticStorage?.storageRole ??
         BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC.storageRole,
       privacyPrimitive: false as const,
+      ownerRecoveryClass:
+        record.ownerContextEvidence?.recoveryClass ??
+        createOwnerContextRecoveryEvidence({
+          redactedOwnerContext: record.redactedOwnerContext,
+        }).recoveryClass,
+      ownerRecoveryEvidenceSource:
+        record.ownerContextEvidence?.evidenceSource ??
+        createOwnerContextRecoveryEvidence({
+          redactedOwnerContext: record.redactedOwnerContext,
+        }).evidenceSource,
+      ownerRecoveryCrossDeviceCandidate:
+        record.ownerContextEvidence?.crossDeviceCandidate ??
+        createOwnerContextRecoveryEvidence({
+          redactedOwnerContext: record.redactedOwnerContext,
+        }).crossDeviceCandidate,
     }))
     .sort((left, right) => right.createdAt - left.createdAt);
 }
@@ -304,6 +327,11 @@ function redactLiveShieldRecordForPersistence(
       record.ownerContext,
       record.redactedOwnerContext,
     ),
+    ownerContextEvidence: createOwnerContextRecoveryEvidence({
+      existingEvidence: record.ownerContextEvidence,
+      ownerContext: record.ownerContext,
+      redactedOwnerContext: record.redactedOwnerContext,
+    }),
   };
 }
 
@@ -321,23 +349,13 @@ function redactLiveShieldOwnerContextForPersistence(
       redactedOwnerContext?.ownerPublicKey ??
       "redacted:owner-public-key:unavailable",
     derivationContextReferenceHash: ownerContext?.derivationContext
-      ? redactLiveShieldReference("owner-derivation-context", ownerContext.derivationContext)
+      ? createOwnerContextReferenceHash("owner-derivation-context", ownerContext.derivationContext)
       : redactedOwnerContext?.derivationContextReferenceHash,
-    recoverySecretReferenceHash: redactLiveShieldReference(
+    recoverySecretReferenceHash: createOwnerContextReferenceHash(
       "owner-recovery-secret",
       ownerContext?.recoverySecret ?? redactedOwnerContext?.recoverySecretReferenceHash,
     ),
   };
-}
-
-function redactLiveShieldReference(domain: string, value: string | undefined) {
-  if (value?.startsWith("sha256:")) {
-    return value;
-  }
-
-  return `sha256:${bytesToHex(
-    sha256(new TextEncoder().encode(`vanta-live-shield-redaction:${domain}:${value ?? "unset"}`)),
-  )}`;
 }
 
 function createCanonicalAssetId(mintAddress: string) {

@@ -176,6 +176,7 @@ import {
   inspectCanonicalLifecycleCandidateTreeAgreement,
   inspectCanonicalLifecycleMembershipRootReconciliation,
 } from "./canonicalMembership";
+import type { OwnerContextRecoveryEvidence } from "./ownerContextRecoveryEvidence";
 
 export type CanonicalLifecycleEventKind = "shield" | "send" | "swap" | "unshield";
 
@@ -395,6 +396,9 @@ export type CanonicalLifecycleSuccessorSummary = {
   snapshotRoot?: string;
   snapshotLeafCount?: number;
   ownerPublicKey?: string;
+  ownerRecoveryClass?: OwnerContextRecoveryEvidence["recoveryClass"];
+  ownerRecoveryEvidenceSource?: OwnerContextRecoveryEvidence["evidenceSource"];
+  ownerRecoveryCrossDeviceCandidate?: boolean;
 };
 
 export type CanonicalLifecycleBranchContinuityQuality = "explicit" | "heuristic" | "unresolved";
@@ -595,6 +599,9 @@ export type CanonicalLifecycleBranchPathSummary = {
   snapshotRoot?: string;
   snapshotLeafCount?: number;
   ownerPublicKey?: string;
+  ownerRecoveryClass?: CanonicalLifecycleSuccessorSummary["ownerRecoveryClass"];
+  ownerRecoveryEvidenceSource?: CanonicalLifecycleSuccessorSummary["ownerRecoveryEvidenceSource"];
+  ownerRecoveryCrossDeviceCandidate?: CanonicalLifecycleSuccessorSummary["ownerRecoveryCrossDeviceCandidate"];
   continuityQuality: CanonicalLifecycleBranchContinuityQuality;
   continuitySummary: string;
   chainSummary: CanonicalLifecycleBranchChainSummary;
@@ -4684,6 +4691,10 @@ function normalizeShieldEvent(
         insertionIndex: summary.insertionIndex,
         snapshotRoot: summary.snapshotRoot,
         snapshotLeafCount: summary.snapshotLeafCount,
+        ownerPublicKey: summary.ownerPublicKey,
+        ownerRecoveryClass: summary.ownerRecoveryClass,
+        ownerRecoveryEvidenceSource: summary.ownerRecoveryEvidenceSource,
+        ownerRecoveryCrossDeviceCandidate: summary.ownerRecoveryCrossDeviceCandidate,
       },
     ],
     transitionSignature: summary.depositSignature,
@@ -5468,6 +5479,9 @@ function normalizeSendEvent(
         snapshotRoot: successor.snapshotRoot,
         snapshotLeafCount: successor.snapshotLeafCount,
         ownerPublicKey: successor.ownerPublicKey,
+        ownerRecoveryClass: successor.ownerRecoveryClass,
+        ownerRecoveryEvidenceSource: successor.ownerRecoveryEvidenceSource,
+        ownerRecoveryCrossDeviceCandidate: successor.ownerRecoveryCrossDeviceCandidate,
       };
     }),
     transitionSignature: summary.transitionSignature,
@@ -6250,6 +6264,10 @@ function normalizeSwapEvent(
         insertionIndex: summary.outputInsertionIndex,
         snapshotRoot: summary.outputSnapshotRoot,
         snapshotLeafCount: summary.outputSnapshotLeafCount,
+        ownerPublicKey: summary.outputOwnerPublicKey,
+        ownerRecoveryClass: summary.outputOwnerRecoveryClass,
+        ownerRecoveryEvidenceSource: summary.outputOwnerRecoveryEvidenceSource,
+        ownerRecoveryCrossDeviceCandidate: summary.outputOwnerRecoveryCrossDeviceCandidate,
       },
     ],
     transitionSignature: summary.transitionSignature,
@@ -6641,6 +6659,9 @@ function buildBranchPointSummary(
       snapshotRoot: successor.snapshotRoot,
       snapshotLeafCount: successor.snapshotLeafCount,
       ownerPublicKey: successor.ownerPublicKey,
+      ownerRecoveryClass: successor.ownerRecoveryClass,
+      ownerRecoveryEvidenceSource: successor.ownerRecoveryEvidenceSource,
+      ownerRecoveryCrossDeviceCandidate: successor.ownerRecoveryCrossDeviceCandidate,
       continuityQuality,
       continuitySummary: createBranchContinuitySummary(successor, downstreamEvents),
       chainSummary,

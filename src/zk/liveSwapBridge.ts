@@ -27,6 +27,10 @@ import {
   type CanonicalLifecycleOutputLinkage,
   type CanonicalLifecycleRecordLinkage,
 } from "./canonicalLifecycleLinkage";
+import {
+  createOwnerContextRecoveryEvidence,
+  type OwnerContextRecoveryEvidence,
+} from "./ownerContextRecoveryEvidence";
 
 const LIVE_SWAP_RECORDS_STORAGE_KEY = "vanta.zk.phase1.live-swap-records.v1";
 const DEFAULT_USDC_DECIMALS = 6;
@@ -111,9 +115,11 @@ export type LiveSwapCanonicalRecord = {
   };
   inputReference: CanonicalSwapInputReference;
   consumption?: CanonicalLifecycleConsumptionRecord;
+  ownerContextEvidence?: OwnerContextRecoveryEvidence;
   outputSuccessor: {
     canonicalNote: SerializedCanonicalNoteV1;
     artifacts: CanonicalNoteArtifacts;
+    ownerContextEvidence?: OwnerContextRecoveryEvidence;
     insertion: {
       index: number;
       previousRoot: string;
@@ -154,6 +160,7 @@ export type LiveSwapDiagnosticsSummary = {
   outputSnapshotRoot: string;
   outputSnapshotLeafCount: number;
   outputLiveNoteId: string;
+  outputOwnerPublicKey: string;
   transitionSignature: string;
   transitionNoteId: string;
   spentMarkerSignature?: string;
@@ -162,6 +169,12 @@ export type LiveSwapDiagnosticsSummary = {
   quoteId: string;
   storageRole: BrowserLocalShieldedStateDiagnostic["storageRole"];
   privacyPrimitive: false;
+  ownerRecoveryClass: OwnerContextRecoveryEvidence["recoveryClass"];
+  ownerRecoveryEvidenceSource: OwnerContextRecoveryEvidence["evidenceSource"];
+  ownerRecoveryCrossDeviceCandidate: boolean;
+  outputOwnerRecoveryClass: OwnerContextRecoveryEvidence["recoveryClass"];
+  outputOwnerRecoveryEvidenceSource: OwnerContextRecoveryEvidence["evidenceSource"];
+  outputOwnerRecoveryCrossDeviceCandidate: boolean;
 };
 
 export type LiveSwapCommittedSettlementTerms = {
@@ -263,9 +276,11 @@ export async function recordCanonicalSwapFromLiveSwap(
             producedLifecycleIds: [outputLifecycleId],
           })
         : undefined,
+    ownerContextEvidence: createOwnerContextRecoveryEvidence({ ownerContext }),
     outputSuccessor: {
       canonicalNote: toSerializedCanonicalNote(canonicalOutputNote),
       artifacts,
+      ownerContextEvidence: createOwnerContextRecoveryEvidence({ ownerContext }),
       insertion: {
         index: insertion.index,
         previousRoot: insertion.previousRoot,
@@ -400,7 +415,14 @@ export function listCanonicalSwapRecords(): LiveSwapCanonicalRecord[] {
       return [];
     }
 
-    return parsed.filter(isLiveSwapCanonicalRecord);
+    const records = parsed.filter(isLiveSwapCanonicalRecord);
+    const normalizedRecords = records.map(normalizeLiveSwapRecordForPersistence);
+
+    if (JSON.stringify(records) !== JSON.stringify(normalizedRecords)) {
+      storage.setItem(LIVE_SWAP_RECORDS_STORAGE_KEY, JSON.stringify(normalizedRecords));
+    }
+
+    return normalizedRecords;
   } catch {
     return [];
   }
@@ -435,6 +457,7 @@ export function listCanonicalSwapDiagnosticsSummaries(): LiveSwapDiagnosticsSumm
       outputSnapshotRoot: record.outputSuccessor.insertion.root,
       outputSnapshotLeafCount: record.outputSuccessor.insertion.leafCount,
       outputLiveNoteId: record.outputSuccessor.liveNoteId,
+      outputOwnerPublicKey: record.outputSuccessor.canonicalNote.ownerPublicKey,
       transitionSignature: record.liveSwap.transitionSignature,
       transitionNoteId: record.liveSwap.transitionNoteId,
       spentMarkerSignature: record.liveSwap.spentMarkerSignature,
@@ -445,6 +468,27 @@ export function listCanonicalSwapDiagnosticsSummaries(): LiveSwapDiagnosticsSumm
         record.diagnosticStorage?.storageRole ??
         BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC.storageRole,
       privacyPrimitive: false as const,
+      ownerRecoveryClass:
+        record.ownerContextEvidence?.recoveryClass ??
+        createOwnerContextRecoveryEvidence({}).recoveryClass,
+      ownerRecoveryEvidenceSource:
+        record.ownerContextEvidence?.evidenceSource ??
+        createOwnerContextRecoveryEvidence({}).evidenceSource,
+      ownerRecoveryCrossDeviceCandidate:
+        record.ownerContextEvidence?.crossDeviceCandidate ??
+        createOwnerContextRecoveryEvidence({}).crossDeviceCandidate,
+      outputOwnerRecoveryClass:
+        record.outputSuccessor.ownerContextEvidence?.recoveryClass ??
+        record.ownerContextEvidence?.recoveryClass ??
+        createOwnerContextRecoveryEvidence({}).recoveryClass,
+      outputOwnerRecoveryEvidenceSource:
+        record.outputSuccessor.ownerContextEvidence?.evidenceSource ??
+        record.ownerContextEvidence?.evidenceSource ??
+        createOwnerContextRecoveryEvidence({}).evidenceSource,
+      outputOwnerRecoveryCrossDeviceCandidate:
+        record.outputSuccessor.ownerContextEvidence?.crossDeviceCandidate ??
+        record.ownerContextEvidence?.crossDeviceCandidate ??
+        createOwnerContextRecoveryEvidence({}).crossDeviceCandidate,
     }))
     .sort((left, right) => right.createdAt - left.createdAt);
 }
@@ -550,8 +594,26 @@ export function persistCanonicalSwapRecord(record: LiveSwapCanonicalRecord) {
     return;
   }
 
-  const nextRecords = [...existingRecords, record];
+  const nextRecords = [
+    ...existingRecords.map(normalizeLiveSwapRecordForPersistence),
+    normalizeLiveSwapRecordForPersistence(record),
+  ];
   storage.setItem(LIVE_SWAP_RECORDS_STORAGE_KEY, JSON.stringify(nextRecords));
+}
+
+function normalizeLiveSwapRecordForPersistence(record: LiveSwapCanonicalRecord): LiveSwapCanonicalRecord {
+  return {
+    ...record,
+    ownerContextEvidence: createOwnerContextRecoveryEvidence({
+      existingEvidence: record.ownerContextEvidence,
+    }),
+    outputSuccessor: {
+      ...record.outputSuccessor,
+      ownerContextEvidence: createOwnerContextRecoveryEvidence({
+        existingEvidence: record.outputSuccessor.ownerContextEvidence,
+      }),
+    },
+  };
 }
 
 function createCanonicalSolAssetId(assetId: string) {
