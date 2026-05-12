@@ -11,6 +11,7 @@ const repoRoot = resolve(import.meta.dirname, "..");
 const shieldSource = readFileSync(resolve(repoRoot, "src/pages/ShieldPage.tsx"), "utf8");
 const clientSource = readFileSync(resolve(repoRoot, "src/solana/client.ts"), "utf8");
 const appSource = readFileSync(resolve(repoRoot, "src/App.tsx"), "utf8");
+const productAppRootSource = readFileSync(resolve(repoRoot, "src/ProductAppRoot.tsx"), "utf8");
 
 const providerUnauthorizedError = {
   code: 4100,
@@ -49,8 +50,12 @@ assert.ok(
   "The live wallet watcher must share the same Solana signing capability filter.",
 );
 assert.ok(
-  appSource.includes("watchVantaWalletStandardConnectors"),
-  "The app root must use Vanta's filtered Solana wallet watcher.",
+  appSource.includes("ProductAppRoot"),
+  "The app root must mount Vanta's wallet-filtered product app root.",
+);
+assert.ok(
+  productAppRootSource.includes("watchVantaWalletStandardConnectors"),
+  "The product app root must use Vanta's filtered Solana wallet watcher.",
 );
 
 console.log("Vanta wallet authorization error check: PASS");
