@@ -90,6 +90,12 @@ includes(
   "expectedPublicInputs.privateSpendPublicInputHash",
   "operator Actual Private Spend expected public-input binding",
 );
+includes(
+  operatorServer,
+  "expectedPublicInputs.sendPublicInputHash",
+  "operator Send expected public-input binding",
+);
+includes(operatorServer, "sendPublicInputHash mismatch", "operator Send expected public-input mismatch guard");
 includes(serviceNetwork, "proofBackend", "service network proof metadata");
 includes(proofArtifact, "verifyVantaPrivatePoolV2SendProofArtifact", "Private Pool v2 Send proof artifact verifier");
 includes(
@@ -143,6 +149,11 @@ includes(
   "Actual Private Spend proof artifact witness sidecar guard",
 );
 includes(sendNoWitnessCheck, "mixed witnessPackage rejection", "Send proof artifact operator mixed witness guard");
+includes(
+  sendNoWitnessCheck,
+  "Send mismatched expected public input rejection",
+  "Send proof artifact expected public-input mismatch guard",
+);
 includes(sendNoWitnessCheck, "nested witness alias rejection", "Send proof artifact operator nested witness alias guard");
 includes(sendNoWitnessCheck, "production local artifact rejection", "Send proof artifact production backend guard");
 includes(

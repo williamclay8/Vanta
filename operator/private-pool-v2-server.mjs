@@ -722,6 +722,26 @@ function assertActualPrivateSpendExpectedPublicInputMatches(body, verifiedReceip
   }
 }
 
+function assertSendExpectedPublicInputMatches(body, verifiedReceipt) {
+  const expectedSendPublicInputHash = body?.expectedPublicInputs?.sendPublicInputHash;
+  if (expectedSendPublicInputHash === undefined) {
+    return;
+  }
+
+  if (typeof expectedSendPublicInputHash !== "string" || !expectedSendPublicInputHash.trim()) {
+    throw new Error(
+      "Private Pool v2 Send proof artifact expectedPublicInputs.sendPublicInputHash must be a non-empty string when provided.",
+    );
+  }
+
+  const actualSendPublicInputHash = verifiedReceipt?.verifiedPublicInputs?.sendPublicInputHash;
+  if (actualSendPublicInputHash !== expectedSendPublicInputHash.trim()) {
+    throw new Error(
+      `Private Pool v2 Send proof artifact sendPublicInputHash mismatch: expected ${expectedSendPublicInputHash.trim()}, received ${actualSendPublicInputHash ?? "missing"}.`,
+    );
+  }
+}
+
 async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
   const circuit = body?.proofArtifact?.circuit;
 
@@ -743,11 +763,14 @@ async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
       );
     }
 
+    const verifiedReceipt = await verifyVantaPrivatePoolV2SendProofArtifact({
+      proofArtifact: body.proofArtifact,
+    });
+    assertSendExpectedPublicInputMatches(body, verifiedReceipt);
+
     return {
       kind: "Private Pool V2 Send proof artifact verification",
-      verifiedReceipt: await verifyVantaPrivatePoolV2SendProofArtifact({
-        proofArtifact: body.proofArtifact,
-      }),
+      verifiedReceipt,
     };
   }
 

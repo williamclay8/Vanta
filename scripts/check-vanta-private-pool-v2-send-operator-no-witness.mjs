@@ -119,10 +119,41 @@ try {
   assert(accepted.ok, accepted.text || "Expected proof artifact verification to succeed.");
   assert(accepted.parsed?.verifiedReceipt?.verified === true, "Expected verified receipt.");
   assert(
-    accepted.parsed?.verifiedReceipt?.verifiedPublicInputs?.sendPublicInputHash === proofArtifact.publicInputs[0],
+    accepted.parsed?.verifiedReceipt?.verifiedPublicInputs?.sendPublicInputHash ===
+      proofArtifact.publicInputs[0],
     "Expected verified receipt to decode Send public input hash.",
   );
   console.log("private-pool-v2 operator Send proof artifact no-witness acceptance: PASS");
+
+  const acceptedWithExpectedPublicInput = await requestJson(
+    "/private-pool-v2/proof-artifacts/verify",
+    {
+      body: JSON.stringify({
+        expectedPublicInputs: { sendPublicInputHash: proofArtifact.publicInputs[0] },
+        proofArtifact,
+      }),
+      method: "POST",
+    },
+  );
+  assert(
+    acceptedWithExpectedPublicInput.ok,
+    acceptedWithExpectedPublicInput.text ||
+      "Expected proof artifact verification with expected Send public input to succeed.",
+  );
+  console.log(
+    "private-pool-v2 operator Send expected public input binding acceptance: PASS",
+  );
+
+  await expectReject(
+    "private-pool-v2 operator Send mismatched expected public input rejection",
+    {
+      expectedPublicInputs: {
+        sendPublicInputHash: (BigInt(proofArtifact.publicInputs[0]) + 1n).toString(10),
+      },
+      proofArtifact,
+    },
+    "sendPublicInputHash mismatch",
+  );
 
   await expectReject(
     "private-pool-v2 operator mixed witnessPackage rejection",
