@@ -34,6 +34,9 @@ const serviceNetwork = read("operator/private-pool-v2-service-network.mjs");
 const proofArtifact = read("operator/private-pool-v2-proof-artifact.mjs");
 const proofScript = read("scripts/prove-vanta-private-pool-v2-circuit.mjs");
 const sendArtifactCheck = read("scripts/check-vanta-private-pool-v2-send-proof-artifact-consistency.mjs");
+const actualPrivateSpendArtifactCheck = read(
+  "scripts/check-vanta-private-pool-v2-actual-private-spend-proof-artifact-consistency.mjs",
+);
 const sendNoWitnessCheck = read("scripts/check-vanta-private-pool-v2-send-operator-no-witness.mjs");
 const mockBoundary = read("scripts/check-vanta-private-pool-v2-mock-proof-boundary.mjs");
 
@@ -42,6 +45,11 @@ for (const backend of ["local-mock", "local-bb-fixture-artifact", "remote-servic
 }
 includes(types, "proofBackend?: VantaPrivatePoolV2ProofBackend", "privatePoolV2Types proof result/receipt contracts");
 includes(types, "VantaPrivatePoolV2SendProofArtifact", "privatePoolV2Types Send proof artifact contract");
+includes(
+  types,
+  "VantaPrivatePoolV2ActualPrivateSpendProofArtifact",
+  "privatePoolV2Types Actual Private Spend proof artifact contract",
+);
 includes(types, "VantaPrivatePoolV2ProofArtifactVerificationReceipt", "privatePoolV2Types proof artifact receipt contract");
 
 includes(localProver, 'VANTA_PRIVATE_POOL_V2_LOCAL_PROOF_BACKEND =\n  "local-mock"', "local prover");
@@ -71,20 +79,56 @@ includes(operatorServer, "/private-pool-v2/proof-artifacts/verify", "operator Se
 includes(operatorServer, "strict no-witness proof-artifact mode rejects", "operator Send proof artifact no-witness rejection");
 includes(serviceNetwork, "proofBackend", "service network proof metadata");
 includes(proofArtifact, "verifyVantaPrivatePoolV2SendProofArtifact", "Private Pool v2 Send proof artifact verifier");
+includes(
+  proofArtifact,
+  "verifyVantaPrivatePoolV2ActualPrivateSpendProofArtifact",
+  "Private Pool v2 Actual Private Spend proof artifact verifier",
+);
 includes(proofArtifact, "assertVantaPrivatePoolV2SendProofArtifactHasNoWitnessMaterial", "Private Pool v2 Send no-witness guard");
+includes(
+  proofArtifact,
+  "assertVantaPrivatePoolV2ProofArtifactHasNoWitnessMaterial",
+  "Private Pool v2 generic no-witness guard",
+);
 includes(proofArtifact, "forbiddenNoWitnessNormalizedKeys", "Private Pool v2 Send no-witness alias guard");
 includes(proofArtifact, "publicInputCommitment mismatch", "Private Pool v2 Send public-input binding guard");
 includes(proofArtifact, "acirBytecodeHash mismatch", "Private Pool v2 Send ACIR bytecode hash guard");
 includes(proofArtifact, "verifyingKeyHash mismatch", "Private Pool v2 Send verifying-key hash guard");
 includes(proofScript, 'proofBackend: "local-bb-fixture-artifact"', "local bb fixture proof artifact metadata");
 includes(proofScript, 'proofSystem: "noir-bb"', "local bb fixture proof system metadata");
-includes(proofScript, 'target === "send"', "Send proof artifact no-witness sidecar condition");
+includes(proofScript, "noWitnessProofArtifact", "no-witness proof artifact sidecar condition");
 includes(proofScript, "witnessSource", "legacy non-Send proof sidecar marker");
 includes(proofScript, "bytecodeSource", "legacy non-Send bytecode sidecar marker");
+includes(proofScript, "private-spend-public-input-hash", "Actual Private Spend proof artifact public input label");
 includes(sendArtifactCheck, "tampered public input rejection", "Send proof artifact tampered public input guard");
 includes(sendArtifactCheck, "verifyingKeyHash tamper rejection", "Send proof artifact verifying-key tamper guard");
 includes(sendArtifactCheck, "privateInputs alias rejection", "Send proof artifact no-witness alias guard");
 includes(sendArtifactCheck, "witness sidecar rejection", "Send proof artifact witness sidecar guard");
+includes(
+  actualPrivateSpendArtifactCheck,
+  "tampered public input rejection",
+  "Actual Private Spend proof artifact tampered public input guard",
+);
+includes(
+  actualPrivateSpendArtifactCheck,
+  "public input label relabel rejection",
+  "Actual Private Spend proof artifact public input label guard",
+);
+includes(
+  actualPrivateSpendArtifactCheck,
+  "verifyingKeyHash tamper rejection",
+  "Actual Private Spend proof artifact verifying-key tamper guard",
+);
+includes(
+  actualPrivateSpendArtifactCheck,
+  "privateInputs alias rejection",
+  "Actual Private Spend proof artifact no-witness alias guard",
+);
+includes(
+  actualPrivateSpendArtifactCheck,
+  "witness sidecar rejection",
+  "Actual Private Spend proof artifact witness sidecar guard",
+);
 includes(sendNoWitnessCheck, "mixed witnessPackage rejection", "Send proof artifact operator mixed witness guard");
 includes(sendNoWitnessCheck, "nested witness alias rejection", "Send proof artifact operator nested witness alias guard");
 includes(sendNoWitnessCheck, "production local artifact rejection", "Send proof artifact production backend guard");
@@ -121,6 +165,11 @@ assert(
   "package.json must expose private-pool-v2:send-proof-artifact-consistency-check",
 );
 assert(
+  scripts["private-pool-v2:actual-private-spend-proof-artifact-consistency-check"] ===
+    "node scripts/check-vanta-private-pool-v2-actual-private-spend-proof-artifact-consistency.mjs",
+  "package.json must expose private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
+);
+assert(
   scripts["private-pool-v2:send-operator-no-witness-check"] ===
     "node scripts/check-vanta-private-pool-v2-send-operator-no-witness.mjs",
   "package.json must expose private-pool-v2:send-operator-no-witness-check",
@@ -132,6 +181,12 @@ assert(
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:send-proof-artifact-consistency-check"),
   "private-pool-v2:verify must include the Send proof artifact consistency guard",
+);
+assert(
+  scripts["private-pool-v2:verify"]?.includes(
+    "npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
+  ),
+  "private-pool-v2:verify must include the Actual Private Spend proof artifact consistency guard",
 );
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:send-operator-no-witness-check"),

@@ -7,6 +7,27 @@ import { resolve } from "node:path";
 const repoRoot = resolve(import.meta.dirname, "..");
 const sendCircuitDir = resolve(repoRoot, "zk/noir/vanta_private_pool_v2_send_entry");
 const sendCircuitName = "vanta_private_pool_v2_send_entry";
+const actualPrivateSpendCircuitDir = resolve(
+  repoRoot,
+  "zk/noir/vanta_private_pool_v2_actual_private_spend_entry",
+);
+const actualPrivateSpendCircuitName = "vanta_private_pool_v2_actual_private_spend_entry";
+const proofArtifactCircuitProfiles = {
+  [sendCircuitName]: {
+    circuitDir: sendCircuitDir,
+    circuitName: sendCircuitName,
+    label: "Private Pool v2 Send",
+    publicInputLabels: ["send-public-input-hash"],
+    verifiedPublicInputKey: "sendPublicInputHash",
+  },
+  [actualPrivateSpendCircuitName]: {
+    circuitDir: actualPrivateSpendCircuitDir,
+    circuitName: actualPrivateSpendCircuitName,
+    label: "Private Pool v2 Actual Private Spend",
+    publicInputLabels: ["private-spend-public-input-hash"],
+    verifiedPublicInputKey: "privateSpendPublicInputHash",
+  },
+};
 const nargoEnv = {
   ...process.env,
   PATH: `${process.env.HOME}/.nargo/bin:${process.env.PATH ?? ""}`,
@@ -49,6 +70,7 @@ const forbiddenStringFragments = [
   "witness",
   "witnessPackage",
   "vanta_private_pool_v2_send_entry.gz",
+  "vanta_private_pool_v2_actual_private_spend_entry.gz",
 ];
 
 function normalizeVantaPrivatePoolV2NoWitnessKey(value) {
@@ -84,7 +106,10 @@ export function createVantaPrivatePoolV2ProofArtifactVerifyingKeyMetadata(
   };
 }
 
-export function assertVantaPrivatePoolV2SendProofArtifactHasNoWitnessMaterial(value) {
+export function assertVantaPrivatePoolV2ProofArtifactHasNoWitnessMaterial(
+  value,
+  artifactLabel = "Private Pool v2 proof artifact",
+) {
   function visit(node, path = []) {
     if (node === null || node === undefined) {
       return;
@@ -97,7 +122,7 @@ export function assertVantaPrivatePoolV2SendProofArtifactHasNoWitnessMaterial(va
           node.includes(fragment) ||
           normalizedValue.includes(normalizeVantaPrivatePoolV2NoWitnessKey(fragment))
         ) {
-          throw new Error(`Private Pool v2 Send proof artifact exposes forbidden no-witness value ${fragment}.`);
+          throw new Error(`${artifactLabel} exposes forbidden no-witness value ${fragment}.`);
         }
       }
       return;
@@ -118,13 +143,20 @@ export function assertVantaPrivatePoolV2SendProofArtifactHasNoWitnessMaterial(va
         forbiddenNoWitnessNormalizedKeys.has(normalizedKey) ||
         forbiddenNoWitnessNormalizedFragments.some((fragment) => normalizedKey.includes(fragment))
       ) {
-        throw new Error(`Private Pool v2 Send proof artifact exposes forbidden no-witness field ${[...path, key].join(".")}.`);
+        throw new Error(`${artifactLabel} exposes forbidden no-witness field ${[...path, key].join(".")}.`);
       }
       visit(entry, [...path, key]);
     }
   }
 
   visit(value);
+}
+
+export function assertVantaPrivatePoolV2SendProofArtifactHasNoWitnessMaterial(value) {
+  assertVantaPrivatePoolV2ProofArtifactHasNoWitnessMaterial(
+    value,
+    "Private Pool v2 Send proof artifact",
+  );
 }
 
 function assert(condition, message) {
@@ -140,57 +172,63 @@ function assertFieldString(value, label) {
   );
 }
 
-export function normalizeVantaPrivatePoolV2SendProofArtifact(proofArtifact) {
+function normalizeVantaPrivatePoolV2ProofArtifact(proofArtifact, profile) {
   assert(proofArtifact && typeof proofArtifact === "object", "proofArtifact is required.");
-  assertVantaPrivatePoolV2SendProofArtifactHasNoWitnessMaterial(proofArtifact);
-  assert(proofArtifact.circuit === sendCircuitName, "Private Pool v2 Send proof artifact must name the Send circuit.");
-  assert(proofArtifact.backend === "barretenberg-ultrahonk", "Private Pool v2 Send proof artifact must use barretenberg-ultrahonk.");
-  assert(proofArtifact.proofSystem === "noir-bb", "Private Pool v2 Send proof artifact must use proofSystem noir-bb.");
+  assertVantaPrivatePoolV2ProofArtifactHasNoWitnessMaterial(
+    proofArtifact,
+    `${profile.label} proof artifact`,
+  );
+  assert(
+    proofArtifact.circuit === profile.circuitName,
+    `${profile.label} proof artifact must name the ${profile.circuitName} circuit.`,
+  );
+  assert(proofArtifact.backend === "barretenberg-ultrahonk", `${profile.label} proof artifact must use barretenberg-ultrahonk.`);
+  assert(proofArtifact.proofSystem === "noir-bb", `${profile.label} proof artifact must use proofSystem noir-bb.`);
   assert(
     proofArtifact.proofBackend === "local-bb-fixture-artifact",
-    "Private Pool v2 Send proof artifact verification currently accepts only local-bb-fixture-artifact evidence.",
+    `${profile.label} proof artifact verification currently accepts only local-bb-fixture-artifact evidence.`,
   );
   assert(
     typeof proofArtifact.proofHex === "string" &&
       proofArtifact.proofHex.length > 0 &&
       proofArtifact.proofHex.length % 2 === 0 &&
       /^[0-9a-f]+$/u.test(proofArtifact.proofHex),
-    "Private Pool v2 Send proof artifact must carry lowercase hex proofHex.",
+    `${profile.label} proof artifact must carry lowercase hex proofHex.`,
   );
-  assert(Array.isArray(proofArtifact.publicInputs), "Private Pool v2 Send proof artifact must carry publicInputs.");
-  assert(proofArtifact.publicInputs.length === 1, "Private Pool v2 Send proof artifact must expose exactly one public input.");
-  assertFieldString(proofArtifact.publicInputs[0], "send-public-input-hash");
+  assert(Array.isArray(proofArtifact.publicInputs), `${profile.label} proof artifact must carry publicInputs.`);
+  assert(proofArtifact.publicInputs.length === 1, `${profile.label} proof artifact must expose exactly one public input.`);
+  assertFieldString(proofArtifact.publicInputs[0], profile.publicInputLabels[0]);
   assert(
-    JSON.stringify(proofArtifact.publicInputLabels) === JSON.stringify(["send-public-input-hash"]),
-    "Private Pool v2 Send proof artifact must label the public input as send-public-input-hash.",
+    JSON.stringify(proofArtifact.publicInputLabels) === JSON.stringify(profile.publicInputLabels),
+    `${profile.label} proof artifact must label the public input as ${profile.publicInputLabels[0]}.`,
   );
   assert(
     proofArtifact.publicInputCommitment ===
       createVantaPrivatePoolV2ProofArtifactPublicInputCommitment(proofArtifact.publicInputs),
-    "Private Pool v2 Send proof artifact publicInputCommitment mismatch.",
+    `${profile.label} proof artifact publicInputCommitment mismatch.`,
   );
   assert(
     typeof proofArtifact.verifyingKeyHash === "string" &&
       proofArtifact.verifyingKeyHash.startsWith("sha256:"),
-    "Private Pool v2 Send proof artifact must carry verifyingKeyHash.",
+    `${profile.label} proof artifact must carry verifyingKeyHash.`,
   );
   assert(
     typeof proofArtifact.verifyingKeyId === "string" &&
-      proofArtifact.verifyingKeyId.includes(sendCircuitName),
-    "Private Pool v2 Send proof artifact must carry verifyingKeyId.",
+      proofArtifact.verifyingKeyId.includes(profile.circuitName),
+    `${profile.label} proof artifact must carry verifyingKeyId.`,
   );
   assert(
     typeof proofArtifact.acirBytecodeHash === "string" &&
       proofArtifact.acirBytecodeHash.startsWith("sha256:"),
-    "Private Pool v2 Send proof artifact must carry acirBytecodeHash.",
+    `${profile.label} proof artifact must carry acirBytecodeHash.`,
   );
   assert(
     proofArtifact.verifyingKeyHashKind === "local-acir-bytecode-hash-not-production-vk",
-    "Private Pool v2 Send proof artifact must label verifyingKeyHash as local ACIR bytecode metadata.",
+    `${profile.label} proof artifact must label verifyingKeyHash as local ACIR bytecode metadata.`,
   );
   assert(
     proofArtifact.proofRuntimePackage === "@aztec/bb.js",
-    "Private Pool v2 Send proof artifact must name the proof runtime package.",
+    `${profile.label} proof artifact must name the proof runtime package.`,
   );
 
   return {
@@ -211,36 +249,50 @@ export function normalizeVantaPrivatePoolV2SendProofArtifact(proofArtifact) {
   };
 }
 
-function runNargoCompile() {
+export function normalizeVantaPrivatePoolV2SendProofArtifact(proofArtifact) {
+  return normalizeVantaPrivatePoolV2ProofArtifact(
+    proofArtifact,
+    proofArtifactCircuitProfiles[sendCircuitName],
+  );
+}
+
+export function normalizeVantaPrivatePoolV2ActualPrivateSpendProofArtifact(proofArtifact) {
+  return normalizeVantaPrivatePoolV2ProofArtifact(
+    proofArtifact,
+    proofArtifactCircuitProfiles[actualPrivateSpendCircuitName],
+  );
+}
+
+function runNargoCompile(profile) {
   execFileSync("nargo", ["compile"], {
-    cwd: sendCircuitDir,
+    cwd: profile.circuitDir,
     env: nargoEnv,
     stdio: "pipe",
   });
 }
 
-export async function verifyVantaPrivatePoolV2SendProofArtifact(args) {
-  const proofArtifact = normalizeVantaPrivatePoolV2SendProofArtifact(args.proofArtifact);
-  runNargoCompile();
+async function verifyVantaPrivatePoolV2ProofArtifact(args, profile) {
+  const proofArtifact = normalizeVantaPrivatePoolV2ProofArtifact(args.proofArtifact, profile);
+  runNargoCompile(profile);
 
   const compiledProgram = JSON.parse(
-    readFileSync(resolve(sendCircuitDir, `target/${sendCircuitName}.json`), "utf8"),
+    readFileSync(resolve(profile.circuitDir, `target/${profile.circuitName}.json`), "utf8"),
   );
   const verifyingKeyMetadata = createVantaPrivatePoolV2ProofArtifactVerifyingKeyMetadata(
     compiledProgram,
-    sendCircuitName,
+    profile.circuitName,
   );
   assert(
     proofArtifact.verifyingKeyHash === verifyingKeyMetadata.verifyingKeyHash,
-    "Private Pool v2 Send proof artifact verifyingKeyHash mismatch.",
+    `${profile.label} proof artifact verifyingKeyHash mismatch.`,
   );
   assert(
     proofArtifact.acirBytecodeHash === verifyingKeyMetadata.acirBytecodeHash,
-    "Private Pool v2 Send proof artifact acirBytecodeHash mismatch.",
+    `${profile.label} proof artifact acirBytecodeHash mismatch.`,
   );
   assert(
     proofArtifact.verifyingKeyId === verifyingKeyMetadata.verifyingKeyId,
-    "Private Pool v2 Send proof artifact verifyingKeyId mismatch.",
+    `${profile.label} proof artifact verifyingKeyId mismatch.`,
   );
 
   const api = await Barretenberg.new({ threads: 1 });
@@ -255,11 +307,11 @@ export async function verifyVantaPrivatePoolV2SendProofArtifact(args) {
       verified = await backend.verifyProof(proofData);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`Private Pool v2 Send proof artifact verification returned false: ${message}`);
+      throw new Error(`${profile.label} proof artifact verification returned false: ${message}`);
     }
 
     if (!verified) {
-      throw new Error("Private Pool v2 Send proof artifact verification returned false.");
+      throw new Error(`${profile.label} proof artifact verification returned false.`);
     }
 
     return {
@@ -277,7 +329,7 @@ export async function verifyVantaPrivatePoolV2SendProofArtifact(args) {
       publicInputs: proofArtifact.publicInputs,
       verified: true,
       verifiedPublicInputs: {
-        sendPublicInputHash: proofArtifact.publicInputs[0],
+        [profile.verifiedPublicInputKey]: proofArtifact.publicInputs[0],
       },
       verifyingKeyHash: proofArtifact.verifyingKeyHash,
       verifyingKeyHashKind: proofArtifact.verifyingKeyHashKind,
@@ -288,4 +340,18 @@ export async function verifyVantaPrivatePoolV2SendProofArtifact(args) {
   } finally {
     await api.destroy();
   }
+}
+
+export async function verifyVantaPrivatePoolV2SendProofArtifact(args) {
+  return await verifyVantaPrivatePoolV2ProofArtifact(
+    args,
+    proofArtifactCircuitProfiles[sendCircuitName],
+  );
+}
+
+export async function verifyVantaPrivatePoolV2ActualPrivateSpendProofArtifact(args) {
+  return await verifyVantaPrivatePoolV2ProofArtifact(
+    args,
+    proofArtifactCircuitProfiles[actualPrivateSpendCircuitName],
+  );
 }

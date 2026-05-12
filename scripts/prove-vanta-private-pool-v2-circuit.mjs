@@ -25,6 +25,8 @@ const targets = {
     circuitDir: resolve(repoRoot, "zk/noir/vanta_private_pool_v2_send_entry"),
     circuitName: "vanta_private_pool_v2_send_entry",
     fixtureWriterPath: resolve(repoRoot, "scripts/write-vanta-private-pool-v2-send-fixture.mjs"),
+    noWitnessProofArtifact: true,
+    publicInputLabels: ["send-public-input-hash"],
   },
   "swap-to-shielded": {
     circuitDir: resolve(repoRoot, "zk/noir/vanta_private_pool_v2_swap_to_shielded_entry"),
@@ -41,6 +43,8 @@ const targets = {
       repoRoot,
       "scripts/write-vanta-private-pool-v2-actual-private-spend-fixture.mjs",
     ),
+    noWitnessProofArtifact: true,
+    publicInputLabels: ["private-spend-public-input-hash"],
   },
 };
 
@@ -121,14 +125,14 @@ try {
         proofData.publicInputs,
       ),
       publicInputCount: proofData.publicInputs.length,
-      publicInputLabels: target === "send" ? ["send-public-input-hash"] : [],
+      publicInputLabels: config.publicInputLabels ?? [],
       publicInputs: proofData.publicInputs,
       verified,
       ...createVantaPrivatePoolV2ProofArtifactVerifyingKeyMetadata(
         compiledProgram,
         config.circuitName,
       ),
-      ...(target === "send"
+      ...(config.noWitnessProofArtifact
         ? {}
         : {
             witnessSource: `target/${config.circuitName}.gz`,
