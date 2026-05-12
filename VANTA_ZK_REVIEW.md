@@ -299,6 +299,8 @@ Re-use `vantaShieldViewingKey.ts` verbatim for the viewing-key crypto. The "spen
 
 The `signMessage(walletKeypair, ...)` step is what makes recovery work: any device with the same wallet can reconstruct the master seed without backing up a separate secret.
 
+**Codex status, 2026-05-11:** first local W2 contract landed without changing live note recording or prompting wallets for a reusable seed signature. `src/zk/ownerKeyHierarchy.ts` now defines a deterministic `masterSeed -> recoverySecret / spendingSecret / viewingSecretKey` hierarchy scoped by wallet, cluster, app domain, and hierarchy version; derives a Poseidon spending public key; derives an X25519 viewing keypair through `vantaShieldViewingKey.ts`; and combines the spending/viewing public fields into a Poseidon owner public key for `CanonicalNoteOwnerContext`. Guard: `npm run zk:owner-key-hierarchy-contract-check`, wired into `npm run zk:review-guards-check`. The guard also verifies the current wallet message-intent safety allowlist does **not** accept `shield-master-seed`, because a reusable wallet-derived seed needs its own explicit UX/safety envelope before runtime adoption. Existing Shield/Send/Swap local records still use their random per-record `recoverySecret` and are not migrated or overwritten by this slice.
+
 ### W3. The Noir shield circuit
 
 Replace `zk/noir/vanta_private_pool_v2_shield_entry/src/main.nr`. Public inputs constrain everything; private witnesses are what the prover knows but doesn't reveal.

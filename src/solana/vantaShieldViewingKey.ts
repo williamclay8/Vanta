@@ -136,6 +136,17 @@ export function createVantaShieldViewingKeypair(): VantaShieldViewingKeypair {
   };
 }
 
+export function deriveVantaShieldViewingKeypairFromSecretKey(
+  secretKeyHex: string,
+): VantaShieldViewingKeypair {
+  const secretKey = requireHexKey(secretKeyHex, "secret key");
+  return exportVantaShieldViewingKeypair({
+    publicKey: bytesToHex(x25519.getPublicKey(secretKey)),
+    secretKey: bytesToHex(secretKey),
+    version: VANTA_SHIELD_VIEWING_KEY_VERSION,
+  });
+}
+
 export function exportVantaShieldViewingKeypair(
   keypair: VantaShieldViewingKeypair,
 ): VantaShieldViewingKeypair {

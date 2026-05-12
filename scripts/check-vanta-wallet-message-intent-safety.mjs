@@ -63,6 +63,19 @@ assert.equal(
   }).reason,
   "private-key-material-handled",
 );
+assert.throws(
+  () =>
+    createWalletMessageIntentSafetySummary({
+      ...baseInput,
+      asset: "owner-key-hierarchy",
+      intentKind: "shield-master-seed",
+      message: "vanta:shield-master-seed:v1\nnot-a-transaction:true",
+      recipient: "local-owner-key-hierarchy",
+      requestId: "seed_123",
+    }),
+  /unsupported intentKind/u,
+  "Shield master-seed derivation needs a dedicated safety envelope, not the existing action intent allowlist.",
+);
 
 let signedMessageText = null;
 const signed = await signWalletMessageIntentWithSafety({
