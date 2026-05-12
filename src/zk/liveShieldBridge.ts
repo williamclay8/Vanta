@@ -22,6 +22,8 @@ import {
   createCanonicalLineageId,
   type CanonicalLifecycleRecordLinkage,
 } from "./canonicalLifecycleLinkage";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
 import type { LiveShieldTokenAssetKey } from "@/solana/shieldConfig";
 
 const LIVE_SHIELD_RECORDS_STORAGE_KEY = "vanta.zk.phase1.live-shield-records.v1";
@@ -37,6 +39,7 @@ export type LiveShieldCanonicalizationInput = {
   vaultOwner: string;
   createdAt: number;
   depositSignature?: string;
+  ownerContext: CanonicalNoteOwnerContext;
   tokenDecimals?: number;
 };
 
@@ -56,7 +59,8 @@ export type LiveShieldCanonicalRecord = {
     tokenDecimals: number;
     vaultOwner: string;
   };
-  ownerContext: CanonicalNoteOwnerContext;
+  ownerContext?: CanonicalNoteOwnerContext;
+  redactedOwnerContext?: LiveShieldRedactedOwnerContext;
   canonicalNote: SerializedCanonicalNoteV1;
   artifacts: CanonicalNoteArtifacts;
   insertion: {
@@ -65,6 +69,12 @@ export type LiveShieldCanonicalRecord = {
     leafCount: number;
   };
   diagnosticStorage: BrowserLocalShieldedStateDiagnostic;
+};
+
+export type LiveShieldRedactedOwnerContext = {
+  ownerPublicKey: string;
+  derivationContextReferenceHash?: string;
+  recoverySecretReferenceHash: string;
 };
 
 export type LiveShieldCanonicalDiagnosticsSummary = {
@@ -100,7 +110,7 @@ export async function recordCanonicalShieldFromLiveShield(
     return existing;
   }
 
-  const ownerContext = createOwnerContext(input);
+  const ownerContext = input.ownerContext;
   const canonicalNote = createCanonicalShieldNote(input, ownerContext);
   const artifacts = await deriveCanonicalNoteArtifacts(canonicalNote, ownerContext);
   const insertion = await insertCommitmentIntoCanonicalShieldedState(artifacts.commitment);
@@ -163,7 +173,14 @@ export function listCanonicalShieldRecords(): LiveShieldCanonicalRecord[] {
       return [];
     }
 
-    return parsed.filter(isLiveShieldCanonicalRecord);
+    const records = parsed.filter(isLiveShieldCanonicalRecord);
+    const redactedRecords = records.map(redactLiveShieldRecordForPersistence);
+
+    if (JSON.stringify(records) !== JSON.stringify(redactedRecords)) {
+      storage.setItem(LIVE_SHIELD_RECORDS_STORAGE_KEY, JSON.stringify(redactedRecords));
+    }
+
+    return redactedRecords;
   } catch {
     return [];
   }
@@ -251,16 +268,6 @@ function createCanonicalShieldNote(
   });
 }
 
-function createOwnerContext(
-  input: LiveShieldCanonicalizationInput,
-): CanonicalNoteOwnerContext {
-  return {
-    ownerPublicKey: input.owner,
-    recoverySecret: randomHex32(),
-    derivationContext: `shield:${input.mintAddress}:${input.vaultOwner}`,
-  };
-}
-
 async function insertCommitmentIntoCanonicalShieldedState(
   commitment: CanonicalNoteArtifacts["commitment"],
 ): Promise<ShieldedCommitmentInsertionRecord> {
@@ -280,8 +287,57 @@ function persistCanonicalShieldRecord(record: LiveShieldCanonicalRecord) {
     return;
   }
 
-  const nextRecords = [...listCanonicalShieldRecords(), record];
+  const nextRecords = [
+    ...listCanonicalShieldRecords().map(redactLiveShieldRecordForPersistence),
+    redactLiveShieldRecordForPersistence(record),
+  ];
   storage.setItem(LIVE_SHIELD_RECORDS_STORAGE_KEY, JSON.stringify(nextRecords));
+}
+
+function redactLiveShieldRecordForPersistence(
+  record: LiveShieldCanonicalRecord,
+): LiveShieldCanonicalRecord {
+  return {
+    ...record,
+    ownerContext: undefined,
+    redactedOwnerContext: redactLiveShieldOwnerContextForPersistence(
+      record.ownerContext,
+      record.redactedOwnerContext,
+    ),
+  };
+}
+
+function redactLiveShieldOwnerContextForPersistence(
+  ownerContext: CanonicalNoteOwnerContext | undefined,
+  redactedOwnerContext: LiveShieldRedactedOwnerContext | undefined,
+): LiveShieldRedactedOwnerContext {
+  if (!ownerContext && redactedOwnerContext) {
+    return redactedOwnerContext;
+  }
+
+  return {
+    ownerPublicKey:
+      ownerContext?.ownerPublicKey ??
+      redactedOwnerContext?.ownerPublicKey ??
+      "redacted:owner-public-key:unavailable",
+    derivationContextReferenceHash: ownerContext?.derivationContext
+      ? redactLiveShieldReference("owner-derivation-context", ownerContext.derivationContext)
+      : redactedOwnerContext?.derivationContextReferenceHash,
+    recoverySecretReferenceHash: redactLiveShieldReference(
+      "owner-recovery-secret",
+      ownerContext?.recoverySecret ?? redactedOwnerContext?.recoverySecretReferenceHash,
+    ),
+  };
+}
+
+function redactLiveShieldReference(domain: string, value: string | undefined) {
+  if (value?.startsWith("sha256:")) {
+    return value;
+  }
+
+  return `sha256:${bytesToHex(
+    sha256(new TextEncoder().encode(`vanta-live-shield-redaction:${domain}:${value ?? "unset"}`)),
+  )}`;
 }
 
 function createCanonicalAssetId(mintAddress: string) {
@@ -305,11 +361,6 @@ function decimalAmountToBaseUnits(value: string, decimals: number): bigint {
   const normalizedFraction = fractionalPart.padEnd(decimals, "0").slice(0, decimals);
 
   return BigInt(`${wholePart}${normalizedFraction}`);
-}
-
-function randomHex32() {
-  const bytes = crypto.getRandomValues(new Uint8Array(32));
-  return `0x${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
 }
 
 function getStorage(): Storage | null {
@@ -338,8 +389,8 @@ function isLiveShieldCanonicalRecord(value: unknown): value is LiveShieldCanonic
     record.insertion !== null &&
     typeof record.liveShield === "object" &&
     record.liveShield !== null &&
-    typeof record.ownerContext === "object" &&
-    record.ownerContext !== null
+    ((typeof record.ownerContext === "object" && record.ownerContext !== null) ||
+      (typeof record.redactedOwnerContext === "object" && record.redactedOwnerContext !== null))
   );
 }
 

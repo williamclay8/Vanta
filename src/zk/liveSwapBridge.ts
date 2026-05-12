@@ -36,6 +36,7 @@ export type LiveSwapCanonicalizationInput = {
   createdAt: number;
   owner: string;
   vaultOwner: string;
+  ownerContext: CanonicalNoteOwnerContext;
   input: {
     asset: "USDC";
     mintAddress: string;
@@ -200,7 +201,7 @@ export async function recordCanonicalSwapFromLiveSwap(
   const predecessorLifecycleId = inputReference.lifecycle?.lifecycleId;
   const outputLifecycleId = createCanonicalLifecycleNodeId("swap", input.transition.signature, "output");
 
-  const ownerContext = createOwnerContext(input.owner, input.output.assetId, input.vaultOwner);
+  const ownerContext = input.ownerContext;
   const canonicalOutputNote = createCanonicalNote({
     assetId: createCanonicalSolAssetId(input.output.assetId),
     amount: decimalAmountToBaseUnits(input.output.amountDisplay, DEFAULT_SOL_DECIMALS),
@@ -553,18 +554,6 @@ export function persistCanonicalSwapRecord(record: LiveSwapCanonicalRecord) {
   storage.setItem(LIVE_SWAP_RECORDS_STORAGE_KEY, JSON.stringify(nextRecords));
 }
 
-function createOwnerContext(
-  owner: string,
-  outputAssetId: string,
-  vaultOwner: string,
-): CanonicalNoteOwnerContext {
-  return {
-    ownerPublicKey: owner,
-    recoverySecret: randomHex32(),
-    derivationContext: `swap:${outputAssetId}:${vaultOwner}`,
-  };
-}
-
 function createCanonicalSolAssetId(assetId: string) {
   return `solana:native:${assetId}`;
 }
@@ -597,11 +586,6 @@ function decimalAmountToBaseUnits(value: string, decimals: number): bigint {
   const normalizedFraction = fractionalPart.padEnd(decimals, "0").slice(0, decimals);
 
   return BigInt(`${wholePart}${normalizedFraction}`);
-}
-
-function randomHex32() {
-  const bytes = crypto.getRandomValues(new Uint8Array(32));
-  return `0x${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
 }
 
 function getStorage(): Storage | null {

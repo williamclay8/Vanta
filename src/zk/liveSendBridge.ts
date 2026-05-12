@@ -41,6 +41,7 @@ export type LiveSendCanonicalizationInput = {
   recipient: string;
   sentAmountDisplay: string;
   changeAmountDisplay: string;
+  ownerContext: CanonicalNoteOwnerContext;
   tokenDecimals?: number;
   predecessor: {
     noteId: string;
@@ -184,7 +185,7 @@ export async function recordCanonicalSendFromLiveSend(
   const lineageId = predecessor.lifecycle?.lineageId ?? createCanonicalLineageId(recordLifecycleId);
   const predecessorLifecycleId = predecessor.lifecycle?.lifecycleId;
 
-  const ownerContext = createOwnerContext(input.owner, input.mintAddress, input.vaultOwner);
+  const ownerContext = input.ownerContext;
   const recipientSuccessor = await createSuccessorRecord({
     amountDisplay: input.sentAmountDisplay,
     createdAt: input.createdAt,
@@ -657,14 +658,6 @@ function redactLiveSendArtifactsForPersistence(
   };
 }
 
-function createOwnerContext(owner: string, mintAddress: string, vaultOwner: string): CanonicalNoteOwnerContext {
-  return {
-    ownerPublicKey: owner,
-    recoverySecret: randomHex32(),
-    derivationContext: `send:${mintAddress}:${vaultOwner}`,
-  };
-}
-
 function createCanonicalAssetId(mintAddress: string) {
   return `solana:mint:${mintAddress}`;
 }
@@ -686,11 +679,6 @@ function decimalAmountToBaseUnits(value: string, decimals: number): bigint {
   const normalizedFraction = fractionalPart.padEnd(decimals, "0").slice(0, decimals);
 
   return BigInt(`${wholePart}${normalizedFraction}`);
-}
-
-function randomHex32() {
-  const bytes = crypto.getRandomValues(new Uint8Array(32));
-  return `0x${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
 }
 
 function getStorage(): Storage | null {

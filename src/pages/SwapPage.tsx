@@ -39,6 +39,7 @@ import {
 import { getSwapTrustContract } from "@/solana/swapTrustContract";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
+import { useVantaShieldOwnerContext } from "@/solana/useVantaShieldOwnerContext";
 import { useVantaShieldViewingKey } from "@/solana/useVantaShieldViewingKey";
 import {
   createPreparedSwapMemo,
@@ -57,6 +58,7 @@ import {
 } from "@/zk/liveSwapBridge";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentSafety.mjs";
+import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
 
 type PendingSpentMarker = {
   asset: ShieldedSwapAssetKey;
@@ -72,6 +74,7 @@ type PendingSpentMarker = {
 type PendingSwapBridge = {
   createdAt: number;
   owner: string;
+  ownerContext: CanonicalNoteOwnerContext;
   vaultOwner: string;
   input: {
     asset: ShieldedSwapAssetKey;
@@ -169,6 +172,7 @@ export function SwapPage() {
   const { walletAddress, walletConnected } = useWalletState();
   const walletSession = useWalletSession();
   const viewingKey = useVantaShieldViewingKey();
+  const shieldOwnerContext = useVantaShieldOwnerContext();
   const {
     account: shieldAccount,
     error: shieldStateError,
@@ -1022,6 +1026,7 @@ export function SwapPage() {
         {
           createdAt: pendingSwapBridge.createdAt,
           owner: pendingSwapBridge.owner,
+          ownerContext: pendingSwapBridge.ownerContext,
           vaultOwner: pendingSwapBridge.vaultOwner,
           input: {
             asset: "USDC",
@@ -1096,6 +1101,7 @@ export function SwapPage() {
     if (!viewingKey?.publicKey) {
       throw new Error("Vanta action memo encryption requires your Shield viewing key to be ready.");
     }
+    const ownerContext = await shieldOwnerContext.ensureOwnerContext();
     const preparedSwap = createPreparedSwapMemo(
       {
         consumedNoteId: args.note.noteId,
@@ -1131,6 +1137,7 @@ export function SwapPage() {
     setPendingSwapBridge({
       createdAt,
       owner: args.shieldAccountState.owner,
+      ownerContext,
       vaultOwner: args.shieldAccountState.vaultOwner,
       input: {
         asset: "USDC",
@@ -1230,6 +1237,7 @@ export function SwapPage() {
     if (!viewingKey?.publicKey) {
       throw new Error("Vanta action memo encryption requires your Shield viewing key to be ready.");
     }
+    const ownerContext = await shieldOwnerContext.ensureOwnerContext();
     const preparedSwap = createPreparedSwapMemo(
       {
         consumedNoteId: args.note.noteId,
@@ -1265,6 +1273,7 @@ export function SwapPage() {
     setPendingSwapBridge({
       createdAt,
       owner: args.shieldAccountState.owner,
+      ownerContext,
       vaultOwner: args.shieldAccountState.vaultOwner,
       input: {
         asset: "SOL",

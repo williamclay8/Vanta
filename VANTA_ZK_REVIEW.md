@@ -303,6 +303,8 @@ The `signMessage(walletKeypair, ...)` step is what makes recovery work: any devi
 
 **Codex status, 2026-05-11 follow-up:** the dedicated Shield key-derivation safety envelope is now defined but still dormant. `src/solana/shieldKeyDerivationIntent.ts` formats a stable non-transactional `vanta:shield-key-derivation-intent:v1` message for recoverable seed derivation, while the per-approval request id / expiry / human-approval checks stay in the safety envelope passed to `signWalletMessageIntentWithSafety`. This preserves deterministic recovery semantics without allowing page-load signing or direct `walletSession.signMessage` calls from Shield. Guard: `npm run shield:key-derivation-intent-check`, now included in `npm run shield:verify`. Runtime Shield note recording still does not use this intent until a user-facing opt-in and migration plan exist.
 
+**Codex status, 2026-05-12 runtime adoption:** new live Shield/Send/Swap canonical records no longer mint `recoverySecret: randomHex32()` in the bridge layer. `src/solana/useVantaShieldOwnerContext.ts` now derives `CanonicalNoteOwnerContext` through the dedicated Shield key-derivation safety envelope, and `src/pages/ShieldPage.tsx`, `src/pages/SendPage.tsx`, and `src/pages/SwapPage.tsx` pass that explicit owner context into the live bridge functions before canonical note recording. `src/zk/liveShieldBridge.ts`, `src/zk/liveSendBridge.ts`, and `src/zk/liveSwapBridge.ts` now require caller-provided `ownerContext: CanonicalNoteOwnerContext`; bridge files do not call wallet signing and do not synthesize random owner recovery secrets. Shield browser persistence also redacts `ownerContext.recoverySecret` into a reference hash before localStorage, so the in-memory derived secret is not written back as a raw persisted recovery secret. Guards updated: `npm run zk:owner-key-hierarchy-contract-check` and `npm run shield:key-derivation-intent-check`, both still wired into aggregate verification. Residual caveat: this does not migrate old local records, does not make old random-seeded records recoverable, and does not yet ship a complete cross-device recovery/import UX or live deployment.
+
 ### W3. The Noir shield circuit
 
 Replace `zk/noir/vanta_private_pool_v2_shield_entry/src/main.nr`. Public inputs constrain everything; private witnesses are what the prover knows but doesn't reveal.
@@ -2858,7 +2860,7 @@ Stripe is at 99.999% uptime. Vanta has no published uptime, no SLO, no status pa
 
 Privacy products lose user funds in ways traditional products don't. Specifically:
 
-- **Lost wallet → lost shielded balance.** Per the shield-lane deep dive, today's recovery is `recoverySecret: randomHex32()` stored in localStorage. If the user clears localStorage, the funds are unrecoverable.
+- **Lost wallet → lost shielded balance.** New live Shield/Send/Swap canonical records now use wallet-derived owner context instead of bridge-local `randomHex32()`, but legacy local records remain unmigrated and there is not yet a full cross-device recovery/import UX. Lose the wallet, lose the funds; clear old browser state, and old random-seeded records are still unrecoverable.
 - **Lost viewing key → lost ability to find your own notes.** Even if the wallet survives, an indexer-driven note discovery model needs the viewing key.
 - **Lost spending key → lost ability to spend.** The actual unshield ZK proof requires the spending secret.
 
@@ -3499,15 +3501,15 @@ Recommendation unchanged from shield W7: wire `@aztec/bb.js` (or snarkjs for Gro
 
 After this and the on-chain verifier land, the system has cryptographic enforcement end-to-end. Everything else in this document either depends on that or is parallel polish.
 
-### Still open #3 — `recoverySecret: randomHex32()` is still the user-facing loss-of-funds risk
+### Partially remediated #3 — new live records use wallet-derived owner context
 
-Both `src/zk/liveShieldBridge.ts:259` and `src/zk/liveSendBridge.ts:663` still generate `recoverySecret: randomHex32()` and persist it to localStorage. Lose your browser data, lose your funds.
+New live Shield/Send/Swap canonical records now require an explicit wallet-derived `CanonicalNoteOwnerContext` from `useVantaShieldOwnerContext`; the bridge layer no longer generates `recoverySecret: randomHex32()`. The Shield persistence path redacts the derived recovery secret before localStorage. This closes the new-record version of the highest-impact user-facing recovery bug.
 
-The fix (shield W2 — wallet-derived deterministic seed via `signMessage`) is small, standalone, and doesn't depend on any other workstream. It could ship next week. **It is the single highest-impact user-facing security improvement still on the list.** It also unlocks recovery-on-any-device, which is what users actually expect from a privacy wallet.
+Residual risk: old browser-local records are not migrated or recovered; the user-facing cross-device recovery/import flow is not complete; and nothing is pushed or live. Keep the next recovery slice focused on legacy-record migration policy, recovery UX, and reviewer-visible evidence that a second device can reconstruct the same owner context from the wallet-derived seed.
 
-### Still open #4 — Delete the transition-authorized unshield path
+### Revalidated #4 — transition-authorized unshield path is already removed
 
-`isWalletDirectUnshieldIntent` and the `"transition-authorized"` literal-signature branch are still in `operator/unshield-server.mjs`. Per the unshield-lane deep dive (U4), this is two parallel authorization paths where one would do, and the safer one (real Ed25519 signature on every request) should be the only one. One-day deletion that removes a category of authentication-confusion bugs.
+The latest re-review claim was stale. The literal `"transition-authorized"` signature branch and browser minting path are already gone, and `scripts/check-vanta-unshield-public-exit-surface.mjs` guards against reintroducing the sentinel. `isWalletDirectUnshieldIntent` still exists, but it is now a wallet-signed public-exit shape check, not the removed alternate-auth sentinel path. Remaining Unshield work is the larger Target A custody/proof migration: program-owned vault, on-chain release enforcement, and real proof verification.
 
 ### Still open #5 — Vault custody is still operator-keypair-in-env
 
@@ -3542,18 +3544,17 @@ Things I missed in the initial review or that became visible only after the rece
 
 The premier-suite synthesis in F13 listed 10 items. Several are now closed. The updated list, ordered by remaining-leverage-per-week:
 
-1. **Wallet-derived deterministic recovery seed** (still-open #3). One week. User-facing loss-of-funds risk closed.
-2. **Delete the transition-authorized unshield path** (still-open #4). One day. Eliminates an authentication-confusion attack surface.
-3. **Embed Light's `groth16-solana` verifier in the program and wire bb.js as the real prover** (still-open #1 + #2 together). 2-3 weeks. Closes the largest remaining cryptographic gap; moves the protocol from Target B to Target A.
-4. **Program-owned PDA vault + on-chain `TAG_UNSHIELD`** (still-open #5). 2-3 weeks. Removes the operator's vault keypair as the trust anchor for funds at rest.
-5. **Deprecate `vanta_private_core_single_note_*` circuits** (still-open #6). 2-3 days. Removes the maintenance burden of a second, worse circuit family.
-6. **Lift the strategy/pay trust-contract pattern into UI gating across all six lanes** (per the docs-pass and final-pass recommendation). 2-3 days. Was item #1 of the synthesis; still applies; small but high-leverage.
-7. **Customer-side wallet flow for Pay** (Pay P1). 3-4 weeks. Gives merchants something real to integrate.
-8. **Privacy Pools association sets** (F1). 2-4 weeks. Compliance unlock that determines how big the merchant TAM can ever be.
-9. **Sign 5 anchor merchant partners** (F3). Calendar-bound. Solves anonymity-set bootstrapping.
-10. **Developer SDK + sandbox + docs** (F4). 6-10 weeks of dev-rel work. Determines the merchant integration ceiling.
+1. **Embed Light's `groth16-solana` verifier in the program and wire bb.js as the real prover** (still-open #1 + #2 together). 2-3 weeks. Closes the largest remaining cryptographic gap; moves the protocol from Target B to Target A.
+2. **Program-owned PDA vault + on-chain `TAG_UNSHIELD`** (still-open #5). 2-3 weeks. Removes the operator's vault keypair as the trust anchor for funds at rest.
+3. **Finish recovery UX and legacy-record migration policy** (follow-up to partially remediated #3). 1 week. New records use wallet-derived owner context; old random-seeded local records and cross-device import still need explicit product handling.
+4. **Deprecate `vanta_private_core_single_note_*` circuits** (still-open #6). 2-3 days. Removes the maintenance burden of a second, worse circuit family.
+5. **Lift the strategy/pay trust-contract pattern into UI gating across all six lanes** (per the docs-pass and final-pass recommendation). 2-3 days. Was item #1 of the synthesis; still applies; small but high-leverage.
+6. **Customer-side wallet flow for Pay** (Pay P1). 3-4 weeks. Gives merchants something real to integrate.
+7. **Privacy Pools association sets** (F1). 2-4 weeks. Compliance unlock that determines how big the merchant TAM can ever be.
+8. **Sign 5 anchor merchant partners** (F3). Calendar-bound. Solves anonymity-set bootstrapping.
+9. **Developer SDK + sandbox + docs** (F4). 6-10 weeks of dev-rel work. Determines the merchant integration ceiling.
 
-Items 1-5 are 6-7 weeks of focused engineering. After that, the protocol is fully non-custodial with real on-chain proof verification — the cryptographic claims become cryptographic facts. Items 6-10 are go-to-market and don't sequentially depend on items 1-5, so they should run in parallel.
+Items 1-4 are the remaining core engineering spine. After verifier/prover/custody/deprecation work, the protocol is much closer to fully non-custodial with real on-chain proof verification — the cryptographic claims become cryptographic facts. Items 5-9 are product/go-to-market and don't sequentially depend on the verifier/custody work, so they should run in parallel.
 
 ## What the closing argument now looks like
 
@@ -3561,7 +3562,7 @@ When the original review opened, "Vanta isn't there yet" was a fair summary. Aft
 
 **Vanta is most of the way to Target A.** The circuits are correct. The on-chain program is operator-authorized with real nullifier and root state. The memos are AEAD-encrypted. The owner-recovery crypto is standard AEAD. The unshield circuit cryptographically proves ownership. The send circuit cryptographically enforces value conservation.
 
-The two remaining cryptographic items (real prover, on-chain proof verifier) are 2-3 weeks of work that doesn't require new architectural decisions. The product items (recovery, transition-authorized deletion, customer-side wallet flow) are smaller. The GTM items (Privacy Pools, anchor merchants, SDK) are parallel and not blocked on engineering.
+The two remaining cryptographic items (real prover, on-chain proof verifier) are 2-3 weeks of work that doesn't require new architectural decisions. The transition-authorized Unshield finding was stale and is already removed locally; the remaining recovery product work is migration/UX rather than the new-record seed derivation itself. The GTM items (Privacy Pools, anchor merchants, SDK) are parallel and not blocked on engineering.
 
 This is the rare position where a project that was three months from credibility is now five weeks from it. The path is unblocked. The remaining work is execution against a clean priority list.
 

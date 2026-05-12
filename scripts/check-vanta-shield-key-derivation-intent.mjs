@@ -6,7 +6,10 @@ import { pathToFileURL } from "node:url";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const sourcePath = resolve(repoRoot, "src/solana/shieldKeyDerivationIntent.ts");
+const ownerContextHookPath = resolve(repoRoot, "src/solana/useVantaShieldOwnerContext.ts");
 const shieldPagePath = resolve(repoRoot, "src/pages/ShieldPage.tsx");
+const sendPagePath = resolve(repoRoot, "src/pages/SendPage.tsx");
+const swapPagePath = resolve(repoRoot, "src/pages/SwapPage.tsx");
 const walletSafetyPath = resolve(repoRoot, "src/wallet/walletMessageIntentSafety.mjs");
 const walletSafetyTypesPath = resolve(repoRoot, "src/wallet/walletMessageIntentSafety.d.mts");
 const packagePath = resolve(repoRoot, "package.json");
@@ -41,7 +44,10 @@ async function loadShieldKeyDerivationIntentModule() {
 }
 
 const source = readFileSync(sourcePath, "utf8");
+const ownerContextHookSource = readFileSync(ownerContextHookPath, "utf8");
 const shieldPageSource = readFileSync(shieldPagePath, "utf8");
+const sendPageSource = readFileSync(sendPagePath, "utf8");
+const swapPageSource = readFileSync(swapPagePath, "utf8");
 const walletSafetySource = readFileSync(walletSafetyPath, "utf8");
 const walletSafetyTypes = readFileSync(walletSafetyTypesPath, "utf8");
 const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
@@ -64,14 +70,32 @@ for (const marker of [
   assert.ok(source.includes(marker), `Shield key derivation message missing marker: ${marker}`);
 }
 assert.ok(
-  !shieldPageSource.includes("shieldKeyDerivationIntent") &&
-    !shieldPageSource.includes("deriveShieldMasterSeedWithSafety") &&
-    !shieldPageSource.includes('intentKind: "shield-key-derivation-intent"'),
-  "Dormant Shield key derivation intent must not be wired into ShieldPage yet.",
+  ownerContextHookSource.includes("deriveShieldMasterSeedWithSafety") &&
+    ownerContextHookSource.includes("createShieldKeyDerivationSafetyEnvelope") &&
+    ownerContextHookSource.includes("createWalletDerivedCanonicalNoteOwnerContext") &&
+    ownerContextHookSource.includes("useWalletSession"),
+  "Live Shield owner-context adoption must route through the key-derivation safety hook.",
 );
+for (const [label, pageSource] of [
+  ["ShieldPage", shieldPageSource],
+  ["SendPage", sendPageSource],
+  ["SwapPage", swapPageSource],
+]) {
+  assert.ok(
+    pageSource.includes("useVantaShieldOwnerContext"),
+    `${label} must use the shared recoverable owner-context hook before live canonical note recording.`,
+  );
+  assert.ok(
+    !pageSource.includes("deriveShieldMasterSeedWithSafety") &&
+      !pageSource.includes('intentKind: "shield-key-derivation-intent"'),
+    `${label} must not call the key-derivation intent directly.`,
+  );
+}
 assert.ok(
-  !shieldPageSource.includes("walletSession.signMessage("),
-  "ShieldPage must not call walletSession.signMessage directly.",
+  !shieldPageSource.includes("walletSession.signMessage(") &&
+    !sendPageSource.includes("walletSession.signMessage(") &&
+    !swapPageSource.includes("walletSession.signMessage("),
+  "Live pages must not call walletSession.signMessage directly for owner-key derivation.",
 );
 assert.ok(
   walletSafetySource.includes('"shield-key-derivation-intent"') &&

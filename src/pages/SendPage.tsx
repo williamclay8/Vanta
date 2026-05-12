@@ -23,6 +23,7 @@ import {
   vantaSolanaCluster,
 } from "@/solana/shieldConfig";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
+import { useVantaShieldOwnerContext } from "@/solana/useVantaShieldOwnerContext";
 import {
   createPreparedSendDualAeadMemo,
   createPreparedSendMemo,
@@ -50,6 +51,7 @@ import {
   requestVantaPrivateCoreOperatorSendTransition,
 } from "@/zk/vantaPrivateCoreOperatorClient";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
+import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
 
 type SendPageProps = {
   dashboard?: boolean;
@@ -68,6 +70,7 @@ type PendingSpentMarker = {
 type PendingSendBridge = {
   changeAmountDisplay: string;
   createdAt: number;
+  ownerContext: CanonicalNoteOwnerContext;
   predecessor: {
     amountDisplay: string;
     noteId: string;
@@ -386,6 +389,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     refresh: refreshShieldState,
   } = useVantaShieldState();
   const shieldAssetRegistry = useVantaShieldAssetRegistryState();
+  const shieldOwnerContext = useVantaShieldOwnerContext();
   const baseSendShieldedAssetOptions = useMemo(() => listShieldedSendAssetOptions(), []);
   const [selectedAsset, setSelectedAsset] = useState<ShieldedSendAssetKey>(
     getInitialSendAsset(recentShield?.asset),
@@ -1074,6 +1078,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           sentAmountDisplay: pendingSendBridge.sentAmountDisplay,
           changeAmountDisplay: pendingSendBridge.changeAmountDisplay,
           tokenDecimals: DEFAULT_USDC_DECIMALS,
+          ownerContext: pendingSendBridge.ownerContext,
           predecessor: pendingSendBridge.predecessor,
           transition: {
             noteId: pendingSendBridge.transition.noteId,
@@ -1128,6 +1133,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     if (!viewingKey?.publicKey) {
       throw new Error("Vanta action memo encryption requires your Shield viewing key to be ready.");
     }
+    const ownerContext = await shieldOwnerContext.ensureOwnerContext();
     setStatus("awaiting_confirmation");
 
     const createdAt = Date.now();
@@ -1158,6 +1164,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     setPendingSendBridge({
       changeAmountDisplay: nextChangeAmount.toString(),
       createdAt,
+      ownerContext,
       predecessor: {
         amountDisplay: args.note.amount.toString(),
         noteId: args.note.noteId,

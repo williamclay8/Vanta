@@ -54,6 +54,7 @@ import { buildSplTokenShieldTransferInstructions } from "@/solana/splShieldTrans
 import { useWalletPublicAssets } from "@/solana/useWalletPublicAssets";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import { useVantaShieldViewingKey } from "@/solana/useVantaShieldViewingKey";
+import { useVantaShieldOwnerContext } from "@/solana/useVantaShieldOwnerContext";
 import { toVantaWalletAuthorizationRecoveryMessage } from "@/wallet/walletAuthorizationError.mjs";
 import {
   createNativeSolShieldMemoInstruction,
@@ -64,6 +65,7 @@ import {
   type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
 import { recordCanonicalShieldFromLiveShield } from "@/zk/liveShieldBridge";
+import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 
 type ShieldPageProps = {
@@ -318,6 +320,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   } = useWalletState();
   const shieldRegistry = useVantaShieldAssetRegistryState();
   const viewingKey = useVantaShieldViewingKey();
+  const shieldOwnerContext = useVantaShieldOwnerContext();
   const [selectedSourceAssetId, setSelectedSourceAssetId] = useState("native:SOL");
   const [amount, setAmount] = useState("");
   const [viewingKeyBackupText, setViewingKeyBackupText] = useState("");
@@ -333,6 +336,8 @@ export function ShieldPage(_props: ShieldPageProps) {
   const [pendingDepositSignature, setPendingDepositSignature] = useState<string | null>(null);
   const [pendingShieldAsset, setPendingShieldAsset] = useState<LiveShieldTokenAssetKey | "SOL" | null>(null);
   const [pendingShieldTarget, setPendingShieldTarget] = useState<LiveShieldTokenAssetConfig | null>(null);
+  const [pendingShieldOwnerContext, setPendingShieldOwnerContext] =
+    useState<CanonicalNoteOwnerContext | null>(null);
   const [pendingPublicRoute, setPendingPublicRoute] = useState<PendingPublicRoute | null>(null);
   const [pendingProtocolSettlement, setPendingProtocolSettlement] =
     useState<PendingShieldProtocolSettlement | null>(null);
@@ -343,6 +348,12 @@ export function ShieldPage(_props: ShieldPageProps) {
   >([]);
   const [recoverableSolDepositsLoading, setRecoverableSolDepositsLoading] = useState(false);
   const [recoverableSolDepositsError, setRecoverableSolDepositsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (pendingShieldAsset === null) {
+      setPendingShieldOwnerContext(null);
+    }
+  }, [pendingShieldAsset]);
   const recordedStateSignatureRef = useRef<string | null>(null);
   const recordedTokenDepositSignatureRef = useRef<string | null>(null);
   const queuedNativeSolHydrationSignatureRef = useRef<string | null>(null);
@@ -773,6 +784,8 @@ export function ShieldPage(_props: ShieldPageProps) {
       throw new Error("Shield target is not configured.");
     }
 
+    const ownerContext = await shieldOwnerContext.ensureOwnerContext();
+
     setPendingShieldAmount(amountNumeric);
     setPendingShieldAmountDisplay(amountDisplay);
     const shieldMemoCreatedAt = Date.now();
@@ -780,6 +793,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     setPendingDepositSignature(null);
     setPendingShieldAsset(selectedShieldAsset.assetKey);
     setPendingShieldTarget(selectedShieldAsset);
+    setPendingShieldOwnerContext(ownerContext);
     setPendingProtocolSettlement({ capability, routeEvidence });
     const approvalIssuedAt = Date.now();
     setPendingUmbraApprovalDisplay(
@@ -1315,6 +1329,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       recordedStateSignatureRef.current === activeStateSignature ||
       pendingShieldAmount === null ||
       !pendingShieldAmountDisplay ||
+      !pendingShieldOwnerContext ||
       !activeShieldTarget?.vaultOwner ||
       (pendingShieldAsset !== "SOL" && !activeShieldTarget?.mintAddress) ||
       (pendingShieldAsset !== "SOL" && !walletAddress)
@@ -1339,6 +1354,7 @@ export function ShieldPage(_props: ShieldPageProps) {
                 depositSignature: activeDepositSignature ?? undefined,
                 mintAddress: activeShieldTarget.mintAddress!,
                 owner: walletAddress!,
+                ownerContext: pendingShieldOwnerContext,
                 stateSignature: activeStateSignature,
                 tokenDecimals: activeShieldTarget.decimals,
                 vaultOwner: activeShieldTarget.vaultOwner!,
@@ -1628,6 +1644,7 @@ export function ShieldPage(_props: ShieldPageProps) {
     pendingShieldAmount,
     pendingShieldAmountDisplay,
     pendingShieldMemoCreatedAt,
+    pendingShieldOwnerContext,
     pendingProtocolSettlement,
     pendingShieldTarget,
     nativeSolShieldTransaction.signature,
@@ -1753,6 +1770,10 @@ export function ShieldPage(_props: ShieldPageProps) {
     validationMessage = "The selected shield target is not configured.";
   } else if (!viewingKey?.publicKey) {
     validationMessage = "Shield needs a local viewing key before it can write recoverable shield-state memos.";
+  } else if (!shieldOwnerContext.ownerContext && !shieldOwnerContext.canRequestOwnerContext) {
+    validationMessage = "Shield needs wallet message signing to derive recoverable owner keys before recording shielded notes.";
+  } else if (shieldOwnerContext.status === "requesting") {
+    validationMessage = "Approve the recoverable owner-key message before the Shield transfer.";
   } else if (capability.blockers.length > 0) {
     validationMessage = capability.blockers[0] ?? "This asset is not currently supported.";
   } else if (supportedToken?.status === "loading" || supportedToken?.isFetching) {
@@ -2056,6 +2077,8 @@ export function ShieldPage(_props: ShieldPageProps) {
                   disabled={
                     isBetaMode ||
                     !isAmountValid ||
+                    (!shieldOwnerContext.ownerContext && !shieldOwnerContext.canRequestOwnerContext) ||
+                    shieldOwnerContext.status === "requesting" ||
                     status === "routing_public_swap" ||
                     status === "shielding_in_progress" ||
                     status === "entering_shielded_state"

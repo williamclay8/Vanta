@@ -115,10 +115,41 @@ assert.ok(
   "vantaShieldViewingKey.ts must expose deterministic keypair derivation from a secret key.",
 );
 assert.ok(
-  !liveShieldBridgeSource.includes("createWalletDerivedCanonicalNoteOwnerContext") &&
-    !liveSendBridgeSource.includes("createWalletDerivedCanonicalNoteOwnerContext") &&
-    !liveSwapBridgeSource.includes("createWalletDerivedCanonicalNoteOwnerContext"),
-  "The first owner-key hierarchy slice must not migrate live random local records automatically.",
+  liveShieldBridgeSource.includes("ownerContext: CanonicalNoteOwnerContext") &&
+    liveSendBridgeSource.includes("ownerContext: CanonicalNoteOwnerContext") &&
+    liveSwapBridgeSource.includes("ownerContext: CanonicalNoteOwnerContext"),
+  "Live Shield/Send/Swap bridge records must require an explicit wallet-derived owner context.",
+);
+for (const [label, bridgeSource] of [
+  ["Shield", liveShieldBridgeSource],
+  ["Send", liveSendBridgeSource],
+  ["Swap", liveSwapBridgeSource],
+]) {
+  assert.ok(
+    !bridgeSource.includes("randomHex32()") && !bridgeSource.includes("function randomHex32"),
+    `Live ${label} bridge records must not mint unrecoverable random owner recovery secrets.`,
+  );
+}
+assert.ok(
+  readRepoFile("src/solana/useVantaShieldOwnerContext.ts").includes(
+    "deriveShieldMasterSeedWithSafety",
+  ),
+  "Live owner-context adoption must use the Shield key-derivation safety envelope.",
+);
+for (const marker of [
+  "redactLiveShieldRecordForPersistence",
+  "redactedOwnerContext",
+  "recoverySecretReferenceHash",
+  "redactLiveShieldOwnerContextForPersistence",
+]) {
+  assert.ok(
+    liveShieldBridgeSource.includes(marker),
+    `Live Shield persistence must redact wallet-derived owner recovery material before browser storage: ${marker}`,
+  );
+}
+assert.ok(
+  !liveShieldBridgeSource.includes("const nextRecords = [...listCanonicalShieldRecords(), record]"),
+  "Live Shield persistence must not persist the raw in-memory record with ownerContext.recoverySecret.",
 );
 assert.ok(
   !walletMessageIntentSource.includes('"shield-master-seed"') &&
