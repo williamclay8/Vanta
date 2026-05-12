@@ -387,15 +387,16 @@
         "scripts/check-vanta-private-pool-v2-send-operator-no-witness.mjs",
         "scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs"
       ],
-      "summary": "The Private Pool v2 operator proof-artifact route now binds optional Send expectedPublicInputs.sendPublicInputHash when callers provide it, while preserving the old no-expected-input Send verification path and still rejecting actual-private-spend expected inputs on Send artifacts.",
+      "summary": "The Private Pool v2 operator proof-artifact route now requires Send expectedPublicInputs.sendPublicInputHash for Send no-witness artifacts, accepts only a matching verified send-public-input-hash, rejects missing or mismatched Send expected inputs, and still rejects actual-private-spend expected inputs on Send artifacts.",
       "localVerification": [
         "npm run private-pool-v2:send-operator-no-witness-check",
         "npm run private-pool-v2:actual-private-spend-operator-no-witness-check",
-        "npm run private-pool-v2:proof-backend-boundary-check"
+        "npm run private-pool-v2:proof-backend-boundary-check",
+        "npm run private-pool-v2:local-verifier-check"
       ],
       "lumiHygiene": {
-        "local": "verified locally for the Send operator expected-public-input binding feedback-loop slice",
-        "committed": "included in the commit containing this Send operator expected-public-input binding feedback-loop ledger entry",
+        "local": "verified locally for the Send strict expected-public-input binding feedback-loop slice",
+        "committed": "included in the commit containing this Send strict expected-public-input binding feedback-loop ledger entry",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -846,9 +847,12 @@
         "scripts/check-vanta-private-pool-v2-send-proof-artifact-consistency.mjs",
         "scripts/check-vanta-private-pool-v2-actual-private-spend-proof-artifact-consistency.mjs",
         "scripts/check-vanta-private-pool-v2-send-operator-no-witness.mjs",
+        "scripts/check-vanta-private-pool-v2-actual-private-spend-operator-no-witness.mjs",
         "npm run private-pool-v2:send-proof-artifact-consistency-check",
         "npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
-        "npm run private-pool-v2:send-operator-no-witness-check"
+        "npm run private-pool-v2:send-operator-no-witness-check",
+        "npm run private-pool-v2:actual-private-spend-operator-no-witness-check",
+        "npm run private-pool-v2:local-verifier-check"
       ],
       "failureMode": "The local prover returns deterministic hash bytes and verifies by recomputing the same hash.",
       "requiredFix": [
@@ -869,10 +873,12 @@
           "npm run private-pool-v2:protocol-client-check",
           "npm run private-pool-v2:send-proof-artifact-consistency-check",
           "npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
-          "npm run private-pool-v2:send-operator-no-witness-check"
+          "npm run private-pool-v2:send-operator-no-witness-check",
+          "npm run private-pool-v2:actual-private-spend-operator-no-witness-check",
+          "npm run private-pool-v2:local-verifier-check"
         ],
-        "localResult": "Mock-proof boundary, proof-backend boundary, remote-services, SOL-to-shielded adapter, swap capability, protocol-client, Send proof-artifact consistency, actual-private-spend proof-artifact consistency, and Send operator no-witness checks pass locally.",
-        "proves": "Mock proofs and local proof backends are explicit and blocked from production/real-funds acceptance paths covered by the guard, including spoofed noir-bb/local-backend receipts, relabelled Send and actual-private-spend proof artifacts, witness-alias sidecars, remote prover mock/local-backend responses, remote verifier local-backend requests, and the live Jupiter SOL-to-shielded adapter boundary. Send and actual-private-spend proof artifacts can be checked locally without accepting private witness material, while proof-system/backend metadata and local ACIR bytecode metadata remain guarded against mock/local production misuse.",
+        "localResult": "Mock-proof boundary, proof-backend boundary, remote-services, SOL-to-shielded adapter, swap capability, protocol-client, Send proof-artifact consistency, actual-private-spend proof-artifact consistency, Send operator no-witness, actual-private-spend operator no-witness, and the expanded local-verifier check pass locally.",
+        "proves": "Mock proofs and local proof backends are explicit and blocked from production/real-funds acceptance paths covered by the guard, including spoofed noir-bb/local-backend receipts, relabelled Send and actual-private-spend proof artifacts, witness-alias sidecars, remote prover mock/local-backend responses, remote verifier local-backend requests, and the live Jupiter SOL-to-shielded adapter boundary. Send and actual-private-spend proof artifacts can be checked locally without accepting private witness material, Send operator verification now requires a matching expected sendPublicInputHash, and proof-system/backend metadata plus local ACIR bytecode metadata remain guarded against mock/local production misuse.",
         "doesNotProve": "A production remote prover, live verifier, on-chain proof verifier, audit acceptance, live settlement evidence, or real-funds ZK readiness."
       },
       "codexRemediation": {
@@ -882,9 +888,10 @@
           "current H08 proof-backend metadata feedback-loop patch",
           "current H08 Send proof-artifact no-witness feedback-loop commit",
           "current H08 actual-private-spend proof-artifact feedback-loop patch",
-          "current H08 remote-service proof-boundary feedback-loop patch"
+          "current H08 remote-service proof-boundary feedback-loop patch",
+          "current H08 Send strict expected-input binding feedback-loop patch"
         ],
-        "summary": "Persisted proofSystem and proofBackend through proof receipts, guarded production startup and settlement boundaries against mock/local proof evidence, made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary, added local no-witness Send and actual-private-spend proof-artifact checks with alias/tamper/metadata guards, and hardened the remote-services client so remote prover/verifier responses cannot launder mock/local proof metadata or witness sidecars into remote-service evidence.",
+        "summary": "Persisted proofSystem and proofBackend through proof receipts, guarded production startup and settlement boundaries against mock/local proof evidence, made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary, added local no-witness Send and actual-private-spend proof-artifact checks with alias/tamper/metadata/relabel guards, required Send and actual-private-spend operator proof-artifact verification to bind matching expected public-input hashes, and hardened the remote-services client so remote prover/verifier responses cannot launder mock/local proof metadata or witness sidecars into remote-service evidence.",
         "residualRisk": [
           "The mock prover still exists for local evidence.",
           "The Send and actual-private-spend proof-artifact checks are local-only fixture evidence and reject production proof mode until remote/on-chain proof verification is implemented.",
@@ -893,8 +900,8 @@
         ]
       },
       "lumiHygiene": {
-        "local": "verified locally for boundary, Send proof-artifact, and actual-private-spend proof-artifact no-witness checks",
-        "committed": "included in this actual-private-spend proof-artifact feedback-loop commit",
+        "local": "verified locally for boundary, Send proof-artifact, actual-private-spend proof-artifact, Send operator, actual-private-spend operator, and local-verifier no-witness checks",
+        "committed": "included in this Send strict expected-input feedback-loop commit",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -912,6 +919,7 @@
           "scripts/check-vanta-private-pool-v2-send-proof-artifact-consistency.mjs",
           "scripts/check-vanta-private-pool-v2-actual-private-spend-proof-artifact-consistency.mjs",
           "scripts/check-vanta-private-pool-v2-send-operator-no-witness.mjs",
+          "scripts/check-vanta-private-pool-v2-actual-private-spend-operator-no-witness.mjs",
           "operator/jupiter-sol-to-shielded-route-adapter.mjs",
           "scripts/check-vanta-jupiter-sol-to-shielded-adapter.mjs",
           "operator/private-pool-v2-server.mjs"
@@ -923,6 +931,8 @@
           "npm run private-pool-v2:send-proof-artifact-consistency-check",
           "npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
           "npm run private-pool-v2:send-operator-no-witness-check",
+          "npm run private-pool-v2:actual-private-spend-operator-no-witness-check",
+          "npm run private-pool-v2:local-verifier-check",
           "npm run swap:jupiter-sol-to-shielded-adapter-check",
           "npm run swap:capability-check",
           "npm run private-pool-v2:verify"

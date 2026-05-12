@@ -120,6 +120,10 @@ includes(proofScript, "witnessSource", "legacy non-Send proof sidecar marker");
 includes(proofScript, "bytecodeSource", "legacy non-Send bytecode sidecar marker");
 includes(proofScript, "private-spend-public-input-hash", "Actual Private Spend proof artifact public input label");
 includes(sendArtifactCheck, "tampered public input rejection", "Send proof artifact tampered public input guard");
+includes(sendArtifactCheck, "circuit relabel rejection", "Send proof artifact circuit relabel guard");
+includes(sendArtifactCheck, "proofSystem relabel rejection", "Send proof artifact proof-system relabel guard");
+includes(sendArtifactCheck, "backend relabel rejection", "Send proof artifact backend relabel guard");
+includes(sendArtifactCheck, "public input label relabel rejection", "Send proof artifact public-input label guard");
 includes(sendArtifactCheck, "verifyingKeyHash tamper rejection", "Send proof artifact verifying-key tamper guard");
 includes(sendArtifactCheck, "privateInputs alias rejection", "Send proof artifact no-witness alias guard");
 includes(sendArtifactCheck, "witness sidecar rejection", "Send proof artifact witness sidecar guard");
@@ -132,6 +136,21 @@ includes(
   actualPrivateSpendArtifactCheck,
   "public input label relabel rejection",
   "Actual Private Spend proof artifact public input label guard",
+);
+includes(
+  actualPrivateSpendArtifactCheck,
+  "circuit relabel rejection",
+  "Actual Private Spend proof artifact circuit relabel guard",
+);
+includes(
+  actualPrivateSpendArtifactCheck,
+  "proofSystem relabel rejection",
+  "Actual Private Spend proof artifact proof-system relabel guard",
+);
+includes(
+  actualPrivateSpendArtifactCheck,
+  "backend relabel rejection",
+  "Actual Private Spend proof artifact backend relabel guard",
 );
 includes(
   actualPrivateSpendArtifactCheck,
@@ -149,6 +168,11 @@ includes(
   "Actual Private Spend proof artifact witness sidecar guard",
 );
 includes(sendNoWitnessCheck, "mixed witnessPackage rejection", "Send proof artifact operator mixed witness guard");
+includes(
+  sendNoWitnessCheck,
+  "Send missing expected public input rejection",
+  "Send proof artifact expected public-input required guard",
+);
 includes(
   sendNoWitnessCheck,
   "Send mismatched expected public input rejection",
@@ -218,6 +242,18 @@ assert(
     "node scripts/check-vanta-private-pool-v2-send-operator-no-witness.mjs",
   "package.json must expose private-pool-v2:send-operator-no-witness-check",
 );
+for (const command of [
+  "private-pool-v2:proof-backend-boundary-check",
+  "private-pool-v2:send-proof-artifact-consistency-check",
+  "private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
+  "private-pool-v2:send-operator-no-witness-check",
+  "private-pool-v2:actual-private-spend-operator-no-witness-check",
+]) {
+  assert(
+    scripts["private-pool-v2:local-verifier-check"]?.includes(`npm run ${command}`),
+    `package.json private-pool-v2:local-verifier-check must include ${command}`,
+  );
+}
 assert(
   scripts["private-pool-v2:actual-private-spend-operator-no-witness-check"] ===
     "node scripts/check-vanta-private-pool-v2-actual-private-spend-operator-no-witness.mjs",

@@ -724,13 +724,9 @@ function assertActualPrivateSpendExpectedPublicInputMatches(body, verifiedReceip
 
 function assertSendExpectedPublicInputMatches(body, verifiedReceipt) {
   const expectedSendPublicInputHash = body?.expectedPublicInputs?.sendPublicInputHash;
-  if (expectedSendPublicInputHash === undefined) {
-    return;
-  }
-
   if (typeof expectedSendPublicInputHash !== "string" || !expectedSendPublicInputHash.trim()) {
     throw new Error(
-      "Private Pool v2 Send proof artifact expectedPublicInputs.sendPublicInputHash must be a non-empty string when provided.",
+      "Private Pool v2 Send proof artifact verification requires expectedPublicInputs.sendPublicInputHash.",
     );
   }
 

@@ -112,18 +112,11 @@ server.stderr.on("data", (chunk) => {
 try {
   await waitForHealth(server);
 
-  const accepted = await requestJson("/private-pool-v2/proof-artifacts/verify", {
-    body: JSON.stringify({ proofArtifact }),
-    method: "POST",
-  });
-  assert(accepted.ok, accepted.text || "Expected proof artifact verification to succeed.");
-  assert(accepted.parsed?.verifiedReceipt?.verified === true, "Expected verified receipt.");
-  assert(
-    accepted.parsed?.verifiedReceipt?.verifiedPublicInputs?.sendPublicInputHash ===
-      proofArtifact.publicInputs[0],
-    "Expected verified receipt to decode Send public input hash.",
+  await expectReject(
+    "private-pool-v2 operator Send missing expected public input rejection",
+    { proofArtifact },
+    "expectedPublicInputs.sendPublicInputHash",
   );
-  console.log("private-pool-v2 operator Send proof artifact no-witness acceptance: PASS");
 
   const acceptedWithExpectedPublicInput = await requestJson(
     "/private-pool-v2/proof-artifacts/verify",

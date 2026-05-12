@@ -333,7 +333,7 @@
     "private-pool-v2:local-indexer-check": "npm run private-pool-v2:contract-check && npm run private-pool-v2:local-runtime-check && npm run build",
     "private-pool-v2:local-relayer-check": "npm run private-pool-v2:contract-check && npm run private-pool-v2:local-runtime-check && npm run build",
     "private-pool-v2:local-prover-check": "npm run private-pool-v2:contract-check && npm run private-pool-v2:local-runtime-check && npm run build",
-    "private-pool-v2:local-verifier-check": "npm run private-pool-v2:contract-check && npm run private-pool-v2:local-runtime-check && npm run build",
+    "private-pool-v2:local-verifier-check": "npm run private-pool-v2:contract-check && npm run private-pool-v2:local-runtime-check && npm run private-pool-v2:proof-backend-boundary-check && npm run private-pool-v2:send-proof-artifact-consistency-check && npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check && npm run private-pool-v2:send-operator-no-witness-check && npm run private-pool-v2:actual-private-spend-operator-no-witness-check && npm run build",
     "private-pool-v2:shield-proof-request-check": "node scripts/check-vanta-private-pool-v2-shield-proof-request.mjs",
     "private-pool-v2:send-proof-request-check": "node scripts/check-vanta-private-pool-v2-send-proof-request.mjs",
     "private-pool-v2:unshield-proof-request-check": "node scripts/check-vanta-private-pool-v2-unshield-proof-request.mjs",

@@ -127,6 +127,33 @@ await expectReject(
 );
 
 await expectReject(
+  "private-pool-v2 Actual Private Spend proof artifact circuit relabel rejection",
+  {
+    ...proofArtifact,
+    circuit: "vanta_private_pool_v2_send_entry",
+  },
+  "vanta_private_pool_v2_actual_private_spend_entry circuit",
+);
+
+await expectReject(
+  "private-pool-v2 Actual Private Spend proof artifact proofSystem relabel rejection",
+  {
+    ...proofArtifact,
+    proofSystem: "mock",
+  },
+  "proofSystem noir-bb",
+);
+
+await expectReject(
+  "private-pool-v2 Actual Private Spend proof artifact backend relabel rejection",
+  {
+    ...proofArtifact,
+    backend: "not-barretenberg-ultrahonk",
+  },
+  "barretenberg-ultrahonk",
+);
+
+await expectReject(
   "private-pool-v2 Actual Private Spend proof artifact public input label relabel rejection",
   {
     ...proofArtifact,
