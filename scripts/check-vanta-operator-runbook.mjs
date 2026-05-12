@@ -90,6 +90,7 @@ const requiredPhrases = [
   "npm run mainnet:real-funds-approval-status",
   "npm run mainnet:real-funds-approval-status-check",
   "npm run audit:package-check",
+  "npm run audit:handoff-check",
   "docs/audit-package.md",
   "docs/mainnet-external-gates.md",
   "ops/mainnet/external-gates.packet.json",

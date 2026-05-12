@@ -118,6 +118,8 @@ for (const phrase of [
   "vanta_private_core_single_note_send/src/main.nr` (delete; consolidate",
   "vanta_private_core_single_note_swap/src/main.nr` (delete; consolidated",
   "Replace both `vanta_private_pool_v2_swap_to_shielded_entry` and `vanta_private_core_single_note_swap` with a single",
+  "the local SBF binary must be rebuilt before it can represent the current ABI",
+  "blocked until SBF rebuild, redeploy, and reinit",
 ]) {
   rejectPhrase(zkReview, phrase, "VANTA_ZK_REVIEW.md");
 }
@@ -129,6 +131,9 @@ if (packageJson.scripts["docs:source-of-truth-check"] !== "node scripts/check-va
 }
 if (!packageJson.scripts["docs:verify"]?.includes("npm run docs:source-of-truth-check")) {
   throw new Error("docs:verify must include docs:source-of-truth-check.");
+}
+if (!packageJson.scripts["zk:feedback-loop-check"]?.includes("npm run docs:source-of-truth-check")) {
+  throw new Error("zk:feedback-loop-check must include docs:source-of-truth-check.");
 }
 
 console.log("Vanta docs source-of-truth check: PASS");

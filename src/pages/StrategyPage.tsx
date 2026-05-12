@@ -313,6 +313,12 @@ export function StrategyPage() {
   const strategyPair = deriveStrategyPair(form);
   const privateOwnerShort = abbreviatePrivateOwner(privateCoreOwner.publicKey);
   const strategyPrivateRailTrustContract = useMemo(() => getStrategyPrivateRailTrustContract(), []);
+  const strategyProductionClaimStatus = strategyPrivateRailTrustContract.claimControls.productionPrivacyClaimsLocked
+    ? "Locked"
+    : "Needs review";
+  const strategyProductionClaimCopy = strategyPrivateRailTrustContract.claimControls.productionPrivacyClaimsLocked
+    ? "Live private strategy claims stay locked until readiness, operator, audit, and mainnet gates pass."
+    : "Live private strategy claims require a fresh readiness review before they can be shown.";
 
   const parsedAmount = useMemo(() => parseStrategyAmount(form.totalSize), [form.totalSize]);
   const parsedSlippage = useMemo(() => parseStrategySlippageBps(form.maxSlippage), [form.maxSlippage]);
@@ -753,8 +759,8 @@ export function StrategyPage() {
               </div>
               <div className="strategy-prerequisite-item">
                 <span>Production claim status</span>
-                <strong>Locked</strong>
-                <small>Live private strategy claims stay locked until readiness, operator, audit, and mainnet gates pass.</small>
+                <strong>{strategyProductionClaimStatus}</strong>
+                <small>{strategyProductionClaimCopy}</small>
               </div>
               <div className="strategy-prerequisite-item">
                 <span>Reviewer command</span>

@@ -132,6 +132,9 @@ export function PayPage() {
   const payRuntime = useMemo(() => createVantaPayRuntime(), []);
   const merchant = useMemo(() => payRuntime.getMerchant(), [payRuntime]);
   const receiptPrivacyContract = useMemo(() => getVantaPayReceiptPrivacyContract(), []);
+  const payPrivacyClaimSummary = receiptPrivacyContract.claimControls.production_privacy_claims_locked
+    ? receiptPrivacyContract.claimSummary
+    : "privacy claims require a fresh readiness review";
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [asset, setAsset] = useState<VantaPayAsset>("USDC");
@@ -763,7 +766,7 @@ export function PayPage() {
                     <div>
                       <dt>Claim status</dt>
                       <dd>
-                        {receiptPrivacyContract.currentTruth}; production privacy claims remain locked.
+                        {receiptPrivacyContract.currentTruth}; {payPrivacyClaimSummary}.
                       </dd>
                     </div>
                   </dl>
@@ -781,7 +784,7 @@ export function PayPage() {
                 </p>
                 <p>
                   <span>Privacy readiness</span>
-                  Production privacy claims are not enabled yet.
+                  {payPrivacyClaimSummary}.
                 </p>
                 <p>
                   <span>Operator status</span>

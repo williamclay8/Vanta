@@ -150,6 +150,7 @@ The audit handoff document is:
 
 ```text
 docs/audit-package.md
+npm run audit:handoff-check
 ```
 
 The production storage contract is:

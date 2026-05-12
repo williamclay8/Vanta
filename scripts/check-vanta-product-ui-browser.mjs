@@ -404,7 +404,7 @@ function assertActionTabsStayMinimal() {
 }
 
 function assertSystemStatusStripLayout() {
-  for (const route of ["/app/shield", "/app/strategy", "/app/pay"]) {
+  for (const route of ["/app/shield", "/app/send", "/app/swap", "/app/unshield", "/app/strategy", "/app/pay"]) {
     for (const width of [1440, 768, 390, 360, 320]) {
       execFileSync(
         "gsd-browser",

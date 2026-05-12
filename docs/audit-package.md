@@ -143,13 +143,17 @@ Known beta limits and blockers:
 
 ## Required verification bundle
 
-Run this bundle before audit handoff:
+Run the single root handoff command before audit handoff:
 
 ```bash
+npm run audit:handoff-check
+```
+
+It expands to the current canonical bundle:
+
+```bash
+npm run audit:package-check
 npm run mainnet:preflight
-npm run mainnet:actual-private-production-evidence-check
-npm run mainnet:external-gates-check
-npm run mainnet:external-gates-production-claim-check
 npm run private-core:verify
 npm run private-pool-v2:verify
 npm run pay:verify

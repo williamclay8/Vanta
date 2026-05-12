@@ -177,6 +177,24 @@ const appLayoutSource = requireMarkers("src/components/AppLayout.tsx", [
   "<SystemStatusStrip showBetaMode={isBetaMode} />",
 ]);
 
+const strategyPageSource = requireMarkers("src/pages/StrategyPage.tsx", [
+  "getStrategyPrivateRailTrustContract",
+  "strategyPrivateRailTrustContract.claimControls.productionPrivacyClaimsLocked",
+  "strategyProductionClaimStatus",
+  "strategyProductionClaimCopy",
+  "strategyPrivateRailTrustContract.currentTruth",
+  "strategyPrivateRailTrustContract.verificationSurfaces",
+]);
+
+const payPageSource = requireMarkers("src/pages/PayPage.tsx", [
+  "getVantaPayReceiptPrivacyContract",
+  "receiptPrivacyContract.claimControls.production_privacy_claims_locked",
+  "receiptPrivacyContract.claimSummary",
+  "payPrivacyClaimSummary",
+  "receiptPrivacyContract.currentTruth",
+  "receiptPrivacyContract.verificationSurfaces",
+]);
+
 requireMarkers("src/styles.css", [
   ".system-status-strip",
   ".system-status-strip__lanes",
@@ -186,6 +204,8 @@ requireMarkers("src/styles.css", [
 checkBannedClaims("src/trust/laneTrustStatus.ts", laneTrustStatusSource);
 checkBannedClaims("src/components/SystemStatusStrip.tsx", systemStatusStripSource);
 checkBannedClaims("src/components/AppLayout.tsx", appLayoutSource);
+checkBannedClaims("src/pages/StrategyPage.tsx", strategyPageSource);
+checkBannedClaims("src/pages/PayPage.tsx", payPageSource);
 
 if (failures.length > 0) {
   console.error("Vanta lane trust contracts check: FAIL");

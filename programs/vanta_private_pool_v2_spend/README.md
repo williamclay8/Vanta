@@ -115,7 +115,14 @@ Behavior today:
 
 - checks only the reserved payload length and that `verifierKeyHash` / `groth16Proof` are not all-zero placeholders
 - returns custom error `14` before reading or mutating any accounts
-- must not be used as proof-enforced spend evidence until the actual Groth16 verifier, verifying-key commitment, SBF rebuild, redeploy/reinit, and live/audit evidence exist
+- must not be used as proof-enforced spend evidence until the actual Groth16 verifier, verifying-key commitment, fresh post-verifier SBF rebuild, redeploy/reinit, and live/audit evidence exist
+
+C01 verifier backend contract:
+
+- the reserved tag `3` target is a Groth16-compatible Solana verifier path with `verifierKeyHash:32` and `groth16Proof:256`
+- current local bb.js/UltraHonk artifacts are not on-chain verifier evidence
+- `local-acir-bytecode-hash-not-production-vk` is local fixture metadata and must not be accepted as a production verifying key
+- a future positive verifier lane must use `production-verifying-key-hash` evidence and replace the fail-closed custom error `14` boundary with reviewed verifier tests
 
 ### `6` - proof-verified unshield release (reserved, fail closed)
 

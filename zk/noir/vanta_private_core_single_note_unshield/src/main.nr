@@ -234,6 +234,8 @@ fn main(
         owner_secret_key_hi,
         owner_secret_key_lo,
     );
+    // The proof-owner key is a single Poseidon/BN254 field carried in the low
+    // limb; the source-layer X25519 owner key remains prechecked off-circuit.
     assert(owner_public_key_hi == 0);
     assert(owner_public_key_lo == computed_owner_public_key);
 

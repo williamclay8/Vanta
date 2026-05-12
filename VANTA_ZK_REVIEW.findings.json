@@ -22,9 +22,9 @@
   ],
   "lumiBaseline": {
     "branch": "codex/vanta-zk-review-hardening",
-    "lastKnownCommit": "3c39fbc",
-    "local": "verified locally through the actual-private-spend witness-input prover slice before the current readiness hygiene work",
-    "committed": "3c39fbc (Add actual-private witness proof path)",
+    "lastKnownCommit": "5d0f30d",
+    "local": "verified locally through the readiness/SBF evidence checkpoint before the current feedback-loop cleanup work",
+    "committed": "5d0f30d (Refresh ZK readiness and SBF evidence)",
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
@@ -693,7 +693,7 @@
         "Commit a verifying-key hash or verifier program boundary for the active circuit.",
         "Verify a real proof against the public input hash in-program or via a dedicated verifier CPI.",
         "Keep onChainVerifier, proofBytes, proofArtifact, verifyingKeyHash, verifierProgramId, and related proof-like transaction fields rejected by live submitter surfaces until a proof-carrying verifier ABI exists.",
-        "Keep the reserved tag 3 proof-carrying ABI returning custom error 14 before account reads or writes until a real verifier, verifying-key commitment, and positive verifier tests replace the scaffold.",
+        "Keep the reserved tag 3 proof-carrying ABI returning custom error 14 before account reads or writes until a real verifier, verifying-key commitment, verifier-backend contract, and positive verifier tests replace the scaffold.",
         "Replace operator-fed fixed-slot root-history scaffolding with proof-backed program-owned shared tree state.",
         "Replace the operator-keypair Unshield release path with program-owned vault custody and a proof-verified TAG_UNSHIELD release instruction.",
         "Rebuild, redeploy, and reinitialize before citing live evidence."
@@ -701,7 +701,8 @@
       "verification": {
         "commands": [
           "npm run private-pool-v2:contract-check",
-          "npm run zk:c01-onchain-proof-boundary-check",
+        "npm run zk:c01-onchain-proof-boundary-check",
+        "npm run zk:c01-verifier-backend-contract-check",
           "npm run private-pool-v2:solana-spend-transaction-builder-check",
           "npm run private-pool-v2:solana-spend-transaction-check",
           "npm run private-pool-v2:solana-relayer-submission-check",
@@ -721,7 +722,7 @@
           "698ca41 (C01 proof-field fail-closed feedback loop)",
           "14022f1 (Reserve proof-carrying spend ABI)"
         ],
-        "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, proof-like transaction-field rejection for the current no-verifier spend ABI, and a reserved tag 3 proof-carrying spend ABI that fails closed before state reads or writes.",
+      "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, proof-like transaction-field rejection for the current no-verifier spend ABI, a verifier-backend contract guard for the future tag 3 lane, and a reserved tag 3 proof-carrying spend ABI that fails closed before state reads or writes.",
         "residualRisk": [
           "No production verifier is wired.",
           "The current spend instruction still carries hashes only, not proof bytes.",
@@ -790,7 +791,7 @@
         "Keep duplicate replay keyed by deterministic nullifier marker PDA.",
         "Keep output evidence keyed by deterministic output-record PDA.",
         "Keep mixed child-account triplets rejected by pool-state bindings.",
-        "Rebuild/redeploy the SBF binary before citing live replay evidence."
+      "Keep the locally rebuilt SBF ABI fresh, and redeploy/reinitialize before citing live replay evidence."
       ],
       "verification": {
         "commands": [
@@ -802,7 +803,7 @@
         ],
         "localResult": "Local native Rust tests/checks, the invariant harness compile check, the fresh local SBF ABI check, the Crucible dry-run, and JS/contract guards cover signer-gated writes, account bindings, marker PDA duplicate rejection, output-record PDA duplicate rejection, transaction layout, and output-index-only metrics.",
         "proves": "The old unauthenticated fixed-slot fill, linear nullifier scan, and fixed output-slot shape are closed in local source and transaction/operator contracts.",
-        "doesNotProve": "The rebuilt SBF bytecode or live deployed program has this ABI; that remains blocked by SBF rebuild/redeploy evidence, cargo-build-sbf availability, and Solana CLI availability."
+      "doesNotProve": "The fresh local SBF bytecode has been redeployed, reinitialized, or live-verified for the current ABI."
       },
       "codexRemediation": {
         "commits": [
@@ -810,8 +811,8 @@
         ],
         "summary": "Moved replay truth to deterministic marker PDAs, treated the legacy nullifier set as a header/namespace account, and moved output evidence to deterministic output-record PDAs.",
         "residualRisk": [
-          "Local ABI is not live until SBF rebuild/redeploy/reinit.",
-          "Crucible bytecode execution is deliberately blocked until the stale SBF binary is rebuilt for the current ABI.",
+        "Local ABI is not live until SBF redeploy/reinit/live verification.",
+        "Fresh local SBF bytecode is ignored build output and not committed deployment evidence.",
           "The broader proof/tree design remains scaffolded."
         ]
       },
@@ -834,7 +835,7 @@
           "npm run private-pool-v2:sbf-abi-check"
         ]
       },
-      "truthBoundary": "Local replay hardening can be cited; live replay protection and bytecode-level Crucible proof cannot be cited until current SBF evidence exists."
+    "truthBoundary": "Local replay hardening, fresh local SBF ABI status, and local Crucible dry-run evidence can be cited; live replay protection cannot be cited until redeploy/reinit/live verification exists."
     },
     {
       "id": "VANTA-ZK-2026-05-09-C03",
