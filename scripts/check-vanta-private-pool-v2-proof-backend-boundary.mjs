@@ -51,6 +51,9 @@ const sendNoWitnessCheck = read("scripts/check-vanta-private-pool-v2-send-operat
 const actualPrivateSpendNoWitnessCheck = read(
   "scripts/check-vanta-private-pool-v2-actual-private-spend-operator-no-witness.mjs",
 );
+const localBbFixtureProverCheck = read(
+  "scripts/check-vanta-private-pool-v2-local-bb-fixture-prover.mjs",
+);
 const remoteProofArtifactBoundary = read(
   "scripts/check-vanta-private-pool-v2-remote-proof-artifact-boundary.mjs",
 );
@@ -77,6 +80,13 @@ includes(types, "VantaPrivatePoolV2ProofArtifactVerificationReceipt", "privatePo
 
 includes(localProver, 'VANTA_PRIVATE_POOL_V2_LOCAL_PROOF_BACKEND =\n  "local-mock"', "local prover");
 includes(localProver, "proof.proofBackend === expected.proofBackend", "local prover verification");
+includes(localProver, "VantaPrivatePoolV2LocalBbFixtureProver", "local bb fixture prover");
+includes(localProver, "createVantaPrivatePoolV2LocalBbFixtureProver", "local bb fixture prover factory");
+includes(localProver, "local-bb-fixture-artifact", "local bb fixture proof backend");
+includes(localProver, "private-spend-public-input-hash", "local bb fixture public input binding");
+includes(localProver, "fixtureProofRequest", "local bb fixture proof request binding");
+includes(localProver, "request transcript must match the fixture proof request", "local bb fixture full request transcript binding");
+includes(localProver, "not a witness-driven runtime prover or production ZK proof service", "local bb fixture truth warning");
 includes(localVerifier, "proofBackend?: VantaPrivatePoolV2ProofBackend", "local verifier receipt type");
 includes(localVerifier, "proofBackend: proof.proofBackend", "local verifier receipt write");
 
@@ -559,11 +569,52 @@ includes(
   "production remote proof artifact witness alias rejection",
   "remote proof-artifact witness rejection guard",
 );
+includes(
+  localBbFixtureProverCheck,
+  "createVantaPrivatePoolV2LocalBbFixtureProver",
+  "local bb fixture prover check factory use",
+);
+includes(
+  localBbFixtureProverCheck,
+  'proof.proofBackend === "local-bb-fixture-artifact"',
+  "local bb fixture prover check proof backend assertion",
+);
+includes(
+  localBbFixtureProverCheck,
+  'receipt.proofSystem === "noir-bb"',
+  "local bb fixture prover check receipt proof-system assertion",
+);
+includes(
+  localBbFixtureProverCheck,
+  "artifact public input must match the request public input",
+  "local bb fixture prover check mismatch rejection",
+);
+includes(
+  localBbFixtureProverCheck,
+  "request-transcript drift rejection",
+  "local bb fixture prover check request metadata drift rejection",
+);
+includes(
+  localBbFixtureProverCheck,
+  "createVantaPrivatePoolV2LocalProver",
+  "local bb fixture prover check default mock boundary",
+);
 
 assert(
   scripts["private-pool-v2:proof-backend-boundary-check"] ===
     "node scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs",
   "package.json must expose private-pool-v2:proof-backend-boundary-check",
+);
+assert(
+  scripts["private-pool-v2:local-bb-fixture-prover-check"] ===
+    "node scripts/check-vanta-private-pool-v2-local-bb-fixture-prover.mjs",
+  "package.json must expose private-pool-v2:local-bb-fixture-prover-check",
+);
+assert(
+  scripts["private-pool-v2:local-prover-check"]?.includes(
+    "npm run private-pool-v2:local-bb-fixture-prover-check",
+  ),
+  "package.json private-pool-v2:local-prover-check must include private-pool-v2:local-bb-fixture-prover-check",
 );
 assert(
   scripts["private-pool-v2:remote-proof-artifact-boundary-check"] ===
@@ -617,6 +668,7 @@ assert(
 );
 for (const command of [
   "private-pool-v2:proof-backend-boundary-check",
+  "private-pool-v2:local-bb-fixture-prover-check",
   "private-pool-v2:shield-proof-artifact-consistency-check",
   "private-pool-v2:shield-operator-no-witness-check",
   "private-pool-v2:claim-proof-artifact-consistency-check",
@@ -645,6 +697,10 @@ assert(
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:remote-proof-artifact-boundary-check"),
   "private-pool-v2:verify must include the remote proof-artifact boundary guard",
+);
+assert(
+  scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:local-bb-fixture-prover-check"),
+  "private-pool-v2:verify must include the local bb fixture prover guard",
 );
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:shield-proof-artifact-consistency-check"),

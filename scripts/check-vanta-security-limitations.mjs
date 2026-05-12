@@ -6,7 +6,7 @@ const source = readFileSync(resolve(repoRoot, "SECURITY_LIMITATIONS.md"), "utf8"
 
 const requiredPhrases = [
   "# Vanta Security Limitations",
-  "Last validated against repo-local code: 2026-05-10",
+  "Last validated against repo-local code: 2026-05-12",
   "Not mainnet-production ready",
   "Current private-settlement truth",
   "alpha-public-warning",
@@ -18,6 +18,11 @@ const requiredPhrases = [
   "No audit claim",
   "No custody claim",
   "No anonymity-set claim",
+  "local-bb-fixture-artifact",
+  "private-spend-public-input-hash",
+  "not a witness-driven runtime prover",
+  "transition-field drift",
+  "request-metadata drift",
   "Private Pool v2 anonymity-set readiness is now a checked fail-closed operator/readiness surface",
   "Shield privacy readiness is now a checked fail-closed surface at `npm run shield:privacy-readiness-check`",
   "production key-custody evidence",

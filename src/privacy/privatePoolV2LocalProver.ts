@@ -1,7 +1,8 @@
 import { sha256 } from "@noble/hashes/sha2.js";
-import { bytesToHex } from "@noble/hashes/utils.js";
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
 import {
   VANTA_PRIVATE_POOL_V2_CONTRACT_VERSION,
+  type VantaPrivatePoolV2ActualPrivateSpendProofArtifact,
   type VantaPrivatePoolV2ProofBackend,
   type VantaPrivatePoolV2ProofRequest,
   type VantaPrivatePoolV2ProofResult,
@@ -13,11 +14,23 @@ export const VANTA_PRIVATE_POOL_V2_LOCAL_PROVER_SCHEME =
   "sha256-private-pool-v2-local-prover-0.1" as const;
 export const VANTA_PRIVATE_POOL_V2_LOCAL_PROOF_BACKEND =
   "local-mock" satisfies VantaPrivatePoolV2ProofBackend;
+export const VANTA_PRIVATE_POOL_V2_LOCAL_BB_FIXTURE_PROOF_BACKEND =
+  "local-bb-fixture-artifact" satisfies VantaPrivatePoolV2ProofBackend;
 
 export type VantaPrivatePoolV2LocalProverArgs = {
   enabled?: boolean;
   provingKeyId?: string;
 };
+
+export type VantaPrivatePoolV2LocalBbFixtureProverArgs = {
+  enabled?: boolean;
+  fixtureProofRequest: VantaPrivatePoolV2ProofRequest;
+  proofArtifact: VantaPrivatePoolV2ActualPrivateSpendProofArtifact;
+  target: "actual-private-spend";
+};
+
+const BN254_SCALAR_FIELD =
+  21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 
 function hashParts(...parts: readonly string[]) {
   return `0x${bytesToHex(
@@ -35,6 +48,220 @@ function serializeProofRequest(request: VantaPrivatePoolV2ProofRequest) {
     intent: request.intent,
     publicInputs: [...request.publicInputs],
   });
+}
+
+function readCircuitPublicInput(request: VantaPrivatePoolV2ProofRequest, label: string) {
+  const prefix = `${label}:`;
+  return request.circuitPublicInputs
+    ?.find((input) => input.startsWith(prefix))
+    ?.slice(prefix.length);
+}
+
+function requiredPublicInputValue(
+  request: VantaPrivatePoolV2ProofRequest,
+  label: string,
+) {
+  const prefix = `${label}:`;
+  const matches = request.publicInputs.filter((input) => input.startsWith(prefix));
+  if (matches.length !== 1) {
+    throw new Error(`Actual-private-spend fixture prover requires one ${label} public input.`);
+  }
+
+  return matches[0]!.slice(prefix.length);
+}
+
+function normalizeFieldString(value: string, label: string) {
+  const trimmed = value.trim();
+  const parsed = /^0x[0-9a-f]+$/u.test(trimmed)
+    ? BigInt(trimmed)
+    : /^(0|[1-9][0-9]*)$/u.test(trimmed)
+      ? BigInt(trimmed)
+      : null;
+
+  if (parsed === null) {
+    throw new Error(`Actual-private-spend fixture prover requires ${label} to be a BN254 field string.`);
+  }
+
+  if (parsed >= BN254_SCALAR_FIELD) {
+    throw new Error(`Actual-private-spend fixture prover requires ${label} to fit in BN254.`);
+  }
+
+  return parsed.toString(10);
+}
+
+function proofArtifactPublicInputCommitment(publicInputs: readonly string[]) {
+  return `sha256:${bytesToHex(
+    sha256(new TextEncoder().encode(JSON.stringify(publicInputs))),
+  )}`;
+}
+
+function sameArray(left: readonly string[] | undefined, right: readonly string[] | undefined) {
+  return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
+}
+
+function sameShadowCommitments(
+  left: VantaPrivatePoolV2ProofRequest["shadowCommitments"],
+  right: VantaPrivatePoolV2ProofRequest["shadowCommitments"],
+) {
+  return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
+}
+
+function validateActualPrivateSpendProofArtifact(
+  artifact: VantaPrivatePoolV2ActualPrivateSpendProofArtifact,
+) {
+  if (artifact.circuit !== "vanta_private_pool_v2_actual_private_spend_entry") {
+    throw new Error("Actual-private-spend fixture prover requires an actual-private-spend artifact.");
+  }
+
+  if (artifact.backend !== "barretenberg-ultrahonk") {
+    throw new Error("Actual-private-spend fixture prover requires barretenberg-ultrahonk evidence.");
+  }
+
+  if (artifact.proofBackend !== VANTA_PRIVATE_POOL_V2_LOCAL_BB_FIXTURE_PROOF_BACKEND) {
+    throw new Error("Actual-private-spend fixture prover requires local-bb-fixture-artifact evidence.");
+  }
+
+  if (artifact.proofSystem !== "noir-bb") {
+    throw new Error("Actual-private-spend fixture prover requires noir-bb proof evidence.");
+  }
+
+  if (
+    JSON.stringify(artifact.publicInputLabels) !==
+    JSON.stringify(["private-spend-public-input-hash"])
+  ) {
+    throw new Error(
+      "Actual-private-spend fixture prover requires private-spend-public-input-hash artifact evidence.",
+    );
+  }
+
+  if (artifact.publicInputs.length !== 1 || !artifact.publicInputs[0]?.trim()) {
+    throw new Error("Actual-private-spend fixture prover requires one public input.");
+  }
+
+  normalizeFieldString(
+    artifact.publicInputs[0],
+    "artifact publicInputs[0]",
+  );
+
+  if (artifact.publicInputCommitment !== proofArtifactPublicInputCommitment(artifact.publicInputs)) {
+    throw new Error("Actual-private-spend fixture prover publicInputCommitment mismatch.");
+  }
+
+  if (!artifact.proofHex || artifact.proofHex.length % 2 !== 0 || !/^[0-9a-f]+$/u.test(artifact.proofHex)) {
+    throw new Error("Actual-private-spend fixture prover requires lowercase even-length proofHex.");
+  }
+
+  if (artifact.verifyingKeyHashKind !== "local-acir-bytecode-hash-not-production-vk") {
+    throw new Error("Actual-private-spend fixture prover must remain local verifying-key evidence.");
+  }
+
+  if (
+    !/^sha256:[0-9a-f]{64}$/u.test(artifact.acirBytecodeHash) ||
+    !/^sha256:[0-9a-f]{64}$/u.test(artifact.verifyingKeyHash) ||
+    artifact.verifyingKeyHash !== artifact.acirBytecodeHash ||
+    !artifact.verifyingKeyId.startsWith(
+      "local-acir-bytecode:vanta_private_pool_v2_actual_private_spend_entry:sha256:",
+    ) ||
+    artifact.verifyingKeyId !==
+      `local-acir-bytecode:vanta_private_pool_v2_actual_private_spend_entry:${artifact.acirBytecodeHash}`
+  ) {
+    throw new Error("Actual-private-spend fixture prover requires local ACIR bytecode key metadata.");
+  }
+}
+
+function assertActualPrivateSpendRequestShape(request: VantaPrivatePoolV2ProofRequest) {
+  if (request.intent !== "private-send") {
+    throw new Error("Actual-private-spend fixture prover only supports private-send proof requests.");
+  }
+
+  if (
+    request.publicInputs.filter((input) =>
+      input.startsWith("vanta-private-pool-v2-actual-private-spend-proof-request-0.1:version"),
+    ).length !== 1
+  ) {
+    throw new Error("Actual-private-spend fixture prover requires an actual-private-spend proof request version.");
+  }
+
+  if (
+    !request.circuitPublicInputs ||
+    request.circuitPublicInputs.length !== 1 ||
+    !request.circuitPublicInputs[0]?.startsWith("private-spend-public-input-hash:")
+  ) {
+    throw new Error(
+      "Actual-private-spend fixture prover requires request.circuitPublicInputs.private-spend-public-input-hash.",
+    );
+  }
+
+  for (const label of [
+    "pool-id",
+    "asset-cohort",
+    "accepted-root",
+    "nullifier",
+    "output-commitment-0",
+    "output-commitment-1",
+    "context-hash",
+    "private-spend-public-input-hash",
+  ]) {
+    normalizeFieldString(requiredPublicInputValue(request, label), `${label} public input`);
+  }
+
+  const outputs = [
+    requiredPublicInputValue(request, "output-commitment-0"),
+    requiredPublicInputValue(request, "output-commitment-1"),
+  ].map((value) => normalizeFieldString(value, "output commitment public input"));
+  if (new Set(outputs).size !== outputs.length) {
+    throw new Error("Actual-private-spend fixture prover requires unique output commitments.");
+  }
+}
+
+function assertActualPrivateSpendRequestMatchesArtifact(
+  request: VantaPrivatePoolV2ProofRequest,
+  fixtureProofRequest: VantaPrivatePoolV2ProofRequest,
+  artifact: VantaPrivatePoolV2ActualPrivateSpendProofArtifact,
+) {
+  validateActualPrivateSpendProofArtifact(artifact);
+  assertActualPrivateSpendRequestShape(request);
+  assertActualPrivateSpendRequestShape(fixtureProofRequest);
+
+  const expectedPublicInput = readCircuitPublicInput(
+    request,
+    "private-spend-public-input-hash",
+  );
+  if (!expectedPublicInput) {
+    throw new Error(
+      "Actual-private-spend fixture prover requires request.circuitPublicInputs.private-spend-public-input-hash.",
+    );
+  }
+
+  if (
+    normalizeFieldString(artifact.publicInputs[0], "artifact public input") !==
+    normalizeFieldString(expectedPublicInput, "request public input")
+  ) {
+    throw new Error(
+      "Actual-private-spend fixture prover artifact public input must match the request public input.",
+    );
+  }
+
+  if (
+    !sameArray(request.publicInputs, fixtureProofRequest.publicInputs) ||
+    !sameArray(request.circuitPublicInputs, fixtureProofRequest.circuitPublicInputs)
+  ) {
+    throw new Error(
+      "Actual-private-spend fixture prover request public inputs must match the fixture proof request.",
+    );
+  }
+
+  if (
+    request.amountBaseUnits !== fixtureProofRequest.amountBaseUnits ||
+    request.assetId !== fixtureProofRequest.assetId ||
+    request.intent !== fixtureProofRequest.intent ||
+    !sameArray(request.operatorVisibleTerms, fixtureProofRequest.operatorVisibleTerms) ||
+    !sameShadowCommitments(request.shadowCommitments, fixtureProofRequest.shadowCommitments)
+  ) {
+    throw new Error(
+      "Actual-private-spend fixture prover request transcript must match the fixture proof request.",
+    );
+  }
 }
 
 export class VantaPrivatePoolV2LocalProver implements VantaPrivatePoolV2Prover {
@@ -122,4 +349,91 @@ export class VantaPrivatePoolV2LocalProver implements VantaPrivatePoolV2Prover {
 
 export function createVantaPrivatePoolV2LocalProver(args?: VantaPrivatePoolV2LocalProverArgs) {
   return new VantaPrivatePoolV2LocalProver(args);
+}
+
+export class VantaPrivatePoolV2LocalBbFixtureProver implements VantaPrivatePoolV2Prover {
+  readonly scheme = "vanta-private-pool-v2-local-bb-fixture-prover-0.1" as const;
+
+  #enabled: boolean;
+  #fixtureProofRequest: VantaPrivatePoolV2ProofRequest;
+  #proofArtifact: VantaPrivatePoolV2ActualPrivateSpendProofArtifact;
+  #target: "actual-private-spend";
+
+  constructor({
+    enabled = true,
+    fixtureProofRequest,
+    proofArtifact,
+    target,
+  }: VantaPrivatePoolV2LocalBbFixtureProverArgs) {
+    this.#enabled = enabled;
+    this.#fixtureProofRequest = fixtureProofRequest;
+    this.#proofArtifact = proofArtifact;
+    this.#target = target;
+  }
+
+  async prove(request: VantaPrivatePoolV2ProofRequest): Promise<VantaPrivatePoolV2ProofResult> {
+    const readiness = this.readiness();
+    if (!readiness.ready) {
+      throw new Error(readiness.blockers.join(" "));
+    }
+
+    if (this.#target !== "actual-private-spend") {
+      throw new Error("Local bb fixture prover only supports actual-private-spend.");
+    }
+
+    assertActualPrivateSpendRequestMatchesArtifact(
+      request,
+      this.#fixtureProofRequest,
+      this.#proofArtifact,
+    );
+
+    return {
+      proofBackend: VANTA_PRIVATE_POOL_V2_LOCAL_BB_FIXTURE_PROOF_BACKEND,
+      proofBytes: hexToBytes(this.#proofArtifact.proofHex),
+      proofSystem: "noir-bb",
+      publicInputCommitment: this.#proofArtifact.publicInputCommitment,
+      verifyingKeyId: this.#proofArtifact.verifyingKeyId,
+    };
+  }
+
+  readiness(): VantaPrivatePoolV2Readiness {
+    if (!this.#enabled) {
+      return {
+        blockers: ["Local Private Pool v2 bb fixture prover is disabled."],
+        ready: false,
+        warnings: [],
+      };
+    }
+
+    return {
+      blockers: [],
+      ready: true,
+      warnings: [
+        "Local Private Pool v2 bb fixture prover replays a verified local fixture artifact; it is not a witness-driven runtime prover or production ZK proof service.",
+      ],
+    };
+  }
+
+  async verify({
+    proof,
+    request,
+  }: {
+    proof: VantaPrivatePoolV2ProofResult;
+    request: VantaPrivatePoolV2ProofRequest;
+  }) {
+    const expected = await this.prove(request);
+    return (
+      proof.proofBackend === expected.proofBackend &&
+      proof.proofSystem === expected.proofSystem &&
+      proof.publicInputCommitment === expected.publicInputCommitment &&
+      proof.verifyingKeyId === expected.verifyingKeyId &&
+      bytesToHex(proof.proofBytes) === bytesToHex(expected.proofBytes)
+    );
+  }
+}
+
+export function createVantaPrivatePoolV2LocalBbFixtureProver(
+  args: VantaPrivatePoolV2LocalBbFixtureProverArgs,
+) {
+  return new VantaPrivatePoolV2LocalBbFixtureProver(args);
 }

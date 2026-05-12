@@ -425,6 +425,7 @@ npm run pay:verify
 npm run security:limitations-check
 npm run private-pool-v2:contract-check
 npm run private-pool-v2:local-runtime-check
+npm run private-pool-v2:local-bb-fixture-prover-check
 npm run private-pool-v2:shield-proof-request-check
 npm run private-pool-v2:claim-proof-request-check
 npm run private-pool-v2:shield-circuit-check
@@ -450,6 +451,7 @@ These commands cover the current Vanta-owned Private Pool v2 benchmark lane:
 - a checked sanitized route-health evidence file for preserving public/authenticated route status without storing credentials
 - local append-only commitment indexing and Merkle proof lookup
 - local prover public-input commitment verification plus tamper rejection
+- an opt-in actual-private-spend local bb fixture-backed proof-result adapter that returns `noir-bb` / `local-bb-fixture-artifact` only for an exact verified fixture proof-request transcript and rejects `private-spend-public-input-hash`, transition-field drift, or request-metadata drift; this is local no-real-funds fixture replay, not a witness-driven runtime prover, remote proof service, on-chain verifier, or production proof acceptance
 - local relayer claim submission plus replay rejection
 - the first Noir-backed shield-entry circuit with valid, invalid-binding, and invalid-root fixtures
 - the first Noir-backed claim/spend circuit with valid, invalid-binding, and invalid-nullifier fixtures

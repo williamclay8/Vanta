@@ -63,7 +63,10 @@ const requiredFiles = [
     path: "src/privacy/privatePoolV2LocalProver.ts",
     exports: [
       "VANTA_PRIVATE_POOL_V2_LOCAL_PROVER_SCHEME",
+      "VANTA_PRIVATE_POOL_V2_LOCAL_BB_FIXTURE_PROOF_BACKEND",
+      "createVantaPrivatePoolV2LocalBbFixtureProver",
       "createVantaPrivatePoolV2LocalProver",
+      "VantaPrivatePoolV2LocalBbFixtureProver",
       "VantaPrivatePoolV2LocalProver",
     ],
   },
@@ -526,6 +529,21 @@ const requiredTextFiles = [
     ],
   },
   {
+    path: "scripts/check-vanta-private-pool-v2-local-bb-fixture-prover.mjs",
+    markers: [
+      "createVantaPrivatePoolV2LocalBbFixtureProver",
+      "Default local prover must stay mock.",
+      "Expected local bb fixture proof backend.",
+      "Expected verifier receipt to preserve noir-bb proof system.",
+      "request public inputs must match the fixture proof request",
+      "request transcript must match the fixture proof request",
+      "transition-field drift rejection",
+      "request-transcript drift rejection",
+      "publicInputCommitment mismatch",
+      "local ACIR bytecode key metadata",
+    ],
+  },
+  {
     path: "scripts/check-vanta-private-pool-v2-claim-proof-artifact-consistency.mjs",
     markers: [
       "tampered proof rejection",
@@ -915,6 +933,7 @@ const requiredPackageScripts = [
   "private-pool-v2:local-relayer-check",
   "private-pool-v2:local-prover-check",
   "private-pool-v2:local-verifier-check",
+  "private-pool-v2:local-bb-fixture-prover-check",
   "private-pool-v2:mock-proof-boundary-check",
   "private-pool-v2:shield-proof-request-check",
   "private-pool-v2:send-proof-request-check",
@@ -972,6 +991,7 @@ const requiredVerifyScripts = [
   "npm run private-pool-v2:shield-proof-artifact-consistency-check",
   "npm run private-pool-v2:shield-operator-no-witness-check",
   "npm run private-pool-v2:remote-proof-artifact-boundary-check",
+  "npm run private-pool-v2:local-bb-fixture-prover-check",
   "npm run private-pool-v2:claim-proof-artifact-consistency-check",
   "npm run private-pool-v2:claim-operator-no-witness-check",
   "npm run private-pool-v2:swap-to-shielded-proof-artifact-consistency-check",
