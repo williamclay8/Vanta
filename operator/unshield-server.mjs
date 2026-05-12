@@ -169,8 +169,6 @@ const MAINNET_RECOGNIZED_MINTS = {
   USX: "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG",
   WIF: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
 };
-const MAINNET_SHIELD_VAULT_OWNER_FALLBACK =
-  "7yUfwUmZMYLg95xJGR762z4WpqfR6hBRqt9mcgNArtdi";
 const mintAddress =
   clusterEnv("TOKEN_MINT") ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.USDC : undefined);
 const usdcMintAddress =
@@ -202,13 +200,12 @@ const kmnoMintAddress =
 const vaultOwner =
   clusterEnv("VAULT_OWNER") ??
   nonEmptyEnv("VANTA_VAULT_OWNER") ??
-  nonEmptyEnv("VITE_VANTA_VAULT_OWNER") ??
-  (isMainnetCluster ? MAINNET_SHIELD_VAULT_OWNER_FALLBACK : undefined);
+  nonEmptyEnv("VITE_VANTA_VAULT_OWNER");
 const vaultSignerSecretKeyEnvName = clusterEnvName("VAULT_SIGNER_SECRET_KEY");
 
-if (!mintAddress || !vaultOwner) {
+if (!mintAddress) {
   throw new Error(
-    `Unshield operator requires ${isMainnetCluster ? "VANTA_MAINNET" : "VANTA_MAINNET"}_TOKEN_MINT and ${isMainnetCluster ? "VANTA_MAINNET" : "VANTA_MAINNET"}_VAULT_OWNER.`,
+    `Unshield operator requires ${isMainnetCluster ? "VANTA_MAINNET" : "VANTA_MAINNET"}_TOKEN_MINT.`,
   );
 }
 

@@ -48,8 +48,9 @@ const routeablePublicInputAssets = [
 ];
 
 assert.ok(
-  shieldConfig.includes("MAINNET_SHIELD_VAULT_OWNER_FALLBACK"),
-  "Mainnet shield deposits must have a canonical public vault-owner fallback for static deploys.",
+  !shieldConfig.includes("MAINNET_SHIELD_VAULT_OWNER_FALLBACK") &&
+    !shieldConfig.includes("7yUfwUmZMYLg95xJGR762z4WpqfR6hBRqt9mcgNArtdi"),
+  "Mainnet shield deposits must not silently fall back to a hard-coded regular-wallet vault owner.",
 );
 assert.ok(
   (
@@ -64,12 +65,18 @@ assert.ok(
 );
 assert.ok(
   shieldConfig.includes("VITE_VANTA_MAINNET_VAULT_OWNER") &&
-    shieldConfig.includes("MAINNET_SHIELD_VAULT_OWNER_FALLBACK"),
-  "Mainnet vault-owner env must still be supported before falling back to the canonical public vault owner.",
+    shieldConfig.includes("operator-configured-wallet") &&
+    shieldConfig.includes("productionCustodyReady: false"),
+  "Mainnet vault-owner env must be explicit and marked as beta operator-wallet custody.",
 );
 assert.ok(
   shieldConfig.includes("executable: Boolean(args.configuredMintAddress && configuredVaultOwner && !adapterRequired)"),
   "Shield token executable status must require both mint and concrete vault owner.",
+);
+assert.ok(
+  shieldConfig.includes("program-vault-init-release-not-deployed") &&
+    shieldConfig.includes("mainnet-vault-owner-not-configured"),
+  "Shield execution blockers must distinguish missing vault owners from undeployed program-vault paths.",
 );
 
 for (const symbol of shieldFamilyAssets) {

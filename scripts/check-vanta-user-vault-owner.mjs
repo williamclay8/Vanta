@@ -21,9 +21,29 @@ assert.match(
   "User vault derivation must be gated by an explicit program id env var.",
 );
 assert.match(
+  helperSource,
+  /productionCustodyReady: false/,
+  "User vault owner resolution must keep production custody false until a program-owned vault path is deployed.",
+);
+assert.match(
+  helperSource,
+  /program-owned-vault-pda-not-deployed/,
+  "Configured wallet vault owners must expose the program-owned vault blocker.",
+);
+assert.match(
   shieldConfigSource,
   /configuredVaultDerivationProgramId/,
   "Shield config must recognize the explicit user vault derivation program id.",
+);
+assert.doesNotMatch(
+  shieldConfigSource,
+  /MAINNET_SHIELD_VAULT_OWNER_FALLBACK|7yUfwUmZMYLg95xJGR762z4WpqfR6hBRqt9mcgNArtdi/,
+  "Shield config must not silently fall back to a hard-coded regular-wallet vault owner.",
+);
+assert.match(
+  shieldConfigSource,
+  /program-vault-init-release-not-deployed/,
+  "Shield config must block derived PDA vaults until the vault init/release program exists.",
 );
 assert.match(
   viteEnvSource,

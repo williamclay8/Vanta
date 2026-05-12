@@ -215,18 +215,18 @@ try {
     },
   );
 
-  const fallbackVaultOwnerPort = await reservePort();
-  const fallbackVaultOwnerEnv = createOperatorEnv({
-    port: fallbackVaultOwnerPort,
+  const missingVaultOwnerPort = await reservePort();
+  const missingVaultOwnerEnv = createOperatorEnv({
+    port: missingVaultOwnerPort,
     signer: null,
     vaultOwner: "",
   });
-  fallbackVaultOwnerEnv.VANTA_MAINNET_VAULT_OWNER = "";
-  fallbackVaultOwnerEnv.VITE_VANTA_MAINNET_VAULT_OWNER = "";
-  fallbackVaultOwnerEnv.VANTA_VAULT_OWNER = "";
-  fallbackVaultOwnerEnv.VITE_VANTA_VAULT_OWNER = "";
+  missingVaultOwnerEnv.VANTA_MAINNET_VAULT_OWNER = "";
+  missingVaultOwnerEnv.VITE_VANTA_MAINNET_VAULT_OWNER = "";
+  missingVaultOwnerEnv.VANTA_VAULT_OWNER = "";
+  missingVaultOwnerEnv.VITE_VANTA_VAULT_OWNER = "";
 
-  await withOperator(fallbackVaultOwnerEnv, async (baseUrl) => {
+  await withOperator(missingVaultOwnerEnv, async (baseUrl) => {
     const health = await requestJson(baseUrl, "/health/sol-unshield");
     assert.equal(health.status, 503, health.text);
     assert.equal(
@@ -236,10 +236,10 @@ try {
     );
     assert.equal(
       health.body?.checks?.some(
-        (check) => check.check === "vault-owner" && check.ready === true,
+        (check) => check.check === "vault-owner" && check.ready === false,
       ),
       true,
-      "Expected SOL health to use the public mainnet vault-owner fallback.",
+      "Expected SOL health to fail closed without an explicit vault owner.",
     );
     assert.equal(
       health.body?.checks?.some(
@@ -248,7 +248,7 @@ try {
       true,
       "Expected SOL health to remain blocked without a signer secret.",
     );
-    printStatus("SOL unshield public vault-owner fallback health: PASS");
+    printStatus("SOL unshield missing vault-owner health: PASS");
   });
 } finally {
   rmSync(tempRoot, { force: true, recursive: true });

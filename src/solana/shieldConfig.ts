@@ -25,9 +25,6 @@ const MAINNET_RECOGNIZED_MINTS = {
   WIF: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
 } as const;
 
-export const MAINNET_SHIELD_VAULT_OWNER_FALLBACK =
-  "7yUfwUmZMYLg95xJGR762z4WpqfR6hBRqt9mcgNArtdi";
-
 function getOptionalEnvValue(value: string | undefined) {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
@@ -88,7 +85,7 @@ const configuredKmnoMintAddress = getOptionalEnvValue(
 ) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.KMNO : null);
 const configuredVaultOwner = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_MAINNET_VAULT_OWNER,
-) ?? (isMainnetCluster ? MAINNET_SHIELD_VAULT_OWNER_FALLBACK : null);
+);
 const configuredVaultDerivationProgramId = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_VAULT_DERIVATION_PROGRAM_ID,
 );
@@ -187,6 +184,12 @@ export type LiveShieldTokenAssetConfig = {
   unshieldConfigured: boolean;
   unshieldOperatorUrl: string;
   vaultOwner: string | null;
+  custodyModel:
+    | "operator-configured-wallet"
+    | "program-derived-vault-pda-blocked"
+    | "token-2022-adapter-required"
+    | "unconfigured";
+  productionCustodyReady: false;
 };
 
 const hasVaultOwnerPath = Boolean(configuredVaultOwner || configuredVaultDerivationProgramId);
@@ -212,20 +215,36 @@ function createLiveShieldTokenAssetConfig(args: {
   const unshieldOperatorUrl = args.unshieldOperatorUrl ?? effectiveUnshieldOperatorUrl;
   const directShieldPolicy = args.directShieldPolicy ?? "plain-spl-token";
   const adapterRequired = directShieldPolicy === "token-2022-adapter-required";
+  const custodyModel = adapterRequired
+    ? "token-2022-adapter-required"
+    : configuredVaultOwner
+      ? "operator-configured-wallet"
+      : configuredVaultDerivationProgramId
+        ? "program-derived-vault-pda-blocked"
+        : "unconfigured";
+  const executionBlocker = adapterRequired
+    ? "token-2022-adapter-required"
+    : !args.configuredMintAddress
+      ? "mainnet-lane-not-configured"
+      : configuredVaultOwner
+        ? null
+        : configuredVaultDerivationProgramId
+          ? "program-vault-init-release-not-deployed"
+          : "mainnet-vault-owner-not-configured";
 
   return {
     assetKey: args.assetKey,
     cluster: vantaSolanaClusterLabel,
     configured: Boolean(args.configuredMintAddress && hasVaultOwnerPath && !adapterRequired),
+    custodyModel,
     directShieldPolicy,
     executable: Boolean(args.configuredMintAddress && configuredVaultOwner && !adapterRequired),
-    executionBlocker: adapterRequired
-      ? "token-2022-adapter-required"
-      : args.configuredMintAddress && configuredVaultOwner ? null : "mainnet-lane-not-configured",
+    executionBlocker,
     decimals: args.decimals,
     mintAddress: args.configuredMintAddress,
     name: getOptionalEnvValue(args.nameEnvValue) ?? args.defaultName,
     priority: args.priority,
+    productionCustodyReady: false,
     symbol: args.assetKey,
     unshieldConfigured: Boolean(
       args.configuredMintAddress && configuredVaultOwner && unshieldOperatorUrl && !adapterRequired,

@@ -2,21 +2,28 @@ import { PublicKey } from "@solana/web3.js";
 
 export type UserVaultOwnerResolution =
   | {
+      custodyModel: "operator-configured-wallet";
       kind: "configured";
       liveDepositEnabled: true;
+      productionCustodyReady: false;
+      productionCustodyBlocker: "program-owned-vault-pda-not-deployed";
       vaultOwner: string;
     }
   | {
       blocker: string;
+      custodyModel: "program-derived-vault-pda-blocked";
       kind: "derived-pda";
       liveDepositEnabled: false;
+      productionCustodyReady: false;
       programId: string;
       vaultOwner: string;
     }
   | {
       blocker: string;
+      custodyModel: "unconfigured";
       kind: "unavailable";
       liveDepositEnabled: false;
+      productionCustodyReady: false;
       vaultOwner: null;
     };
 
@@ -54,8 +61,11 @@ export function resolveUserVaultOwner(args: {
 }): UserVaultOwnerResolution {
   if (args.configuredVaultOwner) {
     return {
+      custodyModel: "operator-configured-wallet",
       kind: "configured",
       liveDepositEnabled: true,
+      productionCustodyBlocker: "program-owned-vault-pda-not-deployed",
+      productionCustodyReady: false,
       vaultOwner: args.configuredVaultOwner,
     };
   }
@@ -63,8 +73,10 @@ export function resolveUserVaultOwner(args: {
   if (!configuredUserVaultDerivationProgramId) {
     return {
       blocker: "No mainnet vault owner is configured.",
+      custodyModel: "unconfigured",
       kind: "unavailable",
       liveDepositEnabled: false,
+      productionCustodyReady: false,
       vaultOwner: null,
     };
   }
@@ -72,8 +84,10 @@ export function resolveUserVaultOwner(args: {
   if (!args.walletAddress) {
     return {
       blocker: "Connect a wallet to derive a user vault.",
+      custodyModel: "unconfigured",
       kind: "unavailable",
       liveDepositEnabled: false,
+      productionCustodyReady: false,
       vaultOwner: null,
     };
   }
@@ -81,8 +95,10 @@ export function resolveUserVaultOwner(args: {
   return {
     blocker:
       "User vault derivation is configured, but live deposits need a deployed vault init/release program before funds can be sent safely.",
+    custodyModel: "program-derived-vault-pda-blocked",
     kind: "derived-pda",
     liveDepositEnabled: false,
+    productionCustodyReady: false,
     programId: configuredUserVaultDerivationProgramId,
     vaultOwner: deriveUserVaultOwner({
       programId: configuredUserVaultDerivationProgramId,

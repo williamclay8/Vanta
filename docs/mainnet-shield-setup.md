@@ -4,7 +4,9 @@ This repo now supports one real Shield path for one controlled mainnet test toke
 
 The supported asset is surfaced in the app as `USDC` and is backed by:
 - one configured SPL mint
-- one configured Vanta vault owner address
+- one explicitly configured Vanta vault owner address
+
+There is no browser or operator fallback vault owner. Leaving `VITE_VANTA_MAINNET_VAULT_OWNER` / `VANTA_MAINNET_VAULT_OWNER` unset keeps live Shield and Unshield execution fail-closed until an approved bounded custody window or a program-owned vault path exists.
 
 ## Required environment variables
 
@@ -21,6 +23,8 @@ VANTA_MAINNET_TOKEN_MINT=...
 VANTA_MAINNET_VAULT_OWNER=...
 VANTA_MAINNET_VAULT_SIGNER_SECRET_KEY=[...]
 ```
+
+`VITE_VANTA_MAINNET_VAULT_OWNER` is browser-visible and represents beta operator-wallet custody, not production key custody. Do not set it on a public deployment unless the real-funds approval window and custody review for that specific vault owner are active. Production-private Shield still requires a program-owned vault PDA, on-chain verifier enforcement, audit acceptance, and live evidence.
 
 Optional:
 

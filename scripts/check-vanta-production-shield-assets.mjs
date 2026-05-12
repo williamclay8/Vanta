@@ -1,22 +1,21 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
-  getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
 import { Connection, PublicKey } from "@solana/web3.js";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const distRoot = resolve(repoRoot, "dist");
+const shieldConfigSource = readFileSync(resolve(repoRoot, "src/solana/shieldConfig.ts"), "utf8");
 const mainnetRpcUrls = [
   process.env.SOLANA_MAINNET_RPC_URL,
   process.env.VITE_SOLANA_RPC_URL,
   "https://api.mainnet-beta.solana.com",
   "https://solana-rpc.publicnode.com",
 ].filter(Boolean);
-const mainnetVaultOwner = "7yUfwUmZMYLg95xJGR762z4WpqfR6hBRqt9mcgNArtdi";
+const legacyMainnetVaultOwnerFallback = "7yUfwUmZMYLg95xJGR762z4WpqfR6hBRqt9mcgNArtdi";
 
 const directShieldAssets = [
   {
@@ -83,7 +82,8 @@ const directShieldAssets = [
 
 const jsBundle = readDistJavascript();
 
-assertBundleContains("mainnet vault owner", mainnetVaultOwner);
+assertSourceDoesNotContain("legacy regular-wallet vault owner fallback", legacyMainnetVaultOwnerFallback);
+assertSourceDoesNotContain("legacy vault-owner fallback constant", "MAINNET_SHIELD_VAULT_OWNER_FALLBACK");
 assertBundleContains("browser mainnet RPC default", "https://solana-rpc.publicnode.com");
 assertBundleContains("browser-blocked mainnet RPC guard", "api.mainnet-beta.solana.com");
 assertBundleContains("mainnet cluster", "mainnet-beta");
@@ -98,7 +98,7 @@ const mintChecks = await Promise.all(
 
 for (const check of mintChecks) {
   console.log(
-    `${check.symbol}: PASS · ${check.tokenProgramLabel} · decimals ${check.decimals} · ATA ${check.vaultAta.toBase58()}`,
+    `${check.symbol}: PASS · ${check.tokenProgramLabel} · decimals ${check.decimals}`,
   );
 }
 
@@ -127,6 +127,12 @@ function assertBundleContains(label, value) {
   }
 }
 
+function assertSourceDoesNotContain(label, value) {
+  if (shieldConfigSource.includes(value)) {
+    throw new Error(`Shield config still contains ${label}: ${value}`);
+  }
+}
+
 async function checkMint(asset) {
   const mint = new PublicKey(asset.mintAddress);
   const accountInfo = await getParsedMintAccount(mint);
@@ -146,19 +152,10 @@ async function checkMint(asset) {
     );
   }
 
-  const vaultAta = getAssociatedTokenAddressSync(
-    mint,
-    new PublicKey(mainnetVaultOwner),
-    true,
-    tokenProgramId,
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-  );
-
   return {
     decimals,
     symbol: asset.symbol,
     tokenProgramLabel,
-    vaultAta,
   };
 }
 
