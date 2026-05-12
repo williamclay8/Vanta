@@ -20,7 +20,7 @@ This review is now an active feedback-loop document, not only a point-in-time au
 | Canonical note membership | Placeholder additive note/tree hashing was replaced with Poseidon note, leaf, and node hashing plus direction/leaf-index constraints; note amount limbs are now `u64` in the local circuit ABI. | `npm run zk:canonical-note-membership-check` |
 | Canonical note proving commitment | `CanonicalNoteArtifacts` now carries both legacy SHA-256 display commitment and Poseidon/BN254 proof-facing `provingCommitment`; Live Shield records both and Live Send preserves the proof-facing commitment through redaction. | `npm run zk:canonical-note-proving-commitment-check` |
 | Private Pool v2 entry circuits | Local fixed-depth lanes now prove input membership and path-based successor append roots for Shield, Send, Swap-to-shielded, Claim, and actual-private spend where applicable. | `npm run private-pool-v2:verify` |
-| Private Pool v2 no-witness proof artifacts | Shield, Claim, Swap-to-shielded, Send, and actual-private-spend now emit local bb.js/UltraHonk fixture artifacts without witness or bytecode sidecars; artifact verifiers recompile the matching Noir circuit, check ACIR/verifying-key metadata, bind the single public-input hash label, and reject tampered proof bytes, public inputs, circuit/proof-system/backend/label relabeling, and witness aliases. Actual-private-spend now also has a strict local witness-input proof path: the input builder requires canonical BN254 fields, a depth-20 Merkle path, boolean direction bits, derived leaf index, recomputed root/nullifier, unique outputs, and a derived `private-spend-public-input-hash`; the Node proof script can emit a no-witness `local-bb-derived-artifact` for that derived request. The operator no-witness route requires matching expected public-input hashes for Shield, Claim, Swap-to-shielded, Send, and actual-private-spend artifacts and rejects unbound extra `expectedPublicInputs` keys; the Shield route is read-only artifact verification only and does not append commitments, persist receipts, or accept Shield settlement. The opt-in actual-private-spend and Send local bb artifact adapter can convert verified local artifacts plus exact proof-request transcripts into `VantaPrivatePoolV2ProofResult` values with `proofSystem: "noir-bb"`, while keeping the default local prover on `mock` / `local-mock`. In production proof mode, remote-service proof artifacts hit a local production-mode verifier-handoff guard: relabelled local fixture metadata such as local verifying-key hash kinds or `local-acir-bytecode:` key ids rejects before delegation, and returned remote receipts must match the submitted artifact transcript across circuit, ACIR hash, backend/runtime metadata, proof system/backend, proof bytes, public inputs/labels/commitment, and verifying-key fields. This remains local proof generation and local handoff hardening; local artifacts still reject in production proof mode and no production remote prover/verifier is proven. | `npm run private-pool-v2:local-verifier-check`; `npm run private-pool-v2:local-bb-fixture-prover-check`; `npm run private-pool-v2:actual-private-spend-witness-prover-check`; `npm run private-pool-v2:remote-proof-artifact-boundary-check`; `npm run private-pool-v2:shield-proof-artifact-consistency-check`; `npm run private-pool-v2:shield-operator-no-witness-check`; `npm run private-pool-v2:claim-proof-artifact-consistency-check`; `npm run private-pool-v2:claim-operator-no-witness-check`; `npm run private-pool-v2:swap-to-shielded-proof-artifact-consistency-check`; `npm run private-pool-v2:swap-to-shielded-operator-no-witness-check`; `npm run private-pool-v2:send-proof-artifact-consistency-check`; `npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check`; `npm run private-pool-v2:send-operator-no-witness-check`; `npm run private-pool-v2:actual-private-spend-operator-no-witness-check`; `npm run private-pool-v2:proof-backend-boundary-check` |
+| Private Pool v2 no-witness proof artifacts | Shield, Claim, Swap-to-shielded, Send, and actual-private-spend now emit local bb.js/UltraHonk fixture artifacts without witness or bytecode sidecars; artifact verifiers recompile the matching Noir circuit, check ACIR/verifying-key metadata, bind the single public-input hash label, and reject tampered proof bytes, public inputs, circuit/proof-system/backend/label relabeling, and witness aliases. Actual-private-spend and Send now also have strict local witness-input proof paths: the input builders require canonical BN254 fields, depth-20 Merkle/append paths, boolean direction bits, derived leaf indices, recomputed roots/nullifiers, unique outputs, and derived public-input hashes; the Node proof script can emit no-witness `local-bb-derived-artifact` receipts for those derived requests. The operator no-witness route requires matching expected public-input hashes for Shield, Claim, Swap-to-shielded, Send, and actual-private-spend artifacts and rejects unbound extra `expectedPublicInputs` keys; the Shield route is read-only artifact verification only and does not append commitments, persist receipts, or accept Shield settlement. The opt-in actual-private-spend and Send local bb artifact adapter can convert verified local artifacts plus exact proof-request transcripts into `VantaPrivatePoolV2ProofResult` values with `proofSystem: "noir-bb"`, while keeping the default local prover on `mock` / `local-mock`. In production proof mode, remote-service proof artifacts hit a local production-mode verifier-handoff guard: relabelled local fixture metadata such as local verifying-key hash kinds or `local-acir-bytecode:` key ids rejects before delegation, and returned remote receipts must match the submitted artifact transcript across circuit, ACIR hash, backend/runtime metadata, proof system/backend, proof bytes, public inputs/labels/commitment, and verifying-key fields. This remains local proof generation and local handoff hardening; local artifacts still reject in production proof mode and no production remote prover/verifier is proven. | `npm run private-pool-v2:local-verifier-check`; `npm run private-pool-v2:local-bb-fixture-prover-check`; `npm run private-pool-v2:actual-private-spend-witness-prover-check`; `npm run private-pool-v2:send-witness-prover-check`; `npm run private-pool-v2:remote-proof-artifact-boundary-check`; `npm run private-pool-v2:shield-proof-artifact-consistency-check`; `npm run private-pool-v2:shield-operator-no-witness-check`; `npm run private-pool-v2:claim-proof-artifact-consistency-check`; `npm run private-pool-v2:claim-operator-no-witness-check`; `npm run private-pool-v2:swap-to-shielded-proof-artifact-consistency-check`; `npm run private-pool-v2:swap-to-shielded-operator-no-witness-check`; `npm run private-pool-v2:send-proof-artifact-consistency-check`; `npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check`; `npm run private-pool-v2:send-operator-no-witness-check`; `npm run private-pool-v2:actual-private-spend-operator-no-witness-check`; `npm run private-pool-v2:proof-backend-boundary-check` |
 | Active proving-lane Merkle depth | Private Pool v2 Shield/Send/Swap-to-shielded/Claim/actual-private-spend and Private Core Send/Swap/Unshield now use `MERKLE_DEPTH = 20`; fixture builders emit 20-sibling paths with sparse depth-20 trees; the depth lint now fails closed if active lanes regress to depth 3. | `npm run zk:circuit-soundness-lint`; `npm run private-pool-v2:shield-circuit-check`; `npm run private-core:check` |
 | Private Pool v2 Shield/Send/Claim amount range | Shield, Send, and Claim raw amount witnesses are constrained as `u128`; Send also proves a private economics commitment and checks `input_amount == recipient_amount + change_amount`; Claim relayer-fee is constrained as `u128`. | `npm run private-pool-v2:shield-circuit-check`; `npm run private-pool-v2:send-circuit-check`; `npm run private-pool-v2:claim-circuit-check` |
 | Private Core tree hashing | Single-field membership paths and standard Poseidon node hashing are now guarded across send/swap/unshield. | `npm run zk:merkle-node-hash-contract-check` |
@@ -3522,6 +3522,8 @@ Recommendation unchanged from shield W7 at the prover level: wire `@aztec/bb.js`
 
 **Codex status, 2026-05-12 local witness input:** partially remediated locally beyond exact fixture replay for actual-private-spend. `src/privacy/privatePoolV2ActualPrivateSpendCircuitFixture.ts` now exposes a strict witness-input builder that requires canonical decimal BN254 fields, depth-20 membership paths, boolean direction bits, a derived leaf index, recomputed root/nullifier, unique outputs, and a derived `private-spend-public-input-hash`; `scripts/prove-vanta-private-pool-v2-circuit.mjs actual-private-spend --witness-json <path>` can prove that derived request with bb.js/UltraHonk and emit a no-witness `local-bb-derived-artifact`. Guard: `npm run private-pool-v2:actual-private-spend-witness-prover-check`, wired into local prover/verifier and Private Pool v2 verification lanes. Residual caveat: this is still a local Node proof path and artifact adapter, not browser/Web Worker prover plumbing, not remote-service production proof acceptance, not an on-chain verifier, not a production verifying-key registry, and not live-funds readiness.
 
+**Codex status, 2026-05-12 Send witness input:** partially remediated locally beyond exact fixture replay for Send. `src/privacy/privatePoolV2SendCircuitFixture.ts` now exposes a strict witness-input builder that requires canonical decimal BN254 fields, depth-20 input/recipient/change paths, boolean direction bits, derived input/recipient/change leaf indices, recomputed input/recipient/change roots, nullifier, amount-conservation/economics commitment, memo ciphertext body-hash fields, unique outputs, and a derived `send-public-input-hash`; `scripts/prove-vanta-private-pool-v2-circuit.mjs send --witness-json <path>` can prove that derived request with bb.js/UltraHonk and emit a no-witness `local-bb-derived-artifact`. Guard: `npm run private-pool-v2:send-witness-prover-check`, wired into `send:verify`, local prover/verifier, and Private Pool v2 verification lanes. Residual caveat: this is still a local Node proof path and artifact adapter, not browser/Web Worker prover plumbing, not remote-service production proof acceptance, not an on-chain verifier, not a production verifying-key registry, and not live-funds readiness.
+
 **Codex status, 2026-05-12 operator request binding:** partially remediated locally at the operator no-witness route. `/private-pool-v2/proof-artifacts/verify` now dispatches by proof-artifact circuit, verifies actual-private-spend artifacts with the same bb.js/UltraHonk local verifier, and accepts them only when `expectedPublicInputs.privateSpendPublicInputHash` matches the verified `private-spend-public-input-hash`. Send artifacts now match that stricter shape: missing `expectedPublicInputs.sendPublicInputHash` rejects, matching hashes accept, mismatches reject, and Send artifacts still cannot satisfy actual-private-spend expected inputs. All operator artifact branches now reject unbound extra `expectedPublicInputs` keys such as `unshieldPublicInputHash`. The artifact consistency guards now directly reject circuit, proof-system, backend, and public-input-label relabeling for both Send and actual-private-spend, and `private-pool-v2:local-verifier-check` includes the H08 proof-artifact/no-witness checks. Guards: `npm run private-pool-v2:local-verifier-check`, `npm run private-pool-v2:send-proof-artifact-consistency-check`, `npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check`, `npm run private-pool-v2:send-operator-no-witness-check`, `npm run private-pool-v2:actual-private-spend-operator-no-witness-check`, and `npm run private-pool-v2:proof-backend-boundary-check`. Residual caveat: this binds local operator evidence to the request shape; it is not browser/runtime prover wiring, not remote-service production proof acceptance, not an on-chain verifier, not a production verifying-key registry, and not live-funds readiness.
 
 **Codex status, 2026-05-12 Shield artifact lane:** partially remediated locally for the Private Pool v2 Shield fixture-artifact boundary and read-only operator request binding. `scripts/prove-vanta-private-pool-v2-circuit.mjs shield` now emits a no-witness `local-bb-fixture-artifact` labeled `shield-public-input-hash`; `operator/private-pool-v2-proof-artifact.mjs` exports a Shield verifier that recompiles `vanta_private_pool_v2_shield_entry` and returns `verifiedPublicInputs.shieldPublicInputHash`; and `npm run private-pool-v2:shield-proof-artifact-consistency-check` mirrors the Send/actual-private tamper matrix for proof bytes, public inputs, circuit/proof-system/backend/label relabeling, VK/ACIR metadata drift, extra public inputs, malformed proof hex, and witness/private-input aliases. The operator no-witness route now also accepts Shield artifacts only when `expectedPublicInputs.shieldPublicInputHash` matches the verified `shield-public-input-hash`, rejects Claim/Send/Swap-to-shielded/actual-private expected-input mixups, rejects unbound extra expected-input keys such as `unshieldPublicInputHash`, rejects wrong-lane artifacts presented as Shield evidence, rejects relabelled artifacts, verifies the route leaves receipt/settlement counts unchanged, and still rejects local fixture artifacts in production proof mode. The Shield artifact and operator guards are now included in `shield:verify`, `private-pool-v2:local-verifier-check`, and `private-pool-v2:verify`; after the active-release Solana rebuild, the full Private Pool v2 verify path passes locally through the fresh SBF ABI and Crucible dry-run gates. Residual caveat: Shield is local no-witness fixture evidence and read-only local operator request binding only. It is not Shield settlement acceptance, not browser/runtime prover wiring, not remote-service production proof acceptance, not on-chain proof verification, not a production verifying-key registry, and not live-funds readiness.
@@ -3532,7 +3534,7 @@ Recommendation unchanged from shield W7 at the prover level: wire `@aztec/bb.js`
 
 **Codex status, 2026-05-12 remote proof-artifact transcript binding:** partially remediated locally for the production-mode proof-artifact verifier-handoff guard. In production proof mode, `/private-pool-v2/proof-artifacts/verify` rejects local fixture artifacts unless `proofBackend=remote-service`, rejects relabelled local fixture metadata such as local verifying-key hash kinds and `local-acir-bytecode:` verifying-key ids before the remote call, delegates remote-service artifacts to `runtime.verifierRegistry.verifyProofArtifact`, and reuses the same expected-public-input binding on the returned verified receipt. `src/privacy/privatePoolV2RemoteServices.ts` now rejects mock proof systems, non-remote proof backends, non-production verifying-key hash kinds, local fixture key ids, and witness material, then requires the remote verifier receipt transcript to match the submitted artifact across ACIR bytecode hash, circuit, backend, proof runtime package/version, proof system/backend, proof hex, public input commitment, public input labels, public inputs, verifying-key hash kind, verifying-key hash, and verifying-key id. `npm run private-pool-v2:remote-proof-artifact-boundary-check` proves, in a local harness, that a remote Shield artifact can be verified by a configured verifier service, local and relabelled-local artifacts fail closed before delegation, remote receipt transcript drift fails closed, mock remote proof-system responses reject, local verifying-key responses reject, witness aliases reject, and the route appends no verifier receipts, protocol settlements, Pay settlements, or shadow commitments. The guard is wired into `private-pool-v2:verify`, `private-pool-v2:proof-backend-boundary-check`, and `private-pool-v2:contract-check`. A full `npm run private-pool-v2:verify` now passes locally after the active-release Solana rebuild, including fresh SBF ABI, service-network, transaction, Crucible dry-run, HTTP, restart, security limitations, operator runbook, and build gates. Residual caveat: this is local verifier-handoff hardening, not a deployed remote verifier, not browser/runtime prover wiring, not on-chain proof verification, not a production verifying-key registry audit, not live settlement evidence, and not real-funds ZK readiness.
 
-**Codex status, 2026-05-12 local bb artifact proof-result adapter:** partially remediated locally for opt-in actual-private-spend and Send runtime evidence lanes. `src/privacy/privatePoolV2LocalProver.ts` now exports `createVantaPrivatePoolV2LocalBbFixtureProver`, which can replay a verified local `local-bb-fixture-artifact` plus its exact actual-private-spend or Send fixture proof-request transcript into a `VantaPrivatePoolV2ProofResult` with `proofSystem: "noir-bb"` and `proofBackend: "local-bb-fixture-artifact"`; for actual-private-spend, it can also replay a matching no-witness `local-bb-derived-artifact` generated from the strict local witness-input proof script. The adapter rejects missing/duplicated `request.circuitPublicInputs.private-spend-public-input-hash` or `request.circuitPublicInputs.send-public-input-hash`, transition-field drift in actual-private-spend fields (`pool-id`, `asset-cohort`, `accepted-root`, `nullifier`, output commitments, `context-hash`) and Send fields (`input-root`, `input-commitment`, `nullifier`, recipient/change output commitments, recipient/change leaf indices, recipient/change output roots, memo body-hash fields, `asset-id-commitment`, `economics-commitment`, `owner-commitment`, `send-context-tag`), request-metadata drift in the fixture transcript, cross-target artifacts, relabelled artifact circuit/backend/proof-system/public-input metadata, malformed proof/key metadata, disabled mode, and tampered proof-result verification; the default `createVantaPrivatePoolV2LocalProver` still returns `mock` / `local-mock` for both lanes. Guards: `npm run private-pool-v2:local-bb-fixture-prover-check` and `npm run private-pool-v2:actual-private-spend-witness-prover-check`, wired into local prover/verifier, `private-pool-v2:verify`, `private-pool-v2:proof-backend-boundary-check`, and `private-pool-v2:contract-check`. Residual caveat: this is local no-real-funds proof generation and artifact replay for verifier receipt testing. It is not browser/Web Worker prover plumbing, not a remote proof service, not on-chain proof verification, not a production verifying-key registry, not audit acceptance, not live deployment evidence, and not real-funds readiness.
+**Codex status, 2026-05-12 local bb artifact proof-result adapter:** partially remediated locally for opt-in actual-private-spend and Send runtime evidence lanes. `src/privacy/privatePoolV2LocalProver.ts` now exports `createVantaPrivatePoolV2LocalBbFixtureProver`, which can replay a verified local `local-bb-fixture-artifact` plus its exact actual-private-spend or Send fixture proof-request transcript into a `VantaPrivatePoolV2ProofResult` with `proofSystem: "noir-bb"` and `proofBackend: "local-bb-fixture-artifact"`; for actual-private-spend and Send, it can also replay matching no-witness `local-bb-derived-artifact` evidence generated from strict local witness-input proof scripts. The adapter rejects missing/duplicated `request.circuitPublicInputs.private-spend-public-input-hash` or `request.circuitPublicInputs.send-public-input-hash`, transition-field drift in actual-private-spend fields (`pool-id`, `asset-cohort`, `accepted-root`, `nullifier`, output commitments, `context-hash`) and Send fields (`input-root`, `input-commitment`, `nullifier`, recipient/change output commitments, recipient/change leaf indices, recipient/change output roots, memo body-hash fields, `asset-id-commitment`, `economics-commitment`, `owner-commitment`, `send-context-tag`), request-metadata drift in the fixture transcript, cross-target artifacts, relabelled artifact circuit/backend/proof-system/public-input metadata, malformed proof/key metadata, disabled mode, and tampered proof-result verification; the default `createVantaPrivatePoolV2LocalProver` still returns `mock` / `local-mock` for both lanes. Guards: `npm run private-pool-v2:local-bb-fixture-prover-check`, `npm run private-pool-v2:actual-private-spend-witness-prover-check`, and `npm run private-pool-v2:send-witness-prover-check`, wired into Send, local prover/verifier, `private-pool-v2:verify`, `private-pool-v2:proof-backend-boundary-check`, and `private-pool-v2:contract-check`. Residual caveat: this is local no-real-funds proof generation and artifact replay for verifier receipt testing. It is not browser/Web Worker prover plumbing, not a remote proof service, not on-chain proof verification, not a production verifying-key registry, not audit acceptance, not live deployment evidence, and not real-funds readiness.
 
 After this and the on-chain verifier land, the system still needs program-owned tree/vault state, redeploy/reinit plus live SBF evidence, audit acceptance, and deployed service evidence before any production-private claim is safe. Everything else in this document either depends on that or is parallel polish.
 
@@ -3608,3 +3610,223 @@ This is the rare position where a project that was three months from credibility
 The next review pass — whenever it happens — should be able to evaluate whether items 1-5 have actually closed and then start checking off the GTM items. At that point the document's "still open" lists should collapse only where the matching verifier, custody, SBF/live, audit, and deployment evidence exists, and the question becomes whether merchants and counterparties actually adopt. That's a product question, not an engineering one.
 
 Good luck. The hard part is mostly done.
+
+---
+
+# Re-audit — 20× Taste and 20× Polish on the Current Website
+
+I re-walked the website code (`src/pages/*`, `src/components/*`, `src/styles.css` now at 9,620 lines) to see what's landed against the original taste and polish passes, and to write a sharper, more concrete plan for what's left.
+
+The first thing to acknowledge: real progress. Several recommendations from the original passes are now in code.
+
+## What's landed
+
+- **`SystemStatusStrip` component exists** at `src/components/SystemStatusStrip.tsx`. It consolidates the per-page beta disclaimers into a single shared strip that reads from `getLaneTrustStatuses()` — the trust-contract pattern from the strategy/pay lanes is now wired into UI gating across the app. This was the first commit recommendation from the UI/UX pass; it shipped.
+- **`AppLayout` is a real shell** (`src/components/AppLayout.tsx`). Persistent nav, wallet picker, mobile-wallet prompts, peer onramp flow, tab refs that scroll-into-view on mobile. The layer between the home page and the per-lane pages is now well-structured.
+- **`DocsSidebar` exists** at `src/components/DocsSidebar.tsx`. The "add a visible left-sidebar navigation" recommendation from the docs UI/UX pass landed — `docsSidebarGroups` provides grouped navigation with active-state tracking and per-page section anchoring.
+- **Real motion was added.** `grep '@keyframes'` on `styles.css` now returns 9 named animations: `walletMenuIn`, `statusLoad`, `unshieldSuccessPulse`, `vanta-page-enter`, `vanta-panel-enter`, `landing-grid-shift`, `landing-breathe`, `landing-blink`, `landing-scroll-pulse`. The original review counted basically one. The landing-page motion (grid drift, glow breathing, scroll pulse) is exactly the "site feels alive instead of static" move I recommended.
+- **`unshieldSuccessPulse` is the right kind of polish.** When an unshield completes, the page now has a celebratory pulse — exactly the "make the success state feel like an event" recommendation. Apply this pattern to shield and send too.
+
+That's real progress. The baseline this audit is grading against is higher than the original review's.
+
+## What's almost there
+
+Three items are partially landed and need finishing:
+
+- **The `SystemStatusStrip` is consolidated but still leads with the locked-claim count.** The current copy is `"{lockedLaneCount}/{laneStatuses.length} lane claims locked"` followed by per-lane `Claim locked` previews. This is *better* than the original disclaimer sprawl, but a user landing on the page sees `6/6 lane claims locked` as the most prominent strip-level information. The taste move is to flip the framing — lead with the affirmative (what *is* live: "Receipt-backed test settlement on Solana mainnet · 6 lanes verified · Production claims gated") and put the locked-claim count inside the expandable `<details>`. Same data, opposite emotional read.
+- **The landing-page hero has motion now but no visualization.** `landing-minimal__grid`, `landing-minimal__glow--left`, `landing-minimal__glow--right` create atmospheric depth via CSS, but there's still no kinetic content. The recommendation to add a "wallet → shield → vault" particle visualization isn't in code yet. This is the single highest-leverage taste move still on the table — without it the home page is atmospherically polished but narratively flat.
+- **The DocsSidebar exists but the docs pages themselves still lack inline diagrams.** Same per-page step-grid pattern as before. The docs-pass D-recommendation to add SVG diagrams alongside the step grids hasn't shipped. The infrastructure (`DocsPageTemplate`, `DocsSidebar`, `docsContent` module) is now in place; the visual layer is the missing piece.
+
+## The 20× taste audit, applied to current code
+
+Twelve moves the original taste pass laid out; current status of each on the actual website:
+
+| # | Taste move | Current status | Concrete next step |
+|---|---|---|---|
+| T1 | Pick an aesthetic that means something | Not done. `--bg: #030406` is still the base. | Replace with `#000` true black on the home page only first. Add `body.landing-body { background: #000 }` override (the class is already toggled in `HomePage.tsx:37`). Ship in one PR. See if the brand-mark glow against true black reads as more committed. If yes, propagate to the app shell next sprint. |
+| T2 | Develop a voice the product speaks in | Not done. Current copy still includes "Use guarded shielded-state flows while production privacy claims stay locked behind evidence" — engineering-defensive voice. | Write a one-page voice spec. Apply to the next ten copy edits. Replace `productPoints[1].copy` in `HomePage.tsx` with "Send privately. The chain sees that something happened. It does not see what." |
+| T3 | Commit to a vocabulary | Not done. App nav still says Shield / Send / Swap / Strategy / Unshield / Pay. | Rename "trust packet" to "Letter" in `vantaPayReceiptPrivacyContract.ts` and all UI copy. Rename "vault PDA" to "the Vault" everywhere in the on-chain program comments and operator docs. Two strings; ripple effect over months. |
+| T4 | Make privacy visible by making time visible | Not done. No depth-oracle visualization exists. | Add a new `<DepthOracleStrip />` between the hero and the "What it does" section on the home page. Pulls live deposit counts from the operator's `private-pool-v2:state` endpoint, renders a horizontal time-axis with deposit density. ~2 days of work; ~150 lines of TSX + a small SVG sparkline. **Highest-leverage single addition.** |
+| T5 | Build the receipt as an artifact | Not done. Trust packets are still JSON-shape. | Add a `<LetterPDF>` React component that renders the receipt to a PDF via `react-pdf` or `@react-pdf/renderer`. Letterhead, serial number, QR code, embossed brand-mark watermark. Add a `/letter/:id` route that mirrors the PDF layout. Ship in `src/pay/` first; extend to send/swap/unshield receipts in a second pass. |
+| T6 | Make the threshold a real moment | Partially done. `unshieldSuccessPulse` exists. | Add `shieldSuccessPulse` and `sendSuccessPulse` to `styles.css`, matching the same 600ms accent-bloom pattern. First-shield commemoration: a single `localStorage` flag (`vanta.shield.firstSealConfirmedAt`), a special variant of the pulse animation, a one-time "Your first seal" marker that fades after 4 seconds. |
+| T7 | Errors are an opportunity | Not done. The pages have inline error text but no custom error pages. | Add `src/pages/NotFoundPage.tsx` (custom 404) and `src/pages/ErrorBoundaryPage.tsx` (caught error). Each gets a unique illustration in the brand mark family. Wire in `App.tsx` Routes catch-all and at the `ErrorBoundary` wrapper level. |
+| T8 | Hide easter eggs that respect the topic | Not done. | Ship `.well-known/audit.json` (Vite static asset, one file, generated at build time from the verifier-key hashes). Ship `vantaprivacy.xyz/manifesto` as a simple route with the one-paragraph credo in `src/pages/ManifestoPage.tsx`. Both ~30 minutes of work. |
+| T9 | Onboarding is a story | Not done. `/` to `/app` is a direct nav with no narrative. | First-time-visitor detection via `localStorage` flag. New visitors get a 30-second auto-scrolling hero with sentence-by-sentence fade-in (using `IntersectionObserver` + the existing `vanta-page-enter` keyframe). Returning visitors get the static hero immediately. ~150 lines of code, one new component. |
+| T10 | Treat the docs as a publication | Not done. Docs pages render but have no bylines, no `/log`, no `/people`. | Add `src/pages/LogPage.tsx` that lists essays from a markdown frontmatter directory. First essay: "How Vanta runs its own buybacks privately." Mid-priority — depends on having essays to publish. |
+| T11 | Keep the operator visible | Not done. No `/operator` page exists. | Add `src/pages/OperatorPage.tsx` with: program IDs, authority pubkey, deployed verifier hash, monthly Operator Letter signed by the project key. Static content first; signed-letter cadence later. |
+| T12 | The artifact you leave behind | Not done. No export/lifetime-letter feature. | Wait for shield W2 (wallet-derived recovery) to land; then a lifetime-activity letter is a natural follow-up because the note history will be reconstructable. ~1 week once the precondition lands. |
+
+The first commit recommendation from the original taste pass ("rename trust packet to Letter, ship `/.well-known/audit` and `/manifesto`") is still the right starting point. None of those three changes have been made yet. All three are <1 day of work each. Together they're the lowest-cost taste signal the project can ship this week.
+
+## The 20× polish audit, applied to current code
+
+The original polish pass had 10 themes. Current code against each:
+
+### P1 — Performance
+
+Not measured. The `src/pages/*.tsx` files still total 13,404 lines and ship as one bundle. No code-splitting visible. No `web-vitals` import. No Lighthouse CI in the npm scripts.
+
+**Concrete moves, in order:**
+- Add `vite-bundle-analyzer` to `vite.config.ts`. Run once. Find the largest contributors. The wallet adapter is almost certainly top-3.
+- Lazy-load every route component in `App.tsx`:
+  ```tsx
+  const ShieldPage = lazy(() => import("@/pages/ShieldPage").then(m => ({ default: m.ShieldPage })));
+  ```
+  Apply to all 12 page components. Wrap routes in `<Suspense fallback={<RouteSkeleton />}>`. One afternoon; halves the initial bundle.
+- Add `web-vitals` library and a `reportWebVitals()` call in `main.tsx`. Send to a `/telemetry` endpoint that aggregates without per-user identification.
+- Add Lighthouse CI as a GitHub Action with score floors: Performance 90, Accessibility 95, Best Practices 95, SEO 95.
+
+### P2 — Type and numbers
+
+`font-variant-numeric: tabular-nums` is set in `:root` — good. But the right-alignment of numeric columns in the dashboard's `dashboard-focus-card__stats` (per `AppDashboardPage.tsx:257-294`) isn't enforced. The `<strong>` containing the balance is left-aligned by default flow.
+
+**Concrete moves:**
+- Add `.dashboard-focus-card__stats strong { text-align: right; font-variant-numeric: tabular-nums; }` to `styles.css`.
+- Add `text-wrap: balance` to `.landing-minimal__hero h1` and `.module-page__hero h1`/h2. One CSS line per selector; eliminates orphan words in headlines.
+- Add number-transition animations to the dashboard balance. `react-spring`'s `<animated.span>` or a small `useCountUp(value)` hook. When a shield confirms, the balance counts up from old → new over ~400ms.
+- Audit currency precision: `formatVantaSolAmount` is correct for SOL; the equivalent for USDC (6 decimals) shows 2 by default in some places, which truncates without warning. Wrap in a `<TokenAmount asset={"USDC"} value={...} />` component that picks the right precision per asset.
+
+### P3 — Interaction quality
+
+The wallet picker has `walletMenuIn` animation — good. Buttons have `:focus-visible` rules. But the bulk of buttons across the pages rely on default browser feedback only.
+
+**Concrete moves:**
+- Add a single `.button` base class with four hover cues: color shift, shadow lift, micro-scale 1.02, cursor. Apply to every `<button className="button button-*">` in the codebase. The CSS is already structured around `--shadow-lift`; just need to wire it into `:hover`.
+- Add `transform: scale(0.98)` to `.button:active` for tactile press feedback.
+- Replace the focus ring (`2px solid rgba(119, 242, 212, 0.62)`) with a layered version: inner darken + outer accent. One line in `:focus-visible`.
+- Implement optimistic UI on the Shield form. When `sendNoteTransaction.send()` is called in `ShieldPage.tsx:2044`-ish area, immediately add a "pending" note to the local Vault grid view. Reconcile with the chain when confirmation arrives. Today the UI waits for the chain to confirm.
+- Add a one-second "Copied" feedback on every address-copy button. The current state in some pages is "click and nothing visible happens."
+
+### P4 — Motion
+
+9 keyframes is good. The taxonomy isn't standardized — different animations use different durations and easings.
+
+**Concrete moves:**
+- Replace the two existing easing CSS variables (`--ease-out`, `--ease-smooth`) with a five-curve palette:
+  ```css
+  --ease-snappy: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:     cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-spring: linear(0, 0.5, 0.9, 1.05, 0.95, 1);
+  --ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
+  ```
+  Document where each is appropriate. Refactor existing animations to use them.
+- Add a `--duration-instant: 100ms; --duration-state: 200ms; --duration-page: 400ms; --duration-celebrate: 600ms;` token scale.
+- Add a global `@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }` block at the bottom of `styles.css`. Today reduced-motion isn't respected.
+- Replace every spinner in the codebase with a shimmer skeleton. The closest existing surface is `statusLoad` keyframe; promote it to a general-purpose `.skeleton-shimmer` utility class used in every loading state.
+
+### P5 — States nobody designs
+
+Empty states across the app pages are mostly utilitarian text. Error states use `setFlowError` and render inline.
+
+**Concrete moves:**
+- Build a `<EmptyState illustration={...} title={...} body={...} cta={...} />` component. Use across all four lane pages plus the dashboard. Each variant gets a distinct illustration from a brand-mark-family icon set.
+- Build a `<ErrorBanner severity="info|warning|critical" title body action />` component. Replace all the ad-hoc inline error displays in ShieldPage / SendPage / SwapPage / UnshieldPage. ~200 lines of TSX, ~80 lines of CSS, used 40+ times.
+- Add an offline indicator. `window.navigator.onLine` + `online`/`offline` events. Render a thin banner: "You're offline. Vanta is showing your last-known state." Add to `AppLayout.tsx`.
+- Add stale-data indicators. When the position summary hasn't refreshed in >60s, show "Balance last updated 73s ago" with a small refresh button.
+
+### P6 — Accessibility
+
+`aria-label`s exist in `HomePage.tsx`, `DocsSidebar.tsx`, etc. `:focus-visible` rules exist. No formal a11y audit visible.
+
+**Concrete moves:**
+- Add `axe-core` to the dev dependencies and the CI pipeline. Fail on any new violations.
+- Audit contrast: current `--muted: #8b9997` against `--bg: #030406` is 5.6:1 (AA, not AAA). Bump `--muted` to `#a5b3b1` to clear AAA at 7.0:1.
+- Add a `<SkipToContent />` link as the first focusable element in `AppLayout`. One link, jumps past the nav.
+- Audit modal focus management. The wallet picker uses `walletPickerOpen` state but I didn't see focus trapping. Add `react-focus-lock` around the picker dialog.
+- Add `aria-live="polite"` regions for state changes. When a shield confirms, announce "Shield complete. 100 USDC sealed." Currently the success states are visual-only.
+
+### P7 — Mobile
+
+`@media` queries number 12 across 9,620 lines — light coverage. The `AppLayout.tsx` has explicit mobile-tab-scroll handling and mobile-wallet-prompt detection, which is good.
+
+**Concrete moves:**
+- Replace `100vh` with `100dvh` everywhere it appears. iOS Safari address-bar handling.
+- Add `env(safe-area-inset-bottom)` padding to the bottom of fixed-positioned mobile nav elements.
+- Add `touch-action: manipulation` to every interactive element. Eliminates 300ms tap delay.
+- Implement haptic feedback via `navigator.vibrate(10)` on Shield/Send/Unshield confirm. iOS only; degrade silently on Android.
+- Test on a Moto G4 (or BrowserStack equivalent). Today the codebase is desktop-throttled-tested.
+
+### P8 — Asset craft
+
+No custom icon set. No token logos. No designed email templates. Default favicon almost certainly.
+
+**Concrete moves:**
+- Commission or hand-draw a 24px-grid icon set: Vault, Seal, Letter, Key, Ledger, Oracle, Shield, Send, Swap, Unshield, Strategy, Pay. ~12 icons. Output as SVG sprite. One week of design work or buy from a Solana-native illustrator.
+- Add token-logo CDN integration: pull official USDC, USDT, SOL, BONK, JUP logos from `assets.coingecko.com` or `raw.githubusercontent.com/solana-labs/token-list`. Cache locally. Replace the `<select>` asset dropdown in `ShieldPage` and `SwapPage` with a logo-pill grid.
+- Ship a custom favicon suite: 16/32/48 favicon, 180px Apple touch icon, 192/512 Android, `site.webmanifest` tying them together. ~2 hours of work.
+- Generate Open Graph cards. Vercel's `@vercel/og` or `satori` produces per-page OG images at request time. One image per page (Home, Docs, Pay merchant landing, individual receipt URLs). Critical for sharing.
+
+### P9 — Engineering quality
+
+Page files are still large (`SendPage.tsx` 2692 lines, `UnshieldPage.tsx` 3232 lines). No Storybook visible. No visual regression testing visible.
+
+**Concrete moves:**
+- Decompose `UnshieldPage.tsx` into `<UnshieldForm>`, `<UnshieldRecipient>`, `<UnshieldApprovalReview>`, `<UnshieldTransitionPicker>`, `<UnshieldReceiptCard>`. Same for `SendPage.tsx` and `ShieldPage.tsx`. Target <300 lines per page-shell file.
+- Add Storybook for the new shared components (`SystemStatusStrip`, `DocsSidebar`, the future `EmptyState`, `ErrorBanner`, `LetterPDF`, `DepthOracleStrip`). One story file per component. Three days of work; pays back in regression prevention.
+- Add Playwright e2e tests for the four happy paths: shield SOL, shield USDC, send USDC, unshield USDC. Run on every PR. Failures gate merge.
+- Add visual regression testing via Chromatic or `@playwright/test`'s snapshot mode. Catch CSS regressions automatically.
+
+### P10 — Quality machinery
+
+No polish standup visible. No separate polish backlog visible.
+
+**Concrete moves:**
+- Add a `POLISH_BACKLOG.md` at the repo root. Seed with every item from this audit. Owner = a named team member. Reviewed weekly.
+- Define "5% time" as a team norm. Every engineer spends 2 hours per week working a polish-backlog item.
+- Add a Definition of Done section to the PR template: empty state designed, error states handled, loading state shimmers, success state celebrated, keyboard nav works, screen reader announces.
+
+## The single 90-day plan that combines both passes
+
+If the goal is "ship 20× taste and 20× polish in 90 days alongside the cryptographic work," here's the order I'd take:
+
+**Week 1 (taste, free wins):**
+- True black on the home page (T1)
+- Voice spec written + ten copy edits (T2)
+- `.well-known/audit.json` + `/manifesto` page (T8)
+- Rename trust packet to "Letter" everywhere (T3)
+
+**Week 2 (polish foundation):**
+- Lazy-load all route components (P1)
+- Add `vite-bundle-analyzer`, `web-vitals`, Lighthouse CI (P1)
+- Standardize easing/duration tokens (P4)
+- Add `prefers-reduced-motion` block (P4)
+
+**Weeks 3-4 (the centerpiece):**
+- Build the `<DepthOracleStrip />` (T4) — single highest-leverage taste move
+- Build the `<EmptyState>` and `<ErrorBanner>` components and roll out across all four lane pages (P5)
+- Number-transition animations on the dashboard balance (P2)
+
+**Weeks 5-6 (the Letter):**
+- Build `<LetterPDF>` component (T5) — the artifact that makes Vanta quotable
+- Add `/letter/:id` verification route that mirrors the PDF
+- Ship the merchant-facing webhook with Letter PDF attached
+
+**Weeks 7-8 (the threshold):**
+- Build `shieldSuccessPulse` and `sendSuccessPulse` animations (T6)
+- First-seal commemoration with localStorage marker (T6)
+- Custom 404 + ErrorBoundary pages (T7)
+
+**Weeks 9-10 (engineering polish):**
+- Decompose the three giant page files (P9)
+- Storybook stories for shared components (P9)
+- Playwright e2e tests on happy paths (P9)
+
+**Weeks 11-12 (asset craft + accessibility):**
+- Token-logo asset picker grid (P8)
+- Custom icon set begun (P8)
+- axe-core audit + WCAG-AAA contrast bump (P6)
+- Mobile audit on actual hardware (P7)
+- `<OperatorPage />` and `<LogPage />` with first essay (T10, T11)
+
+At the end of 90 days: the home page leads with a live depth-oracle visualization, the receipts are PDF Letters, the success states feel celebratory, the empty states have personality, the bundle is half the size, the docs have a real visual identity, mobile works, accessibility is real, and there's a public manifesto. The product looks like nothing else in the space because most of the moves above are not standard practice in privacy/payments UI.
+
+## What this actually changes
+
+A user opens `vantaprivacy.xyz` in week 13. The home page is true black. A live counter shows the current pool depth. They click "Open App." The page transition is a coordinated panel-in motion. The dashboard balance animates up from 0 to their actual balance over 400ms. They click Shield. The asset picker is a row of token-logo pills with a smooth selection state. They confirm. The pending note appears in the Vault grid immediately. 400ms later it transitions to confirmed with a mint-colored radial pulse. A Letter PDF is generated; they can copy a verification URL or download the PDF. The first-time-ever shield gets a special "Your first seal" marker that fades after 4 seconds.
+
+None of this requires the cryptography to be at Target A yet. All of it can ship against the current Target-B-shaped backend. When the Groth16 verifier lands, the same UI becomes cryptographically backed.
+
+Taste makes the product memorable. Polish makes the product trustworthy. The 90-day plan above ships both, layered on top of the cryptographic work that's already in flight. The team that ships both in parallel is the team that ends 2026 as the default Solana privacy suite.
+
+Three things are non-negotiable for that outcome: (1) the depth-oracle visualization, (2) the Letter PDF artifact, (3) a single committed aesthetic. Everything else is multiplier. Without those three, the polish work makes a better generic privacy app. With them, the polish work makes Vanta.

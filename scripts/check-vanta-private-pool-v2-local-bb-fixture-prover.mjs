@@ -527,7 +527,7 @@ try {
         },
         target: "send",
       }).prove(sendFixture.proofRequest),
-    "local-bb-fixture-artifact evidence",
+    "local-bb-fixture-artifact or local-bb-derived-artifact evidence",
   );
   await expectRejection(
     () =>

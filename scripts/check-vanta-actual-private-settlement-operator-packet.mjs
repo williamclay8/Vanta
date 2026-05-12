@@ -38,7 +38,15 @@ if (
   assert.equal(packet.action.scopeBlocker, "approved-action-not-actual-private-settlement-scope");
 }
 assert.equal(packet.action.currentApprovalWindowRef, approvalStatus.approvalWindowRef);
+assert.equal(packet.action.executionAllowedNow, approvalStatus.liveMainnetActionsAllowedNow);
 assert.equal(packet.action.liveMainnetActionsAllowedNow, approvalStatus.liveMainnetActionsAllowedNow);
+assert.ok(Array.isArray(packet.action.executionBlockers));
+if (packet.action.liveMainnetActionsAllowedNow) {
+  assert.deepEqual(packet.action.executionBlockers, []);
+} else {
+  assert.deepEqual(packet.action.executionBlockers, approvalStatus.mainnetFundsBlockedBy);
+  assert.ok(packet.action.executionBlockers.length > 0);
+}
 assert.equal(
   packet.action.stopConditionStatus.appliesToCurrentApproval,
   approvalStatus.stopCondition.appliesToCurrentApproval,
@@ -138,10 +146,21 @@ assert.equal(typeof packet.solanaSpendSbfAbiStatus.abiFresh, "boolean");
 assert.equal(typeof packet.solanaSpendSbfAbiStatus.buildToolchainAvailable, "boolean");
 assert.equal(typeof packet.solanaSpendSbfAbiStatus.deployToolchainAvailable, "boolean");
 assert.ok(Array.isArray(packet.solanaSpendSbfAbiStatus.blockers));
-assert.ok(
-  packet.solanaSpendSbfAbiStatus.truthBoundary.includes("not fresh until cargo-build-sbf rebuilds"),
-  "Operator packet must carry SBF ABI freshness truth.",
-);
+if (packet.solanaSpendSbfAbiStatus.abiFresh) {
+  assert.ok(
+    packet.solanaSpendSbfAbiStatus.truthBoundary.includes("local SBF ABI is fresh"),
+    "Operator packet must carry fresh local SBF ABI truth.",
+  );
+  assert.ok(
+    packet.solanaSpendSbfAbiStatus.truthBoundary.includes("not redeployed, reinitialized, or live-verified"),
+    "Operator packet must not confuse fresh local SBF ABI evidence with live evidence.",
+  );
+} else {
+  assert.ok(
+    packet.solanaSpendSbfAbiStatus.truthBoundary.includes("not fresh until cargo-build-sbf rebuilds"),
+    "Operator packet must carry stale SBF ABI rebuild truth.",
+  );
+}
 
 assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_ACTUAL_PRIVATE_MAINNET_WALLET_PUBLIC_KEY_REF")));
 assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN")));

@@ -40,6 +40,7 @@ const proofArtifactCircuitProfiles = {
     circuitDir: sendCircuitDir,
     circuitName: sendCircuitName,
     label: "Private Pool v2 Send",
+    localProofBackends: ["local-bb-fixture-artifact", "local-bb-derived-artifact"],
     publicInputLabels: ["send-public-input-hash"],
     verifiedPublicInputKey: "sendPublicInputHash",
   },

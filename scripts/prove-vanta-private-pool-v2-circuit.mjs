@@ -78,8 +78,12 @@ if (witnessJsonPath !== null && !witnessJsonPath.trim()) {
   process.exit(1);
 }
 
-if (witnessJsonPath !== null && target !== "actual-private-spend") {
-  console.error("--witness-json is only supported for actual-private-spend.");
+if (
+  witnessJsonPath !== null &&
+  target !== "actual-private-spend" &&
+  target !== "send"
+) {
+  console.error("--witness-json is only supported for actual-private-spend or send.");
   process.exit(1);
 }
 

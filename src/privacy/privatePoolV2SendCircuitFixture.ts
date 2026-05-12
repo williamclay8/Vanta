@@ -2,6 +2,7 @@ import { poseidon1, poseidon2, poseidon4, poseidon12 } from "poseidon-lite";
 import {
   buildVantaPrivatePoolV2SparseMerkleTree,
   directionBitsForLeafIndex,
+  VANTA_PRIVATE_POOL_V2_CIRCUIT_MERKLE_DEPTH,
 } from "./privatePoolV2MerkleFixtureHelpers";
 import {
   createVantaPrivatePoolV2SendProofRequest,
@@ -52,6 +53,39 @@ export type VantaPrivatePoolV2SendCircuitFixture = {
 export type VantaPrivatePoolV2SendCircuitFixtureMemoBodyHashes = {
   changeMemoCiphertextBodyHash?: string | undefined;
   recipientMemoCiphertextBodyHash?: string | undefined;
+};
+
+export type VantaPrivatePoolV2SendCircuitWitnessInput = {
+  asset_id_commitment: bigint | string;
+  change_append_path: readonly (bigint | string)[];
+  change_append_path_direction_bits: readonly (bigint | string)[];
+  change_amount: bigint | string;
+  change_leaf_index: bigint | string;
+  change_memo_ciphertext_body_hash: string;
+  change_memo_ciphertext_body_hash_field: bigint | string;
+  change_output_commitment: bigint | string;
+  change_output_root: bigint | string;
+  economics_blinding: bigint | string;
+  economics_commitment: bigint | string;
+  input_amount: bigint | string;
+  input_commitment: bigint | string;
+  input_leaf_index: bigint | string;
+  input_root: bigint | string;
+  membership_path: readonly (bigint | string)[];
+  membership_path_direction_bits: readonly (bigint | string)[];
+  nullifier: bigint | string;
+  owner_commitment: bigint | string;
+  owner_secret: bigint | string;
+  recipient_amount: bigint | string;
+  recipient_append_path: readonly (bigint | string)[];
+  recipient_append_path_direction_bits: readonly (bigint | string)[];
+  recipient_leaf_index: bigint | string;
+  recipient_memo_ciphertext_body_hash: string;
+  recipient_memo_ciphertext_body_hash_field: bigint | string;
+  recipient_output_commitment: bigint | string;
+  recipient_output_root: bigint | string;
+  request_version: bigint | string;
+  send_context_tag: bigint | string;
 };
 
 export type VantaPrivatePoolV2SendCircuitFixtureMode =
@@ -158,8 +192,135 @@ const DEFAULT_WITNESS = {
   change_output_root: DEFAULT_TREE.changeOutputRoot,
 } satisfies VantaPrivatePoolV2SendCircuitWitness;
 
+const BN254_SCALAR_FIELD =
+  21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+
+const U128_MAX = (1n << 128n) - 1n;
+
+const SEND_WITNESS_FIELDS = [
+  "asset_id_commitment",
+  "change_append_path",
+  "change_append_path_direction_bits",
+  "change_amount",
+  "change_leaf_index",
+  "change_memo_ciphertext_body_hash",
+  "change_memo_ciphertext_body_hash_field",
+  "change_output_commitment",
+  "change_output_root",
+  "economics_blinding",
+  "economics_commitment",
+  "input_amount",
+  "input_commitment",
+  "input_leaf_index",
+  "input_root",
+  "membership_path",
+  "membership_path_direction_bits",
+  "nullifier",
+  "owner_commitment",
+  "owner_secret",
+  "recipient_amount",
+  "recipient_append_path",
+  "recipient_append_path_direction_bits",
+  "recipient_leaf_index",
+  "recipient_memo_ciphertext_body_hash",
+  "recipient_memo_ciphertext_body_hash_field",
+  "recipient_output_commitment",
+  "recipient_output_root",
+  "request_version",
+  "send_context_tag",
+] as const;
+
 function toCircuitString(value: bigint) {
   return value.toString(10);
+}
+
+function assertRecord(value: unknown, label: string): asserts value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${label} must be an object.`);
+  }
+}
+
+function normalizeWitnessField(value: unknown, label: string) {
+  const parsed =
+    typeof value === "bigint"
+      ? value
+      : typeof value === "string" && (value === "0" || /^[1-9][0-9]*$/u.test(value))
+        ? BigInt(value)
+        : null;
+
+  if (parsed === null) {
+    throw new Error(`${label} must be a canonical decimal BN254 field string.`);
+  }
+
+  if (parsed < 0n || parsed >= BN254_SCALAR_FIELD) {
+    throw new Error(`${label} must fit in BN254.`);
+  }
+
+  return parsed;
+}
+
+function normalizeWitnessAmount(value: unknown, label: string) {
+  const parsed = normalizeWitnessField(value, label);
+  if (parsed > U128_MAX) {
+    throw new Error(`${label} must fit in u128.`);
+  }
+
+  return parsed;
+}
+
+function normalizeWitnessFieldArray(value: unknown, label: string) {
+  if (!Array.isArray(value)) {
+    throw new Error(`${label} must be an array.`);
+  }
+
+  if (value.length !== VANTA_PRIVATE_POOL_V2_CIRCUIT_MERKLE_DEPTH) {
+    throw new Error(
+      `${label} must contain ${VANTA_PRIVATE_POOL_V2_CIRCUIT_MERKLE_DEPTH} fields.`,
+    );
+  }
+
+  return value.map((entry, index) => normalizeWitnessField(entry, `${label}[${index}]`));
+}
+
+function normalizeMemoCiphertextBodyHash(value: unknown, label: string) {
+  if (typeof value !== "string") {
+    throw new Error(`${label} must be a sha256 memo ciphertext body hash string.`);
+  }
+
+  const trimmed = value.trim();
+  deriveVantaPrivatePoolV2MemoCiphertextBodyHashField(trimmed, label);
+  return trimmed;
+}
+
+function assertNoUnexpectedWitnessFields(input: Record<string, unknown>) {
+  const allowed = new Set<string>(SEND_WITNESS_FIELDS);
+
+  for (const key of Object.keys(input)) {
+    if (!allowed.has(key)) {
+      throw new Error(`Send witness input contains unexpected field ${key}.`);
+    }
+  }
+
+  for (const key of allowed) {
+    if (!(key in input)) {
+      throw new Error(`Send witness input is missing ${key}.`);
+    }
+  }
+}
+
+function assertDirectionBits(bits: readonly bigint[], label: string) {
+  for (const [index, bit] of bits.entries()) {
+    if (bit !== 0n && bit !== 1n) {
+      throw new Error(`${label}[${index}] must be 0 or 1.`);
+    }
+  }
+}
+
+function leafIndexFromDirectionBits(directionBits: readonly bigint[]) {
+  return directionBits.reduce(
+    (leafIndex, bit, index) => leafIndex + (bit << BigInt(index)),
+    0n,
+  );
 }
 
 export function computeVantaPrivatePoolV2SendNullifier(
@@ -274,6 +435,207 @@ export function computeVantaPrivatePoolV2SendPublicInputHash(
   ]);
 }
 
+export function normalizeVantaPrivatePoolV2SendCircuitWitnessInput(input: unknown): {
+  memoCiphertextBodyHashes: Required<VantaPrivatePoolV2SendCircuitFixtureMemoBodyHashes>;
+  witness: VantaPrivatePoolV2SendCircuitWitness;
+} {
+  assertRecord(input, "Send witness input");
+  assertNoUnexpectedWitnessFields(input);
+
+  const memoCiphertextBodyHashes = {
+    changeMemoCiphertextBodyHash: normalizeMemoCiphertextBodyHash(
+      input.change_memo_ciphertext_body_hash,
+      "change memo ciphertext body hash",
+    ),
+    recipientMemoCiphertextBodyHash: normalizeMemoCiphertextBodyHash(
+      input.recipient_memo_ciphertext_body_hash,
+      "recipient memo ciphertext body hash",
+    ),
+  };
+  const witness: VantaPrivatePoolV2SendCircuitWitness = {
+    asset_id_commitment: normalizeWitnessField(
+      input.asset_id_commitment,
+      "asset_id_commitment",
+    ),
+    change_amount: normalizeWitnessAmount(input.change_amount, "change_amount"),
+    change_append_path: normalizeWitnessFieldArray(
+      input.change_append_path,
+      "change_append_path",
+    ),
+    change_append_path_direction_bits: normalizeWitnessFieldArray(
+      input.change_append_path_direction_bits,
+      "change_append_path_direction_bits",
+    ),
+    change_leaf_index: normalizeWitnessField(input.change_leaf_index, "change_leaf_index"),
+    change_memo_ciphertext_body_hash_field: normalizeWitnessField(
+      input.change_memo_ciphertext_body_hash_field,
+      "change_memo_ciphertext_body_hash_field",
+    ),
+    change_output_commitment: normalizeWitnessField(
+      input.change_output_commitment,
+      "change_output_commitment",
+    ),
+    change_output_root: normalizeWitnessField(input.change_output_root, "change_output_root"),
+    economics_blinding: normalizeWitnessField(input.economics_blinding, "economics_blinding"),
+    economics_commitment: normalizeWitnessField(
+      input.economics_commitment,
+      "economics_commitment",
+    ),
+    input_amount: normalizeWitnessAmount(input.input_amount, "input_amount"),
+    input_commitment: normalizeWitnessField(input.input_commitment, "input_commitment"),
+    input_leaf_index: normalizeWitnessField(input.input_leaf_index, "input_leaf_index"),
+    input_root: normalizeWitnessField(input.input_root, "input_root"),
+    membership_path: normalizeWitnessFieldArray(input.membership_path, "membership_path"),
+    membership_path_direction_bits: normalizeWitnessFieldArray(
+      input.membership_path_direction_bits,
+      "membership_path_direction_bits",
+    ),
+    nullifier: normalizeWitnessField(input.nullifier, "nullifier"),
+    owner_commitment: normalizeWitnessField(input.owner_commitment, "owner_commitment"),
+    owner_secret: normalizeWitnessField(input.owner_secret, "owner_secret"),
+    recipient_amount: normalizeWitnessAmount(input.recipient_amount, "recipient_amount"),
+    recipient_append_path: normalizeWitnessFieldArray(
+      input.recipient_append_path,
+      "recipient_append_path",
+    ),
+    recipient_append_path_direction_bits: normalizeWitnessFieldArray(
+      input.recipient_append_path_direction_bits,
+      "recipient_append_path_direction_bits",
+    ),
+    recipient_leaf_index: normalizeWitnessField(
+      input.recipient_leaf_index,
+      "recipient_leaf_index",
+    ),
+    recipient_memo_ciphertext_body_hash_field: normalizeWitnessField(
+      input.recipient_memo_ciphertext_body_hash_field,
+      "recipient_memo_ciphertext_body_hash_field",
+    ),
+    recipient_output_commitment: normalizeWitnessField(
+      input.recipient_output_commitment,
+      "recipient_output_commitment",
+    ),
+    recipient_output_root: normalizeWitnessField(
+      input.recipient_output_root,
+      "recipient_output_root",
+    ),
+    request_version: normalizeWitnessField(input.request_version, "request_version"),
+    send_context_tag: normalizeWitnessField(input.send_context_tag, "send_context_tag"),
+  };
+
+  assertDirectionBits(witness.membership_path_direction_bits, "membership_path_direction_bits");
+  assertDirectionBits(
+    witness.recipient_append_path_direction_bits,
+    "recipient_append_path_direction_bits",
+  );
+  assertDirectionBits(
+    witness.change_append_path_direction_bits,
+    "change_append_path_direction_bits",
+  );
+
+  if (witness.input_leaf_index !== leafIndexFromDirectionBits(witness.membership_path_direction_bits)) {
+    throw new Error("Send witness input_leaf_index must match membership direction bits.");
+  }
+  if (
+    witness.recipient_leaf_index !==
+    leafIndexFromDirectionBits(witness.recipient_append_path_direction_bits)
+  ) {
+    throw new Error("Send witness recipient_leaf_index must match recipient append direction bits.");
+  }
+  if (
+    witness.change_leaf_index !==
+    leafIndexFromDirectionBits(witness.change_append_path_direction_bits)
+  ) {
+    throw new Error("Send witness change_leaf_index must match change append direction bits.");
+  }
+
+  if (computeVantaPrivatePoolV2SendInputRoot(witness) !== witness.input_root) {
+    throw new Error("Send witness input_root must match the Merkle path.");
+  }
+
+  if (computeVantaPrivatePoolV2SendNullifier(witness) !== witness.nullifier) {
+    throw new Error("Send witness nullifier must match the owner secret.");
+  }
+
+  if (witness.input_amount !== witness.recipient_amount + witness.change_amount) {
+    throw new Error("Send witness amount conservation must hold.");
+  }
+
+  if (computeVantaPrivatePoolV2SendEconomicsCommitment(witness) !== witness.economics_commitment) {
+    throw new Error("Send witness economics commitment must match amounts and blinding.");
+  }
+
+  if (
+    BigInt(
+      deriveVantaPrivatePoolV2MemoCiphertextBodyHashField(
+        memoCiphertextBodyHashes.recipientMemoCiphertextBodyHash,
+        "recipient memo ciphertext body hash",
+      ),
+    ) !== witness.recipient_memo_ciphertext_body_hash_field
+  ) {
+    throw new Error("Send witness recipient memo ciphertext body hash field mismatch.");
+  }
+
+  if (
+    BigInt(
+      deriveVantaPrivatePoolV2MemoCiphertextBodyHashField(
+        memoCiphertextBodyHashes.changeMemoCiphertextBodyHash,
+        "change memo ciphertext body hash",
+      ),
+    ) !== witness.change_memo_ciphertext_body_hash_field
+  ) {
+    throw new Error("Send witness change memo ciphertext body hash field mismatch.");
+  }
+
+  if (
+    computeVantaPrivatePoolV2SendRootFromLeaf({
+      leafValue: 0n,
+      path: witness.recipient_append_path,
+      pathDirectionBits: witness.recipient_append_path_direction_bits,
+    }) !== witness.input_root
+  ) {
+    throw new Error("Send witness recipient append path must start from the input root.");
+  }
+
+  if (
+    computeVantaPrivatePoolV2SendRootFromLeaf({
+      leafValue: witness.recipient_output_commitment,
+      path: witness.recipient_append_path,
+      pathDirectionBits: witness.recipient_append_path_direction_bits,
+    }) !== witness.recipient_output_root
+  ) {
+    throw new Error("Send witness recipient_output_root must match the append path.");
+  }
+
+  if (
+    computeVantaPrivatePoolV2SendRootFromLeaf({
+      leafValue: 0n,
+      path: witness.change_append_path,
+      pathDirectionBits: witness.change_append_path_direction_bits,
+    }) !== witness.recipient_output_root
+  ) {
+    throw new Error("Send witness change append path must start from the recipient output root.");
+  }
+
+  if (
+    computeVantaPrivatePoolV2SendRootFromLeaf({
+      leafValue: witness.change_output_commitment,
+      path: witness.change_append_path,
+      pathDirectionBits: witness.change_append_path_direction_bits,
+    }) !== witness.change_output_root
+  ) {
+    throw new Error("Send witness change_output_root must match the append path.");
+  }
+
+  if (witness.recipient_output_commitment === witness.change_output_commitment) {
+    throw new Error("Send witness output commitments must be unique.");
+  }
+
+  return {
+    memoCiphertextBodyHashes,
+    witness,
+  };
+}
+
 export function createVantaPrivatePoolV2SendCircuitFixture({
   memoCiphertextBodyHashes,
   mode = "valid",
@@ -362,6 +724,14 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
     sendPublicInputHash: mode === "invalid-binding" ? validPublicHash + 1n : validPublicHash,
     witness: circuitWitness,
   };
+}
+
+export function createVantaPrivatePoolV2SendCircuitFixtureFromWitnessInput(input: unknown) {
+  const normalized = normalizeVantaPrivatePoolV2SendCircuitWitnessInput(input);
+  return createVantaPrivatePoolV2SendCircuitFixture({
+    memoCiphertextBodyHashes: normalized.memoCiphertextBodyHashes,
+    witness: normalized.witness,
+  });
 }
 
 function assertMemoCiphertextBodyHashFieldMatches({

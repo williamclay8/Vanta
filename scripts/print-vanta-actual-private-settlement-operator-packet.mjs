@@ -140,6 +140,10 @@ const packet = {
     expectedActionRef,
     actualPrivateActionScoped,
     currentApprovalWindowRef: approvalStatus.approvalWindowRef,
+    executionAllowedNow: approvalStatus.liveMainnetActionsAllowedNow,
+    executionBlockers: approvalStatus.liveMainnetActionsAllowedNow
+      ? []
+      : approvalStatus.mainnetFundsBlockedBy,
     liveMainnetActionsAllowedNow: approvalStatus.liveMainnetActionsAllowedNow,
     stopConditionStatus: approvalStatus.stopCondition,
     expectedMaximumFundsAtRisk,
@@ -200,8 +204,9 @@ const packet = {
     sourceOnlyReservedUnshieldStatus: sbfAbiStatus.abi.proofVerifiedUnshieldStatus,
     checkCommand: sbfAbiStatus.checkCommand,
     rebuildCommand: "cargo-build-sbf --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
-    truthBoundary:
-      "The current source reserves proof-carrying spend and proof-verified Unshield ABI shapes, but the SBF ABI is not fresh until cargo-build-sbf rebuilds the program and the Solana CLI can verify or deploy the matching bytecode.",
+    truthBoundary: sbfAbiStatus.abiFresh
+      ? "The current source reserves proof-carrying spend and proof-verified Unshield ABI shapes, and the local SBF ABI is fresh for this source. This is local bytecode evidence only; it is not redeployed, reinitialized, or live-verified mainnet evidence."
+      : "The current source reserves proof-carrying spend and proof-verified Unshield ABI shapes, but the SBF ABI is not fresh until cargo-build-sbf rebuilds the program and the Solana CLI can verify or deploy the matching bytecode.",
   },
   shellExportTemplate: shellExports(refs),
   forbiddenOutputValues: [

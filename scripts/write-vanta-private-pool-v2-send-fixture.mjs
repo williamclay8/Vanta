@@ -8,7 +8,23 @@ const outputPath = resolve(
   repoRoot,
   "zk/noir/vanta_private_pool_v2_send_entry/Prover.toml",
 );
-const fixtureMode = process.argv[2] ?? "valid";
+const args = process.argv.slice(2);
+let fixtureMode = "valid";
+let witnessJsonPath = null;
+for (let index = 0; index < args.length; index += 1) {
+  const arg = args[index];
+  if (arg === "--witness-json") {
+    witnessJsonPath = args[index + 1] ?? null;
+    index += 1;
+    continue;
+  }
+
+  fixtureMode = arg ?? fixtureMode;
+}
+
+if (!witnessJsonPath && process.argv[2]) {
+  fixtureMode = process.argv[2];
+}
 const sourceFiles = [
   "protocolAdapter.ts",
   "privatePoolV2MerkleFixtureHelpers.ts",
@@ -18,6 +34,7 @@ const sourceFiles = [
 ];
 
 if (
+  witnessJsonPath === null &&
   fixtureMode !== "valid" &&
   fixtureMode !== "forged-input-membership" &&
   fixtureMode !== "forged-recipient-append-path" &&
@@ -32,6 +49,16 @@ if (
   console.error(
     'Expected fixture mode "valid", "forged-input-membership", "forged-recipient-append-path", "forged-change-append-path", "invalid-amount-conservation", "invalid-amount-range", "invalid-binding", "invalid-memo-ciphertext-hash", "invalid-nullifier", or "invalid-output-root".',
   );
+  process.exit(1);
+}
+
+if (witnessJsonPath !== null && !witnessJsonPath.trim()) {
+  console.error("--witness-json requires a path.");
+  process.exit(1);
+}
+
+if (witnessJsonPath !== null && fixtureMode !== "valid") {
+  console.error("--witness-json is only supported with the valid fixture mode.");
   process.exit(1);
 }
 
@@ -88,13 +115,22 @@ try {
   const fixtureModule = await import(
     pathToFileURL(join(tempJsDir, "privatePoolV2SendCircuitFixture.js")).href
   );
-  const fixture = fixtureModule.createVantaPrivatePoolV2SendCircuitFixture({
-    mode: fixtureMode,
-  });
+  const fixture =
+    witnessJsonPath === null
+      ? fixtureModule.createVantaPrivatePoolV2SendCircuitFixture({
+          mode: fixtureMode,
+        })
+      : fixtureModule.createVantaPrivatePoolV2SendCircuitFixtureFromWitnessInput(
+          JSON.parse(readFileSync(resolve(repoRoot, witnessJsonPath), "utf8")),
+        );
   const toml = fixtureModule.serializeVantaPrivatePoolV2SendCircuitFixtureToToml(fixture);
 
   writeFileSync(outputPath, toml);
-  console.log(`Wrote ${fixtureMode} fixture to ${outputPath}`);
+  console.log(
+    witnessJsonPath === null
+      ? `Wrote ${fixtureMode} fixture to ${outputPath}`
+      : `Wrote witness-input fixture to ${outputPath}`,
+  );
 } catch (error) {
   const stdout = String(error.stdout ?? "");
   const stderr = String(error.stderr ?? "");
