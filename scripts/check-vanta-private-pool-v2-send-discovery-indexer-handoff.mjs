@@ -161,10 +161,21 @@ try {
     status.parsed?.sendDiscovery?.blockerIds?.includes(
       "send-memo-indexer-body-hash-handoff-not-deployed",
     ) &&
-      status.parsed?.sendDiscovery?.blockerIds?.includes(
+      !status.parsed?.sendDiscovery?.blockerIds?.includes(
         "legacy-v1-send-history-migration-not-scoped",
       ),
-    "Send discovery status must expose the exact production blocker ids.",
+    "Send discovery status must expose only the remaining deployed production blocker id.",
+  );
+  assert(
+    status.parsed?.sendDiscovery?.freshV2OnlyClaimScoped === true,
+    "Send discovery status must expose top-level fresh-v2-only claim scope.",
+  );
+  assert(
+    status.parsed?.sendDiscovery?.legacyHistoryScope?.freshV2OnlyClaimScoped === true &&
+      status.parsed?.sendDiscovery?.legacyHistoryScope?.legacyV1EligibleForProductionPrivacyClaims ===
+        false &&
+      status.parsed?.sendDiscovery?.legacyHistoryScope?.migrated === false,
+    "Send discovery status must expose the fresh-v2-only history scope without claiming v1 migration.",
   );
 
   const posted = await requestJson("/v1/send-discovery-packets", {

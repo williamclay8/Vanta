@@ -241,6 +241,7 @@ try {
     createPreparedUnshieldMemo,
     parseSendChangeDiscoveryMemo,
     createSpentMarkerInstruction,
+    getVantaSendHistoryPrivacyScopePolicy,
     parseSendMemo,
     parseSendRecipientDiscoveryMemo,
     parseSolUnshieldMemo,
@@ -287,9 +288,15 @@ try {
     sendPayload.recipient,
     sendPayload.vaultOwner,
   ]);
-  assert(parseSendMemo(sendMemoText, "send-v2", {
+  const parsedFreshV2Send = parseSendMemo(sendMemoText, "send-v2", {
     viewingSecretKey: recipientViewingKey.secretKey,
-  })?.recipient === recipient, "Send v2 memo must decrypt with the recipient viewing key.");
+  });
+  assert(parsedFreshV2Send?.recipient === recipient, "Send v2 memo must decrypt with the recipient viewing key.");
+  assert(
+    parsedFreshV2Send.memoPrivacyScope === "fresh-v2-viewing-key-aead" &&
+      parsedFreshV2Send.productionPrivacyScopeEligible === true,
+    "Send v2 memo reads must be marked eligible for the fresh-v2-only production claim scope.",
+  );
   assert(
     parseSendMemo(sendMemoText, "send-v2", {
       viewingSecretKey: wrongViewingKey.secretKey,
@@ -303,9 +310,23 @@ try {
     kind: "send",
     noteId: encryptedSend.noteId,
   })}`;
+  const parsedLegacyV1Send = parseSendMemo(legacySendMemoText, "send-v1");
   assert(
-    parseSendMemo(legacySendMemoText, "send-v1")?.recipient === recipient,
+    parsedLegacyV1Send?.recipient === recipient,
     "Send v1 plaintext memo parsing must remain backward compatible without live helpers emitting v1.",
+  );
+  assert(
+    parsedLegacyV1Send.memoPrivacyScope === "legacy-v1-plaintext-history" &&
+      parsedLegacyV1Send.productionPrivacyScopeEligible === false,
+    "Send v1 plaintext memo reads must be segregated from fresh-v2 production privacy claims.",
+  );
+  const sendHistoryScopePolicy = getVantaSendHistoryPrivacyScopePolicy();
+  assert(
+    sendHistoryScopePolicy.freshV2OnlyProductionClaims === true &&
+      sendHistoryScopePolicy.legacyV1EligibleForProductionPrivacyClaims === false &&
+      sendHistoryScopePolicy.legacyV1ParseCompatible === true &&
+      sendHistoryScopePolicy.migrationStatus === "not-migrated",
+    "Send history privacy scope policy must preserve fresh-v2-only claims while keeping legacy v1 read compatibility truthful.",
   );
   const dualSend = createPreparedSendDualAeadMemo(sendPayload, {
     changeViewingPublicKey: senderViewingKey.publicKey,

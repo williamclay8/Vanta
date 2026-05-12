@@ -23,8 +23,8 @@ assert(
   "Send status must keep the deployed memo/indexer body-hash handoff blocker.",
 );
 assert(
-  status.blockers.includes("legacy-v1-send-history-migration-not-scoped"),
-  "Send status must keep the historical v1 migration/scope blocker.",
+  !status.blockers.includes("legacy-v1-send-history-migration-not-scoped"),
+  "Send status must not keep the historical v1 migration blocker once fresh-v2-only claim scope is recorded.",
 );
 assert(
   shieldState.includes("createPreparedSendDualAeadMemo") &&
@@ -36,8 +36,11 @@ assert(
 );
 assert(
   shieldState.includes("VANTA_SEND_MEMO_PREFIX_V2") &&
-    shieldState.includes("extractMemoPayload(memo, VANTA_SEND_MEMO_PREFIX)"),
-  "Send must keep fresh v2 AEAD while limiting v1 plaintext to historical parser fallback.",
+    shieldState.includes("extractMemoPayload(memo, VANTA_SEND_MEMO_PREFIX)") &&
+    shieldState.includes("getVantaSendHistoryPrivacyScopePolicy") &&
+    shieldState.includes("legacy-v1-plaintext-history") &&
+    shieldState.includes("productionPrivacyScopeEligible"),
+  "Send must keep fresh v2 AEAD while marking v1 plaintext as historical and outside production privacy scope.",
 );
 assert(
   sendPage.includes("External Vanta Send v2 requires recipient viewing-key exchange") &&
@@ -56,24 +59,49 @@ assert.equal(
 );
 assert.equal(
   status.sendDiscoveryHandoff?.legacyV1SendHistoryMigrationScoped,
+  true,
+  "Send status must record the fresh-v2-only historical v1 scope boundary.",
+);
+assert.equal(
+  status.sendDiscoveryHandoff?.freshV2OnlyClaimScoped,
+  true,
+  "Send status must explicitly scope production claims to fresh v2 Send history.",
+);
+assert.equal(
+  status.sendDiscoveryHandoff?.legacyHistoryScope?.migrated,
   false,
-  "Send status must keep the historical v1 migration/scope blocker explicit.",
+  "Send status must not claim legacy v1 history was migrated.",
+);
+assert.equal(
+  status.sendDiscoveryHandoff?.legacyHistoryScope?.legacyV1EligibleForProductionPrivacyClaims,
+  false,
+  "Legacy v1 plaintext Send history must not be eligible for production privacy claims.",
 );
 assert(
   trustPacket.sendDiscoveryHandoff?.blockerIds?.includes(
     "send-memo-indexer-body-hash-handoff-not-deployed",
   ) &&
-    trustPacket.sendDiscoveryHandoff?.blockerIds?.includes(
+    !trustPacket.sendDiscoveryHandoff?.blockerIds?.includes(
       "legacy-v1-send-history-migration-not-scoped",
     ) &&
     trustPacket.remainingBlockers.includes("send-memo-indexer-body-hash-handoff-not-deployed") &&
-    trustPacket.remainingBlockers.includes("legacy-v1-send-history-migration-not-scoped"),
-  "Send trust packet must expose exact discovery/migration blocker ids.",
+    !trustPacket.remainingBlockers.includes("legacy-v1-send-history-migration-not-scoped"),
+  "Send trust packet must expose only the remaining deployed discovery blocker id.",
 );
 assert.equal(
   trustPacket.sendDiscoveryHandoff?.productionReady,
   false,
   "Send trust packet must keep discovery handoff productionReady false.",
+);
+assert.equal(
+  trustPacket.legacyHistoryScope?.freshV2OnlyClaimScoped,
+  true,
+  "Send trust packet must expose the fresh-v2-only history scope.",
+);
+assert.equal(
+  trustPacket.legacyHistoryScope?.legacyV1EligibleForProductionPrivacyClaims,
+  false,
+  "Send trust packet must keep legacy v1 plaintext history outside production privacy scope.",
 );
 assert(
   trustPacket.verificationCommands.includes("npm run send:discovery-indexer-handoff-check"),

@@ -35,6 +35,8 @@ export const VANTA_UNSHIELD_MEMO_PREFIX_V2 = "vanta:unshield-note:v2:";
 export const VANTA_SWAP_MEMO_PREFIX_V2 = "vanta:swap-note:v2:";
 export const VANTA_SOL_UNSHIELD_MEMO_PREFIX_V2 = "vanta:sol-unshield-note:v2:";
 export const VANTA_SPENT_MARKER_MEMO_PREFIX_V2 = "vanta:spent-marker:v2:";
+export const VANTA_SEND_HISTORY_PRIVACY_SCOPE_VERSION =
+  "vanta-send-history-privacy-scope-0.1";
 export const VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE =
   "vanta-native-sol-same-transaction-deposit";
 export const VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE =
@@ -92,8 +94,14 @@ export type VantaSendNote = BaseVantaNote & {
   changeNoteId?: string;
   consumedNoteId: string;
   kind: "send";
+  memoPrivacyScope?: VantaSendMemoPrivacyScope;
+  productionPrivacyScopeEligible?: boolean;
   recipient: string;
 };
+
+export type VantaSendMemoPrivacyScope =
+  | "fresh-v2-viewing-key-aead"
+  | "legacy-v1-plaintext-history";
 
 export type VantaUnshieldNote = BaseVantaNote & {
   consumedNoteId: string;
@@ -783,6 +791,22 @@ function extractMemoPayload(
   }
 
   return trimmedMemo.slice(memoStart + prefix.length);
+}
+
+export function getVantaSendHistoryPrivacyScopePolicy() {
+  return {
+    version: VANTA_SEND_HISTORY_PRIVACY_SCOPE_VERSION,
+    freshV2OnlyProductionClaims: true,
+    freshV2ProductionPrivacyScope:
+      "fresh v2 viewing-key AEAD Send memos created after the scope policy",
+    legacyV1ParseCompatible: true,
+    legacyV1EligibleForProductionPrivacyClaims: false,
+    legacyV1Scope: "historical plaintext compatibility only",
+    migrationStatus: "not-migrated",
+    productionReady: false,
+    scopeBoundary:
+      "production Send privacy claims are scoped to fresh v2 AEAD sends unless legacy v1 plaintext history is migrated or segregated with reviewed evidence",
+  } as const;
 }
 
 function createShieldNoteId(payload: Omit<ShieldMemoPayload, "kind" | "noteId">) {
@@ -1591,6 +1615,9 @@ export function parseSendMemo(
   }
 
   try {
+    const memoPrivacyScope: VantaSendMemoPrivacyScope = encryptedPayload
+      ? "fresh-v2-viewing-key-aead"
+      : "legacy-v1-plaintext-history";
     const parsed = encryptedPayload ?? (JSON.parse(memoPayload ?? "") as Partial<SendMemoPayload>);
 
     if (
@@ -1633,9 +1660,12 @@ export function parseSendMemo(
           : undefined,
       createdAt: parsed.createdAt,
       kind: "send",
+      memoPrivacyScope,
       mintAddress: parsed.mintAddress,
       noteId: typeof parsed.noteId === "string" ? parsed.noteId : undefined,
       owner: parsed.owner,
+      productionPrivacyScopeEligible:
+        memoPrivacyScope === "fresh-v2-viewing-key-aead",
       recipient: parsed.recipient,
       stateSignature,
       vaultOwner: parsed.vaultOwner,

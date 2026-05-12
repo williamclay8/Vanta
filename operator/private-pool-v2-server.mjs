@@ -2265,11 +2265,22 @@ async function statusPayload() {
     sendDiscoveryHandoff: {
       blockerIds: [
         "send-memo-indexer-body-hash-handoff-not-deployed",
-        "legacy-v1-send-history-migration-not-scoped",
       ],
       claimBoundary:
         "local encrypted-view-tag index only; not production recipient discovery",
+      freshV2OnlyClaimScoped: true,
       indexerEndpoint: "/v1/send-discovery-packets",
+      legacyHistoryScope: {
+        freshV2OnlyClaimScoped: true,
+        legacyV1EligibleForProductionPrivacyClaims: false,
+        legacyV1ParseCompatible: true,
+        migrated: false,
+        productionReady: false,
+        scopeBoundary:
+          "production Send privacy claims are scoped to fresh v2 AEAD sends unless legacy v1 plaintext history is migrated or segregated with reviewed evidence",
+        status: "fresh-v2-only-production-claim-scope",
+        version: "vanta-send-history-privacy-scope-0.1",
+      },
       localRoleServiceEndpointImplemented: true,
       productionReady: false,
       statusEndpoint: "/v1/send-discovery/status",

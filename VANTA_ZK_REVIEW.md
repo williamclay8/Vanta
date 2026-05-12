@@ -28,7 +28,7 @@ This review is now an active feedback-loop document, not only a point-in-time au
 | Action memo privacy | Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers now fail closed into v2 viewing-key AEAD; v1 plaintext parsing remains only for historical chain memos. A local Send dual-AEAD scaffold can separately seal recipient/change discovery memos and expose `sha256:` ciphertext body hashes, and the Private Pool v2 Send proof-request/circuit lane now binds recipient/change body-hash limbs into the Send public-input hash. External Send remains fail-closed until recipient viewing-key exchange or view-tag/indexer discovery is wired. | `npm run actions:memo-encryption-check`; `npm run send:discovery-migration-policy-check`; `npm run private-pool-v2:send-proof-request-check`; `npm run private-pool-v2:send-circuit-check`; `npm run private-pool-v2:public-input-hash-alignment-check` |
 | Owner recovery payload | X25519 + HKDF-SHA256 + XChaCha20-Poly1305 replaced the hand-rolled XOR/SHA path. | `npm run zk:owner-recovery-payload-crypto-check` |
 
-Still not solved: on-chain proof verification/verifying-key enforcement is not wired, root history is only a local operator-authorized fixed-slot scaffold, recipient-grade Send discovery still needs viewing-key exchange or view-tag/indexer discovery and historical v1 migration, no audit has accepted the boundary, the local SBF binary must be rebuilt before it can represent the current ABI, and no live deployment evidence has been refreshed.
+Still not solved: on-chain proof verification/verifying-key enforcement is not wired, root history is only a local operator-authorized fixed-slot scaffold, recipient-grade Send discovery still needs viewing-key exchange or deployed view-tag/indexer discovery, no audit has accepted the boundary, the local SBF binary must be rebuilt before it can represent the current ABI, and no live deployment evidence has been refreshed. Historical v1 Send plaintext remains parse-compatible but is now excluded from production privacy claims unless migrated or segregated with reviewed evidence.
 
 ---
 
@@ -458,7 +458,7 @@ The trace, end-to-end, when a user clicks *Send* on `/app/send`:
      return { accounts: [], data: new TextEncoder().encode(memoPayload), programAddress: VANTA_SHIELD_MEMO_PROGRAM };
    }
    ```
-   That v1 shape was plaintext JSON to the SPL Memo program. Current fresh helpers fail closed into v2 viewing-key AEAD, and `createPreparedSendDualAeadMemo` now scaffolds separate recipient/change encrypted discovery memos with ciphertext body hashes. Recipient-grade discovery still needs real recipient viewing-key exchange or view tags, production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces, and historical v1 migration.
+   That v1 shape was plaintext JSON to the SPL Memo program. Current fresh helpers fail closed into v2 viewing-key AEAD, `parseSendMemo` marks v1 reads as `legacy-v1-plaintext-history`, and `createPreparedSendDualAeadMemo` now scaffolds separate recipient/change encrypted discovery memos with ciphertext body hashes. Recipient-grade discovery still needs real recipient viewing-key exchange or view tags plus production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces. Production privacy claims are scoped to fresh v2 Send history unless legacy v1 plaintext history is migrated or segregated with reviewed evidence.
 4. **Transaction signing.** The browser asks the user's wallet to sign a transaction whose only meaningful instruction is that memo, plus Helius priority-fee instructions. **No SPL transfer is included.** The vault's USDC ATA is unchanged.
 5. **A second transaction — the "spent marker."** Before the action-memo feedback loop, `src/solana/vantaShieldState.ts:createSpentMarkerInstruction` wrote another plaintext memo with prefix `"vanta:spent-marker:..."` claiming `consumedNoteId` was now spent. Fresh spent-marker helpers now emit v2 AEAD ciphertext; legacy v1 spent markers remain parseable for old chain history.
 6. **Off-chain operator notification.** The browser POSTs to the operator's `/private-core/send-proof` and `/private-core/send-transition` endpoints (see `operator/unshield-server.mjs:873–1190`). The operator:
@@ -712,7 +712,7 @@ Don't rewrite from scratch. The following pieces are correct or close:
 
 While S1–S5 are in flight:
 
-- **Keep fresh Send memos on the v2 AEAD path.** The original v1 memo bytes were a public ledger of every send; fresh local helpers now fail closed into viewing-key AEAD, and a local dual-AEAD scaffold can separately seal recipient/change discovery memo legs. The remaining work is recipient-grade viewing-key exchange or view tags, production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces, and historical v1 migration.
+- **Keep fresh Send memos on the v2 AEAD path.** The original v1 memo bytes were a public ledger of every send; fresh local helpers now fail closed into viewing-key AEAD, v1 reads are marked as historical/non-production-eligible, and a local dual-AEAD scaffold can separately seal recipient/change discovery memo legs. The remaining work is recipient-grade viewing-key exchange or view tags plus production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces.
 - Mark `liveSendBridge.ts:recordCanonicalSendFromLiveSend` and the localStorage list as user-facing diagnostics only. Don't claim the JSON list is "shielded state".
 - Remove `TAG_SPEND = 1` from the on-chain program once `TAG_SEND = 3` exists; a public, unauthenticated append-only nullifier log accessible to any wallet is a denial-of-service that scales with rent (audit item 2).
 - Block the SOL-send capability path with a real refusal: today it returns a soft `unsupported-private-send-asset` blocker; the user can't actually trigger it but the option appears in the asset list. Hide it until the SOL lane exists.
@@ -1459,7 +1459,7 @@ Strategy is a *composition* lane. It doesn't introduce new privacy primitives; i
 - **Settle to private balance** = the final hop is a send-to-self into the shielded pool. Inherits send's privacy properties.
 - **Settle to public destination** = the final hop is an unshield. Inherits unshield's privacy properties.
 
-If send leaks plaintext memos with `amount, recipient, asset` (it did in the original v1 action-memo shape), then every Stealth DCA child order leaks the same information N times. Fresh v2 action memos and local Send body-hash proof binding improve that specific leak, but Strategy still inherits Send's unfinished recipient discovery, production memo/indexer handoff, historical v1 migration, and verifier/on-chain enforcement work. If swap requires a custodial liquidity wallet (it does today), then every Strategy child swap goes through that same wallet. If unshield reveals the destination on chain and forces destination-equals-owner (it does today), then "settle to public destination" forces the entire strategy's output to land in the original initiator's wallet, defeating the strategy-level privacy framing entirely.
+If send leaks plaintext memos with `amount, recipient, asset` (it did in the original v1 action-memo shape), then every Stealth DCA child order leaks the same information N times. Fresh v2 action memos and local Send body-hash proof binding improve that specific leak, and production Send privacy claims now exclude legacy v1 plaintext history unless it is migrated or segregated with reviewed evidence. Strategy still inherits Send's unfinished recipient discovery, production memo/indexer handoff, and verifier/on-chain enforcement work. If swap requires a custodial liquidity wallet (it does today), then every Strategy child swap goes through that same wallet. If unshield reveals the destination on chain and forces destination-equals-owner (it does today), then "settle to public destination" forces the entire strategy's output to land in the original initiator's wallet, defeating the strategy-level privacy framing entirely.
 
 **Strategy cannot be more private than the sum of its child legs.** And the child legs today, as documented in the previous deep dives, are not private at all.
 
@@ -1617,7 +1617,7 @@ The four economic lanes (shield, send, swap, unshield) are positioned as private
 
 The single most leveraged sequence of fixes:
 
-1. **Keep fresh action memos on v2 AEAD and finish recipient discovery.** Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers now fail closed into viewing-key AEAD; recipient viewing-key exchange, view tags/indexer discovery, production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces, and historical v1 migration remain open.
+1. **Keep fresh action memos on v2 AEAD and finish recipient discovery.** Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers now fail closed into viewing-key AEAD; Send v1 plaintext history is excluded from production privacy claims unless migrated or segregated with reviewed evidence. Recipient viewing-key exchange, view tags/indexer discovery, and production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces remain open.
 2. **Keep the strategy/pay trust-contract pattern lifted into the other four lanes** — make UI copy derive from explicit `claimControls` objects so the product never claims more than the code can support.
 3. **Migrate the vault from operator-keypair-in-env to a program-owned PDA** (shield W4, unshield U2). Removes the entire single-env-var custody risk.
 4. **Lock the Poseidon note schema** (shield W1) and rebuild the four entry circuits on top of it (shield W3, send S1, swap X1, unshield U1) at depth 20 with real Merkle membership and real ownership constraints.
@@ -1919,7 +1919,7 @@ The four economic lanes (shield, send, swap, unshield) now have better local hon
 
 The single most leveraged sequence of fixes, updated:
 
-1. **Keep fresh action memos on v2 AEAD and finish recipient discovery.** Fresh Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers no longer emit plaintext v1 memos; local Send proof requests/circuits now bind recipient/change ciphertext body-hash limbs, while view-tag/indexer discovery, recipient key exchange, production memo/indexer handoff, and historical v1 migration remain open.
+1. **Keep fresh action memos on v2 AEAD and finish recipient discovery.** Fresh Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers no longer emit plaintext v1 memos; local Send proof requests/circuits now bind recipient/change ciphertext body-hash limbs, and Send v1 plaintext history is excluded from production privacy claims unless migrated or segregated with reviewed evidence. View-tag/indexer discovery, recipient key exchange, and production memo/indexer handoff remain open.
 2. **Keep the strategy-lane and pay-lane trust-contract pattern lifted into the other four lanes** — make UI copy derive from explicit `claimControls` objects so the product never claims more than the code can support. **Wire those claim-controls into UI gating, not just static returns.**
 3. **Migrate the vault from operator-keypair-in-env to a program-owned PDA** (shield W4, unshield U2). Removes the entire single-env-var custody risk.
 4. **Lock the Poseidon note schema** (shield W1) and rebuild the four entry circuits on top of it (shield W3, send S1, swap X1, unshield U1) at depth 20 with real Merkle membership and real ownership constraints.
@@ -2395,13 +2395,13 @@ This local slice advances the recipient-grade Send discovery recommendation with
 - `src/solana/vantaShieldViewingKey.ts` now derives a local encrypted view tag from the X25519 memo shared secret and memo prefix. The recipient can derive the same tag from the memo body and viewing secret without decrypting the payload; the wrong viewing key derives a different tag.
 - `src/solana/vantaShieldState.ts` now attaches a `vanta-send-discovery-handoff-0.1` object to each dual-AEAD Send memo leg. The handoff is commitment-only: audience, encrypted view tag, memo ciphertext body hash, memo prefix, proof-binding note, and `productionReady: false`.
 - The separated Private Pool v2 indexer role now exposes `POST /v1/send-discovery-packets`, `GET /v1/send-discovery-packets`, and `GET /v1/send-discovery/status`. The packet validator rejects raw recipient, amount, asset, plaintext memo, wallet key, witness/private input, deposit signature, serialized transaction, malformed/mismatched body hashes, duplicate packets, and production-readiness overclaims.
-- Send trust/status surfaces now include a machine-readable discovery handoff packet with the exact blocker ids `send-memo-indexer-body-hash-handoff-not-deployed` and `legacy-v1-send-history-migration-not-scoped`.
+- Send trust/status surfaces now include a machine-readable discovery handoff packet with the remaining blocker id `send-memo-indexer-body-hash-handoff-not-deployed`, plus a separate fresh-v2-only history scope showing legacy v1 plaintext history is parse-compatible but not production-privacy-eligible.
 - A read-only review pass caught a future truth-drift path and validator gaps before commit. The final patch now includes deployed discovery handoff and legacy-v1 migration scope in the Send `productionReady` formula, makes the discovery packet schema allowlist-only, rejects raw-field aliases such as `amountBaseUnits`, `recipientAddress`, `ownerPubkey`, `vaultOwner`, `mintAddress`, and `changeAmount`, parses output leaf indices strictly, and restart-tests discovery packet persistence.
 - External Send remains fail-closed until recipient viewing-key exchange or deployed view-tag/indexer discovery is wired; historical v1 plaintext Send history still needs migration or a fresh-v2-only production claim boundary.
 
 Verification in this slice: `npm run actions:memo-encryption-check`, `npm run send:trust-packet-check`, `npm run send:discovery-migration-policy-check`, `npm run send:discovery-indexer-handoff-check`, `npm run mainnet:send-production-check`, `npm run send:production-privacy-claim-gate`, `npm run private-pool-v2:service-network-check`, `npm run private-pool-v2:send-proof-request-check`, `npm run private-pool-v2:send-circuit-check`, `npm run private-pool-v2:public-input-hash-alignment-check`, `npm run privacy-rail:contract-check`, `npm run security:limitations-check`, `npm run docs:source-of-truth-check`, `npm run lanes:trust-contract-check`, `npm run programmatic-privacy:contract-check`, `npm run zk:review-findings-ledger-check`, `npm run send:verify`, `npm run build`, and `git diff --check` passed locally before commit.
 
-Still open after this twenty-sixth local pass: the encrypted view-tag/body-hash handoff is local indexer evidence only. Production still needs deployed memo/indexer handoff proving opaque memo bodies and view-tag packets match proof-bound `sha256:` body hashes, recipient viewing-key exchange or deployed discovery UX, legacy v1 history migration or fresh-v2-only scope, live reviewed settlement evidence, relayer separation, anonymity evidence, production replay/idempotency evidence, and audit acceptance.
+Still open after this twenty-sixth local pass: the encrypted view-tag/body-hash handoff is local indexer evidence only. Production still needs deployed memo/indexer handoff proving opaque memo bodies and view-tag packets match proof-bound `sha256:` body hashes, recipient viewing-key exchange or deployed discovery UX, live reviewed settlement evidence, relayer separation, anonymity evidence, production replay/idempotency evidence, and audit acceptance. The follow-up local scope now excludes legacy v1 plaintext Send history from production privacy claims unless migrated or segregated with reviewed evidence.
 
 ---
 
@@ -3386,3 +3386,33 @@ That's the closing argument of this entire review: ship the technical work, ship
 The team that does one without the other ships another also-ran. The team that does neither ships nothing memorable.
 
 The choice is whose review I'm writing six months from now.
+
+---
+
+## Twenty-seventh Codex feedback loop - Fresh-v2-only Send history scope
+
+This loop addressed the remaining local-addressable part of the Send memo/discovery finding after the encrypted view-tag/indexer handoff: historical v1 Send memos are still plaintext and parse-compatible, but future production-private Send language needed a machine-readable boundary that does not imply old chain history was migrated.
+
+Implementation:
+
+- `parseSendMemo` now marks decrypted v2 memos as `memoPrivacyScope: "fresh-v2-viewing-key-aead"` with `productionPrivacyScopeEligible: true`.
+- Legacy v1 plaintext Send memo reads remain backward compatible, but are marked `memoPrivacyScope: "legacy-v1-plaintext-history"` with `productionPrivacyScopeEligible: false`.
+- `getVantaSendHistoryPrivacyScopePolicy()` records the durable policy: production Send privacy claims are scoped to fresh v2 AEAD sends unless legacy v1 plaintext history is migrated or segregated with reviewed evidence.
+- Send status, trust packet, operator status, and local Send discovery status now expose a separate `legacyHistoryScope` object instead of treating legacy history as an unresolved blocker.
+- The remaining Send discovery blocker is now the deployed memo/indexer handoff: `send-memo-indexer-body-hash-handoff-not-deployed`.
+- Docs and security limitations now say old v1 history is excluded from production privacy claims; they do not claim v1 history was migrated.
+
+Verification run during the loop:
+
+- `npm run actions:memo-encryption-check`
+- `npm run send:discovery-migration-policy-check`
+- `npm run send:discovery-indexer-handoff-check`
+- `npm run mainnet:send-production-check`
+- `npm run send:trust-packet-check`
+- `npm run lanes:trust-contract-check`
+- `npm run privacy-rail:contract-check`
+- `npm run security:limitations-check`
+- `npm run docs:source-of-truth-check`
+- `npm run send:production-privacy-claim-gate`
+
+Still open after this loop: this is scope control, not legacy-chain-history migration. Production-private Send still needs deployed recipient discovery/viewing-key exchange, deployed memo/indexer proof-bound handoff, live reviewed settlement evidence, relayer separation, anonymity evidence, production replay/idempotency evidence, on-chain verifier enforcement, SBF rebuild/redeploy/reinit, and audit acceptance.

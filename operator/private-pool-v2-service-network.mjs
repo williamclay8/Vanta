@@ -14,8 +14,18 @@ const sendDiscoveryClaimBoundary =
   "local encrypted-view-tag index only; not production recipient discovery";
 const sendDiscoveryBlockerIds = [
   "send-memo-indexer-body-hash-handoff-not-deployed",
-  "legacy-v1-send-history-migration-not-scoped",
 ];
+const sendLegacyHistoryScope = {
+  freshV2OnlyClaimScoped: true,
+  legacyV1EligibleForProductionPrivacyClaims: false,
+  legacyV1ParseCompatible: true,
+  migrated: false,
+  productionReady: false,
+  scopeBoundary:
+    "production Send privacy claims are scoped to fresh v2 AEAD sends unless legacy v1 plaintext history is migrated or segregated with reviewed evidence",
+  status: "fresh-v2-only-production-claim-scope",
+  version: "vanta-send-history-privacy-scope-0.1",
+};
 
 const roleConfig = {
   indexer: {
@@ -370,6 +380,8 @@ function sendDiscoveryStatusPayload(packetCount) {
   return {
     blockerIds: sendDiscoveryBlockerIds,
     claimBoundary: sendDiscoveryClaimBoundary,
+    freshV2OnlyClaimScoped: sendLegacyHistoryScope.freshV2OnlyClaimScoped,
+    legacyHistoryScope: sendLegacyHistoryScope,
     implemented: true,
     localPacketCount: packetCount,
     productionReady: false,

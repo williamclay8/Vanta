@@ -113,11 +113,12 @@ Send public-input hash, and the separated local indexer now accepts
 commitment-only encrypted view-tag/body-hash discovery packets while rejecting
 raw recipient, amount, plaintext memo, wallet key, witness, and serialized
 transaction fields. External Send remains blocked until recipient viewing-key
-exchange or deployed view-tag/indexer discovery is wired. This is still not a
-completed production private Send rail: live production transition evidence,
-deployed memo/indexer handoff, historical v1 migration or fresh-v2-only scope,
-relayer separation, anonymity evidence, audit, and production evidence are still
-missing.
+exchange or deployed view-tag/indexer discovery is wired. Legacy v1 plaintext
+Send history remains parse-compatible but is excluded from production privacy
+claims unless migrated or segregated with reviewed evidence. This is still not
+a completed production private Send rail: live production transition evidence,
+deployed memo/indexer handoff, relayer separation, anonymity evidence, audit,
+and production evidence are still missing.
 
 Current local Private Pool v2 Swap proof requests, executable circuit fixture,
 committed protocol settlement path, and local verifier/indexer acceptance bind

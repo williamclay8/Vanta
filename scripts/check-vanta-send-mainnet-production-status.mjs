@@ -42,11 +42,15 @@ assert.equal(status.privateCoreSendNoWitnessBoundaryCovered, true);
 assert.equal(status.privateCoreSendProofArtifactCovered, true);
 assert.equal(status.localViewTagBodyHashHandoffCovered, true);
 assert.equal(status.deployedMemoIndexerHandoffCovered, false);
-assert.equal(status.legacyV1SendHistoryMigrationScoped, false);
+assert.equal(status.legacyV1SendHistoryMigrationScoped, true);
 assert.equal(status.sendDiscoveryHandoff.productionReady, false);
 assert.equal(status.sendDiscoveryHandoff.localViewTagBodyHashHandoffCovered, true);
 assert.equal(status.sendDiscoveryHandoff.deployedMemoIndexerHandoffCovered, false);
-assert.equal(status.sendDiscoveryHandoff.legacyV1SendHistoryMigrationScoped, false);
+assert.equal(status.sendDiscoveryHandoff.freshV2OnlyClaimScoped, true);
+assert.equal(status.sendDiscoveryHandoff.legacyV1SendHistoryMigrationScoped, true);
+assert.equal(status.sendDiscoveryHandoff.legacyHistoryScope?.migrated, false);
+assert.equal(status.sendDiscoveryHandoff.legacyHistoryScope?.legacyV1EligibleForProductionPrivacyClaims, false);
+assert.equal(status.sendDiscoveryHandoff.legacyHistoryScope?.status, "fresh-v2-only-production-claim-scope");
 assert.equal(status.privateCoreOperatorStateRedacted, true);
 assert.equal(status.statefulVerifierIndexerCommitIdempotencyProven, false);
 assert.ok(
@@ -60,7 +64,6 @@ const expectedBlockers = [
   "no-exact-send-bounded-approval-window",
   ...(status.currentApproval.approvalWindowStatus === "active" ? [] : ["bounded-approval-window-expired"]),
   "send-memo-indexer-body-hash-handoff-not-deployed",
-  "legacy-v1-send-history-migration-not-scoped",
   "stateful-verifier-indexer-commit-idempotency-not-proven",
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
@@ -81,6 +84,7 @@ for (const [key, command] of Object.entries({
   sendOperatorRedaction: "npm run private-core:send-operator-redaction-check",
   sendProductionPrivacyClaimGate: "npm run send:production-privacy-claim-gate",
   sendDiscoveryIndexerHandoff: "npm run send:discovery-indexer-handoff-check",
+  sendLegacyHistoryScope: "npm run send:discovery-migration-policy-check",
   sendProofArtifactConsistency: "npm run private-core:send-proof-artifact-consistency-check",
   privatePoolV2SendCircuit: "npm run private-pool-v2:send-circuit-check",
   privatePoolV2PublicInputHashAlignment: "npm run private-pool-v2:public-input-hash-alignment-check",
@@ -97,7 +101,7 @@ for (const [key, command] of Object.entries({
 
 for (const phrase of [
   "Deploy memo/indexer handoff proving opaque memo bodies match proof-bound sha256: body hashes",
-  "Migrate or segregate legacy v1 plaintext Send history",
+  "Keep production Send privacy claims scoped to fresh v2 AEAD sends",
 ]) {
   assert.ok(
     status.requiredBeforeProduction.includes(phrase) ||
@@ -108,7 +112,8 @@ for (const phrase of [
 
 for (const phrase of [
   "deployed memo/indexer handoff proving opaque memo bodies match proof-bound sha256: body hashes",
-  "legacy v1 plaintext Send history migration or fresh-v2-only scope",
+  "explicit fresh-v2-only production claim scope",
+  "legacy v1 plaintext Send history remains excluded from production privacy claims",
 ]) {
   assert.ok(status.truth.includes(phrase), `Send status truth missing phrase: ${phrase}`);
 }

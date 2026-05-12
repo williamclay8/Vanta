@@ -69,31 +69,41 @@ const packets = {
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Send has a canonical ledger gate, repo-checked no-witness proof-artifact operator boundary, v2 viewing-key AEAD action memos in the live pages, local dual-AEAD recipient/change memo scaffolding, and local Private Pool v2 proof-request/circuit binding for recipient/change memo ciphertext body hashes, but recipient discovery is still incomplete, browser Send execution is blocked until a local proof artifact is available, and the lane is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
+        "Send has a canonical ledger gate, repo-checked no-witness proof-artifact operator boundary, v2 viewing-key AEAD action memos in the live pages, local dual-AEAD recipient/change memo scaffolding, local Private Pool v2 proof-request/circuit binding for recipient/change memo ciphertext body hashes, and fresh-v2-only production claim scope for Send history, but recipient discovery is still incomplete, browser Send execution is blocked until a local proof artifact is available, and the lane is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
     },
     honestyNote:
       "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in SECURITY_LIMITATIONS.md.",
-    sendMemoMode: "v2-viewing-key-aead-dual-scaffold-legacy-v1-parse-compatible",
+    sendMemoMode: "v2-viewing-key-aead-dual-scaffold-fresh-v2-production-scope-legacy-v1-parse-compatible",
     publicChainVisibleFields: [
       "new live Send action memos expose only the v2 AEAD memo prefix and opaque ciphertext body",
       "local dual-AEAD scaffold can separately seal recipient and change discovery memos and expose sha256 ciphertext body hashes",
-      "legacy historical v1 Send memos remain parse-compatible and can expose recipient/amount/change amount",
+      "legacy historical v1 Send memos remain parse-compatible, can expose recipient/amount/change amount, and are excluded from production privacy claims unless migrated or segregated with reviewed evidence",
       "recipient-side discovery still needs a trustable viewing-key exchange or encrypted outbox/view-tag design before external Send can make production privacy claims",
     ],
     sendDiscoveryHandoff: {
       blockerIds: [
         "send-memo-indexer-body-hash-handoff-not-deployed",
-        "legacy-v1-send-history-migration-not-scoped",
       ],
       claimBoundary:
         "local encrypted-view-tag index only; not production recipient discovery",
       deployedMemoIndexerHandoff: false,
-      freshV2OnlyClaimScoped: false,
+      freshV2OnlyClaimScoped: true,
       localIndexerEndpoint: "/v1/send-discovery-packets",
       localStatusEndpoint: "/v1/send-discovery/status",
       localViewTagBodyHashHandoff: true,
       productionReady: false,
       version: "vanta-private-pool-v2-send-discovery-packet-0.1",
+    },
+    legacyHistoryScope: {
+      freshV2OnlyClaimScoped: true,
+      legacyV1EligibleForProductionPrivacyClaims: false,
+      legacyV1ParseCompatible: true,
+      migrated: false,
+      productionReady: false,
+      scopeBoundary:
+        "production Send privacy claims are scoped to fresh v2 AEAD sends unless legacy v1 plaintext history is migrated or segregated with reviewed evidence",
+      status: "fresh-v2-only-production-claim-scope",
+      version: "vanta-send-history-privacy-scope-0.1",
     },
     proofTranscriptFields: [
       "Private Pool v2 Send proof requests and the local Send circuit bind recipient/change ciphertext body hash limbs into the public input hash",
@@ -209,7 +219,6 @@ if (packet.action === "send") {
   packet.remainingBlockers = [
     ...packet.remainingBlockers,
     "send-memo-indexer-body-hash-handoff-not-deployed",
-    "legacy-v1-send-history-migration-not-scoped",
   ];
 }
 
@@ -229,7 +238,10 @@ if (checkMode) {
 
   if (packet.action === "send") {
     assert.equal(packet.spendabilityBasis, "canonical-spendable-note-ledger");
-    assert.equal(packet.sendMemoMode, "v2-viewing-key-aead-dual-scaffold-legacy-v1-parse-compatible");
+    assert.equal(
+      packet.sendMemoMode,
+      "v2-viewing-key-aead-dual-scaffold-fresh-v2-production-scope-legacy-v1-parse-compatible",
+    );
     assert.ok(
       packet.publicChainVisibleFields?.some((field) => field.includes("opaque ciphertext")),
       "Send packet must disclose that new action memos are opaque AEAD ciphertext.",
@@ -258,16 +270,19 @@ if (checkMode) {
       "Send packet must expose the memo/indexer handoff blocker id.",
     );
     assert.ok(
-      packet.sendDiscoveryHandoff?.blockerIds?.includes(
+      !packet.sendDiscoveryHandoff?.blockerIds?.includes(
         "legacy-v1-send-history-migration-not-scoped",
       ),
-      "Send packet must expose the historical v1 migration blocker id.",
+      "Send packet must not keep the legacy v1 blocker once fresh-v2-only claim scope is recorded.",
     );
     assert.ok(
       packet.remainingBlockers.includes("send-memo-indexer-body-hash-handoff-not-deployed") &&
-        packet.remainingBlockers.includes("legacy-v1-send-history-migration-not-scoped"),
-      "Send packet remainingBlockers must include exact discovery/migration blocker ids.",
+        !packet.remainingBlockers.includes("legacy-v1-send-history-migration-not-scoped"),
+      "Send packet remainingBlockers must include only the remaining deployed discovery blocker id.",
     );
+    assert.equal(packet.legacyHistoryScope?.freshV2OnlyClaimScoped, true);
+    assert.equal(packet.legacyHistoryScope?.legacyV1EligibleForProductionPrivacyClaims, false);
+    assert.equal(packet.legacyHistoryScope?.migrated, false);
     assert.ok(packet.verificationCommands.includes("npm run actions:memo-encryption-check"));
     assert.ok(packet.verificationCommands.includes("npm run send:discovery-indexer-handoff-check"));
     assert.ok(
