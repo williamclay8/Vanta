@@ -46,8 +46,15 @@ for (const phrase of [
   "unshield-exit-preview",
   "unshield-exit-recipe",
   "You'll receive",
+  "after public exit",
   "Shielded note",
   "Own wallet",
+  "unshield-success-actions",
+  "unshield-success-pulse",
+  "Shield more",
+  "Share receipt",
+  "View on Solscan",
+  "getSolscanTransactionUrl",
 ]) {
   assert.ok(
     unshieldPageSource.includes(phrase),
@@ -60,6 +67,10 @@ for (const phrase of [
   ".unshield-exit-recipe",
   ".unshield-exit-recipe__path",
   ".unshield-exit-recipe__node--wallet",
+  ".unshield-success-signature-card",
+  ".unshield-success-pulse",
+  ".unshield-success-actions",
+  "@keyframes unshieldSuccessPulse",
 ]) {
   assert.ok(stylesSource.includes(phrase), `Unshield exit recipe style missing ${phrase}.`);
 }
@@ -74,6 +85,58 @@ assert.ok(
 const exitPreviewBlock = unshieldPageSource.slice(exitPreviewIndex, ticketFormIndex).toLowerCase();
 for (const phrase of ["fresh wallet", "different wallet", "private exit", "anonymous", "untraceable", "fully private"]) {
   assert.ok(!exitPreviewBlock.includes(phrase), `Unshield exit consequence preview must not overclaim ${phrase}.`);
+}
+
+const completionStatusIndex = unshieldPageSource.indexOf('status === "complete"');
+const completionDetailsIndex = unshieldPageSource.indexOf(
+  'className="unshield-completion-details"',
+  completionStatusIndex,
+);
+assert.ok(
+  completionStatusIndex >= 0 && completionDetailsIndex > completionStatusIndex,
+  "Unshield completion surface must render a bounded success summary before internal operator details.",
+);
+const completionSurface = unshieldPageSource.slice(completionStatusIndex, completionDetailsIndex);
+for (const phrase of [
+  "Verify the public exit transaction before treating funds as moved",
+  "Operator release is still pending",
+  "public operator release reported",
+  "public exit transition recorded",
+  "Exit visibility: public on-chain exit",
+  "currentUnshieldTransactionEvidence.settlement.status",
+  "navigator.clipboard.writeText",
+  "Vanta Unshield receipt",
+  "operatorReleaseSignature &&",
+  "getSolscanTransactionUrl(operatorReleaseSignature)",
+  'to="/app/shield"',
+  "unshield-success-signature-card",
+  "unshield-success-pulse",
+  "unshield-success-actions",
+]) {
+  assert.ok(
+    completionSurface.includes(phrase),
+    `Unshield completion surface must preserve action/truth boundary phrase ${phrase}.`,
+  );
+}
+
+const completionSurfaceWithoutFundsQualifier = completionSurface
+  .toLowerCase()
+  .replaceAll("before treating funds as moved", "");
+for (const phrase of [
+  "withdrawal complete",
+  "funds moved",
+  "final settlement",
+  "private exit",
+  "anonymous",
+  "untraceable",
+  "fully private",
+  "production-ready",
+  "mainnet-ready",
+]) {
+  assert.ok(
+    !completionSurfaceWithoutFundsQualifier.includes(phrase),
+    `Unshield completion surface must not overclaim ${phrase}.`,
+  );
 }
 
 assert.ok(

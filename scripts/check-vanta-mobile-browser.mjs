@@ -90,20 +90,30 @@ const forbiddenFundingChecks = [
 ];
 
 function runMobileRouteProbe(path) {
+  const checks = [
+    { kind: "url_contains", text: path },
+    { kind: "selector_visible", selector: ".app-header__brand" },
+    {
+      kind: "selector_visible",
+      selector: ".button-primary, .strategy-primary-action, .app-header__account-trigger",
+    },
+    { kind: "no_console_errors" },
+  ];
+
+  if (path === "/app/unshield") {
+    checks.push(
+      { kind: "text_hidden", text: "Shield more" },
+      { kind: "text_hidden", text: "Share receipt" },
+      { kind: "text_hidden", text: "View on Solscan" },
+    );
+  }
+
   runBrowserBatch([
     { action: "navigate", url: `${baseUrl}${path}` },
     { action: "wait_for", condition: "network_idle" },
     {
       action: "assert",
-      checks: [
-        { kind: "url_contains", text: path },
-        { kind: "selector_visible", selector: ".app-header__brand" },
-        {
-          kind: "selector_visible",
-          selector: ".button-primary, .strategy-primary-action, .app-header__account-trigger",
-        },
-        { kind: "no_console_errors" },
-      ],
+      checks,
     },
   ]);
 

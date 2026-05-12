@@ -433,6 +433,9 @@ function assertUnshieldAssetSelectorStaysCompact() {
               bodyText.includes("to your own wallet") &&
               bodyText.includes("Send to a different wallet") &&
               bodyText.includes("Coming soon - needs unshield-to-fresh-wallet support") &&
+              !bodyText.includes("Shield more") &&
+              !bodyText.includes("Share receipt") &&
+              !bodyText.includes("View on Solscan") &&
               selector.options.length >= 2 &&
               legacyAssetStrip === null &&
               documentOverflow <= 2,

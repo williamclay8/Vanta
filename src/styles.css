@@ -3261,6 +3261,38 @@ input {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.unshield-success-signature-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.unshield-success-signature-card > :not(.unshield-success-pulse) {
+  position: relative;
+  z-index: 1;
+}
+
+.unshield-success-pulse {
+  position: absolute;
+  inset: -36px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 72% 52%, rgba(0, 229, 200, 0.34), rgba(0, 229, 200, 0.12) 24%, rgba(0, 229, 200, 0) 64%);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.18);
+  transform-origin: 72% 52%;
+  animation: unshieldSuccessPulse 1.35s ease-out 1;
+}
+
+.unshield-success-actions {
+  align-items: center;
+  margin-top: 16px;
+}
+
+.unshield-success-actions .button {
+  min-height: 44px;
+}
+
 .unshield-completion-details {
   margin-top: 14px;
   padding: 14px;
@@ -3318,6 +3350,10 @@ input {
 
   .unshield-evidence-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .unshield-success-actions .button {
+    width: 100%;
   }
 }
 
@@ -6526,6 +6562,20 @@ input {
   }
   100% {
     transform: translateX(240%);
+  }
+}
+
+@keyframes unshieldSuccessPulse {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.18);
+  }
+  72% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
   }
 }
 

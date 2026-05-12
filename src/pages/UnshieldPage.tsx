@@ -152,6 +152,10 @@ function abbreviate(value: string) {
   return `${value.slice(0, 10)}...${value.slice(-6)}`;
 }
 
+function getSolscanTransactionUrl(signature: string) {
+  return `https://solscan.io/tx/${encodeURIComponent(signature)}`;
+}
+
 function formatUnshieldAmount(value: number, asset: UnshieldLane) {
   return asset === "SOL"
     ? formatSolAmount(value)
@@ -514,6 +518,9 @@ export function UnshieldPage() {
   const [releasePackageExportStatus, setReleasePackageExportStatus] = useState<
     "idle" | "summary-copy" | "json-copy" | "summary-download" | "json-download" | "failed"
   >("idle");
+  const [unshieldReceiptCopyStatus, setUnshieldReceiptCopyStatus] = useState<
+    "idle" | "copied" | "failed"
+  >("idle");
   const [unshieldBridgeError, setUnshieldBridgeError] = useState<string | null>(null);
   const [operatorAuthorizationStarted, setOperatorAuthorizationStarted] = useState(false);
   const [operatorReleaseSignature, setOperatorReleaseSignature] = useState<string | null>(null);
@@ -535,6 +542,7 @@ export function UnshieldPage() {
     setSelectedLane(nextLane);
     setStatus("idle");
     setFlowError(null);
+    setUnshieldReceiptCopyStatus("idle");
   }, []);
   const operatorAuthorizationLockRef = useRef<string | null>(null);
   const splitFollowupLaunchRef = useRef<string | null>(null);
@@ -1975,6 +1983,37 @@ export function UnshieldPage() {
       : currentUnshieldTransactionEvidence.wallet.status === "signature-recorded"
         ? "Transition signature captured"
         : "Pending operator release";
+  const copyUnshieldReceipt = useCallback(async () => {
+    if (!lastCompletion) {
+      setUnshieldReceiptCopyStatus("failed");
+      return;
+    }
+
+    const receiptLines = [
+      "Vanta Unshield receipt",
+      `Asset: ${lastCompletion.asset}`,
+      `Amount: ${formatUnshieldAmount(lastCompletion.amount, lastCompletion.asset)}`,
+      `Operator release signature: ${operatorReleaseSignature ?? "pending"}`,
+      "Exit visibility: public on-chain exit",
+      `Transition note: ${lastCompletion.transitionNoteId}`,
+      `Operator request: ${lastCompletion.requestId ?? "pending receipt"}`,
+      `Settlement scope: ${currentUnshieldTransactionEvidence.settlement.status}`,
+      `Evidence: ${completionEvidenceLabel}`,
+      "Verify the public exit transaction before treating funds as moved.",
+    ];
+
+    try {
+      await navigator.clipboard.writeText(receiptLines.join("\n"));
+      setUnshieldReceiptCopyStatus("copied");
+    } catch {
+      setUnshieldReceiptCopyStatus("failed");
+    }
+  }, [
+    completionEvidenceLabel,
+    currentUnshieldTransactionEvidence.settlement.status,
+    lastCompletion,
+    operatorReleaseSignature,
+  ]);
 
   return (
     <section className="send-page unshield-page">
@@ -2659,7 +2698,9 @@ export function UnshieldPage() {
               <span id="unshield-exit-preview-title">You'll receive</span>
               <strong>{exitConsequenceDisplay}</strong>
               <small id="unshield-exit-preview-copy">
-                {walletAddressShort ? `in ${exitConsequenceDestination}` : "connect wallet for destination"}
+                {walletAddressShort
+                  ? `in ${exitConsequenceDestination} after public exit`
+                  : "connect wallet for public exit destination"}
               </small>
             </div>
             <div
@@ -2992,8 +3033,8 @@ export function UnshieldPage() {
             <div className="status-panel status-panel--success">
               <span>
                 {operatorReleaseSignature
-                  ? `${lastCompletion.asset} operator release reported`
-                  : `${lastCompletion.asset} exit transition recorded`}
+                  ? `${lastCompletion.asset} public operator release reported`
+                  : `${lastCompletion.asset} public exit transition recorded`}
               </span>
               <p>
                 {operatorReleaseSignature
@@ -3001,19 +3042,22 @@ export function UnshieldPage() {
                     ? `${formatSolAmount(lastCompletion.amount)} has an operator release signature. Verify the public exit transaction before treating funds as moved; the source shielded SOL note is blocked from reuse by the release record.`
                     : `${formatShieldTokenAmount(lastCompletion.amount, lastCompletion.asset)} has an operator release signature. Verify the public exit transaction before treating funds as moved; the source shielded ${lastCompletion.asset} note is blocked from reuse by the release record.`
                   : lastCompletion.asset === "SOL"
-                    ? `${formatSolAmount(lastCompletion.amount)} exit transition was recorded. Operator release is still pending.`
-                    : `${formatShieldTokenAmount(lastCompletion.amount, lastCompletion.asset)} exit transition was recorded. Operator release is still pending.`}
+                    ? `${formatSolAmount(lastCompletion.amount)} public exit transition was recorded. Operator release is still pending.`
+                    : `${formatShieldTokenAmount(lastCompletion.amount, lastCompletion.asset)} public exit transition was recorded. Operator release is still pending.`}
               </p>
               <div className="preview-grid unshield-evidence-grid">
                 <div className="preview-card preview-card--accent">
                   <span>Transaction evidence</span>
                   <strong>{completionEvidenceLabel}</strong>
                 </div>
-                <div className="preview-card">
+                <div className="preview-card unshield-success-signature-card">
                   <span>Operator release</span>
                   <strong>
                     {operatorReleaseSignature ? abbreviate(operatorReleaseSignature) : "Pending"}
                   </strong>
+                  {operatorReleaseSignature && (
+                    <span className="unshield-success-pulse" aria-hidden="true" />
+                  )}
                 </div>
               </div>
               <div className="review-list">
@@ -3029,6 +3073,34 @@ export function UnshieldPage() {
                   <span>Settlement scope</span>
                   <strong>{currentUnshieldTransactionEvidence.settlement.status}</strong>
                 </div>
+              </div>
+              <div className="status-actions unshield-success-actions">
+                <Link className="button button-primary" to="/app/shield">
+                  Shield more
+                </Link>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    void copyUnshieldReceipt();
+                  }}
+                >
+                  {unshieldReceiptCopyStatus === "copied"
+                    ? "Receipt copied"
+                    : unshieldReceiptCopyStatus === "failed"
+                      ? "Receipt copy unavailable"
+                      : "Share receipt"}
+                </button>
+                {operatorReleaseSignature && (
+                  <a
+                    className="button button-ghost"
+                    href={getSolscanTransactionUrl(operatorReleaseSignature)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    View on Solscan
+                  </a>
+                )}
               </div>
               <details className="unshield-completion-details">
                 <summary>Operator workflow and export details</summary>
@@ -3312,14 +3384,6 @@ export function UnshieldPage() {
                   </p>
                 )}
               </details>
-              <div className="status-actions">
-                <Link className="button button-primary" to="/app/shield">
-                  Back to Home
-                </Link>
-                <Link className="button button-ghost" to="/app/swap">
-                  Open Swap
-                </Link>
-              </div>
             </div>
           )}
         </article>
