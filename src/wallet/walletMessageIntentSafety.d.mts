@@ -1,4 +1,5 @@
 export type WalletMessageIntentKind =
+  | "shield-key-derivation-intent"
   | "swap-intent"
   | "unshield-intent"
   | "sol-unshield-intent";

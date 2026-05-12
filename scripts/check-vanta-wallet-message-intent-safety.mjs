@@ -63,6 +63,24 @@ assert.equal(
   }).reason,
   "private-key-material-handled",
 );
+const shieldKeySummary = createWalletMessageIntentSafetySummary({
+  ...baseInput,
+  amount: "0",
+  asset: "owner-key-hierarchy",
+  intentKind: "shield-key-derivation-intent",
+  message:
+    "vanta:shield-key-derivation-intent:v1\nnotATransaction:true\ndoesNotMoveFunds:true\ndoesNotAuthorizeOperator:true",
+  recipient: "local-owner-key-hierarchy",
+  requestId: "seed_safety_123",
+});
+assert.equal(shieldKeySummary.intentKind, "shield-key-derivation-intent");
+assert.equal(
+  validateWalletMessageIntentSafetySummary(shieldKeySummary, {
+    ...baseInput,
+    humanApprovedSummary: true,
+  }).reason,
+  "message-intent-ready-for-wallet-approval",
+);
 assert.throws(
   () =>
     createWalletMessageIntentSafetySummary({

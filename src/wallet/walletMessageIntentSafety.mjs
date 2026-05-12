@@ -1,4 +1,5 @@
 const SUPPORTED_INTENT_KINDS = new Set([
+  "shield-key-derivation-intent",
   "swap-intent",
   "unshield-intent",
   "sol-unshield-intent",
