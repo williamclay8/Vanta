@@ -377,7 +377,8 @@ fn main(
         send_economic_terms_hash,
         note_version,
     );
-    assert(computed_send_context_tag == send_context_tag_hi + send_context_tag_lo);
+    assert(send_context_tag_hi == 0);
+    assert(computed_send_context_tag == send_context_tag_lo);
 
     // v0.1 assumption: sender secret ownership is still prechecked off-circuit.
     // The supplied sender public key is already part of the consumed note

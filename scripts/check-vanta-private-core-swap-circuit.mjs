@@ -67,6 +67,10 @@ try {
   printStatus("invalid-sender-secret fixture write: PASS");
   expectExecuteFailure("invalid-sender-secret");
 
+  writeFixture("invalid-context-split");
+  printStatus("invalid-context-split fixture write: PASS");
+  expectExecuteFailure("invalid-context-split");
+
   writeFixture("invalid-amount-range");
   printStatus("invalid-amount-range fixture write: PASS");
   expectExecuteFailure("invalid-amount-range");

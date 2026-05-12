@@ -289,5 +289,6 @@ fn main(
         input_note_version,
         output_note_version,
     );
-    assert(computed_swap_context_tag == swap_context_tag_hi + swap_context_tag_lo);
+    assert(swap_context_tag_hi == 0);
+    assert(computed_swap_context_tag == swap_context_tag_lo);
 }

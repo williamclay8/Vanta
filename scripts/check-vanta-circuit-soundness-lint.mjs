@@ -46,6 +46,10 @@ const forbiddenPatterns = [
     message: "asset inequality must compare limbs, not additive limb sums",
   },
   {
+    pattern: /computed_(?:send|swap)_context_tag\s*==\s*(?:send|swap)_context_tag_hi\s*\+\s*(?:send|swap)_context_tag_lo/u,
+    message: "context-tag splits must use zero-high-limb canonical encoding, not additive limb sums",
+  },
+  {
     pattern: /membership_path_hi\s*\[[^\]]+\]\s*\+\s*membership_path_lo\s*\[[^\]]+\]/u,
     message: "hi/lo membership path addition collapses distinct witnesses",
   },

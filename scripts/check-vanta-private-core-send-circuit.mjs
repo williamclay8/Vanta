@@ -63,6 +63,10 @@ try {
   printStatus("invalid-leaf-index fixture write: PASS");
   expectExecuteFailure("invalid-leaf-index");
 
+  writeFixture("invalid-context-split");
+  printStatus("invalid-context-split fixture write: PASS");
+  expectExecuteFailure("invalid-context-split");
+
   writeFixture("invalid-amount-range");
   printStatus("invalid-amount-range fixture write: PASS");
   expectExecuteFailure("invalid-amount-range");

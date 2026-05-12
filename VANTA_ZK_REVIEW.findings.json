@@ -714,34 +714,43 @@
         "zk/noir/vanta_private_core_single_note_send/src/main.nr",
         "zk/noir/vanta_private_core_single_note_swap/src/main.nr",
         "zk/noir/vanta_private_core_single_note_unshield/src/main.nr",
-        "npm run zk:merkle-node-hash-contract-check"
+        "npm run zk:merkle-node-hash-contract-check",
+        "npm run zk:circuit-soundness-lint",
+        "npm run private-core:send-check",
+        "npm run private-core:swap-check"
       ],
       "failureMode": "Distinct hi/lo witness pairs collapsed to the same sibling field through addition.",
       "requiredFix": [
         "Keep single Field membership_path arrays in Private Core lanes.",
-        "Keep off-chain witness builders projecting 32-byte siblings into one proof-lane field."
+        "Keep off-chain witness builders projecting 32-byte siblings into one proof-lane field.",
+        "Keep Private Core context-tag splits in zero-high-limb canonical form rather than additive hi/lo sums."
       ],
       "verification": {
         "commands": [
           "npm run zk:merkle-node-hash-contract-check",
+          "npm run zk:circuit-soundness-lint",
+          "npm run private-core:send-check",
+          "npm run private-core:swap-check",
           "npm run private-core:check"
         ],
-        "localResult": "Merkle node hash contract and Private Core checks pass locally.",
-        "proves": "The covered Private Core lanes no longer add hi/lo membership-path limbs.",
+        "localResult": "Merkle node hash contract, circuit soundness lint, Private Core Send/Swap checks, and Private Core Unshield/nullifier checks pass locally.",
+        "proves": "The covered Private Core lanes no longer add hi/lo membership-path limbs, and Send/Swap reject non-canonical context-tag splits that preserve an additive sum.",
         "doesNotProve": "Production tree/indexer soundness."
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 572c46e"
+          "local feedback loops through 572c46e",
+          "current Private Core context-tag split feedback-loop patch"
         ],
-        "summary": "Replaced split membership path witnesses with single-field siblings across covered Private Core lanes.",
+        "summary": "Replaced split membership path witnesses with single-field siblings across covered Private Core lanes, and tightened Send/Swap context-tag public-input splits to zero-high-limb canonical encoding guarded by invalid-context-split fixtures.",
         "residualRisk": [
-          "Future lanes must not reintroduce split-limb additive sibling encoding."
+          "Future lanes must not reintroduce split-limb additive sibling encoding.",
+          "The single-note circuits remain active v0 lanes until replacement v2 flows cover the active Private Core surfaces."
         ]
       },
       "lumiHygiene": {
-        "local": "verified locally",
-        "committed": "through 572c46e",
+        "local": "verified locally for context-tag split hardening",
+        "committed": "included in this Private Core context-tag split feedback-loop commit",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -750,10 +759,16 @@
           "zk/noir/vanta_private_core_single_note_send/src/main.nr",
           "zk/noir/vanta_private_core_single_note_swap/src/main.nr",
           "zk/noir/vanta_private_core_single_note_unshield/src/main.nr",
-          "scripts/check-vanta-merkle-node-hash-contract.mjs"
+          "scripts/check-vanta-merkle-node-hash-contract.mjs",
+          "scripts/check-vanta-circuit-soundness-lint.mjs",
+          "scripts/check-vanta-private-core-send-circuit.mjs",
+          "scripts/check-vanta-private-core-swap-circuit.mjs"
         ],
         "watchCommands": [
-          "npm run zk:merkle-node-hash-contract-check"
+          "npm run zk:merkle-node-hash-contract-check",
+          "npm run zk:circuit-soundness-lint",
+          "npm run private-core:send-check",
+          "npm run private-core:swap-check"
         ]
       },
       "truthBoundary": "This is a witness-shape cleanup in local circuits, not a production privacy guarantee."

@@ -17,11 +17,12 @@ async function main() {
     fixtureMode !== "valid" &&
     fixtureMode !== "invalid-direction" &&
     fixtureMode !== "invalid-leaf-index" &&
+    fixtureMode !== "invalid-context-split" &&
     fixtureMode !== "invalid-amount-range" &&
     fixtureMode !== "valid-amount-carry"
   ) {
     throw new Error(
-      'Expected fixture mode "valid", "invalid-direction", "invalid-leaf-index", "invalid-amount-range", or "valid-amount-carry". Example: node scripts/write-vanta-private-core-send-fixture.mjs invalid-direction',
+      'Expected fixture mode "valid", "invalid-direction", "invalid-leaf-index", "invalid-context-split", "invalid-amount-range", or "valid-amount-carry". Example: node scripts/write-vanta-private-core-send-fixture.mjs invalid-direction',
     );
   }
 
@@ -102,6 +103,18 @@ function createWitnessPackageForMode(fixture, mode) {
       privateWitness: {
         ...validWitnessPackage.privateWitness,
         input_leaf_index: String(Number(validWitnessPackage.privateWitness.input_leaf_index) + 1),
+      },
+    };
+  }
+
+  if (mode === "invalid-context-split") {
+    const contextTag = BigInt(validWitnessPackage.publicInputs.send_context_tag_lo);
+    return {
+      ...validWitnessPackage,
+      publicInputs: {
+        ...validWitnessPackage.publicInputs,
+        send_context_tag_hi: "1",
+        send_context_tag_lo: (contextTag - 1n).toString(10),
       },
     };
   }
