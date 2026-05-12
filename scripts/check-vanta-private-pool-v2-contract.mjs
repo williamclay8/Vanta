@@ -471,6 +471,7 @@ const requiredTextFiles = [
       "proofSystem: \"noir-bb\"",
       "publicInputCommitment",
       "noWitnessProofArtifact",
+      "shield-public-input-hash",
       "private-spend-public-input-hash",
       "witnessSource",
       "bytecodeSource",
@@ -485,6 +486,7 @@ const requiredTextFiles = [
   {
     path: "operator/private-pool-v2-proof-artifact.mjs",
     markers: [
+      "verifyVantaPrivatePoolV2ShieldProofArtifact",
       "verifyVantaPrivatePoolV2SendProofArtifact",
       "verifyVantaPrivatePoolV2ActualPrivateSpendProofArtifact",
       "assertVantaPrivatePoolV2ProofArtifactHasNoWitnessMaterial",
@@ -494,6 +496,18 @@ const requiredTextFiles = [
       "acirBytecodeHash mismatch",
       "verifyingKeyHash mismatch",
       "verification returned false",
+    ],
+  },
+  {
+    path: "scripts/check-vanta-private-pool-v2-shield-proof-artifact-consistency.mjs",
+    markers: [
+      "tampered proof rejection",
+      "tampered public input rejection",
+      "verifyingKeyHash tamper rejection",
+      "privateInputs alias rejection",
+      "proofBackend mismatch rejection",
+      "witness sidecar rejection",
+      "shield-public-input-hash",
     ],
   },
   {
@@ -825,6 +839,7 @@ const requiredPackageScripts = [
   "private-pool-v2:verify",
   "private-pool-v2:claim-circuit-check",
   "private-pool-v2:shield-prove",
+  "private-pool-v2:shield-proof-artifact-consistency-check",
   "private-pool-v2:send-prove",
   "private-pool-v2:send-proof-artifact-consistency-check",
   "private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
@@ -857,6 +872,7 @@ const requiredVerifyScripts = [
   "npm run private-pool-v2:solana-spend-transaction-builder-check",
   "npm run private-pool-v2:solana-spend-transaction-check",
   "npm run private-pool-v2:solana-relayer-submission-check",
+  "npm run private-pool-v2:shield-proof-artifact-consistency-check",
   "npm run private-pool-v2:send-proof-artifact-consistency-check",
   "npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
   "npm run private-pool-v2:send-operator-no-witness-check",

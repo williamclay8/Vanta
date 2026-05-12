@@ -33,6 +33,7 @@ const operatorServer = read("operator/private-pool-v2-server.mjs");
 const serviceNetwork = read("operator/private-pool-v2-service-network.mjs");
 const proofArtifact = read("operator/private-pool-v2-proof-artifact.mjs");
 const proofScript = read("scripts/prove-vanta-private-pool-v2-circuit.mjs");
+const shieldArtifactCheck = read("scripts/check-vanta-private-pool-v2-shield-proof-artifact-consistency.mjs");
 const sendArtifactCheck = read("scripts/check-vanta-private-pool-v2-send-proof-artifact-consistency.mjs");
 const actualPrivateSpendArtifactCheck = read(
   "scripts/check-vanta-private-pool-v2-actual-private-spend-proof-artifact-consistency.mjs",
@@ -47,6 +48,7 @@ for (const backend of ["local-mock", "local-bb-fixture-artifact", "remote-servic
   includes(types, `"${backend}"`, "privatePoolV2Types proof backend union");
 }
 includes(types, "proofBackend?: VantaPrivatePoolV2ProofBackend", "privatePoolV2Types proof result/receipt contracts");
+includes(types, "VantaPrivatePoolV2ShieldProofArtifact", "privatePoolV2Types Shield proof artifact contract");
 includes(types, "VantaPrivatePoolV2SendProofArtifact", "privatePoolV2Types Send proof artifact contract");
 includes(
   types,
@@ -97,6 +99,7 @@ includes(
 );
 includes(operatorServer, "sendPublicInputHash mismatch", "operator Send expected public-input mismatch guard");
 includes(serviceNetwork, "proofBackend", "service network proof metadata");
+includes(proofArtifact, "verifyVantaPrivatePoolV2ShieldProofArtifact", "Private Pool v2 Shield proof artifact verifier");
 includes(proofArtifact, "verifyVantaPrivatePoolV2SendProofArtifact", "Private Pool v2 Send proof artifact verifier");
 includes(
   proofArtifact,
@@ -118,7 +121,16 @@ includes(proofScript, 'proofSystem: "noir-bb"', "local bb fixture proof system m
 includes(proofScript, "noWitnessProofArtifact", "no-witness proof artifact sidecar condition");
 includes(proofScript, "witnessSource", "legacy non-Send proof sidecar marker");
 includes(proofScript, "bytecodeSource", "legacy non-Send bytecode sidecar marker");
+includes(proofScript, "shield-public-input-hash", "Shield proof artifact public input label");
 includes(proofScript, "private-spend-public-input-hash", "Actual Private Spend proof artifact public input label");
+includes(shieldArtifactCheck, "tampered public input rejection", "Shield proof artifact tampered public input guard");
+includes(shieldArtifactCheck, "circuit relabel rejection", "Shield proof artifact circuit relabel guard");
+includes(shieldArtifactCheck, "proofSystem relabel rejection", "Shield proof artifact proof-system relabel guard");
+includes(shieldArtifactCheck, "backend relabel rejection", "Shield proof artifact backend relabel guard");
+includes(shieldArtifactCheck, "public input label relabel rejection", "Shield proof artifact public-input label guard");
+includes(shieldArtifactCheck, "verifyingKeyHash tamper rejection", "Shield proof artifact verifying-key tamper guard");
+includes(shieldArtifactCheck, "privateInputs alias rejection", "Shield proof artifact no-witness alias guard");
+includes(shieldArtifactCheck, "witness sidecar rejection", "Shield proof artifact witness sidecar guard");
 includes(sendArtifactCheck, "tampered public input rejection", "Send proof artifact tampered public input guard");
 includes(sendArtifactCheck, "circuit relabel rejection", "Send proof artifact circuit relabel guard");
 includes(sendArtifactCheck, "proofSystem relabel rejection", "Send proof artifact proof-system relabel guard");
@@ -228,6 +240,11 @@ assert(
   "package.json must expose private-pool-v2:proof-backend-boundary-check",
 );
 assert(
+  scripts["private-pool-v2:shield-proof-artifact-consistency-check"] ===
+    "node scripts/check-vanta-private-pool-v2-shield-proof-artifact-consistency.mjs",
+  "package.json must expose private-pool-v2:shield-proof-artifact-consistency-check",
+);
+assert(
   scripts["private-pool-v2:send-proof-artifact-consistency-check"] ===
     "node scripts/check-vanta-private-pool-v2-send-proof-artifact-consistency.mjs",
   "package.json must expose private-pool-v2:send-proof-artifact-consistency-check",
@@ -244,6 +261,7 @@ assert(
 );
 for (const command of [
   "private-pool-v2:proof-backend-boundary-check",
+  "private-pool-v2:shield-proof-artifact-consistency-check",
   "private-pool-v2:send-proof-artifact-consistency-check",
   "private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
   "private-pool-v2:send-operator-no-witness-check",
@@ -262,6 +280,10 @@ assert(
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:proof-backend-boundary-check"),
   "private-pool-v2:verify must include the proof backend boundary guard",
+);
+assert(
+  scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:shield-proof-artifact-consistency-check"),
+  "private-pool-v2:verify must include the Shield proof artifact consistency guard",
 );
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:send-proof-artifact-consistency-check"),

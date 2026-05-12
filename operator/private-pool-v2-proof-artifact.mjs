@@ -5,6 +5,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
+const shieldCircuitDir = resolve(repoRoot, "zk/noir/vanta_private_pool_v2_shield_entry");
+const shieldCircuitName = "vanta_private_pool_v2_shield_entry";
 const sendCircuitDir = resolve(repoRoot, "zk/noir/vanta_private_pool_v2_send_entry");
 const sendCircuitName = "vanta_private_pool_v2_send_entry";
 const actualPrivateSpendCircuitDir = resolve(
@@ -13,6 +15,13 @@ const actualPrivateSpendCircuitDir = resolve(
 );
 const actualPrivateSpendCircuitName = "vanta_private_pool_v2_actual_private_spend_entry";
 const proofArtifactCircuitProfiles = {
+  [shieldCircuitName]: {
+    circuitDir: shieldCircuitDir,
+    circuitName: shieldCircuitName,
+    label: "Private Pool v2 Shield",
+    publicInputLabels: ["shield-public-input-hash"],
+    verifiedPublicInputKey: "shieldPublicInputHash",
+  },
   [sendCircuitName]: {
     circuitDir: sendCircuitDir,
     circuitName: sendCircuitName,
@@ -69,6 +78,7 @@ const forbiddenStringFragments = [
   "sourceArtifacts",
   "witness",
   "witnessPackage",
+  "vanta_private_pool_v2_shield_entry.gz",
   "vanta_private_pool_v2_send_entry.gz",
   "vanta_private_pool_v2_actual_private_spend_entry.gz",
 ];
@@ -256,6 +266,13 @@ export function normalizeVantaPrivatePoolV2SendProofArtifact(proofArtifact) {
   );
 }
 
+export function normalizeVantaPrivatePoolV2ShieldProofArtifact(proofArtifact) {
+  return normalizeVantaPrivatePoolV2ProofArtifact(
+    proofArtifact,
+    proofArtifactCircuitProfiles[shieldCircuitName],
+  );
+}
+
 export function normalizeVantaPrivatePoolV2ActualPrivateSpendProofArtifact(proofArtifact) {
   return normalizeVantaPrivatePoolV2ProofArtifact(
     proofArtifact,
@@ -346,6 +363,13 @@ export async function verifyVantaPrivatePoolV2SendProofArtifact(args) {
   return await verifyVantaPrivatePoolV2ProofArtifact(
     args,
     proofArtifactCircuitProfiles[sendCircuitName],
+  );
+}
+
+export async function verifyVantaPrivatePoolV2ShieldProofArtifact(args) {
+  return await verifyVantaPrivatePoolV2ProofArtifact(
+    args,
+    proofArtifactCircuitProfiles[shieldCircuitName],
   );
 }
 
