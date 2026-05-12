@@ -178,6 +178,17 @@ try {
     "claimPublicInputHash mismatch",
   );
   await expectReject(
+    "private-pool-v2 operator Claim unknown expected public input rejection",
+    {
+      expectedPublicInputs: {
+        claimPublicInputHash: proofArtifact.publicInputs[0],
+        unshieldPublicInputHash: proofArtifact.publicInputs[0],
+      },
+      proofArtifact,
+    },
+    "unexpected expectedPublicInputs.unshieldPublicInputHash",
+  );
+  await expectReject(
     "private-pool-v2 operator Claim cannot satisfy Send expected input",
     {
       expectedPublicInputs: { sendPublicInputHash: proofArtifact.publicInputs[0] },

@@ -34,6 +34,7 @@ const serviceNetwork = read("operator/private-pool-v2-service-network.mjs");
 const proofArtifact = read("operator/private-pool-v2-proof-artifact.mjs");
 const proofScript = read("scripts/prove-vanta-private-pool-v2-circuit.mjs");
 const shieldArtifactCheck = read("scripts/check-vanta-private-pool-v2-shield-proof-artifact-consistency.mjs");
+const shieldNoWitnessCheck = read("scripts/check-vanta-private-pool-v2-shield-operator-no-witness.mjs");
 const claimArtifactCheck = read("scripts/check-vanta-private-pool-v2-claim-proof-artifact-consistency.mjs");
 const swapToShieldedArtifactCheck = read(
   "scripts/check-vanta-private-pool-v2-swap-to-shielded-proof-artifact-consistency.mjs",
@@ -103,8 +104,23 @@ includes(
 );
 includes(
   operatorServer,
+  "verifyVantaPrivatePoolV2ShieldProofArtifact",
+  "operator Shield proof artifact verifier",
+);
+includes(
+  operatorServer,
   "verifyVantaPrivatePoolV2SwapToShieldedProofArtifact",
   "operator Swap-to-shielded proof artifact verifier",
+);
+includes(
+  operatorServer,
+  "expectedPublicInputs.shieldPublicInputHash",
+  "operator Shield expected public-input binding",
+);
+includes(
+  operatorServer,
+  "rejects unexpected expectedPublicInputs",
+  "operator proof artifact expected public-input allowlist",
 );
 includes(
   operatorServer,
@@ -127,6 +143,7 @@ includes(
   "operator Swap-to-shielded expected public-input binding",
 );
 includes(operatorServer, "sendPublicInputHash mismatch", "operator Send expected public-input mismatch guard");
+includes(operatorServer, "shieldPublicInputHash mismatch", "operator Shield expected public-input mismatch guard");
 includes(operatorServer, "claimPublicInputHash mismatch", "operator Claim expected public-input mismatch guard");
 includes(
   operatorServer,
@@ -174,6 +191,46 @@ includes(shieldArtifactCheck, "public input label relabel rejection", "Shield pr
 includes(shieldArtifactCheck, "verifyingKeyHash tamper rejection", "Shield proof artifact verifying-key tamper guard");
 includes(shieldArtifactCheck, "privateInputs alias rejection", "Shield proof artifact no-witness alias guard");
 includes(shieldArtifactCheck, "witness sidecar rejection", "Shield proof artifact witness sidecar guard");
+includes(
+  shieldNoWitnessCheck,
+  "Shield proof artifact no-witness acceptance",
+  "Shield proof artifact operator acceptance guard",
+);
+includes(
+  shieldNoWitnessCheck,
+  "Shield proof artifact read-only receipt state",
+  "Shield proof artifact read-only receipt guard",
+);
+includes(
+  shieldNoWitnessCheck,
+  "Shield missing expected public input rejection",
+  "Shield proof artifact expected public-input required guard",
+);
+includes(
+  shieldNoWitnessCheck,
+  "Shield mismatched expected public input rejection",
+  "Shield proof artifact expected public-input mismatch guard",
+);
+includes(
+  shieldNoWitnessCheck,
+  "Shield mixed Shield and Send expected input rejection",
+  "Shield proof artifact mixed expected-input guard",
+);
+includes(
+  shieldNoWitnessCheck,
+  "Shield unknown expected public input rejection",
+  "Shield proof artifact unknown expected-input guard",
+);
+includes(
+  shieldNoWitnessCheck,
+  "Send artifact cannot satisfy Shield expected input",
+  "Shield proof artifact Send relabel guard",
+);
+includes(
+  shieldNoWitnessCheck,
+  "production local artifact rejection",
+  "Shield proof artifact production backend guard",
+);
 includes(claimArtifactCheck, "tampered public input rejection", "Claim proof artifact tampered public input guard");
 includes(claimArtifactCheck, "circuit relabel rejection", "Claim proof artifact circuit relabel guard");
 includes(claimArtifactCheck, "proofSystem relabel rejection", "Claim proof artifact proof-system relabel guard");
@@ -282,6 +339,11 @@ includes(
 );
 includes(
   claimNoWitnessCheck,
+  "Claim unknown expected public input rejection",
+  "Claim proof artifact unknown expected-input guard",
+);
+includes(
+  claimNoWitnessCheck,
   "Send artifact cannot satisfy Claim expected input",
   "Claim proof artifact Send relabel guard",
 );
@@ -299,6 +361,11 @@ includes(
   swapToShieldedNoWitnessCheck,
   "Swap-to-shielded mismatched expected public input rejection",
   "Swap-to-shielded proof artifact expected public-input mismatch guard",
+);
+includes(
+  swapToShieldedNoWitnessCheck,
+  "Swap-to-shielded unknown expected public input rejection",
+  "Swap-to-shielded proof artifact unknown expected-input guard",
 );
 includes(
   swapToShieldedNoWitnessCheck,
@@ -321,6 +388,11 @@ includes(
   "Send mismatched expected public input rejection",
   "Send proof artifact expected public-input mismatch guard",
 );
+includes(
+  sendNoWitnessCheck,
+  "Send unknown expected public input rejection",
+  "Send proof artifact unknown expected-input guard",
+);
 includes(sendNoWitnessCheck, "nested witness alias rejection", "Send proof artifact operator nested witness alias guard");
 includes(sendNoWitnessCheck, "production local artifact rejection", "Send proof artifact production backend guard");
 includes(
@@ -332,6 +404,11 @@ includes(
   actualPrivateSpendNoWitnessCheck,
   "mismatched public input rejection",
   "Actual Private Spend proof artifact expected public-input mismatch guard",
+);
+includes(
+  actualPrivateSpendNoWitnessCheck,
+  "actual-private unknown expected public input rejection",
+  "Actual Private Spend proof artifact unknown expected-input guard",
 );
 includes(
   actualPrivateSpendNoWitnessCheck,
@@ -376,6 +453,11 @@ assert(
   "package.json must expose private-pool-v2:shield-proof-artifact-consistency-check",
 );
 assert(
+  scripts["private-pool-v2:shield-operator-no-witness-check"] ===
+    "node scripts/check-vanta-private-pool-v2-shield-operator-no-witness.mjs",
+  "package.json must expose private-pool-v2:shield-operator-no-witness-check",
+);
+assert(
   scripts["private-pool-v2:claim-proof-artifact-consistency-check"] ===
     "node scripts/check-vanta-private-pool-v2-claim-proof-artifact-consistency.mjs",
   "package.json must expose private-pool-v2:claim-proof-artifact-consistency-check",
@@ -413,6 +495,7 @@ assert(
 for (const command of [
   "private-pool-v2:proof-backend-boundary-check",
   "private-pool-v2:shield-proof-artifact-consistency-check",
+  "private-pool-v2:shield-operator-no-witness-check",
   "private-pool-v2:claim-proof-artifact-consistency-check",
   "private-pool-v2:claim-operator-no-witness-check",
   "private-pool-v2:swap-to-shielded-proof-artifact-consistency-check",
@@ -439,6 +522,14 @@ assert(
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:shield-proof-artifact-consistency-check"),
   "private-pool-v2:verify must include the Shield proof artifact consistency guard",
+);
+assert(
+  scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:shield-operator-no-witness-check"),
+  "private-pool-v2:verify must include the Shield operator no-witness guard",
+);
+assert(
+  scripts["shield:verify"]?.includes("npm run private-pool-v2:shield-operator-no-witness-check"),
+  "shield:verify must include the Shield operator no-witness guard",
 );
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:claim-proof-artifact-consistency-check"),

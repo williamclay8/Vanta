@@ -176,6 +176,17 @@ try {
     "privateSpendPublicInputHash mismatch",
   );
   await expectReject(
+    "private-pool-v2 operator actual-private unknown expected public input rejection",
+    {
+      expectedPublicInputs: {
+        privateSpendPublicInputHash: proofArtifact.publicInputs[0],
+        unshieldPublicInputHash: proofArtifact.publicInputs[0],
+      },
+      proofArtifact,
+    },
+    "unexpected expectedPublicInputs.unshieldPublicInputHash",
+  );
+  await expectReject(
     "private-pool-v2 operator actual-private mixed witness alias rejection",
     { expectedPublicInputs, proofArtifact, witness: { nullifier: "123" } },
     "strict no-witness",

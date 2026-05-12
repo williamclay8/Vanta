@@ -186,6 +186,17 @@ try {
     "swapPublicInputHash mismatch",
   );
   await expectReject(
+    "private-pool-v2 operator Swap-to-shielded unknown expected public input rejection",
+    {
+      expectedPublicInputs: {
+        swapPublicInputHash: proofArtifact.publicInputs[0],
+        unshieldPublicInputHash: proofArtifact.publicInputs[0],
+      },
+      proofArtifact,
+    },
+    "unexpected expectedPublicInputs.unshieldPublicInputHash",
+  );
+  await expectReject(
     "private-pool-v2 operator Swap-to-shielded cannot satisfy Send expected input",
     {
       expectedPublicInputs: { sendPublicInputHash: proofArtifact.publicInputs[0] },

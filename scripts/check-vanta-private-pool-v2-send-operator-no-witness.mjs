@@ -149,6 +149,18 @@ try {
   );
 
   await expectReject(
+    "private-pool-v2 operator Send unknown expected public input rejection",
+    {
+      expectedPublicInputs: {
+        sendPublicInputHash: proofArtifact.publicInputs[0],
+        unshieldPublicInputHash: proofArtifact.publicInputs[0],
+      },
+      proofArtifact,
+    },
+    "unexpected expectedPublicInputs.unshieldPublicInputHash",
+  );
+
+  await expectReject(
     "private-pool-v2 operator mixed witnessPackage rejection",
     { proofArtifact, witnessPackage: { privateWitness: true } },
     "strict no-witness",

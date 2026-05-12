@@ -34,6 +34,7 @@ import {
   verifyVantaPrivatePoolV2ActualPrivateSpendProofArtifact,
   verifyVantaPrivatePoolV2ClaimProofArtifact,
   verifyVantaPrivatePoolV2SendProofArtifact,
+  verifyVantaPrivatePoolV2ShieldProofArtifact,
   verifyVantaPrivatePoolV2SwapToShieldedProofArtifact,
 } from "./private-pool-v2-proof-artifact.mjs";
 import { createPrivatePoolV2ReceiptStore } from "./private-pool-v2-store.mjs";
@@ -612,6 +613,7 @@ const productionProofBackends = ["remote-service"];
 const productionProofBackendSet = new Set(productionProofBackends);
 const localProofBackends = ["local-mock", "local-bb-fixture-artifact"];
 const localBenchmarkProofSystem = "mock";
+const shieldProofArtifactCircuit = "vanta_private_pool_v2_shield_entry";
 const claimProofArtifactCircuit = "vanta_private_pool_v2_claim_entry";
 const sendProofArtifactCircuit = "vanta_private_pool_v2_send_entry";
 const swapToShieldedProofArtifactCircuit = "vanta_private_pool_v2_swap_to_shielded_entry";
@@ -705,6 +707,27 @@ function assertStrictPrivatePoolV2ProofArtifactBody(body) {
   }
 }
 
+function assertExpectedPublicInputKeyAllowlist(body, allowedKey, artifactLabel) {
+  const expectedPublicInputs = body?.expectedPublicInputs;
+  if (expectedPublicInputs === undefined || expectedPublicInputs === null) {
+    return;
+  }
+
+  if (typeof expectedPublicInputs !== "object" || Array.isArray(expectedPublicInputs)) {
+    throw new Error(
+      `Private Pool v2 ${artifactLabel} proof artifact verification requires expectedPublicInputs to be an object.`,
+    );
+  }
+
+  for (const key of Object.keys(expectedPublicInputs)) {
+    if (key !== allowedKey) {
+      throw new Error(
+        `Private Pool v2 ${artifactLabel} proof artifact verification rejects unexpected expectedPublicInputs.${key}; only expectedPublicInputs.${allowedKey} is bound.`,
+      );
+    }
+  }
+}
+
 function assertActualPrivateSpendExpectedPublicInputMatches(body, verifiedReceipt) {
   const expectedPrivateSpendPublicInputHash =
     body?.expectedPublicInputs?.privateSpendPublicInputHash;
@@ -722,6 +745,22 @@ function assertActualPrivateSpendExpectedPublicInputMatches(body, verifiedReceip
   if (actualPrivateSpendPublicInputHash !== expectedPrivateSpendPublicInputHash.trim()) {
     throw new Error(
       `Private Pool v2 Actual Private Spend proof artifact privateSpendPublicInputHash mismatch: expected ${expectedPrivateSpendPublicInputHash.trim()}, received ${actualPrivateSpendPublicInputHash ?? "missing"}.`,
+    );
+  }
+}
+
+function assertShieldExpectedPublicInputMatches(body, verifiedReceipt) {
+  const expectedShieldPublicInputHash = body?.expectedPublicInputs?.shieldPublicInputHash;
+  if (typeof expectedShieldPublicInputHash !== "string" || !expectedShieldPublicInputHash.trim()) {
+    throw new Error(
+      "Private Pool v2 Shield proof artifact verification requires expectedPublicInputs.shieldPublicInputHash.",
+    );
+  }
+
+  const actualShieldPublicInputHash = verifiedReceipt?.verifiedPublicInputs?.shieldPublicInputHash;
+  if (actualShieldPublicInputHash !== expectedShieldPublicInputHash.trim()) {
+    throw new Error(
+      `Private Pool v2 Shield proof artifact shieldPublicInputHash mismatch: expected ${expectedShieldPublicInputHash.trim()}, received ${actualShieldPublicInputHash ?? "missing"}.`,
     );
   }
 }
@@ -778,11 +817,23 @@ async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
   const circuit = body?.proofArtifact?.circuit;
 
   if (circuit === actualPrivateSpendProofArtifactCircuit) {
+    if (body?.expectedPublicInputs?.shieldPublicInputHash !== undefined) {
+      throw new Error(
+        "Private Pool v2 Actual Private Spend proof artifact verification cannot satisfy expectedPublicInputs.shieldPublicInputHash; use a Shield proof artifact.",
+      );
+    }
+
     if (body?.expectedPublicInputs?.swapPublicInputHash !== undefined) {
       throw new Error(
         "Private Pool v2 Actual Private Spend proof artifact verification cannot satisfy expectedPublicInputs.swapPublicInputHash; use a Swap-to-shielded proof artifact.",
       );
     }
+
+    assertExpectedPublicInputKeyAllowlist(
+      body,
+      "privateSpendPublicInputHash",
+      "Actual Private Spend",
+    );
 
     const verifiedReceipt = await verifyVantaPrivatePoolV2ActualPrivateSpendProofArtifact({
       proofArtifact: body.proofArtifact,
@@ -794,7 +845,51 @@ async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
     };
   }
 
+  if (circuit === shieldProofArtifactCircuit) {
+    if (body?.expectedPublicInputs?.sendPublicInputHash !== undefined) {
+      throw new Error(
+        "Private Pool v2 Shield proof artifact verification cannot satisfy expectedPublicInputs.sendPublicInputHash; use a Send proof artifact.",
+      );
+    }
+
+    if (body?.expectedPublicInputs?.claimPublicInputHash !== undefined) {
+      throw new Error(
+        "Private Pool v2 Shield proof artifact verification cannot satisfy expectedPublicInputs.claimPublicInputHash; use a Claim proof artifact.",
+      );
+    }
+
+    if (body?.expectedPublicInputs?.swapPublicInputHash !== undefined) {
+      throw new Error(
+        "Private Pool v2 Shield proof artifact verification cannot satisfy expectedPublicInputs.swapPublicInputHash; use a Swap-to-shielded proof artifact.",
+      );
+    }
+
+    if (body?.expectedPublicInputs?.privateSpendPublicInputHash !== undefined) {
+      throw new Error(
+        "Private Pool v2 Shield proof artifact verification cannot satisfy expectedPublicInputs.privateSpendPublicInputHash; use an Actual Private Spend proof artifact.",
+      );
+    }
+
+    assertExpectedPublicInputKeyAllowlist(body, "shieldPublicInputHash", "Shield");
+
+    const verifiedReceipt = await verifyVantaPrivatePoolV2ShieldProofArtifact({
+      proofArtifact: body.proofArtifact,
+    });
+    assertShieldExpectedPublicInputMatches(body, verifiedReceipt);
+
+    return {
+      kind: "Private Pool V2 Shield proof artifact verification",
+      verifiedReceipt,
+    };
+  }
+
   if (circuit === claimProofArtifactCircuit) {
+    if (body?.expectedPublicInputs?.shieldPublicInputHash !== undefined) {
+      throw new Error(
+        "Private Pool v2 Claim proof artifact verification cannot satisfy expectedPublicInputs.shieldPublicInputHash; use a Shield proof artifact.",
+      );
+    }
+
     if (body?.expectedPublicInputs?.swapPublicInputHash !== undefined) {
       throw new Error(
         "Private Pool v2 Claim proof artifact verification cannot satisfy expectedPublicInputs.swapPublicInputHash; use a Swap-to-shielded proof artifact.",
@@ -813,6 +908,8 @@ async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
       );
     }
 
+    assertExpectedPublicInputKeyAllowlist(body, "claimPublicInputHash", "Claim");
+
     const verifiedReceipt = await verifyVantaPrivatePoolV2ClaimProofArtifact({
       proofArtifact: body.proofArtifact,
     });
@@ -825,6 +922,12 @@ async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
   }
 
   if (circuit === sendProofArtifactCircuit) {
+    if (body?.expectedPublicInputs?.shieldPublicInputHash !== undefined) {
+      throw new Error(
+        "Private Pool v2 Send proof artifact verification cannot satisfy expectedPublicInputs.shieldPublicInputHash; use a Shield proof artifact.",
+      );
+    }
+
     if (body?.expectedPublicInputs?.swapPublicInputHash !== undefined) {
       throw new Error(
         "Private Pool v2 Send proof artifact verification cannot satisfy expectedPublicInputs.swapPublicInputHash; use a Swap-to-shielded proof artifact.",
@@ -836,6 +939,8 @@ async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
         "Private Pool v2 Send proof artifact verification cannot satisfy expectedPublicInputs.privateSpendPublicInputHash; use an Actual Private Spend proof artifact.",
       );
     }
+
+    assertExpectedPublicInputKeyAllowlist(body, "sendPublicInputHash", "Send");
 
     const verifiedReceipt = await verifyVantaPrivatePoolV2SendProofArtifact({
       proofArtifact: body.proofArtifact,
@@ -849,6 +954,12 @@ async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
   }
 
   if (circuit === swapToShieldedProofArtifactCircuit) {
+    if (body?.expectedPublicInputs?.shieldPublicInputHash !== undefined) {
+      throw new Error(
+        "Private Pool v2 Swap-to-shielded proof artifact verification cannot satisfy expectedPublicInputs.shieldPublicInputHash; use a Shield proof artifact.",
+      );
+    }
+
     if (body?.expectedPublicInputs?.sendPublicInputHash !== undefined) {
       throw new Error(
         "Private Pool v2 Swap-to-shielded proof artifact verification cannot satisfy expectedPublicInputs.sendPublicInputHash; use a Send proof artifact.",
@@ -866,6 +977,8 @@ async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
         "Private Pool v2 Swap-to-shielded proof artifact verification cannot satisfy expectedPublicInputs.privateSpendPublicInputHash; use an Actual Private Spend proof artifact.",
       );
     }
+
+    assertExpectedPublicInputKeyAllowlist(body, "swapPublicInputHash", "Swap-to-shielded");
 
     const verifiedReceipt = await verifyVantaPrivatePoolV2SwapToShieldedProofArtifact({
       proofArtifact: body.proofArtifact,
