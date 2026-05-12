@@ -650,7 +650,7 @@
         "scripts/check-vanta-private-pool-v2-solana-spend-transaction-builder.mjs",
         "scripts/check-vanta-zk-c01-onchain-proof-boundary.mjs"
       ],
-      "summary": "The Solana spend program source now reserves tag 3 as a 449-byte proof-carrying spend ABI shape, but it only validates the reserved payload shape and nonzero verifier placeholders before returning custom error 14 without reading or mutating accounts. The current tag-1 transaction builder remains the only live builder path and rejects tag 3.",
+      "summary": "The Solana spend program source now reserves tag 3 as a 449-byte proof-carrying spend ABI shape, but it only validates the reserved payload shape, nonzero transcript/verifier placeholders, root/nullifier/output account contract, and read-only verifier-key PDA before returning custom error 14 without proof verification, account creation, nullifier/output mutation, or spend acceptance. The current tag-1 transaction builder remains the only live builder path and rejects tag 3.",
       "localVerification": [
         "npm run zk:c01-onchain-proof-boundary-check",
         "npm run private-pool-v2:solana-spend-transaction-builder-check",
@@ -663,7 +663,7 @@
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
-      "truthBoundary": "This is a source-only reserved verifier-boundary scaffold. It is not a Groth16 verifier, not proof-byte acceptance, not verifying-key enforcement, not deployed/live SBF program evidence, not audit acceptance, and not real-funds readiness."
+      "truthBoundary": "This is a source-only reserved verifier-boundary preflight scaffold. It is not a Groth16 verifier, not proof-byte acceptance, not verifying-key enforcement, not deployed/live SBF program evidence, not audit acceptance, and not real-funds readiness."
     }
   ],
   "findings": [
@@ -689,12 +689,12 @@
         "npm run private-pool-v2:sbf-abi-status-json",
         "npm run private-pool-v2:sbf-abi-check"
       ],
-      "failureMode": "The local program now gates writes with operator authority, accepted-root scaffolding, deterministic nullifier-marker PDA replay checks, and deterministic output-record PDA writes, but no verifier enforces a real proof or verifying-key hash on chain, and the current 161-byte spend ABI carries no proof bytes. A separate reserved tag 3 proof-carrying spend ABI exists in source as a 449-byte fail-closed shape, but it returns custom error 14 before reading or mutating accounts and the current transaction builder rejects tag 3.",
+      "failureMode": "The local program now gates writes with operator authority, accepted-root scaffolding, deterministic nullifier-marker PDA replay checks, and deterministic output-record PDA writes, but no verifier enforces a real proof or verifying-key hash on chain, and the current 161-byte spend ABI carries no proof bytes. A separate reserved tag 3 proof-carrying spend ABI exists in source as a 449-byte fail-closed preflight shape, but it only checks the future account/verifier-key contract and returns custom error 14 before proof verification, account creation, nullifier/output mutation, or spend acceptance; the current transaction builder rejects tag 3.",
       "requiredFix": [
         "Commit a verifying-key hash or verifier program boundary for the active circuit.",
         "Verify a real proof against the public input hash in-program or via a dedicated verifier CPI.",
         "Keep onChainVerifier, proofBytes, proofArtifact, verifyingKeyHash, verifierProgramId, and related proof-like transaction fields rejected by live submitter surfaces until a proof-carrying verifier ABI exists.",
-        "Keep the reserved tag 3 proof-carrying ABI returning custom error 14 before account reads or writes until a real verifier, verifying-key commitment, verifier-backend contract, and positive verifier tests replace the scaffold.",
+        "Keep the reserved tag 3 proof-carrying ABI returning custom error 14 before proof verification, account creation, nullifier/output mutation, or spend acceptance until a real verifier, verifying-key commitment, verifier-backend contract, and positive verifier tests replace the scaffold.",
         "Replace operator-fed fixed-slot root-history scaffolding with proof-backed program-owned shared tree state.",
         "Replace the operator-keypair Unshield release path with program-owned vault custody and a proof-verified TAG_UNSHIELD release instruction.",
         "Rebuild, redeploy, and reinitialize before citing live evidence."
@@ -713,8 +713,8 @@
           "npm run private-pool-v2:sbf-abi-status-json",
           "npm run private-pool-v2:sbf-abi-check"
         ],
-        "localResult": "Rust tests/checks cover the source-level reserved tag 3 proof-carrying ABI shape, malformed/all-zero placeholder rejection, and the custom-error-14 no-mutation behavior; contract-check covers the local authority/root/nullifier-marker/output-record scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed proof truth boundary, no-proof-bytes tag-1 ABI truth, and reserved tag-3 fail-closed truth; solana-spend-transaction-builder-check rejects tag 3 and proof-like builder/validation fields for the current no-verifier live builder; relayer, service-network, and operator-packet checks reject or omit proof-like spend fields before any handoff can imply verifier support; onchain-unshield-custody-check preserves the blocked operator-keypair/public-exit custody truth boundary; sbf-abi-status-json now discovers the installed Solana active-release toolchain and reports the locally rebuilt SBF ABI as fresh; sbf-abi-check passes locally.",
-        "proves": "Local write authority, account binding, accepted-root scaffold, deterministic output-record PDA binding, current-ABI proof-field rejection across builder/relayer/service-network/operator-packet surfaces, reserved tag-3 fail-closed/no-mutation source behavior, explicit blocked Unshield custody status, local rebuilt-SBF freshness for the current source ABI, and the negative C01 truth boundary are guarded.",
+        "localResult": "Rust tests/checks cover the source-level reserved tag 3 proof-carrying ABI shape, malformed/all-zero placeholder rejection, root/nullifier/output/verifier-key preflight, and the custom-error-14 no-mutation behavior; contract-check covers the local authority/root/nullifier-marker/output-record scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed proof truth boundary, no-proof-bytes tag-1 ABI truth, and reserved tag-3 fail-closed preflight truth; solana-spend-transaction-builder-check rejects tag 3 and proof-like builder/validation fields for the current no-verifier live builder; relayer, service-network, and operator-packet checks reject or omit proof-like spend fields before any handoff can imply verifier support; onchain-unshield-custody-check preserves the blocked operator-keypair/public-exit custody truth boundary; sbf-abi-status-json now discovers the installed Solana active-release toolchain and reports the locally rebuilt SBF ABI as fresh; sbf-abi-check passes locally.",
+        "proves": "Local write authority, account binding, accepted-root scaffold, deterministic output-record PDA binding, current-ABI proof-field rejection across builder/relayer/service-network/operator-packet surfaces, reserved tag-3 root/nullifier/output/verifier-key fail-closed/no-mutation source behavior, explicit blocked Unshield custody status, local rebuilt-SBF freshness for the current source ABI, and the negative C01 truth boundary are guarded.",
         "doesNotProve": "On-chain proof verification, proof-carrying spend acceptance, verifying-key enforcement, deployed/live SBF bytecode for tag 3, program-owned tree state, program-owned vault custody, proof-verified TAG_UNSHIELD release, audit acceptance, or live deployment correctness."
       },
       "codexRemediation": {
@@ -723,11 +723,11 @@
           "698ca41 (C01 proof-field fail-closed feedback loop)",
           "14022f1 (Reserve proof-carrying spend ABI)"
         ],
-      "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, proof-like transaction-field rejection for the current no-verifier spend ABI, a verifier-backend contract guard for the future tag 3 lane, and a reserved tag 3 proof-carrying spend ABI that fails closed before state reads or writes.",
+      "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, proof-like transaction-field rejection for the current no-verifier spend ABI, a verifier-backend contract guard for the future tag 3 lane, and a reserved tag 3 proof-carrying spend ABI that preflights the future account/verifier-key contract and fails closed before proof verification or mutation.",
         "residualRisk": [
           "No production verifier is wired.",
           "The current spend instruction still carries hashes only, not proof bytes.",
-          "Reserved tag 3 always returns custom error 14 and cannot be cited as proof support.",
+          "Reserved tag 3 always returns custom error 14 after preflight and cannot be cited as proof support.",
           "Reviewed mainnet evidence predates the current ABI.",
           "The accepted-root list remains an operator-authorized scaffold."
         ]

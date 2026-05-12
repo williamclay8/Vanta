@@ -10,6 +10,7 @@ use std::rc::Rc;
 const TAG_INIT: u8 = 0;
 const TAG_SPEND: u8 = 1;
 const TAG_REGISTER_ROOT: u8 = 2;
+const TAG_SPEND_WITH_PROOF: u8 = 3;
 const TAG_UNSHIELD: u8 = 6;
 
 const VERSION: u8 = 1;
@@ -19,9 +20,11 @@ const NULLIFIER_MARKER_MAGIC: &[u8; 8] = b"VNTA2NMK";
 const OUTPUT_MAGIC: &[u8; 8] = b"VNTA2OUT";
 const OUTPUT_RECORD_MAGIC: &[u8; 8] = b"VNTA2ORC";
 const ROOT_MAGIC: &[u8; 8] = b"VNTA2ROT";
+const VERIFIER_KEY_MAGIC: &[u8; 8] = b"VNTA2VKY";
 const NULLIFIER_MARKER_SEED: &[u8] = b"vanta2nul";
 const OUTPUT_RECORD_SEED: &[u8] = b"vanta2out";
 const VAULT_AUTHORITY_SEED: &[u8] = b"vanta2vault";
+const VERIFIER_KEY_SEED: &[u8] = b"vanta2vkey";
 
 const HEADER_LEN: usize = 16;
 const COUNT_OFFSET: usize = 12;
@@ -45,6 +48,9 @@ const OUTPUT_RECORD_PUBLIC_INPUT_HASH_OFFSET: usize = OUTPUT_RECORD_OUTPUT1_OFFS
 const NULLIFIER_MARKER_LEN: usize = HEADER_LEN + HASH_LEN * 2;
 const NULLIFIER_MARKER_POOL_OFFSET: usize = HEADER_LEN;
 const NULLIFIER_MARKER_NULLIFIER_OFFSET: usize = HEADER_LEN + HASH_LEN;
+const VERIFIER_KEY_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 2;
+const VERIFIER_KEY_POOL_OFFSET: usize = HEADER_LEN;
+const VERIFIER_KEY_HASH_OFFSET: usize = HEADER_LEN + HASH_LEN;
 
 const ERR_DUPLICATE_NULLIFIER: u32 = 1;
 const ERR_INVALID_HEADER: u32 = 4;
@@ -55,8 +61,10 @@ const ERR_DUPLICATE_ROOT: u32 = 10;
 const ERR_UNKNOWN_ACCEPTED_ROOT: u32 = 11;
 const ERR_NULLIFIER_MARKER_MISMATCH: u32 = 12;
 const ERR_OUTPUT_RECORD_MISMATCH: u32 = 13;
+const ERR_PROOF_VERIFIER_NOT_WIRED: u32 = 14;
 const ERR_UNSHIELD_RELEASE_NOT_WIRED: u32 = 15;
 const ERR_VAULT_AUTHORITY_MISMATCH: u32 = 16;
+const ERR_VERIFIER_KEY_MISMATCH: u32 = 17;
 
 #[derive(Clone)]
 struct OutputRecord {
@@ -315,6 +323,82 @@ impl VantaPrivatePoolV2Spend {
             before,
             self.snapshot_accounts_for_payload(&payload),
             "duplicate output-record call mutated state"
+        );
+    }
+
+    pub fn action_spend_with_proof_preflight(&mut self, seed: u64, selector: u8) {
+        if !self.initialized || self.state_error_code.is_some() {
+            return;
+        }
+
+        let mode = selector % 6;
+        let accepted_root = match mode {
+            1 => make_hash(seed, 94),
+            _ => self.accepted_root_for_spend(seed),
+        };
+        let mut payload = spend_with_proof_payload(seed, accepted_root);
+        if mode == 4 {
+            let Some(consumed) = self.accepted_nullifiers.last().copied() else {
+                return;
+            };
+            payload = spend_with_proof_payload_with_nullifier(seed, accepted_root, consumed);
+        }
+
+        self.ensure_spend_with_proof_placeholders(&payload);
+        let (data, accounts, expected_code) = match mode {
+            0 => (
+                payload.data.clone(),
+                self.spend_with_proof_accounts_for_payload(&payload),
+                self.accepted_roots
+                    .is_empty()
+                    .then_some(ERR_UNKNOWN_ACCEPTED_ROOT)
+                    .or(Some(ERR_PROOF_VERIFIER_NOT_WIRED)),
+            ),
+            1 => (
+                payload.data.clone(),
+                self.spend_with_proof_accounts_for_payload(&payload),
+                Some(ERR_UNKNOWN_ACCEPTED_ROOT),
+            ),
+            2 => (
+                payload.data.clone(),
+                self.spend_with_proof_accounts_with_wrong_verifier(&payload),
+                self.accepted_roots
+                    .is_empty()
+                    .then_some(ERR_UNKNOWN_ACCEPTED_ROOT)
+                    .or(Some(ERR_VERIFIER_KEY_MISMATCH)),
+            ),
+            3 => (
+                payload.data.clone(),
+                self.spend_with_proof_accounts_with_writable_verifier(&payload),
+                self.accepted_roots
+                    .is_empty()
+                    .then_some(ERR_UNKNOWN_ACCEPTED_ROOT),
+            ),
+            4 => (
+                payload.data.clone(),
+                self.spend_with_proof_accounts_for_payload(&payload),
+                self.accepted_roots
+                    .is_empty()
+                    .then_some(ERR_UNKNOWN_ACCEPTED_ROOT)
+                    .or(Some(ERR_DUPLICATE_NULLIFIER)),
+            ),
+            _ => (
+                vec![TAG_SPEND_WITH_PROOF],
+                self.spend_with_proof_accounts_for_payload(&payload),
+                None,
+            ),
+        };
+
+        let before = self.snapshot_account_metas(&accounts);
+        let outcome = self.call_unsigned(data, accounts.clone());
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+        if let Some(code) = expected_code {
+            fuzz_assert_eq!(outcome.as_ref().and_then(TxOutcome::error_code), Some(code));
+        }
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_account_metas(&accounts),
+            "spend-with-proof preflight mutated account bytes or lamports"
         );
     }
 
@@ -773,6 +857,51 @@ impl VantaPrivatePoolV2Spend {
         ]
     }
 
+    fn spend_with_proof_accounts_for_payload(
+        &self,
+        payload: &SpendWithProofPayload,
+    ) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new_readonly(self.nullifier_set, false),
+            AccountMeta::new_readonly(self.output_queue, false),
+            AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
+            AccountMeta::new(self.output_record_pubkey(&payload.public_input_hash), false),
+            AccountMeta::new_readonly(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
+        ]
+    }
+
+    fn spend_with_proof_accounts_with_wrong_verifier(
+        &self,
+        payload: &SpendWithProofPayload,
+    ) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new_readonly(self.nullifier_set, false),
+            AccountMeta::new_readonly(self.output_queue, false),
+            AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
+            AccountMeta::new(self.output_record_pubkey(&payload.public_input_hash), false),
+            AccountMeta::new_readonly(self.wrong_root_history, false),
+        ]
+    }
+
+    fn spend_with_proof_accounts_with_writable_verifier(
+        &self,
+        payload: &SpendWithProofPayload,
+    ) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new_readonly(self.nullifier_set, false),
+            AccountMeta::new_readonly(self.output_queue, false),
+            AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
+            AccountMeta::new(self.output_record_pubkey(&payload.public_input_hash), false),
+            AccountMeta::new(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
+        ]
+    }
+
     fn unshield_accounts_with_wrong_marker(&self, payload: &UnshieldPayload) -> Vec<AccountMeta> {
         vec![
             AccountMeta::new_readonly(self.pool_state, false),
@@ -891,6 +1020,12 @@ impl VantaPrivatePoolV2Spend {
         self.ensure_output_record_placeholder(&payload.public_input_hash);
     }
 
+    fn ensure_spend_with_proof_placeholders(&mut self, payload: &SpendWithProofPayload) {
+        self.ensure_marker_placeholder(&payload.nullifier);
+        self.ensure_output_record_placeholder(&payload.public_input_hash);
+        self.ensure_verifier_key_account(&payload.verifier_key_hash);
+    }
+
     fn ensure_unshield_placeholders(&mut self, payload: &UnshieldPayload) {
         self.ensure_marker_placeholder(&payload.nullifier);
         self.ensure_vault_authority_placeholder(&payload.exit_asset_id);
@@ -938,6 +1073,28 @@ impl VantaPrivatePoolV2Spend {
             .owner(system_program::ID)
             .size(0)
             .create()
+            .unwrap();
+    }
+
+    fn ensure_verifier_key_account(&mut self, verifier_key_hash: &[u8; HASH_LEN]) {
+        let verifier_key = self.verifier_key_pubkey(verifier_key_hash);
+        if self.ctx.get_account(&verifier_key).is_ok() {
+            return;
+        }
+        self.ctx
+            .create_account()
+            .pubkey(verifier_key)
+            .lamports(1_000_000)
+            .owner(self.program_id)
+            .size(VERIFIER_KEY_ACCOUNT_LEN)
+            .create()
+            .unwrap();
+        let account_data =
+            verifier_key_account_data(&self.pool_state.to_bytes(), verifier_key_hash);
+        self.ctx
+            .update_account(&verifier_key, |data| {
+                data.copy_from_slice(&account_data);
+            })
             .unwrap();
     }
 
@@ -1019,6 +1176,18 @@ impl VantaPrivatePoolV2Spend {
         .0
     }
 
+    fn verifier_key_pubkey(&self, verifier_key_hash: &[u8; HASH_LEN]) -> Pubkey {
+        Pubkey::find_program_address(
+            &[
+                VERIFIER_KEY_SEED,
+                self.pool_state.as_ref(),
+                verifier_key_hash,
+            ],
+            &self.program_id,
+        )
+        .0
+    }
+
     fn account_data(&self, pubkey: Pubkey) -> Vec<u8> {
         self.ctx.get_account(&pubkey).unwrap().data
     }
@@ -1031,6 +1200,14 @@ struct SpendPayload {
     output0: [u8; HASH_LEN],
     output1: [u8; HASH_LEN],
     public_input_hash: [u8; HASH_LEN],
+}
+
+#[derive(Clone)]
+struct SpendWithProofPayload {
+    data: Vec<u8>,
+    nullifier: [u8; HASH_LEN],
+    public_input_hash: [u8; HASH_LEN],
+    verifier_key_hash: [u8; HASH_LEN],
 }
 
 #[derive(Clone)]
@@ -1057,6 +1234,34 @@ fn spend_payload(seed: u64, accepted_root: [u8; HASH_LEN]) -> SpendPayload {
         output0,
         output1,
         public_input_hash,
+    }
+}
+
+fn spend_with_proof_payload(seed: u64, accepted_root: [u8; HASH_LEN]) -> SpendWithProofPayload {
+    spend_with_proof_payload_with_nullifier(seed, accepted_root, make_hash(seed, 71))
+}
+
+fn spend_with_proof_payload_with_nullifier(
+    seed: u64,
+    accepted_root: [u8; HASH_LEN],
+    nullifier: [u8; HASH_LEN],
+) -> SpendWithProofPayload {
+    let output0 = make_hash(seed, 72);
+    let output1 = make_hash(seed, 73);
+    let public_input_hash = make_hash(seed, 74);
+    let verifier_key_hash = make_hash(seed, 75);
+    SpendWithProofPayload {
+        data: spend_with_proof_data(
+            nullifier,
+            output0,
+            output1,
+            accepted_root,
+            public_input_hash,
+            verifier_key_hash,
+        ),
+        nullifier,
+        public_input_hash,
+        verifier_key_hash,
     }
 }
 
@@ -1102,6 +1307,27 @@ fn spend_data(
     data
 }
 
+fn spend_with_proof_data(
+    nullifier: [u8; HASH_LEN],
+    output0: [u8; HASH_LEN],
+    output1: [u8; HASH_LEN],
+    accepted_root: [u8; HASH_LEN],
+    public_input_hash: [u8; HASH_LEN],
+    verifier_key_hash: [u8; HASH_LEN],
+) -> Vec<u8> {
+    let mut data = spend_data(
+        nullifier,
+        output0,
+        output1,
+        accepted_root,
+        public_input_hash,
+    );
+    data[0] = TAG_SPEND_WITH_PROOF;
+    data.extend_from_slice(&verifier_key_hash);
+    data.extend_from_slice(&[7; RESERVED_GROTH16_PROOF_LEN]);
+    data
+}
+
 fn unshield_data(
     nullifier: [u8; HASH_LEN],
     accepted_root: [u8; HASH_LEN],
@@ -1119,6 +1345,20 @@ fn unshield_data(
     data.extend_from_slice(&seeded_exit_amount(&exit_asset_id));
     data.extend_from_slice(&public_input_hash);
     data.extend_from_slice(&[6; RESERVED_GROTH16_PROOF_LEN]);
+    data
+}
+
+fn verifier_key_account_data(
+    pool_state: &[u8; HASH_LEN],
+    verifier_key_hash: &[u8; HASH_LEN],
+) -> Vec<u8> {
+    let mut data = vec![0; VERIFIER_KEY_ACCOUNT_LEN];
+    data[..8].copy_from_slice(VERIFIER_KEY_MAGIC);
+    data[8] = VERSION;
+    data[COUNT_OFFSET..COUNT_OFFSET + 4].copy_from_slice(&1_u32.to_le_bytes());
+    data[VERIFIER_KEY_POOL_OFFSET..VERIFIER_KEY_POOL_OFFSET + HASH_LEN].copy_from_slice(pool_state);
+    data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN]
+        .copy_from_slice(verifier_key_hash);
     data
 }
 

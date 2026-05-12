@@ -125,7 +125,10 @@ assert.equal(
   packet.solanaSpendSbfAbiStatus.rebuildCommand,
   "cargo-build-sbf --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
 );
-assert.equal(packet.solanaSpendSbfAbiStatus.sourceOnlyReservedSpendStatus, "fail-closed-source-only");
+assert.equal(
+  packet.solanaSpendSbfAbiStatus.sourceOnlyReservedSpendStatus,
+  "fail-closed-verifier-key-preflight-source-only",
+);
 assert.equal(
   packet.solanaSpendSbfAbiStatus.sourceOnlyReservedUnshieldStatus,
   "fail-closed-vault-preflight-source-only",

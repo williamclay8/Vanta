@@ -113,8 +113,17 @@ Instruction data is exactly 449 bytes:
 
 Behavior today:
 
-- checks only the reserved payload length and that `verifierKeyHash` / `groth16Proof` are not all-zero placeholders
-- returns custom error `14` before reading or mutating any accounts
+- checks the reserved payload length and rejects all-zero public transcript / verifier placeholders
+- requires seven preflight accounts:
+  1. `pool_state` (read-only, program-owned)
+  2. `nullifier_set` (read-only, program-owned, bound in `pool_state`)
+  3. `output_queue` (read-only, program-owned, bound in `pool_state`)
+  4. `root_history` (read-only, program-owned, bound in `pool_state`)
+  5. `nullifier_marker` (writable PDA derived from `["vanta2nul", pool_state, nullifier]`)
+  6. `output_record` (writable PDA derived from `["vanta2out", pool_state, publicInputHash]`)
+  7. `verifier_key` (read-only program-owned PDA derived from `["vanta2vkey", pool_state, verifierKeyHash]`)
+- validates account headers, registered `acceptedRoot`, output-index/spend-count consistency, unused nullifier marker, unused output record, and the verifier-key hash account
+- returns custom error `14` after preflight and before proof verification, nullifier/output mutation, account creation, or proof-enforced spend acceptance
 - must not be used as proof-enforced spend evidence until the actual Groth16 verifier, verifying-key commitment, fresh post-verifier SBF rebuild, redeploy/reinit, and live/audit evidence exist
 
 C01 verifier backend contract:
@@ -190,3 +199,4 @@ cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml
 - `14`: proof-carrying spend ABI is reserved and the verifier is not wired
 - `15`: proof-verified unshield release ABI is reserved and release custody is not wired
 - `16`: supplied Unshield vault authority PDA does not match the expected pool/asset vault authority
+- `17`: supplied spend-with-proof verifier-key PDA or account content does not match the expected pool/key hash

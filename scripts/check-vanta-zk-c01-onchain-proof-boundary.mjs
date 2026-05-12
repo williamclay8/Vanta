@@ -57,12 +57,16 @@ includes(c01.verification.doesNotProve, "program-owned tree state", "C01 doesNot
 for (const marker of [
   "const TAG_REGISTER_ROOT: u8 = 2;",
   "const TAG_SPEND_WITH_PROOF: u8 = 3;",
+  "const VERIFIER_KEY_MAGIC",
+  "const VERIFIER_KEY_SEED",
   "const ROOT_MAGIC",
   "const SPEND_PAYLOAD_LEN: usize = 1 + HASH_LEN * 5;",
   "const SPEND_WITH_PROOF_PAYLOAD_LEN",
   "const ERR_PROOF_VERIFIER_NOT_WIRED: u32 = 14;",
+  "const ERR_VERIFIER_KEY_MISMATCH: u32 = 17;",
   "fn process_register_root",
   "fn process_spend_with_proof",
+  "fn require_verifier_key_hash",
   "proof-carrying spend ABI is reserved; verifier not wired",
   "fixed_slot_contains(&root_data, HASH_LEN, accepted_root)?",
   "ensure_nullifier_marker(",
@@ -80,16 +84,17 @@ for (const marker of [
   "nullifier_marker",
   "proof-carrying spend (reserved, fail closed)",
   "returns custom error `14`",
+  "[\"vanta2vkey\", pool_state, verifierKeyHash]",
 ]) {
   includes(readme, marker, readmePath);
 }
 
 for (const marker of [
   "no Groth16/PLONK/Honk verifier",
-  "no verifying-key hash enforcement",
+  "no production verifying-key acceptance",
   "current 161-byte spend ABI carries no proof bytes",
-  "returns custom error `14` before reading or mutating accounts",
-  "proofCarryingSpendStatus: \"fail-closed-source-only\"",
+  "returns custom error `14` before proof verification",
+  "proofCarryingSpendStatus: \"fail-closed-verifier-key-preflight-source-only\"",
   "root history is only a local operator-authorized fixed-slot scaffold",
   "program-owned shared tree state",
 ]) {

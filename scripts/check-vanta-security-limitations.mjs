@@ -26,7 +26,7 @@ const requiredPhrases = [
   "local actual-private-spend witness-input proof path",
   "not a browser/runtime prover",
   "reserved Private Pool v2 tag `3` proof-carrying spend ABI is source/local rebuilt-SBF fail-closed scaffolding",
-  "returns custom error `14` before reading or mutating accounts",
+  "preflights the root/nullifier/output/verifier-key account contract and then returns custom error `14` before proof verification, account creation, nullifier/output mutation, or spend acceptance",
   "reserved source-only `TAG_UNSHIELD = 6` ABI now validates a root/nullifier/vault-authority preflight and then fails closed before nullifier consume, proof verification, token/system CPI, custody transfer, or fund release",
   "transition-field drift",
   "request-metadata drift",

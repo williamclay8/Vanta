@@ -47,11 +47,15 @@ assert(c01.status === "partial", "C01 must remain partial until a positive verif
 
 for (const marker of [
   "const TAG_SPEND_WITH_PROOF: u8 = 3;",
+  "const VERIFIER_KEY_MAGIC",
+  "const VERIFIER_KEY_SEED",
   "const RESERVED_GROTH16_PROOF_LEN: usize = 256;",
   "const SPEND_WITH_PROOF_PAYLOAD_LEN",
   "const ERR_PROOF_VERIFIER_NOT_WIRED: u32 = 14;",
+  "const ERR_VERIFIER_KEY_MISMATCH: u32 = 17;",
   "let verifier_key_hash = &rest[160..192];",
   "let proof = &rest[192..448];",
+  "fn require_verifier_key_hash",
   "proof-carrying spend ABI is reserved; verifier not wired",
 ]) {
   includes(program, marker, programPath);
@@ -62,6 +66,7 @@ for (const marker of [
   "Groth16-compatible Solana verifier path",
   "verifierKeyHash:32",
   "groth16Proof:256",
+  "[\"vanta2vkey\", pool_state, verifierKeyHash]",
   "local bb.js/UltraHonk artifacts are not on-chain verifier evidence",
   "local-acir-bytecode-hash-not-production-vk",
   "production-verifying-key-hash",
