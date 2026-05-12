@@ -264,6 +264,7 @@ export type VantaPrivatePoolV2ProofSystem = "noir-bb" | "groth16" | "plonk" | "m
 export type VantaPrivatePoolV2ProofBackend =
   | "local-mock"
   | "local-bb-fixture-artifact"
+  | "local-bb-derived-artifact"
   | "remote-service";
 
 export type VantaPrivatePoolV2ProofReceipt = {
@@ -503,6 +504,7 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
     proofBackend === undefined ||
       proofBackend === "local-mock" ||
       proofBackend === "local-bb-fixture-artifact" ||
+      proofBackend === "local-bb-derived-artifact" ||
       proofBackend === "remote-service",
     "Private Pool v2 proof receipt is missing a recognized proof backend.",
   );

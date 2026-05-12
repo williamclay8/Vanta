@@ -611,7 +611,11 @@ const productionProofSystems = ["noir-bb", "groth16", "plonk"];
 const productionProofSystemSet = new Set(productionProofSystems);
 const productionProofBackends = ["remote-service"];
 const productionProofBackendSet = new Set(productionProofBackends);
-const localProofBackends = ["local-mock", "local-bb-fixture-artifact"];
+const localProofBackends = [
+  "local-mock",
+  "local-bb-fixture-artifact",
+  "local-bb-derived-artifact",
+];
 const localBenchmarkProofSystem = "mock";
 const shieldProofArtifactCircuit = "vanta_private_pool_v2_shield_entry";
 const claimProofArtifactCircuit = "vanta_private_pool_v2_claim_entry";

@@ -457,7 +457,7 @@ These commands cover the current Vanta-owned Private Pool v2 benchmark lane:
 - a checked sanitized route-health evidence file for preserving public/authenticated route status without storing credentials
 - local append-only commitment indexing and Merkle proof lookup
 - local prover public-input commitment verification plus tamper rejection
-- an opt-in actual-private-spend and Send local bb fixture-backed proof-result adapter that returns `noir-bb` / `local-bb-fixture-artifact` only for an exact verified fixture proof-request transcript and rejects `private-spend-public-input-hash` / `send-public-input-hash`, transition-field drift, request-metadata drift, and cross-target artifact relabeling; this is local no-real-funds fixture replay, not a witness-driven runtime prover, remote proof service, on-chain verifier, or production proof acceptance
+- an opt-in actual-private-spend and Send local bb artifact-backed proof-result adapter that returns `noir-bb` / `local-bb-fixture-artifact` for exact verified fixture transcripts, and can return actual-private-spend `noir-bb` / `local-bb-derived-artifact` from a strict local witness input whose derived request binds `private-spend-public-input-hash`; it rejects public-input drift, transition-field drift, request-metadata drift, cross-target artifact relabeling, and no-witness artifact leakage, but remains local no-real-funds evidence, not a browser/runtime prover, remote proof service, on-chain verifier, or production proof acceptance
 - local relayer claim submission plus replay rejection
 - the first Noir-backed shield-entry circuit with valid, invalid-binding, and invalid-root fixtures
 - the first Noir-backed claim/spend circuit with valid, invalid-binding, and invalid-nullifier fixtures

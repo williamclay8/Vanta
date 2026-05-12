@@ -177,7 +177,7 @@ await expectReject(
     ...proofArtifact,
     proofBackend: "remote-service",
   },
-  "local-bb-fixture-artifact",
+  "local-bb-fixture-artifact or local-bb-derived-artifact",
 );
 
 await expectReject(

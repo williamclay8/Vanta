@@ -22,13 +22,38 @@
   ],
   "lumiBaseline": {
     "branch": "codex/vanta-zk-review-hardening",
-    "lastKnownCommit": "977aad2",
-    "local": "verified locally through the Send local bb fixture proof-result feedback-loop slice before the current owner-context legacy quarantine policy work",
-    "committed": "977aad2 (Bind Send local bb fixture proof results)",
+    "lastKnownCommit": "edd3bcd",
+    "local": "verified locally through the owner-context legacy quarantine policy slice before the current actual-private-spend witness-input prover work",
+    "committed": "edd3bcd (Quarantine legacy owner context records)",
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
   "activeFeedbackLoops": [
+    {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-12-ACTUAL-PRIVATE-SPEND-WITNESS-INPUT-PROVER",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#still-open-2--replace-the-mock-prover-with-bbjs",
+        "src/privacy/privatePoolV2ActualPrivateSpendCircuitFixture.ts",
+        "scripts/prove-vanta-private-pool-v2-circuit.mjs",
+        "scripts/check-vanta-private-pool-v2-actual-private-spend-witness-prover.mjs",
+        "npm run private-pool-v2:actual-private-spend-witness-prover-check"
+      ],
+      "summary": "Actual-private-spend now has a strict local witness-input proof path: the input builder validates canonical BN254 fields, depth-20 paths, boolean direction bits, derived leaf index, recomputed root/nullifier, unique outputs, and a derived private-spend-public-input-hash before the Node proof script emits a no-witness local-bb-derived-artifact.",
+      "localVerification": [
+        "npm run private-pool-v2:actual-private-spend-witness-prover-check",
+        "npm run private-pool-v2:proof-backend-boundary-check",
+        "npm run private-pool-v2:contract-check",
+        "npm run security:limitations-check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the witness-input prover, proof-backend boundary, contract, security-limitations, local-prover, local-verifier, status, docs, and ZK review guard checks",
+        "committed": "included in the feedback-loop commit containing this ledger entry",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is local no-real-funds actual-private-spend proof generation through the Node/nargo/bb.js script and no-witness artifact adapter. It is not browser/Web Worker prover plumbing, remote proof service evidence, on-chain verifier enforcement, production verifying-key registry, audit acceptance, live deployment evidence, or real-funds readiness."
+    },
     {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-ACTUAL-PRIVATE-SPEND-LOCAL-BB-FIXTURE-PROOF-RESULT",
       "status": "verified-local-in-feedback-loop",
@@ -1120,6 +1145,7 @@
         "scripts/check-vanta-private-pool-v2-send-proof-artifact-consistency.mjs",
         "scripts/check-vanta-private-pool-v2-actual-private-spend-proof-artifact-consistency.mjs",
         "scripts/check-vanta-private-pool-v2-local-bb-fixture-prover.mjs",
+        "scripts/check-vanta-private-pool-v2-actual-private-spend-witness-prover.mjs",
         "scripts/check-vanta-private-pool-v2-claim-operator-no-witness.mjs",
         "scripts/check-vanta-private-pool-v2-swap-to-shielded-operator-no-witness.mjs",
         "scripts/check-vanta-private-pool-v2-send-operator-no-witness.mjs",
@@ -1133,6 +1159,7 @@
         "npm run private-pool-v2:send-proof-artifact-consistency-check",
         "npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
         "npm run private-pool-v2:local-bb-fixture-prover-check",
+        "npm run private-pool-v2:actual-private-spend-witness-prover-check",
         "npm run send:verify",
         "npm run private-pool-v2:send-operator-no-witness-check",
         "npm run private-pool-v2:actual-private-spend-operator-no-witness-check",
@@ -1145,7 +1172,8 @@
         "Keep production/real-funds modes rejecting proofSystem mock.",
         "Keep production/real-funds modes rejecting local proofBackend values even if proofSystem is spoofed to noir-bb.",
         "Keep remote proof-artifact handoffs rejecting relabelled local fixture metadata and binding returned remote verifier receipts to the submitted proof-artifact transcript.",
-        "Keep any local bb fixture proof-result adapter opt-in, exact-fixture-request-bound, and local/no-real-funds only.",
+        "Keep any local bb artifact proof-result adapter opt-in, exact-request-bound, and local/no-real-funds only.",
+        "Keep actual-private-spend local witness-input proving strict, no-witness in emitted artifacts, and blocked from production proof mode.",
         "Wire a real prover such as bb.js before production proof claims.",
         "Keep remote-services mode required for production startup."
       ],
@@ -1167,13 +1195,14 @@
           "npm run private-pool-v2:send-proof-artifact-consistency-check",
           "npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
           "npm run private-pool-v2:local-bb-fixture-prover-check",
+          "npm run private-pool-v2:actual-private-spend-witness-prover-check",
           "npm run private-pool-v2:send-operator-no-witness-check",
           "npm run private-pool-v2:actual-private-spend-operator-no-witness-check",
           "npm run private-pool-v2:local-verifier-check"
         ],
-        "localResult": "Mock-proof boundary, proof-backend boundary, remote-services, remote proof-artifact boundary with transcript binding, local bb fixture proof-result adapters, SOL-to-shielded adapter, swap capability, protocol-client, Shield proof-artifact consistency, Shield operator no-witness, Claim proof-artifact consistency, Claim operator no-witness, Swap-to-shielded proof-artifact consistency, Swap-to-shielded operator no-witness, Send proof-artifact consistency, actual-private-spend proof-artifact consistency, Send operator no-witness, actual-private-spend operator no-witness, send:verify, local-prover, and the expanded local-verifier check pass locally. A full private-pool-v2:verify run advanced through the H08 handoff, local bb fixture adapter, local proof-artifact, circuit, proving, and status lanes before stopping at the expected SBF ABI gate: stale-sbf-binary, missing-cargo-build-sbf, missing-solana-cli.",
-        "proves": "Mock proofs and local proof backends are explicit and blocked from production/real-funds acceptance paths covered by the guard, including spoofed noir-bb/local-backend receipts, relabelled Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof artifacts, witness-alias sidecars, remote prover mock/local-backend responses, remote verifier local-backend requests, and the live Jupiter SOL-to-shielded adapter boundary. Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof artifacts can be checked locally without accepting private witness material; Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator verification now require matching expected public-input hashes and reject unbound extra expected-input keys; the opt-in actual-private-spend and Send local bb fixture proof-result adapters return noir-bb/local-bb-fixture-artifact only for exact verified fixture proof-request transcripts, reject private-spend-public-input-hash or send-public-input-hash mismatch, transition-field drift, request-metadata drift, cross-target artifacts, disabled mode, artifact relabeling, malformed local ACIR metadata, and proof-result tampering, and leave the default local prover on mock/local-mock; Shield operator verification is explicitly read-only and checks receipt/settlement counts do not change; the production-mode proof-artifact verifier-handoff guard delegates remote-service artifacts to the configured verifier registry in a local harness, rejects local fixture artifacts, relabelled local verifying-key ids, mock proof systems, local verifying-key hashes, and witness aliases, requires the returned remote verifier receipt transcript to match the submitted artifact across ACIR hash, circuit, backend/runtime metadata, proof system/backend, proof bytes, public inputs/labels/commitment, and verifying-key fields, and still appends no receipts or settlements; and proof-system/backend metadata plus local ACIR bytecode metadata remain guarded against mock/local production misuse.",
-        "doesNotProve": "A witness-driven runtime prover, production remote prover, live verifier, on-chain proof verifier, audit acceptance, live settlement evidence, or real-funds ZK readiness."
+        "localResult": "Mock-proof boundary, proof-backend boundary, remote-services, remote proof-artifact boundary with transcript binding, local bb fixture proof-result adapters, the actual-private-spend witness-input prover guard, SOL-to-shielded adapter, swap capability, protocol-client, Shield proof-artifact consistency, Shield operator no-witness, Claim proof-artifact consistency, Claim operator no-witness, Swap-to-shielded proof-artifact consistency, Swap-to-shielded operator no-witness, Send proof-artifact consistency, actual-private-spend proof-artifact consistency, Send operator no-witness, actual-private-spend operator no-witness, send:verify, local-prover, and the expanded local-verifier check pass locally. A full private-pool-v2:verify run advanced through the H08 handoff, local bb fixture adapter, local proof-artifact, circuit, proving, and status lanes before stopping at the expected SBF ABI gate: stale-sbf-binary, missing-cargo-build-sbf, missing-solana-cli.",
+        "proves": "Mock proofs and local proof backends are explicit and blocked from production/real-funds acceptance paths covered by the guard, including spoofed noir-bb/local-backend receipts, relabelled Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof artifacts, witness-alias sidecars, remote prover mock/local-backend responses, remote verifier local-backend requests, and the live Jupiter SOL-to-shielded adapter boundary. Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof artifacts can be checked locally without accepting private witness material; actual-private-spend also has a strict local witness-input proof path that validates canonical fields, a depth-20 path, derived leaf index, recomputed root/nullifier, unique outputs, and derived private-spend-public-input-hash before emitting a no-witness local-bb-derived-artifact. Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator verification require matching expected public-input hashes and reject unbound extra expected-input keys; the opt-in actual-private-spend and Send local bb artifact adapters return noir-bb local artifacts only for exact verified proof-request transcripts, reject private-spend-public-input-hash or send-public-input-hash mismatch, transition-field drift, request-metadata drift, cross-target artifacts, disabled mode, artifact relabeling, malformed local ACIR metadata, and proof-result tampering, and leave the default local prover on mock/local-mock. Shield operator verification is explicitly read-only and checks receipt/settlement counts do not change; the production-mode proof-artifact verifier-handoff guard delegates remote-service artifacts to the configured verifier registry in a local harness, rejects local fixture artifacts, relabelled local verifying-key ids, mock proof systems, local verifying-key hashes, and witness aliases, requires the returned remote verifier receipt transcript to match the submitted artifact across ACIR hash, circuit, backend/runtime metadata, proof system/backend, proof bytes, public inputs/labels/commitment, and verifying-key fields, and still appends no receipts or settlements; and proof-system/backend metadata plus local ACIR bytecode metadata remain guarded against mock/local production misuse.",
+        "doesNotProve": "Browser/Web Worker prover plumbing, a production remote prover, live verifier, on-chain proof verifier, audit acceptance, live settlement evidence, or real-funds ZK readiness."
       },
       "codexRemediation": {
         "commits": [
@@ -1191,13 +1220,15 @@
           "b6b97e3 (remote proof-artifact boundary feedback loop)",
           "6fe5bdc (remote verifier receipt transcript-binding feedback loop)",
           "4f1fa49 (Bind local bb fixture proof results)",
-          "current H08 Send local bb fixture proof-result feedback-loop patch"
+          "current H08 Send local bb fixture proof-result feedback-loop patch",
+          "current H08 actual-private-spend witness-input proof path patch"
         ],
-        "summary": "Persisted proofSystem and proofBackend through proof receipts, guarded production startup and settlement boundaries against mock/local proof evidence, made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary, added local no-witness Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof-artifact checks with alias/tamper/metadata/relabel guards, required Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator proof-artifact verification to bind matching expected public-input hashes where operator routes exist, rejects unbound extra expected-input keys, kept Shield operator artifact verification read-only with receipt/settlement count checks, added a production proof-artifact verifier handoff that delegates remote-service artifacts to the configured verifier registry while rejecting local fixture artifacts, relabelled-local key ids, local/mocked verifier responses, and remote receipt transcript drift, hardened the remote-services client so remote prover/verifier responses cannot launder mock/local proof metadata or witness sidecars into remote-service evidence, and added opt-in actual-private-spend and Send local bb fixture proof-result adapters that are exact-fixture-request-bound and still local/no-real-funds only.",
+        "summary": "Persisted proofSystem and proofBackend through proof receipts, guarded production startup and settlement boundaries against mock/local proof evidence, made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary, added local no-witness Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof-artifact checks with alias/tamper/metadata/relabel guards, required Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator proof-artifact verification to bind matching expected public-input hashes where operator routes exist, rejects unbound extra expected-input keys, kept Shield operator artifact verification read-only with receipt/settlement count checks, added a production proof-artifact verifier handoff that delegates remote-service artifacts to the configured verifier registry while rejecting local fixture artifacts, relabelled-local key ids, local/mocked verifier responses, and remote receipt transcript drift, hardened the remote-services client so remote prover/verifier responses cannot launder mock/local proof metadata or witness sidecars into remote-service evidence, added opt-in actual-private-spend and Send local bb fixture proof-result adapters that are exact-fixture-request-bound and still local/no-real-funds only, and added a strict actual-private-spend local witness-input proof path that emits no-witness local-bb-derived-artifacts for derived requests.",
         "residualRisk": [
           "The mock prover still exists for local evidence.",
           "The Shield, Claim, Swap-to-shielded, Send, and actual-private-spend local proof-artifact checks remain local-only fixture evidence.",
-          "The actual-private-spend and Send local bb fixture proof-result adapters are exact fixture replay, not witness-driven runtime provers or production proof services.",
+          "The actual-private-spend local witness-input path is Node/nargo/bb.js proof generation only, not browser/Web Worker prover plumbing or a production proof service.",
+          "The actual-private-spend and Send local bb proof-result adapters are exact local artifact replay, not remote proof services or production proof services.",
           "The remote proof-artifact verifier boundary and transcript-binding guard are exercised by a local mock verifier service; they are not live remote-service deployment evidence, audit acceptance, or on-chain verification.",
           "Shield operator artifact verification is local read-only request binding only; it does not append commitments, persist receipts, accept Shield settlement, or satisfy production proof mode.",
           "Claim operator artifact verification is local request binding only; it still rejects production proof mode until remote/on-chain proof verification is implemented.",
@@ -1207,14 +1238,15 @@
         ]
       },
       "lumiHygiene": {
-        "local": "verified locally for boundary, remote proof-artifact boundary/transcript binding, actual-private-spend and Send local bb fixture proof-result adapters, Shield proof-artifact, Shield operator, Claim proof-artifact, Claim operator, Swap-to-shielded proof-artifact, Swap-to-shielded operator, Send proof-artifact, actual-private-spend proof-artifact, Send operator, actual-private-spend operator, send:verify, local-prover, local-verifier, build, and full private-pool-v2:verify until the expected SBF ABI/toolchain gate",
-        "committed": "included in the feedback-loop commit containing the current Send local bb fixture proof-result patch",
+        "local": "verified locally for boundary, remote proof-artifact boundary/transcript binding, actual-private-spend witness-input proof path, actual-private-spend and Send local bb fixture proof-result adapters, Shield proof-artifact, Shield operator, Claim proof-artifact, Claim operator, Swap-to-shielded proof-artifact, Swap-to-shielded operator, Send proof-artifact, actual-private-spend proof-artifact, Send operator, actual-private-spend operator, send:verify, local-prover, local-verifier, build, and full private-pool-v2:verify until the expected SBF ABI/toolchain gate",
+        "committed": "included in the feedback-loop commit containing the current actual-private-spend witness-input proof path patch",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
       "staleControl": {
         "watchFiles": [
           "src/privacy/privatePoolV2LocalProver.ts",
+          "src/privacy/privatePoolV2ActualPrivateSpendCircuitFixture.ts",
           "src/privacy/privatePoolV2Types.ts",
           "src/privacy/privatePoolV2LocalVerifierRegistry.ts",
           "src/privacy/privatePoolV2ProtocolSettlementClient.ts",
@@ -1222,6 +1254,8 @@
           "scripts/check-vanta-private-pool-v2-remote-proof-artifact-boundary.mjs",
           "scripts/check-vanta-private-pool-v2-remote-services.mjs",
           "scripts/check-vanta-private-pool-v2-local-bb-fixture-prover.mjs",
+          "scripts/check-vanta-private-pool-v2-actual-private-spend-witness-prover.mjs",
+          "scripts/prove-vanta-private-pool-v2-circuit.mjs",
           "scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs",
           "scripts/check-vanta-private-pool-v2-mock-proof-boundary.mjs",
           "operator/private-pool-v2-proof-artifact.mjs",
@@ -1245,6 +1279,7 @@
           "npm run private-pool-v2:remote-services-check",
           "npm run private-pool-v2:remote-proof-artifact-boundary-check",
           "npm run private-pool-v2:local-bb-fixture-prover-check",
+          "npm run private-pool-v2:actual-private-spend-witness-prover-check",
           "npm run send:verify",
           "npm run private-pool-v2:shield-proof-artifact-consistency-check",
           "npm run private-pool-v2:shield-operator-no-witness-check",
@@ -1262,7 +1297,7 @@
           "npm run private-pool-v2:verify"
         ]
       },
-      "truthBoundary": "Say mock proofs are local/no-real-funds evidence only until a real prover/verifier lane is wired and accepted; say local bb fixture proof-result evidence for actual-private-spend and Send is exact fixture replay, not a witness-driven runtime prover; say remote proof-artifact transcript binding is local verifier-handoff hardening only until a deployed remote verifier, audited production verifying-key registry, on-chain verifier, and live settlement evidence exist."
+      "truthBoundary": "Say mock proofs are local/no-real-funds evidence only until a real prover/verifier lane is wired and accepted; say actual-private-spend local witness-input proof evidence is Node/nargo/bb.js local no-real-funds evidence, not browser/Web Worker prover plumbing or production proof service evidence; say local bb proof-result evidence for actual-private-spend and Send is exact local artifact replay; say remote proof-artifact transcript binding is local verifier-handoff hardening only until a deployed remote verifier, audited production verifying-key registry, on-chain verifier, and live settlement evidence exist."
     },
     {
       "id": "VANTA-ZK-2026-05-09-M09",

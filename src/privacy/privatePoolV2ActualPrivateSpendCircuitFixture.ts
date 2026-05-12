@@ -2,6 +2,7 @@ import { poseidon1, poseidon2, poseidon3, poseidon11 } from "poseidon-lite";
 import {
   buildVantaPrivatePoolV2SparseMerkleTree,
   directionBitsForLeafIndex,
+  VANTA_PRIVATE_POOL_V2_CIRCUIT_MERKLE_DEPTH,
 } from "./privatePoolV2MerkleFixtureHelpers";
 import { createVantaPrivatePoolV2ActualPrivateSpendProofRequest } from "./privatePoolV2ProofRequests";
 import type { VantaPrivatePoolV2ProofRequest } from "./privatePoolV2Types";
@@ -38,6 +39,22 @@ export type VantaPrivatePoolV2ActualPrivateSpendCircuitFixtureMode =
   | "invalid-leaf-index"
   | "invalid-membership-root"
   | "invalid-nullifier";
+
+export type VantaPrivatePoolV2ActualPrivateSpendCircuitWitnessInput = {
+  accepted_root: bigint | string;
+  asset_cohort: bigint | string;
+  context_hash: bigint | string;
+  input_commitment: bigint | string;
+  leaf_index: bigint | string;
+  membership_path: readonly (bigint | string)[];
+  membership_path_direction_bits: readonly (bigint | string)[];
+  nullifier: bigint | string;
+  note_secret: bigint | string;
+  output_commitment_0: bigint | string;
+  output_commitment_1: bigint | string;
+  pool_id: bigint | string;
+  request_version: bigint | string;
+};
 
 const DEFAULT_WITNESS_BASE = {
   asset_cohort: 202n,
@@ -79,8 +96,89 @@ const DEFAULT_WITNESS = {
   nullifier: computeVantaPrivatePoolV2ActualPrivateSpendNullifier(DEFAULT_WITH_ROOT),
 } satisfies VantaPrivatePoolV2ActualPrivateSpendCircuitWitness;
 
+const BN254_SCALAR_FIELD =
+  21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+
+const ACTUAL_PRIVATE_SPEND_WITNESS_FIELDS = [
+  "accepted_root",
+  "asset_cohort",
+  "context_hash",
+  "input_commitment",
+  "leaf_index",
+  "membership_path",
+  "membership_path_direction_bits",
+  "nullifier",
+  "note_secret",
+  "output_commitment_0",
+  "output_commitment_1",
+  "pool_id",
+  "request_version",
+] as const;
+
 function toCircuitString(value: bigint) {
   return value.toString(10);
+}
+
+function assertRecord(value: unknown, label: string): asserts value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${label} must be an object.`);
+  }
+}
+
+function normalizeWitnessField(value: unknown, label: string) {
+  const parsed =
+    typeof value === "bigint"
+      ? value
+      : typeof value === "string" && (value === "0" || /^[1-9][0-9]*$/u.test(value))
+        ? BigInt(value)
+        : null;
+
+  if (parsed === null) {
+    throw new Error(`${label} must be a canonical decimal BN254 field string.`);
+  }
+
+  if (parsed < 0n || parsed >= BN254_SCALAR_FIELD) {
+    throw new Error(`${label} must fit in BN254.`);
+  }
+
+  return parsed;
+}
+
+function normalizeWitnessFieldArray(value: unknown, label: string) {
+  if (!Array.isArray(value)) {
+    throw new Error(`${label} must be an array.`);
+  }
+
+  if (value.length !== VANTA_PRIVATE_POOL_V2_CIRCUIT_MERKLE_DEPTH) {
+    throw new Error(
+      `${label} must contain ${VANTA_PRIVATE_POOL_V2_CIRCUIT_MERKLE_DEPTH} fields.`,
+    );
+  }
+
+  return value.map((entry, index) => normalizeWitnessField(entry, `${label}[${index}]`));
+}
+
+function assertNoUnexpectedWitnessFields(input: Record<string, unknown>) {
+  const allowed = new Set<string>(ACTUAL_PRIVATE_SPEND_WITNESS_FIELDS);
+
+  for (const key of Object.keys(input)) {
+    if (!allowed.has(key)) {
+      throw new Error(`Actual-private-spend witness input contains unexpected field ${key}.`);
+    }
+  }
+
+  for (const key of allowed) {
+    if (!(key in input)) {
+      throw new Error(`Actual-private-spend witness input is missing ${key}.`);
+    }
+  }
+}
+
+function leafIndexFromDirectionBits(directionBits: readonly bigint[]) {
+  return directionBits.reduce(
+    (leafIndex, bit, index) => leafIndex + (bit << BigInt(index)),
+    0n,
+  );
 }
 
 export function computeVantaPrivatePoolV2ActualPrivateSpendLeaf(
@@ -157,6 +255,63 @@ export function computeVantaPrivatePoolV2ActualPrivateSpendPublicInputHash(
   ]);
 }
 
+export function normalizeVantaPrivatePoolV2ActualPrivateSpendCircuitWitnessInput(
+  input: unknown,
+): VantaPrivatePoolV2ActualPrivateSpendCircuitWitness {
+  assertRecord(input, "Actual-private-spend witness input");
+  assertNoUnexpectedWitnessFields(input);
+
+  const witness: VantaPrivatePoolV2ActualPrivateSpendCircuitWitness = {
+    accepted_root: normalizeWitnessField(input.accepted_root, "accepted_root"),
+    asset_cohort: normalizeWitnessField(input.asset_cohort, "asset_cohort"),
+    context_hash: normalizeWitnessField(input.context_hash, "context_hash"),
+    input_commitment: normalizeWitnessField(input.input_commitment, "input_commitment"),
+    leaf_index: normalizeWitnessField(input.leaf_index, "leaf_index"),
+    membership_path: normalizeWitnessFieldArray(input.membership_path, "membership_path"),
+    membership_path_direction_bits: normalizeWitnessFieldArray(
+      input.membership_path_direction_bits,
+      "membership_path_direction_bits",
+    ),
+    nullifier: normalizeWitnessField(input.nullifier, "nullifier"),
+    note_secret: normalizeWitnessField(input.note_secret, "note_secret"),
+    output_commitment_0: normalizeWitnessField(
+      input.output_commitment_0,
+      "output_commitment_0",
+    ),
+    output_commitment_1: normalizeWitnessField(
+      input.output_commitment_1,
+      "output_commitment_1",
+    ),
+    pool_id: normalizeWitnessField(input.pool_id, "pool_id"),
+    request_version: normalizeWitnessField(input.request_version, "request_version"),
+  };
+
+  for (const [index, bit] of witness.membership_path_direction_bits.entries()) {
+    if (bit !== 0n && bit !== 1n) {
+      throw new Error(`membership_path_direction_bits[${index}] must be 0 or 1.`);
+    }
+  }
+
+  const expectedLeafIndex = leafIndexFromDirectionBits(witness.membership_path_direction_bits);
+  if (witness.leaf_index !== expectedLeafIndex) {
+    throw new Error("Actual-private-spend witness leaf_index must match direction bits.");
+  }
+
+  if (witness.accepted_root !== computeVantaPrivatePoolV2ActualPrivateSpendRoot(witness)) {
+    throw new Error("Actual-private-spend witness accepted_root must match the Merkle path.");
+  }
+
+  if (witness.nullifier !== computeVantaPrivatePoolV2ActualPrivateSpendNullifier(witness)) {
+    throw new Error("Actual-private-spend witness nullifier must match the note secret.");
+  }
+
+  if (witness.output_commitment_0 === witness.output_commitment_1) {
+    throw new Error("Actual-private-spend witness output commitments must be unique.");
+  }
+
+  return witness;
+}
+
 export function createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture({
   mode = "valid",
   witness = DEFAULT_WITNESS,
@@ -201,6 +356,14 @@ export function createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture({
     proofRequest,
     witness: circuitWitness,
   };
+}
+
+export function createVantaPrivatePoolV2ActualPrivateSpendCircuitFixtureFromWitnessInput(
+  input: unknown,
+) {
+  return createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture({
+    witness: normalizeVantaPrivatePoolV2ActualPrivateSpendCircuitWitnessInput(input),
+  });
 }
 
 export function serializeVantaPrivatePoolV2ActualPrivateSpendCircuitFixtureToToml(

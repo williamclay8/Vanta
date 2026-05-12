@@ -272,6 +272,18 @@ try {
   );
   await assertRejects(
     () =>
+      verifierRegistry.acceptProof({
+        proof: {
+          ...proof,
+          proofBackend: "local-bb-derived-artifact",
+        },
+        request,
+      }),
+    /proofBackend=remote-service/u,
+    "remote verifier local derived proofBackend request",
+  );
+  await assertRejects(
+    () =>
       createVantaPrivatePoolV2RemoteVerifierRegistry({
         authToken,
         baseUrl: "https://verifier.example",

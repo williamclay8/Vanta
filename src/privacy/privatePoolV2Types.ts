@@ -94,6 +94,7 @@ export type VantaPrivatePoolV2ProofSystem = "noir-bb" | "groth16" | "plonk" | "m
 export type VantaPrivatePoolV2ProofBackend =
   | "local-mock"
   | "local-bb-fixture-artifact"
+  | "local-bb-derived-artifact"
   | "remote-service";
 export type VantaPrivatePoolV2ProofArtifactVerifyingKeyHashKind =
   | "local-acir-bytecode-hash-not-production-vk"
@@ -179,7 +180,7 @@ export type VantaPrivatePoolV2ActualPrivateSpendProofArtifact = {
   acirBytecodeHash: string;
   backend: "barretenberg-ultrahonk";
   circuit: "vanta_private_pool_v2_actual_private_spend_entry";
-  proofBackend: "local-bb-fixture-artifact";
+  proofBackend: "local-bb-fixture-artifact" | "local-bb-derived-artifact";
   proofHex: string;
   proofRuntimePackage: "@aztec/bb.js";
   proofRuntimeVersion: string;

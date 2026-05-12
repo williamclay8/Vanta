@@ -240,6 +240,18 @@ try {
     "proofBackend=remote-service",
     productionBaseUrl,
   );
+  await expectReject(
+    "private-pool-v2 operator actual-private production local derived artifact rejection",
+    {
+      expectedPublicInputs,
+      proofArtifact: {
+        ...proofArtifact,
+        proofBackend: "local-bb-derived-artifact",
+      },
+    },
+    "proofBackend=remote-service",
+    productionBaseUrl,
+  );
 } finally {
   await stopOperator(productionOperator.server);
   rmSync(tempRoot, { recursive: true, force: true });

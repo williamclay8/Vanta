@@ -286,8 +286,10 @@ try {
   const readiness = prover.readiness();
   assert(readiness.ready === true, "Fixture prover should be opt-in ready when enabled.");
   assert(
-    readiness.warnings.some((warning) => warning.includes("not a witness-driven runtime prover")),
-    "Fixture prover must warn that it is not a witness-driven runtime prover.",
+    readiness.warnings.some((warning) =>
+      warning.includes("Neither is a production ZK proof service"),
+    ),
+    "Fixture prover must warn that local artifacts are not production proof service evidence.",
   );
 
   const proof = await prover.prove(fixture.proofRequest);
@@ -713,7 +715,7 @@ try {
         },
         target: "actual-private-spend",
       }).prove(fixture.proofRequest),
-    "local-bb-fixture-artifact evidence",
+    "local-bb-fixture-artifact or local-bb-derived-artifact evidence",
   );
   await expectRejection(
     () =>

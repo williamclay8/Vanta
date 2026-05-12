@@ -363,6 +363,22 @@ try {
   assert(remoteCalls.length === 1, "Local proof artifact should reject before remote verifier call.");
 
   await expectReject(
+    "private-pool-v2 production local derived proof artifact rejection",
+    {
+      expectedPublicInputs: { shieldPublicInputHash: "123" },
+      proofArtifact: {
+        ...remoteShieldArtifact("123"),
+        proofBackend: "local-bb-derived-artifact",
+      },
+    },
+    "proofBackend=remote-service",
+  );
+  assert(
+    remoteCalls.length === 1,
+    "Local derived proof artifact should reject before remote verifier call.",
+  );
+
+  await expectReject(
     "private-pool-v2 production relabelled local proof artifact hash-kind rejection",
     {
       expectedPublicInputs: { shieldPublicInputHash: "123" },

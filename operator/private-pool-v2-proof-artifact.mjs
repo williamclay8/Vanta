@@ -54,6 +54,7 @@ const proofArtifactCircuitProfiles = {
     circuitDir: actualPrivateSpendCircuitDir,
     circuitName: actualPrivateSpendCircuitName,
     label: "Private Pool v2 Actual Private Spend",
+    localProofBackends: ["local-bb-fixture-artifact", "local-bb-derived-artifact"],
     publicInputLabels: ["private-spend-public-input-hash"],
     verifiedPublicInputKey: "privateSpendPublicInputHash",
   },
@@ -217,9 +218,12 @@ function normalizeVantaPrivatePoolV2ProofArtifact(proofArtifact, profile) {
   );
   assert(proofArtifact.backend === "barretenberg-ultrahonk", `${profile.label} proof artifact must use barretenberg-ultrahonk.`);
   assert(proofArtifact.proofSystem === "noir-bb", `${profile.label} proof artifact must use proofSystem noir-bb.`);
+  const acceptedLocalProofBackends = profile.localProofBackends ?? ["local-bb-fixture-artifact"];
   assert(
-    proofArtifact.proofBackend === "local-bb-fixture-artifact",
-    `${profile.label} proof artifact verification currently accepts only local-bb-fixture-artifact evidence.`,
+    acceptedLocalProofBackends.includes(proofArtifact.proofBackend),
+    `${profile.label} proof artifact verification currently accepts only ${acceptedLocalProofBackends.join(
+      " or ",
+    )} evidence.`,
   );
   assert(
     typeof proofArtifact.proofHex === "string" &&

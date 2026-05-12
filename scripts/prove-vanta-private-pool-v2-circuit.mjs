@@ -8,7 +8,19 @@ import {
 } from "../operator/private-pool-v2-proof-artifact.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
-const target = process.argv[2] ?? "shield";
+const args = process.argv.slice(2);
+let target = "shield";
+let witnessJsonPath = null;
+for (let index = 0; index < args.length; index += 1) {
+  const arg = args[index];
+  if (arg === "--witness-json") {
+    witnessJsonPath = args[index + 1] ?? null;
+    index += 1;
+    continue;
+  }
+
+  target = arg ?? target;
+}
 
 const targets = {
   shield: {
@@ -61,7 +73,19 @@ if (!targets[target]) {
   process.exit(1);
 }
 
+if (witnessJsonPath !== null && !witnessJsonPath.trim()) {
+  console.error("--witness-json requires a path.");
+  process.exit(1);
+}
+
+if (witnessJsonPath !== null && target !== "actual-private-spend") {
+  console.error("--witness-json is only supported for actual-private-spend.");
+  process.exit(1);
+}
+
 const config = targets[target];
+const proofBackend =
+  witnessJsonPath === null ? "local-bb-fixture-artifact" : "local-bb-derived-artifact";
 const compiledProgramPath = resolve(config.circuitDir, `target/${config.circuitName}.json`);
 const witnessPath = resolve(config.circuitDir, `target/${config.circuitName}.gz`);
 const proofReceiptPath = resolve(config.circuitDir, `target/${config.circuitName}.proof.json`);
@@ -86,8 +110,12 @@ function printCapturedOutput(output) {
   }
 }
 
-function writeFixture() {
-  runCommand("node", [config.fixtureWriterPath, "valid"], { cwd: repoRoot, env: process.env });
+function writeFixture({ useWitnessInput = false } = {}) {
+  const args = [config.fixtureWriterPath, "valid"];
+  if (useWitnessInput && witnessJsonPath !== null) {
+    args.push("--witness-json", witnessJsonPath);
+  }
+  runCommand("node", args, { cwd: repoRoot, env: process.env });
 }
 
 function runNargo(args) {
@@ -97,9 +125,9 @@ function runNargo(args) {
 let restoredValidFixture = false;
 
 try {
-  writeFixture();
+  writeFixture({ useWitnessInput: true });
   restoredValidFixture = true;
-  console.log("valid fixture write: PASS");
+  console.log(witnessJsonPath === null ? "valid fixture write: PASS" : "witness-input fixture write: PASS");
 
   printCapturedOutput(runNargo(["compile"]));
   console.log("nargo compile: PASS");
@@ -123,7 +151,7 @@ try {
     const proofReceipt = {
       backend: "barretenberg-ultrahonk",
       circuit: config.circuitName,
-      proofBackend: "local-bb-fixture-artifact",
+      proofBackend,
       proofByteLength: proofData.proof.length,
       proofHex: Buffer.from(proofData.proof).toString("hex"),
       proofSystem: "noir-bb",
