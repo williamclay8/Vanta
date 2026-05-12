@@ -22,9 +22,9 @@
   ],
   "lumiBaseline": {
     "branch": "codex/vanta-zk-review-hardening",
-    "lastKnownCommit": "commit containing the Send memo body-hash field and Unshield custody truth-surface feedback-loop ledger entries",
-    "local": "verified locally for the Send memo body-hash field and Unshield custody truth-surface feedback-loop slices",
-    "committed": "included in the commit containing the Send memo body-hash field and Unshield custody truth-surface feedback-loop ledger entries",
+    "lastKnownCommit": "commit containing the Actual Private Spend operator no-witness feedback-loop ledger entry",
+    "local": "verified locally for the Actual Private Spend operator no-witness feedback-loop slice",
+    "committed": "included in the commit containing the Actual Private Spend operator no-witness feedback-loop ledger entry",
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
@@ -321,6 +321,30 @@
         "deployedLive": "not-live-verified"
       },
       "truthBoundary": "This is truth-surfacing and drift prevention only. It is not a program-owned vault PDA, not on-chain TAG_UNSHIELD, not proof-verified release, not audit acceptance, and not live deployment evidence."
+    },
+    {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-12-ACTUAL-PRIVATE-SPEND-OPERATOR-NO-WITNESS",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#still-open-2--replace-the-mock-prover-with-bbjs",
+        "operator/private-pool-v2-server.mjs",
+        "operator/private-pool-v2-proof-artifact.mjs",
+        "scripts/check-vanta-private-pool-v2-actual-private-spend-operator-no-witness.mjs",
+        "scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs"
+      ],
+      "summary": "The Private Pool v2 operator proof-artifact route now accepts actual-private-spend bb.js/UltraHonk fixture artifacts only when the verified private-spend-public-input-hash matches expectedPublicInputs.privateSpendPublicInputHash, while still rejecting witness aliases, Send artifacts presented as spend evidence, and local artifacts in production proof mode.",
+      "localVerification": [
+        "npm run private-pool-v2:actual-private-spend-operator-no-witness-check",
+        "npm run private-pool-v2:send-operator-no-witness-check",
+        "npm run private-pool-v2:proof-backend-boundary-check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the Actual Private Spend operator no-witness feedback-loop slice",
+        "committed": "included in the commit containing this Actual Private Spend operator no-witness feedback-loop ledger entry",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a local operator request-binding guard for no-witness fixture artifacts. It is not browser/runtime prover wiring, not remote-service proof acceptance, not on-chain proof verification, not a production verifying-key registry, not audit acceptance, and not live deployment evidence."
     }
   ],
   "findings": [

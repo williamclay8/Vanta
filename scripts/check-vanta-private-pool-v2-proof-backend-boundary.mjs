@@ -38,6 +38,9 @@ const actualPrivateSpendArtifactCheck = read(
   "scripts/check-vanta-private-pool-v2-actual-private-spend-proof-artifact-consistency.mjs",
 );
 const sendNoWitnessCheck = read("scripts/check-vanta-private-pool-v2-send-operator-no-witness.mjs");
+const actualPrivateSpendNoWitnessCheck = read(
+  "scripts/check-vanta-private-pool-v2-actual-private-spend-operator-no-witness.mjs",
+);
 const mockBoundary = read("scripts/check-vanta-private-pool-v2-mock-proof-boundary.mjs");
 
 for (const backend of ["local-mock", "local-bb-fixture-artifact", "remote-service"]) {
@@ -75,8 +78,18 @@ includes(
 includes(operatorServer, "productionProofBackendSet", "operator production backend set");
 includes(operatorServer, "requires a remote production proof backend", "operator production backend rejection");
 includes(operatorServer, "acceptedProductionProofBackends", "operator status proof trust boundary");
-includes(operatorServer, "/private-pool-v2/proof-artifacts/verify", "operator Send proof artifact no-witness route");
-includes(operatorServer, "strict no-witness proof-artifact mode rejects", "operator Send proof artifact no-witness rejection");
+includes(operatorServer, "/private-pool-v2/proof-artifacts/verify", "operator proof artifact no-witness route");
+includes(operatorServer, "strict no-witness proof-artifact mode rejects", "operator proof artifact no-witness rejection");
+includes(
+  operatorServer,
+  "verifyPrivatePoolV2ProofArtifactForOperator",
+  "operator proof artifact circuit dispatcher",
+);
+includes(
+  operatorServer,
+  "expectedPublicInputs.privateSpendPublicInputHash",
+  "operator Actual Private Spend expected public-input binding",
+);
 includes(serviceNetwork, "proofBackend", "service network proof metadata");
 includes(proofArtifact, "verifyVantaPrivatePoolV2SendProofArtifact", "Private Pool v2 Send proof artifact verifier");
 includes(
@@ -132,6 +145,26 @@ includes(
 includes(sendNoWitnessCheck, "mixed witnessPackage rejection", "Send proof artifact operator mixed witness guard");
 includes(sendNoWitnessCheck, "nested witness alias rejection", "Send proof artifact operator nested witness alias guard");
 includes(sendNoWitnessCheck, "production local artifact rejection", "Send proof artifact production backend guard");
+includes(
+  actualPrivateSpendNoWitnessCheck,
+  "Actual Private Spend proof artifact no-witness acceptance",
+  "Actual Private Spend proof artifact operator acceptance guard",
+);
+includes(
+  actualPrivateSpendNoWitnessCheck,
+  "mismatched public input rejection",
+  "Actual Private Spend proof artifact expected public-input mismatch guard",
+);
+includes(
+  actualPrivateSpendNoWitnessCheck,
+  "send artifact cannot satisfy actual-private expected input",
+  "Actual Private Spend proof artifact Send relabel guard",
+);
+includes(
+  actualPrivateSpendNoWitnessCheck,
+  "production local artifact rejection",
+  "Actual Private Spend proof artifact production backend guard",
+);
 includes(mockBoundary, "spoofed-local-backend-proof-boundary", "mock boundary spoofed proof-backend case");
 includes(
   read("scripts/check-vanta-private-pool-v2-remote-services.mjs"),
@@ -175,6 +208,11 @@ assert(
   "package.json must expose private-pool-v2:send-operator-no-witness-check",
 );
 assert(
+  scripts["private-pool-v2:actual-private-spend-operator-no-witness-check"] ===
+    "node scripts/check-vanta-private-pool-v2-actual-private-spend-operator-no-witness.mjs",
+  "package.json must expose private-pool-v2:actual-private-spend-operator-no-witness-check",
+);
+assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:proof-backend-boundary-check"),
   "private-pool-v2:verify must include the proof backend boundary guard",
 );
@@ -191,6 +229,12 @@ assert(
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:send-operator-no-witness-check"),
   "private-pool-v2:verify must include the Send operator no-witness guard",
+);
+assert(
+  scripts["private-pool-v2:verify"]?.includes(
+    "npm run private-pool-v2:actual-private-spend-operator-no-witness-check",
+  ),
+  "private-pool-v2:verify must include the Actual Private Spend operator no-witness guard",
 );
 
 console.log("private-pool-v2 proof backend boundary: PASS");

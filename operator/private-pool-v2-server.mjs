@@ -30,7 +30,8 @@ import {
 } from "../src/privacy/privatePoolV2SolanaSpendTransaction.mjs";
 import { createPostgresSnapshotStore } from "../src/storage/vantaPostgresSnapshotStore.mjs";
 import {
-  assertVantaPrivatePoolV2SendProofArtifactHasNoWitnessMaterial,
+  assertVantaPrivatePoolV2ProofArtifactHasNoWitnessMaterial,
+  verifyVantaPrivatePoolV2ActualPrivateSpendProofArtifact,
   verifyVantaPrivatePoolV2SendProofArtifact,
 } from "./private-pool-v2-proof-artifact.mjs";
 import { createPrivatePoolV2ReceiptStore } from "./private-pool-v2-store.mjs";
@@ -609,6 +610,9 @@ const productionProofBackends = ["remote-service"];
 const productionProofBackendSet = new Set(productionProofBackends);
 const localProofBackends = ["local-mock", "local-bb-fixture-artifact"];
 const localBenchmarkProofSystem = "mock";
+const sendProofArtifactCircuit = "vanta_private_pool_v2_send_entry";
+const actualPrivateSpendProofArtifactCircuit =
+  "vanta_private_pool_v2_actual_private_spend_entry";
 
 function hashHex(...parts) {
   return `0x${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f"))))}`;
@@ -685,13 +689,71 @@ function assertStrictPrivatePoolV2ProofArtifactBody(body) {
     }
   }
 
-  assertVantaPrivatePoolV2SendProofArtifactHasNoWitnessMaterial(body);
+  assertVantaPrivatePoolV2ProofArtifactHasNoWitnessMaterial(
+    body,
+    "Private Pool v2 proof artifact verification body",
+  );
 
   if (productionProofSystemRequiredNow()) {
     throw new Error(
-      "Private Pool v2 production proof-artifact verification requires remote proof artifact verification; the local Send proof-artifact route is not implemented for production proof mode.",
+      "Private Pool v2 production proof-artifact verification requires remote proof artifact verification; the local proof-artifact route is not implemented for production proof mode.",
     );
   }
+}
+
+function assertActualPrivateSpendExpectedPublicInputMatches(body, verifiedReceipt) {
+  const expectedPrivateSpendPublicInputHash =
+    body?.expectedPublicInputs?.privateSpendPublicInputHash;
+  if (
+    typeof expectedPrivateSpendPublicInputHash !== "string" ||
+    !expectedPrivateSpendPublicInputHash.trim()
+  ) {
+    throw new Error(
+      "Private Pool v2 Actual Private Spend proof artifact verification requires expectedPublicInputs.privateSpendPublicInputHash.",
+    );
+  }
+
+  const actualPrivateSpendPublicInputHash =
+    verifiedReceipt?.verifiedPublicInputs?.privateSpendPublicInputHash;
+  if (actualPrivateSpendPublicInputHash !== expectedPrivateSpendPublicInputHash.trim()) {
+    throw new Error(
+      `Private Pool v2 Actual Private Spend proof artifact privateSpendPublicInputHash mismatch: expected ${expectedPrivateSpendPublicInputHash.trim()}, received ${actualPrivateSpendPublicInputHash ?? "missing"}.`,
+    );
+  }
+}
+
+async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
+  const circuit = body?.proofArtifact?.circuit;
+
+  if (circuit === actualPrivateSpendProofArtifactCircuit) {
+    const verifiedReceipt = await verifyVantaPrivatePoolV2ActualPrivateSpendProofArtifact({
+      proofArtifact: body.proofArtifact,
+    });
+    assertActualPrivateSpendExpectedPublicInputMatches(body, verifiedReceipt);
+    return {
+      kind: "Private Pool V2 Actual Private Spend proof artifact verification",
+      verifiedReceipt,
+    };
+  }
+
+  if (circuit === sendProofArtifactCircuit) {
+    if (body?.expectedPublicInputs?.privateSpendPublicInputHash !== undefined) {
+      throw new Error(
+        "Private Pool v2 Send proof artifact verification cannot satisfy expectedPublicInputs.privateSpendPublicInputHash; use an Actual Private Spend proof artifact.",
+      );
+    }
+
+    return {
+      kind: "Private Pool V2 Send proof artifact verification",
+      verifiedReceipt: await verifyVantaPrivatePoolV2SendProofArtifact({
+        proofArtifact: body.proofArtifact,
+      }),
+    };
+  }
+
+  throw new Error(
+    `Private Pool v2 proof artifact verification does not support circuit ${circuit ?? "missing"}.`,
+  );
 }
 
 async function ensureProofReceiptReplayGuarded(proofReceipt, sourceRef) {
@@ -3098,13 +3160,11 @@ const server = createServer(async (request, response) => {
     if (request.method === "POST" && request.url === "/private-pool-v2/proof-artifacts/verify") {
       const body = await readRequestBody(request);
       assertStrictPrivatePoolV2ProofArtifactBody(body);
-      const verifiedReceipt = await verifyVantaPrivatePoolV2SendProofArtifact({
-        proofArtifact: body.proofArtifact,
-      });
+      const verifiedProofArtifact = await verifyPrivatePoolV2ProofArtifactForOperator(body);
       sendJson(response, 200, {
-        kind: "Private Pool V2 Send proof artifact verification",
+        kind: verifiedProofArtifact.kind,
         proofTrustBoundary: proofTrustBoundaryPayload(),
-        verifiedReceipt,
+        verifiedReceipt: verifiedProofArtifact.verifiedReceipt,
       });
       return;
     }
