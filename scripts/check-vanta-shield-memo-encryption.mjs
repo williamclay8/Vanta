@@ -122,10 +122,24 @@ function isBase64Url(value) {
 }
 
 function assertNoLeak(memoText, leakTerms) {
+  assert(
+    !memoText.includes("{") && !memoText.includes("}"),
+    "Encrypted memo exposed JSON-shaped plaintext.",
+  );
+
   for (const term of leakTerms) {
-    assert(!memoText.includes(term), `Encrypted memo leaked raw term: ${term}`);
+    const needle = String(term);
+    const leaked =
+      needle.length >= 8
+        ? memoText.includes(needle)
+        : memoText.includes(JSON.stringify(needle));
+    assert(!leaked, `Encrypted memo leaked raw term: ${needle}`);
   }
 }
+
+assertNoLeak(`${VANTA_SHIELD_MEMO_PREFIX_V2}opaque-ciphertext-with-JUP-looking-bytes`, [
+  "JUP",
+]);
 
 try {
   mkdirSync(tempTsDir, { recursive: true });

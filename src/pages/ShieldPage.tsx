@@ -64,9 +64,22 @@ import {
   VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
   type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
-import { recordCanonicalShieldFromLiveShield } from "@/zk/liveShieldBridge";
+import {
+  listCanonicalShieldRecords,
+  recordCanonicalShieldFromLiveShield,
+} from "@/zk/liveShieldBridge";
+import { listCanonicalSendRecords } from "@/zk/liveSendBridge";
+import { listCanonicalSwapRecords } from "@/zk/liveSwapBridge";
 import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
 import { isWalletDerivedOwnerContext } from "@/zk/ownerContextRecoveryEvidence";
+import {
+  createOwnerContextRecordSourceImportPacket,
+  parseOwnerContextRecordSourceImportPacketText,
+  summarizeOwnerContextRecordSourceImportPacket,
+  verifyOwnerContextRecordSourceImport,
+  type OwnerContextRecordSourceImportStatus,
+  type OwnerContextRecordSourceInput,
+} from "@/zk/ownerContextRecordSourceImport";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 
 type ShieldPageProps = {
@@ -102,6 +115,94 @@ type PendingShieldProtocolSettlement = {
   capability: ReturnType<typeof createShieldAssetCapability>;
   routeEvidence: PublicShieldRouteEvidence | null;
 };
+
+type RecordSourceImportUiStatus =
+  | "idle"
+  | "exported"
+  | "no-local-records"
+  | "malformed-json"
+  | "needs-owner-context"
+  | "failed"
+  | OwnerContextRecordSourceImportStatus;
+
+function createLocalRecordSourceImportInputs(): OwnerContextRecordSourceInput[] {
+  const shieldInputs: OwnerContextRecordSourceInput[] = listCanonicalShieldRecords().map(
+    (record) => ({
+      recordId: record.recordId,
+      source: record.source,
+      ownerContextEvidence: record.ownerContextEvidence,
+      redactedOwnerContext: record.redactedOwnerContext,
+      canonicalNote: { ownerPublicKey: record.canonicalNote.ownerPublicKey },
+    }),
+  );
+  const sendInputs: OwnerContextRecordSourceInput[] = listCanonicalSendRecords().flatMap(
+    (record) => [
+      {
+        recordId: record.recordId,
+        source: record.source,
+        ownerContextEvidence: record.ownerContextEvidence,
+      },
+      ...record.successors.map((successor, index) => ({
+        recordId: [
+          record.recordId,
+          successor.kind,
+          successor.liveNoteReferenceHash ?? successor.insertion.index ?? index,
+        ].join(":"),
+        source: record.source,
+        ownerContextEvidence: successor.ownerContextEvidence,
+        canonicalNote: successor.canonicalNote
+          ? { ownerPublicKey: successor.canonicalNote.ownerPublicKey }
+          : undefined,
+      })),
+    ],
+  );
+  const swapInputs: OwnerContextRecordSourceInput[] = listCanonicalSwapRecords().flatMap(
+    (record) => [
+      {
+        recordId: record.recordId,
+        source: record.source,
+        ownerContextEvidence: record.ownerContextEvidence,
+      },
+      {
+        recordId: `${record.recordId}:output`,
+        source: record.source,
+        ownerContextEvidence: record.outputSuccessor.ownerContextEvidence,
+        canonicalNote: {
+          ownerPublicKey: record.outputSuccessor.canonicalNote.ownerPublicKey,
+        },
+      },
+    ],
+  );
+
+  return [...shieldInputs, ...sendInputs, ...swapInputs];
+}
+
+function formatRecordSourceImportStatusLabel(status: RecordSourceImportUiStatus) {
+  switch (status) {
+    case "idle":
+      return "";
+    case "exported":
+      return "record source exported";
+    case "no-local-records":
+      return "no local records";
+    case "malformed-json":
+      return "packet unreadable";
+    case "needs-owner-context":
+      return "owner context required";
+    case "wallet-derived-import-source-verified":
+      return "wallet-derived import verified";
+    case "wallet-derived-record-source-mismatch":
+      return "wallet-derived record source mismatch";
+    case "legacy-record-source-local-only":
+      return "legacy record source local-only";
+    case "missing-record-source":
+      return "missing record source";
+    case "raw-owner-material-rejected":
+      return "raw owner material rejected";
+    case "failed":
+      return "record source check failed";
+  }
+}
 
 function toErrorMessage(error: unknown, fallback: string) {
   const message = error instanceof Error ? error.message : String(error ?? "");
@@ -329,6 +430,11 @@ export function ShieldPage(_props: ShieldPageProps) {
   const [viewingKeyCustodyStatus, setViewingKeyCustodyStatus] = useState<
     "idle" | "exported" | "imported" | "reset" | "failed"
   >("idle");
+  const [recordSourcePacketText, setRecordSourcePacketText] = useState("");
+  const [recordSourceImportText, setRecordSourceImportText] = useState("");
+  const [recordSourceImportStatus, setRecordSourceImportStatus] =
+    useState<RecordSourceImportUiStatus>("idle");
+  const [recordSourceImportDetail, setRecordSourceImportDetail] = useState("");
   const [status, setStatus] = useState<ShieldStatus>("idle");
   const [flowError, setFlowError] = useState<string | null>(null);
   const [pendingShieldAmount, setPendingShieldAmount] = useState<number | null>(null);
@@ -355,6 +461,86 @@ export function ShieldPage(_props: ShieldPageProps) {
       setPendingShieldOwnerContext(null);
     }
   }, [pendingShieldAsset]);
+
+  const exportRecordSourcePacket = useCallback(() => {
+    try {
+      const records = createLocalRecordSourceImportInputs();
+
+      if (records.length === 0) {
+        setRecordSourcePacketText("");
+        setRecordSourceImportStatus("no-local-records");
+        setRecordSourceImportDetail(
+          "No local Shield, Send, or Swap record evidence is available to export from this browser.",
+        );
+        return;
+      }
+
+      const packet = createOwnerContextRecordSourceImportPacket({ records });
+      const summary = summarizeOwnerContextRecordSourceImportPacket(packet);
+      setRecordSourcePacketText(JSON.stringify(packet, null, 2));
+      setRecordSourceImportStatus("exported");
+      setRecordSourceImportDetail(
+        `Record source packet ready with ${summary?.recordCount ?? packet.entries.length} non-secret record references. It is not a recovery-secret backup.`,
+      );
+    } catch (error) {
+      setRecordSourceImportStatus("failed");
+      setRecordSourceImportDetail(
+        toErrorMessage(error, "Record source packet could not be exported."),
+      );
+    }
+  }, []);
+
+  const verifyRecordSourcePacket = useCallback(async () => {
+    const serializedPacket = recordSourceImportText.trim();
+
+    if (!serializedPacket) {
+      setRecordSourceImportStatus("missing-record-source");
+      setRecordSourceImportDetail("Paste a record source packet before verifying it.");
+      return;
+    }
+
+    try {
+      JSON.parse(serializedPacket) as unknown;
+    } catch {
+      setRecordSourceImportStatus("malformed-json");
+      setRecordSourceImportDetail("That record source packet is not valid JSON.");
+      return;
+    }
+
+    const normalizedPacket = parseOwnerContextRecordSourceImportPacketText(serializedPacket);
+
+    if (!shieldOwnerContext.ownerContext && !shieldOwnerContext.canRequestOwnerContext) {
+      setRecordSourceImportStatus("needs-owner-context");
+      setRecordSourceImportDetail(
+        "Connect a message-signing wallet before verifying a second-device record source packet.",
+      );
+      return;
+    }
+
+    try {
+      const ownerContext =
+        shieldOwnerContext.ownerContext ?? (await shieldOwnerContext.ensureOwnerContext());
+      const proof = verifyOwnerContextRecordSourceImport({
+        ownerContext,
+        packet: normalizedPacket,
+      });
+      const summary = summarizeOwnerContextRecordSourceImportPacket(normalizedPacket);
+      setRecordSourceImportStatus(proof.status);
+      setRecordSourceImportDetail(
+        `${proof.truth} Matched ${proof.matchedRecordCount} of ${proof.walletDerivedCandidateCount} wallet-derived candidates${summary ? ` across ${summary.recordCount} record references` : ""}.`,
+      );
+    } catch (error) {
+      setRecordSourceImportStatus("failed");
+      setRecordSourceImportDetail(
+        toErrorMessage(error, "Record source packet could not be verified."),
+      );
+    }
+  }, [
+    recordSourceImportText,
+    shieldOwnerContext.canRequestOwnerContext,
+    shieldOwnerContext.ensureOwnerContext,
+    shieldOwnerContext.ownerContext,
+  ]);
   const recordedStateSignatureRef = useRef<string | null>(null);
   const recordedTokenDepositSignatureRef = useRef<string | null>(null);
   const queuedNativeSolHydrationSignatureRef = useRef<string | null>(null);
@@ -1809,7 +1995,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   const ownerRecoveryEvidenceDetail = shieldOwnerContext.ownerContext
     ? isWalletDerivedOwnerContext(shieldOwnerContext.ownerContext)
       ? "Fresh Shield records retain non-secret wallet-derived evidence; another device still needs an imported record source before recovery is real."
-      : "Fresh Shield records from this context are legacy local-only records unless you export and import the matching recovery material."
+      : "Fresh Shield records from this context are quarantined as legacy local-only; record-source import does not promote them to cross-device recovery."
     : shieldOwnerContext.canRequestOwnerContext
       ? "Approve the owner-key message before Shield records can carry non-secret recovery evidence."
       : "This wallet session cannot create owner recovery evidence until message signing is available.";
@@ -2021,6 +2207,57 @@ export function ShieldPage(_props: ShieldPageProps) {
                   <p className="shield-helper shield-helper--meta">
                     {recordSourceImportProofDetail}
                   </p>
+                  <div className="shield-viewing-key-panel__actions">
+                    <button
+                      className="button button-ghost"
+                      type="button"
+                      disabled={!walletConnected}
+                      onClick={exportRecordSourcePacket}
+                    >
+                      Export record source
+                    </button>
+                    <button
+                      className="button button-ghost"
+                      type="button"
+                      disabled={
+                        !walletConnected ||
+                        recordSourceImportText.trim() === "" ||
+                        (!shieldOwnerContext.ownerContext &&
+                          !shieldOwnerContext.canRequestOwnerContext)
+                      }
+                      onClick={() => {
+                        void verifyRecordSourcePacket();
+                      }}
+                    >
+                      Verify record source
+                    </button>
+                  </div>
+                  <label className="shield-viewing-key-panel__field">
+                    <span>Record source packet</span>
+                    <textarea
+                      readOnly
+                      value={recordSourcePacketText}
+                      placeholder="Export record source to reveal non-secret record references for another browser."
+                    />
+                  </label>
+                  <label className="shield-viewing-key-panel__field">
+                    <span>Import record source packet</span>
+                    <textarea
+                      value={recordSourceImportText}
+                      onChange={(event) => {
+                        setRecordSourceImportText(event.target.value);
+                        setRecordSourceImportStatus("idle");
+                        setRecordSourceImportDetail("");
+                      }}
+                      placeholder="Paste a record source packet from another browser."
+                    />
+                  </label>
+                  {recordSourceImportStatus !== "idle" && (
+                    <p className="shield-helper shield-helper--meta">
+                      <strong>{formatRecordSourceImportStatusLabel(recordSourceImportStatus)}</strong>
+                      {recordSourceImportDetail ? ` - ${recordSourceImportDetail}` : ""}
+                    </p>
+                  )}
                   <div className="shield-viewing-key-panel__actions">
                     <button
                       className="button button-ghost"

@@ -63,6 +63,17 @@ export type OwnerContextRecordSourceImportProof = {
   truth: string;
 };
 
+export type OwnerContextRecordSourceImportPacketSummary = {
+  version: typeof OWNER_CONTEXT_RECORD_SOURCE_IMPORT_VERSION;
+  createdAt: number;
+  recordCount: number;
+  walletDerivedCandidateCount: number;
+  legacyLocalOnlyCount: number;
+  missingEvidenceCount: number;
+  rawRecoveryMaterialStored: false;
+  truth: string;
+};
+
 const RECORD_SOURCE_IMPORT_TRUTHS: Record<OwnerContextRecordSourceImportStatus, string> = {
   "wallet-derived-import-source-verified":
     "The imported record source matches the same wallet-derived owner context; second-device recovery still depends on importing this record source and any required viewing-key backup.",
@@ -77,7 +88,10 @@ const RECORD_SOURCE_IMPORT_TRUTHS: Record<OwnerContextRecordSourceImportStatus, 
 };
 
 const RAW_OWNER_MATERIAL_KEYS = new Set([
+  "blinding",
   "derivationContext",
+  "encryptedPayload",
+  "noteSecret",
   "ownerContext",
   "recoverySecret",
   "spendingSecret",
@@ -150,6 +164,45 @@ export function verifyOwnerContextRecordSourceImport(args: {
     matchedEntries.length,
     walletDerivedEntries.length,
   );
+}
+
+export function parseOwnerContextRecordSourceImportPacketText(
+  serializedPacket: string,
+): OwnerContextRecordSourceImportPacket | null {
+  try {
+    return normalizeRecordSourceImportPacket(JSON.parse(serializedPacket) as unknown);
+  } catch {
+    return null;
+  }
+}
+
+export function summarizeOwnerContextRecordSourceImportPacket(
+  packet: unknown,
+): OwnerContextRecordSourceImportPacketSummary | null {
+  const normalizedPacket = normalizeRecordSourceImportPacket(packet);
+
+  if (!normalizedPacket) {
+    return null;
+  }
+
+  return {
+    version: OWNER_CONTEXT_RECORD_SOURCE_IMPORT_VERSION,
+    createdAt: normalizedPacket.createdAt,
+    recordCount: normalizedPacket.entries.length,
+    walletDerivedCandidateCount: normalizedPacket.entries.filter(
+      (entry) => entry.ownerRecoveryClass === "wallet-derived-cross-device-candidate",
+    ).length,
+    legacyLocalOnlyCount: normalizedPacket.entries.filter(
+      (entry) => entry.ownerRecoveryClass === "legacy-random-local-only",
+    ).length,
+    missingEvidenceCount: normalizedPacket.entries.filter(
+      (entry) =>
+        entry.ownerRecoveryClass === "redacted-legacy-unmigratable" ||
+        entry.ownerRecoveryClass === "missing-owner-context-evidence",
+    ).length,
+    rawRecoveryMaterialStored: false,
+    truth: normalizedPacket.truth,
+  };
 }
 
 function createRecordSourceImportEntry(

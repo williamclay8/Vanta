@@ -62,7 +62,7 @@ const OWNER_CONTEXT_RECOVERY_TRUTHS: Record<OwnerContextRecoveryClass, string> =
   "wallet-derived-cross-device-candidate":
     "This record was created with wallet-derived owner context evidence; recovery on another device still requires a record source or import path.",
   "legacy-random-local-only":
-    "This record was created without wallet-derived hierarchy evidence and remains legacy local-only unless separately backed up.",
+    "This record was created without wallet-derived hierarchy evidence and remains quarantined as legacy local-only; record-source import does not promote it.",
   "redacted-legacy-unmigratable":
     "This record has only redacted owner-context references in browser storage, so this record remains local-only; a separate backup/import source must recreate recovery context before cross-device use.",
   "missing-owner-context-evidence":

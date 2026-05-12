@@ -96,6 +96,11 @@ for (const marker of [
   "raw-owner-material-rejected",
   "createOwnerContextRecordSourceImportPacket",
   "verifyOwnerContextRecordSourceImport",
+  "parseOwnerContextRecordSourceImportPacketText",
+  "summarizeOwnerContextRecordSourceImportPacket",
+  "noteSecret",
+  "blinding",
+  "encryptedPayload",
 ]) {
   assert.ok(helperSource.includes(marker), `owner-context record import helper missing marker: ${marker}`);
 }
@@ -106,6 +111,26 @@ assert.ok(
     shieldPageSource.includes("legacy local-only"),
   "Shield balance recovery panel must explain the record source import proof and second-device boundary.",
 );
+for (const marker of [
+  "createOwnerContextRecordSourceImportPacket",
+  "verifyOwnerContextRecordSourceImport",
+  "parseOwnerContextRecordSourceImportPacketText",
+  "summarizeOwnerContextRecordSourceImportPacket",
+  "listCanonicalShieldRecords",
+  "listCanonicalSendRecords",
+  "listCanonicalSwapRecords",
+  "Export record source",
+  "Verify record source",
+  "Record source packet",
+  "Paste a record source packet",
+  "wallet-derived import verified",
+  "raw owner material rejected",
+]) {
+  assert.ok(
+    shieldPageSource.includes(marker),
+    `Shield balance recovery panel must expose product-facing record source import/export UX marker: ${marker}`,
+  );
+}
 
 assert.equal(
   packageJson.scripts["zk:owner-context-record-source-import-check"],
@@ -116,6 +141,12 @@ assert.ok(
     "npm run zk:owner-context-record-source-import-check",
   ),
   "zk:review-guards-check must include owner-context record source import proof.",
+);
+assert.ok(
+  packageJson.scripts["shield:verify"].includes(
+    "npm run zk:owner-context-record-source-import-check",
+  ),
+  "shield:verify must include the owner-context record source import UX guard.",
 );
 
 const { module: importProof, cleanup } = await loadImportProofModule();
@@ -185,6 +216,22 @@ try {
   assert.match(packet.entries[0].recordReferenceHash, /^sha256:[0-9a-f]{64}$/u);
   assert.ok(!JSON.stringify(packet).includes(walletContext.recoverySecret));
   assert.ok(!JSON.stringify(packet).includes(walletContext.derivationContext));
+
+  const parsedPacket = importProof.parseOwnerContextRecordSourceImportPacketText(
+    JSON.stringify(packet),
+  );
+  assert.deepEqual(parsedPacket, packet);
+  assert.deepEqual(importProof.summarizeOwnerContextRecordSourceImportPacket(packet), {
+    version: "vanta-owner-context-record-source-import-0.1",
+    createdAt: 1_778_580_000_000,
+    recordCount: 1,
+    walletDerivedCandidateCount: 1,
+    legacyLocalOnlyCount: 0,
+    missingEvidenceCount: 0,
+    rawRecoveryMaterialStored: false,
+    truth:
+      "This import packet carries non-secret owner-context evidence and record references only; it is a record source, not a recovery-secret backup.",
+  });
 
   const proof = importProof.verifyOwnerContextRecordSourceImport({
     ownerContext: secondDeviceWalletContext,
@@ -264,6 +311,27 @@ try {
     "Record source import packets must reject raw ownerContext material instead of exporting it.",
   );
 
+  for (const rawKey of ["noteSecret", "blinding", "encryptedPayload"]) {
+    assert.throws(
+      () =>
+        importProof.createOwnerContextRecordSourceImportPacket({
+          records: [
+            {
+              recordId: `tainted-${rawKey}`,
+              source: "live_shield_v1",
+              ownerContextEvidence: walletEvidence,
+              canonicalNote: {
+                ownerPublicKey: walletContext.ownerPublicKey,
+                [rawKey]: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              },
+            },
+          ],
+        }),
+      /raw owner recovery material/u,
+      `Record source import packets must reject ${rawKey} material instead of exporting it.`,
+    );
+  }
+
   assert.equal(
     importProof.verifyOwnerContextRecordSourceImport({
       ownerContext: walletContext,
@@ -273,6 +341,23 @@ try {
       },
     }).status,
     "raw-owner-material-rejected",
+  );
+
+  assert.equal(
+    importProof.verifyOwnerContextRecordSourceImport({
+      ownerContext: walletContext,
+      packet: {
+        ...packet,
+        entries: [
+          {
+            ...packet.entries[0],
+            ownerRecoveryClass: "wallet-derived-but-unreviewed",
+          },
+        ],
+      },
+    }).status,
+    "raw-owner-material-rejected",
+    "Malformed packet entries must fail closed through the import verifier.",
   );
 } finally {
   cleanup();

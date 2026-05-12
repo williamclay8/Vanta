@@ -22,9 +22,9 @@
   ],
   "lumiBaseline": {
     "branch": "codex/vanta-zk-review-hardening",
-    "lastKnownCommit": "commit containing the Send operator expected-public-input binding feedback-loop ledger entry",
-    "local": "verified locally for the Send operator expected-public-input binding feedback-loop slice",
-    "committed": "included in the commit containing the Send operator expected-public-input binding feedback-loop ledger entry",
+    "lastKnownCommit": "commit containing the owner-context record-source import/export UX feedback-loop ledger entry",
+    "local": "verified locally for the owner-context record-source import/export UX feedback-loop slice",
+    "committed": "included in the commit containing the owner-context record-source import/export UX feedback-loop ledger entry",
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
@@ -227,19 +227,23 @@
         "src/pages/ShieldPage.tsx",
         "scripts/check-vanta-owner-context-record-source-import.mjs"
       ],
-      "summary": "Wallet-derived owner-context evidence now remains a cross-device candidate while still marking record-source import as required. A new non-secret record-source import packet rejects raw owner material, verifies same-wallet second-device owner-context reconstruction against imported evidence, and keeps legacy local-only records from being promoted.",
+      "summary": "Wallet-derived owner-context evidence now remains a cross-device candidate while still marking record-source import as required. The Shield recovery panel can export a non-secret Shield/Send/Swap record-source packet, verify a pasted packet on another browser, reject raw owner/note/viewing material, and keep legacy local-only records from being promoted without mutating balances or localStorage.",
       "localVerification": [
         "npm run zk:owner-context-record-source-import-check",
         "npm run zk:owner-context-recovery-evidence-check",
-        "npm run zk:review-guards-check"
+        "npm run shield:memo-encryption-check",
+        "npm run shield:verify",
+        "npm run product-ui:browser-check",
+        "npm run build",
+        "git diff --check"
       ],
       "lumiHygiene": {
-        "local": "verified locally for the owner-context record-source import proof feedback-loop slice",
-        "committed": "included in the owner-context record-source import proof feedback-loop commit",
+        "local": "verified locally for the owner-context record-source import/export UX feedback-loop slice",
+        "committed": "included in the owner-context record-source import/export UX feedback-loop commit",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
-      "truthBoundary": "This is a local reviewer-visible import proof contract and Shield UI truth boundary. It is not a finished product import/export UX, not legacy-record migration, not viewing-key memo discovery by itself, not live deployment evidence, and not proof that old random-seeded records are recoverable."
+      "truthBoundary": "This is a local product import/export verification UX for non-secret record-source packets. It is not legacy-record migration, not viewing-key memo discovery by itself, not live deployment evidence, and not proof that old random-seeded records are recoverable."
     },
     {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-SINGLE-NOTE-LEGACY-LANE-FREEZE",
