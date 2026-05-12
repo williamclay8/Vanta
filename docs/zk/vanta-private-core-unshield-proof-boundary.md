@@ -75,6 +75,8 @@ The source note owner key remains the X25519 key used by the app payloads and is
 That means the circuit proves knowledge of the current Poseidon proof-owner secret, but it does not prove the X25519 source-owner relation inside Noir.
 Strict no-witness operator mode therefore still fails closed for proof-artifact consume until Vanta has a validated source-owner authorization artifact or a final spending-key model that removes the split.
 
+Legacy lane freeze: this Unshield lane remains an active-v0 legacy compatibility lane for current exits, not the new production architecture. New circuit work should route toward the Private Pool v2 entry family or an explicitly reviewed replacement once replacement dependencies cover the active flow.
+
 Machine-readable surfaces should keep this split explicit:
 - `ownerAuthorizationMode = x25519-secret-prechecked-off-circuit`
 - `provingOwnerKeyMode = poseidon-proof-owner-key-v0`

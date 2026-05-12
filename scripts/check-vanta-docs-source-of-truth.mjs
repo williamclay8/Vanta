@@ -17,11 +17,25 @@ function requirePhrase(source, phrase, relativePath) {
   }
 }
 
+function rejectPhrase(source, phrase, relativePath) {
+  if (source.includes(phrase)) {
+    throw new Error(`${relativePath} still contains stale phrase: ${phrase}`);
+  }
+}
+
 const laneStatus = readRequired("LANE_STATUS.md");
+const zkReview = readRequired("VANTA_ZK_REVIEW.md");
 const sourceOfTruth = readRequired("docs/docs-source-of-truth.md");
 const limitations = readRequired("SECURITY_LIMITATIONS.md");
 const privacyModel = readRequired("docs/privacy-model.md");
 const canonicalNote = readRequired("docs/zk/canonical-note-schema.md");
+const zkAssumptions = readRequired("docs/zk/vanta-zk-v1-assumptions.md");
+const zkRemainingWork = readRequired("docs/zk/vanta-zk-v1-remaining-work.md");
+const sendProofBoundary = readRequired("docs/zk/vanta-private-core-send-proof-boundary.md");
+const swapProofBoundary = readRequired("docs/zk/vanta-private-core-swap-proof-boundary.md");
+const unshieldProofBoundary = readRequired("docs/zk/vanta-private-core-unshield-proof-boundary.md");
+const supportedSendLane = readRequired("docs/zk/vanta-zk-v1-supported-send-lane.md");
+const supportedUnshieldLane = readRequired("docs/zk/vanta-zk-v1-supported-unshield-lane.md");
 const operatorRunbook = readRequired("docs/operator-runbook.md");
 const readme = readRequired("README.md");
 const docsContent = readRequired("src/docs/docsContent.ts");
@@ -59,6 +73,26 @@ requirePhrase(limitations, "Last validated against repo-local code: 2026-05-10",
 requirePhrase(docsContent, "test checkout", "src/docs/docsContent.ts");
 requirePhrase(privacyModel, 'What "shielded state" means today', "docs/privacy-model.md");
 requirePhrase(canonicalNote, "Transitional Hash Surface Today", "docs/zk/canonical-note-schema.md");
+for (const [content, path] of [
+  [zkAssumptions, "docs/zk/vanta-zk-v1-assumptions.md"],
+  [zkRemainingWork, "docs/zk/vanta-zk-v1-remaining-work.md"],
+  [sendProofBoundary, "docs/zk/vanta-private-core-send-proof-boundary.md"],
+  [swapProofBoundary, "docs/zk/vanta-private-core-swap-proof-boundary.md"],
+  [unshieldProofBoundary, "docs/zk/vanta-private-core-unshield-proof-boundary.md"],
+  [supportedSendLane, "docs/zk/vanta-zk-v1-supported-send-lane.md"],
+  [supportedUnshieldLane, "docs/zk/vanta-zk-v1-supported-unshield-lane.md"],
+]) {
+  requirePhrase(content, "active-v0 legacy", path);
+  requirePhrase(content, "Private Pool v2 entry", path);
+}
+for (const phrase of [
+  "having two send circuits is dead weight",
+  "vanta_private_core_single_note_send/src/main.nr` (delete; consolidate",
+  "vanta_private_core_single_note_swap/src/main.nr` (delete; consolidated",
+  "Replace both `vanta_private_pool_v2_swap_to_shielded_entry` and `vanta_private_core_single_note_swap` with a single",
+]) {
+  rejectPhrase(zkReview, phrase, "VANTA_ZK_REVIEW.md");
+}
 requirePhrase(operatorRunbook, "If You Have 10 Minutes", "docs/operator-runbook.md");
 requirePhrase(readme, "Vanta is not production-ready until it has", "README.md");
 

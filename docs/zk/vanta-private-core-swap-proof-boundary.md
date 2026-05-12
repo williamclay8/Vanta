@@ -91,6 +91,7 @@ The current private witness includes:
 
 For this frozen `v0.1` boundary:
 
+- this lane is maintained as an active-v0 legacy compatibility lane for current Swap flows, not as the new production architecture; new circuit work should route toward the Private Pool v2 entry family or an explicitly reviewed replacement
 - source-layer owner authorization remains off-circuit; unlike the current Unshield proving lane, Swap does not yet add a separate Poseidon proof-owner binding
 - proving validity is Poseidon-lane truth
 - source-layer swap artifacts remain distinct from proving-lane artifacts

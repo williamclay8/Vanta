@@ -345,16 +345,22 @@ These commands cover:
 - operator contract and summary snapshot coherence across app, CLI, and regression surfaces
 - dedicated operator shipping decision endpoint and CLI/check surfaces
 - frozen operator contract surface:
-  - `contractVersion = 22`
-  - `summaryVersion = 46`
+  - `contractVersion = 23`
+  - `summaryVersion = 47`
   - `supportedSendV1Decision = accepted-narrow-v1-path`
   - `supportedUnshieldV1Decision = accepted-narrow-v1-path`
   - `supportedReleaseV1Decision = accepted-narrow-v1-path`
   - `supportedSwapV1Decision = accepted-narrow-v1-path`
   - `supportedShippingDecisionKind = narrow-private-core-zk-v1-shipping`
   - `supportedOperatorSnapshotKind = contract-status-shipping-bundle`
-  - `supportedSwapLaneKind = single-input-usdc-to-shielded-sol`
-  - `supportedSwapVenue = meteora-dlmm-mainnet`
+  - `supportedSwapLaneKind = single-input-usdc-to-allowlisted-shielded-output`
+  - `supportedSwapVenue = meteora-dlmm-mainnet-and-operator-token-output`
+  - `supportedPrivateCoreCircuitFamily = vanta_private_core_single_note`
+  - `supportedPrivateCoreCircuitFamilyStatus = active-v0-legacy`
+  - `supportedPrivateCoreCircuitFamilyNewArchitectureStatus = deprecated-for-new-architecture`
+  - `supportedPrivateCoreReplacementFamily = vanta_private_pool_v2_entry`
+
+The `vanta_private_core_single_note_*` family is an active-v0 legacy compatibility surface for current flows, not the new architecture target; new circuit work should route through the Private Pool v2 entry family or an explicitly reviewed replacement.
 
 ## Private Pool v2 / Option B verification
 
@@ -673,8 +679,8 @@ If no operator is reachable, `private-core:shipping-status-json` now prints a ma
 `private-core:shipping-check-json` is the machine-readable ready-gate form of that same command: it exits zero only for `Ready narrow v1`, prints the compact readiness JSON on success, and on blocked paths emits the JSON surface to stderr before the structured `Shipping status:` / `Shipping note:` lines.
 
 The operator contract now freezes the narrow zk-v1 contract surface explicitly:
-- `contractVersion = 22`
-- `summaryVersion = 46`
+- `contractVersion = 23`
+- `summaryVersion = 47`
 - `supportedShippingDecisionVersion = 1`
 - `supportedShippingDecisionKind = narrow-private-core-zk-v1-shipping`
 - `supportedOperatorSnapshotVersion = 1`
@@ -690,13 +696,19 @@ The operator contract now freezes the narrow zk-v1 contract surface explicitly:
 - `supportedReleaseV1Decision = accepted-narrow-v1-path`
 - `supportedSwapV1Decision = accepted-narrow-v1-path`
 - `supportedSwapLaneVersion = 1`
-- `supportedSwapLaneKind = single-input-usdc-to-shielded-sol`
+- `supportedSwapLaneKind = single-input-usdc-to-allowlisted-shielded-output`
 - `supportedSwapLaneStatus = supported`
-- `supportedSwapVenue = meteora-dlmm-mainnet`
-- `supportedSwapOutputModel = shielded-sol-output-note`
+- `supportedSwapVenue = meteora-dlmm-mainnet-and-operator-token-output`
+- `supportedSwapOutputModel = allowlisted-shielded-output-note`
 - `supportedSwapResultingRootBasis = client-declared`
 - `supportedSwapInputRootPolicy = latest-registered-root-with-linked-registration-proof`
 - `supportedSwapOutputRegistrationPolicy = resulting-root-must-register-as-swap-output`
+- `supportedPrivateCoreCircuitFamily = vanta_private_core_single_note`
+- `supportedPrivateCoreCircuitFamilyStatus = active-v0-legacy`
+- `supportedPrivateCoreCircuitFamilyNewArchitectureStatus = deprecated-for-new-architecture`
+- `supportedPrivateCoreReplacementFamily = vanta_private_pool_v2_entry`
+
+These single-note lanes are active-v0 legacy compatibility lanes while current flows still depend on them. They should not be expanded into new production architecture; use the Private Pool v2 entry family or an explicitly reviewed replacement for new circuit work.
 - `supportedFlowVersion = 1`
 - `supportedFlowKind = shield-hold-send-unshield-replay-guard`
 - `supportedFlowStatus = supported`

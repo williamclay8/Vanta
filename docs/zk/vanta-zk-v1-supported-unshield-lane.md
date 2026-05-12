@@ -30,6 +30,8 @@ This is the current lane backed by:
 - `src/data/context/PrivacyFlowContext.tsx`
 - `src/pages/UnshieldPage.tsx`
 
+Legacy lane freeze: this supported path remains an active-v0 legacy compatibility lane for current Private Core Unshield flows. It must stay compatible while active, but it is not the new production architecture; new circuit work should route toward the Private Pool v2 entry family or an explicitly reviewed replacement.
+
 ## Narrow product contract
 
 For the supported `v1` lane, Vanta currently supports:

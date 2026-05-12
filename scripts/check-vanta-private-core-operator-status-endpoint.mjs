@@ -123,8 +123,17 @@ function assertStatusShape({ baseUrl, status }) {
   if (status?.statusKind !== "long-form-live-status") {
     throw new Error("Operator status endpoint must expose long-form-live-status.");
   }
-  if (summary.contractVersion !== 22 || summary.summaryVersion !== 46) {
+  if (summary.contractVersion !== 23 || summary.summaryVersion !== 47) {
     throw new Error("Operator status endpoint must expose the current contract and summary versions.");
+  }
+  if (
+    summary.supportedPrivateCoreCircuitFamily !== "vanta_private_core_single_note" ||
+    summary.supportedPrivateCoreCircuitFamilyStatus !== "active-v0-legacy" ||
+    summary.supportedPrivateCoreCircuitFamilyNewArchitectureStatus !==
+      "deprecated-for-new-architecture" ||
+    summary.supportedPrivateCoreReplacementFamily !== "vanta_private_pool_v2_entry"
+  ) {
+    throw new Error("Operator status endpoint must expose the single-note legacy freeze metadata.");
   }
   if (summary.supportedOperatorStatusEndpoint !== "/state/private-core-status") {
     throw new Error("Operator status endpoint metadata must name /state/private-core-status.");

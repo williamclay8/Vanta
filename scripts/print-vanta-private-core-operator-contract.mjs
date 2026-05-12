@@ -102,6 +102,32 @@ try {
       ? "Resulting root must register as swap output"
       : "Unavailable",
   );
+  printLine(
+    "Supported circuit family",
+    contract.supportedPrivateCoreCircuitFamily ?? "Unavailable",
+  );
+  printLine(
+    "Supported circuit family status",
+    contract.supportedPrivateCoreCircuitFamilyStatus ?? "Unavailable",
+  );
+  printLine(
+    "Supported circuit family new architecture status",
+    contract.supportedPrivateCoreCircuitFamilyNewArchitectureStatus ?? "Unavailable",
+  );
+  printLine(
+    "Supported circuit family note",
+    contract.supportedPrivateCoreCircuitFamilyNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported legacy circuits",
+    Array.isArray(contract.supportedPrivateCoreLegacyCircuits)
+      ? contract.supportedPrivateCoreLegacyCircuits.join(", ")
+      : "Unavailable",
+  );
+  printLine(
+    "Supported replacement family",
+    contract.supportedPrivateCoreReplacementFamily ?? "Unavailable",
+  );
   printLine("Supported flow version", String(contract.supportedFlowVersion ?? "unknown"));
   printLine("Supported flow kind", contract.supportedFlowKind ?? "Unavailable");
   printLine("Supported flow status", contract.supportedFlowStatus ?? "Unavailable");

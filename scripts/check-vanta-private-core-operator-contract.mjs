@@ -14,8 +14,32 @@ function randomPort() {
   return 9400 + Math.floor(Math.random() * 200);
 }
 
+const EXPECTED_CONTRACT_VERSION = 23;
+const EXPECTED_SUMMARY_VERSION = 47;
+const EXPECTED_LEGACY_CIRCUITS = [
+  "vanta_private_core_single_note_send",
+  "vanta_private_core_single_note_swap",
+  "vanta_private_core_single_note_unshield",
+];
+
 function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
+}
+
+function valuesEqual(left, right) {
+  if (Array.isArray(left) || Array.isArray(right)) {
+    return JSON.stringify(left) === JSON.stringify(right);
+  }
+
+  return left === right;
+}
+
+function isExpectedLegacyCircuits(value) {
+  return (
+    Array.isArray(value) &&
+    value.length === EXPECTED_LEGACY_CIRCUITS.length &&
+    EXPECTED_LEGACY_CIRCUITS.every((circuit, index) => value[index] === circuit)
+  );
 }
 
 async function waitForHealth(baseUrl) {
@@ -109,8 +133,8 @@ try {
   if (
     !contractState.ok ||
     contractState.parsed?.stateVersion !== 1 ||
-    contractState.parsed?.contractVersion !== 22 ||
-    contractState.parsed?.summaryVersion !== 46 ||
+    contractState.parsed?.contractVersion !== EXPECTED_CONTRACT_VERSION ||
+    contractState.parsed?.summaryVersion !== EXPECTED_SUMMARY_VERSION ||
     contractState.parsed?.supportedSendLaneVersion !== 1 ||
     contractState.parsed?.supportedSendV1Decision !== "accepted-narrow-v1-path" ||
     typeof contractState.parsed?.supportedSendV1DecisionNote !== "string" ||
@@ -139,6 +163,18 @@ try {
       "latest-registered-root-with-linked-registration-proof" ||
     contractState.parsed?.supportedSwapOutputRegistrationPolicy !==
       "resulting-root-must-register-as-swap-output" ||
+    contractState.parsed?.supportedPrivateCoreCircuitFamily !==
+      "vanta_private_core_single_note" ||
+    contractState.parsed?.supportedPrivateCoreCircuitFamilyStatus !== "active-v0-legacy" ||
+    contractState.parsed?.supportedPrivateCoreCircuitFamilyNewArchitectureStatus !==
+      "deprecated-for-new-architecture" ||
+    typeof contractState.parsed?.supportedPrivateCoreCircuitFamilyNote !== "string" ||
+    !contractState.parsed.supportedPrivateCoreCircuitFamilyNote.includes(
+      "current flows",
+    ) ||
+    !isExpectedLegacyCircuits(contractState.parsed?.supportedPrivateCoreLegacyCircuits) ||
+    contractState.parsed?.supportedPrivateCoreReplacementFamily !==
+      "vanta_private_pool_v2_entry" ||
     contractState.parsed?.supportedFlowVersion !== 1 ||
     contractState.parsed?.supportedShippingDecisionVersion !== 1 ||
     contractState.parsed?.supportedShippingDecisionKind !==
@@ -272,6 +308,12 @@ try {
     "supportedSwapResultingRootBasis",
     "supportedSwapInputRootPolicy",
     "supportedSwapOutputRegistrationPolicy",
+    "supportedPrivateCoreCircuitFamily",
+    "supportedPrivateCoreCircuitFamilyStatus",
+    "supportedPrivateCoreCircuitFamilyNewArchitectureStatus",
+    "supportedPrivateCoreCircuitFamilyNote",
+    "supportedPrivateCoreLegacyCircuits",
+    "supportedPrivateCoreReplacementFamily",
     "supportedFlowVersion",
     "supportedFlowKind",
     "supportedFlowStatus",
@@ -336,7 +378,7 @@ try {
   const mismatchedMirroredFields = !summaryState.ok
     ? ["summary fetch failed"]
     : mirroredContractFields.filter(
-        (field) => summaryState.parsed?.[field] !== contractState.parsed?.[field],
+        (field) => !valuesEqual(summaryState.parsed?.[field], contractState.parsed?.[field]),
       );
   if (mismatchedMirroredFields.length > 0) {
     throw new Error(
@@ -371,8 +413,8 @@ try {
   });
   if (
     !contractOutput.includes("Contract state version: 1") ||
-    !contractOutput.includes("Contract version: 22") ||
-    !contractOutput.includes("Summary compatibility: 46") ||
+    !contractOutput.includes(`Contract version: ${EXPECTED_CONTRACT_VERSION}`) ||
+    !contractOutput.includes(`Summary compatibility: ${EXPECTED_SUMMARY_VERSION}`) ||
     !contractOutput.includes("Supported note schema: NoteV0 / v0") ||
     !contractOutput.includes("Supported send lane version: 1") ||
     !contractOutput.includes("Supported unshield lane version: 1") ||
@@ -426,6 +468,15 @@ try {
     ) ||
     !contractOutput.includes("Supported zk v1 required lanes: send|unshield|release") ||
     !contractOutput.includes("Supported proof system: Noir ACIR / UltraHonk / bb.js") ||
+    !contractOutput.includes("Supported circuit family: vanta_private_core_single_note") ||
+    !contractOutput.includes("Supported circuit family status: active-v0-legacy") ||
+    !contractOutput.includes(
+      "Supported circuit family new architecture status: deprecated-for-new-architecture",
+    ) ||
+    !contractOutput.includes(
+      "Supported legacy circuits: vanta_private_core_single_note_send, vanta_private_core_single_note_swap, vanta_private_core_single_note_unshield",
+    ) ||
+    !contractOutput.includes("Supported replacement family: vanta_private_pool_v2_entry") ||
     !contractOutput.includes("Supported operator snapshot transport: dedicated-endpoint") ||
     !contractOutput.includes(
       "Supported operator snapshot endpoint: /state/private-core-snapshot",
@@ -499,8 +550,8 @@ try {
   if (
     contractJson.operator !== baseUrl ||
     contractJson.stateVersion !== 1 ||
-    contractJson.contractVersion !== 22 ||
-    contractJson.summaryVersion !== 46 ||
+    contractJson.contractVersion !== EXPECTED_CONTRACT_VERSION ||
+    contractJson.summaryVersion !== EXPECTED_SUMMARY_VERSION ||
     contractJson.supportedSendLaneVersion !== 1 ||
     contractJson.supportedUnshieldLaneVersion !== 1 ||
     contractJson.supportedReleaseLaneVersion !== 1 ||
@@ -577,7 +628,15 @@ try {
     contractJson.supportedReleaseCandidateGateEndpoint !==
       "/state/private-core-release-candidate-check" ||
     contractJson.supportedReleaseCandidateTransport !== "dedicated-endpoint" ||
-    contractJson.supportedReleaseCandidateEndpoint !== "/state/private-core-release-candidate"
+    contractJson.supportedReleaseCandidateEndpoint !== "/state/private-core-release-candidate" ||
+    contractJson.supportedPrivateCoreCircuitFamily !== "vanta_private_core_single_note" ||
+    contractJson.supportedPrivateCoreCircuitFamilyStatus !== "active-v0-legacy" ||
+    contractJson.supportedPrivateCoreCircuitFamilyNewArchitectureStatus !==
+      "deprecated-for-new-architecture" ||
+    typeof contractJson.supportedPrivateCoreCircuitFamilyNote !== "string" ||
+    !contractJson.supportedPrivateCoreCircuitFamilyNote.includes("new production architecture") ||
+    !isExpectedLegacyCircuits(contractJson.supportedPrivateCoreLegacyCircuits) ||
+    contractJson.supportedPrivateCoreReplacementFamily !== "vanta_private_pool_v2_entry"
   ) {
     throw new Error(
       `Unexpected operator contract JSON output\n${JSON.stringify(contractJson, null, 2)}`,

@@ -281,6 +281,8 @@ const VANTA_SWAP_MEMO_PREFIX = "vanta:swap-note:v1:";
 const VANTA_MEMO_PROGRAM_ID = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
 const VANTA_UNSHIELD_CONSUMED_NOTE_REFERENCE_HASH_DOMAIN =
   "vanta-unshield-consumed-note-reference-v1";
+const PRIVATE_CORE_CONTRACT_VERSION = 23;
+const PRIVATE_CORE_SUMMARY_VERSION = 47;
 const PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND = "single-input-single-recipient-optional-change";
 const PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS = "supported";
@@ -326,6 +328,18 @@ const PRIVATE_CORE_SUPPORTED_SWAP_INPUT_ROOT_POLICY =
   "latest-registered-root-with-linked-registration-proof";
 const PRIVATE_CORE_SUPPORTED_SWAP_OUTPUT_REGISTRATION_POLICY =
   "resulting-root-must-register-as-swap-output";
+const PRIVATE_CORE_SUPPORTED_CIRCUIT_FAMILY = "vanta_private_core_single_note";
+const PRIVATE_CORE_SUPPORTED_CIRCUIT_FAMILY_STATUS = "active-v0-legacy";
+const PRIVATE_CORE_SUPPORTED_CIRCUIT_FAMILY_NEW_ARCHITECTURE_STATUS =
+  "deprecated-for-new-architecture";
+const PRIVATE_CORE_SUPPORTED_CIRCUIT_FAMILY_NOTE =
+  "Private Core single-note Send, Swap, and Unshield remain active v0 compatibility lanes for current flows, but new production architecture should migrate through the Private Pool v2 entry family or an explicitly reviewed replacement.";
+const PRIVATE_CORE_SUPPORTED_LEGACY_CIRCUITS = [
+  "vanta_private_core_single_note_send",
+  "vanta_private_core_single_note_swap",
+  "vanta_private_core_single_note_unshield",
+];
+const PRIVATE_CORE_SUPPORTED_REPLACEMENT_FAMILY = "vanta_private_pool_v2_entry";
 const PRIVATE_CORE_SUPPORTED_FLOW_VERSION = 1;
 const PRIVATE_CORE_SUPPORTED_FLOW_KIND = "shield-hold-send-unshield-replay-guard";
 const PRIVATE_CORE_SUPPORTED_FLOW_STATUS = "supported";
@@ -3003,8 +3017,8 @@ function buildPrivateCoreReleasePackageCheckState(request) {
 function buildPrivateCoreContractState() {
   return {
     stateVersion: 1,
-    contractVersion: 22,
-    summaryVersion: 46,
+    contractVersion: PRIVATE_CORE_CONTRACT_VERSION,
+    summaryVersion: PRIVATE_CORE_SUMMARY_VERSION,
     supportedSendLaneVersion: PRIVATE_CORE_SUPPORTED_SEND_LANE_VERSION,
     supportedSendLaneKind: PRIVATE_CORE_SUPPORTED_SEND_LANE_KIND,
     supportedSendLaneStatus: PRIVATE_CORE_SUPPORTED_SEND_LANE_STATUS,
@@ -3116,6 +3130,13 @@ function buildPrivateCoreContractState() {
     supportedSwapInputRootPolicy: PRIVATE_CORE_SUPPORTED_SWAP_INPUT_ROOT_POLICY,
     supportedSwapOutputRegistrationPolicy:
       PRIVATE_CORE_SUPPORTED_SWAP_OUTPUT_REGISTRATION_POLICY,
+    supportedPrivateCoreCircuitFamily: PRIVATE_CORE_SUPPORTED_CIRCUIT_FAMILY,
+    supportedPrivateCoreCircuitFamilyStatus: PRIVATE_CORE_SUPPORTED_CIRCUIT_FAMILY_STATUS,
+    supportedPrivateCoreCircuitFamilyNewArchitectureStatus:
+      PRIVATE_CORE_SUPPORTED_CIRCUIT_FAMILY_NEW_ARCHITECTURE_STATUS,
+    supportedPrivateCoreCircuitFamilyNote: PRIVATE_CORE_SUPPORTED_CIRCUIT_FAMILY_NOTE,
+    supportedPrivateCoreLegacyCircuits: PRIVATE_CORE_SUPPORTED_LEGACY_CIRCUITS,
+    supportedPrivateCoreReplacementFamily: PRIVATE_CORE_SUPPORTED_REPLACEMENT_FAMILY,
     supportedRecipientModel: PRIVATE_CORE_SUPPORTED_RECIPIENT_MODEL,
     supportedReleaseDestinationModel: PRIVATE_CORE_SUPPORTED_RELEASE_DESTINATION_MODEL,
     supportedProofSystem: PRIVATE_CORE_SUPPORTED_PROOF_SYSTEM,
@@ -3242,6 +3263,12 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "supportedSwapResultingRootBasis",
     "supportedSwapInputRootPolicy",
     "supportedSwapOutputRegistrationPolicy",
+    "supportedPrivateCoreCircuitFamily",
+    "supportedPrivateCoreCircuitFamilyStatus",
+    "supportedPrivateCoreCircuitFamilyNewArchitectureStatus",
+    "supportedPrivateCoreCircuitFamilyNote",
+    "supportedPrivateCoreLegacyCircuits",
+    "supportedPrivateCoreReplacementFamily",
     "supportedRecipientModel",
     "supportedReleaseDestinationModel",
     "supportedProofSystem",
@@ -3266,7 +3293,7 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     "provingHashLane",
   ];
   const mismatchedFields = mirroredFields.filter(
-    (field) => args.summaryState[field] !== args.contractState[field],
+    (field) => !contractMirrorValuesEqual(args.summaryState[field], args.contractState[field]),
   );
 
   if (mismatchedFields.length > 0) {
@@ -3280,6 +3307,14 @@ function summarizePrivateCoreContractMirrorStatus(args) {
     note: "Operator summary mirrors the frozen private-core contract across all supported static fields.",
     status: "mirrors-contract",
   };
+}
+
+function contractMirrorValuesEqual(left, right) {
+  if (Array.isArray(left) || Array.isArray(right)) {
+    return JSON.stringify(left) === JSON.stringify(right);
+  }
+
+  return left === right;
 }
 
 function summarizePrivateCoreZkV1FinishLineStatus(args) {

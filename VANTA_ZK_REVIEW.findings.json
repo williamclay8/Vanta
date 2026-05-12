@@ -22,9 +22,9 @@
   ],
   "lumiBaseline": {
     "branch": "codex/vanta-zk-review-hardening",
-    "lastKnownCommit": "this owner-context record-source import proof feedback-loop commit",
-    "local": "verified locally for the owner-context record-source import proof feedback-loop slice",
-    "committed": "owner-context record-source import proof feedback-loop commit",
+    "lastKnownCommit": "commit containing this Private Core single-note legacy-lane freeze feedback-loop ledger entry",
+    "local": "verified locally for the Private Core single-note legacy-lane freeze feedback-loop slice",
+    "committed": "included in the commit containing this Private Core single-note legacy-lane freeze feedback-loop ledger entry",
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
@@ -240,6 +240,34 @@
         "deployedLive": "not-live-verified"
       },
       "truthBoundary": "This is a local reviewer-visible import proof contract and Shield UI truth boundary. It is not a finished product import/export UX, not legacy-record migration, not viewing-key memo discovery by itself, not live deployment evidence, and not proof that old random-seeded records are recoverable."
+    },
+    {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-12-SINGLE-NOTE-LEGACY-LANE-FREEZE",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#still-open-6--migrate-or-deprecate-vanta_private_core_single_note_-circuits",
+        "operator/unshield-server.mjs",
+        "src/zk/vantaPrivateCoreOperatorClient.ts",
+        "scripts/check-vanta-private-core-single-note-freeze.mjs",
+        "docs/zk/vanta-zk-v1-assumptions.md",
+        "docs/zk/vanta-zk-v1-remaining-work.md"
+      ],
+      "summary": "Private Core single-note Send, Swap, and Unshield remain active-v0 compatibility lanes for current flows. Operator contract/status surfaces and docs now mark the circuit family as active-v0 legacy and deprecated for new architecture, with Private Pool v2 entry named as the replacement family.",
+      "localVerification": [
+        "npm run private-core:single-note-freeze-check",
+        "npm run private-core:contract-smoke",
+        "npm run private-core:operator-status-endpoint-check-json",
+        "npm run private-core:verify",
+        "npm run docs:source-of-truth-check",
+        "npm run zk:review-guards-check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the Private Core single-note legacy-lane freeze feedback-loop slice",
+        "committed": "included in the commit containing this Private Core single-note legacy-lane freeze feedback-loop ledger entry",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "Private Core single-note Send/Swap/Unshield are maintained active-v0 compatibility lanes. They are locally guarded and still back current flows, but they are not the long-term circuit architecture and must not be expanded for new production claims."
     }
   ],
   "findings": [
@@ -808,12 +836,13 @@
       "codexRemediation": {
         "commits": [
           "local feedback loops through 572c46e",
-          "current Private Core context-tag split feedback-loop patch"
+          "current Private Core context-tag split feedback-loop patch",
+          "current Private Core single-note legacy-lane freeze feedback-loop patch"
         ],
-        "summary": "Replaced split membership path witnesses with single-field siblings across covered Private Core lanes, and tightened Send/Swap context-tag public-input splits to zero-high-limb canonical encoding guarded by invalid-context-split fixtures.",
+        "summary": "Replaced split membership path witnesses with single-field siblings across covered Private Core lanes, tightened Send/Swap context-tag public-input splits to zero-high-limb canonical encoding, and marked the single-note circuit family as active-v0 legacy/deprecated-for-new-architecture compatibility lanes in machine-readable operator/docs surfaces.",
         "residualRisk": [
           "Future lanes must not reintroduce split-limb additive sibling encoding.",
-          "The single-note circuits remain active v0 lanes until replacement v2 flows cover the active Private Core surfaces."
+          "The single-note circuits remain active-v0 legacy compatibility lanes until replacement Private Pool v2 entry flows cover the active Private Core surfaces."
         ]
       },
       "lumiHygiene": {
@@ -839,7 +868,7 @@
           "npm run private-core:swap-check"
         ]
       },
-      "truthBoundary": "This is a witness-shape cleanup in local circuits, not a production privacy guarantee."
+      "truthBoundary": "This is a witness-shape cleanup and active-v0 legacy-lane freeze in local circuits/operator surfaces, not a production privacy guarantee or migration away from the single-note family."
     },
     {
       "id": "VANTA-ZK-2026-05-09-M10",

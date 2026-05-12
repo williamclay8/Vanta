@@ -101,6 +101,8 @@ The current single-note unshield lane is the executable baseline:
 - `poseidon-bn254-proving-lane-v0`
 - canonical regression command: `npm run private-core:check`
 
+Legacy lane freeze: the `vanta_private_core_single_note_*` family remains an active-v0 legacy compatibility surface for current Send, Swap, and Unshield flows. It is not the long-term circuit architecture; new production-facing circuit work should migrate through the Private Pool v2 entry family or an explicitly reviewed replacement.
+
 Changes to the proving lane should be treated as regressions unless that command still proves:
 - valid fixture succeeds
 - invalid-direction fixture fails

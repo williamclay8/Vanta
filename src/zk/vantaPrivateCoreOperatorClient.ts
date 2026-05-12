@@ -4,6 +4,12 @@ import type { VantaPrivateCoreSendProofArtifactV0 } from "@/zk/vantaPrivateCoreS
 import type { VantaPrivateCoreNoirSwapWitnessPackageV0 } from "@/zk/vantaPrivateCoreSwapProof";
 import type { VantaPrivateCoreNoirUnshieldWitnessPackageV0 } from "@/zk/vantaPrivateCoreUnshieldProof";
 
+const PRIVATE_CORE_SUPPORTED_LEGACY_CIRCUITS = [
+  "vanta_private_core_single_note_send",
+  "vanta_private_core_single_note_swap",
+  "vanta_private_core_single_note_unshield",
+] as const;
+
 export type VantaPrivateCoreProofOperatorResponse = {
   backend: string;
   circuit: string;
@@ -278,8 +284,8 @@ export type VantaPrivateCoreOperatorShippingDecisionResponse = {
   decisionKind: "narrow-private-core-zk-v1-shipping";
   decisionStatus: "ready-to-ship" | "blocked";
   decisionNote: string;
-  contractVersion: 22;
-  summaryVersion: 46;
+  contractVersion: 23;
+  summaryVersion: 47;
   generatedAt: number;
   shippingStatus: VantaPrivateCoreOperatorSummaryStateResponse["zkV1ShippingStatus"];
   shippingNote: string;
@@ -523,6 +529,13 @@ export type VantaPrivateCoreOperatorSummaryStateResponse = {
   supportedSwapResultingRootBasis: "client-declared";
   supportedSwapInputRootPolicy: "latest-registered-root-with-linked-registration-proof";
   supportedSwapOutputRegistrationPolicy: "resulting-root-must-register-as-swap-output";
+  supportedPrivateCoreCircuitFamily: "vanta_private_core_single_note";
+  supportedPrivateCoreCircuitFamilyStatus: "active-v0-legacy";
+  supportedPrivateCoreCircuitFamilyNewArchitectureStatus:
+    "deprecated-for-new-architecture";
+  supportedPrivateCoreCircuitFamilyNote: string;
+  supportedPrivateCoreLegacyCircuits: typeof PRIVATE_CORE_SUPPORTED_LEGACY_CIRCUITS;
+  supportedPrivateCoreReplacementFamily: "vanta_private_pool_v2_entry";
   supportedRecipientModel: "hashed-reference-to-owner-key";
   supportedReleaseDestinationModel: "32-byte-release-destination-field";
   supportedProofSystem: "noir-acir-ultrahonk-bbjs";
@@ -689,6 +702,13 @@ export type VantaPrivateCoreOperatorContractStateResponse = {
   supportedSwapResultingRootBasis: "client-declared";
   supportedSwapInputRootPolicy: "latest-registered-root-with-linked-registration-proof";
   supportedSwapOutputRegistrationPolicy: "resulting-root-must-register-as-swap-output";
+  supportedPrivateCoreCircuitFamily: "vanta_private_core_single_note";
+  supportedPrivateCoreCircuitFamilyStatus: "active-v0-legacy";
+  supportedPrivateCoreCircuitFamilyNewArchitectureStatus:
+    "deprecated-for-new-architecture";
+  supportedPrivateCoreCircuitFamilyNote: string;
+  supportedPrivateCoreLegacyCircuits: typeof PRIVATE_CORE_SUPPORTED_LEGACY_CIRCUITS;
+  supportedPrivateCoreReplacementFamily: "vanta_private_pool_v2_entry";
   supportedRecipientModel: "hashed-reference-to-owner-key";
   supportedReleaseDestinationModel: "32-byte-release-destination-field";
   supportedProofSystem: "noir-acir-ultrahonk-bbjs";
@@ -731,8 +751,8 @@ export type VantaPrivateCoreOperatorSnapshotStateResponse = {
     decisionStatusRaw: "ready-to-ship" | "blocked";
     decisionStatus: string;
     decisionNote: string;
-    mirroredContractVersion: 22;
-    summaryVersion: 46;
+    mirroredContractVersion: 23;
+    summaryVersion: 47;
     summaryGenerated: number;
     shippingStatusRaw: VantaPrivateCoreOperatorSummaryStateResponse["zkV1ShippingStatus"];
     shippingStatus: string;
@@ -779,8 +799,8 @@ export type VantaPrivateCoreOperatorShippingArtifactResponse = {
   decisionNote: string;
   snapshotVersion: 1;
   snapshotKind: "contract-status-shipping-bundle";
-  contractVersion: 22;
-  summaryVersion: 46;
+  contractVersion: 23;
+  summaryVersion: 47;
   currentRoot: string | null;
   currentRootRegistrationBasis:
     | "shield-input"
@@ -826,8 +846,8 @@ export type VantaPrivateCoreOperatorReleaseCandidateResponse = {
   decisionKind: "narrow-private-core-zk-v1-shipping";
   decisionStatus: "ready-to-ship" | "blocked";
   decisionNote: string;
-  contractVersion: 22;
-  summaryVersion: 46;
+  contractVersion: 23;
+  summaryVersion: 47;
   artifactVersion: 1;
   artifactKind: "shipping-decision-checked-snapshot-bundle";
   releaseCandidateId: string | null;
@@ -890,8 +910,8 @@ export type VantaPrivateCoreOperatorReleasePackageResponse = {
     | "release-mismatch"
     | "unavailable";
   releaseCandidateLineageNote: string;
-  contractVersion: 22;
-  summaryVersion: 46;
+  contractVersion: 23;
+  summaryVersion: 47;
   snapshotVersion: 1;
   snapshotKind: "contract-status-shipping-bundle";
   summaryGenerated: number | null;
@@ -983,8 +1003,8 @@ function parsePrivateCoreOperatorContractState(
     parsed === null ||
     typeof parsed.operator !== "string" ||
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 22 ||
-    parsed.summaryVersion !== 46 ||
+    parsed.contractVersion !== 23 ||
+    parsed.summaryVersion !== 47 ||
     parsed.supportedOperatorSnapshotVersion !== 1 ||
     parsed.supportedOperatorSnapshotKind !== "contract-status-shipping-bundle" ||
     parsed.supportedOperatorSnapshotGateVersion !== 1 ||
@@ -1088,8 +1108,8 @@ function parsePrivateCoreOperatorSummaryState(
     typeof parsed !== "object" ||
     parsed === null ||
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 22 ||
-    parsed.summaryVersion !== 46 ||
+    parsed.contractVersion !== 23 ||
+    parsed.summaryVersion !== 47 ||
     typeof parsed.generatedAt !== "number" ||
     !isRequiredLanesStatus(parsed.requiredLanesStatus) ||
     !isZkV1ShippingStatus(parsed.zkV1ShippingStatus) ||
@@ -1178,8 +1198,8 @@ function parsePrivateCoreOperatorShippingDecisionState(
     parsed.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     !isShippingDecisionStatus(parsed.decisionStatus) ||
     typeof parsed.decisionNote !== "string" ||
-    parsed.contractVersion !== 22 ||
-    parsed.summaryVersion !== 46 ||
+    parsed.contractVersion !== 23 ||
+    parsed.summaryVersion !== 47 ||
     typeof parsed.generatedAt !== "number" ||
     !isZkV1ShippingStatus(parsed.shippingStatus) ||
     typeof parsed.shippingNote !== "string" ||
@@ -1278,8 +1298,8 @@ function parsePrivateCoreOperatorSnapshotPayload(
     !isShippingDecisionStatus(shipping.decisionStatusRaw) ||
     typeof shipping.decisionStatus !== "string" ||
     typeof shipping.decisionNote !== "string" ||
-    shipping.mirroredContractVersion !== 20 ||
-    shipping.summaryVersion !== 46 ||
+    shipping.mirroredContractVersion !== 23 ||
+    shipping.summaryVersion !== 47 ||
     typeof shipping.summaryGenerated !== "number" ||
     !isZkV1ShippingStatus(shipping.shippingStatusRaw) ||
     typeof shipping.shippingStatus !== "string" ||
@@ -1327,8 +1347,8 @@ function parsePrivateCoreOperatorSnapshotPayload(
       decisionStatusRaw: shipping.decisionStatusRaw,
       decisionStatus: shipping.decisionStatus,
       decisionNote: shipping.decisionNote,
-      mirroredContractVersion: 22,
-      summaryVersion: 46,
+      mirroredContractVersion: 23,
+      summaryVersion: 47,
       summaryGenerated: shipping.summaryGenerated,
       shippingStatusRaw: shipping.shippingStatusRaw,
       shippingStatus: shipping.shippingStatus,
@@ -2448,6 +2468,12 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
     supportedSwapResultingRootBasis?: unknown;
     supportedSwapInputRootPolicy?: unknown;
     supportedSwapOutputRegistrationPolicy?: unknown;
+    supportedPrivateCoreCircuitFamily?: unknown;
+    supportedPrivateCoreCircuitFamilyStatus?: unknown;
+    supportedPrivateCoreCircuitFamilyNewArchitectureStatus?: unknown;
+    supportedPrivateCoreCircuitFamilyNote?: unknown;
+    supportedPrivateCoreLegacyCircuits?: unknown;
+    supportedPrivateCoreReplacementFamily?: unknown;
     supportedRecipientModel?: unknown;
     supportedReleaseDestinationModel?: unknown;
     supportedProofSystem?: unknown;
@@ -2508,8 +2534,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 22 ||
-    parsed.summaryVersion !== 46 ||
+    parsed.contractVersion !== 23 ||
+    parsed.summaryVersion !== 47 ||
     !isContractMirrorStatus(parsed.contractMirrorStatus) ||
     typeof parsed.contractMirrorNote !== "string" ||
     !isRequiredLanesStatus(parsed.requiredLanesStatus) ||
@@ -2668,6 +2694,13 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
       "latest-registered-root-with-linked-registration-proof" ||
     parsed.supportedSwapOutputRegistrationPolicy !==
       "resulting-root-must-register-as-swap-output" ||
+    parsed.supportedPrivateCoreCircuitFamily !== "vanta_private_core_single_note" ||
+    parsed.supportedPrivateCoreCircuitFamilyStatus !== "active-v0-legacy" ||
+    parsed.supportedPrivateCoreCircuitFamilyNewArchitectureStatus !==
+      "deprecated-for-new-architecture" ||
+    typeof parsed.supportedPrivateCoreCircuitFamilyNote !== "string" ||
+    !isSupportedPrivateCoreLegacyCircuitList(parsed.supportedPrivateCoreLegacyCircuits) ||
+    parsed.supportedPrivateCoreReplacementFamily !== "vanta_private_pool_v2_entry" ||
     parsed.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     parsed.supportedReleaseDestinationModel !== "32-byte-release-destination-field" ||
     parsed.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
@@ -2756,8 +2789,8 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 22,
-    summaryVersion: 46,
+    contractVersion: 23,
+    summaryVersion: 47,
     contractMirrorStatus: parsed.contractMirrorStatus,
     contractMirrorNote: parsed.contractMirrorNote,
     requiredLanesStatus: parsed.requiredLanesStatus,
@@ -2879,6 +2912,13 @@ export async function fetchVantaPrivateCoreOperatorSummary(): Promise<
       "latest-registered-root-with-linked-registration-proof",
     supportedSwapOutputRegistrationPolicy:
       "resulting-root-must-register-as-swap-output",
+    supportedPrivateCoreCircuitFamily: "vanta_private_core_single_note",
+    supportedPrivateCoreCircuitFamilyStatus: "active-v0-legacy",
+    supportedPrivateCoreCircuitFamilyNewArchitectureStatus:
+      "deprecated-for-new-architecture",
+    supportedPrivateCoreCircuitFamilyNote: parsed.supportedPrivateCoreCircuitFamilyNote,
+    supportedPrivateCoreLegacyCircuits: PRIVATE_CORE_SUPPORTED_LEGACY_CIRCUITS,
+    supportedPrivateCoreReplacementFamily: "vanta_private_pool_v2_entry",
     supportedRecipientModel: "hashed-reference-to-owner-key",
     supportedReleaseDestinationModel: "32-byte-release-destination-field",
     supportedProofSystem: "noir-acir-ultrahonk-bbjs",
@@ -3014,8 +3054,8 @@ export async function fetchVantaPrivateCoreOperatorShippingDecision(): Promise<
     parsed.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     !isShippingDecisionStatus(parsed.decisionStatus) ||
     typeof parsed.decisionNote !== "string" ||
-    parsed.contractVersion !== 22 ||
-    parsed.summaryVersion !== 46 ||
+    parsed.contractVersion !== 23 ||
+    parsed.summaryVersion !== 47 ||
     typeof parsed.generatedAt !== "number" ||
     !isZkV1ShippingStatus(parsed.shippingStatus) ||
     typeof parsed.shippingNote !== "string" ||
@@ -3039,8 +3079,8 @@ export async function fetchVantaPrivateCoreOperatorShippingDecision(): Promise<
     decisionKind: "narrow-private-core-zk-v1-shipping",
     decisionStatus: parsed.decisionStatus,
     decisionNote: parsed.decisionNote,
-    contractVersion: 22,
-    summaryVersion: 46,
+    contractVersion: 23,
+    summaryVersion: 47,
     generatedAt: parsed.generatedAt,
     shippingStatus: parsed.shippingStatus,
     shippingNote: parsed.shippingNote,
@@ -3176,6 +3216,12 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
     supportedSwapResultingRootBasis?: unknown;
     supportedSwapInputRootPolicy?: unknown;
     supportedSwapOutputRegistrationPolicy?: unknown;
+    supportedPrivateCoreCircuitFamily?: unknown;
+    supportedPrivateCoreCircuitFamilyStatus?: unknown;
+    supportedPrivateCoreCircuitFamilyNewArchitectureStatus?: unknown;
+    supportedPrivateCoreCircuitFamilyNote?: unknown;
+    supportedPrivateCoreLegacyCircuits?: unknown;
+    supportedPrivateCoreReplacementFamily?: unknown;
     supportedRecipientModel?: unknown;
     supportedReleaseDestinationModel?: unknown;
     supportedProofSystem?: unknown;
@@ -3202,8 +3248,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   if (
     parsed.stateVersion !== 1 ||
-    parsed.contractVersion !== 22 ||
-    parsed.summaryVersion !== 46 ||
+    parsed.contractVersion !== 23 ||
+    parsed.summaryVersion !== 47 ||
     !isZkV1FinishLineStatus(parsed.zkV1FinishLineStatus) ||
     typeof parsed.zkV1FinishLineNote !== "string" ||
     parsed.supportedSendLaneVersion !== 1 ||
@@ -3318,6 +3364,13 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
       "latest-registered-root-with-linked-registration-proof" ||
     parsed.supportedSwapOutputRegistrationPolicy !==
       "resulting-root-must-register-as-swap-output" ||
+    parsed.supportedPrivateCoreCircuitFamily !== "vanta_private_core_single_note" ||
+    parsed.supportedPrivateCoreCircuitFamilyStatus !== "active-v0-legacy" ||
+    parsed.supportedPrivateCoreCircuitFamilyNewArchitectureStatus !==
+      "deprecated-for-new-architecture" ||
+    typeof parsed.supportedPrivateCoreCircuitFamilyNote !== "string" ||
+    !isSupportedPrivateCoreLegacyCircuitList(parsed.supportedPrivateCoreLegacyCircuits) ||
+    parsed.supportedPrivateCoreReplacementFamily !== "vanta_private_pool_v2_entry" ||
     parsed.supportedRecipientModel !== "hashed-reference-to-owner-key" ||
     parsed.supportedReleaseDestinationModel !== "32-byte-release-destination-field" ||
     parsed.supportedProofSystem !== "noir-acir-ultrahonk-bbjs" ||
@@ -3346,8 +3399,8 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
 
   return {
     stateVersion: 1,
-    contractVersion: 22,
-    summaryVersion: 46,
+    contractVersion: 23,
+    summaryVersion: 47,
     supportedSendLaneVersion: 1,
     supportedSendLaneKind: "single-input-single-recipient-optional-change",
     supportedSendLaneStatus: "supported",
@@ -3453,6 +3506,13 @@ export async function fetchVantaPrivateCoreOperatorContract(): Promise<
       "latest-registered-root-with-linked-registration-proof",
     supportedSwapOutputRegistrationPolicy:
       "resulting-root-must-register-as-swap-output",
+    supportedPrivateCoreCircuitFamily: "vanta_private_core_single_note",
+    supportedPrivateCoreCircuitFamilyStatus: "active-v0-legacy",
+    supportedPrivateCoreCircuitFamilyNewArchitectureStatus:
+      "deprecated-for-new-architecture",
+    supportedPrivateCoreCircuitFamilyNote: parsed.supportedPrivateCoreCircuitFamilyNote,
+    supportedPrivateCoreLegacyCircuits: PRIVATE_CORE_SUPPORTED_LEGACY_CIRCUITS,
+    supportedPrivateCoreReplacementFamily: "vanta_private_pool_v2_entry",
     supportedRecipientModel: "hashed-reference-to-owner-key",
     supportedReleaseDestinationModel: "32-byte-release-destination-field",
     supportedProofSystem: "noir-acir-ultrahonk-bbjs",
@@ -3618,8 +3678,8 @@ export async function fetchVantaPrivateCoreOperatorShippingArtifact(): Promise<
     typeof parsed.decisionNote !== "string" ||
     parsed.snapshotVersion !== 1 ||
     parsed.snapshotKind !== "contract-status-shipping-bundle" ||
-    parsed.contractVersion !== 22 ||
-    parsed.summaryVersion !== 46 ||
+    parsed.contractVersion !== 23 ||
+    parsed.summaryVersion !== 47 ||
     (parsed.currentRoot !== null &&
       parsed.currentRoot !== undefined &&
       typeof parsed.currentRoot !== "string") ||
@@ -3726,8 +3786,8 @@ export async function fetchVantaPrivateCoreOperatorShippingArtifact(): Promise<
     decisionNote: parsed.decisionNote,
     snapshotVersion: 1,
     snapshotKind: "contract-status-shipping-bundle",
-    contractVersion: 22,
-    summaryVersion: 46,
+    contractVersion: 23,
+    summaryVersion: 47,
     currentRoot: typeof parsed.currentRoot === "string" ? parsed.currentRoot : null,
     currentRootRegistrationBasis:
       parsed.currentRootRegistrationBasis === "shield-input" ||
@@ -3856,8 +3916,8 @@ export async function fetchVantaPrivateCoreOperatorReleaseCandidate(): Promise<
     parsed.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     !isShippingDecisionStatus(parsed.decisionStatus) ||
     typeof parsed.decisionNote !== "string" ||
-    parsed.contractVersion !== 22 ||
-    parsed.summaryVersion !== 46 ||
+    parsed.contractVersion !== 23 ||
+    parsed.summaryVersion !== 47 ||
     parsed.artifactVersion !== 1 ||
     parsed.artifactKind !== "shipping-decision-checked-snapshot-bundle" ||
     (parsed.releaseCandidateId !== null &&
@@ -3922,8 +3982,8 @@ export async function fetchVantaPrivateCoreOperatorReleaseCandidate(): Promise<
     decisionKind: "narrow-private-core-zk-v1-shipping",
     decisionStatus: parsed.decisionStatus,
     decisionNote: parsed.decisionNote,
-    contractVersion: 22,
-    summaryVersion: 46,
+    contractVersion: 23,
+    summaryVersion: 47,
     artifactVersion: 1,
     artifactKind: "shipping-decision-checked-snapshot-bundle",
     releaseCandidateId:
@@ -4017,8 +4077,8 @@ async function parseReleaseCandidateFromUnknown(
     parsed.decisionKind !== "narrow-private-core-zk-v1-shipping" ||
     !isShippingDecisionStatus(parsed.decisionStatus) ||
     typeof parsed.decisionNote !== "string" ||
-    parsed.contractVersion !== 22 ||
-    parsed.summaryVersion !== 46 ||
+    parsed.contractVersion !== 23 ||
+    parsed.summaryVersion !== 47 ||
     parsed.artifactVersion !== 1 ||
     parsed.artifactKind !== "shipping-decision-checked-snapshot-bundle" ||
     !isReleaseCandidateLineageStatus(parsed.lineageStatus) ||
@@ -4037,8 +4097,8 @@ async function parseReleaseCandidateFromUnknown(
     decisionKind: "narrow-private-core-zk-v1-shipping",
     decisionStatus: parsed.decisionStatus,
     decisionNote: parsed.decisionNote,
-    contractVersion: 22,
-    summaryVersion: 46,
+    contractVersion: 23,
+    summaryVersion: 47,
     artifactVersion: 1,
     artifactKind: "shipping-decision-checked-snapshot-bundle",
     releaseCandidateId:
@@ -4166,8 +4226,8 @@ async function parseReleasePackageFromUnknown(
       typeof parsed.releaseCandidateId !== "string") ||
     !isReleaseCandidateLineageStatus(parsed.releaseCandidateLineageStatus) ||
     typeof parsed.releaseCandidateLineageNote !== "string" ||
-    parsed.contractVersion !== 22 ||
-    parsed.summaryVersion !== 46 ||
+    parsed.contractVersion !== 23 ||
+    parsed.summaryVersion !== 47 ||
     parsed.snapshotVersion !== 1 ||
     parsed.snapshotKind !== "contract-status-shipping-bundle" ||
     (parsed.summaryGenerated !== null &&
@@ -4260,8 +4320,8 @@ async function parseReleasePackageFromUnknown(
       typeof parsed.releaseCandidateId === "string" ? parsed.releaseCandidateId : null,
     releaseCandidateLineageStatus: parsed.releaseCandidateLineageStatus,
     releaseCandidateLineageNote: parsed.releaseCandidateLineageNote,
-    contractVersion: 22,
-    summaryVersion: 46,
+    contractVersion: 23,
+    summaryVersion: 47,
     snapshotVersion: 1,
     snapshotKind: "contract-status-shipping-bundle",
     summaryGenerated: typeof parsed.summaryGenerated === "number" ? parsed.summaryGenerated : null,
@@ -4548,6 +4608,16 @@ function isReleaseRecord(value: unknown): value is VantaPrivateCoreOperatorRelea
 
 function isLinkStatus(value: unknown): value is "linked" | "mismatch" | "unavailable" {
   return value === "linked" || value === "mismatch" || value === "unavailable";
+}
+
+function isSupportedPrivateCoreLegacyCircuitList(
+  value: unknown,
+): value is typeof PRIVATE_CORE_SUPPORTED_LEGACY_CIRCUITS {
+  return (
+    Array.isArray(value) &&
+    value.length === PRIVATE_CORE_SUPPORTED_LEGACY_CIRCUITS.length &&
+    PRIVATE_CORE_SUPPORTED_LEGACY_CIRCUITS.every((circuit, index) => value[index] === circuit)
+  );
 }
 
 function isBoundaryStatus(

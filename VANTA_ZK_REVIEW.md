@@ -26,6 +26,7 @@ This review is now an active feedback-loop document, not only a point-in-time au
 | Private Core tree hashing | Single-field membership paths and standard Poseidon node hashing are now guarded across send/swap/unshield. | `npm run zk:merkle-node-hash-contract-check` |
 | Private Core Send/Swap/Unshield amount range | Send, Swap, and Unshield amount limbs are now `u64` in the local Noir lanes, with negative fixtures for out-of-range witnesses. | `npm run private-core:send-check`; `npm run private-core:swap-check`; `npm run private-core:check` |
 | Private Core Send/Swap context-tag split | Send and Swap now use the same zero-high-limb context-tag encoding as Unshield; invalid split fixtures prove `context_tag_hi = 1` plus adjusted low limb is rejected, and the soundness lint rejects additive `hi + lo` context-tag comparisons. | `npm run private-core:send-check`; `npm run private-core:swap-check`; `npm run zk:circuit-soundness-lint` |
+| Private Core single-note legacy-lane freeze | `vanta_private_core_single_note_send`, `swap`, and `unshield` remain active-v0 legacy compatibility lanes for current Private Core flows. Operator contract/status surfaces now expose the circuit family as `active-v0-legacy` and `deprecated-for-new-architecture`, with `vanta_private_pool_v2_entry` named as the replacement family for new architecture work. | `npm run private-core:single-note-freeze-check`; `npm run private-core:contract-smoke`; `npm run zk:review-guards-check` |
 | Private Core Unshield proof-owner binding | Unshield now binds a Poseidon proof-owner key derived from the owner secret into the proving note commitment/nullifier while preserving source-layer X25519 owner auth as an off-circuit/operator precheck. | `npm run private-core:check`; `npm run private-core:prove`; `npm run private-core:consume-check` |
 | Action memo privacy | Send, Swap, Unshield, SOL-Unshield, and spent-marker helpers now fail closed into v2 viewing-key AEAD; v1 plaintext parsing remains only for historical chain memos. A local Send dual-AEAD scaffold can separately seal recipient/change discovery memos and expose `sha256:` ciphertext body hashes, and the Private Pool v2 Send proof-request/circuit lane now binds recipient/change body-hash limbs into the Send public-input hash. External Send remains fail-closed until recipient viewing-key exchange or view-tag/indexer discovery is wired. | `npm run actions:memo-encryption-check`; `npm run send:discovery-migration-policy-check`; `npm run private-pool-v2:send-proof-request-check`; `npm run private-pool-v2:send-circuit-check`; `npm run private-pool-v2:public-input-hash-alignment-check` |
 | Owner recovery payload | X25519 + HKDF-SHA256 + XChaCha20-Poly1305 replaced the hand-rolled XOR/SHA path. | `npm run zk:owner-recovery-payload-crypto-check` |
@@ -557,7 +558,7 @@ Five workstreams. Numbered in execution order. Many depend on shield-lane workst
 
 ### S1. Make the send circuit prove what it claims
 
-Replace `zk/noir/vanta_private_pool_v2_send_entry/src/main.nr` (and consolidate with `vanta_private_core_single_note_send` — having two send circuits is dead weight). Public inputs must constrain:
+Build new production-facing Send circuit work through `zk/noir/vanta_private_pool_v2_send_entry/src/main.nr` and treat `vanta_private_core_single_note_send` as an active-v0 legacy compatibility lane while current Private Core Send flows depend on it. Migrate or delete the single-note lane only after replacement coverage is reviewed. Public inputs must constrain:
 
 ```rust
 // Public inputs:
@@ -768,7 +769,7 @@ Pair this with marking `liveSendBridge.ts` as a "diagnostics-only" path in user-
 
 ## Files most directly impacted
 
-- **Circuit:** `zk/noir/vanta_private_pool_v2_send_entry/src/main.nr` (rewrite), `zk/noir/vanta_private_core_single_note_send/src/main.nr` (delete; consolidate into the v2 circuit).
+- **Circuit:** `zk/noir/vanta_private_pool_v2_send_entry/src/main.nr` (new production-facing work), with `zk/noir/vanta_private_core_single_note_send/src/main.nr` kept as an active-v0 legacy compatibility lane while current Send flows depend on it. Migrate or delete only after replacement coverage is reviewed.
 - **Memo:** `src/solana/vantaShieldState.ts:createPreparedSendMemo` (replace JSON with AEAD), `src/solana/vantaShieldState.ts:1340` (parse v2).
 - **Live bridge:** `src/zk/liveSendBridge.ts` (reduce to diagnostics, drop the localStorage tree).
 - **Proof boundary:** `src/zk/vantaPrivateCoreSendProof.ts` (already shaped right; flip `proofSystem` from `"mock"` → `"groth16-bn254"` once S4 lands).
@@ -891,7 +892,7 @@ Six workstreams. The first three depend heavily on send and shield work; the las
 
 ### X1. Lock the swap circuit
 
-Replace both `vanta_private_pool_v2_swap_to_shielded_entry` and `vanta_private_core_single_note_swap` with a single `vanta_private_pool_v2_swap_entry` circuit that proves an asset transition inside the pool. Public inputs:
+Build new production-facing Swap circuit work through a reviewed `vanta_private_pool_v2_swap_entry` successor to `vanta_private_pool_v2_swap_to_shielded_entry`, while keeping `vanta_private_core_single_note_swap` as an active-v0 legacy compatibility lane for current Private Core Swap flows until replacement coverage is reviewed. Public inputs:
 
 ```rust
 // Public inputs:
@@ -1086,7 +1087,7 @@ Pair it with two small repairs:
 
 ## Files most directly impacted
 
-- **Circuit:** `zk/noir/vanta_private_pool_v2_swap_to_shielded_entry/src/main.nr` (rewrite into `vanta_private_pool_v2_swap_entry`), `zk/noir/vanta_private_core_single_note_swap/src/main.nr` (delete; consolidated).
+- **Circuit:** `zk/noir/vanta_private_pool_v2_swap_to_shielded_entry/src/main.nr` (new production-facing successor target: `vanta_private_pool_v2_swap_entry`), with `zk/noir/vanta_private_core_single_note_swap/src/main.nr` kept as an active-v0 legacy compatibility lane while current Swap flows depend on it. Migrate or delete only after replacement coverage is reviewed.
 - **Memo:** `src/solana/vantaShieldState.ts:createPreparedSwapMemo` and `extractMemoPayload`-with-`VANTA_SWAP_MEMO_PREFIX`.
 - **Live bridge:** `src/zk/liveSwapBridge.ts` — diagnostics-only, no security role.
 - **Proof boundary:** `src/zk/vantaPrivateCoreSwapProof.ts` (already shaped right; flip `proofSystem` once X5 lands).
@@ -3471,7 +3472,7 @@ This section was written *after* Codex shipped multiple passes against the origi
 
 Marking these as **resolved** in the audit. Each was a critical or high finding from the lane deep dives; each is now correctly addressed in the code.
 
-- **The on-chain program now authority-gates spend and tracks a registered root history.** `programs/vanta_private_pool_v2_spend/src/lib.rs` now has `TAG_REGISTER_ROOT = 2`, a per-pool `POOL_AUTHORITY_OFFSET`, an `is_signer` requirement on the authority for every spend, and an `ERR_UNKNOWN_ACCEPTED_ROOT` rejection when a proof's `accepted_root` isn't in the registered history. This closes the original critical findings #1 (no proof verification / no authority) and #2 (trivial DoS via unbounded nullifier writes). The program is no longer callable by arbitrary signers.
+- **The on-chain program now authority-gates spend and tracks a registered root history.** `programs/vanta_private_pool_v2_spend/src/lib.rs` now has `TAG_REGISTER_ROOT = 2`, a per-pool `POOL_AUTHORITY_OFFSET`, an `is_signer` requirement on the authority for every spend, and an `ERR_UNKNOWN_ACCEPTED_ROOT` rejection when a proof's `accepted_root` isn't in the registered history. This closes the unauthenticated-spend / arbitrary-writer portion of the original program findings, but it does not close on-chain proof verification or verifier-key enforcement; those remain still-open production blockers.
 - **PDA-based nullifier markers and output records replace the linear-scan fixed-slot accounts.** Each nullifier becomes its own PDA, deterministic from `(NULLIFIER_MARKER_SEED, pool_id, nullifier)`; each output record likewise. Lookup is O(1), capacity is unbounded, and there's no scan that grows quadratic with pool size. This is a substantively *better* design than the standard fixed-slot model used elsewhere in Solana privacy work, and it should be called out as such — it's the kind of architectural choice that an auditor would highlight as careful.
 - **The `canonical_note_membership` circuit is no longer placeholder math.** It now uses `bn254::hash_10` for the note hash, `bn254::hash_1`/`bn254::hash_2` for Merkle leaf/node hashing, depth 20, real direction-bit handling without baking the bit into the parent hash, and a proper leaf-index-from-direction-bits constraint. Closes critical finding #3.
 - **The Private Pool v2 entry circuits (`shield_entry`, `send_entry`, `claim_entry`, `swap_to_shielded_entry`) now do real Merkle membership and real incremental append.** They use `MERKLE_DEPTH = 20`, drop the direction-bit-in-node-hash anti-pattern, drop the hi/lo sibling split, and use a real append-path-from-empty-leaf construction (`compute_root_from_leaf(0, path, dirs)`). For send, this is paired with the recipient + change two-output append in sequence against the same input root. Closes critical findings #4 (entry circuits skipped membership), #5 (depth 3), and medium #10 (direction-bit in node hash).
@@ -3535,7 +3536,9 @@ The new `vanta_private_pool_v2_*_entry` circuits are now the correct template. A
 
 Sharpened recommendation: rather than rebuilding the single_note_* circuits as the long-term architecture, **freeze/deprecate them as active-v0 lanes** and migrate new flows through the v2 entry circuits as replacements cover the active surfaces. The team has already done the work of writing the correct v2 circuit family; maintaining both forever is wasted complexity.
 
-If any production flow currently routes through single_note_*, plan its migration. If not, delete them entirely after one release cycle.
+**Codex status, 2026-05-12 single-note legacy-lane freeze:** locally remediated for the freeze/contract portion without deleting or renaming active lanes. The Private Core operator contract/status surfaces now expose `supportedPrivateCoreCircuitFamily = vanta_private_core_single_note`, `supportedPrivateCoreCircuitFamilyStatus = active-v0-legacy`, `supportedPrivateCoreCircuitFamilyNewArchitectureStatus = deprecated-for-new-architecture`, the three legacy circuit names, and `supportedPrivateCoreReplacementFamily = vanta_private_pool_v2_entry`. Guard: `npm run private-core:single-note-freeze-check`, wired into `npm run zk:review-guards-check`. Residual caveat: this is compatibility metadata and stale-claim prevention; it is not migration, deletion, proof ABI replacement, on-chain verifier enforcement, push, or live verification.
+
+If any production flow currently routes through `single_note_*`, plan its migration through the Private Pool v2 entry family or an explicitly reviewed replacement. Delete or retire those active-v0 legacy lanes only after replacement coverage is reviewed and current Private Core flows no longer depend on them.
 
 ### Remediated locally #7 — Send/Swap context-tag additive comparisons
 
@@ -3559,7 +3562,7 @@ The premier-suite synthesis in F13 listed 10 items. Several are now closed. The 
 1. **Embed Light's `groth16-solana` verifier in the program and wire bb.js as the real prover** (still-open #1 + #2 together). 2-3 weeks. Closes the largest remaining cryptographic gap; moves the protocol from Target B to Target A.
 2. **Program-owned PDA vault + on-chain `TAG_UNSHIELD`** (still-open #5). 2-3 weeks. Removes the operator's vault keypair as the trust anchor for funds at rest.
 3. **Finish recovery UX and legacy-record migration policy** (follow-up to partially remediated #3). 1 week. New records use wallet-derived owner context, carry non-secret recovery evidence classification, and now have a local record-source import proof; old random-seeded local records, product-level backup/import source handling, viewing-key memo discovery, and legacy migration/quarantine policy still need explicit product handling.
-4. **Freeze/deprecate `vanta_private_core_single_note_*` as active-v0 legacy lanes, then migrate them out once replacements cover active flows** (still-open #6). 2-3 days for the freeze/tightening slice; longer for deletion. A fresh dependency pass found Unshield and Send still depend on these lanes, so deletion would be premature; the safe near-term work is to mark them frozen for new architecture and tighten the remaining Send/Swap context-tag split guards.
+4. **Migrate `vanta_private_core_single_note_*` out once replacements cover active flows** (follow-up to locally guarded #6). The active-v0 legacy-lane freeze is now machine-readable, but actual migration/deletion still waits on replacement Send/Swap/Unshield dependencies.
 5. **Lift the strategy/pay trust-contract pattern into UI gating across all six lanes** (per the docs-pass and final-pass recommendation). 2-3 days. Was item #1 of the synthesis; still applies; small but high-leverage.
 6. **Customer-side wallet flow for Pay** (Pay P1). 3-4 weeks. Gives merchants something real to integrate.
 7. **Privacy Pools association sets** (F1). 2-4 weeks. Compliance unlock that determines how big the merchant TAM can ever be.

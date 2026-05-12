@@ -698,6 +698,32 @@ function printStatusSurface(
       ? "Resulting root must register as swap output"
       : "Unavailable",
   );
+  printLine(
+    "Supported circuit family",
+    summary.supportedPrivateCoreCircuitFamily ?? "Unavailable",
+  );
+  printLine(
+    "Supported circuit family status",
+    summary.supportedPrivateCoreCircuitFamilyStatus ?? "Unavailable",
+  );
+  printLine(
+    "Supported circuit family new architecture status",
+    summary.supportedPrivateCoreCircuitFamilyNewArchitectureStatus ?? "Unavailable",
+  );
+  printLine(
+    "Supported circuit family note",
+    summary.supportedPrivateCoreCircuitFamilyNote ?? "Unavailable",
+  );
+  printLine(
+    "Supported legacy circuits",
+    Array.isArray(summary.supportedPrivateCoreLegacyCircuits)
+      ? summary.supportedPrivateCoreLegacyCircuits.join(", ")
+      : "Unavailable",
+  );
+  printLine(
+    "Supported replacement family",
+    summary.supportedPrivateCoreReplacementFamily ?? "Unavailable",
+  );
   printLine("Supported flow version", String(summary.supportedFlowVersion ?? "unknown"));
   printLine("Supported flow kind", humanizeSupportedFlowKind(summary.supportedFlowKind));
   printLine("Supported flow status", humanizeSupportedFlowStatus(summary.supportedFlowStatus));
