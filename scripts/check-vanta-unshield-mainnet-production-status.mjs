@@ -42,6 +42,10 @@ assert.equal(status.onchainUnshieldCustody.currentReleaseModel, "operator-keypai
 assert.equal(status.onchainUnshieldCustody.productionCustodyReady, false);
 assert.equal(status.onchainUnshieldCustody.programOwnedVaultReady, false);
 assert.equal(status.onchainUnshieldCustody.onchainUnshieldInstructionReady, false);
+assert.equal(
+  status.onchainUnshieldCustody.onchainUnshieldInstructionStatus,
+  "reserved-fail-closed-source-only",
+);
 assert.equal(status.onchainUnshieldCustody.onchainProofVerifierReady, false);
 for (const blocker of [
   "observability-provider-controls-pending",
@@ -64,7 +68,7 @@ const expectedBlockers = [
   "observability-provider-controls-pending",
   "operator-event-sink-not-production-ready",
   "program-owned-vault-pda-not-deployed",
-  "tag-unshield-not-implemented",
+  "tag-unshield-reserved-fail-closed",
   "onchain-unshield-proof-verifier-not-wired",
   "operator-vault-keypair-env-release-still-active",
   ...(status.currentApproval.approvalWindowStatus === "active" ? [] : ["bounded-approval-window-expired"]),

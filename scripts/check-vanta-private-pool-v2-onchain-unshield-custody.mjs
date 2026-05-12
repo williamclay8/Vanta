@@ -12,6 +12,7 @@ function read(path) {
 
 const packageJson = JSON.parse(read("package.json"));
 const programSource = read("programs/vanta_private_pool_v2_spend/src/lib.rs");
+const programReadme = read("programs/vanta_private_pool_v2_spend/README.md");
 const unshieldOperatorSource = read("operator/unshield-server.mjs");
 const userVaultOwnerSource = read("src/solana/userVaultOwner.ts");
 const unshieldStatusSource = read("src/readiness/unshieldMainnetProductionStatus.mjs");
@@ -28,12 +29,13 @@ assert.equal(custody.status, "blocked");
 assert.equal(custody.productionCustodyReady, false);
 assert.equal(custody.programOwnedVaultReady, false);
 assert.equal(custody.onchainUnshieldInstructionReady, false);
+assert.equal(custody.onchainUnshieldInstructionStatus, "reserved-fail-closed-source-only");
 assert.equal(custody.onchainProofVerifierReady, false);
 assert.equal(custody.currentReleaseModel, "operator-keypair-public-exit");
 
 for (const blocker of [
   "program-owned-vault-pda-not-deployed",
-  "tag-unshield-not-implemented",
+  "tag-unshield-reserved-fail-closed",
   "onchain-unshield-proof-verifier-not-wired",
   "operator-vault-keypair-env-release-still-active",
 ]) {
@@ -41,28 +43,42 @@ for (const blocker of [
   assert.ok(status.blockers.includes(blocker), `Unshield production status missing custody blocker: ${blocker}`);
 }
 
-const futureOnchainUnshieldMarkers = [
-  /\b(?:pub\s+)?const\s+TAG_UNSHIELD\b/,
+for (const marker of [
+  "const TAG_UNSHIELD: u8 = 6;",
+  "const UNSHIELD_PAYLOAD_LEN",
+  "const ERR_UNSHIELD_RELEASE_NOT_WIRED: u32 = 15;",
+  "TAG_UNSHIELD => process_unshield",
+  "fn process_unshield",
+  "proof-verified unshield release ABI is reserved; release not wired",
+]) {
+  assert.ok(programSource.includes(marker), `Reserved TAG_UNSHIELD fail-closed source marker missing: ${marker}`);
+}
+
+for (const marker of [
+  "### `6` - proof-verified unshield release (reserved, fail closed)",
+  "Instruction data is exactly 393 bytes",
+  "returns custom error `15` before reading or mutating any accounts",
+  "must not be used as program-owned vault",
+]) {
+  assert.ok(programReadme.includes(marker), `Reserved TAG_UNSHIELD README marker missing: ${marker}`);
+}
+
+const forbiddenReleaseMarkers = [
   /\b(?:pub\s+)?const\s+TAG_RELEASE\b/,
   /\b(?:pub\s+)?const\s+TAG_WITHDRAW\b/,
-  /\bfn\s+process_unshield\s*\(/,
   /\bfn\s+process_release\s*\(/,
   /\bfn\s+process_withdraw\s*\(/,
   /\bvault_token_account\b/,
   /\bdestination_token_account\b/,
   /\bvault_pda\b/,
-  /\bproof_bytes\b/,
+  /\bspl_token\b/,
+  /\btoken_program\b/,
 ].filter((pattern) => pattern.test(programSource));
 
 assert.equal(
-  futureOnchainUnshieldMarkers.length,
+  forbiddenReleaseMarkers.length,
   0,
-  "Potential on-chain Unshield/release markers appeared; replace this negative custody guard with positive PDA release/proof verifier assertions.",
-);
-assert.equal(
-  /\bTAG_UNSHIELD\b/.test(programSource),
-  false,
-  "TAG_UNSHIELD appeared; replace this negative custody guard with positive PDA release/proof verifier assertions.",
+  "Potential PDA/token release markers appeared; replace this reserved ABI guard with positive PDA release/proof verifier assertions.",
 );
 
 for (const marker of [
@@ -89,6 +105,8 @@ for (const marker of [
   "createOnchainUnshieldCustodyStatus",
   "operator-keypair-public-exit",
   "program-owned-vault-pda-not-deployed",
+  "tag-unshield-reserved-fail-closed",
+  "reserved-fail-closed-source-only",
   "operator-vault-keypair-env-release-still-active",
 ]) {
   assert.ok(unshieldStatusSource.includes(marker), `Unshield status source missing custody marker: ${marker}`);
@@ -117,6 +135,7 @@ assert.ok(
 for (const marker of [
   "onchainUnshieldCustody",
   "private-pool-v2:onchain-unshield-custody-check",
+  "tag-unshield-reserved-fail-closed",
   "operator-vault-keypair-env-release-still-active",
 ]) {
   assert.ok(productionCheckSource.includes(marker), `Unshield production check missing custody marker: ${marker}`);

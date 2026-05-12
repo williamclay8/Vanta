@@ -23,6 +23,7 @@ const requiredPhrases = [
   "not a witness-driven runtime prover",
   "reserved Private Pool v2 tag `3` proof-carrying spend ABI is source-only fail-closed scaffolding",
   "returns custom error `14` before reading or mutating accounts",
+  "reserved source-only `TAG_UNSHIELD = 6` ABI now fails closed before reading or mutating accounts and cannot release funds",
   "transition-field drift",
   "request-metadata drift",
   "Private Pool v2 anonymity-set readiness is now a checked fail-closed operator/readiness surface",

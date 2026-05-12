@@ -357,24 +357,31 @@
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
         "VANTA_ZK_REVIEW.md#still-open-5--vault-custody-is-still-operator-keypair-in-env",
+        "programs/vanta_private_pool_v2_spend/src/lib.rs",
+        "programs/vanta_private_pool_v2_spend/README.md",
         "src/solana/unshieldTrustContract.ts",
         "scripts/print-vanta-protocol-trust-packet.mjs",
         "scripts/check-vanta-lane-trust-contracts.mjs",
         "scripts/check-vanta-private-pool-v2-onchain-unshield-custody.mjs"
       ],
-      "summary": "Unshield trust-contract and trust-packet surfaces now explicitly name the current release model as operator-keypair public exit, keep production custody/readiness booleans false, expose program-owned-vault and TAG_UNSHIELD blocker IDs, and cite the on-chain custody guard.",
+      "summary": "Unshield now has a source-only reserved TAG_UNSHIELD = 6 ABI that accepts a 393-byte proof-verified release shape but fails closed with custom error 15 before reading or mutating accounts. Trust-contract, trust-packet, production-status, limitations, and review surfaces keep the current release model as operator-keypair public exit, keep production custody/readiness booleans false, expose program-owned-vault and tag-unshield-reserved-fail-closed blockers, and cite the on-chain custody guard.",
       "localVerification": [
+        "cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
+        "cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
         "npm run lanes:trust-contract-check",
         "npm run unshield:trust-packet-check",
-        "npm run private-pool-v2:onchain-unshield-custody-check"
+        "npm run private-pool-v2:onchain-unshield-custody-check",
+        "npm run mainnet:unshield-production-check",
+        "npm run mainnet:unshield-production-status-check",
+        "npm run private-pool-v2:sbf-abi-status-json"
       ],
       "lumiHygiene": {
-        "local": "verified locally for the Unshield custody truth-surface feedback-loop slice",
-        "committed": "included in the commit containing this Unshield custody truth-surface feedback-loop ledger entry",
+        "local": "verified locally for the Unshield reserved TAG_UNSHIELD fail-closed custody feedback-loop slice",
+        "committed": "included in the commit containing this Unshield reserved TAG_UNSHIELD feedback-loop ledger entry",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
-      "truthBoundary": "This is truth-surfacing and drift prevention only. It is not a program-owned vault PDA, not on-chain TAG_UNSHIELD, not proof-verified release, not audit acceptance, and not live deployment evidence."
+      "truthBoundary": "This is source-level ABI reservation and truth-surfacing only. TAG_UNSHIELD = 6 cannot release funds, does not perform token CPI, does not consume nullifiers, does not verify a proof, and does not replace the operator-keypair public exit. It is not a program-owned vault PDA, not production custody, not proof-verified release, not rebuilt SBF/deploy/reinit evidence, not audit acceptance, and not live deployment evidence."
     },
     {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-ACTUAL-PRIVATE-SPEND-OPERATOR-NO-WITNESS",

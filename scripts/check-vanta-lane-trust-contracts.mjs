@@ -78,7 +78,7 @@ const laneContracts = [
       "programOwnedVaultReady: false",
       "onchainUnshieldInstructionReady: false",
       "program-owned-vault-pda-not-deployed",
-      "tag-unshield-not-implemented",
+      "tag-unshield-reserved-fail-closed",
       "npm run private-pool-v2:onchain-unshield-custody-check",
       "program-owned vault + on-chain TAG_UNSHIELD proof-verified release",
     ],

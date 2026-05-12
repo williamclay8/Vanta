@@ -20,13 +20,17 @@ if (checkMode) {
   assert.equal(status.boundedApprovalActive, false);
   assert.equal(status.onchainUnshieldCustody.productionCustodyReady, false);
   assert.equal(status.onchainUnshieldCustody.currentReleaseModel, "operator-keypair-public-exit");
+  assert.equal(
+    status.onchainUnshieldCustody.onchainUnshieldInstructionStatus,
+    "reserved-fail-closed-source-only",
+  );
   assert.ok(
     status.blockers.includes("program-owned-vault-pda-not-deployed"),
     "Unshield production status must expose the missing program-owned vault blocker.",
   );
   assert.ok(
-    status.blockers.includes("tag-unshield-not-implemented"),
-    "Unshield production status must expose the missing TAG_UNSHIELD blocker.",
+    status.blockers.includes("tag-unshield-reserved-fail-closed"),
+    "Unshield production status must expose the reserved fail-closed TAG_UNSHIELD blocker.",
   );
   assert.ok(
     status.blockers.includes("no-reviewed-live-mainnet-unshield-settlement-evidence"),

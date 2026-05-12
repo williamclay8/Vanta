@@ -16,6 +16,7 @@ const TAG_INIT: u8 = 0;
 const TAG_SPEND: u8 = 1;
 const TAG_REGISTER_ROOT: u8 = 2;
 const TAG_SPEND_WITH_PROOF: u8 = 3;
+const TAG_UNSHIELD: u8 = 6;
 
 const VERSION: u8 = 1;
 const POOL_MAGIC: &[u8; 8] = b"VNTA2POL";
@@ -38,10 +39,14 @@ const POOL_OUTPUT_QUEUE_OFFSET: usize = 120;
 const POOL_ROOT_HISTORY_OFFSET: usize = 152;
 
 const HASH_LEN: usize = 32;
+const EXIT_AMOUNT_LEN: usize = 8;
 const SPEND_PAYLOAD_LEN: usize = 1 + HASH_LEN * 5;
 const RESERVED_GROTH16_PROOF_LEN: usize = 256;
 const SPEND_WITH_PROOF_PAYLOAD_LEN: usize =
     SPEND_PAYLOAD_LEN + HASH_LEN + RESERVED_GROTH16_PROOF_LEN;
+const UNSHIELD_PUBLIC_INPUT_HASH_OFFSET: usize = HASH_LEN * 3 + EXIT_AMOUNT_LEN;
+const UNSHIELD_PROOF_OFFSET: usize = UNSHIELD_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN;
+const UNSHIELD_PAYLOAD_LEN: usize = 1 + UNSHIELD_PROOF_OFFSET + RESERVED_GROTH16_PROOF_LEN;
 const REGISTER_ROOT_PAYLOAD_LEN: usize = 1 + HASH_LEN;
 const OUTPUT_RECORD_PDA_LEN: usize = HEADER_LEN + 8 + HASH_LEN * 4;
 const OUTPUT_RECORD_INDEX_OFFSET: usize = HEADER_LEN;
@@ -66,6 +71,7 @@ const ERR_UNKNOWN_ACCEPTED_ROOT: u32 = 11;
 const ERR_NULLIFIER_MARKER_MISMATCH: u32 = 12;
 const ERR_OUTPUT_RECORD_MISMATCH: u32 = 13;
 const ERR_PROOF_VERIFIER_NOT_WIRED: u32 = 14;
+const ERR_UNSHIELD_RELEASE_NOT_WIRED: u32 = 15;
 
 pub fn process_instruction(
     program_id: &Pubkey,
@@ -81,6 +87,7 @@ pub fn process_instruction(
         TAG_SPEND => process_spend(program_id, accounts, rest),
         TAG_REGISTER_ROOT => process_register_root(program_id, accounts, rest),
         TAG_SPEND_WITH_PROOF => process_spend_with_proof(program_id, accounts, rest),
+        TAG_UNSHIELD => process_unshield(program_id, accounts, rest),
         _ => Err(ProgramError::InvalidInstructionData),
     }
 }
@@ -292,6 +299,32 @@ fn process_spend_with_proof(
 
     msg!("vanta_private_pool_v2_spend: proof-carrying spend ABI is reserved; verifier not wired");
     Err(ProgramError::Custom(ERR_PROOF_VERIFIER_NOT_WIRED))
+}
+
+fn process_unshield(_program_id: &Pubkey, _accounts: &[AccountInfo], rest: &[u8]) -> ProgramResult {
+    if rest.len() + 1 != UNSHIELD_PAYLOAD_LEN {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let nullifier = &rest[0..HASH_LEN];
+    let exit_destination = &rest[HASH_LEN..HASH_LEN * 2];
+    let exit_asset_id = &rest[HASH_LEN * 2..HASH_LEN * 3];
+    let exit_amount = &rest[HASH_LEN * 3..UNSHIELD_PUBLIC_INPUT_HASH_OFFSET];
+    let public_input_hash = &rest[UNSHIELD_PUBLIC_INPUT_HASH_OFFSET..UNSHIELD_PROOF_OFFSET];
+    let proof = &rest[UNSHIELD_PROOF_OFFSET..UNSHIELD_PROOF_OFFSET + RESERVED_GROTH16_PROOF_LEN];
+
+    if nullifier.iter().all(|byte| *byte == 0)
+        || exit_destination.iter().all(|byte| *byte == 0)
+        || exit_asset_id.iter().all(|byte| *byte == 0)
+        || exit_amount.iter().all(|byte| *byte == 0)
+        || public_input_hash.iter().all(|byte| *byte == 0)
+        || proof.iter().all(|byte| *byte == 0)
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    msg!("vanta_private_pool_v2_spend: proof-verified unshield release ABI is reserved; release not wired");
+    Err(ProgramError::Custom(ERR_UNSHIELD_RELEASE_NOT_WIRED))
 }
 
 fn require_program_account(program_id: &Pubkey, account: &AccountInfo) -> ProgramResult {
@@ -1110,6 +1143,85 @@ mod tests {
             process_instruction(&program_id, &[], &zero_proof),
             Err(ProgramError::InvalidInstructionData)
         );
+    }
+
+    #[test]
+    fn unshield_release_rejects_before_state_mutation_until_custody_is_wired() {
+        let program_id = Pubkey::new_unique();
+        let account_key = Pubkey::new_unique();
+        let mut lamports = 1_000_000;
+        let mut account_data = vec![8; POOL_STATE_LEN];
+        let before = account_data.clone();
+
+        {
+            let account = account_info(
+                &account_key,
+                &program_id,
+                true,
+                true,
+                &mut lamports,
+                &mut account_data,
+            );
+            let accounts = vec![account];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &unshield_instruction()),
+                Err(ProgramError::Custom(ERR_UNSHIELD_RELEASE_NOT_WIRED))
+            );
+        }
+
+        assert_eq!(before, account_data);
+    }
+
+    #[test]
+    fn unshield_release_reserved_shape_does_not_require_accounts() {
+        let program_id = Pubkey::new_unique();
+
+        assert_eq!(
+            process_instruction(&program_id, &[], &unshield_instruction()),
+            Err(ProgramError::Custom(ERR_UNSHIELD_RELEASE_NOT_WIRED))
+        );
+    }
+
+    #[test]
+    fn unshield_release_requires_exact_reserved_payload_length() {
+        let program_id = Pubkey::new_unique();
+
+        assert_eq!(
+            process_instruction(&program_id, &[], &[TAG_UNSHIELD]),
+            Err(ProgramError::InvalidInstructionData)
+        );
+
+        let mut too_long = unshield_instruction();
+        too_long.push(1);
+        assert_eq!(
+            process_instruction(&program_id, &[], &too_long),
+            Err(ProgramError::InvalidInstructionData)
+        );
+    }
+
+    #[test]
+    fn unshield_release_rejects_zero_public_or_proof_placeholders() {
+        let program_id = Pubkey::new_unique();
+
+        for (start, end) in [
+            (1, 1 + HASH_LEN),
+            (1 + HASH_LEN, 1 + HASH_LEN * 2),
+            (1 + HASH_LEN * 2, 1 + HASH_LEN * 3),
+            (1 + HASH_LEN * 3, 1 + UNSHIELD_PUBLIC_INPUT_HASH_OFFSET),
+            (
+                1 + UNSHIELD_PUBLIC_INPUT_HASH_OFFSET,
+                1 + UNSHIELD_PROOF_OFFSET,
+            ),
+            (1 + UNSHIELD_PROOF_OFFSET, UNSHIELD_PAYLOAD_LEN),
+        ] {
+            let mut data = unshield_instruction();
+            data[start..end].fill(0);
+            assert_eq!(
+                process_instruction(&program_id, &[], &data),
+                Err(ProgramError::InvalidInstructionData)
+            );
+        }
     }
 
     #[test]
@@ -2141,6 +2253,18 @@ mod tests {
         data[0] = TAG_SPEND_WITH_PROOF;
         data.extend_from_slice(&[6; HASH_LEN]);
         data.extend_from_slice(&[7; RESERVED_GROTH16_PROOF_LEN]);
+        data
+    }
+
+    fn unshield_instruction() -> Vec<u8> {
+        let mut data = Vec::with_capacity(UNSHIELD_PAYLOAD_LEN);
+        data.push(TAG_UNSHIELD);
+        data.extend_from_slice(&[1; HASH_LEN]);
+        data.extend_from_slice(&[2; HASH_LEN]);
+        data.extend_from_slice(&[3; HASH_LEN]);
+        data.extend_from_slice(&[4; EXIT_AMOUNT_LEN]);
+        data.extend_from_slice(&[5; HASH_LEN]);
+        data.extend_from_slice(&[6; RESERVED_GROTH16_PROOF_LEN]);
         data
     }
 

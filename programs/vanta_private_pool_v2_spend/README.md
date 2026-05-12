@@ -117,6 +117,23 @@ Behavior today:
 - returns custom error `14` before reading or mutating any accounts
 - must not be used as proof-enforced spend evidence until the actual Groth16 verifier, verifying-key commitment, SBF rebuild, redeploy/reinit, and live/audit evidence exist
 
+### `6` - proof-verified unshield release (reserved, fail closed)
+
+Reserves the future program-owned vault release ABI. It is intentionally not accepted yet.
+
+Instruction data is exactly 393 bytes:
+
+```text
+[6, nullifier:32, exitDestination:32, exitAssetId:32, exitAmountLeU64:8, publicInputHash:32, groth16Proof:256]
+```
+
+Behavior today:
+
+- checks only the reserved payload length and that the public release fields / proof are not all-zero placeholders
+- returns custom error `15` before reading or mutating any accounts
+- does not perform token CPIs, PDA-signed release, custody transfer, nullifier consume, or proof verification
+- must not be used as program-owned vault or proof-verified release evidence until the actual verifier, vault PDA account model, token CPI, SBF rebuild, redeploy/reinit, and live/audit evidence exist
+
 ## Build
 
 If the Solana SBF toolchain is installed:
@@ -147,3 +164,4 @@ cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml
 - `12`: supplied nullifier marker PDA does not match the expected nullifier marker
 - `13`: supplied output record PDA does not match the expected output record
 - `14`: proof-carrying spend ABI is reserved and the verifier is not wired
+- `15`: proof-verified unshield release ABI is reserved and release custody is not wired

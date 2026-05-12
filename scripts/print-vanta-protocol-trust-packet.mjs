@@ -171,7 +171,7 @@ const packets = {
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Unshield currently releases through an operator-keypair public exit. This is not a production-private exit or custody claim until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
+        "Unshield currently releases through an operator-keypair public exit. The local TAG_UNSHIELD source ABI is reserved fail-closed and cannot release funds. This is not a production-private exit or custody claim until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
     },
     custodyBoundary: {
       productionCustodyReady: false,
@@ -179,11 +179,11 @@ const packets = {
       onchainUnshieldInstructionReady: false,
       blockerIds: [
         "program-owned-vault-pda-not-deployed",
-        "tag-unshield-not-implemented",
+        "tag-unshield-reserved-fail-closed",
       ],
       guardCommand: "npm run private-pool-v2:onchain-unshield-custody-check",
       safeReleaseBoundary:
-        "Current release model is operator-keypair public exit; production custody requires program-owned vault custody and on-chain TAG_UNSHIELD proof-verified release.",
+        "Current release model is operator-keypair public exit; local TAG_UNSHIELD is reserved fail-closed and cannot release funds; production custody requires program-owned vault custody and on-chain TAG_UNSHIELD proof-verified release.",
     },
     honestyNote:
       "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in SECURITY_LIMITATIONS.md.",
@@ -240,7 +240,7 @@ if (packet.action === "unshield") {
   packet.remainingBlockers = [
     ...packet.remainingBlockers,
     "program-owned-vault-pda-not-deployed",
-    "tag-unshield-not-implemented",
+    "tag-unshield-reserved-fail-closed",
   ];
 }
 
@@ -340,7 +340,7 @@ if (checkMode) {
     );
     for (const blocker of [
       "program-owned-vault-pda-not-deployed",
-      "tag-unshield-not-implemented",
+      "tag-unshield-reserved-fail-closed",
     ]) {
       assert.ok(
         packet.custodyBoundary?.blockerIds?.includes(blocker),
@@ -354,6 +354,10 @@ if (checkMode) {
     assert.ok(
       packet.claimBoundary.safeClaim.includes("operator-keypair public exit"),
       "Unshield packet must name the current operator-keypair public-exit release model.",
+    );
+    assert.ok(
+      packet.claimBoundary.safeClaim.includes("reserved fail-closed and cannot release funds"),
+      "Unshield packet must name the reserved fail-closed TAG_UNSHIELD boundary.",
     );
     assert.ok(
       packet.claimBoundary.safeClaim.includes(
