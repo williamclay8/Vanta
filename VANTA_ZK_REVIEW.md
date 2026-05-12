@@ -1039,6 +1039,8 @@ These are operational mitigations, not cryptographic guarantees, but they're the
 - Keep the additive asset-inequality bypass guarded. The local branch replaced the additive limb-sum check with limb comparison and added a sum-collision fixture; a fuller circuit rewrite should still use production-grade asset identity and ownership constraints.
 - Lock down the `liquidityKeypair` env loading to refuse to start unless the keypair is wrapped (e.g., behind an HSM signer). A plain JSON keypair in env is the worst pattern for a wallet that holds liquidity for swaps.
 
+  **Codex status, 2026-05-11:** remediated locally for the Jupiter SOL-to-shielded adapter's production boot boundary. `operator/jupiter-sol-to-shielded-route-adapter.mjs` now treats raw liquidity keypair JSON/path envs as local-only, refuses production startup when either raw keypair env is present, exposes `liquiditySignerMode` / signer-policy fields in `/health`, and documents `VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF` as the production boundary. Guard: `npm run swap:jupiter-sol-to-shielded-adapter-check`.
+
 ## Order of operations and rough effort
 
 | # | Workstream | Effort | Depends on |

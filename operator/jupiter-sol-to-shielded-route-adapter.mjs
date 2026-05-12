@@ -32,6 +32,15 @@ const statePath = resolve(
 );
 const liquidityKeypairJson = process.env.VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_JSON ?? "";
 const liquidityKeypairPath = process.env.VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_PATH ?? "";
+const liquiditySignerRef = process.env.VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF ?? "";
+const rawLiquidityKeypairConfigured = Boolean(
+  liquidityKeypairJson.trim() || liquidityKeypairPath.trim(),
+);
+const liquiditySignerMode = rawLiquidityKeypairConfigured
+  ? "raw-keypair-local-only"
+  : liquiditySignerRef.trim()
+    ? "wrapped-external-signer"
+    : "unconfigured";
 const slippageBps = Number(process.env.VANTA_SOL_TO_SHIELDED_SLIPPAGE_BPS ?? "50");
 const quoteTtlMs = Number(process.env.VANTA_SOL_TO_SHIELDED_QUOTE_TTL_MS ?? "30000");
 const nativeSolMint = "So11111111111111111111111111111111111111112";
@@ -255,7 +264,17 @@ function parseJsonKeypair(value) {
   return Keypair.fromSecretKey(Uint8Array.from(parsed));
 }
 
+function assertLiquiditySignerPolicy() {
+  if (process.env.NODE_ENV === "production" && rawLiquidityKeypairConfigured) {
+    throw new Error(
+      "VANTA_SOL_TO_SHIELDED raw liquidity keypairs are local-only. Production must use VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF with a wrapped external signer/HSM boundary.",
+    );
+  }
+}
+
 function loadLiquidityKeypair() {
+  assertLiquiditySignerPolicy();
+
   if (liquidityKeypairJson.trim()) {
     return parseJsonKeypair(liquidityKeypairJson);
   }
@@ -324,18 +343,25 @@ function configuredAssets() {
 
 function getMainnetReadiness({ liquidityKeypair }) {
   const supportedOutputAssets = configuredAssets().map((asset) => asset.symbol);
+  const liquiditySignerPolicyReady =
+    process.env.NODE_ENV !== "production" ||
+    liquiditySignerMode === "wrapped-external-signer";
   const mainnetReady =
     cluster === "mainnet-beta" &&
     executionMode === "live" &&
     Boolean(jupiterQuoteUrl) &&
     Boolean(jupiterSwapUrl) &&
     Boolean(liquidityKeypair) &&
+    liquiditySignerPolicyReady &&
     Boolean(privatePoolOperatorUrl) &&
     Number.isFinite(maxInputSol) &&
     maxInputSol > 0 &&
     supportedOutputAssets.length > 0;
 
   return {
+    liquiditySignerMode,
+    liquiditySignerPolicyReady,
+    liquiditySignerRefConfigured: Boolean(liquiditySignerRef.trim()),
     mainnetReady,
     supportedOutputAssets,
   };
@@ -837,6 +863,8 @@ async function handleExecute(body) {
   return receipt;
 }
 
+assertLiquiditySignerPolicy();
+
 const server = createServer(async (request, response) => {
   try {
     if (request.method === "OPTIONS") {
@@ -855,6 +883,10 @@ const server = createServer(async (request, response) => {
         jupiterQuoteConfigured: Boolean(jupiterQuoteUrl),
         jupiterSwapConfigured: Boolean(jupiterSwapUrl),
         liquidityWalletConfigured: Boolean(liquidityKeypair),
+        liquiditySignerMode: readiness.liquiditySignerMode,
+        liquiditySignerPolicyReady: readiness.liquiditySignerPolicyReady,
+        liquiditySignerRefConfigured: readiness.liquiditySignerRefConfigured,
+        liquiditySignerWrapped: readiness.liquiditySignerMode === "wrapped-external-signer",
         mainnetReady: readiness.mainnetReady,
         maxInputSol,
         ok: true,

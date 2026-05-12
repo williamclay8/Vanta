@@ -9,6 +9,14 @@ assert.match(serverSource, /https:\/\/api\.jup\.ag\/swap\/v1\/quote/);
 assert.match(serverSource, /https:\/\/api\.jup\.ag\/swap\/v1\/swap/);
 assert.match(serverSource, /VANTA_SOL_TO_SHIELDED_EXECUTION_MODE/);
 assert.match(serverSource, /VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR/);
+assert.match(serverSource, /VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF/);
+assert.match(serverSource, /assertLiquiditySignerPolicy/);
+assert.match(serverSource, /raw-keypair-local-only/);
+assert.match(serverSource, /wrapped-external-signer/);
+assert.match(serverSource, /NODE_ENV === "production"/);
+assert.match(serverSource, /raw liquidity keypairs are local-only/);
+assert.match(serverSource, /liquiditySignerMode/);
+assert.match(serverSource, /liquiditySignerWrapped/);
 assert.match(serverSource, /VANTA_PRIVATE_POOL_V2_OPERATOR_URL/);
 assert.match(serverSource, /maxInputSol/);
 assert.match(serverSource, /routeAdapter: "sol-to-shielded-v1"/);
@@ -91,6 +99,51 @@ async function waitForHealth(baseUrl) {
   throw lastError ?? new Error("Jupiter SOL-to-shielded adapter did not become healthy.");
 }
 
+async function waitForExit(child) {
+  let stderr = "";
+  let stdout = "";
+
+  child.stderr.on("data", (chunk) => {
+    stderr += chunk.toString("utf8");
+  });
+  child.stdout.on("data", (chunk) => {
+    stdout += chunk.toString("utf8");
+  });
+
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      child.kill("SIGTERM");
+      reject(new Error("Jupiter adapter raw production keypair check did not exit."));
+    }, 10_000);
+
+    child.once("exit", (code, signal) => {
+      clearTimeout(timeout);
+      resolve({ code, signal, stderr, stdout });
+    });
+    child.once("error", (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
+  });
+}
+
+async function assertRawProductionKeypairRefused() {
+  const child = spawn(process.execPath, ["operator/jupiter-sol-to-shielded-route-adapter.mjs"], {
+    env: {
+      ...process.env,
+      NODE_ENV: "production",
+      PORT: "0",
+      VANTA_SOL_TO_SHIELDED_EXECUTION_MODE: "live",
+      VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_JSON: "[1,2,3]",
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  const result = await waitForExit(child);
+  assert.notEqual(result.code, 0);
+  assert.match(result.stderr, /raw liquidity keypairs are local-only/);
+  assert.match(result.stderr, /VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF/);
+}
+
 async function main() {
   const port = 18_798 + Math.floor(Math.random() * 1000);
   const baseUrl = `http://127.0.0.1:${port}`;
@@ -111,6 +164,10 @@ async function main() {
     assert.equal(health.ok, true);
     assert.equal(health.service, "vanta-sol-to-shielded-jupiter-route-adapter");
     assert.equal(health.executionMode, "mock");
+    assert.equal(health.liquiditySignerMode, "unconfigured");
+    assert.equal(health.liquiditySignerPolicyReady, true);
+    assert.equal(health.liquiditySignerRefConfigured, false);
+    assert.equal(health.liquiditySignerWrapped, false);
     assert.deepEqual(health.supportedOutputAssets, ["USDC"]);
 
     const quoteResponse = await fetch(`${baseUrl}/quote`, {
@@ -207,6 +264,8 @@ async function main() {
   } finally {
     child.kill("SIGTERM");
   }
+
+  await assertRawProductionKeypairRefused();
 
   console.log("Vanta Jupiter SOL-to-shielded route adapter check: PASS");
 }

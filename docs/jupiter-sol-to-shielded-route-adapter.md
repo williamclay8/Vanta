@@ -34,7 +34,7 @@ VANTA_SOLANA_CLUSTER=mainnet-beta
 VANTA_SOLANA_RPC_URL=<helius-or-other-mainnet-rpc>
 VANTA_SOL_TO_SHIELDED_MAX_INPUT_SOL=1
 VANTA_SOL_TO_SHIELDED_SUPPORTED_ASSETS=USDC,PYUSD
-VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_JSON=<solana-secret-key-array>
+VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF=<secret-manager-or-hsm-signer-ref>
 VANTA_PRIVATE_POOL_V2_OPERATOR_URL=<private-pool-v2-operator-url>
 VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN=<operator-auth-token-if-required>
 ```
@@ -49,6 +49,8 @@ VANTA_SOL_TO_SHIELDED_SLIPPAGE_BPS=50
 ```
 
 Do not set `VANTA_SOL_TO_SHIELDED_ADAPTER_AUTH_TOKEN` directly on a browser-called public adapter unless a backend proxy injects the token. The current app calls the adapter from the browser and does not expose adapter bearer secrets client-side.
+
+Raw liquidity keypair envs, `VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_JSON` and `VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_PATH`, are local-only escape hatches for non-production checks. Production mode refuses to boot when either raw keypair env is present; the liquidity wallet must sit behind a wrapped external signer/HSM boundary before this route can be treated as production executable.
 
 ## Demo Boundary
 
