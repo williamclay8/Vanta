@@ -175,6 +175,7 @@ try {
       "private-pool-v2:swap-to-shielded-prove",
       "private-pool-v2:actual-private-spend-prove",
       "private-pool-v2:claim-prove",
+      "private-pool-v2:local-bb-fixture-prover-check",
       "private-pool-v2:verify",
     ],
   };

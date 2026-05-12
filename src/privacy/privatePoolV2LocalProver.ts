@@ -8,6 +8,7 @@ import {
   type VantaPrivatePoolV2ProofResult,
   type VantaPrivatePoolV2Prover,
   type VantaPrivatePoolV2Readiness,
+  type VantaPrivatePoolV2SendProofArtifact,
 } from "./privatePoolV2Types";
 
 export const VANTA_PRIVATE_POOL_V2_LOCAL_PROVER_SCHEME =
@@ -25,8 +26,10 @@ export type VantaPrivatePoolV2LocalProverArgs = {
 export type VantaPrivatePoolV2LocalBbFixtureProverArgs = {
   enabled?: boolean;
   fixtureProofRequest: VantaPrivatePoolV2ProofRequest;
-  proofArtifact: VantaPrivatePoolV2ActualPrivateSpendProofArtifact;
-  target: "actual-private-spend";
+  proofArtifact:
+    | VantaPrivatePoolV2ActualPrivateSpendProofArtifact
+    | VantaPrivatePoolV2SendProofArtifact;
+  target: "actual-private-spend" | "send";
 };
 
 const BN254_SCALAR_FIELD =
@@ -169,6 +172,59 @@ function validateActualPrivateSpendProofArtifact(
   }
 }
 
+function validateSendProofArtifact(artifact: VantaPrivatePoolV2SendProofArtifact) {
+  if (artifact.circuit !== "vanta_private_pool_v2_send_entry") {
+    throw new Error("Send fixture prover requires a Send artifact.");
+  }
+
+  if (artifact.backend !== "barretenberg-ultrahonk") {
+    throw new Error("Send fixture prover requires barretenberg-ultrahonk evidence.");
+  }
+
+  if (artifact.proofBackend !== VANTA_PRIVATE_POOL_V2_LOCAL_BB_FIXTURE_PROOF_BACKEND) {
+    throw new Error("Send fixture prover requires local-bb-fixture-artifact evidence.");
+  }
+
+  if (artifact.proofSystem !== "noir-bb") {
+    throw new Error("Send fixture prover requires noir-bb proof evidence.");
+  }
+
+  if (JSON.stringify(artifact.publicInputLabels) !== JSON.stringify(["send-public-input-hash"])) {
+    throw new Error("Send fixture prover requires send-public-input-hash artifact evidence.");
+  }
+
+  if (artifact.publicInputs.length !== 1 || !artifact.publicInputs[0]?.trim()) {
+    throw new Error("Send fixture prover requires one public input.");
+  }
+
+  normalizeFieldString(artifact.publicInputs[0], "artifact publicInputs[0]");
+
+  if (artifact.publicInputCommitment !== proofArtifactPublicInputCommitment(artifact.publicInputs)) {
+    throw new Error("Send fixture prover publicInputCommitment mismatch.");
+  }
+
+  if (artifact.proofHex.length === 0 || artifact.proofHex.length % 2 !== 0 || !/^[0-9a-f]+$/u.test(artifact.proofHex)) {
+    throw new Error("Send fixture prover requires lowercase even-length proofHex.");
+  }
+
+  if (artifact.verifyingKeyHashKind !== "local-acir-bytecode-hash-not-production-vk") {
+    throw new Error("Send fixture prover must remain local verifying-key evidence.");
+  }
+
+  if (
+    !/^sha256:[0-9a-f]{64}$/u.test(artifact.acirBytecodeHash) ||
+    !/^sha256:[0-9a-f]{64}$/u.test(artifact.verifyingKeyHash) ||
+    artifact.verifyingKeyHash !== artifact.acirBytecodeHash ||
+    !artifact.verifyingKeyId.startsWith(
+      "local-acir-bytecode:vanta_private_pool_v2_send_entry:sha256:",
+    ) ||
+    artifact.verifyingKeyId !==
+      `local-acir-bytecode:vanta_private_pool_v2_send_entry:${artifact.acirBytecodeHash}`
+  ) {
+    throw new Error("Send fixture prover requires local ACIR bytecode key metadata.");
+  }
+}
+
 function assertActualPrivateSpendRequestShape(request: VantaPrivatePoolV2ProofRequest) {
   if (request.intent !== "private-send") {
     throw new Error("Actual-private-spend fixture prover only supports private-send proof requests.");
@@ -211,6 +267,48 @@ function assertActualPrivateSpendRequestShape(request: VantaPrivatePoolV2ProofRe
   ].map((value) => normalizeFieldString(value, "output commitment public input"));
   if (new Set(outputs).size !== outputs.length) {
     throw new Error("Actual-private-spend fixture prover requires unique output commitments.");
+  }
+}
+
+function assertSendRequestShape(request: VantaPrivatePoolV2ProofRequest) {
+  if (request.intent !== "private-send") {
+    throw new Error("Send fixture prover only supports private-send proof requests.");
+  }
+
+  if (
+    request.publicInputs.filter((input) =>
+      input.startsWith("vanta-private-pool-v2-send-proof-request-0.1:version"),
+    ).length !== 1
+  ) {
+    throw new Error("Send fixture prover requires a Send proof request version.");
+  }
+
+  if (
+    !request.circuitPublicInputs ||
+    request.circuitPublicInputs.length !== 1 ||
+    !request.circuitPublicInputs[0]?.startsWith("send-public-input-hash:")
+  ) {
+    throw new Error("Send fixture prover requires request.circuitPublicInputs.send-public-input-hash.");
+  }
+
+  for (const label of [
+    "input-root",
+    "input-commitment",
+    "nullifier",
+    "recipient-output-commitment",
+    "recipient-leaf-index",
+    "recipient-output-root",
+    "change-output-commitment",
+    "change-leaf-index",
+    "change-output-root",
+    "recipient-memo-ciphertext-body-hash-field",
+    "change-memo-ciphertext-body-hash-field",
+    "asset-id-commitment",
+    "economics-commitment",
+    "owner-commitment",
+    "send-context-tag",
+  ]) {
+    normalizeFieldString(requiredPublicInputValue(request, label), `${label} public input`);
   }
 }
 
@@ -261,6 +359,45 @@ function assertActualPrivateSpendRequestMatchesArtifact(
     throw new Error(
       "Actual-private-spend fixture prover request transcript must match the fixture proof request.",
     );
+  }
+}
+
+function assertSendRequestMatchesArtifact(
+  request: VantaPrivatePoolV2ProofRequest,
+  fixtureProofRequest: VantaPrivatePoolV2ProofRequest,
+  artifact: VantaPrivatePoolV2SendProofArtifact,
+) {
+  validateSendProofArtifact(artifact);
+  assertSendRequestShape(request);
+  assertSendRequestShape(fixtureProofRequest);
+
+  const expectedPublicInput = readCircuitPublicInput(request, "send-public-input-hash");
+  if (!expectedPublicInput) {
+    throw new Error("Send fixture prover requires request.circuitPublicInputs.send-public-input-hash.");
+  }
+
+  if (
+    normalizeFieldString(artifact.publicInputs[0], "artifact public input") !==
+    normalizeFieldString(expectedPublicInput, "request public input")
+  ) {
+    throw new Error("Send fixture prover artifact public input must match the request public input.");
+  }
+
+  if (
+    !sameArray(request.publicInputs, fixtureProofRequest.publicInputs) ||
+    !sameArray(request.circuitPublicInputs, fixtureProofRequest.circuitPublicInputs)
+  ) {
+    throw new Error("Send fixture prover request public inputs must match the fixture proof request.");
+  }
+
+  if (
+    request.amountBaseUnits !== fixtureProofRequest.amountBaseUnits ||
+    request.assetId !== fixtureProofRequest.assetId ||
+    request.intent !== fixtureProofRequest.intent ||
+    !sameArray(request.operatorVisibleTerms, fixtureProofRequest.operatorVisibleTerms) ||
+    !sameShadowCommitments(request.shadowCommitments, fixtureProofRequest.shadowCommitments)
+  ) {
+    throw new Error("Send fixture prover request transcript must match the fixture proof request.");
   }
 }
 
@@ -356,8 +493,10 @@ export class VantaPrivatePoolV2LocalBbFixtureProver implements VantaPrivatePoolV
 
   #enabled: boolean;
   #fixtureProofRequest: VantaPrivatePoolV2ProofRequest;
-  #proofArtifact: VantaPrivatePoolV2ActualPrivateSpendProofArtifact;
-  #target: "actual-private-spend";
+  #proofArtifact:
+    | VantaPrivatePoolV2ActualPrivateSpendProofArtifact
+    | VantaPrivatePoolV2SendProofArtifact;
+  #target: "actual-private-spend" | "send";
 
   constructor({
     enabled = true,
@@ -377,15 +516,21 @@ export class VantaPrivatePoolV2LocalBbFixtureProver implements VantaPrivatePoolV
       throw new Error(readiness.blockers.join(" "));
     }
 
-    if (this.#target !== "actual-private-spend") {
-      throw new Error("Local bb fixture prover only supports actual-private-spend.");
+    if (this.#target === "actual-private-spend") {
+      assertActualPrivateSpendRequestMatchesArtifact(
+        request,
+        this.#fixtureProofRequest,
+        this.#proofArtifact as VantaPrivatePoolV2ActualPrivateSpendProofArtifact,
+      );
+    } else if (this.#target === "send") {
+      assertSendRequestMatchesArtifact(
+        request,
+        this.#fixtureProofRequest,
+        this.#proofArtifact as VantaPrivatePoolV2SendProofArtifact,
+      );
+    } else {
+      throw new Error("Local bb fixture prover target is unsupported.");
     }
-
-    assertActualPrivateSpendRequestMatchesArtifact(
-      request,
-      this.#fixtureProofRequest,
-      this.#proofArtifact,
-    );
 
     return {
       proofBackend: VANTA_PRIVATE_POOL_V2_LOCAL_BB_FIXTURE_PROOF_BACKEND,

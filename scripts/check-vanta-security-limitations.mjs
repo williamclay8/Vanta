@@ -20,6 +20,8 @@ const requiredPhrases = [
   "No anonymity-set claim",
   "local-bb-fixture-artifact",
   "private-spend-public-input-hash",
+  "send-public-input-hash",
+  "actual-private-spend and Send",
   "not a witness-driven runtime prover",
   "reserved Private Pool v2 tag `3` proof-carrying spend ABI is source-only fail-closed scaffolding",
   "returns custom error `14` before reading or mutating accounts",

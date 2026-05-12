@@ -84,6 +84,7 @@ includes(localProver, "VantaPrivatePoolV2LocalBbFixtureProver", "local bb fixtur
 includes(localProver, "createVantaPrivatePoolV2LocalBbFixtureProver", "local bb fixture prover factory");
 includes(localProver, "local-bb-fixture-artifact", "local bb fixture proof backend");
 includes(localProver, "private-spend-public-input-hash", "local bb fixture public input binding");
+includes(localProver, "send-public-input-hash", "local bb fixture Send public input binding");
 includes(localProver, "fixtureProofRequest", "local bb fixture proof request binding");
 includes(localProver, "request transcript must match the fixture proof request", "local bb fixture full request transcript binding");
 includes(localProver, "not a witness-driven runtime prover or production ZK proof service", "local bb fixture truth warning");
@@ -235,6 +236,7 @@ includes(proofScript, "bytecodeSource", "legacy non-Send bytecode sidecar marker
 includes(proofScript, "shield-public-input-hash", "Shield proof artifact public input label");
 includes(proofScript, "claim-public-input-hash", "Claim proof artifact public input label");
 includes(proofScript, "swap-public-input-hash", "Swap-to-shielded proof artifact public input label");
+includes(proofScript, "send-public-input-hash", "Send proof artifact public input label");
 includes(proofScript, "private-spend-public-input-hash", "Actual Private Spend proof artifact public input label");
 includes(shieldArtifactCheck, "tampered public input rejection", "Shield proof artifact tampered public input guard");
 includes(shieldArtifactCheck, "circuit relabel rejection", "Shield proof artifact circuit relabel guard");
@@ -596,6 +598,36 @@ includes(
 );
 includes(
   localBbFixtureProverCheck,
+  'target: "send"',
+  "local bb fixture prover check Send target",
+);
+includes(
+  localBbFixtureProverCheck,
+  "Default Send local prover must stay mock.",
+  "local bb fixture prover check Send default mock boundary",
+);
+includes(
+  localBbFixtureProverCheck,
+  "send-public-input-hash",
+  "local bb fixture prover check Send public input binding",
+);
+includes(
+  localBbFixtureProverCheck,
+  "Send local bb fixture request-transcript drift rejection",
+  "local bb fixture prover check Send transcript drift rejection",
+);
+includes(
+  localBbFixtureProverCheck,
+  "Send local bb fixture artifact relabel rejection",
+  "local bb fixture prover check Send artifact relabel rejection",
+);
+includes(
+  localBbFixtureProverCheck,
+  "requires a Send artifact",
+  "local bb fixture prover check cross-target rejection",
+);
+includes(
+  localBbFixtureProverCheck,
   "createVantaPrivatePoolV2LocalProver",
   "local bb fixture prover check default mock boundary",
 );
@@ -701,6 +733,10 @@ assert(
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:local-bb-fixture-prover-check"),
   "private-pool-v2:verify must include the local bb fixture prover guard",
+);
+assert(
+  scripts["send:verify"]?.includes("npm run private-pool-v2:local-bb-fixture-prover-check"),
+  "send:verify must include the local bb fixture prover guard",
 );
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:shield-proof-artifact-consistency-check"),
