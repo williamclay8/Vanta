@@ -15,6 +15,10 @@ import {
   type CanonicalLifecycleLinkReference,
   type CanonicalLifecycleRecordLinkage,
 } from "./canonicalLifecycleLinkage";
+import {
+  BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
+  type BrowserLocalShieldedStateDiagnostic,
+} from "./shieldedState";
 import type { LiveShieldTokenAssetKey } from "@/solana/shieldConfig";
 
 const LIVE_UNSHIELD_RECORDS_STORAGE_KEY = "vanta.zk.phase1.live-unshield-records.v1";
@@ -83,6 +87,7 @@ export type LiveUnshieldCanonicalRecord = {
     kind: "public_exit";
     resolution: "canonical_reference_resolved" | "canonical_reference_unresolved";
   };
+  diagnosticStorage: BrowserLocalShieldedStateDiagnostic;
 };
 
 export type LiveUnshieldDiagnosticsSummary = {
@@ -110,6 +115,8 @@ export type LiveUnshieldDiagnosticsSummary = {
   spentMarkerSignature?: string;
   transitionSignature: string;
   transitionNoteId: string;
+  storageRole: BrowserLocalShieldedStateDiagnostic["storageRole"];
+  privacyPrimitive: false;
 };
 
 export async function recordCanonicalUnshieldFromLiveUnshield(
@@ -190,6 +197,7 @@ export async function recordCanonicalUnshieldFromLiveUnshield(
         ? "canonical_reference_resolved"
         : "canonical_reference_unresolved",
     },
+    diagnosticStorage: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
   };
 
   persistCanonicalUnshieldRecord(record);
@@ -251,6 +259,10 @@ export function listCanonicalUnshieldDiagnosticsSummaries(): LiveUnshieldDiagnos
       spentMarkerSignature: record.liveUnshield.spentMarkerSignature,
       transitionSignature: record.liveUnshield.transitionSignature,
       transitionNoteId: record.liveUnshield.transitionNoteId,
+      storageRole:
+        record.diagnosticStorage?.storageRole ??
+        BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC.storageRole,
+      privacyPrimitive: false as const,
     }))
     .sort((left, right) => right.createdAt - left.createdAt);
 }
@@ -445,6 +457,8 @@ function normalizeLiveUnshieldCanonicalRecord(value: unknown): LiveUnshieldCanon
           : consumedStateSignatureHash),
       nullifierBasis: value.consumed.nullifierBasis,
     },
+    diagnosticStorage:
+      value.diagnosticStorage ?? BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
   };
 }
 

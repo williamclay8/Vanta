@@ -13,7 +13,12 @@ import {
 } from "./canonicalConsumption";
 import { listCanonicalSendRecords } from "./liveSendBridge";
 import { listCanonicalShieldRecords } from "./liveShieldBridge";
-import { AppendOnlyShieldedState, type ShieldedCommitmentInsertionRecord } from "./shieldedState";
+import {
+  AppendOnlyShieldedState,
+  BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
+  type BrowserLocalShieldedStateDiagnostic,
+  type ShieldedCommitmentInsertionRecord,
+} from "./shieldedState";
 import {
   createCanonicalLifecycleNodeId,
   createCanonicalLifecycleRecordId,
@@ -118,6 +123,7 @@ export type LiveSwapCanonicalRecord = {
     liveStateSignature: string;
     lifecycle?: CanonicalLifecycleOutputLinkage;
   };
+  diagnosticStorage: BrowserLocalShieldedStateDiagnostic;
 };
 
 export type LiveSwapDiagnosticsSummary = {
@@ -153,6 +159,8 @@ export type LiveSwapDiagnosticsSummary = {
   operatorRequestId?: string;
   venueSummary: string;
   quoteId: string;
+  storageRole: BrowserLocalShieldedStateDiagnostic["storageRole"];
+  privacyPrimitive: false;
 };
 
 export type LiveSwapCommittedSettlementTerms = {
@@ -272,6 +280,7 @@ export async function recordCanonicalSwapFromLiveSwap(
         branchRole: "output",
       },
     },
+    diagnosticStorage: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
   };
 
   if (options.persist !== false) {
@@ -431,6 +440,10 @@ export function listCanonicalSwapDiagnosticsSummaries(): LiveSwapDiagnosticsSumm
       operatorRequestId: record.liveSwap.operatorRequestId,
       venueSummary: `${record.liveSwap.venueName} ${record.liveSwap.venueFamily} · ${record.liveSwap.venueNetwork}`,
       quoteId: record.liveSwap.quoteId,
+      storageRole:
+        record.diagnosticStorage?.storageRole ??
+        BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC.storageRole,
+      privacyPrimitive: false as const,
     }))
     .sort((left, right) => right.createdAt - left.createdAt);
 }

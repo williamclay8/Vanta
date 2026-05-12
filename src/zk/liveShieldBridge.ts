@@ -11,6 +11,8 @@ import {
 } from "./canonicalNote";
 import {
   AppendOnlyShieldedState,
+  BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
+  type BrowserLocalShieldedStateDiagnostic,
   type ShieldedCommitmentInsertionRecord,
   type ShieldedStateSnapshot,
 } from "./shieldedState";
@@ -62,6 +64,7 @@ export type LiveShieldCanonicalRecord = {
     root: string;
     leafCount: number;
   };
+  diagnosticStorage: BrowserLocalShieldedStateDiagnostic;
 };
 
 export type LiveShieldCanonicalDiagnosticsSummary = {
@@ -82,6 +85,8 @@ export type LiveShieldCanonicalDiagnosticsSummary = {
   creationHintSummary: string;
   depositSignature?: string;
   stateSignature: string;
+  storageRole: BrowserLocalShieldedStateDiagnostic["storageRole"];
+  privacyPrimitive: false;
 };
 
 export async function recordCanonicalShieldFromLiveShield(
@@ -131,6 +136,7 @@ export async function recordCanonicalShieldFromLiveShield(
       root: insertion.snapshot.root.value,
       leafCount: insertion.snapshot.leafCount,
     },
+    diagnosticStorage: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
   };
 
   persistCanonicalShieldRecord(record);
@@ -183,6 +189,10 @@ export function listCanonicalShieldDiagnosticsSummaries(): LiveShieldCanonicalDi
       creationHintSummary: formatCreationHintSummary(record.canonicalNote.creationHint),
       depositSignature: record.liveShield.depositSignature,
       stateSignature: record.liveShield.stateSignature,
+      storageRole:
+        record.diagnosticStorage?.storageRole ??
+        BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC.storageRole,
+      privacyPrimitive: false as const,
     }))
     .sort((left, right) => right.createdAt - left.createdAt);
 }
@@ -207,11 +217,13 @@ export function getLatestCanonicalShieldSnapshot():
         scheme: "sha256-append-only-commitment-list-v1",
         value: latestRecord?.insertion.root ?? "",
         leafCount,
+        diagnostic: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
       },
       entries: records.map((record, index) => ({
         index,
         commitment: record.artifacts.commitment,
       })),
+      diagnostic: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
     },
     leafCount,
   };

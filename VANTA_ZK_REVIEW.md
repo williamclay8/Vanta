@@ -415,6 +415,8 @@ Total: roughly 8–10 calendar weeks of focused engineering for one developer to
 While the above is in flight, the existing repo should:
 
 - Mark `liveShieldBridge.ts:recordCanonicalShieldFromLiveShield` and `AppendOnlyShieldedState` as `legacy/` and stop letting them pretend to be a privacy primitive in user-facing copy. The localStorage hash chain is fine as a bookkeeping aid; it should not be called "shielded state".
+
+  **Codex status, 2026-05-11:** remediated locally for the browser-local diagnostic boundary. `AppendOnlyShieldedState` now carries a legacy browser-local diagnostic marker, snapshots/roots expose `privacyPrimitive: false`, live Shield/Send/Swap/Unshield records persist `diagnosticStorage`, and `docs/privacy-model.md` says localStorage continuity records are not the production shared shielded-state tree or a privacy primitive. Guard: `npm run zk:local-shielded-state-diagnostics-check`.
 - Gate every flow that consumes `proofSystem === "mock"` so it cannot reach a path that would call a production wallet for signature.
 - Fail-closed any "anonymity-set readiness" surface until W3+W4+W6 are done.
 - Add a CI check that the on-chain spend instruction requires a signer match against a configured operator authority (audit item 2). Even if the long-term answer is "anyone can spend with a valid proof", the short-term fix prevents the DoS.
@@ -718,6 +720,8 @@ While S1–S5 are in flight:
 
 - **Keep fresh Send memos on the v2 AEAD path.** The original v1 memo bytes were a public ledger of every send; fresh local helpers now fail closed into viewing-key AEAD, v1 reads are marked as historical/non-production-eligible, and a local dual-AEAD scaffold can separately seal recipient/change discovery memo legs. The remaining work is recipient-grade viewing-key exchange or view tags plus production wiring from locally proof-bound ciphertext body-hash limbs to recipient discovery and deployed memo/indexer surfaces.
 - Mark `liveSendBridge.ts:recordCanonicalSendFromLiveSend` and the localStorage list as user-facing diagnostics only. Don't claim the JSON list is "shielded state".
+
+  **Codex status, 2026-05-11:** remediated locally alongside the Shield diagnostic boundary. Live Send records now carry the same `diagnosticStorage` marker as Shield/Swap/Unshield, Send diagnostic summaries surface `storageRole = browser-local-diagnostics` with `privacyPrimitive: false`, and the shared guard `npm run zk:local-shielded-state-diagnostics-check` prevents the localStorage list from drifting back into a production shielded-state claim.
 - Remove `TAG_SPEND = 1` from the on-chain program once `TAG_SEND = 3` exists; a public, unauthenticated append-only nullifier log accessible to any wallet is a denial-of-service that scales with rent (audit item 2).
 - Block the SOL-send capability path with a real refusal: today it returns a soft `unsupported-private-send-asset` blocker; the user can't actually trigger it but the option appears in the asset list. Hide it until the SOL lane exists.
 

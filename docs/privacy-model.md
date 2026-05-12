@@ -69,7 +69,7 @@ This distinction must remain true across product, protocol, and docs.
 
 In the abstract model, shielded state is the private value representation that begins after supported assets leave a transparent wallet flow. It is the state future proofs, commitments, nullifiers, encrypted memos, and trust packets should reference instead of treating the public wallet balance as private.
 
-In the current deployed-shaped implementation, shielded state is still transitional: a supported SPL or SOL movement lands at a Vanta-controlled vault path, the browser records local shield-state notes and commitments, and operator/proof surfaces bind those records through local or repo-checked evidence. That mapping is useful for beta verification, but it is not yet a production shared Poseidon tree, an audited anonymity set, or an on-chain verifier-enforced private pool.
+In the current deployed-shaped implementation, shielded state is still transitional: a supported SPL or SOL movement lands at a Vanta-controlled vault path, the browser records local shield-state notes and commitments, and operator/proof surfaces bind those records through local or repo-checked evidence. Those browser-local records are diagnostics and continuity aids only; they are not the production shared shielded-state tree or a privacy primitive. That mapping is useful for beta verification, but it is not yet a production shared Poseidon tree, an audited anonymity set, or an on-chain verifier-enforced private pool.
 
 ---
 

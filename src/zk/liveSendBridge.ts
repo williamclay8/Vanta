@@ -13,7 +13,12 @@ import {
   createCanonicalConsumptionRecord,
   type CanonicalLifecycleConsumptionRecord,
 } from "./canonicalConsumption";
-import { AppendOnlyShieldedState, type ShieldedCommitmentInsertionRecord } from "./shieldedState";
+import {
+  AppendOnlyShieldedState,
+  BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
+  type BrowserLocalShieldedStateDiagnostic,
+  type ShieldedCommitmentInsertionRecord,
+} from "./shieldedState";
 import {
   createCanonicalLifecycleNodeId,
   createCanonicalLifecycleRecordId,
@@ -120,6 +125,7 @@ export type LiveSendCanonicalRecord = {
   predecessor: CanonicalPredecessorReference;
   consumption?: CanonicalLifecycleConsumptionRecord;
   successors: LiveSendCanonicalSuccessorRecord[];
+  diagnosticStorage: BrowserLocalShieldedStateDiagnostic;
 };
 
 export type LiveSendDiagnosticsSummary = {
@@ -139,6 +145,8 @@ export type LiveSendDiagnosticsSummary = {
   canonicalNullifierStub?: string;
   transitionSignature: string;
   spentMarkerSignature?: string;
+  storageRole: BrowserLocalShieldedStateDiagnostic["storageRole"];
+  privacyPrimitive: false;
   recipient: string;
   successors: Array<{
     kind: "recipient" | "change";
@@ -258,6 +266,7 @@ export async function recordCanonicalSendFromLiveSend(
     predecessor,
     consumption,
     successors,
+    diagnosticStorage: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
   };
 
   persistCanonicalSendRecord(record);
@@ -316,6 +325,10 @@ export function listCanonicalSendDiagnosticsSummaries(): LiveSendDiagnosticsSumm
       canonicalNullifierStub: record.consumption?.nullifierStub.value,
       transitionSignature: record.liveSend.transitionSignature,
       spentMarkerSignature: record.liveSend.spentMarkerSignature,
+      storageRole:
+        record.diagnosticStorage?.storageRole ??
+        BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC.storageRole,
+      privacyPrimitive: false as const,
       recipient: record.liveSend.recipient ?? record.liveSend.redactedRecipientReference ?? "redacted",
       successors: record.successors.map((successor) => ({
         kind: successor.kind,
@@ -572,6 +585,8 @@ function redactLiveSendRecordForPersistence(record: LiveSendCanonicalRecord): Li
       nullifierBasis: record.predecessor.nullifierBasis,
     },
     successors: record.successors.map(redactLiveSendSuccessorForPersistence),
+    diagnosticStorage:
+      record.diagnosticStorage ?? BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
   };
 }
 
