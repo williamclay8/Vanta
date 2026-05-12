@@ -68,6 +68,22 @@ const customDayWindowPlan = createStrategyPlan({
 });
 assert.equal(customDayWindowPlan.windowHours, 72, "custom day windows should drive the strategy duration");
 
+for (const slicePolicy of ["Min/max child size", "Venue threshold"]) {
+  assert.throws(
+    () => createStrategyPlan({ ...baseInput, slicePolicy }),
+    /not selectable until Y4 lands/u,
+    `${slicePolicy} must not silently fall through to the default strategy planner.`,
+  );
+}
+
+for (const timingPolicy of ["Volatility-aware", "Liquidity-aware"]) {
+  assert.throws(
+    () => createStrategyPlan({ ...baseInput, timingPolicy }),
+    /not selectable until Y4 lands/u,
+    `${timingPolicy} must not silently fall through to the default strategy planner.`,
+  );
+}
+
 assert.throws(
   () => createStrategyPlan({ ...baseInput, totalNotional: 0 }),
   /totalNotional must be positive/u,

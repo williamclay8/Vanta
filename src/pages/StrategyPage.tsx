@@ -45,9 +45,29 @@ type StrategyFormState = {
   urgency: string;
 };
 
+type StrategySelectOptionConfig = {
+  disabled?: boolean;
+  disabledReason?: string;
+  label?: string;
+  value: string;
+};
+type StrategySelectOption = string | StrategySelectOptionConfig;
+
 const strategyAssets = ["SOL", "JUP", "BONK", "WIF"];
-const slicePolicies = ["Randomized sizing", "Fixed count", "Min/max child size", "Venue threshold"];
-const timingPolicies = ["Randomized cadence", "Evenly spaced", "Volatility-aware", "Liquidity-aware"];
+const supportedSlicePolicies = ["Randomized sizing", "Fixed count"] as const;
+const supportedTimingPolicies = ["Randomized cadence", "Evenly spaced"] as const;
+const slicePolicyOptions: readonly StrategySelectOptionConfig[] = [
+  { value: "Randomized sizing" },
+  { value: "Fixed count" },
+  { value: "Min/max child size", disabled: true, disabledReason: "Coming soon" },
+  { value: "Venue threshold", disabled: true, disabledReason: "Coming soon" },
+];
+const timingPolicyOptions: readonly StrategySelectOptionConfig[] = [
+  { value: "Randomized cadence" },
+  { value: "Evenly spaced" },
+  { value: "Volatility-aware", disabled: true, disabledReason: "Coming soon" },
+  { value: "Liquidity-aware", disabled: true, disabledReason: "Coming soon" },
+];
 const urgencies = ["Low footprint", "Balanced", "Fastest completion"];
 const landingModes = ["Protected landing", "Bundle-preferred", "Standard"];
 const amountErrorId = "strategy-amount-error";
@@ -78,9 +98,9 @@ const defaultForm: StrategyFormState = {
   maxSlippage: "0.50%",
   mode: strategyModeDca,
   side: "Buy",
-  slicePolicy: slicePolicies[0],
+  slicePolicy: supportedSlicePolicies[0],
   timeWindow: strategyTimeWindows[1],
-  timingPolicy: timingPolicies[0],
+  timingPolicy: supportedTimingPolicies[0],
   totalSize: "250000",
   urgency: urgencies[0],
 };
@@ -141,6 +161,15 @@ function describeDestinationWallet(input: {
   return "";
 }
 
+function normalizeStrategySelectOption(option: StrategySelectOption): StrategySelectOptionConfig {
+  return typeof option === "string" ? { value: option } : option;
+}
+
+function formatStrategySelectOptionLabel(option: StrategySelectOptionConfig): string {
+  const label = option.label ?? option.value;
+  return option.disabled ? `${label} - ${option.disabledReason ?? "Unavailable"}` : label;
+}
+
 function StrategySelect({
   label,
   onChange,
@@ -149,9 +178,11 @@ function StrategySelect({
 }: {
   label: string;
   onChange: (value: string) => void;
-  options: readonly string[];
+  options: readonly StrategySelectOption[];
   value: string;
 }) {
+  const normalizedOptions = options.map(normalizeStrategySelectOption);
+
   return (
     <label className="strategy-field">
       <span>{label}</span>
@@ -159,11 +190,18 @@ function StrategySelect({
         aria-label={label}
         value={value}
         onChange={(event) => {
+          const option = normalizedOptions.find((candidate) => candidate.value === event.target.value);
+          if (option?.disabled) {
+            return;
+          }
+
           onChange(event.target.value);
         }}
       >
-        {options.map((option) => (
-          <option key={option}>{option}</option>
+        {normalizedOptions.map((option) => (
+          <option disabled={option.disabled} key={option.value} value={option.value}>
+            {formatStrategySelectOptionLabel(option)}
+          </option>
         ))}
       </select>
     </label>
@@ -414,7 +452,7 @@ export function StrategyPage() {
               <div className="strategy-form-grid strategy-form-grid--advanced">
                 <StrategySelect
                   label="Slice policy"
-                  options={slicePolicies}
+                  options={slicePolicyOptions}
                   value={form.slicePolicy}
                   onChange={(value) => {
                     updateForm("slicePolicy", value);
@@ -422,7 +460,7 @@ export function StrategyPage() {
                 />
                 <StrategySelect
                   label="Timing policy"
-                  options={timingPolicies}
+                  options={timingPolicyOptions}
                   value={form.timingPolicy}
                   onChange={(value) => {
                     updateForm("timingPolicy", value);

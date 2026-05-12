@@ -10,6 +10,10 @@ const HOURS_BY_WINDOW = {
   "7 days": 168,
   Custom: 24,
 };
+const SUPPORTED_SLICE_POLICIES = new Set(["Randomized sizing", "Fixed count"]);
+const SUPPORTED_TIMING_POLICIES = new Set(["Randomized cadence", "Evenly spaced"]);
+const COMING_SOON_SLICE_POLICIES = new Set(["Min/max child size", "Venue threshold"]);
+const COMING_SOON_TIMING_POLICIES = new Set(["Volatility-aware", "Liquidity-aware"]);
 
 function hashSeed(seed) {
   let hash = 2166136261;
@@ -54,6 +58,33 @@ function parseWindowHours(timeWindow) {
   }
 
   return unit.startsWith("d") ? value * 24 : value;
+}
+
+function assertSupportedPolicy({ comingSoonPolicies, kind, supportedPolicies, value }) {
+  if (supportedPolicies.has(value)) {
+    return;
+  }
+
+  if (comingSoonPolicies.has(value)) {
+    throw new Error(`Strategy ${kind} policy '${value}' is not selectable until Y4 lands.`);
+  }
+
+  throw new Error(`Strategy ${kind} policy '${value}' is unsupported.`);
+}
+
+function assertSupportedStrategyPolicies(input) {
+  assertSupportedPolicy({
+    comingSoonPolicies: COMING_SOON_SLICE_POLICIES,
+    kind: "slice",
+    supportedPolicies: SUPPORTED_SLICE_POLICIES,
+    value: input.slicePolicy,
+  });
+  assertSupportedPolicy({
+    comingSoonPolicies: COMING_SOON_TIMING_POLICIES,
+    kind: "timing",
+    supportedPolicies: SUPPORTED_TIMING_POLICIES,
+    value: input.timingPolicy,
+  });
 }
 
 function chooseSliceCount(input) {
@@ -118,6 +149,8 @@ export function createStrategyPlan(input) {
   if (!Number.isFinite(input.maxSlippageBps) || input.maxSlippageBps <= 0) {
     throw new Error("maxSlippageBps must be positive before strategy execution");
   }
+
+  assertSupportedStrategyPolicies(input);
 
   const random = createRandom(
     [

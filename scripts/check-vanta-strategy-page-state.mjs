@@ -1,4 +1,6 @@
 import { strict as assert } from "node:assert";
+import { readFileSync } from "node:fs";
+import { createStrategyPlan } from "../src/strategy/strategyPlanner.mjs";
 import { createVantaStrategyRuntime } from "../src/strategy/strategyRuntime.mjs";
 import {
   STRATEGY_CUSTOM_TIME_WINDOW,
@@ -13,8 +15,32 @@ import {
   strategyFundingSources,
 } from "../src/strategy/strategyPageState.ts";
 
+const strategyPageSource = readFileSync(new URL("../src/pages/StrategyPage.tsx", import.meta.url), "utf8");
+const comingSoonSlicePolicies = ["Min/max child size", "Venue threshold"];
+const comingSoonTimingPolicies = ["Volatility-aware", "Liquidity-aware"];
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+}
+
+function assertComingSoonDisabledOption(policy) {
+  const disabledOptionPattern = new RegExp(
+    `value:\\s*"${escapeRegExp(policy)}"[\\s\\S]{0,180}disabled:\\s*true[\\s\\S]{0,180}Coming soon`,
+    "u",
+  );
+  assert.ok(disabledOptionPattern.test(strategyPageSource), `${policy} must render as a disabled Coming soon option.`);
+}
+
 assert.equal(STRATEGY_CUSTOM_TIME_WINDOW, "Custom");
 assert.deepEqual(strategyFundingSources, ["Vanta private balance", "Public wallet balance", "Connected wallet"]);
+for (const policy of [...comingSoonSlicePolicies, ...comingSoonTimingPolicies]) {
+  assertComingSoonDisabledOption(policy);
+}
+assert.ok(
+  strategyPageSource.includes("disabled={option.disabled}") &&
+    strategyPageSource.includes("{formatStrategySelectOptionLabel(option)}"),
+  "Strategy selects must keep unimplemented policy options disabled with visible Coming soon labels.",
+);
 
 assert.equal(parseStrategyAmount("250000").value, 250000);
 assert.equal(parseStrategyAmount("").error, "Enter an amount to review this strategy.");
@@ -153,6 +179,20 @@ const baseStrategyInput = {
   totalNotional: 250000,
   urgency: "Low footprint",
 };
+for (const slicePolicy of comingSoonSlicePolicies) {
+  assert.throws(
+    () => createStrategyPlan({ ...baseStrategyInput, slicePolicy }),
+    /not selectable until Y4 lands/u,
+    `${slicePolicy} must fail before creating a silent inert strategy plan.`,
+  );
+}
+for (const timingPolicy of comingSoonTimingPolicies) {
+  assert.throws(
+    () => createStrategyPlan({ ...baseStrategyInput, timingPolicy }),
+    /not selectable until Y4 lands/u,
+    `${timingPolicy} must fail before creating a silent inert strategy plan.`,
+  );
+}
 const updatedStrategyInput = {
   ...baseStrategyInput,
   landingMode: "Bundle-preferred",

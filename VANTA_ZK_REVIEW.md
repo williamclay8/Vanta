@@ -1551,6 +1551,8 @@ Effort: 1 week, depends on Y1 + a real on-chain program (shield W4) + the same G
 
 The UI offers `slicePolicies = ["Randomized sizing", "Fixed count", "Min/max child size", "Venue threshold"]` and `timingPolicies = ["Randomized cadence", "Evenly spaced", "Volatility-aware", "Liquidity-aware"]`. The planner only honors the first two of each. The rest fall through to the default deterministic path.
 
+> **Completed locally for the interim UI/runtime boundary:** `src/pages/StrategyPage.tsx` now keeps the unimplemented policies visible only as disabled `Coming soon` options, and `src/strategy/strategyPlanner.mjs` rejects direct attempts to create plans with `Min/max child size`, `Venue threshold`, `Volatility-aware`, or `Liquidity-aware` until Y4 lands. `npm run strategy:page-state-check` covers both the UI lock and the planner fail-closed behavior.
+
 For Target A:
 
 - **Min/max child size** — clamp randomized weights between a configurable floor and ceiling.
@@ -1591,7 +1593,7 @@ A lot, in this lane.
 ## What to delete or quarantine
 
 - **The `Treasury wallet` destination option** in the StrategyPage form, until the unshield lane supports `destinationOwner !== requester`. Today the option exists in the UI but cannot be served.
-- **The slice and timing policy strings that aren't implemented.** Either implement them (Y4) or remove them from the UI. Today they're typeable but inert.
+- **The slice and timing policy strings that aren't implemented.** Current local branch quarantines them as disabled `Coming soon` entries and rejects direct planner calls with those values. Y4 still needs the real policy implementations before they become selectable.
 - **The seeded PRNG for schedule jitter.** Mark it explicitly as "preview-only deterministic schedule" in code comments and refuse to use it for live scheduling. Replace with the in-proof commitment scheme (Y2) before any live execution.
 - **The `localOperatorQueueReady: true, schedulerDrainPreviewReady: true` flags** in `createStatusPayload`. They're set unconditionally; they should reflect actual durable-storage health and actual queue depth.
 
@@ -1614,7 +1616,7 @@ Total: about 5–6 calendar weeks for strategy on top of the swap and shield fou
 
 This is the cleanest immediately-executable change the strategy-lane analysis suggests, and it isn't really about strategy at all — it's about taking the one good architectural pattern that already exists in this lane and applying it to the lanes that today claim privacy properties the code does not deliver. The change is mechanical, low-risk, easy to review, and immediately removes a class of "the copy says X, the code does Y" gaps across the rest of the app.
 
-Pair this with deleting the inert slice/timing policy options from the StrategyPage form so the UI doesn't offer choices that don't do anything.
+Pair this with keeping the inert slice/timing policy options quarantined in the StrategyPage form so the UI doesn't offer choices that don't do anything.
 
 ## Files most directly impacted
 
@@ -2594,6 +2596,7 @@ Per the strategy-lane deep dive, this is preview-only. The form is good — the 
 - **Strategy mode toggle needs life.** Stealth DCA vs Private TWAP is a meaningful product choice. Today it's a `<select>` dropdown. Make it a 2-card toggle with explanatory copy on hover: Stealth DCA showing many small irregular ticks; Private TWAP showing many evenly-spaced small ticks. Visual difference makes the choice memorable.
 - **Funding source is confusing.** The user picks "Connected wallet / Public wallet balance / Vanta private balance." Two of those mean essentially the same thing. Consolidate to "Public wallet" vs "Vanta private balance" with help text explaining the shield-first requirement.
 - **The unimplemented policies (Min/max child size, Venue threshold, Volatility-aware, Liquidity-aware) — per the strategy-lane deep dive — should not be selectable until Y4 lands.** Today they're typeable inert options. Show them as disabled "Coming soon" entries.
+  > **Completed locally:** those four policies now render as disabled `Coming soon` options, and `createStrategyPlan` fails closed if a direct caller tries to pass them before Y4.
 - **Add a strategy preview ledger.** As the user designs the strategy, a side panel shows: "This strategy will produce ~24 child trades over 24 hours, averaging $10,416 each, executed every 60 minutes ± 17 minutes of jitter, settling to your Vanta private balance." That's the "hash-bound packet preview" reframed as something a human actually wants to read.
 
 ### `/app/pay` — Pay
