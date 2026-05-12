@@ -454,11 +454,11 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the Unshield reserved TAG_UNSHIELD root/nullifier/vault-authority preflight feedback-loop slice",
-        "committed": "233f1a7 (Reserve unshield release ABI; preflight hardening remains local before the next checkpoint)",
+        "committed": "71e8932 (Add Unshield vault preflight guard)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
-      "truthBoundary": "This is source-level ABI preflight and truth-surfacing only. TAG_UNSHIELD = 6 can check payload/account shape, registered roots, unused nullifier markers, and the expected vault-authority PDA, but it cannot release funds, does not perform token/system CPI, does not consume nullifiers, does not verify a proof, and does not replace the operator-keypair public exit. It is not a program-owned vault PDA, not production custody, not proof-verified release, not rebuilt SBF/deploy/reinit evidence, not audit acceptance, and not live deployment evidence."
+      "truthBoundary": "This is source-level ABI preflight and truth-surfacing only. TAG_UNSHIELD = 6 can check payload/account shape, registered roots, unused nullifier markers, and the expected vault-authority PDA, but it cannot release funds, does not perform token/system CPI, does not consume nullifiers, does not verify a proof, and does not replace the operator-keypair public exit. It is not a program-owned vault PDA, not production custody, not proof-verified release, not redeployed/reinit/live SBF evidence, not audit acceptance, and not live deployment evidence."
     },
     {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-ACTUAL-PRIVATE-SPEND-OPERATOR-NO-WITNESS",
@@ -663,7 +663,7 @@
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
-      "truthBoundary": "This is a source-only reserved verifier-boundary scaffold. It is not a Groth16 verifier, not proof-byte acceptance, not verifying-key enforcement, not rebuilt SBF/live program evidence, not audit acceptance, and not real-funds readiness."
+      "truthBoundary": "This is a source-only reserved verifier-boundary scaffold. It is not a Groth16 verifier, not proof-byte acceptance, not verifying-key enforcement, not deployed/live SBF program evidence, not audit acceptance, and not real-funds readiness."
     }
   ],
   "findings": [
