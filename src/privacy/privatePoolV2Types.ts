@@ -121,6 +121,23 @@ export type VantaPrivatePoolV2ShieldProofArtifact = {
   verifyingKeyId: string;
 };
 
+export type VantaPrivatePoolV2ClaimProofArtifact = {
+  acirBytecodeHash: string;
+  backend: "barretenberg-ultrahonk";
+  circuit: "vanta_private_pool_v2_claim_entry";
+  proofBackend: "local-bb-fixture-artifact";
+  proofHex: string;
+  proofRuntimePackage: "@aztec/bb.js";
+  proofRuntimeVersion: string;
+  proofSystem: "noir-bb";
+  publicInputCommitment: string;
+  publicInputLabels: readonly ["claim-public-input-hash"];
+  publicInputs: readonly string[];
+  verifyingKeyHash: string;
+  verifyingKeyHashKind: "local-acir-bytecode-hash-not-production-vk";
+  verifyingKeyId: string;
+};
+
 export type VantaPrivatePoolV2SendProofArtifact = {
   acirBytecodeHash: string;
   backend: "barretenberg-ultrahonk";

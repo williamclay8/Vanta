@@ -22,6 +22,8 @@ const targets = {
     circuitDir: resolve(repoRoot, "zk/noir/vanta_private_pool_v2_claim_entry"),
     circuitName: "vanta_private_pool_v2_claim_entry",
     fixtureWriterPath: resolve(repoRoot, "scripts/write-vanta-private-pool-v2-claim-fixture.mjs"),
+    noWitnessProofArtifact: true,
+    publicInputLabels: ["claim-public-input-hash"],
   },
   send: {
     circuitDir: resolve(repoRoot, "zk/noir/vanta_private_pool_v2_send_entry"),

@@ -32,6 +32,7 @@ import { createPostgresSnapshotStore } from "../src/storage/vantaPostgresSnapsho
 import {
   assertVantaPrivatePoolV2ProofArtifactHasNoWitnessMaterial,
   verifyVantaPrivatePoolV2ActualPrivateSpendProofArtifact,
+  verifyVantaPrivatePoolV2ClaimProofArtifact,
   verifyVantaPrivatePoolV2SendProofArtifact,
 } from "./private-pool-v2-proof-artifact.mjs";
 import { createPrivatePoolV2ReceiptStore } from "./private-pool-v2-store.mjs";
@@ -610,6 +611,7 @@ const productionProofBackends = ["remote-service"];
 const productionProofBackendSet = new Set(productionProofBackends);
 const localProofBackends = ["local-mock", "local-bb-fixture-artifact"];
 const localBenchmarkProofSystem = "mock";
+const claimProofArtifactCircuit = "vanta_private_pool_v2_claim_entry";
 const sendProofArtifactCircuit = "vanta_private_pool_v2_send_entry";
 const actualPrivateSpendProofArtifactCircuit =
   "vanta_private_pool_v2_actual_private_spend_entry";
@@ -738,6 +740,22 @@ function assertSendExpectedPublicInputMatches(body, verifiedReceipt) {
   }
 }
 
+function assertClaimExpectedPublicInputMatches(body, verifiedReceipt) {
+  const expectedClaimPublicInputHash = body?.expectedPublicInputs?.claimPublicInputHash;
+  if (typeof expectedClaimPublicInputHash !== "string" || !expectedClaimPublicInputHash.trim()) {
+    throw new Error(
+      "Private Pool v2 Claim proof artifact verification requires expectedPublicInputs.claimPublicInputHash.",
+    );
+  }
+
+  const actualClaimPublicInputHash = verifiedReceipt?.verifiedPublicInputs?.claimPublicInputHash;
+  if (actualClaimPublicInputHash !== expectedClaimPublicInputHash.trim()) {
+    throw new Error(
+      `Private Pool v2 Claim proof artifact claimPublicInputHash mismatch: expected ${expectedClaimPublicInputHash.trim()}, received ${actualClaimPublicInputHash ?? "missing"}.`,
+    );
+  }
+}
+
 async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
   const circuit = body?.proofArtifact?.circuit;
 
@@ -748,6 +766,30 @@ async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
     assertActualPrivateSpendExpectedPublicInputMatches(body, verifiedReceipt);
     return {
       kind: "Private Pool V2 Actual Private Spend proof artifact verification",
+      verifiedReceipt,
+    };
+  }
+
+  if (circuit === claimProofArtifactCircuit) {
+    if (body?.expectedPublicInputs?.sendPublicInputHash !== undefined) {
+      throw new Error(
+        "Private Pool v2 Claim proof artifact verification cannot satisfy expectedPublicInputs.sendPublicInputHash; use a Send proof artifact.",
+      );
+    }
+
+    if (body?.expectedPublicInputs?.privateSpendPublicInputHash !== undefined) {
+      throw new Error(
+        "Private Pool v2 Claim proof artifact verification cannot satisfy expectedPublicInputs.privateSpendPublicInputHash; use an Actual Private Spend proof artifact.",
+      );
+    }
+
+    const verifiedReceipt = await verifyVantaPrivatePoolV2ClaimProofArtifact({
+      proofArtifact: body.proofArtifact,
+    });
+    assertClaimExpectedPublicInputMatches(body, verifiedReceipt);
+
+    return {
+      kind: "Private Pool V2 Claim proof artifact verification",
       verifiedReceipt,
     };
   }
