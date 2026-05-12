@@ -999,11 +999,12 @@ export function SwapPage() {
     }
 
     if (canUseExistingNote) {
-      return `Ready to swap from shielded ${selectedSourceAsset}.`;
+      return `Ready to route shielded ${selectedSourceAsset} through the selected beta lane.`;
     }
 
     return `Shield the exact ${selectedSourceAsset} amount first, then return here to swap.`;
   })();
+  const routeTruthLabel = sourcePairCapability.userFacingRouteTruth;
 
   async function retainCanonicalSwapBridge(params: {
     spentMarkerSignature?: string;
@@ -1458,7 +1459,7 @@ export function SwapPage() {
     <section className="send-page swap-page">
       <div className="module-page__hero send-page__hero product-intro">
         <div>
-          <span className="eyebrow product-intro__eyebrow">Shielded swap</span>
+          <span className="eyebrow product-intro__eyebrow">Operator-visible swap beta</span>
           <h2>Swap</h2>
           <p>{swapTrustContract.visibleStatusCopy}</p>
         </div>
@@ -1604,6 +1605,7 @@ export function SwapPage() {
               </div>
 
               <p className="shield-helper shield-helper--meta">{routeLabel}</p>
+              <p className="shield-helper shield-helper--meta">{routeTruthLabel}</p>
               <p className="shield-helper">{validationMessage}</p>
 
               <div className="shield-form__actions">
@@ -1621,7 +1623,7 @@ export function SwapPage() {
                     status === "finalizing_state"
                   }
                 >
-                  {isBetaMode ? "Beta mode" : "Swap from shielded state"}
+                  {isBetaMode ? "Beta mode" : sourcePairCapability.actionLabel}
                 </button>
               </div>
             </div>
@@ -1649,14 +1651,14 @@ export function SwapPage() {
                       : status === "authorizing_operator"
                         ? "Authorizing swap"
                         : status === "finalizing_state"
-                          ? "Finalizing shielded state"
+                          ? "Finalizing beta route evidence"
                           : status === "complete"
                             ? "Swap recorded"
                             : "Swap failed"}
                 </span>
                 <p>
                   {status === "complete" && selectedTargetAsset === "SOL" && lastSwapSummary
-                    ? `Recorded ${formatAssetAmount(lastSwapSummary.inputAmount, "USDC")} into ${formatAssetAmount(lastSwapSummary.outputAmount, "SOL")} with committed receipt checks.`
+                    ? `Recorded ${formatAssetAmount(lastSwapSummary.inputAmount, "USDC")} into ${formatAssetAmount(lastSwapSummary.outputAmount, "SOL")} with committed receipt checks and operator-visible settlement.`
                     : status === "complete"
                       ? `Recorded ${formatAssetAmount(parsedAmount, selectedSourceAsset)} into shielded ${selectedTargetAsset}; route settlement remains operator-visible.`
                     : status === "failed"

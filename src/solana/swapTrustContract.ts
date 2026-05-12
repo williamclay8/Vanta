@@ -3,11 +3,12 @@ export const VANTA_SWAP_TRUST_CONTRACT_VERSION =
 
 export type SwapTrustContract = {
   version: typeof VANTA_SWAP_TRUST_CONTRACT_VERSION;
-  currentTruth: "committed Swap beta";
+  currentTruth: "Target C operator-visible Swap beta";
   claimControls: {
     fullyPrivateSwapClaim: false;
     liveProductionClaim: false;
     mainnetReady: false;
+    programmaticPrivateSwapClaim: false;
     productionPrivacyClaimsLocked: true;
   };
   visibleStatusCopy: string;
@@ -17,15 +18,16 @@ export type SwapTrustContract = {
 export function getSwapTrustContract(): SwapTrustContract {
   return {
     version: VANTA_SWAP_TRUST_CONTRACT_VERSION,
-    currentTruth: "committed Swap beta",
+    currentTruth: "Target C operator-visible Swap beta",
     claimControls: {
       fullyPrivateSwapClaim: false,
       liveProductionClaim: false,
       mainnetReady: false,
+      programmaticPrivateSwapClaim: false,
       productionPrivacyClaimsLocked: true,
     },
     visibleStatusCopy:
-      "Swap records committed route evidence with v2 AEAD action memos; route execution and production-private settlement evidence remain beta-gated.",
+      "Swap is a Target C beta: constrained routes can record committed receipt checks, but route execution remains operator-visible/custodial and production-private programmatic settlement stays locked.",
     verificationSurfaces: [
       "npm run swap:capability-check",
       "npm run swap:trust-packet-check",

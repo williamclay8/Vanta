@@ -208,20 +208,20 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
       }),
       swapFrom: action({
         executable: isUsdc && liveSwapPair.configured,
-        label: `Swap from shielded ${entry.symbol}`,
+        label: `Operator-visible swap from shielded ${entry.symbol}`,
         mode: isUsdc && liveSwapPair.configured ? "operator-usdc-sol" : "adapter-required",
         reason:
           isUsdc && liveSwapPair.configured
-            ? null
+            ? "Target C beta: route settlement uses operator-custodial liquidity, not production-private programmatic Swap."
             : "Route not ready yet for this shielded asset.",
       }),
       swapTo: action({
         executable: isSol && liveSwapPair.configured,
-        label: `Swap to shielded ${entry.symbol}`,
+        label: `Operator-visible swap to shielded ${entry.symbol}`,
         mode: isSol && liveSwapPair.configured ? "operator-usdc-sol" : "adapter-required",
         reason:
           isSol && liveSwapPair.configured
-            ? null
+            ? "Target C beta: route settlement uses operator-custodial liquidity, not production-private programmatic Swap."
             : "Route not ready yet for this shielded asset.",
       }),
       unshield: action({
