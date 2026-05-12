@@ -2589,6 +2589,8 @@ Two specific UX issues stood out from the code:
 
 - **Confirmation states.** When the unshield completes, the page goes to a green "Complete" state with the SPL transfer signature linked to Solscan. Add a small celebratory transition (mint-colored radial pulse from the transfer signature outward) and offer next-step actions: "Shield more" / "Share receipt" / "View on Solscan." Today the success state is muted text.
 
+  > **Completed locally (2026-05-12):** `/app/unshield` now turns the completion surface into a public-exit success panel with a mint radial pulse from the operator release signature card, a Solscan link when an operator release signature exists, and next-step actions for "Shield more" and "Share receipt." The copied receipt stays redacted and explicit that this is a public on-chain exit that still needs public transaction verification before treating funds as moved. Source and browser guards now require the completion action surface, Solscan URL builder, receipt fields, public-exit wording, and idle-state hidden checks for the success-only actions. Verification passed with red-first then green `npm run unshield:public-exit-surface-check`, `npm run truth:privacy-claim-gate`, focused Unshield/wallet checks, `npm run build`, `npm run protocol:browser-check`, `npm run wallet:browser-signing-safety-check`, `npm run product-ui:browser-check`, `npm run mobile:browser-check`, and `npm run private-core:verify`.
+
 ### `/app/strategy` — Strategy
 
 **File:** `src/pages/StrategyPage.tsx` (570 lines)
@@ -3446,3 +3448,123 @@ Verification run during the loop:
 - `npm run send:production-privacy-claim-gate`
 
 Still open after this loop: this is scope control, not legacy-chain-history migration. Production-private Send still needs deployed recipient discovery/viewing-key exchange, deployed memo/indexer proof-bound handoff, live reviewed settlement evidence, relayer separation, anonymity evidence, production replay/idempotency evidence, on-chain verifier enforcement, SBF rebuild/redeploy/reinit, and audit acceptance.
+
+---
+
+# Re-review — Updated Findings After Codex Iteration
+
+This section was written *after* Codex shipped multiple passes against the original review findings. I re-walked the code (`zk/noir/*`, `programs/vanta_private_pool_v2_spend/src/lib.rs`, `src/zk/crypto/ownerRecoveryPayloadCrypto.ts`, `src/solana/vantaShieldState.ts`, the live bridges, and the v2 entry circuits) and compared the current state against every recommendation in the lane deep dives. The result: more is closed than I expected, and the still-open items have sharpened.
+
+## Items closed since the initial review
+
+Marking these as **resolved** in the audit. Each was a critical or high finding from the lane deep dives; each is now correctly addressed in the code.
+
+- **The on-chain program now authority-gates spend and tracks a registered root history.** `programs/vanta_private_pool_v2_spend/src/lib.rs` now has `TAG_REGISTER_ROOT = 2`, a per-pool `POOL_AUTHORITY_OFFSET`, an `is_signer` requirement on the authority for every spend, and an `ERR_UNKNOWN_ACCEPTED_ROOT` rejection when a proof's `accepted_root` isn't in the registered history. This closes the original critical findings #1 (no proof verification / no authority) and #2 (trivial DoS via unbounded nullifier writes). The program is no longer callable by arbitrary signers.
+- **PDA-based nullifier markers and output records replace the linear-scan fixed-slot accounts.** Each nullifier becomes its own PDA, deterministic from `(NULLIFIER_MARKER_SEED, pool_id, nullifier)`; each output record likewise. Lookup is O(1), capacity is unbounded, and there's no scan that grows quadratic with pool size. This is a substantively *better* design than the standard fixed-slot model used elsewhere in Solana privacy work, and it should be called out as such — it's the kind of architectural choice that an auditor would highlight as careful.
+- **The `canonical_note_membership` circuit is no longer placeholder math.** It now uses `bn254::hash_10` for the note hash, `bn254::hash_1`/`bn254::hash_2` for Merkle leaf/node hashing, depth 20, real direction-bit handling without baking the bit into the parent hash, and a proper leaf-index-from-direction-bits constraint. Closes critical finding #3.
+- **The Private Pool v2 entry circuits (`shield_entry`, `send_entry`, `claim_entry`, `swap_to_shielded_entry`) now do real Merkle membership and real incremental append.** They use `MERKLE_DEPTH = 20`, drop the direction-bit-in-node-hash anti-pattern, drop the hi/lo sibling split, and use a real append-path-from-empty-leaf construction (`compute_root_from_leaf(0, path, dirs)`). For send, this is paired with the recipient + change two-output append in sequence against the same input root. Closes critical findings #4 (entry circuits skipped membership), #5 (depth 3), and medium #10 (direction-bit in node hash).
+- **The send circuit now enforces value conservation.** `assert(input_amount == recipient_amount + change_amount)` is the constraint I flagged as the single most important missing one. The economics_commitment binds (input, recipient, change, blinding); the value-conservation assert closes the "send 100 against a 50-value input" attack at the circuit level. This is exactly the right shape.
+- **The shield circuit hides economics behind a commitment.** Only `economics_commitment = poseidon(source_mint, target_mint, target_asset_id, amount, blinding)` enters the public-input hash. Raw amount/source_mint/target_mint are witnesses, not public inputs. Closes medium finding #12.
+- **The owner-recovery payload crypto is now X25519 + HKDF-SHA256 + XChaCha20-Poly1305.** The hand-rolled XOR-keystream + raw-SHA256-MAC is gone. `src/zk/crypto/ownerRecoveryPayloadCrypto.ts` now uses the same `xchacha20poly1305` AEAD as `vantaShieldViewingKey.ts`, with HKDF-derived keys and a v2 scheme tag (`owner-recovery-x25519-xchacha20poly1305-v2`). Closes high finding #6.
+- **Action memos (send, swap, unshield) now have v2 AEAD-wrapped variants.** `VANTA_SEND_MEMO_PREFIX_V2`, `VANTA_SWAP_MEMO_PREFIX_V2`, `VANTA_UNSHIELD_MEMO_PREFIX_V2`, `VANTA_SOL_UNSHIELD_MEMO_PREFIX_V2` all exist in `vantaShieldState.ts`, all encrypt via `encryptVantaShieldMemoToViewingKey`. The pages now emit v2 memos by default; v1 plaintext-extract paths remain only as backward-compat read-fallbacks. Closes the "plaintext memos across all lanes" gap that the send-, swap-, and unshield-lane deep dives all flagged.
+- **`vanta_private_core_single_note_swap`'s additive asset-difference comparison is fixed.** The old `(a_hi + a_lo) != (b_hi + b_lo)` is replaced with `if input_asset_id_hi == output_asset_id_hi { assert(input_asset_id_lo != output_asset_id_lo) }` — which correctly asserts the full 256-bit asset IDs differ. Closes medium finding from the swap-lane deep dive.
+- **The dead `sender_secret_stub` line in the swap circuit is gone.** Closes the misleading "ownership check" signal.
+- **`vanta_private_core_single_note_unshield` now has a real ownership constraint.** `let computed_owner_public_key = derive_owner_public_key(owner_secret_key_hi, owner_secret_key_lo); assert(owner_public_key_lo == computed_owner_public_key)` replaces the `owner_auth_placeholder == owner_auth_placeholder` no-op. The unshield circuit now cryptographically proves the prover knows the spending key, not just that they hold the wallet that signed the request. Closes the largest single missing constraint in the unshield lane.
+
+This list is substantively impressive. Eight critical/high findings closed, plus several mediums. The team moved fast and the fixes are correct.
+
+## Items still open, with sharpened recommendations
+
+The recommendations below are revised in light of the current code. Some are the same as before; some are smaller in scope because part of the work has landed; one is materially different because the trust model has shifted.
+
+### Still open #1 — Embed a Groth16 verifier in the program
+
+The on-chain program now accepts (nullifier, output0, output1, accepted_root, public_input_hash) and writes them to PDAs after the authority signs. **It does not yet verify a ZK proof.** The trust model has moved from "anyone can DoS" to "the operator authority key is the trust anchor." This is Target B from the lane deep dives, not Target A.
+
+The original recommendation (shield W6 / send S3 / swap X3 / unshield U2) was: embed Light Protocol's `groth16-solana` verifier and check the proof against the existing public_input_hash. That recommendation is *unchanged* but its execution is now simpler because:
+
+- The public_input_hash is already in the spend payload at byte offset 128-160.
+- The accepted_root check already validates that the proof's root claim matches a registered root.
+- The circuit's public_input_hash is already correctly bound to all the things that need binding (Merkle roots, nullifiers, output commitments, economics commitments).
+
+Adding the Groth16 verifier is now a localized change to `process_spend` that calls `groth16_verify(vk, public_inputs, proof_bytes)` before accepting the payload. The vk is committed once in `process_init`. Estimated effort dropped from "2-3 weeks" (when the program had no shape) to "1 week" (when the program already has the right shape and needs just the verify call).
+
+This is now **the single highest-leverage remaining technical lift.** Closing it moves the protocol from Target B to Target A in one step.
+
+### Still open #2 — Replace the mock prover with bb.js
+
+`src/privacy/privatePoolV2LocalProver.ts` still returns `proofSystem: "mock"` and a SHA-256 of the request bytes. With the circuits now correctly shaped, this is the visible gap between "the circuit enforces value conservation" and "any proof of value conservation has actually been checked."
+
+Recommendation unchanged from shield W7: wire `@aztec/bb.js` (or snarkjs for Groth16) as the real prover, generate witnesses from the canonical-note types already in `vantaPrivateCoreSendProof.ts`, ship the proof as the `proof_bytes` field in the spend payload. Effort: 1-2 weeks of focused browser-perf work, depends on Web Worker plumbing.
+
+After this and the on-chain verifier land, the system has cryptographic enforcement end-to-end. Everything else in this document either depends on that or is parallel polish.
+
+### Still open #3 — `recoverySecret: randomHex32()` is still the user-facing loss-of-funds risk
+
+Both `src/zk/liveShieldBridge.ts:259` and `src/zk/liveSendBridge.ts:663` still generate `recoverySecret: randomHex32()` and persist it to localStorage. Lose your browser data, lose your funds.
+
+The fix (shield W2 — wallet-derived deterministic seed via `signMessage`) is small, standalone, and doesn't depend on any other workstream. It could ship next week. **It is the single highest-impact user-facing security improvement still on the list.** It also unlocks recovery-on-any-device, which is what users actually expect from a privacy wallet.
+
+### Still open #4 — Delete the transition-authorized unshield path
+
+`isWalletDirectUnshieldIntent` and the `"transition-authorized"` literal-signature branch are still in `operator/unshield-server.mjs`. Per the unshield-lane deep dive (U4), this is two parallel authorization paths where one would do, and the safer one (real Ed25519 signature on every request) should be the only one. One-day deletion that removes a category of authentication-confusion bugs.
+
+### Still open #5 — Vault custody is still operator-keypair-in-env
+
+This is the biggest single change still needed for non-custodial operation. The operator loads `vaultSignerSecretKeyEnvName` and signs the SPL transfer for every unshield. Whoever holds the env can drain.
+
+The fix (shield W4 — program-owned PDA vault + unshield U2 — on-chain `TAG_UNSHIELD` instruction with PDA-signed CPI) is bigger than items 1-4 (estimated 2-3 weeks) but it removes the entire category of "the operator gets compromised, everyone loses funds." After the Groth16 verifier from #1 lands, this is the natural next workstream because it can reuse the same verifier for the unshield proof.
+
+### Still open #6 — Migrate or deprecate `vanta_private_core_single_note_*` circuits
+
+The new `vanta_private_pool_v2_*_entry` circuits are now the correct template. The older `vanta_private_core_single_note_send/swap/unshield` circuits still carry depth 3, hi/lo splits, and direction-bit-in-node-hash. They appear to be parallel lanes serving the same purpose.
+
+Sharpened recommendation: rather than rebuilding the single_note_* circuits to match the new template, **deprecate them.** Mark them as v0, freeze their lanes, route new flows through the v2 entry circuits. The team has already done the work of writing the correct circuits; maintaining a second worse version is wasted complexity.
+
+If any production flow currently routes through single_note_*, plan its migration. If not, delete them entirely after one release cycle.
+
+### Still open #7 — The swap circuit's `swap_context_tag_hi + swap_context_tag_lo` additive comparison
+
+In `vanta_private_core_single_note_swap`, the final assertion is `assert(computed_swap_context_tag == swap_context_tag_hi + swap_context_tag_lo)`. This is the same additive collision pattern the team fixed elsewhere — many (hi, lo) pairs sum to the same value. If this circuit is deprecated per #6, the issue disappears. If it's not, the comparison should be tightened the same way the asset-id check was.
+
+## New observations from the re-walk
+
+Things I missed in the initial review or that became visible only after the recent fixes:
+
+- **The pool authority is per-pool, stored in pool_state.** `POOL_AUTHORITY_OFFSET = 24`. This supports multi-asset deployments (one pool per asset, separate authorities, separate root histories) and supports authority rotation. Good architectural choice. The lane deep dives assumed a single pool; the program is already shaped for multi-pool.
+- **The PDA model for nullifier markers and output records is genuinely better than the fixed-slot model in most existing privacy-pool implementations.** This is worth writing up as a published essay (per the taste-pass T10 — "How Vanta uses PDA markers to avoid linear-scan nullifier checks"). It's a contribution to the Solana privacy literature, not just internal engineering.
+- **The send circuit's memo ciphertext body hashes are split into hi/lo as public inputs** (`recipient_memo_ciphertext_body_hash_hi`, `recipient_memo_ciphertext_body_hash_lo`, same for change). This is the same hi/lo split I flagged for the older circuits — it adds no security and doubles witness size. The new circuits inherited the pattern from the older code. **Minor: consolidate to single Field per hash.** Won't affect security; will simplify witness generation and verifier-public-input encoding.
+- **The unshield circuit's `assert(owner_public_key_hi == 0)`** constrains the owner public key to fit in the lower 128 bits. Whether this is intentional (key derivation guarantees < 2^128 by construction) or an artifact of the encoding split is unclear from the surrounding code. Worth a short comment in the circuit explaining the choice, so a future auditor doesn't flag it as a potentially redundant constraint.
+- **The number of npm run gates referenced in operator-runbook.md has grown substantially** during the recent passes (the `private-pool-v2:contract-check` markers, the new circuit checks, the `merkle-node-hash-contract-check`, etc.). The audit-package's prose checklist (per docs-pass D1) is now better-aligned with the automated checks than before — many of the questions I said "need to be encoded as CI" are in fact now encoded. The docs-pass D1 recommendation can be partially marked closed; the remaining work is making the checks discoverable from a single root command.
+- **The `vanta_private_pool_v2_actual_private_spend_entry` circuit (which I praised as the only correct circuit in the original review) is now one of several correct circuits.** The shield/send/claim/swap_to_shielded entry circuits have caught up. The template propagated. This is the desired outcome.
+
+## Updated priority list
+
+The premier-suite synthesis in F13 listed 10 items. Several are now closed. The updated list, ordered by remaining-leverage-per-week:
+
+1. **Wallet-derived deterministic recovery seed** (still-open #3). One week. User-facing loss-of-funds risk closed.
+2. **Delete the transition-authorized unshield path** (still-open #4). One day. Eliminates an authentication-confusion attack surface.
+3. **Embed Light's `groth16-solana` verifier in the program and wire bb.js as the real prover** (still-open #1 + #2 together). 2-3 weeks. Closes the largest remaining cryptographic gap; moves the protocol from Target B to Target A.
+4. **Program-owned PDA vault + on-chain `TAG_UNSHIELD`** (still-open #5). 2-3 weeks. Removes the operator's vault keypair as the trust anchor for funds at rest.
+5. **Deprecate `vanta_private_core_single_note_*` circuits** (still-open #6). 2-3 days. Removes the maintenance burden of a second, worse circuit family.
+6. **Lift the strategy/pay trust-contract pattern into UI gating across all six lanes** (per the docs-pass and final-pass recommendation). 2-3 days. Was item #1 of the synthesis; still applies; small but high-leverage.
+7. **Customer-side wallet flow for Pay** (Pay P1). 3-4 weeks. Gives merchants something real to integrate.
+8. **Privacy Pools association sets** (F1). 2-4 weeks. Compliance unlock that determines how big the merchant TAM can ever be.
+9. **Sign 5 anchor merchant partners** (F3). Calendar-bound. Solves anonymity-set bootstrapping.
+10. **Developer SDK + sandbox + docs** (F4). 6-10 weeks of dev-rel work. Determines the merchant integration ceiling.
+
+Items 1-5 are 6-7 weeks of focused engineering. After that, the protocol is fully non-custodial with real on-chain proof verification — the cryptographic claims become cryptographic facts. Items 6-10 are go-to-market and don't sequentially depend on items 1-5, so they should run in parallel.
+
+## What the closing argument now looks like
+
+When the original review opened, "Vanta isn't there yet" was a fair summary. After the Codex iteration loops captured in the progress notes above, the right summary is different:
+
+**Vanta is most of the way to Target A.** The circuits are correct. The on-chain program is operator-authorized with real nullifier and root state. The memos are AEAD-encrypted. The owner-recovery crypto is standard AEAD. The unshield circuit cryptographically proves ownership. The send circuit cryptographically enforces value conservation.
+
+The two remaining cryptographic items (real prover, on-chain proof verifier) are 2-3 weeks of work that doesn't require new architectural decisions. The product items (recovery, transition-authorized deletion, customer-side wallet flow) are smaller. The GTM items (Privacy Pools, anchor merchants, SDK) are parallel and not blocked on engineering.
+
+This is the rare position where a project that was three months from credibility is now five weeks from it. The path is unblocked. The remaining work is execution against a clean priority list.
+
+The next review pass — whenever it happens — should be able to mark items 1-5 closed and start checking off the GTM items. At that point the document's "still open" lists collapse, the cryptographic claims and the code agree, and the question becomes whether merchants and counterparties actually adopt. That's a product question, not an engineering one.
+
+Good luck. The hard part is mostly done.
