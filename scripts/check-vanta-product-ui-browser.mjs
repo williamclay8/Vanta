@@ -389,7 +389,11 @@ function assertUnshieldAssetSelectorStaysCompact() {
           const ticket = document.querySelector(".unshield-ticket");
           const module = document.querySelector(".unshield-ticket__module");
           const selector = document.querySelector('select[aria-label="Unshield asset"]');
+          const destinationCard = document.querySelector(".unshield-destination-card");
+          const destinationToggle = document.querySelector(".unshield-destination-toggle");
+          const destinationToggleInput = document.querySelector(".unshield-destination-toggle input");
           const legacyAssetStrip = document.querySelector(".unshield-balance-strip, .unshield-balance-pill");
+          const bodyText = document.body.innerText;
           const documentOverflow = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth;
 
           return {
@@ -398,10 +402,20 @@ function assertUnshieldAssetSelectorStaysCompact() {
               ticket instanceof HTMLElement &&
               module instanceof HTMLElement &&
               selector instanceof HTMLSelectElement &&
+              destinationCard instanceof HTMLElement &&
+              destinationToggle instanceof HTMLElement &&
+              destinationToggleInput instanceof HTMLInputElement &&
+              destinationToggleInput.disabled &&
+              bodyText.includes("to your own wallet") &&
+              bodyText.includes("Send to a different wallet") &&
+              bodyText.includes("Coming soon - needs unshield-to-fresh-wallet support") &&
               selector.options.length >= 2 &&
               legacyAssetStrip === null &&
               documentOverflow <= 2,
             documentOverflow,
+            hasDestinationCard: destinationCard !== null,
+            hasDestinationToggle: destinationToggle !== null,
+            destinationToggleDisabled: destinationToggleInput instanceof HTMLInputElement ? destinationToggleInput.disabled : null,
             hasLegacyAssetStrip: legacyAssetStrip !== null,
             optionCount: selector instanceof HTMLSelectElement ? selector.options.length : 0,
             route: window.location.pathname,

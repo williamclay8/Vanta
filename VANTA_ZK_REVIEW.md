@@ -2569,7 +2569,7 @@ The Swap page has the best concrete data in the product (real Jupiter/Meteora qu
 
 ### `/app/unshield` — Unshield
 
-**File:** `src/pages/UnshieldPage.tsx` (3232 lines — largest file in `pages/`)
+**File:** `src/pages/UnshieldPage.tsx` (3268 lines — largest file in `pages/`)
 
 The exit lane. Same form pattern, lots of edge cases (full vs partial unshield, transition vs wallet-direct authorization, USDC vs SOL exit, signed vs unsigned intents).
 
@@ -2577,6 +2577,8 @@ Two specific UX issues stood out from the code:
 
 - **The old "transition-authorized" vs "wallet-authorized" distinction should stay gone.** Per the unshield deep dive, two ways to authorize the same release was both a security issue and confusing UX. The current local code has removed the literal transition-authorized path; keep the UI on the real-wallet-signature boundary and avoid reintroducing a mode choice.
 - **Destination is forced to self.** This is unambiguous in the code: `intent.destinationOwner === intent.requester`. The UI today doesn't tell users this clearly enough. The destination field defaults to "your wallet" but visually looks like an editable text input. Make the destination explicit: a labeled card showing the user's connected wallet address with a "to your own wallet" pill, and a disabled "Send to a different wallet" toggle that says "Coming soon — needs unshield-to-fresh-wallet support" (which lines up with the unshield-lane recommendation U2).
+
+  > **Completed locally (2026-05-12):** `/app/unshield` now renders the destination as a connected-wallet self-destination card with a "to your own wallet" pill, plus an ARIA-described disabled "Send to a different wallet" toggle with "Coming soon - needs unshield-to-fresh-wallet support" copy and a mobile-safe disabled toggle target. The payload semantics stayed self-bound; this is a UI truth and guard-hardening slice, not fresh-wallet support. Red-first `npm run unshield:public-exit-surface-check` failed on the missing card before the UI patch, then passed. Follow-up verification passed with `npm run unshield:public-exit-surface-check`, `npm run unshield:balance-ledger-check`, `npm run unshield:safe-send-adoption-check`, `npm run wallet:message-intent-safety-check`, `npm run wallet:message-intent-adoption-check`, `npm run build`, `npm run protocol:browser-check`, `npm run wallet:browser-signing-safety-check`, `npm run product-ui:browser-check`, `npm run mobile:browser-check`, and `npm run private-core:verify`.
 
 **General recommendations:**
 

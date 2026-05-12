@@ -35,6 +35,13 @@ for (const phrase of [
   "Release through operator",
   "direct:${args.note.noteId}",
   "shield the exact USDC amount first",
+  "unshield-destination-card",
+  "unshield-destination-card-copy",
+  "to your own wallet",
+  "Send to a different wallet",
+  "unshield-destination-toggle-copy",
+  "Coming soon - needs unshield-to-fresh-wallet support",
+  'aria-disabled="true"',
 ]) {
   assert.ok(
     unshieldPageSource.includes(phrase),

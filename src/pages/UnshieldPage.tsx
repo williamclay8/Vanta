@@ -1899,7 +1899,7 @@ export function UnshieldPage() {
         : `Return shielded ${selectedLane} to your public wallet through the constrained operator path.`
 
   if (!walletConnected) {
-    validationMessage = "Connect a wallet to use Public Wallet as the exit destination.";
+    validationMessage = "Connect a wallet so Unshield can release back to your own wallet.";
   } else if (isBetaMode) {
     validationMessage = "Beta mode keeps Unshield visible but prevents live withdrawals while production services are offline.";
   } else if (
@@ -2668,10 +2668,40 @@ export function UnshieldPage() {
                 <div className="swap-module__label-row">
                   <span>Destination</span>
                 </div>
-                <div className="unshield-fixed-field">
-                  <strong>{walletAddressShort ?? "Connect wallet"}</strong>
-                  <small>Public wallet</small>
+                <div
+                  aria-describedby="unshield-destination-card-copy"
+                  aria-label="Unshield destination wallet"
+                  className="unshield-fixed-field unshield-destination-card"
+                  title={walletAddress ?? undefined}
+                >
+                  <span className="unshield-destination-card__eyebrow">Connected wallet</span>
+                  <div className="unshield-destination-card__row">
+                    <strong>{walletAddressShort ?? "Connect wallet"}</strong>
+                    <span className="unshield-destination-card__pill">to your own wallet</span>
+                  </div>
+                  <small id="unshield-destination-card-copy">
+                    Current Unshield releases only to the connected wallet that signs the exit intent.
+                  </small>
                 </div>
+                <label
+                  aria-describedby="unshield-destination-toggle-copy"
+                  aria-disabled="true"
+                  className="unshield-destination-toggle"
+                >
+                  <input
+                    aria-label="Send to a different wallet"
+                    aria-describedby="unshield-destination-toggle-copy"
+                    disabled={true}
+                    readOnly={true}
+                    type="checkbox"
+                  />
+                  <span className="unshield-destination-toggle__body">
+                    <strong>Send to a different wallet</strong>
+                    <small id="unshield-destination-toggle-copy">
+                      Coming soon - needs unshield-to-fresh-wallet support
+                    </small>
+                  </span>
+                </label>
               </div>
 
               <div className="swap-module__field unshield-ticket__field unshield-ticket__field--amount">

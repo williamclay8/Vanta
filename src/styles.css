@@ -3007,6 +3007,115 @@ input {
   text-transform: uppercase;
 }
 
+.unshield-destination-card {
+  align-content: stretch;
+  gap: 7px;
+  min-height: 88px;
+}
+
+.unshield-destination-card__eyebrow {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.unshield-destination-card__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.unshield-destination-card__row strong {
+  flex: 1 1 auto;
+}
+
+.unshield-destination-card__pill {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border: 1px solid rgba(0, 229, 200, 0.22);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.unshield-destination-card small {
+  margin-top: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0;
+  line-height: 1.35;
+  text-transform: none;
+}
+
+.unshield-destination-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 58px;
+  margin-top: 8px;
+  padding: 9px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 14px;
+  background: rgba(148, 163, 184, 0.055);
+  color: var(--muted);
+  cursor: not-allowed;
+  user-select: none;
+}
+
+.unshield-destination-toggle input {
+  appearance: none;
+  position: relative;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 999px;
+  background: rgba(3, 8, 22, 0.38);
+  opacity: 0.5;
+}
+
+.unshield-destination-toggle input::after {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.55);
+  content: "";
+  transform: translateY(-50%);
+}
+
+.unshield-destination-toggle__body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.unshield-destination-toggle__body strong {
+  color: var(--text);
+  font-family: "Syne", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+
+.unshield-destination-toggle__body small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0;
+  line-height: 1.32;
+}
+
 .unshield-fixed-field--amount strong {
   font-size: 1.18rem;
   font-variant-numeric: tabular-nums;

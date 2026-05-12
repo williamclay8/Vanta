@@ -124,7 +124,10 @@ function runSafeBrowserSigningBatch() {
       action: "assert",
       checks: [
         { kind: "url_contains", text: "/app/unshield" },
-        { kind: "text_visible", text: "Connect a wallet to use Public Wallet as the exit destination." },
+        { kind: "text_visible", text: "Connect a wallet so Unshield can release back to your own wallet." },
+        { kind: "text_visible", text: "to your own wallet" },
+        { kind: "text_visible", text: "Send to a different wallet" },
+        { kind: "text_visible", text: "Coming soon - needs unshield-to-fresh-wallet support" },
         { kind: "text_hidden", text: "Awaiting wallet confirmation" },
         { kind: "text_hidden", text: "mainnet-beta" },
         { kind: "text_hidden", text: "seed phrase" },
@@ -136,7 +139,7 @@ function runSafeBrowserSigningBatch() {
     {
       action: "assert",
       checks: [
-        { kind: "text_visible", text: "Connect a wallet to use Public Wallet as the exit destination." },
+        { kind: "text_visible", text: "Connect a wallet so Unshield can release back to your own wallet." },
         { kind: "text_hidden", text: "Awaiting wallet confirmation" },
         { kind: "no_console_errors" },
       ],
