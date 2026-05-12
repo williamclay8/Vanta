@@ -480,7 +480,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       setRecordSourcePacketText(JSON.stringify(packet, null, 2));
       setRecordSourceImportStatus("exported");
       setRecordSourceImportDetail(
-        `Record source packet ready with ${summary?.recordCount ?? packet.entries.length} non-secret record references. It is not a recovery-secret backup.`,
+        `Record source packet ready with ${summary?.recordCount ?? packet.entries.length} non-secret record references. ${summary?.quarantinedLocalOnlyCount ?? 0} records remain quarantined local-only. It is not a recovery-secret backup.`,
       );
     } catch (error) {
       setRecordSourceImportStatus("failed");
@@ -527,7 +527,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       const summary = summarizeOwnerContextRecordSourceImportPacket(normalizedPacket);
       setRecordSourceImportStatus(proof.status);
       setRecordSourceImportDetail(
-        `${proof.truth} Matched ${proof.matchedRecordCount} of ${proof.walletDerivedCandidateCount} wallet-derived candidates${summary ? ` across ${summary.recordCount} record references` : ""}.`,
+        `${proof.truth} Matched ${proof.matchedRecordCount} of ${proof.walletDerivedCandidateCount} wallet-derived candidates${summary ? ` across ${summary.recordCount} record references with ${summary.quarantinedLocalOnlyCount} quarantined local-only records` : ""}.`,
       );
     } catch (error) {
       setRecordSourceImportStatus("failed");
@@ -2009,6 +2009,9 @@ export function ShieldPage(_props: ShieldPageProps) {
       ? "A second device can only prove the same owner context after importing a non-secret record source packet; viewing-key backup may still be required for memo discovery."
       : "Legacy local-only records are not promoted by the record source import proof."
     : "Record source import proof starts after wallet-derived owner evidence exists.";
+  const legacyQuarantinePolicyLabel = "automatic migration off";
+  const legacyQuarantinePolicyDetail =
+    "Old random-seeded browser-local records stay quarantined local-only. Record-source import verifies wallet-derived records but does not promote legacy records or recover missing secrets.";
 
   const routeLabel = capability.routeLabel;
 
@@ -2200,12 +2203,19 @@ export function ShieldPage(_props: ShieldPageProps) {
                       <span>Record source import proof</span>
                       <strong>{recordSourceImportProofLabel}</strong>
                     </div>
+                    <div className="review-row">
+                      <span>Legacy quarantine policy</span>
+                      <strong>{legacyQuarantinePolicyLabel}</strong>
+                    </div>
                   </div>
                   <p className="shield-helper shield-helper--meta">
                     {ownerRecoveryEvidenceDetail}
                   </p>
                   <p className="shield-helper shield-helper--meta">
                     {recordSourceImportProofDetail}
+                  </p>
+                  <p className="shield-helper shield-helper--meta">
+                    {legacyQuarantinePolicyDetail}
                   </p>
                   <div className="shield-viewing-key-panel__actions">
                     <button

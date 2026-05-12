@@ -68,6 +68,7 @@ assert(ledger.schemaVersion === 1, "schemaVersion must be 1");
 assert(ledger.reviewDocument === "VANTA_ZK_REVIEW.md", "reviewDocument must point at VANTA_ZK_REVIEW.md");
 assert(Array.isArray(ledger.allowedStatuses), "allowedStatuses must be present");
 assert(Array.isArray(ledger.allowedSeverities), "allowedSeverities must be present");
+assert(Array.isArray(ledger.activeFeedbackLoops), "activeFeedbackLoops must be an array");
 assert(Array.isArray(ledger.findings), "findings must be an array");
 
 for (const status of ledger.allowedStatuses) {
@@ -78,6 +79,38 @@ for (const severity of ledger.allowedSeverities) {
 }
 for (const pattern of secretLikePatterns) {
   assert(!pattern.test(ledgerSource), "ledger appears to contain a secret-shaped string");
+}
+
+const activeFeedbackLoopIds = new Set();
+for (const loop of ledger.activeFeedbackLoops) {
+  assert(typeof loop.id === "string", "active feedback loop is missing id");
+  assert(
+    /^VANTA-ZK-FEEDBACK-\d{4}-\d{2}-\d{2}-[A-Z0-9-]+$/u.test(loop.id),
+    `${loop.id} is not a stable Vanta ZK feedback-loop id`,
+  );
+  assert(!activeFeedbackLoopIds.has(loop.id), `${loop.id} active feedback loop is duplicated`);
+  activeFeedbackLoopIds.add(loop.id);
+  assert(
+    typeof loop.status === "string" && loop.status.includes("feedback-loop"),
+    `${loop.id} missing feedback-loop status`,
+  );
+  assert(Array.isArray(loop.sourceReviewRefs) && loop.sourceReviewRefs.length > 0, `${loop.id} missing sourceReviewRefs`);
+  assert(typeof loop.summary === "string" && loop.summary.length > 20, `${loop.id} missing summary`);
+  assert(Array.isArray(loop.localVerification) && loop.localVerification.length > 0, `${loop.id} missing localVerification`);
+  assert(typeof loop.truthBoundary === "string" && loop.truthBoundary.length > 20, `${loop.id} missing truthBoundary`);
+
+  const lumi = loop.lumiHygiene ?? {};
+  for (const key of ["local", "committed", "pushed", "deployedLive"]) {
+    assert(typeof lumi[key] === "string" && lumi[key].length > 0, `${loop.id} missing lumiHygiene.${key}`);
+  }
+
+  for (const command of loop.localVerification) {
+    if (!command.startsWith("npm run ")) {
+      continue;
+    }
+    const scriptName = command.slice("npm run ".length).split(/\s/u)[0];
+    assert(Object.hasOwn(scripts, scriptName), `${loop.id} localVerification references missing package script ${scriptName}`);
+  }
 }
 
 const ids = new Set();

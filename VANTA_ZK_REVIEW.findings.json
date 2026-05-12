@@ -22,9 +22,9 @@
   ],
   "lumiBaseline": {
     "branch": "codex/vanta-zk-review-hardening",
-    "lastKnownCommit": "4f1fa49",
-    "local": "verified locally through the H08 local bb fixture proof-result feedback-loop slice before the current C01 reserved proof-carrying ABI work",
-    "committed": "4f1fa49 (Bind local bb fixture proof results)",
+    "lastKnownCommit": "977aad2",
+    "local": "verified locally through the Send local bb fixture proof-result feedback-loop slice before the current owner-context legacy quarantine policy work",
+    "committed": "977aad2 (Bind Send local bb fixture proof results)",
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
@@ -292,6 +292,31 @@
         "deployedLive": "not-live-verified"
       },
       "truthBoundary": "This is a local product import/export verification UX for non-secret record-source packets. It is not legacy-record migration, not viewing-key memo discovery by itself, not live deployment evidence, and not proof that old random-seeded records are recoverable."
+    },
+    {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-12-OWNER-CONTEXT-LEGACY-QUARANTINE-POLICY",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#partially-remediated-3--new-live-records-use-wallet-derived-owner-context-recovery-evidence-and-record-source-importexport-ux",
+        "src/zk/ownerContextLegacyQuarantinePolicy.ts",
+        "src/zk/ownerContextRecordSourceImport.ts",
+        "src/pages/ShieldPage.tsx",
+        "scripts/check-vanta-owner-context-legacy-quarantine-policy.mjs",
+        "docs/privacy-model.md"
+      ],
+      "summary": "Legacy owner-context recovery policy is now explicit and machine-readable. Record-source packets carry fail-closed fields that keep old random-seeded, redacted, or missing-evidence browser records local-only, keep automatic migration and production recovery false, and reject tampered packets that try to promote legacy records. The Shield recovery panel now tells users automatic migration is off.",
+      "localVerification": [
+        "npm run zk:owner-context-legacy-quarantine-policy-check",
+        "npm run zk:owner-context-record-source-import-check",
+        "npm run zk:owner-context-recovery-evidence-check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the owner-context legacy quarantine policy feedback-loop slice",
+        "committed": "included in the owner-context legacy quarantine policy feedback-loop commit",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a local quarantine policy, packet guard, and Shield UI guidance. It does not recover old random-seeded browser records, does not migrate or delete localStorage, does not solve viewing-key memo discovery, is not live deployment evidence, and is not production recovery readiness."
     },
     {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-ALL-LANE-TRUST-STATUS-STRIP",

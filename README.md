@@ -426,8 +426,14 @@ npm run security:limitations-check
 npm run private-pool-v2:contract-check
 npm run private-pool-v2:local-runtime-check
 npm run private-pool-v2:local-bb-fixture-prover-check
+npm run private-pool-v2:proof-backend-boundary-check
+npm run private-pool-v2:remote-proof-artifact-boundary-check
 npm run private-pool-v2:shield-proof-request-check
 npm run private-pool-v2:claim-proof-request-check
+npm run private-pool-v2:send-proof-artifact-consistency-check
+npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check
+npm run private-pool-v2:send-operator-no-witness-check
+npm run private-pool-v2:actual-private-spend-operator-no-witness-check
 npm run private-pool-v2:shield-circuit-check
 npm run private-pool-v2:claim-circuit-check
 npm run private-pool-v2:shield-prove

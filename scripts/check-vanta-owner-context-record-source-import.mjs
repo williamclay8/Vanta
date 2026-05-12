@@ -98,6 +98,11 @@ for (const marker of [
   "verifyOwnerContextRecordSourceImport",
   "parseOwnerContextRecordSourceImportPacketText",
   "summarizeOwnerContextRecordSourceImportPacket",
+  "legacyQuarantineStatus",
+  "automaticMigrationAllowed",
+  "recordSourceImportCanPromote",
+  "localOnlyQuarantine",
+  "productionRecoveryReady",
   "noteSecret",
   "blinding",
   "encryptedPayload",
@@ -228,9 +233,15 @@ try {
     walletDerivedCandidateCount: 1,
     legacyLocalOnlyCount: 0,
     missingEvidenceCount: 0,
+    walletDerivedRecordSourceRequiredCount: 1,
+    quarantinedLocalOnlyCount: 0,
+    automaticMigrationAllowed: false,
+    productionRecoveryReady: false,
+    legacyQuarantineTruth:
+      "Wallet-derived records still require record-source import and viewing-key backup before cross-device recovery is real.",
     rawRecoveryMaterialStored: false,
     truth:
-      "This import packet carries non-secret owner-context evidence and record references only; it is a record source, not a recovery-secret backup.",
+      "This import packet carries non-secret owner-context evidence, record references, and legacy quarantine policy only; it is a record source, not a recovery-secret backup.",
   });
 
   const proof = importProof.verifyOwnerContextRecordSourceImport({
@@ -276,6 +287,15 @@ try {
     ],
   });
   assert.equal(legacyPacket.entries[0].ownerRecoveryClass, "legacy-random-local-only");
+  assert.equal(
+    legacyPacket.entries[0].legacyQuarantineStatus,
+    "legacy-random-quarantined-local-only",
+  );
+  assert.equal(legacyPacket.entries[0].recordSourceImportCanPromote, false);
+  assert.equal(legacyPacket.entries[0].localOnlyQuarantine, true);
+  assert.equal(legacyPacket.entries[0].automaticMigrationAllowed, false);
+  assert.equal(legacyPacket.entries[0].crossDeviceRecoveryAllowedNow, false);
+  assert.equal(legacyPacket.entries[0].productionRecoveryReady, false);
   assert.equal(
     importProof.verifyOwnerContextRecordSourceImport({
       ownerContext: walletContext,
@@ -359,6 +379,29 @@ try {
     "raw-owner-material-rejected",
     "Malformed packet entries must fail closed through the import verifier.",
   );
+
+  for (const tamperedEntry of [
+    { ...legacyPacket.entries[0], recordSourceImportCanPromote: true },
+    { ...legacyPacket.entries[0], localOnlyQuarantine: false },
+    { ...legacyPacket.entries[0], automaticMigrationAllowed: true },
+    { ...legacyPacket.entries[0], crossDeviceRecoveryAllowedNow: true },
+    { ...legacyPacket.entries[0], productionRecoveryReady: true },
+    {
+      ...legacyPacket.entries[0],
+      legacyQuarantineStatus: "wallet-derived-record-source-required",
+    },
+  ]) {
+    assert.equal(
+      importProof.parseOwnerContextRecordSourceImportPacketText(
+        JSON.stringify({
+          ...legacyPacket,
+          entries: [tamperedEntry],
+        }),
+      ),
+      null,
+      "Legacy record source packets must reject tampered promotion/quarantine policy fields.",
+    );
+  }
 } finally {
   cleanup();
   cleanupOwnerKeys();

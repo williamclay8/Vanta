@@ -176,6 +176,12 @@ try {
       "private-pool-v2:actual-private-spend-prove",
       "private-pool-v2:claim-prove",
       "private-pool-v2:local-bb-fixture-prover-check",
+      "private-pool-v2:proof-backend-boundary-check",
+      "private-pool-v2:remote-proof-artifact-boundary-check",
+      "private-pool-v2:send-proof-artifact-consistency-check",
+      "private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
+      "private-pool-v2:send-operator-no-witness-check",
+      "private-pool-v2:actual-private-spend-operator-no-witness-check",
       "private-pool-v2:verify",
     ],
   };

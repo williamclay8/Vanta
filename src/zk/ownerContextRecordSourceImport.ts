@@ -3,7 +3,13 @@ import { bytesToHex } from "@noble/hashes/utils.js";
 
 import type { CanonicalNoteOwnerContext } from "./canonicalNote";
 import {
+  createOwnerContextLegacyQuarantinePolicy,
+  type OwnerContextLegacyQuarantineStatus,
+} from "./ownerContextLegacyQuarantinePolicy";
+import {
+  OWNER_CONTEXT_RECOVERY_EVIDENCE_VERSION,
   createOwnerContextRecoveryEvidence,
+  isOwnerContextRecoveryEvidence,
   type OwnerContextRecoveryEvidence,
 } from "./ownerContextRecoveryEvidence";
 
@@ -34,6 +40,14 @@ export type OwnerContextRecordSourceImportEntry = {
   recoverySecretReferenceHash?: string;
   crossDeviceCandidate: boolean;
   importRequiredForCrossDevice: boolean;
+  legacyQuarantineStatus: OwnerContextLegacyQuarantineStatus;
+  automaticMigrationAllowed: false;
+  crossDeviceRecoveryAllowedNow: false;
+  recordSourceImportCanPromote: boolean;
+  localOnlyQuarantine: boolean;
+  productionRecoveryReady: false;
+  requiredUserAction: string;
+  quarantineTruth: string;
 };
 
 export type OwnerContextRecordSourceImportPacket = {
@@ -70,6 +84,11 @@ export type OwnerContextRecordSourceImportPacketSummary = {
   walletDerivedCandidateCount: number;
   legacyLocalOnlyCount: number;
   missingEvidenceCount: number;
+  walletDerivedRecordSourceRequiredCount: number;
+  quarantinedLocalOnlyCount: number;
+  automaticMigrationAllowed: false;
+  productionRecoveryReady: false;
+  legacyQuarantineTruth: string;
   rawRecoveryMaterialStored: false;
   truth: string;
 };
@@ -120,7 +139,7 @@ export function createOwnerContextRecordSourceImportPacket(args: {
     rawRecoveryMaterialStored: false,
     entries,
     truth:
-      "This import packet carries non-secret owner-context evidence and record references only; it is a record source, not a recovery-secret backup.",
+      "This import packet carries non-secret owner-context evidence, record references, and legacy quarantine policy only; it is a record source, not a recovery-secret backup.",
   };
 }
 
@@ -185,6 +204,13 @@ export function summarizeOwnerContextRecordSourceImportPacket(
     return null;
   }
 
+  const walletDerivedRecordSourceRequiredCount = normalizedPacket.entries.filter(
+    (entry) => entry.legacyQuarantineStatus === "wallet-derived-record-source-required",
+  ).length;
+  const quarantinedLocalOnlyCount = normalizedPacket.entries.filter(
+    (entry) => entry.localOnlyQuarantine,
+  ).length;
+
   return {
     version: OWNER_CONTEXT_RECORD_SOURCE_IMPORT_VERSION,
     createdAt: normalizedPacket.createdAt,
@@ -200,6 +226,14 @@ export function summarizeOwnerContextRecordSourceImportPacket(
         entry.ownerRecoveryClass === "redacted-legacy-unmigratable" ||
         entry.ownerRecoveryClass === "missing-owner-context-evidence",
     ).length,
+    walletDerivedRecordSourceRequiredCount,
+    quarantinedLocalOnlyCount,
+    automaticMigrationAllowed: false,
+    productionRecoveryReady: false,
+    legacyQuarantineTruth:
+      quarantinedLocalOnlyCount > 0
+        ? "Legacy or missing owner-context records remain quarantined local-only; record-source import does not migrate old random-seeded records."
+        : "Wallet-derived records still require record-source import and viewing-key backup before cross-device recovery is real.",
     rawRecoveryMaterialStored: false,
     truth: normalizedPacket.truth,
   };
@@ -211,6 +245,9 @@ function createRecordSourceImportEntry(
   const evidence = createOwnerContextRecoveryEvidence({
     existingEvidence: record.ownerContextEvidence,
     redactedOwnerContext: parseRedactedOwnerContext(record.redactedOwnerContext),
+  });
+  const quarantinePolicy = createOwnerContextLegacyQuarantinePolicy({
+    ownerContextEvidence: evidence,
   });
   const ownerPublicKey =
     evidence.ownerPublicKey ?? parseCanonicalNoteOwnerPublicKey(record.canonicalNote);
@@ -226,6 +263,14 @@ function createRecordSourceImportEntry(
     recoverySecretReferenceHash: evidence.recoverySecretReferenceHash,
     crossDeviceCandidate: evidence.crossDeviceCandidate,
     importRequiredForCrossDevice: evidence.importRequiredForCrossDevice,
+    legacyQuarantineStatus: quarantinePolicy.status,
+    automaticMigrationAllowed: false,
+    crossDeviceRecoveryAllowedNow: false,
+    recordSourceImportCanPromote: quarantinePolicy.recordSourceImportCanPromote,
+    localOnlyQuarantine: quarantinePolicy.localOnlyQuarantine,
+    productionRecoveryReady: false,
+    requiredUserAction: quarantinePolicy.requiredUserAction,
+    quarantineTruth: quarantinePolicy.truth,
   };
 }
 
@@ -304,6 +349,45 @@ function normalizeRecordSourceImportEntry(
     return null;
   }
 
+  const evidence = {
+    version: OWNER_CONTEXT_RECOVERY_EVIDENCE_VERSION,
+    recoveryClass: candidate.ownerRecoveryClass,
+    evidenceSource: candidate.ownerRecoveryEvidenceSource,
+    ownerPublicKey: candidate.ownerPublicKey,
+    hierarchyVersion: candidate.hierarchyVersion,
+    derivationContextReferenceHash: candidate.derivationContextReferenceHash,
+    recoverySecretReferenceHash: candidate.recoverySecretReferenceHash,
+    crossDeviceCandidate: candidate.crossDeviceCandidate,
+    rawRecoveryMaterialStored: false,
+    importRequiredForCrossDevice: candidate.importRequiredForCrossDevice,
+    truth: "",
+  };
+
+  if (!isOwnerContextRecoveryEvidence(evidence)) {
+    return null;
+  }
+
+  const quarantinePolicy = createOwnerContextLegacyQuarantinePolicy({
+    ownerContextEvidence: evidence,
+  });
+
+  if (
+    (candidate.legacyQuarantineStatus !== undefined &&
+      candidate.legacyQuarantineStatus !== quarantinePolicy.status) ||
+    (candidate.automaticMigrationAllowed !== undefined &&
+      candidate.automaticMigrationAllowed !== false) ||
+    (candidate.crossDeviceRecoveryAllowedNow !== undefined &&
+      candidate.crossDeviceRecoveryAllowedNow !== false) ||
+    (candidate.recordSourceImportCanPromote !== undefined &&
+      candidate.recordSourceImportCanPromote !== quarantinePolicy.recordSourceImportCanPromote) ||
+    (candidate.localOnlyQuarantine !== undefined &&
+      candidate.localOnlyQuarantine !== quarantinePolicy.localOnlyQuarantine) ||
+    (candidate.productionRecoveryReady !== undefined &&
+      candidate.productionRecoveryReady !== false)
+  ) {
+    return null;
+  }
+
   return {
     recordReferenceHash: candidate.recordReferenceHash,
     source: candidate.source,
@@ -316,6 +400,14 @@ function normalizeRecordSourceImportEntry(
     recoverySecretReferenceHash: candidate.recoverySecretReferenceHash,
     crossDeviceCandidate: candidate.crossDeviceCandidate,
     importRequiredForCrossDevice: candidate.importRequiredForCrossDevice,
+    legacyQuarantineStatus: quarantinePolicy.status,
+    automaticMigrationAllowed: false,
+    crossDeviceRecoveryAllowedNow: false,
+    recordSourceImportCanPromote: quarantinePolicy.recordSourceImportCanPromote,
+    localOnlyQuarantine: quarantinePolicy.localOnlyQuarantine,
+    productionRecoveryReady: false,
+    requiredUserAction: quarantinePolicy.requiredUserAction,
+    quarantineTruth: quarantinePolicy.truth,
   };
 }
 
