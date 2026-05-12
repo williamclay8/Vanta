@@ -871,6 +871,21 @@ export function UnshieldPage() {
         requestedAmountNumeric > 0 &&
         requestedAmountNumeric <= selectedFullAmount + 0.000001
       : selectedFullAmount > 0;
+  const exitConsequenceAmount =
+    selectedLane === "USDC"
+      ? hasValidRequestedAmount && !requiresExactSplit
+        ? requestedAmountNumeric
+        : null
+      : selectedFullAmount > 0
+        ? selectedFullAmount
+        : null;
+  const exitConsequenceDisplay =
+    exitConsequenceAmount !== null
+      ? formatUnshieldAmount(exitConsequenceAmount, selectedLane)
+      : requiresExactSplit
+        ? "Shield exact USDC amount first"
+        : `Enter ${selectedLane} amount`;
+  const exitConsequenceDestination = walletAddressShort ?? "Connect wallet";
   const isReady =
     walletConnected &&
     Boolean(walletAddress) &&
@@ -2634,6 +2649,41 @@ export function UnshieldPage() {
                 : `${formatUnshieldAmount(selectedFullAmount, selectedLane)} selected note`}
             </small>
           </div>
+
+          <section
+            className="unshield-exit-preview"
+            aria-describedby="unshield-exit-preview-copy"
+            aria-labelledby="unshield-exit-preview-title"
+          >
+            <div className="unshield-exit-preview__copy">
+              <span id="unshield-exit-preview-title">You'll receive</span>
+              <strong>{exitConsequenceDisplay}</strong>
+              <small id="unshield-exit-preview-copy">
+                {walletAddressShort ? `in ${exitConsequenceDestination}` : "connect wallet for destination"}
+              </small>
+            </div>
+            <div
+              className="unshield-exit-recipe"
+              role="img"
+              aria-label="Selected shielded amount exits to your connected public wallet"
+            >
+              <span
+                className="unshield-exit-recipe__node unshield-exit-recipe__node--shielded"
+                aria-hidden="true"
+              >
+                Shielded note
+              </span>
+              <span className="unshield-exit-recipe__path" aria-hidden="true">
+                <span />
+              </span>
+              <span
+                className="unshield-exit-recipe__node unshield-exit-recipe__node--wallet"
+                aria-hidden="true"
+              >
+                Own wallet
+              </span>
+            </div>
+          </section>
 
           <div className="shield-form swap-widget unshield-ticket">
             <div className="swap-module unshield-ticket__module">

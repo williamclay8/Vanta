@@ -2584,6 +2584,9 @@ Two specific UX issues stood out from the code:
 
 - **Lead with the visible exit consequence.** "You'll receive: 100.00 USDC in `7yU...rtdi`." Big and prominent. Everything else (proof receipt, audit disclosure, gate state) goes below the fold.
 - **The "exit recipe" graphic.** Same idea as the Send Y-split: a single shielded note flowing back into a public wallet, with the user's own wallet address as the destination. Small animated pictogram showing the privacy boundary being crossed. Currently the page has no visual that shows what unshield actually means.
+
+  > **Completed locally (2026-05-12):** `/app/unshield` now leads the exit ticket with a visible "You'll receive" consequence summary that only shows a concrete USDC amount when the requested amount is valid and not on the disallowed split path. It also renders a compact shielded-note-to-own-wallet recipe visual above the form, with source and browser guards keeping the preview before the controls and banning fresh-wallet/private-exit/anonymity overclaims from that preview. Verification passed with red-first then green `npm run unshield:public-exit-surface-check`, `npm run truth:privacy-claim-gate`, focused Unshield/wallet intent checks, `npm run build`, `npm run protocol:browser-check`, `npm run wallet:browser-signing-safety-check`, `npm run product-ui:browser-check`, `npm run mobile:browser-check`, and final `npm run private-core:verify`.
+
 - **Confirmation states.** When the unshield completes, the page goes to a green "Complete" state with the SPL transfer signature linked to Solscan. Add a small celebratory transition (mint-colored radial pulse from the transfer signature outward) and offer next-step actions: "Shield more" / "Share receipt" / "View on Solscan." Today the success state is muted text.
 
 ### `/app/strategy` — Strategy

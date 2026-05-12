@@ -11,6 +11,7 @@ function readRepoFile(path) {
 const packageJson = JSON.parse(readRepoFile("package.json"));
 const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
+const stylesSource = readRepoFile("src/styles.css");
 const unshieldAuthSource = readRepoFile("src/solana/unshieldAuth.ts");
 const solUnshieldAuthSource = readRepoFile("src/solana/solUnshieldAuth.ts");
 const solUnshieldOperatorClientSource = readRepoFile("src/solana/solUnshieldOperatorClient.ts");
@@ -42,11 +43,37 @@ for (const phrase of [
   "unshield-destination-toggle-copy",
   "Coming soon - needs unshield-to-fresh-wallet support",
   'aria-disabled="true"',
+  "unshield-exit-preview",
+  "unshield-exit-recipe",
+  "You'll receive",
+  "Shielded note",
+  "Own wallet",
 ]) {
   assert.ok(
     unshieldPageSource.includes(phrase),
     `Unshield Phantom-safe public-exit flow missing ${phrase}.`,
   );
+}
+
+for (const phrase of [
+  ".unshield-exit-preview",
+  ".unshield-exit-recipe",
+  ".unshield-exit-recipe__path",
+  ".unshield-exit-recipe__node--wallet",
+]) {
+  assert.ok(stylesSource.includes(phrase), `Unshield exit recipe style missing ${phrase}.`);
+}
+
+const exitPreviewIndex = unshieldPageSource.indexOf("unshield-exit-preview");
+const ticketFormIndex = unshieldPageSource.indexOf("shield-form swap-widget unshield-ticket");
+assert.ok(
+  exitPreviewIndex >= 0 && ticketFormIndex > exitPreviewIndex,
+  "Unshield exit consequence preview must render before the form controls.",
+);
+
+const exitPreviewBlock = unshieldPageSource.slice(exitPreviewIndex, ticketFormIndex).toLowerCase();
+for (const phrase of ["fresh wallet", "different wallet", "private exit", "anonymous", "untraceable", "fully private"]) {
+  assert.ok(!exitPreviewBlock.includes(phrase), `Unshield exit consequence preview must not overclaim ${phrase}.`);
 }
 
 assert.ok(

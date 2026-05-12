@@ -389,11 +389,22 @@ function assertUnshieldAssetSelectorStaysCompact() {
           const ticket = document.querySelector(".unshield-ticket");
           const module = document.querySelector(".unshield-ticket__module");
           const selector = document.querySelector('select[aria-label="Unshield asset"]');
+          const exitPreview = document.querySelector(".unshield-exit-preview");
+          const exitRecipe = document.querySelector(".unshield-exit-recipe");
           const destinationCard = document.querySelector(".unshield-destination-card");
           const destinationToggle = document.querySelector(".unshield-destination-toggle");
           const destinationToggleInput = document.querySelector(".unshield-destination-toggle input");
           const legacyAssetStrip = document.querySelector(".unshield-balance-strip, .unshield-balance-pill");
           const bodyText = document.body.innerText;
+          const normalizedBodyText = bodyText.toLowerCase();
+          const previewText = exitPreview instanceof HTMLElement ? exitPreview.innerText.toLowerCase() : "";
+          const previewBeforeTicket =
+            exitPreview instanceof HTMLElement &&
+            ticket instanceof HTMLElement &&
+            exitPreview.getBoundingClientRect().top <= ticket.getBoundingClientRect().top;
+          const recipeNoOverflow =
+            !(exitRecipe instanceof HTMLElement) ||
+            exitRecipe.scrollWidth <= exitRecipe.clientWidth + 2;
           const documentOverflow = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth;
 
           return {
@@ -402,6 +413,19 @@ function assertUnshieldAssetSelectorStaysCompact() {
               ticket instanceof HTMLElement &&
               module instanceof HTMLElement &&
               selector instanceof HTMLSelectElement &&
+              exitPreview instanceof HTMLElement &&
+              exitRecipe instanceof HTMLElement &&
+              normalizedBodyText.includes("you'll receive") &&
+              normalizedBodyText.includes("shielded note") &&
+              normalizedBodyText.includes("own wallet") &&
+              previewBeforeTicket &&
+              recipeNoOverflow &&
+              !previewText.includes("fresh wallet") &&
+              !previewText.includes("different wallet") &&
+              !previewText.includes("private exit") &&
+              !previewText.includes("anonymous") &&
+              !previewText.includes("untraceable") &&
+              !previewText.includes("fully private") &&
               destinationCard instanceof HTMLElement &&
               destinationToggle instanceof HTMLElement &&
               destinationToggleInput instanceof HTMLInputElement &&
@@ -413,6 +437,10 @@ function assertUnshieldAssetSelectorStaysCompact() {
               legacyAssetStrip === null &&
               documentOverflow <= 2,
             documentOverflow,
+            hasExitPreview: exitPreview !== null,
+            hasExitRecipe: exitRecipe !== null,
+            previewBeforeTicket,
+            recipeNoOverflow,
             hasDestinationCard: destinationCard !== null,
             hasDestinationToggle: destinationToggle !== null,
             destinationToggleDisabled: destinationToggleInput instanceof HTMLInputElement ? destinationToggleInput.disabled : null,
