@@ -22,9 +22,9 @@
   ],
   "lumiBaseline": {
     "branch": "codex/vanta-zk-review-hardening",
-    "lastKnownCommit": "commit containing this Private Core single-note legacy-lane freeze feedback-loop ledger entry",
-    "local": "verified locally for the Private Core single-note legacy-lane freeze feedback-loop slice",
-    "committed": "included in the commit containing this Private Core single-note legacy-lane freeze feedback-loop ledger entry",
+    "lastKnownCommit": "commit containing the Send memo body-hash field and Unshield custody truth-surface feedback-loop ledger entries",
+    "local": "verified locally for the Send memo body-hash field and Unshield custody truth-surface feedback-loop slices",
+    "committed": "included in the commit containing the Send memo body-hash field and Unshield custody truth-surface feedback-loop ledger entries",
     "pushed": "not-pushed",
     "deployedLive": "not-live-verified"
   },
@@ -268,6 +268,59 @@
         "deployedLive": "not-live-verified"
       },
       "truthBoundary": "Private Core single-note Send/Swap/Unshield are maintained active-v0 compatibility lanes. They are locally guarded and still back current flows, but they are not the long-term circuit architecture and must not be expanded for new production claims."
+    },
+    {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-12-SEND-MEMO-BODY-HASH-FIELD",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#new-observations-from-the-re-walk",
+        "src/privacy/privatePoolV2ProofRequests.ts",
+        "src/privacy/privatePoolV2SendCircuitFixture.ts",
+        "zk/noir/vanta_private_pool_v2_send_entry/src/main.nr",
+        "src/privacy/privatePoolV2LocalVerifierRegistry.ts",
+        "operator/private-pool-v2-service-network.mjs"
+      ],
+      "summary": "Private Pool v2 Send no longer exposes recipient/change memo ciphertext body hashes as separate hi/lo public-input limbs. The proof request now compresses each sha256 body digest's two 128-bit halves into one Poseidon/BN254 field, and the Noir Send circuit binds those two fields into the Send public-input hash.",
+      "localVerification": [
+        "npm run private-pool-v2:send-proof-request-check",
+        "npm run private-pool-v2:send-circuit-check",
+        "npm run private-pool-v2:public-input-hash-alignment-check",
+        "npm run actions:memo-encryption-check",
+        "npm run private-pool-v2:local-runtime-check",
+        "npm run private-pool-v2:service-network-check",
+        "npm run private-pool-v2:contract-check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the Send memo body-hash field feedback-loop slice",
+        "committed": "included in the commit containing this Send memo body-hash field feedback-loop ledger entry",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This simplifies the local Send proof-request/circuit public-input contract and preserves opaque memo body binding. It is not recipient viewing-key exchange, not deployed memo/indexer discovery, not on-chain verifier enforcement, not audit acceptance, and not live deployment evidence."
+    },
+    {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-12-UNSHIELD-CUSTODY-TRUTH-SURFACE",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#still-open-5--vault-custody-is-still-operator-keypair-in-env",
+        "src/solana/unshieldTrustContract.ts",
+        "scripts/print-vanta-protocol-trust-packet.mjs",
+        "scripts/check-vanta-lane-trust-contracts.mjs",
+        "scripts/check-vanta-private-pool-v2-onchain-unshield-custody.mjs"
+      ],
+      "summary": "Unshield trust-contract and trust-packet surfaces now explicitly name the current release model as operator-keypair public exit, keep production custody/readiness booleans false, expose program-owned-vault and TAG_UNSHIELD blocker IDs, and cite the on-chain custody guard.",
+      "localVerification": [
+        "npm run lanes:trust-contract-check",
+        "npm run unshield:trust-packet-check",
+        "npm run private-pool-v2:onchain-unshield-custody-check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the Unshield custody truth-surface feedback-loop slice",
+        "committed": "included in the commit containing this Unshield custody truth-surface feedback-loop ledger entry",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is truth-surfacing and drift prevention only. It is not a program-owned vault PDA, not on-chain TAG_UNSHIELD, not proof-verified release, not audit acceptance, and not live deployment evidence."
     }
   ],
   "findings": [

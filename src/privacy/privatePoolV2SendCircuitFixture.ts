@@ -3,7 +3,10 @@ import {
   buildVantaPrivatePoolV2SparseMerkleTree,
   directionBitsForLeafIndex,
 } from "./privatePoolV2MerkleFixtureHelpers";
-import { createVantaPrivatePoolV2SendProofRequest } from "./privatePoolV2ProofRequests";
+import {
+  createVantaPrivatePoolV2SendProofRequest,
+  deriveVantaPrivatePoolV2MemoCiphertextBodyHashField,
+} from "./privatePoolV2ProofRequests";
 import type { VantaPrivatePoolV2ProofRequest } from "./privatePoolV2Types";
 
 export const VANTA_PRIVATE_POOL_V2_SEND_CIRCUIT_FIXTURE_VERSION =
@@ -26,12 +29,10 @@ export type VantaPrivatePoolV2SendCircuitWitness = {
   nullifier: bigint;
   owner_commitment: bigint;
   owner_secret: bigint;
-  change_memo_ciphertext_body_hash_lo: bigint;
-  change_memo_ciphertext_body_hash_hi: bigint;
+  change_memo_ciphertext_body_hash_field: bigint;
   change_append_path: readonly bigint[];
   change_append_path_direction_bits: readonly bigint[];
-  recipient_memo_ciphertext_body_hash_lo: bigint;
-  recipient_memo_ciphertext_body_hash_hi: bigint;
+  recipient_memo_ciphertext_body_hash_field: bigint;
   recipient_amount: bigint;
   recipient_leaf_index: bigint;
   recipient_append_path: readonly bigint[];
@@ -46,6 +47,11 @@ export type VantaPrivatePoolV2SendCircuitFixture = {
   proofRequest: VantaPrivatePoolV2ProofRequest;
   sendPublicInputHash: bigint;
   witness: VantaPrivatePoolV2SendCircuitWitness;
+};
+
+export type VantaPrivatePoolV2SendCircuitFixtureMemoBodyHashes = {
+  changeMemoCiphertextBodyHash?: string | undefined;
+  recipientMemoCiphertextBodyHash?: string | undefined;
 };
 
 export type VantaPrivatePoolV2SendCircuitFixtureMode =
@@ -69,7 +75,6 @@ const DEFAULT_WITNESS_ECONOMICS = {
 
 const DEFAULT_RECIPIENT_MEMO_CIPHERTEXT_BODY_HASH_HEX = "11".repeat(32);
 const DEFAULT_CHANGE_MEMO_CIPHERTEXT_BODY_HASH_HEX = "22".repeat(32);
-const MAX_U128 = (1n << 128n) - 1n;
 
 function splitMemoCiphertextBodyHashHex(hex: string) {
   return {
@@ -78,26 +83,23 @@ function splitMemoCiphertextBodyHashHex(hex: string) {
   };
 }
 
-function memoCiphertextBodyHashFromLimbs({
-  hi,
-  lo,
-}: {
-  hi: bigint;
-  lo: bigint;
-}) {
-  if (hi < 0n || hi > MAX_U128 || lo < 0n || lo > MAX_U128) {
-    throw new Error("Memo ciphertext body hash limbs must fit in 128 bits.");
-  }
-
-  return `sha256:${hi.toString(16).padStart(32, "0")}${lo
-    .toString(16)
-    .padStart(32, "0")}`;
+function memoCiphertextBodyHashFieldFromHex(hex: string) {
+  const limbs = splitMemoCiphertextBodyHashHex(hex);
+  return poseidon2([limbs.hi, limbs.lo]);
 }
 
-const DEFAULT_RECIPIENT_MEMO_CIPHERTEXT_BODY_HASH_LIMBS =
-  splitMemoCiphertextBodyHashHex(DEFAULT_RECIPIENT_MEMO_CIPHERTEXT_BODY_HASH_HEX);
-const DEFAULT_CHANGE_MEMO_CIPHERTEXT_BODY_HASH_LIMBS =
-  splitMemoCiphertextBodyHashHex(DEFAULT_CHANGE_MEMO_CIPHERTEXT_BODY_HASH_HEX);
+function memoCiphertextBodyHashFromHex(hex: string) {
+  return `sha256:${hex}`;
+}
+
+const DEFAULT_MEMO_CIPHERTEXT_BODY_HASHES = {
+  changeMemoCiphertextBodyHash: memoCiphertextBodyHashFromHex(
+    DEFAULT_CHANGE_MEMO_CIPHERTEXT_BODY_HASH_HEX,
+  ),
+  recipientMemoCiphertextBodyHash: memoCiphertextBodyHashFromHex(
+    DEFAULT_RECIPIENT_MEMO_CIPHERTEXT_BODY_HASH_HEX,
+  ),
+} satisfies Required<VantaPrivatePoolV2SendCircuitFixtureMemoBodyHashes>;
 
 const DEFAULT_WITNESS_BASE = {
   asset_id_commitment: 707n,
@@ -115,14 +117,12 @@ const DEFAULT_WITNESS_BASE = {
   membership_path_direction_bits: [] as readonly bigint[],
   owner_commitment: 606n,
   owner_secret: 404n,
-  change_memo_ciphertext_body_hash_hi:
-    DEFAULT_CHANGE_MEMO_CIPHERTEXT_BODY_HASH_LIMBS.hi,
-  change_memo_ciphertext_body_hash_lo:
-    DEFAULT_CHANGE_MEMO_CIPHERTEXT_BODY_HASH_LIMBS.lo,
-  recipient_memo_ciphertext_body_hash_hi:
-    DEFAULT_RECIPIENT_MEMO_CIPHERTEXT_BODY_HASH_LIMBS.hi,
-  recipient_memo_ciphertext_body_hash_lo:
-    DEFAULT_RECIPIENT_MEMO_CIPHERTEXT_BODY_HASH_LIMBS.lo,
+  change_memo_ciphertext_body_hash_field: memoCiphertextBodyHashFieldFromHex(
+    DEFAULT_CHANGE_MEMO_CIPHERTEXT_BODY_HASH_HEX,
+  ),
+  recipient_memo_ciphertext_body_hash_field: memoCiphertextBodyHashFieldFromHex(
+    DEFAULT_RECIPIENT_MEMO_CIPHERTEXT_BODY_HASH_HEX,
+  ),
   recipient_amount: DEFAULT_WITNESS_ECONOMICS.recipient_amount,
   recipient_leaf_index: 6n,
   recipient_output_commitment: 909n,
@@ -253,11 +253,9 @@ export function computeVantaPrivatePoolV2SendPublicInputHash(
     witness.change_output_root,
   ]);
 
-  const memoDiscovery = poseidon4([
-    witness.recipient_memo_ciphertext_body_hash_hi,
-    witness.recipient_memo_ciphertext_body_hash_lo,
-    witness.change_memo_ciphertext_body_hash_hi,
-    witness.change_memo_ciphertext_body_hash_lo,
+  const memoDiscovery = poseidon2([
+    witness.recipient_memo_ciphertext_body_hash_field,
+    witness.change_memo_ciphertext_body_hash_field,
   ]);
 
   return poseidon12([
@@ -277,9 +275,11 @@ export function computeVantaPrivatePoolV2SendPublicInputHash(
 }
 
 export function createVantaPrivatePoolV2SendCircuitFixture({
+  memoCiphertextBodyHashes,
   mode = "valid",
   witness = DEFAULT_WITNESS,
 }: {
+  memoCiphertextBodyHashes?: VantaPrivatePoolV2SendCircuitFixtureMemoBodyHashes;
   mode?: VantaPrivatePoolV2SendCircuitFixtureMode;
   witness?: VantaPrivatePoolV2SendCircuitWitness;
 } = {}): VantaPrivatePoolV2SendCircuitFixture {
@@ -303,13 +303,14 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
       : mode === "invalid-memo-ciphertext-hash"
         ? {
             ...witness,
-            recipient_memo_ciphertext_body_hash_hi: witness.recipient_memo_ciphertext_body_hash_hi + 1n,
+            recipient_memo_ciphertext_body_hash_field:
+              witness.recipient_memo_ciphertext_body_hash_field + 1n,
           }
       : mode === "invalid-nullifier"
-      ? {
-          ...witness,
-          nullifier: witness.nullifier + 1n,
-        }
+        ? {
+            ...witness,
+            nullifier: witness.nullifier + 1n,
+          }
       : mode === "invalid-output-root"
         ? {
             ...witness,
@@ -319,13 +320,27 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
   const publicHashWitness =
     mode === "invalid-memo-ciphertext-hash" ? witness : circuitWitness;
   const validPublicHash = computeVantaPrivatePoolV2SendPublicInputHash(publicHashWitness);
+  const resolvedMemoCiphertextBodyHashes = {
+    ...DEFAULT_MEMO_CIPHERTEXT_BODY_HASHES,
+    ...memoCiphertextBodyHashes,
+  };
+
+  assertMemoCiphertextBodyHashFieldMatches({
+    expectedField: publicHashWitness.recipient_memo_ciphertext_body_hash_field,
+    fieldName: "recipient memo ciphertext body hash",
+    value: resolvedMemoCiphertextBodyHashes.recipientMemoCiphertextBodyHash,
+  });
+  assertMemoCiphertextBodyHashFieldMatches({
+    expectedField: publicHashWitness.change_memo_ciphertext_body_hash_field,
+    fieldName: "change memo ciphertext body hash",
+    value: resolvedMemoCiphertextBodyHashes.changeMemoCiphertextBodyHash,
+  });
+
   const proofRequest = createVantaPrivatePoolV2SendProofRequest({
     assetIdCommitment: toCircuitString(publicHashWitness.asset_id_commitment),
     changeLeafIndex: toCircuitString(publicHashWitness.change_leaf_index),
-    changeMemoCiphertextBodyHash: memoCiphertextBodyHashFromLimbs({
-      hi: publicHashWitness.change_memo_ciphertext_body_hash_hi,
-      lo: publicHashWitness.change_memo_ciphertext_body_hash_lo,
-    }),
+    changeMemoCiphertextBodyHash:
+      resolvedMemoCiphertextBodyHashes.changeMemoCiphertextBodyHash,
     changeOutputCommitment: toCircuitString(publicHashWitness.change_output_commitment),
     changeOutputRoot: toCircuitString(publicHashWitness.change_output_root),
     economicsCommitment: toCircuitString(publicHashWitness.economics_commitment),
@@ -334,10 +349,8 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
     nullifier: toCircuitString(publicHashWitness.nullifier),
     ownerCommitment: toCircuitString(publicHashWitness.owner_commitment),
     recipientLeafIndex: toCircuitString(publicHashWitness.recipient_leaf_index),
-    recipientMemoCiphertextBodyHash: memoCiphertextBodyHashFromLimbs({
-      hi: publicHashWitness.recipient_memo_ciphertext_body_hash_hi,
-      lo: publicHashWitness.recipient_memo_ciphertext_body_hash_lo,
-    }),
+    recipientMemoCiphertextBodyHash:
+      resolvedMemoCiphertextBodyHashes.recipientMemoCiphertextBodyHash,
     recipientOutputCommitment: toCircuitString(publicHashWitness.recipient_output_commitment),
     recipientOutputRoot: toCircuitString(publicHashWitness.recipient_output_root),
     sendContextTag: toCircuitString(publicHashWitness.send_context_tag),
@@ -349,6 +362,26 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
     sendPublicInputHash: mode === "invalid-binding" ? validPublicHash + 1n : validPublicHash,
     witness: circuitWitness,
   };
+}
+
+function assertMemoCiphertextBodyHashFieldMatches({
+  expectedField,
+  fieldName,
+  value,
+}: {
+  expectedField: bigint;
+  fieldName: string;
+  value: string | undefined;
+}) {
+  const actualField = BigInt(
+    deriveVantaPrivatePoolV2MemoCiphertextBodyHashField(value, fieldName),
+  );
+
+  if (actualField !== expectedField) {
+    throw new Error(
+      `Send circuit fixture ${fieldName} must derive field ${expectedField.toString(10)}; received ${actualField.toString(10)}.`,
+    );
+  }
 }
 
 function createInvalidAmountConservationWitness(
@@ -473,10 +506,8 @@ export function serializeVantaPrivatePoolV2SendCircuitFixtureToToml(
     `economics_commitment = "${witness.economics_commitment.toString(10)}"`,
     `owner_commitment = "${witness.owner_commitment.toString(10)}"`,
     `send_context_tag = "${witness.send_context_tag.toString(10)}"`,
-    `recipient_memo_ciphertext_body_hash_hi = "${witness.recipient_memo_ciphertext_body_hash_hi.toString(10)}"`,
-    `recipient_memo_ciphertext_body_hash_lo = "${witness.recipient_memo_ciphertext_body_hash_lo.toString(10)}"`,
-    `change_memo_ciphertext_body_hash_hi = "${witness.change_memo_ciphertext_body_hash_hi.toString(10)}"`,
-    `change_memo_ciphertext_body_hash_lo = "${witness.change_memo_ciphertext_body_hash_lo.toString(10)}"`,
+    `recipient_memo_ciphertext_body_hash_field = "${witness.recipient_memo_ciphertext_body_hash_field.toString(10)}"`,
+    `change_memo_ciphertext_body_hash_field = "${witness.change_memo_ciphertext_body_hash_field.toString(10)}"`,
     `recipient_leaf_index = "${witness.recipient_leaf_index.toString(10)}"`,
     `recipient_output_root = "${witness.recipient_output_root.toString(10)}"`,
     `recipient_append_path = [${witness.recipient_append_path.map((value) => `"${value.toString(10)}"`).join(", ")}]`,

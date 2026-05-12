@@ -52,6 +52,16 @@ const laneContracts = [
     page: "src/pages/UnshieldPage.tsx",
     path: "src/solana/unshieldTrustContract.ts",
     version: "vanta-unshield-trust-contract-0.1",
+    requiredMarkers: [
+      'currentReleaseModel: "operator-keypair-public-exit"',
+      "productionCustodyReady: false",
+      "programOwnedVaultReady: false",
+      "onchainUnshieldInstructionReady: false",
+      "program-owned-vault-pda-not-deployed",
+      "tag-unshield-not-implemented",
+      "npm run private-pool-v2:onchain-unshield-custody-check",
+      "program-owned vault + on-chain TAG_UNSHIELD proof-verified release",
+    ],
   },
 ];
 
@@ -59,7 +69,7 @@ const laneSpecificMarkers = {
   "src/solana/sendTrustContract.ts": [
     "Fresh v2 Send memos put ciphertext, signer, and timing on chain.",
     "local dual-AEAD scaffold can separately seal recipient and change discovery memos with ciphertext body hashes",
-    "Private Pool v2 Send proof-request/circuit lane locally binds those body-hash limbs",
+    "Private Pool v2 Send proof-request/circuit lane locally binds those body-hash fields",
     "External Send remains fail-closed until recipient viewing-key exchange",
     "Operator/status surfaces still see transition and proof metadata",
     "npm run private-pool-v2:send-circuit-check",
@@ -78,6 +88,7 @@ for (const contract of laneContracts) {
     "currentTruth",
     "visibleStatusCopy",
     "verificationSurfaces",
+    ...(contract.requiredMarkers ?? []),
     ...(laneSpecificMarkers[contract.path] ?? []),
   ]);
 

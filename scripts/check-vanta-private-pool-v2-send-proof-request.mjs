@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { poseidon2 } from "poseidon-lite";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-pool-v2-send-request-"));
@@ -65,12 +66,12 @@ function memoBodyHash(byteHex) {
   return `sha256:${byteHex.repeat(32)}`;
 }
 
-function memoBodyHashLimbs(bodyHash) {
+function memoBodyHashField(bodyHash) {
   const digestHex = bodyHash.slice("sha256:".length);
-  return {
-    hi: BigInt(`0x${digestHex.slice(0, 32)}`).toString(10),
-    lo: BigInt(`0x${digestHex.slice(32)}`).toString(10),
-  };
+  return poseidon2([
+    BigInt(`0x${digestHex.slice(0, 32)}`),
+    BigInt(`0x${digestHex.slice(32)}`),
+  ]).toString(10);
 }
 
 try {
@@ -115,13 +116,9 @@ try {
   );
 
   const recipientMemoCiphertextBodyHash = memoBodyHash("11");
-  const recipientMemoCiphertextBodyHashLimbs = memoBodyHashLimbs(
-    recipientMemoCiphertextBodyHash,
-  );
+  const recipientMemoCiphertextBodyHashField = memoBodyHashField(recipientMemoCiphertextBodyHash);
   const changeMemoCiphertextBodyHash = memoBodyHash("22");
-  const changeMemoCiphertextBodyHashLimbs = memoBodyHashLimbs(
-    changeMemoCiphertextBodyHash,
-  );
+  const changeMemoCiphertextBodyHashField = memoBodyHashField(changeMemoCiphertextBodyHash);
 
   const request = createVantaPrivatePoolV2SendProofRequest({
     assetIdCommitment: "field:asset",
@@ -164,10 +161,8 @@ try {
         "change-output-commitment:field:change-output",
         "change-leaf-index:43",
         "change-output-root:field:change-root",
-        `recipient-memo-ciphertext-body-hash-hi:${recipientMemoCiphertextBodyHashLimbs.hi}`,
-        `recipient-memo-ciphertext-body-hash-lo:${recipientMemoCiphertextBodyHashLimbs.lo}`,
-        `change-memo-ciphertext-body-hash-hi:${changeMemoCiphertextBodyHashLimbs.hi}`,
-        `change-memo-ciphertext-body-hash-lo:${changeMemoCiphertextBodyHashLimbs.lo}`,
+        `recipient-memo-ciphertext-body-hash-field:${recipientMemoCiphertextBodyHashField}`,
+        `change-memo-ciphertext-body-hash-field:${changeMemoCiphertextBodyHashField}`,
         "asset-id-commitment:field:asset",
         "economics-commitment:field:economics",
         "owner-commitment:field:owner",
@@ -219,9 +214,8 @@ try {
     "Expected no-change private-send request to bind a zero change commitment.",
   );
   assert(
-    noChangeRequest.publicInputs.includes("change-memo-ciphertext-body-hash-hi:0") &&
-      noChangeRequest.publicInputs.includes("change-memo-ciphertext-body-hash-lo:0"),
-    "Expected no-change private-send request to bind zero change memo ciphertext body hash limbs.",
+    noChangeRequest.publicInputs.includes("change-memo-ciphertext-body-hash-field:0"),
+    "Expected no-change private-send request to bind a zero change memo ciphertext body hash field.",
   );
   console.log("private-pool-v2 send proof request no-change binding: PASS");
 
@@ -294,7 +288,7 @@ try {
     [`sha512:${"11".repeat(32)}`, "sha256:<64 lowercase hex>"],
     [`sha256:${"gg".repeat(32)}`, "sha256:<64 lowercase hex>"],
     [`sha256:${"11".repeat(31)}`, "sha256:<64 lowercase hex>"],
-    [`sha256:${"00".repeat(32)}`, "zero memo ciphertext body hash limbs"],
+    [`sha256:${"00".repeat(32)}`, "zero memo ciphertext body hash field"],
   ]) {
     await expectRejection(
       () =>
@@ -334,7 +328,7 @@ try {
         recipientOutputRoot: "field:recipient-root",
         sendContextTag: "field:send-context",
       }),
-    "zero memo ciphertext body hash limbs",
+    "zero memo ciphertext body hash field",
   );
   console.log("private-pool-v2 send proof request memo ciphertext body hash guard: PASS");
 } catch (error) {

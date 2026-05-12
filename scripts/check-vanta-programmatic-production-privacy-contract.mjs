@@ -135,8 +135,8 @@ assert.ok(
 assert.ok(
   requirements
     .get("proof-bound-settlement-receipt")
-    .currentTruth.includes("memo ciphertext body-hash limbs"),
-  "Proof-bound settlement receipt requirement must mention local Send ciphertext body-hash limb binding.",
+    .currentTruth.includes("memo ciphertext body-hash fields"),
+  "Proof-bound settlement receipt requirement must mention local Send ciphertext body-hash field binding.",
 );
 assert.equal(contract.currentSignals.liveMainnetPrivateSettlementAvailable, false);
 assert.equal(contract.currentSignals.meaningfulPrivacyReady, false);

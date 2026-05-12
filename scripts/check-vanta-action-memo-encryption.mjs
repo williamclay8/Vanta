@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { poseidon2 } from "poseidon-lite";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-action-memo-encryption-"));
@@ -122,12 +123,12 @@ function assertThrowsActionMemoWithoutViewingKey(fn, label) {
   assert(threw, `${label} must fail closed instead of creating fresh v1 plaintext without a viewing key.`);
 }
 
-function memoBodyHashLimbs(bodyHash) {
+function memoBodyHashField(bodyHash) {
   const digestHex = bodyHash.slice("sha256:".length);
-  return {
-    hi: BigInt(`0x${digestHex.slice(0, 32)}`).toString(10),
-    lo: BigInt(`0x${digestHex.slice(32)}`).toString(10),
-  };
+  return poseidon2([
+    BigInt(`0x${digestHex.slice(0, 32)}`),
+    BigInt(`0x${digestHex.slice(32)}`),
+  ]).toString(10);
 }
 
 function legacyMemo(prefix, payload) {
@@ -381,8 +382,8 @@ try {
         dualSend.changeMemoCiphertextBodyHash,
     "Dual Send discovery handoffs must point at the proof-bound memo ciphertext body hashes.",
   );
-  const recipientMemoBodyHashLimbs = memoBodyHashLimbs(dualSend.recipientMemoCiphertextBodyHash);
-  const changeMemoBodyHashLimbs = memoBodyHashLimbs(dualSend.changeMemoCiphertextBodyHash);
+  const recipientMemoBodyHashField = memoBodyHashField(dualSend.recipientMemoCiphertextBodyHash);
+  const changeMemoBodyHashField = memoBodyHashField(dualSend.changeMemoCiphertextBodyHash);
   const dualSendProofRequest = createVantaPrivatePoolV2SendProofRequest({
     assetIdCommitment: "field:asset",
     changeLeafIndex: "2",
@@ -403,16 +404,10 @@ try {
   });
   assert(
     dualSendProofRequest.publicInputs.includes(
-      `recipient-memo-ciphertext-body-hash-hi:${recipientMemoBodyHashLimbs.hi}`,
+      `recipient-memo-ciphertext-body-hash-field:${recipientMemoBodyHashField}`,
     ) &&
       dualSendProofRequest.publicInputs.includes(
-        `recipient-memo-ciphertext-body-hash-lo:${recipientMemoBodyHashLimbs.lo}`,
-      ) &&
-      dualSendProofRequest.publicInputs.includes(
-        `change-memo-ciphertext-body-hash-hi:${changeMemoBodyHashLimbs.hi}`,
-      ) &&
-      dualSendProofRequest.publicInputs.includes(
-        `change-memo-ciphertext-body-hash-lo:${changeMemoBodyHashLimbs.lo}`,
+        `change-memo-ciphertext-body-hash-field:${changeMemoBodyHashField}`,
       ),
     "Dual Send memo body hashes must feed the exact Private Pool v2 Send proof-request public inputs.",
   );

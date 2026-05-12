@@ -130,7 +130,7 @@ for (const phrase of [
   "VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID",
   "VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS",
   "send-public-input-hash",
-  "recipient-memo-ciphertext-body-hash-hi",
+  "recipient-memo-ciphertext-body-hash-field",
   "operatorVisibleTerms",
 ]) {
   assert.ok(sendProofRequestSource.includes(phrase), `Send proof request must preserve ${phrase}.`);
@@ -140,7 +140,7 @@ for (const phrase of [
   "compute_nullifier",
   "recipient_output_root",
   "change_output_root",
-  "recipient_memo_ciphertext_body_hash_hi",
+  "recipient_memo_ciphertext_body_hash_field",
   "send_public_input_hash",
 ]) {
   assert.ok(sendCircuitSource.includes(phrase), `Send circuit must preserve ${phrase}.`);

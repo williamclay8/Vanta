@@ -1090,16 +1090,17 @@ function requirePublicInput(request, prefix) {
   return value;
 }
 
-const U128_MAX = (1n << 128n) - 1n;
+const BN254_SCALAR_FIELD =
+  21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 
-function requirePublicInputU128(request, prefix) {
+function requirePublicInputField(request, prefix) {
   const value = requirePublicInput(request, prefix);
   if (!/^(0|[1-9][0-9]*)$/u.test(value)) {
-    throw new Error(`Proof receipt requires public input ${prefix} to be a decimal u128 limb.`);
+    throw new Error(`Proof receipt requires public input ${prefix} to be a decimal BN254 field.`);
   }
 
-  if (BigInt(value) > U128_MAX) {
-    throw new Error(`Proof receipt requires public input ${prefix} to fit in u128.`);
+  if (BigInt(value) >= BN254_SCALAR_FIELD) {
+    throw new Error(`Proof receipt requires public input ${prefix} to fit in BN254.`);
   }
 
   return value;
@@ -1146,31 +1147,22 @@ function isStatefulPrivateSendRequest(request) {
   }
 
   const changeOutputCommitment = readPublicInput(request, "change-output-commitment:");
-  const recipientMemoHashHi = requirePublicInputU128(
+  const recipientMemoHashField = requirePublicInputField(
     request,
-    "recipient-memo-ciphertext-body-hash-hi:",
+    "recipient-memo-ciphertext-body-hash-field:",
   );
-  const recipientMemoHashLo = requirePublicInputU128(
+  const changeMemoHashField = requirePublicInputField(
     request,
-    "recipient-memo-ciphertext-body-hash-lo:",
+    "change-memo-ciphertext-body-hash-field:",
   );
-  const changeMemoHashHi = requirePublicInputU128(
-    request,
-    "change-memo-ciphertext-body-hash-hi:",
-  );
-  const changeMemoHashLo = requirePublicInputU128(
-    request,
-    "change-memo-ciphertext-body-hash-lo:",
-  );
-  if (recipientMemoHashHi === "0" && recipientMemoHashLo === "0") {
+  if (recipientMemoHashField === "0") {
     throw new Error("Private-send proof receipt requires a nonzero recipient memo ciphertext body hash.");
   }
 
   if (
     changeOutputCommitment &&
     changeOutputCommitment !== "0" &&
-    changeMemoHashHi === "0" &&
-    changeMemoHashLo === "0"
+    changeMemoHashField === "0"
   ) {
     throw new Error(
       "Private-send proof receipt requires a change memo ciphertext body hash for nonzero change outputs.",

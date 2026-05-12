@@ -1,5 +1,6 @@
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
+import { poseidon2 } from "poseidon-lite";
 import type {
   VantaPrivatePoolV2ClaimQuote,
   VantaPrivatePoolV2Commitment,
@@ -95,10 +96,7 @@ export type VantaPrivatePoolV2SendProofRequestArgs = {
   sendPublicInputHash?: string;
 };
 
-export type VantaPrivatePoolV2MemoCiphertextBodyHashLimbs = {
-  hi: string;
-  lo: string;
-};
+export type VantaPrivatePoolV2MemoCiphertextBodyHashField = string;
 
 export type VantaPrivatePoolV2UnshieldProofRequestArgs = {
   economicsCommitment: string;
@@ -152,20 +150,18 @@ function hashParts(...parts: readonly string[]) {
 const VANTA_PRIVATE_POOL_V2_MEMO_CIPHERTEXT_BODY_HASH_PATTERN =
   /^sha256:([0-9a-f]{64})$/;
 
-export const VANTA_PRIVATE_POOL_V2_ZERO_MEMO_CIPHERTEXT_BODY_HASH_LIMBS = {
-  hi: "0",
-  lo: "0",
-} as const satisfies VantaPrivatePoolV2MemoCiphertextBodyHashLimbs;
+export const VANTA_PRIVATE_POOL_V2_ZERO_MEMO_CIPHERTEXT_BODY_HASH_FIELD =
+  "0" as const satisfies VantaPrivatePoolV2MemoCiphertextBodyHashField;
 
 const VANTA_PRIVATE_POOL_V2_ZERO_MEMO_CIPHERTEXT_BODY_HASH_DIGEST =
   "0".repeat(64);
 
-export function splitVantaPrivatePoolV2MemoCiphertextBodyHash(
+export function deriveVantaPrivatePoolV2MemoCiphertextBodyHashField(
   value: string | null | undefined,
   fieldName: string,
-): VantaPrivatePoolV2MemoCiphertextBodyHashLimbs {
+): VantaPrivatePoolV2MemoCiphertextBodyHashField {
   if (value === undefined || value === null) {
-    return VANTA_PRIVATE_POOL_V2_ZERO_MEMO_CIPHERTEXT_BODY_HASH_LIMBS;
+    return VANTA_PRIVATE_POOL_V2_ZERO_MEMO_CIPHERTEXT_BODY_HASH_FIELD;
   }
 
   const trimmed = value.trim();
@@ -183,14 +179,13 @@ export function splitVantaPrivatePoolV2MemoCiphertextBodyHash(
   const digestHex = match[1] ?? "";
   if (digestHex === VANTA_PRIVATE_POOL_V2_ZERO_MEMO_CIPHERTEXT_BODY_HASH_DIGEST) {
     throw new Error(
-      "Private-send proof request reserves zero memo ciphertext body hash limbs for an absent no-change memo.",
+      "Private-send proof request reserves zero memo ciphertext body hash field for an absent no-change memo.",
     );
   }
 
-  return {
-    hi: BigInt(`0x${digestHex.slice(0, 32)}`).toString(10),
-    lo: BigInt(`0x${digestHex.slice(32)}`).toString(10),
-  };
+  const hi = BigInt(`0x${digestHex.slice(0, 32)}`);
+  const lo = BigInt(`0x${digestHex.slice(32)}`);
+  return poseidon2([hi, lo]).toString(10);
 }
 
 export function computeVantaPrivatePoolV2UnshieldPublicInputHash({
@@ -544,13 +539,13 @@ export function createVantaPrivatePoolV2SendProofRequest({
     );
   }
 
-  const recipientMemoCiphertextBodyHashLimbs =
-    splitVantaPrivatePoolV2MemoCiphertextBodyHash(
+  const recipientMemoCiphertextBodyHashField =
+    deriveVantaPrivatePoolV2MemoCiphertextBodyHashField(
       recipientMemoCiphertextBodyHash,
       "recipient memo ciphertext body hash",
     );
-  const changeMemoCiphertextBodyHashLimbs =
-    splitVantaPrivatePoolV2MemoCiphertextBodyHash(
+  const changeMemoCiphertextBodyHashField =
+    deriveVantaPrivatePoolV2MemoCiphertextBodyHashField(
       changeMemoCiphertextBodyHash,
       "change memo ciphertext body hash",
     );
@@ -625,10 +620,8 @@ export function createVantaPrivatePoolV2SendProofRequest({
       `change-output-commitment:${changeOutputCommitment}`,
       `change-leaf-index:${changeLeafIndex}`,
       `change-output-root:${changeOutputRoot}`,
-      `recipient-memo-ciphertext-body-hash-hi:${recipientMemoCiphertextBodyHashLimbs.hi}`,
-      `recipient-memo-ciphertext-body-hash-lo:${recipientMemoCiphertextBodyHashLimbs.lo}`,
-      `change-memo-ciphertext-body-hash-hi:${changeMemoCiphertextBodyHashLimbs.hi}`,
-      `change-memo-ciphertext-body-hash-lo:${changeMemoCiphertextBodyHashLimbs.lo}`,
+      `recipient-memo-ciphertext-body-hash-field:${recipientMemoCiphertextBodyHashField}`,
+      `change-memo-ciphertext-body-hash-field:${changeMemoCiphertextBodyHashField}`,
       `asset-id-commitment:${assetIdCommitment}`,
       `economics-commitment:${economicsCommitment}`,
       `owner-commitment:${ownerCommitment}`,

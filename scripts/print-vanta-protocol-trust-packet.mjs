@@ -106,7 +106,7 @@ const packets = {
       version: "vanta-send-history-privacy-scope-0.1",
     },
     proofTranscriptFields: [
-      "Private Pool v2 Send proof requests and the local Send circuit bind recipient/change ciphertext body hash limbs into the public input hash",
+      "Private Pool v2 Send proof requests and the local Send circuit bind recipient/change ciphertext body hash fields into the public input hash",
     ],
     spendabilityBasis: "canonical-spendable-note-ledger",
     visibleFields: [
@@ -163,6 +163,7 @@ const packets = {
     action: "unshield",
     counterparty: "recipient-or-reviewer",
     artifact: "Unshield release receipt and transaction evidence surface",
+    currentReleaseModel: "operator-keypair-public-exit",
     claimBoundary: {
       privacyTier: "redacted-release-receipt-not-production-private",
       proofBacked: false,
@@ -170,7 +171,19 @@ const packets = {
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Unshield has a shaped release-evidence contract, but this packet is not current proof-backed and is not a production-private exit or anonymity claim.",
+        "Unshield currently releases through an operator-keypair public exit. This is not a production-private exit or custody claim until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
+    },
+    custodyBoundary: {
+      productionCustodyReady: false,
+      programOwnedVaultReady: false,
+      onchainUnshieldInstructionReady: false,
+      blockerIds: [
+        "program-owned-vault-pda-not-deployed",
+        "tag-unshield-not-implemented",
+      ],
+      guardCommand: "npm run private-pool-v2:onchain-unshield-custody-check",
+      safeReleaseBoundary:
+        "Current release model is operator-keypair public exit; production custody requires program-owned vault custody and on-chain TAG_UNSHIELD proof-verified release.",
     },
     honestyNote:
       "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in SECURITY_LIMITATIONS.md.",
@@ -190,10 +203,11 @@ const packets = {
 	    verificationCommands: [
 	      "npm run unshield:balance-ledger-check",
 	      "npm run unshield:public-exit-surface-check",
-	      "npm run unshield:sol-operator-endpoint-check",
-	      "npm run private-core:unshield-committed-settlement-check",
-	      "npm run unshield:safe-send-adoption-check",
-	      "npm run programmatic-privacy:contract-check",
+      "npm run unshield:sol-operator-endpoint-check",
+      "npm run private-core:unshield-committed-settlement-check",
+      "npm run unshield:safe-send-adoption-check",
+      "npm run private-pool-v2:onchain-unshield-custody-check",
+      "npm run programmatic-privacy:contract-check",
     ],
   },
 };
@@ -219,6 +233,14 @@ if (packet.action === "send") {
   packet.remainingBlockers = [
     ...packet.remainingBlockers,
     "send-memo-indexer-body-hash-handoff-not-deployed",
+  ];
+}
+
+if (packet.action === "unshield") {
+  packet.remainingBlockers = [
+    ...packet.remainingBlockers,
+    "program-owned-vault-pda-not-deployed",
+    "tag-unshield-not-implemented",
   ];
 }
 
@@ -256,7 +278,7 @@ if (checkMode) {
     );
     assert.ok(
       packet.proofTranscriptFields?.some((field) =>
-        field.includes("public input hash") && field.includes("ciphertext body hash limbs"),
+        field.includes("public input hash") && field.includes("ciphertext body hash fields"),
       ),
       "Send packet must disclose the local proof-request/circuit ciphertext body hash binding.",
     );
@@ -307,6 +329,46 @@ if (checkMode) {
     );
   }
 
+  if (packet.action === "unshield") {
+    assert.equal(packet.currentReleaseModel, "operator-keypair-public-exit");
+    assert.equal(packet.custodyBoundary?.productionCustodyReady, false);
+    assert.equal(packet.custodyBoundary?.programOwnedVaultReady, false);
+    assert.equal(packet.custodyBoundary?.onchainUnshieldInstructionReady, false);
+    assert.equal(
+      packet.custodyBoundary?.guardCommand,
+      "npm run private-pool-v2:onchain-unshield-custody-check",
+    );
+    for (const blocker of [
+      "program-owned-vault-pda-not-deployed",
+      "tag-unshield-not-implemented",
+    ]) {
+      assert.ok(
+        packet.custodyBoundary?.blockerIds?.includes(blocker),
+        `Unshield packet custody boundary missing blocker id: ${blocker}`,
+      );
+      assert.ok(
+        packet.remainingBlockers.includes(blocker),
+        `Unshield packet remainingBlockers missing custody blocker id: ${blocker}`,
+      );
+    }
+    assert.ok(
+      packet.claimBoundary.safeClaim.includes("operator-keypair public exit"),
+      "Unshield packet must name the current operator-keypair public-exit release model.",
+    );
+    assert.ok(
+      packet.claimBoundary.safeClaim.includes(
+        "program-owned vault + on-chain TAG_UNSHIELD proof-verified release",
+      ),
+      "Unshield packet must name the future custody/proof release gate.",
+    );
+    assert.ok(
+      packet.verificationCommands.includes(
+        "npm run private-pool-v2:onchain-unshield-custody-check",
+      ),
+      "Unshield packet must include the on-chain custody guard command.",
+    );
+  }
+
   const serialized = JSON.stringify(packet);
   for (const forbidden of [
     "wallet private key",
@@ -331,6 +393,9 @@ if (jsonMode || checkMode) {
   console.log(`- claimBoundary: ${packet.claimBoundary.privacyTier}`);
   console.log(`- fullyPrivate: ${String(packet.claimBoundary.fullyPrivate)}`);
   console.log(`- productionReady: ${String(packet.claimBoundary.productionReady)}`);
+  if (packet.currentReleaseModel) {
+    console.log(`- currentReleaseModel: ${packet.currentReleaseModel}`);
+  }
   console.log(`- artifact: ${packet.artifact}`);
   console.log(`- verifies with: ${packet.verificationCommands.join(", ")}`);
   console.log(`- remaining blockers: ${packet.remainingBlockers.join(", ")}`);

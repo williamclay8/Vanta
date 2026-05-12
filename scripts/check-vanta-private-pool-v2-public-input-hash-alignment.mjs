@@ -71,8 +71,27 @@ function assertValue(publicInputMap, label, expected, lane) {
   );
 }
 
+function assertThrowsContaining(fn, expectedMessagePart, message) {
+  try {
+    fn();
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    assert(
+      errorMessage.includes(expectedMessagePart),
+      `${message}; received ${errorMessage}.`,
+    );
+    return;
+  }
+
+  throw new Error(message);
+}
+
 function leafIndexFromDirectionBits(bits) {
   return bits.reduce((index, bit, bitIndex) => index + bit * (1n << BigInt(bitIndex)), 0n);
+}
+
+function memoCiphertextBodyHashField(value, fieldName, deriveMemoCiphertextBodyHashField) {
+  return BigInt(deriveMemoCiphertextBodyHashField(value, fieldName));
 }
 
 try {
@@ -108,6 +127,7 @@ try {
   const {
     computeVantaPrivatePoolV2UnshieldPublicInputHash,
     createVantaPrivatePoolV2UnshieldProofRequest,
+    deriveVantaPrivatePoolV2MemoCiphertextBodyHashField,
   } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2ProofRequests.js")).href);
   const {
     computeVantaPrivatePoolV2ShieldPublicInputHash,
@@ -284,10 +304,8 @@ try {
       "change-output-commitment",
       "change-leaf-index",
       "change-output-root",
-      "recipient-memo-ciphertext-body-hash-hi",
-      "recipient-memo-ciphertext-body-hash-lo",
-      "change-memo-ciphertext-body-hash-hi",
-      "change-memo-ciphertext-body-hash-lo",
+      "recipient-memo-ciphertext-body-hash-field",
+      "change-memo-ciphertext-body-hash-field",
       "asset-id-commitment",
       "economics-commitment",
       "owner-commitment",
@@ -306,26 +324,14 @@ try {
   assertValue(sendMap, "change-output-root", sendWitness.change_output_root, "send");
   assertValue(
     sendMap,
-    "recipient-memo-ciphertext-body-hash-hi",
-    sendWitness.recipient_memo_ciphertext_body_hash_hi,
+    "recipient-memo-ciphertext-body-hash-field",
+    sendWitness.recipient_memo_ciphertext_body_hash_field,
     "send",
   );
   assertValue(
     sendMap,
-    "recipient-memo-ciphertext-body-hash-lo",
-    sendWitness.recipient_memo_ciphertext_body_hash_lo,
-    "send",
-  );
-  assertValue(
-    sendMap,
-    "change-memo-ciphertext-body-hash-hi",
-    sendWitness.change_memo_ciphertext_body_hash_hi,
-    "send",
-  );
-  assertValue(
-    sendMap,
-    "change-memo-ciphertext-body-hash-lo",
-    sendWitness.change_memo_ciphertext_body_hash_lo,
+    "change-memo-ciphertext-body-hash-field",
+    sendWitness.change_memo_ciphertext_body_hash_field,
     "send",
   );
   assertValue(sendMap, "asset-id-commitment", sendWitness.asset_id_commitment, "send");
@@ -339,11 +345,9 @@ try {
     sendWitness.change_leaf_index,
     sendWitness.change_output_root,
   ]);
-  const sendMemoCiphertextBinding = poseidon4([
-    sendWitness.recipient_memo_ciphertext_body_hash_hi,
-    sendWitness.recipient_memo_ciphertext_body_hash_lo,
-    sendWitness.change_memo_ciphertext_body_hash_hi,
-    sendWitness.change_memo_ciphertext_body_hash_lo,
+  const sendMemoCiphertextBinding = poseidon2([
+    sendWitness.recipient_memo_ciphertext_body_hash_field,
+    sendWitness.change_memo_ciphertext_body_hash_field,
   ]);
   const sendRecipientPreviousRoot = computeVantaPrivatePoolV2SendRootFromLeaf({
     leafValue: 0n,
@@ -404,6 +408,58 @@ try {
     JSON.stringify(send.proofRequest.circuitPublicInputs) ===
       JSON.stringify([`send-public-input-hash:${send.sendPublicInputHash.toString(10)}`]),
     "Expected send proof request to expose only the computed hash on the circuit-public lane.",
+  );
+
+  const customRecipientMemoCiphertextBodyHash = `sha256:${"33".repeat(32)}`;
+  const customChangeMemoCiphertextBodyHash = `sha256:${"44".repeat(32)}`;
+  const customSend = createVantaPrivatePoolV2SendCircuitFixture({
+    memoCiphertextBodyHashes: {
+      changeMemoCiphertextBodyHash: customChangeMemoCiphertextBodyHash,
+      recipientMemoCiphertextBodyHash: customRecipientMemoCiphertextBodyHash,
+    },
+    witness: {
+      ...sendWitness,
+      change_memo_ciphertext_body_hash_field: memoCiphertextBodyHashField(
+        customChangeMemoCiphertextBodyHash,
+        "custom change memo ciphertext body hash",
+        deriveVantaPrivatePoolV2MemoCiphertextBodyHashField,
+      ),
+      recipient_memo_ciphertext_body_hash_field: memoCiphertextBodyHashField(
+        customRecipientMemoCiphertextBodyHash,
+        "custom recipient memo ciphertext body hash",
+        deriveVantaPrivatePoolV2MemoCiphertextBodyHashField,
+      ),
+    },
+  });
+  const customSendMap = toMap(parsePublicInputs(customSend.proofRequest.publicInputs));
+  assertValue(
+    customSendMap,
+    "recipient-memo-ciphertext-body-hash-field",
+    customSend.witness.recipient_memo_ciphertext_body_hash_field,
+    "custom send",
+  );
+  assertValue(
+    customSendMap,
+    "change-memo-ciphertext-body-hash-field",
+    customSend.witness.change_memo_ciphertext_body_hash_field,
+    "custom send",
+  );
+  assert(
+    JSON.stringify(customSend.proofRequest.circuitPublicInputs) ===
+      JSON.stringify([`send-public-input-hash:${customSend.sendPublicInputHash.toString(10)}`]),
+    "Expected custom send proof request to expose the custom memo-bound hash on the circuit-public lane.",
+  );
+  assertThrowsContaining(
+    () =>
+      createVantaPrivatePoolV2SendCircuitFixture({
+        witness: {
+          ...sendWitness,
+          recipient_memo_ciphertext_body_hash_field:
+            customSend.witness.recipient_memo_ciphertext_body_hash_field,
+        },
+      }),
+    "recipient memo ciphertext body hash",
+    "Expected custom send witness memo field drift to fail closed unless matching memo body hash is provided.",
   );
   console.log("private pool v2 send public-input hash alignment: PASS");
 

@@ -527,10 +527,8 @@ try {
       "change-output-commitment:field:service-network-send-change-output",
       "change-leaf-index:2",
       `change-output-root:${sendChangeRoot}`,
-      "recipient-memo-ciphertext-body-hash-hi:111",
-      "recipient-memo-ciphertext-body-hash-lo:222",
-      "change-memo-ciphertext-body-hash-hi:333",
-      "change-memo-ciphertext-body-hash-lo:444",
+      "recipient-memo-ciphertext-body-hash-field:111",
+      "change-memo-ciphertext-body-hash-field:222",
       "asset-id-commitment:field:service-network-send-asset",
       "economics-commitment:field:service-network-send-economics",
       "owner-commitment:field:service-network-send-owner",
@@ -545,26 +543,23 @@ try {
   assert(privateSendProof.ok, privateSendProof.text || "Expected private-send proof response.");
   for (const [label, malformedRequest] of [
     [
-      "malformed recipient memo hash limb",
+      "malformed recipient memo hash field",
       {
         ...privateSendRequest,
         publicInputs: privateSendRequest.publicInputs.map((input) =>
-          input.startsWith("recipient-memo-ciphertext-body-hash-hi:")
-            ? "recipient-memo-ciphertext-body-hash-hi:not-a-u128"
+          input.startsWith("recipient-memo-ciphertext-body-hash-field:")
+            ? "recipient-memo-ciphertext-body-hash-field:not-a-field"
             : input,
         ),
       },
     ],
     [
-      "zero recipient memo hash limbs",
+      "zero recipient memo hash field",
       {
         ...privateSendRequest,
         publicInputs: privateSendRequest.publicInputs.map((input) => {
-          if (input.startsWith("recipient-memo-ciphertext-body-hash-hi:")) {
-            return "recipient-memo-ciphertext-body-hash-hi:0";
-          }
-          if (input.startsWith("recipient-memo-ciphertext-body-hash-lo:")) {
-            return "recipient-memo-ciphertext-body-hash-lo:0";
+          if (input.startsWith("recipient-memo-ciphertext-body-hash-field:")) {
+            return "recipient-memo-ciphertext-body-hash-field:0";
           }
           return input;
         }),

@@ -331,26 +331,23 @@ try {
   });
   for (const [label, malformedRequest] of [
     [
-      "malformed recipient memo hash limb",
+      "malformed recipient memo hash field",
       {
         ...sendProofRequest,
         publicInputs: sendProofRequest.publicInputs.map((input) =>
-          input.startsWith("recipient-memo-ciphertext-body-hash-hi:")
-            ? "recipient-memo-ciphertext-body-hash-hi:not-a-u128"
+          input.startsWith("recipient-memo-ciphertext-body-hash-field:")
+            ? "recipient-memo-ciphertext-body-hash-field:not-a-field"
             : input,
         ),
       },
     ],
     [
-      "zero recipient memo hash limbs",
+      "zero recipient memo hash field",
       {
         ...sendProofRequest,
         publicInputs: sendProofRequest.publicInputs.map((input) => {
-          if (input.startsWith("recipient-memo-ciphertext-body-hash-hi:")) {
-            return "recipient-memo-ciphertext-body-hash-hi:0";
-          }
-          if (input.startsWith("recipient-memo-ciphertext-body-hash-lo:")) {
-            return "recipient-memo-ciphertext-body-hash-lo:0";
+          if (input.startsWith("recipient-memo-ciphertext-body-hash-field:")) {
+            return "recipient-memo-ciphertext-body-hash-field:0";
           }
           return input;
         }),
@@ -369,7 +366,7 @@ try {
     }
     assert(rejectedMalformedSend, `Expected local verifier to reject ${label}.`);
   }
-  console.log("local verifier private-send memo limb guard: PASS");
+  console.log("local verifier private-send memo field guard: PASS");
 
   const sendReceipt = await sendVerifierRegistry.acceptProof({
     proof: sendProof,

@@ -108,7 +108,7 @@ same-fee-payer linkage. The older stateful Send request remains as a
 compatibility fallback, not the target privacy lane. A local dual-AEAD Send
 memo scaffold can separately seal recipient and change discovery memos and
 emit `sha256:` ciphertext body hashes. The local Private Pool v2 Send proof
-request and circuit bind recipient/change ciphertext body hash limbs into the
+request and circuit bind recipient/change ciphertext body hash fields into the
 Send public-input hash, and the separated local indexer now accepts
 commitment-only encrypted view-tag/body-hash discovery packets while rejecting
 raw recipient, amount, plaintext memo, wallet key, witness, and serialized
