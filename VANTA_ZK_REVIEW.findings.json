@@ -606,8 +606,11 @@
         "VANTA_ZK_REVIEW.md#8-local-prover-is-not-a-prover-by-design",
         "src/privacy/privatePoolV2LocalProver.ts",
         "operator/jupiter-sol-to-shielded-route-adapter.mjs",
+        "src/privacy/privatePoolV2RemoteServices.ts",
+        "scripts/check-vanta-private-pool-v2-remote-services.mjs",
         "npm run private-pool-v2:mock-proof-boundary-check",
         "npm run private-pool-v2:proof-backend-boundary-check",
+        "npm run private-pool-v2:remote-services-check",
         "npm run swap:jupiter-sol-to-shielded-adapter-check",
         "npm run swap:capability-check",
         "npm run private-pool-v2:protocol-client-check",
@@ -630,14 +633,15 @@
         "commands": [
           "npm run private-pool-v2:mock-proof-boundary-check",
           "npm run private-pool-v2:proof-backend-boundary-check",
+          "npm run private-pool-v2:remote-services-check",
           "npm run swap:jupiter-sol-to-shielded-adapter-check",
           "npm run swap:capability-check",
           "npm run private-pool-v2:protocol-client-check",
           "npm run private-pool-v2:send-proof-artifact-consistency-check",
           "npm run private-pool-v2:send-operator-no-witness-check"
         ],
-        "localResult": "Mock-proof boundary, proof-backend boundary, SOL-to-shielded adapter, swap capability, protocol-client, Send proof-artifact consistency, and Send operator no-witness checks pass locally.",
-        "proves": "Mock proofs and local proof backends are explicit and blocked from production/real-funds acceptance paths covered by the guard, including spoofed noir-bb/local-backend receipts, relabelled Send proof artifacts, witness-alias sidecars, and the live Jupiter SOL-to-shielded adapter boundary. Send proof artifacts can be checked through a local no-witness operator route without accepting private witness material, while proof-system/backend metadata and local ACIR bytecode metadata remain guarded against mock/local production misuse.",
+        "localResult": "Mock-proof boundary, proof-backend boundary, remote-services, SOL-to-shielded adapter, swap capability, protocol-client, Send proof-artifact consistency, and Send operator no-witness checks pass locally.",
+        "proves": "Mock proofs and local proof backends are explicit and blocked from production/real-funds acceptance paths covered by the guard, including spoofed noir-bb/local-backend receipts, relabelled Send proof artifacts, witness-alias sidecars, remote prover mock/local-backend responses, remote verifier local-backend requests, and the live Jupiter SOL-to-shielded adapter boundary. Send proof artifacts can be checked through a local no-witness operator route without accepting private witness material, while proof-system/backend metadata and local ACIR bytecode metadata remain guarded against mock/local production misuse.",
         "doesNotProve": "A production remote prover, live verifier, on-chain proof verifier, audit acceptance, live settlement evidence, or real-funds ZK readiness."
       },
       "codexRemediation": {
@@ -645,12 +649,14 @@
           "local feedback loops through 572c46e",
           "current H08 SOL-to-shielded adapter feedback-loop patch",
           "current H08 proof-backend metadata feedback-loop patch",
-          "current H08 Send proof-artifact no-witness feedback-loop commit"
+          "current H08 Send proof-artifact no-witness feedback-loop commit",
+          "current H08 remote-service proof-boundary feedback-loop patch"
         ],
-        "summary": "Persisted proofSystem and proofBackend through proof receipts, guarded production startup and settlement boundaries against mock/local proof evidence, made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary, and added a local no-witness Send proof-artifact operator route with alias/tamper/metadata guards.",
+        "summary": "Persisted proofSystem and proofBackend through proof receipts, guarded production startup and settlement boundaries against mock/local proof evidence, made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary, added a local no-witness Send proof-artifact operator route with alias/tamper/metadata guards, and hardened the remote-services client so remote prover/verifier responses cannot launder mock/local proof metadata or witness sidecars into remote-service evidence.",
         "residualRisk": [
           "The mock prover still exists for local evidence.",
           "The Send proof-artifact route is local-only and rejects production proof mode until remote proof artifact verification is implemented.",
+          "The local role-service harness is deterministic no-real-funds infrastructure, even though the client now rejects mock/local proof metadata.",
           "A real prover and verifier remain open."
         ]
       },
@@ -666,6 +672,8 @@
           "src/privacy/privatePoolV2Types.ts",
           "src/privacy/privatePoolV2LocalVerifierRegistry.ts",
           "src/privacy/privatePoolV2ProtocolSettlementClient.ts",
+          "src/privacy/privatePoolV2RemoteServices.ts",
+          "scripts/check-vanta-private-pool-v2-remote-services.mjs",
           "scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs",
           "scripts/check-vanta-private-pool-v2-mock-proof-boundary.mjs",
           "operator/private-pool-v2-proof-artifact.mjs",
@@ -678,6 +686,7 @@
         "watchCommands": [
           "npm run private-pool-v2:mock-proof-boundary-check",
           "npm run private-pool-v2:proof-backend-boundary-check",
+          "npm run private-pool-v2:remote-services-check",
           "npm run private-pool-v2:send-proof-artifact-consistency-check",
           "npm run private-pool-v2:send-operator-no-witness-check",
           "npm run swap:jupiter-sol-to-shielded-adapter-check",

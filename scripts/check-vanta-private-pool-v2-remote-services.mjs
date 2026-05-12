@@ -39,6 +39,18 @@ function makeResponse(body, ok = true) {
   };
 }
 
+async function assertRejects(fn, pattern, label) {
+  let rejected = null;
+  try {
+    await fn();
+  } catch (error) {
+    rejected = error;
+  }
+
+  assert.ok(rejected, `${label} should reject.`);
+  assert.match(String(rejected?.message ?? rejected), pattern, `${label} rejected with unexpected error.`);
+}
+
 try {
   mkdirSync(tempTsDir, { recursive: true });
   for (const file of sourceFiles) {
@@ -175,6 +187,7 @@ try {
   };
   const proof = await prover.prove(request);
   assert.equal(proof.proofSystem, "noir-bb");
+  assert.equal(proof.proofBackend, "remote-service");
   assert.equal(await prover.verify({ proof, request }), true);
   assert.equal(prover.readiness().ready, false, "Remote readiness starts unknown before health is fetched.");
 
@@ -188,6 +201,114 @@ try {
 
   const receipt = await verifierRegistry.acceptProof({ proof, request });
   assert.equal(receipt.recordedAtSlot, 1000n);
+  assert.equal(receipt.proofBackend, "remote-service");
+  assert.equal(receipt.proofSystem, "noir-bb");
+
+  await assertRejects(
+    () =>
+      createVantaPrivatePoolV2RemoteProver({
+        authToken,
+        baseUrl: "https://prover.example",
+        fetchImpl: async () =>
+          makeResponse({
+            proofBytes: [1, 2, 3],
+            proofSystem: "mock",
+            publicInputCommitment: "field:mock",
+            verifyingKeyId: "vk:mock",
+          }),
+      }).prove(request),
+    /production proof system/u,
+    "remote prover mock proofSystem response",
+  );
+  await assertRejects(
+    () =>
+      createVantaPrivatePoolV2RemoteProver({
+        authToken,
+        baseUrl: "https://prover.example",
+        fetchImpl: async () =>
+          makeResponse({
+            proofBackend: "local-mock",
+            proofBytes: [1, 2, 3],
+            proofSystem: "noir-bb",
+            publicInputCommitment: "field:local-backend",
+            verifyingKeyId: "vk:local-backend",
+          }),
+      }).prove(request),
+    /proofBackend=remote-service/u,
+    "remote prover local proofBackend response",
+  );
+  await assertRejects(
+    () =>
+      prover.prove({
+        ...request,
+        witnessPackage: { noteSecret: "secret" },
+      }),
+    /witness material field witnessPackage/u,
+    "remote prover witness sidecar request",
+  );
+  await assertRejects(
+    () =>
+      prover.verify({
+        proof: {
+          ...proof,
+          proofBackend: "local-mock",
+        },
+        request,
+      }),
+    /proofBackend=remote-service/u,
+    "remote proof verification local proofBackend request",
+  );
+  await assertRejects(
+    () =>
+      verifierRegistry.acceptProof({
+        proof: {
+          ...proof,
+          proofBackend: "local-bb-fixture-artifact",
+        },
+        request,
+      }),
+    /proofBackend=remote-service/u,
+    "remote verifier local proofBackend request",
+  );
+  await assertRejects(
+    () =>
+      createVantaPrivatePoolV2RemoteVerifierRegistry({
+        authToken,
+        baseUrl: "https://verifier.example",
+        fetchImpl: async () =>
+          makeResponse({
+            assetId: "USDC",
+            intent: "claim",
+            proofSystem: "mock",
+            publicInputCommitment: "field:pic",
+            receiptId: "receipt:remote",
+            recordedAtSlot: "1000",
+            replayKey: "claim:field:nullifier",
+          }),
+      }).acceptProof({ proof, request }),
+    /production proof system/u,
+    "remote verifier mock proofSystem response",
+  );
+  await assertRejects(
+    () =>
+      createVantaPrivatePoolV2RemoteVerifierRegistry({
+        authToken,
+        baseUrl: "https://verifier.example",
+        fetchImpl: async () =>
+          makeResponse({
+            assetId: "USDC",
+            intent: "claim",
+            proofBackend: "local-mock",
+            proofSystem: "noir-bb",
+            publicInputCommitment: "field:pic",
+            receiptId: "receipt:remote",
+            recordedAtSlot: "1000",
+            replayKey: "claim:field:nullifier",
+          }),
+      }).acceptProof({ proof, request }),
+    /proofBackend=remote-service/u,
+    "remote verifier local proofBackend response",
+  );
 
   const runtime = createVantaPrivatePoolV2RemoteRuntime({
     assets: [],

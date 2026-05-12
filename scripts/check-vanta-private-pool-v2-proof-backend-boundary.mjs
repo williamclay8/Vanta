@@ -50,7 +50,12 @@ includes(localVerifier, "proofBackend?: VantaPrivatePoolV2ProofBackend", "local 
 includes(localVerifier, "proofBackend: proof.proofBackend", "local verifier receipt write");
 
 includes(remoteServices, "VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND", "remote services");
-includes(remoteServices, "proofBackend: VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND", "remote services proof normalization");
+includes(remoteServices, "normalizeRemoteProofBackend", "remote services proof backend normalization");
+includes(remoteServices, "normalizeRemoteProofSystem", "remote services production proof-system normalization");
+includes(remoteServices, "assertRemoteProductionProofResult", "remote services verifier proof backend guard");
+includes(remoteServices, "assertNoRemoteProofWitnessMaterial", "remote services no-witness request guard");
+includes(remoteServices, "Private Pool v2 remote services require proofBackend=remote-service.", "remote services local backend rejection");
+includes(remoteServices, "Private Pool v2 remote services require a production proof system", "remote services mock proof-system rejection");
 
 includes(protocolClient, 'proofBackend === "remote-service"', "protocol client production validation");
 includes(
@@ -84,6 +89,26 @@ includes(sendNoWitnessCheck, "mixed witnessPackage rejection", "Send proof artif
 includes(sendNoWitnessCheck, "nested witness alias rejection", "Send proof artifact operator nested witness alias guard");
 includes(sendNoWitnessCheck, "production local artifact rejection", "Send proof artifact production backend guard");
 includes(mockBoundary, "spoofed-local-backend-proof-boundary", "mock boundary spoofed proof-backend case");
+includes(
+  read("scripts/check-vanta-private-pool-v2-remote-services.mjs"),
+  "remote prover local proofBackend response",
+  "remote services proof-backend rejection test",
+);
+includes(
+  read("scripts/check-vanta-private-pool-v2-remote-services.mjs"),
+  "remote prover witness sidecar request",
+  "remote services no-witness request test",
+);
+includes(
+  read("scripts/check-vanta-private-pool-v2-remote-services.mjs"),
+  "remote proof verification local proofBackend request",
+  "remote services proof verification backend rejection test",
+);
+includes(
+  read("scripts/check-vanta-private-pool-v2-remote-services.mjs"),
+  "remote verifier local proofBackend response",
+  "remote services verifier response backend rejection test",
+);
 
 assert(
   scripts["private-pool-v2:proof-backend-boundary-check"] ===

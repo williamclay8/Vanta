@@ -16,6 +16,23 @@ import {
 import type { VantaPrivacyNetwork } from "./protocolAdapter";
 
 const VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND = "remote-service" as const;
+const VANTA_PRIVATE_POOL_V2_REMOTE_PRODUCTION_PROOF_SYSTEMS = new Set([
+  "groth16",
+  "noir-bb",
+  "plonk",
+]);
+const VANTA_PRIVATE_POOL_V2_REMOTE_FORBIDDEN_WITNESS_KEYS = new Set([
+  "notesecret",
+  "noirwitnesspackage",
+  "privateinputs",
+  "privatewitness",
+  "rawprivateinputs",
+  "secret",
+  "sourceartifacts",
+  "sourcepublicinputs",
+  "witness",
+  "witnesspackage",
+]);
 
 type FetchLike = (url: string, init?: RequestInit) => Promise<{
   json(): Promise<unknown>;
@@ -92,6 +109,84 @@ function toBigInt(value: unknown): bigint {
   return BigInt(String(value));
 }
 
+function normalizeRemoteKey(key: string) {
+  return key.replace(/[^a-z0-9]/giu, "").toLowerCase();
+}
+
+function assertNoRemoteProofWitnessMaterial(value: unknown, label: string, path: readonly string[] = []) {
+  if (Array.isArray(value)) {
+    value.forEach((entry, index) =>
+      assertNoRemoteProofWitnessMaterial(entry, label, [...path, String(index)]),
+    );
+    return;
+  }
+
+  if (!value || typeof value !== "object") {
+    return;
+  }
+
+  for (const [key, nested] of Object.entries(value)) {
+    const normalizedKey = normalizeRemoteKey(key);
+    if (VANTA_PRIVATE_POOL_V2_REMOTE_FORBIDDEN_WITNESS_KEYS.has(normalizedKey)) {
+      throw new Error(
+        `${label} must not include witness material field ${[...path, key].join(".")}.`,
+      );
+    }
+    assertNoRemoteProofWitnessMaterial(nested, label, [...path, key]);
+  }
+}
+
+function normalizeRemoteProofSystem(value: unknown) {
+  const proofSystem = String(value ?? "");
+  if (!VANTA_PRIVATE_POOL_V2_REMOTE_PRODUCTION_PROOF_SYSTEMS.has(proofSystem)) {
+    throw new Error(
+      "Private Pool v2 remote services require a production proof system, not mock proof metadata.",
+    );
+  }
+
+  return proofSystem as "groth16" | "noir-bb" | "plonk";
+}
+
+function normalizeRemoteProofBackend(
+  value: unknown,
+  { allowMissing = true }: { allowMissing?: boolean } = {},
+) {
+  if ((value === undefined || value === null) && allowMissing) {
+    return VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND;
+  }
+
+  const proofBackend = String(value ?? "");
+  if (proofBackend !== VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND) {
+    throw new Error(
+      "Private Pool v2 remote services require proofBackend=remote-service.",
+    );
+  }
+
+  return VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND;
+}
+
+function toProofBytes(value: unknown) {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error("Private Pool v2 remote proof response requires non-empty proofBytes.");
+  }
+
+  const proofBytes = value.map((entry) => Number(entry));
+  if (
+    proofBytes.some(
+      (entry) => !Number.isInteger(entry) || entry < 0 || entry > 255,
+    )
+  ) {
+    throw new Error("Private Pool v2 remote proof response proofBytes must be byte values.");
+  }
+
+  return new Uint8Array(proofBytes);
+}
+
+function assertRemoteProductionProofResult(proof: VantaPrivatePoolV2ProofResult) {
+  normalizeRemoteProofSystem(proof.proofSystem);
+  normalizeRemoteProofBackend(proof.proofBackend, { allowMissing: false });
+}
+
 function toCommitment(value: any): VantaPrivatePoolV2Commitment {
   return {
     assetId: String(value.assetId),
@@ -104,9 +199,9 @@ function toCommitment(value: any): VantaPrivatePoolV2Commitment {
 
 function toProofResult(value: any): VantaPrivatePoolV2ProofResult {
   return {
-    proofBackend: VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND,
-    proofBytes: new Uint8Array(value.proofBytes ?? []),
-    proofSystem: value.proofSystem,
+    proofBackend: normalizeRemoteProofBackend(value.proofBackend),
+    proofBytes: toProofBytes(value.proofBytes),
+    proofSystem: normalizeRemoteProofSystem(value.proofSystem),
     publicInputCommitment: String(value.publicInputCommitment),
     verifyingKeyId: String(value.verifyingKeyId),
   };
@@ -203,6 +298,7 @@ export function createVantaPrivatePoolV2RemoteProver(args: RemoteServiceArgs) {
 
   return {
     async prove(request: VantaPrivatePoolV2ProofRequest) {
+      assertNoRemoteProofWitnessMaterial(request, "Private Pool v2 remote prover request");
       const response = await client.post("/v1/proofs", { request });
       return toProofResult(response);
     },
@@ -217,6 +313,8 @@ export function createVantaPrivatePoolV2RemoteProver(args: RemoteServiceArgs) {
       proof: VantaPrivatePoolV2ProofResult;
       request: VantaPrivatePoolV2ProofRequest;
     }) {
+      assertNoRemoteProofWitnessMaterial({ proof, request }, "Private Pool v2 remote proof verification request");
+      assertRemoteProductionProofResult(proof);
       const response: any = await client.post("/v1/proofs/verify", { proof, request });
       return response.accepted === true;
     },
@@ -260,12 +358,14 @@ export function createVantaPrivatePoolV2RemoteVerifierRegistry(
 
   return {
     async acceptProof(body) {
+      assertNoRemoteProofWitnessMaterial(body, "Private Pool v2 remote verifier request");
+      assertRemoteProductionProofResult(body.proof);
       const response: any = await client.post("/v1/proofs/accept", body);
       return {
         assetId: String(response.assetId),
         intent: response.intent,
-        proofBackend: response.proofBackend ?? body.proof.proofBackend ?? VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND,
-        proofSystem: response.proofSystem ?? body.proof.proofSystem,
+        proofBackend: normalizeRemoteProofBackend(response.proofBackend ?? body.proof.proofBackend),
+        proofSystem: normalizeRemoteProofSystem(response.proofSystem ?? body.proof.proofSystem),
         publicInputCommitment: String(response.publicInputCommitment),
         receiptId: String(response.receiptId),
         recordedAtSlot: toBigInt(response.recordedAtSlot),
