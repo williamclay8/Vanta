@@ -61,7 +61,8 @@ const requiredCapabilityMarkers = [
   "Shielded PYUSD",
   "Shielded WIF",
   "Shielded KMNO",
-  "Shielded SOL",
+  'if (asset === "SOL")',
+  "Shielded SOL can stay held here until the SOL send lane is implemented.",
 ];
 
 const failures = [];
@@ -121,6 +122,13 @@ if (sendCapabilitySource.includes("private send adapter")) {
 
 if (!sendCapabilitySource.includes("Private send currently supports shielded USDC.")) {
   failures.push("Send capability blockers must name shielded USDC as the supported private send lane.");
+}
+
+if (
+  sendCapabilitySource.includes("label: SHIELDED_SEND_ASSET_LABELS.SOL") ||
+  sendCapabilitySource.includes('symbol: "SOL" as const')
+) {
+  failures.push("Send asset selector must hide Shielded SOL until the SOL send lane exists.");
 }
 
 if (!packageSource.includes('"send:requires-shielded-state-check"')) {

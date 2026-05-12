@@ -725,6 +725,8 @@ While S1–S5 are in flight:
 - Remove `TAG_SPEND = 1` from the on-chain program once `TAG_SEND = 3` exists; a public, unauthenticated append-only nullifier log accessible to any wallet is a denial-of-service that scales with rent (audit item 2).
 - Block the SOL-send capability path with a real refusal: today it returns a soft `unsupported-private-send-asset` blocker; the user can't actually trigger it but the option appears in the asset list. Hide it until the SOL lane exists.
 
+  **Codex status, 2026-05-11:** remediated locally for the current Send selector. `listShieldedSendAssetOptions()` no longer appends Shielded SOL, `getInitialSendAsset()` normalizes recent SOL shield context back to USDC on Send entry, and the `getShieldedSendAssetCapability("SOL")` branch remains as a defensive hard-block for stale callers until a real SOL send lane exists. Guard coverage now asserts both sides of the boundary through `npm run send:requires-shielded-state-check` and `npm run shielded-assets:visibility-check`.
+
 ## Order of operations and rough effort
 
 | # | Workstream | Effort | Depends on |

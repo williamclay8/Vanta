@@ -51,6 +51,7 @@ const allShieldedLabels = [
   "Shielded KMNO",
   "Shielded SOL",
 ];
+const shieldedTokenLabels = allShieldedLabels.filter((label) => label !== "Shielded SOL");
 
 for (const marker of [
   "useVantaShieldAssetRegistryEntry(\"USDC\")",
@@ -290,11 +291,14 @@ for (const marker of [
   );
 }
 
-for (const label of allShieldedLabels) {
+for (const label of shieldedTokenLabels) {
   assert.ok(
     sendCapabilitySource.includes(label),
     `Send asset selector/capability must include ${label}.`,
   );
+}
+
+for (const label of allShieldedLabels) {
   assert.ok(
     swapCapabilitySource.includes(label),
     `Swap asset selector/capability must include ${label}.`,
@@ -304,7 +308,17 @@ for (const label of allShieldedLabels) {
 assert.ok(
   sendCapabilitySource.includes("Private send currently supports shielded USDC.") &&
     sendCapabilitySource.includes("unsupported-private-send-asset"),
-  "Send visibility must stay truthful: non-USDC shielded assets are visible but execution-blocked.",
+  "Send visibility must stay truthful: non-USDC shielded token assets are visible but execution-blocked.",
+);
+assert.ok(
+  sendCapabilitySource.includes('if (asset === "SOL")') &&
+    sendCapabilitySource.includes("Shielded SOL can stay held here until the SOL send lane is implemented."),
+  "Send capability must keep a defensive Shielded SOL hard-block.",
+);
+assert.ok(
+  !sendCapabilitySource.includes("label: SHIELDED_SEND_ASSET_LABELS.SOL") &&
+    !sendCapabilitySource.includes('symbol: "SOL" as const'),
+  "Send asset selector must hide Shielded SOL until the SOL send lane exists.",
 );
 assert.ok(
   swapCapabilitySource.includes(

@@ -37,20 +37,11 @@ const SHIELDED_SEND_ASSET_LABELS = {
 } as const satisfies Record<ShieldedSendAssetKey, string>;
 
 export function listShieldedSendAssetOptions(): ShieldedSendAssetOption[] {
-  const tokenOptions = listAllLiveShieldTokenAssets().map((asset) => ({
+  return listAllLiveShieldTokenAssets().map((asset) => ({
     configured: asset.configured && Boolean(asset.mintAddress && asset.vaultOwner),
     label: SHIELDED_SEND_ASSET_LABELS[asset.symbol],
     symbol: asset.symbol,
   }));
-
-  return [
-    ...tokenOptions,
-    {
-      configured: true,
-      label: SHIELDED_SEND_ASSET_LABELS.SOL,
-      symbol: "SOL" as const,
-    },
-  ];
 }
 
 export function getShieldedSendAssetCapability(

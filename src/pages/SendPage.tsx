@@ -104,6 +104,10 @@ type PrivateCoreSendExecutionState = {
 const DEFAULT_USDC_DECIMALS = 6;
 
 function getInitialSendAsset(asset: PrivacyAssetKey | undefined): ShieldedSendAssetKey {
+  if (asset === "SOL") {
+    return "USDC";
+  }
+
   return asset ?? "USDC";
 }
 
