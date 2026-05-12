@@ -95,6 +95,9 @@ export type VantaPrivatePoolV2ProofBackend =
   | "local-mock"
   | "local-bb-fixture-artifact"
   | "remote-service";
+export type VantaPrivatePoolV2ProofArtifactVerifyingKeyHashKind =
+  | "local-acir-bytecode-hash-not-production-vk"
+  | "production-verifying-key-hash";
 
 export type VantaPrivatePoolV2ProofResult = {
   proofBackend?: VantaPrivatePoolV2ProofBackend;
@@ -207,7 +210,7 @@ export type VantaPrivatePoolV2ProofArtifactVerificationReceipt = {
   verified: boolean;
   verifiedPublicInputs: Record<string, string>;
   verifyingKeyHash: string;
-  verifyingKeyHashKind: "local-acir-bytecode-hash-not-production-vk";
+  verifyingKeyHashKind: VantaPrivatePoolV2ProofArtifactVerifyingKeyHashKind;
   verifyingKeyId: string;
 };
 
@@ -271,6 +274,10 @@ export interface VantaPrivatePoolV2VerifierRegistry {
     recordedAtSlot: bigint;
     replayKey: string;
   }>;
+  verifyProofArtifact?(args: {
+    expectedPublicInputs?: Record<string, string>;
+    proofArtifact: unknown;
+  }): Promise<VantaPrivatePoolV2ProofArtifactVerificationReceipt>;
 }
 
 export interface VantaPrivatePoolV2Protocol {

@@ -51,6 +51,9 @@ const sendNoWitnessCheck = read("scripts/check-vanta-private-pool-v2-send-operat
 const actualPrivateSpendNoWitnessCheck = read(
   "scripts/check-vanta-private-pool-v2-actual-private-spend-operator-no-witness.mjs",
 );
+const remoteProofArtifactBoundary = read(
+  "scripts/check-vanta-private-pool-v2-remote-proof-artifact-boundary.mjs",
+);
 const mockBoundary = read("scripts/check-vanta-private-pool-v2-mock-proof-boundary.mjs");
 
 for (const backend of ["local-mock", "local-bb-fixture-artifact", "remote-service"]) {
@@ -81,6 +84,16 @@ includes(remoteServices, "VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND", "remote s
 includes(remoteServices, "normalizeRemoteProofBackend", "remote services proof backend normalization");
 includes(remoteServices, "normalizeRemoteProofSystem", "remote services production proof-system normalization");
 includes(remoteServices, "assertRemoteProductionProofResult", "remote services verifier proof backend guard");
+includes(
+  remoteServices,
+  "verifyProofArtifact",
+  "remote services proof-artifact verifier method",
+);
+includes(
+  remoteServices,
+  "production-verifying-key-hash",
+  "remote services production verifying-key hash guard",
+);
 includes(remoteServices, "assertNoRemoteProofWitnessMaterial", "remote services no-witness request guard");
 includes(remoteServices, "Private Pool v2 remote services require proofBackend=remote-service.", "remote services local backend rejection");
 includes(remoteServices, "Private Pool v2 remote services require a production proof system", "remote services mock proof-system rejection");
@@ -97,6 +110,16 @@ includes(operatorServer, "requires a remote production proof backend", "operator
 includes(operatorServer, "acceptedProductionProofBackends", "operator status proof trust boundary");
 includes(operatorServer, "/private-pool-v2/proof-artifacts/verify", "operator proof artifact no-witness route");
 includes(operatorServer, "strict no-witness proof-artifact mode rejects", "operator proof artifact no-witness rejection");
+includes(
+  operatorServer,
+  "requires proofBackend=remote-service",
+  "operator production proof-artifact remote backend guard",
+);
+includes(
+  operatorServer,
+  "runtime.verifierRegistry?.verifyProofArtifact",
+  "operator remote proof-artifact verifier delegation",
+);
 includes(
   operatorServer,
   "verifyPrivatePoolV2ProofArtifactForOperator",
@@ -441,11 +464,46 @@ includes(
   "remote verifier local proofBackend response",
   "remote services verifier response backend rejection test",
 );
+includes(
+  remoteProofArtifactBoundary,
+  "production remote Shield proof artifact acceptance",
+  "remote proof-artifact acceptance guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  "production remote proof artifact read-only receipt state",
+  "remote proof-artifact read-only receipt guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  "production local proof artifact rejection",
+  "remote proof-artifact local rejection guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  "production remote mock proofSystem response rejection",
+  "remote proof-artifact mock proof-system rejection guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  "production remote local verifying-key response rejection",
+  "remote proof-artifact production verifying-key rejection guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  "production remote proof artifact witness alias rejection",
+  "remote proof-artifact witness rejection guard",
+);
 
 assert(
   scripts["private-pool-v2:proof-backend-boundary-check"] ===
     "node scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs",
   "package.json must expose private-pool-v2:proof-backend-boundary-check",
+);
+assert(
+  scripts["private-pool-v2:remote-proof-artifact-boundary-check"] ===
+    "node scripts/check-vanta-private-pool-v2-remote-proof-artifact-boundary.mjs",
+  "package.json must expose private-pool-v2:remote-proof-artifact-boundary-check",
 );
 assert(
   scripts["private-pool-v2:shield-proof-artifact-consistency-check"] ===
@@ -518,6 +576,10 @@ assert(
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:proof-backend-boundary-check"),
   "private-pool-v2:verify must include the proof backend boundary guard",
+);
+assert(
+  scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:remote-proof-artifact-boundary-check"),
+  "private-pool-v2:verify must include the remote proof-artifact boundary guard",
 );
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:shield-proof-artifact-consistency-check"),

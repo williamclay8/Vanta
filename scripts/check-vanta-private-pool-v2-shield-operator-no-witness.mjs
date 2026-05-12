@@ -412,7 +412,7 @@ try {
   await expectReject(
     "private-pool-v2 operator Shield production local artifact rejection",
     { expectedPublicInputs, proofArtifact },
-    "remote proof artifact verification",
+    "proofBackend=remote-service",
     productionBaseUrl,
   );
 } finally {

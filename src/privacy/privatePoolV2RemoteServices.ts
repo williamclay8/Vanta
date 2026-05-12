@@ -7,6 +7,7 @@ import {
   type VantaPrivatePoolV2MerkleProof,
   type VantaPrivatePoolV2Nullifier,
   type VantaPrivatePoolV2ProofRequest,
+  type VantaPrivatePoolV2ProofArtifactVerificationReceipt,
   type VantaPrivatePoolV2ProofResult,
   type VantaPrivatePoolV2Protocol,
   type VantaPrivatePoolV2Readiness,
@@ -16,6 +17,8 @@ import {
 import type { VantaPrivacyNetwork } from "./protocolAdapter";
 
 const VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND = "remote-service" as const;
+const VANTA_PRIVATE_POOL_V2_REMOTE_PRODUCTION_VERIFYING_KEY_HASH_KIND =
+  "production-verifying-key-hash" as const;
 const VANTA_PRIVATE_POOL_V2_REMOTE_PRODUCTION_PROOF_SYSTEMS = new Set([
   "groth16",
   "noir-bb",
@@ -185,6 +188,110 @@ function toProofBytes(value: unknown) {
 function assertRemoteProductionProofResult(proof: VantaPrivatePoolV2ProofResult) {
   normalizeRemoteProofSystem(proof.proofSystem);
   normalizeRemoteProofBackend(proof.proofBackend, { allowMissing: false });
+}
+
+function toStringArray(value: unknown, fieldName: string): string[] {
+  if (!Array.isArray(value)) {
+    throw new Error(`Private Pool v2 remote proof-artifact verification requires ${fieldName}.`);
+  }
+
+  return value.map(String);
+}
+
+function toVerifiedPublicInputs(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(
+      "Private Pool v2 remote proof-artifact verification requires verifiedPublicInputs.",
+    );
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).map(([key, entry]) => [key, String(entry)]),
+  );
+}
+
+function assertRemoteProductionProofArtifactRequest(body: {
+  expectedPublicInputs?: Record<string, string>;
+  proofArtifact: unknown;
+}) {
+  assertNoRemoteProofWitnessMaterial(
+    body,
+    "Private Pool v2 remote proof-artifact verification request",
+  );
+
+  const proofArtifact = body.proofArtifact;
+  if (!proofArtifact || typeof proofArtifact !== "object" || Array.isArray(proofArtifact)) {
+    throw new Error("Private Pool v2 remote proof-artifact verification requires proofArtifact.");
+  }
+
+  const artifact = proofArtifact as Record<string, unknown>;
+  normalizeRemoteProofSystem(artifact.proofSystem);
+  normalizeRemoteProofBackend(artifact.proofBackend, { allowMissing: false });
+  if (
+    artifact.verifyingKeyHashKind !==
+    VANTA_PRIVATE_POOL_V2_REMOTE_PRODUCTION_VERIFYING_KEY_HASH_KIND
+  ) {
+    throw new Error(
+      "Private Pool v2 remote proof-artifact verification requires a production verifying-key hash.",
+    );
+  }
+}
+
+function toProofArtifactVerificationReceipt(
+  value: any,
+): VantaPrivatePoolV2ProofArtifactVerificationReceipt {
+  const receipt = value?.verifiedReceipt ?? value;
+  if (!receipt || typeof receipt !== "object") {
+    throw new Error(
+      "Private Pool v2 remote proof-artifact verification requires a verified receipt.",
+    );
+  }
+
+  const proofSystem = normalizeRemoteProofSystem(receipt.proofSystem);
+  const proofBackend = normalizeRemoteProofBackend(receipt.proofBackend, { allowMissing: false });
+  if (receipt.verified !== true) {
+    throw new Error("Private Pool v2 remote proof-artifact verification requires verified=true.");
+  }
+  if (
+    receipt.verifyingKeyHashKind !==
+    VANTA_PRIVATE_POOL_V2_REMOTE_PRODUCTION_VERIFYING_KEY_HASH_KIND
+  ) {
+    throw new Error(
+      "Private Pool v2 remote proof-artifact verification requires a production verifying-key hash.",
+    );
+  }
+  if (receipt.backend !== "barretenberg-ultrahonk") {
+    throw new Error(
+      "Private Pool v2 remote proof-artifact verification requires barretenberg-ultrahonk backend.",
+    );
+  }
+  if (receipt.proofRuntimePackage !== "@aztec/bb.js") {
+    throw new Error(
+      "Private Pool v2 remote proof-artifact verification requires the bb.js proof runtime.",
+    );
+  }
+
+  return {
+    acirBytecodeHash: String(receipt.acirBytecodeHash),
+    backend: String(receipt.backend) as "barretenberg-ultrahonk",
+    circuit: String(receipt.circuit),
+    proofBackend,
+    proofByteLength: Number(receipt.proofByteLength),
+    proofFieldCount: Number(receipt.proofFieldCount),
+    proofHex: String(receipt.proofHex),
+    proofRuntimePackage: String(receipt.proofRuntimePackage) as "@aztec/bb.js",
+    proofRuntimeVersion: String(receipt.proofRuntimeVersion),
+    proofSystem,
+    publicInputCommitment: String(receipt.publicInputCommitment),
+    publicInputCount: Number(receipt.publicInputCount),
+    publicInputLabels: toStringArray(receipt.publicInputLabels, "publicInputLabels"),
+    publicInputs: toStringArray(receipt.publicInputs, "publicInputs"),
+    verified: true,
+    verifiedPublicInputs: toVerifiedPublicInputs(receipt.verifiedPublicInputs),
+    verifyingKeyHash: String(receipt.verifyingKeyHash),
+    verifyingKeyHashKind: VANTA_PRIVATE_POOL_V2_REMOTE_PRODUCTION_VERIFYING_KEY_HASH_KIND,
+    verifyingKeyId: String(receipt.verifyingKeyId),
+  };
 }
 
 function toCommitment(value: any): VantaPrivatePoolV2Commitment {
@@ -371,6 +478,11 @@ export function createVantaPrivatePoolV2RemoteVerifierRegistry(
         recordedAtSlot: toBigInt(response.recordedAtSlot),
         replayKey: String(response.replayKey),
       };
+    },
+    async verifyProofArtifact(body) {
+      assertRemoteProductionProofArtifactRequest(body);
+      const response: any = await client.post("/v1/proof-artifacts/verify", body);
+      return toProofArtifactVerificationReceipt(response);
     },
   };
 }

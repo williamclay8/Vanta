@@ -285,7 +285,7 @@ try {
   await expectReject(
     "private-pool-v2 operator Swap-to-shielded production local artifact rejection",
     { expectedPublicInputs, proofArtifact },
-    "remote proof artifact verification",
+    "proofBackend=remote-service",
     productionBaseUrl,
   );
 } finally {

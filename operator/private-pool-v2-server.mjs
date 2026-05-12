@@ -700,11 +700,15 @@ function assertStrictPrivatePoolV2ProofArtifactBody(body) {
     "Private Pool v2 proof artifact verification body",
   );
 
-  if (productionProofSystemRequiredNow()) {
+  if (productionProofSystemRequiredNow() && body.proofArtifact.proofBackend !== "remote-service") {
     throw new Error(
-      "Private Pool v2 production proof-artifact verification requires remote proof artifact verification; the local proof-artifact route is not implemented for production proof mode.",
+      "Private Pool v2 production proof-artifact verification requires proofBackend=remote-service.",
     );
   }
+}
+
+function requiresRemoteProofArtifactVerification(body) {
+  return productionProofSystemRequiredNow() || body?.proofArtifact?.proofBackend === "remote-service";
 }
 
 function assertExpectedPublicInputKeyAllowlist(body, allowedKey, artifactLabel) {
@@ -813,6 +817,32 @@ function assertSwapToShieldedExpectedPublicInputMatches(body, verifiedReceipt) {
   }
 }
 
+async function verifyPrivatePoolV2ProofArtifactWithBoundary(
+  body,
+  { assertExpectedPublicInputMatches, localVerify },
+) {
+  if (requiresRemoteProofArtifactVerification(body)) {
+    if (typeof runtime.verifierRegistry?.verifyProofArtifact !== "function") {
+      throw new Error(
+        "Private Pool v2 remote proof-artifact verification requires a remote verifier registry.",
+      );
+    }
+
+    const verifiedReceipt = await runtime.verifierRegistry.verifyProofArtifact({
+      expectedPublicInputs: body.expectedPublicInputs,
+      proofArtifact: body.proofArtifact,
+    });
+    assertExpectedPublicInputMatches(body, verifiedReceipt);
+    return verifiedReceipt;
+  }
+
+  const verifiedReceipt = await localVerify({
+    proofArtifact: body.proofArtifact,
+  });
+  assertExpectedPublicInputMatches(body, verifiedReceipt);
+  return verifiedReceipt;
+}
+
 async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
   const circuit = body?.proofArtifact?.circuit;
 
@@ -835,10 +865,10 @@ async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
       "Actual Private Spend",
     );
 
-    const verifiedReceipt = await verifyVantaPrivatePoolV2ActualPrivateSpendProofArtifact({
-      proofArtifact: body.proofArtifact,
+    const verifiedReceipt = await verifyPrivatePoolV2ProofArtifactWithBoundary(body, {
+      assertExpectedPublicInputMatches: assertActualPrivateSpendExpectedPublicInputMatches,
+      localVerify: verifyVantaPrivatePoolV2ActualPrivateSpendProofArtifact,
     });
-    assertActualPrivateSpendExpectedPublicInputMatches(body, verifiedReceipt);
     return {
       kind: "Private Pool V2 Actual Private Spend proof artifact verification",
       verifiedReceipt,
@@ -872,10 +902,10 @@ async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
 
     assertExpectedPublicInputKeyAllowlist(body, "shieldPublicInputHash", "Shield");
 
-    const verifiedReceipt = await verifyVantaPrivatePoolV2ShieldProofArtifact({
-      proofArtifact: body.proofArtifact,
+    const verifiedReceipt = await verifyPrivatePoolV2ProofArtifactWithBoundary(body, {
+      assertExpectedPublicInputMatches: assertShieldExpectedPublicInputMatches,
+      localVerify: verifyVantaPrivatePoolV2ShieldProofArtifact,
     });
-    assertShieldExpectedPublicInputMatches(body, verifiedReceipt);
 
     return {
       kind: "Private Pool V2 Shield proof artifact verification",
@@ -910,10 +940,10 @@ async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
 
     assertExpectedPublicInputKeyAllowlist(body, "claimPublicInputHash", "Claim");
 
-    const verifiedReceipt = await verifyVantaPrivatePoolV2ClaimProofArtifact({
-      proofArtifact: body.proofArtifact,
+    const verifiedReceipt = await verifyPrivatePoolV2ProofArtifactWithBoundary(body, {
+      assertExpectedPublicInputMatches: assertClaimExpectedPublicInputMatches,
+      localVerify: verifyVantaPrivatePoolV2ClaimProofArtifact,
     });
-    assertClaimExpectedPublicInputMatches(body, verifiedReceipt);
 
     return {
       kind: "Private Pool V2 Claim proof artifact verification",
@@ -942,10 +972,10 @@ async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
 
     assertExpectedPublicInputKeyAllowlist(body, "sendPublicInputHash", "Send");
 
-    const verifiedReceipt = await verifyVantaPrivatePoolV2SendProofArtifact({
-      proofArtifact: body.proofArtifact,
+    const verifiedReceipt = await verifyPrivatePoolV2ProofArtifactWithBoundary(body, {
+      assertExpectedPublicInputMatches: assertSendExpectedPublicInputMatches,
+      localVerify: verifyVantaPrivatePoolV2SendProofArtifact,
     });
-    assertSendExpectedPublicInputMatches(body, verifiedReceipt);
 
     return {
       kind: "Private Pool V2 Send proof artifact verification",
@@ -980,10 +1010,10 @@ async function verifyPrivatePoolV2ProofArtifactForOperator(body) {
 
     assertExpectedPublicInputKeyAllowlist(body, "swapPublicInputHash", "Swap-to-shielded");
 
-    const verifiedReceipt = await verifyVantaPrivatePoolV2SwapToShieldedProofArtifact({
-      proofArtifact: body.proofArtifact,
+    const verifiedReceipt = await verifyPrivatePoolV2ProofArtifactWithBoundary(body, {
+      assertExpectedPublicInputMatches: assertSwapToShieldedExpectedPublicInputMatches,
+      localVerify: verifyVantaPrivatePoolV2SwapToShieldedProofArtifact,
     });
-    assertSwapToShieldedExpectedPublicInputMatches(body, verifiedReceipt);
 
     return {
       kind: "Private Pool V2 Swap-to-shielded proof artifact verification",

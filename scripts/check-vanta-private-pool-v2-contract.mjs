@@ -383,6 +383,17 @@ const requiredTextFiles = [
     ],
   },
   {
+    path: "scripts/check-vanta-private-pool-v2-remote-proof-artifact-boundary.mjs",
+    markers: [
+      "production remote Shield proof artifact acceptance",
+      "production remote proof artifact read-only receipt state",
+      "production local proof artifact rejection",
+      "production remote mock proofSystem response rejection",
+      "production remote local verifying-key response rejection",
+      "production remote proof artifact witness alias rejection",
+    ],
+  },
+  {
     path: "operator/private-pool-v2-service-network.mjs",
     markers: [
       "applyPrivateSendTransition",
@@ -660,6 +671,8 @@ const requiredTextFiles = [
       "proofTrustBoundary",
       "proofTrustBoundaryPayload",
       "mockProofRealFundsAllowed",
+      "runtime.verifierRegistry?.verifyProofArtifact",
+      "requires proofBackend=remote-service",
       "verifyVantaPrivatePoolV2ShieldProofArtifact",
       "verifyVantaPrivatePoolV2ClaimProofArtifact",
       "verifyVantaPrivatePoolV2SwapToShieldedProofArtifact",
@@ -913,6 +926,7 @@ const requiredPackageScripts = [
   "private-pool-v2:swap-to-shielded-circuit-check",
   "private-pool-v2:actual-private-spend-circuit-check",
   "private-pool-v2:local-runtime-check",
+  "private-pool-v2:remote-proof-artifact-boundary-check",
   "private-pool-v2:claim-proof-request-check",
   "private-pool-v2:verify",
   "private-pool-v2:claim-circuit-check",
@@ -957,6 +971,7 @@ const requiredVerifyScripts = [
   "npm run private-pool-v2:solana-relayer-submission-check",
   "npm run private-pool-v2:shield-proof-artifact-consistency-check",
   "npm run private-pool-v2:shield-operator-no-witness-check",
+  "npm run private-pool-v2:remote-proof-artifact-boundary-check",
   "npm run private-pool-v2:claim-proof-artifact-consistency-check",
   "npm run private-pool-v2:claim-operator-no-witness-check",
   "npm run private-pool-v2:swap-to-shielded-proof-artifact-consistency-check",

@@ -198,7 +198,7 @@ try {
   await expectReject(
     "private-pool-v2 operator relabelled remote artifact rejection",
     { proofArtifact: { ...proofArtifact, proofBackend: "remote-service" } },
-    "local-bb-fixture-artifact",
+    "remote verifier registry",
   );
   await expectReject(
     "private-pool-v2 operator missing proofArtifact rejection",
@@ -238,7 +238,7 @@ try {
   await expectReject(
     "private-pool-v2 operator production local artifact rejection",
     { proofArtifact },
-    "remote proof artifact verification",
+    "proofBackend=remote-service",
     productionBaseUrl,
   );
 } finally {
