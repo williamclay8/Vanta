@@ -19,6 +19,22 @@ import type { VantaPrivacyNetwork } from "./protocolAdapter";
 const VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND = "remote-service" as const;
 const VANTA_PRIVATE_POOL_V2_REMOTE_PRODUCTION_VERIFYING_KEY_HASH_KIND =
   "production-verifying-key-hash" as const;
+const VANTA_PRIVATE_POOL_V2_LOCAL_PROOF_ARTIFACT_VERIFYING_KEY_ID_PREFIX =
+  "local-acir-bytecode:";
+const VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_ARTIFACT_TRANSCRIPT_FIELDS = [
+  "acirBytecodeHash",
+  "backend",
+  "circuit",
+  "proofSystem",
+  "proofBackend",
+  "proofRuntimePackage",
+  "proofRuntimeVersion",
+  "publicInputCommitment",
+  "proofHex",
+  "verifyingKeyHash",
+  "verifyingKeyHashKind",
+  "verifyingKeyId",
+] as const;
 const VANTA_PRIVATE_POOL_V2_REMOTE_PRODUCTION_PROOF_SYSTEMS = new Set([
   "groth16",
   "noir-bb",
@@ -190,12 +206,62 @@ function assertRemoteProductionProofResult(proof: VantaPrivatePoolV2ProofResult)
   normalizeRemoteProofBackend(proof.proofBackend, { allowMissing: false });
 }
 
+function assertRemoteProductionVerifyingKeyId(value: unknown) {
+  const verifyingKeyId = String(value ?? "").trim();
+  if (
+    !verifyingKeyId ||
+    verifyingKeyId
+      .toLowerCase()
+      .includes(VANTA_PRIVATE_POOL_V2_LOCAL_PROOF_ARTIFACT_VERIFYING_KEY_ID_PREFIX)
+  ) {
+    throw new Error(
+      "Private Pool v2 remote proof-artifact verification rejects relabelled local bb fixture metadata; requires a production verifying-key id.",
+    );
+  }
+}
+
 function toStringArray(value: unknown, fieldName: string): string[] {
   if (!Array.isArray(value)) {
     throw new Error(`Private Pool v2 remote proof-artifact verification requires ${fieldName}.`);
   }
 
   return value.map(String);
+}
+
+function transcriptString(value: unknown) {
+  return String(value ?? "").trim();
+}
+
+function assertRemoteProofArtifactReceiptMatchesRequest(
+  proofArtifact: unknown,
+  receipt: VantaPrivatePoolV2ProofArtifactVerificationReceipt,
+) {
+  if (!proofArtifact || typeof proofArtifact !== "object" || Array.isArray(proofArtifact)) {
+    throw new Error("Private Pool v2 remote proof-artifact verification requires proofArtifact.");
+  }
+
+  const artifact = proofArtifact as Record<string, unknown>;
+  for (const field of VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_ARTIFACT_TRANSCRIPT_FIELDS) {
+    if (transcriptString(artifact[field]) !== transcriptString(receipt[field])) {
+      throw new Error(
+        `Private Pool v2 remote verifier receipt ${field} must match submitted proof artifact.`,
+      );
+    }
+  }
+
+  const artifactPublicInputs = toStringArray(artifact.publicInputs, "publicInputs");
+  if (JSON.stringify(artifactPublicInputs) !== JSON.stringify(receipt.publicInputs)) {
+    throw new Error(
+      "Private Pool v2 remote verifier receipt publicInputs must match submitted proof artifact.",
+    );
+  }
+
+  const artifactPublicInputLabels = toStringArray(artifact.publicInputLabels, "publicInputLabels");
+  if (JSON.stringify(artifactPublicInputLabels) !== JSON.stringify(receipt.publicInputLabels)) {
+    throw new Error(
+      "Private Pool v2 remote verifier receipt publicInputLabels must match submitted proof artifact.",
+    );
+  }
 }
 
 function toVerifiedPublicInputs(value: unknown) {
@@ -235,6 +301,7 @@ function assertRemoteProductionProofArtifactRequest(body: {
       "Private Pool v2 remote proof-artifact verification requires a production verifying-key hash.",
     );
   }
+  assertRemoteProductionVerifyingKeyId(artifact.verifyingKeyId);
 }
 
 function toProofArtifactVerificationReceipt(
@@ -270,6 +337,7 @@ function toProofArtifactVerificationReceipt(
       "Private Pool v2 remote proof-artifact verification requires the bb.js proof runtime.",
     );
   }
+  assertRemoteProductionVerifyingKeyId(receipt.verifyingKeyId);
 
   return {
     acirBytecodeHash: String(receipt.acirBytecodeHash),
@@ -482,7 +550,9 @@ export function createVantaPrivatePoolV2RemoteVerifierRegistry(
     async verifyProofArtifact(body) {
       assertRemoteProductionProofArtifactRequest(body);
       const response: any = await client.post("/v1/proof-artifacts/verify", body);
-      return toProofArtifactVerificationReceipt(response);
+      const receipt = toProofArtifactVerificationReceipt(response);
+      assertRemoteProofArtifactReceiptMatchesRequest(body.proofArtifact, receipt);
+      return receipt;
     },
   };
 }

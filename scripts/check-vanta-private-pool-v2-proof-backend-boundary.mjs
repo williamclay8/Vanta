@@ -86,6 +86,26 @@ includes(remoteServices, "normalizeRemoteProofSystem", "remote services producti
 includes(remoteServices, "assertRemoteProductionProofResult", "remote services verifier proof backend guard");
 includes(
   remoteServices,
+  "assertRemoteProductionVerifyingKeyId",
+  "remote services production verifying-key id guard",
+);
+includes(
+  remoteServices,
+  "assertRemoteProofArtifactReceiptMatchesRequest",
+  "remote services proof-artifact receipt transcript binding guard",
+);
+includes(
+  remoteServices,
+  "VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_ARTIFACT_TRANSCRIPT_FIELDS",
+  "remote services proof-artifact transcript field list",
+);
+includes(
+  remoteServices,
+  "local-acir-bytecode:",
+  "remote services relabelled local fixture key-id rejection",
+);
+includes(
+  remoteServices,
   "verifyProofArtifact",
   "remote services proof-artifact verifier method",
 );
@@ -478,6 +498,51 @@ includes(
   remoteProofArtifactBoundary,
   "production local proof artifact rejection",
   "remote proof-artifact local rejection guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  "production relabelled local proof artifact key-id rejection",
+  "remote proof-artifact relabelled local key-id rejection guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  '{ field: "acirBytecodeHash", publicInput: "229" }',
+  "remote proof-artifact ACIR transcript binding guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  '{ field: "proofSystem", publicInput: "239" }',
+  "remote proof-artifact proof-system transcript binding guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  '{ field: "publicInputs", publicInput: "234" }',
+  "remote proof-artifact public-input transcript binding guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  '{ field: "publicInputCommitment", publicInput: "235" }',
+  "remote proof-artifact public-input commitment transcript binding guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  '{ field: "proofHex", publicInput: "236" }',
+  "remote proof-artifact proof payload transcript binding guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  '{ field: "publicInputLabels", publicInput: "241" }',
+  "remote proof-artifact public-input labels transcript binding guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  '{ field: "verifyingKeyHash", publicInput: "237" }',
+  "remote proof-artifact verifying-key hash transcript binding guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  '{ field: "verifyingKeyId", publicInput: "238" }',
+  "remote proof-artifact verifying-key id transcript binding guard",
 );
 includes(
   remoteProofArtifactBoundary,

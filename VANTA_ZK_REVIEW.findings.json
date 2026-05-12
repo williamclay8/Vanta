@@ -478,7 +478,7 @@
         "scripts/check-vanta-private-pool-v2-remote-proof-artifact-boundary.mjs",
         "scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs"
       ],
-      "summary": "The production-mode proof-artifact verifier-handoff guard now has an explicit remote-service boundary in a local harness: the operator delegates remote-service proof artifacts to the configured verifier registry, requires production proof-system/backend/verifying-key metadata from the remote receipt, rejects local fixture artifacts in production proof mode, and keeps the route read-only.",
+      "summary": "The production-mode proof-artifact verifier-handoff guard now has an explicit remote-service boundary in a local harness: the operator delegates remote-service proof artifacts to the configured verifier registry, rejects local and relabelled-local fixture metadata before delegation, requires production proof-system/backend/verifying-key metadata from the remote receipt, binds the returned remote verifier receipt transcript to the submitted proof artifact, and keeps the route read-only.",
       "localVerification": [
         "npm run private-pool-v2:remote-proof-artifact-boundary-check",
         "npm run private-pool-v2:proof-backend-boundary-check",
@@ -492,7 +492,7 @@
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
-      "truthBoundary": "This is a local harness proving the production-mode proof-artifact verifier-handoff shape. It is not a live remote verifier deployment, browser/runtime prover wiring, on-chain proof verification, audit acceptance, real-funds readiness, or live deployment evidence."
+      "truthBoundary": "This is a local harness proving the production-mode proof-artifact verifier-handoff shape, including relabelled-local metadata rejection and remote receipt transcript binding. It is not a live remote verifier deployment, browser/runtime prover wiring, on-chain proof verification, audit acceptance, real-funds readiness, or live deployment evidence."
     },
     {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-C01-SPEND-ABI-PROOF-FIELD-FAIL-CLOSED",
@@ -1023,6 +1023,7 @@
         "Keep proofBackend persisted across proof results, proof receipts, and protocol response types.",
         "Keep production/real-funds modes rejecting proofSystem mock.",
         "Keep production/real-funds modes rejecting local proofBackend values even if proofSystem is spoofed to noir-bb.",
+        "Keep remote proof-artifact handoffs rejecting relabelled local fixture metadata and binding returned remote verifier receipts to the submitted proof-artifact transcript.",
         "Wire a real prover such as bb.js before production proof claims.",
         "Keep remote-services mode required for production startup."
       ],
@@ -1047,8 +1048,8 @@
           "npm run private-pool-v2:actual-private-spend-operator-no-witness-check",
           "npm run private-pool-v2:local-verifier-check"
         ],
-        "localResult": "Mock-proof boundary, proof-backend boundary, remote-services, remote proof-artifact boundary, SOL-to-shielded adapter, swap capability, protocol-client, Shield proof-artifact consistency, Shield operator no-witness, Claim proof-artifact consistency, Claim operator no-witness, Swap-to-shielded proof-artifact consistency, Swap-to-shielded operator no-witness, Send proof-artifact consistency, actual-private-spend proof-artifact consistency, Send operator no-witness, actual-private-spend operator no-witness, and the expanded local-verifier check pass locally.",
-        "proves": "Mock proofs and local proof backends are explicit and blocked from production/real-funds acceptance paths covered by the guard, including spoofed noir-bb/local-backend receipts, relabelled Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof artifacts, witness-alias sidecars, remote prover mock/local-backend responses, remote verifier local-backend requests, and the live Jupiter SOL-to-shielded adapter boundary. Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof artifacts can be checked locally without accepting private witness material; Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator verification now require matching expected public-input hashes and reject unbound extra expected-input keys; Shield operator verification is explicitly read-only and checks receipt/settlement counts do not change; the production-mode proof-artifact verifier-handoff guard delegates remote-service artifacts to the configured verifier registry in a local harness, rejects local fixture artifacts, mock proof systems, local verifying-key hashes, and witness aliases, and still appends no receipts or settlements; and proof-system/backend metadata plus local ACIR bytecode metadata remain guarded against mock/local production misuse.",
+        "localResult": "Mock-proof boundary, proof-backend boundary, remote-services, remote proof-artifact boundary with transcript binding, SOL-to-shielded adapter, swap capability, protocol-client, Shield proof-artifact consistency, Shield operator no-witness, Claim proof-artifact consistency, Claim operator no-witness, Swap-to-shielded proof-artifact consistency, Swap-to-shielded operator no-witness, Send proof-artifact consistency, actual-private-spend proof-artifact consistency, Send operator no-witness, actual-private-spend operator no-witness, and the expanded local-verifier check pass locally. A full private-pool-v2:verify run advanced through the H08 handoff, local proof-artifact, circuit, proving, and status lanes before stopping at the expected SBF ABI gate: stale-sbf-binary, missing-cargo-build-sbf, missing-solana-cli.",
+        "proves": "Mock proofs and local proof backends are explicit and blocked from production/real-funds acceptance paths covered by the guard, including spoofed noir-bb/local-backend receipts, relabelled Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof artifacts, witness-alias sidecars, remote prover mock/local-backend responses, remote verifier local-backend requests, and the live Jupiter SOL-to-shielded adapter boundary. Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof artifacts can be checked locally without accepting private witness material; Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator verification now require matching expected public-input hashes and reject unbound extra expected-input keys; Shield operator verification is explicitly read-only and checks receipt/settlement counts do not change; the production-mode proof-artifact verifier-handoff guard delegates remote-service artifacts to the configured verifier registry in a local harness, rejects local fixture artifacts, relabelled local verifying-key ids, mock proof systems, local verifying-key hashes, and witness aliases, requires the returned remote verifier receipt transcript to match the submitted artifact across ACIR hash, circuit, backend/runtime metadata, proof system/backend, proof bytes, public inputs/labels/commitment, and verifying-key fields, and still appends no receipts or settlements; and proof-system/backend metadata plus local ACIR bytecode metadata remain guarded against mock/local production misuse.",
         "doesNotProve": "A production remote prover, live verifier, on-chain proof verifier, audit acceptance, live settlement evidence, or real-funds ZK readiness."
       },
       "codexRemediation": {
@@ -1064,13 +1065,14 @@
           "current H08 Claim proof-artifact no-witness feedback-loop patch",
           "current H08 Swap-to-shielded proof-artifact no-witness feedback-loop patch",
           "current H08 Shield operator request-binding feedback-loop patch",
-          "current H08 remote proof-artifact boundary feedback-loop patch"
+          "current H08 remote proof-artifact boundary feedback-loop patch",
+          "current H08 remote proof-artifact transcript-binding feedback-loop patch"
         ],
-        "summary": "Persisted proofSystem and proofBackend through proof receipts, guarded production startup and settlement boundaries against mock/local proof evidence, made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary, added local no-witness Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof-artifact checks with alias/tamper/metadata/relabel guards, required Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator proof-artifact verification to bind matching expected public-input hashes where operator routes exist, rejects unbound extra expected-input keys, kept Shield operator artifact verification read-only with receipt/settlement count checks, added a production proof-artifact verifier handoff that delegates remote-service artifacts to the configured verifier registry while rejecting local fixture artifacts and local/mocked verifier responses, and hardened the remote-services client so remote prover/verifier responses cannot launder mock/local proof metadata or witness sidecars into remote-service evidence.",
+        "summary": "Persisted proofSystem and proofBackend through proof receipts, guarded production startup and settlement boundaries against mock/local proof evidence, made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary, added local no-witness Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof-artifact checks with alias/tamper/metadata/relabel guards, required Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator proof-artifact verification to bind matching expected public-input hashes where operator routes exist, rejects unbound extra expected-input keys, kept Shield operator artifact verification read-only with receipt/settlement count checks, added a production proof-artifact verifier handoff that delegates remote-service artifacts to the configured verifier registry while rejecting local fixture artifacts, relabelled-local key ids, local/mocked verifier responses, and remote receipt transcript drift, and hardened the remote-services client so remote prover/verifier responses cannot launder mock/local proof metadata or witness sidecars into remote-service evidence.",
         "residualRisk": [
           "The mock prover still exists for local evidence.",
           "The Shield, Claim, Swap-to-shielded, Send, and actual-private-spend local proof-artifact checks remain local-only fixture evidence.",
-          "The remote proof-artifact verifier boundary is exercised by a local mock verifier service; it is not live remote-service deployment evidence, audit acceptance, or on-chain verification.",
+          "The remote proof-artifact verifier boundary and transcript-binding guard are exercised by a local mock verifier service; they are not live remote-service deployment evidence, audit acceptance, or on-chain verification.",
           "Shield operator artifact verification is local read-only request binding only; it does not append commitments, persist receipts, accept Shield settlement, or satisfy production proof mode.",
           "Claim operator artifact verification is local request binding only; it still rejects production proof mode until remote/on-chain proof verification is implemented.",
           "Swap-to-shielded operator artifact verification is local request binding only; it still rejects production proof mode until remote/on-chain proof verification is implemented.",
@@ -1079,8 +1081,8 @@
         ]
       },
       "lumiHygiene": {
-        "local": "verified locally for boundary, remote proof-artifact boundary, Shield proof-artifact, Shield operator, Claim proof-artifact, Claim operator, Swap-to-shielded proof-artifact, Swap-to-shielded operator, Send proof-artifact, actual-private-spend proof-artifact, Send operator, actual-private-spend operator, local-verifier, and focused Claim/Shield/Swap checks",
-        "committed": "included in this remote proof-artifact boundary feedback-loop commit",
+        "local": "verified locally for boundary, remote proof-artifact boundary/transcript binding, Shield proof-artifact, Shield operator, Claim proof-artifact, Claim operator, Swap-to-shielded proof-artifact, Swap-to-shielded operator, Send proof-artifact, actual-private-spend proof-artifact, Send operator, actual-private-spend operator, local-verifier, and focused Claim/Shield/Swap checks",
+        "committed": "included in this remote proof-artifact transcript-binding feedback-loop commit",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -1131,7 +1133,7 @@
           "npm run private-pool-v2:verify"
         ]
       },
-      "truthBoundary": "Say mock proofs are local/no-real-funds evidence only until a real prover/verifier lane is wired and accepted."
+      "truthBoundary": "Say mock proofs are local/no-real-funds evidence only until a real prover/verifier lane is wired and accepted; say remote proof-artifact transcript binding is local verifier-handoff hardening only until a deployed remote verifier, audited production verifying-key registry, on-chain verifier, and live settlement evidence exist."
     },
     {
       "id": "VANTA-ZK-2026-05-09-M09",

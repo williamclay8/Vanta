@@ -71,6 +71,106 @@ const remoteServer = createServer(async (request, response) => {
     return;
   }
 
+  if (shieldPublicInputHash === "229") {
+    sendJson(response, 200, {
+      verifiedReceipt: {
+        ...remoteShieldReceipt("229"),
+        acirBytecodeHash: "sha256:remote-acir-drift",
+      },
+    });
+    return;
+  }
+
+  if (shieldPublicInputHash === "234") {
+    sendJson(response, 200, {
+      verifiedReceipt: {
+        ...remoteShieldReceipt("234"),
+        publicInputs: ["999"],
+      },
+    });
+    return;
+  }
+
+  if (shieldPublicInputHash === "233") {
+    sendJson(response, 200, {
+      verifiedReceipt: {
+        ...remoteShieldReceipt("233"),
+        circuit: "vanta_private_pool_v2_send_entry",
+      },
+    });
+    return;
+  }
+
+  if (shieldPublicInputHash === "239") {
+    sendJson(response, 200, {
+      verifiedReceipt: {
+        ...remoteShieldReceipt("239"),
+        proofSystem: "groth16",
+      },
+    });
+    return;
+  }
+
+  if (shieldPublicInputHash === "240") {
+    sendJson(response, 200, {
+      verifiedReceipt: {
+        ...remoteShieldReceipt("240"),
+        proofRuntimeVersion: "remote-fixture-drift",
+      },
+    });
+    return;
+  }
+
+  if (shieldPublicInputHash === "241") {
+    sendJson(response, 200, {
+      verifiedReceipt: {
+        ...remoteShieldReceipt("241"),
+        publicInputLabels: ["drifted-shield-public-input-hash"],
+      },
+    });
+    return;
+  }
+
+  if (shieldPublicInputHash === "235") {
+    sendJson(response, 200, {
+      verifiedReceipt: {
+        ...remoteShieldReceipt("235"),
+        publicInputCommitment: "sha256:remote-public-input-drift",
+      },
+    });
+    return;
+  }
+
+  if (shieldPublicInputHash === "236") {
+    sendJson(response, 200, {
+      verifiedReceipt: {
+        ...remoteShieldReceipt("236"),
+        proofHex: "ffff",
+      },
+    });
+    return;
+  }
+
+  if (shieldPublicInputHash === "237") {
+    sendJson(response, 200, {
+      verifiedReceipt: {
+        ...remoteShieldReceipt("237"),
+        verifyingKeyHash: "sha256:remote-production-vk-drift",
+      },
+    });
+    return;
+  }
+
+  if (shieldPublicInputHash === "238") {
+    sendJson(response, 200, {
+      verifiedReceipt: {
+        ...remoteShieldReceipt("238"),
+        verifyingKeyId: "production-vk:vanta_private_pool_v2_shield_entry:remote-drift",
+      },
+    });
+    return;
+  }
+
   sendJson(response, 200, {
     verifiedReceipt: remoteShieldReceipt(shieldPublicInputHash ?? "123"),
   });
@@ -261,6 +361,66 @@ try {
     "proofBackend=remote-service",
   );
   assert(remoteCalls.length === 1, "Local proof artifact should reject before remote verifier call.");
+
+  await expectReject(
+    "private-pool-v2 production relabelled local proof artifact hash-kind rejection",
+    {
+      expectedPublicInputs: { shieldPublicInputHash: "123" },
+      proofArtifact: {
+        ...remoteShieldArtifact("123"),
+        acirBytecodeHash: "sha256:local-acir",
+        verifyingKeyHash: "sha256:local-acir",
+        verifyingKeyHashKind: "local-acir-bytecode-hash-not-production-vk",
+        verifyingKeyId: "local-acir-bytecode:vanta_private_pool_v2_shield_entry:sha256:local-acir",
+      },
+    },
+    "production verifying-key hash",
+  );
+  assert(
+    remoteCalls.length === 1,
+    "Relabelled local proof artifact hash kind should reject before remote verifier call.",
+  );
+
+  await expectReject(
+    "private-pool-v2 production relabelled local proof artifact key-id rejection",
+    {
+      expectedPublicInputs: { shieldPublicInputHash: "123" },
+      proofArtifact: {
+        ...remoteShieldArtifact("123"),
+        acirBytecodeHash: "sha256:local-acir",
+        verifyingKeyHash: "sha256:local-acir",
+        verifyingKeyId: "local-acir-bytecode:vanta_private_pool_v2_shield_entry:sha256:local-acir",
+      },
+    },
+    "production verifying-key id",
+  );
+  assert(
+    remoteCalls.length === 1,
+    "Relabelled local proof artifact key id should reject before remote verifier call.",
+  );
+
+  for (const { field, publicInput } of [
+    { field: "acirBytecodeHash", publicInput: "229" },
+    { field: "circuit", publicInput: "233" },
+    { field: "proofSystem", publicInput: "239" },
+    { field: "publicInputs", publicInput: "234" },
+    { field: "publicInputCommitment", publicInput: "235" },
+    { field: "proofHex", publicInput: "236" },
+    { field: "proofRuntimeVersion", publicInput: "240" },
+    { field: "publicInputLabels", publicInput: "241" },
+    { field: "verifyingKeyHash", publicInput: "237" },
+    { field: "verifyingKeyId", publicInput: "238" },
+  ]) {
+    await expectReject(
+      `private-pool-v2 production remote proof artifact ${field} transcript mismatch rejection`,
+      {
+        expectedPublicInputs: { shieldPublicInputHash: publicInput },
+        proofArtifact: remoteShieldArtifact(publicInput),
+      },
+      `remote verifier receipt ${field} must match submitted proof artifact`,
+    );
+  }
+  assert(remoteCalls.length === 11, "Expected remote verifier calls for acceptance plus drift cases.");
 
   await expectReject(
     "private-pool-v2 production remote mock proofSystem response rejection",

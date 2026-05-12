@@ -50,6 +50,7 @@ Working or inspectable today:
 - Pay with Vanta checkout and merchant API preview flows
 - Pay status, approval, settlement, refund, withdrawal, reconciliation, and receipt contracts remain verifiable through commands
 - proof and operator checks for the current narrow private-core lane
+- repo-local proof-artifact handoff checks that reject relabelled local metadata and remote verifier receipt transcript drift without claiming a live proof service
 - verification commands that keep the repo honest about what is still unfinished
 
 Still not live or final:
