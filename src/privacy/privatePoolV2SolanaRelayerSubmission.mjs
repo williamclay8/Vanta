@@ -6,6 +6,21 @@ import {
 } from "./privatePoolV2SolanaSpendTransaction.mjs";
 
 const SOLANA_SIGNATURE_PATTERN = /^[1-9A-HJ-NP-Za-km-z]{64,88}$/;
+const forbiddenProofSpendTerms = [
+  "onChainVerifier",
+  "proof",
+  "proof_artifact",
+  "proof_bytes",
+  "proofArtifact",
+  "proofBackend",
+  "proofBytes",
+  "proofSystem",
+  "verifierProgramId",
+  "verifier_program_id",
+  "verifying_key_hash",
+  "verifyingKey",
+  "verifyingKeyHash",
+];
 
 function requireText(value, fieldName) {
   if (typeof value !== "string" || value.trim().length === 0) {
@@ -44,6 +59,19 @@ function decodeSerializedTransaction(value) {
   return Uint8Array.from(bytes);
 }
 
+function assertNoForbiddenProofTerms(value, path = "transaction") {
+  if (!value || typeof value !== "object") {
+    return;
+  }
+
+  for (const [key, child] of Object.entries(value)) {
+    if (forbiddenProofSpendTerms.includes(key)) {
+      throw new Error(`Vanta Private Pool v2 Solana relayer forbids ${path}.${key}.`);
+    }
+    assertNoForbiddenProofTerms(child, `${path}.${key}`);
+  }
+}
+
 export function isVantaSolanaTransactionSignature(value) {
   return SOLANA_SIGNATURE_PATTERN.test(String(value ?? ""));
 }
@@ -64,14 +92,16 @@ export function createVantaPrivatePoolV2SolanaRelayerSubmitter({
   }
 
   return {
-    async submitPrivateSpend({
-      expectedAccounts,
-      expectedPublicInputs,
-      proofReceiptId,
-      publicInputCommitment,
-      serializedTransaction,
-      settlementId,
-    }) {
+    async submitPrivateSpend(input = {}) {
+      assertNoForbiddenProofTerms(input);
+      const {
+        expectedAccounts,
+        expectedPublicInputs,
+        proofReceiptId,
+        publicInputCommitment,
+        serializedTransaction,
+        settlementId,
+      } = input;
       requireText(proofReceiptId, "proofReceiptId");
       requireText(publicInputCommitment, "publicInputCommitment");
       requireText(settlementId, "settlementId");

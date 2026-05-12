@@ -226,6 +226,38 @@ assert.throws(
     validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction({
       expectedAccounts,
       expectedPublicInputs,
+      onChainVerifier: { programId: Keypair.generate().publicKey.toBase58() },
+      serializedTransaction: built.serializedTransaction,
+    }),
+  /forbids transaction.onChainVerifier/,
+);
+assert.throws(
+  () =>
+    validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction({
+      expectedAccounts,
+      expectedPublicInputs,
+      proofBytes: "base64:abcd",
+      serializedTransaction: built.serializedTransaction,
+    }),
+  /forbids transaction.proofBytes/,
+);
+assert.throws(
+  () =>
+    validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction({
+      expectedAccounts,
+      expectedPublicInputs: {
+        ...expectedPublicInputs,
+        verifyingKeyHash: "sha256:production-vk",
+      },
+      serializedTransaction: built.serializedTransaction,
+    }),
+  /forbids transaction.expectedPublicInputs.verifyingKeyHash/,
+);
+assert.throws(
+  () =>
+    validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction({
+      expectedAccounts,
+      expectedPublicInputs,
       serializedTransaction: `base64:${Buffer.alloc(
         VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_MAX_SERIALIZED_TRANSACTION_BYTES + 1,
       ).toString("base64")}`,
@@ -244,6 +276,9 @@ assert.throws(
 );
 assert.throws(() => build({ accounts: [] }), /non-empty accounts/);
 assert.throws(() => build({ accounts: [{ isSigner: false, isWritable: false, pubkey: poolState }], extra: { amount: "1000000" } }), /forbids transaction.amount/);
+assert.throws(() => build({ extra: { onChainVerifier: { programId: Keypair.generate().publicKey.toBase58() } } }), /forbids transaction.onChainVerifier/);
+assert.throws(() => build({ extra: { proofBytes: "base64:abcd" } }), /forbids transaction.proofBytes/);
+assert.throws(() => build({ extra: { proofArtifact: { proofHex: "abcd" } } }), /forbids transaction.proofArtifact/);
 assert.throws(() => build({ instructionDataBase64: "not base64" }), /requires base64 instructionDataBase64/);
 assert.throws(
   () =>

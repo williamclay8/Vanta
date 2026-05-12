@@ -1243,6 +1243,45 @@ try {
       "output-record:service-network-actual-private-public-input-hash",
     "Expected service-network relayer boundary to preserve expected output-record account refs.",
   );
+  for (const [fieldName, fieldValue] of [
+    ["proofBytes", "base64:abcd"],
+    ["proofArtifact", { proofHex: "abcd" }],
+    ["verifierProgramId", "Verifier1111111111111111111111111111111111"],
+    ["verifyingKeyHash", "sha256:production-vk"],
+  ]) {
+    const forbiddenPrivateSpendSubmission = await requestJson(
+      serviceUrls.get("relayer"),
+      "/v1/private-spends/submit",
+      {
+        body: JSON.stringify({
+          [fieldName]: fieldValue,
+          proofReceiptId: `${actualPrivateSpendReceipt.parsed.receiptId}:${fieldName}`,
+          publicInputCommitment: `${actualPrivateSpendReceipt.parsed.publicInputCommitment}:${fieldName}`,
+          serializedTransaction: "serialized-private-spend-service-network-test",
+          settlementId: `settlement:service-network-forbidden-${fieldName}`,
+        }),
+        headers: { Authorization: `Bearer ${authToken}` },
+        method: "POST",
+      },
+    );
+    assert(
+      !forbiddenPrivateSpendSubmission.ok,
+      `Expected service-network relayer to reject ${fieldName}.`,
+    );
+    assert(
+      String(forbiddenPrivateSpendSubmission.parsed?.error ?? forbiddenPrivateSpendSubmission.text).includes(
+        `forbids transaction.${fieldName}`,
+      ),
+      `Expected ${fieldName} rejection to name the forbidden field.`,
+    );
+    const relayerSnapshot = JSON.parse(readFileSync(relayerStorePath, "utf8"));
+    assert(
+      !JSON.stringify(relayerSnapshot.privateSpends ?? []).includes(
+        `settlement:service-network-forbidden-${fieldName}`,
+      ),
+      `Expected rejected ${fieldName} service-network submission not to be stored.`,
+    );
+  }
   const duplicatePrivateSpendSubmission = await requestJson(serviceUrls.get("relayer"), "/v1/private-spends/submit", {
     body: JSON.stringify({
       proofReceiptId: actualPrivateSpendReceipt.parsed.receiptId,

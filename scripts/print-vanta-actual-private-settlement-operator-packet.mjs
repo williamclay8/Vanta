@@ -162,6 +162,18 @@ const packet = {
     staleSendProofMode: "send_circuit_request",
     executeAllowedWhenStale: false,
   },
+  solanaSpendProofBoundary: {
+    currentInstructionLengthBytes: 161,
+    currentSolanaSpendAbiCarriesProofData: false,
+    proofCarryingVerifierAbiRequired: true,
+    forbiddenProofLikeOutputFields: [
+      "onChainVerifier",
+      "proofBytes",
+      "proofArtifact",
+      "verifierProgramId",
+      "verifyingKeyHash",
+    ],
+  },
   shellExportTemplate: shellExports(refs),
   forbiddenOutputValues: [
     "wallet private keys",

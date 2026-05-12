@@ -30,6 +30,21 @@ const forbiddenPublicSpendTerms = [
   "rawAsset",
   "sourceWallet",
 ];
+const forbiddenProofSpendTerms = [
+  "onChainVerifier",
+  "proof",
+  "proof_artifact",
+  "proof_bytes",
+  "proofArtifact",
+  "proofBackend",
+  "proofBytes",
+  "proofSystem",
+  "verifierProgramId",
+  "verifier_program_id",
+  "verifying_key_hash",
+  "verifyingKey",
+  "verifyingKeyHash",
+];
 
 function requireText(value, fieldName) {
   if (typeof value !== "string" || value.trim().length === 0) {
@@ -177,7 +192,7 @@ function assertNoForbiddenPublicTerms(value, path = "transaction") {
   }
 
   for (const [key, child] of Object.entries(value)) {
-    if (forbiddenPublicSpendTerms.includes(key)) {
+    if (forbiddenPublicSpendTerms.includes(key) || forbiddenProofSpendTerms.includes(key)) {
       throw new Error(`Vanta Private Pool v2 Solana spend transaction forbids ${path}.${key}.`);
     }
     assertNoForbiddenPublicTerms(child, `${path}.${key}`);
@@ -344,6 +359,7 @@ function compiledInstructionAccounts(message, instruction) {
 }
 
 export function validateVantaPrivatePoolV2ActualPrivateSpendSerializedTransaction(input = {}) {
+  assertNoForbiddenPublicTerms(input);
   const transaction = requireSerializedTransaction(input.serializedTransaction);
   if (transaction.version !== 0) {
     throw new Error("Vanta Private Pool v2 Solana spend transaction requires a v0 transaction.");

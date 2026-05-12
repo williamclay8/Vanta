@@ -1,6 +1,6 @@
 # Vanta Private Pool v2 Spend Program
 
-Small native Rust Solana program for anchoring Vanta actual-private spend evidence.
+Small native Rust Solana program for recording proof-unverified, operator-submitted Vanta actual-private spend metadata.
 
 This is intentionally minimal:
 
@@ -11,7 +11,7 @@ This is intentionally minimal:
 - no deploy configuration
 - no proof verification
 
-It anchors the public evidence from an operator-accepted off-chain private spend packet: an accepted root, one nullifier marker PDA, one deterministic output record PDA, two output commitments, and a public input hash.
+It records the public transcript from an operator-accepted off-chain private spend packet: an accepted root, one nullifier marker PDA, one deterministic output record PDA, two output commitments, and a public input hash.
 The program now fail-closes writes behind the operator authority captured during init; it still does not verify proofs or prove that the accepted root came from a program-owned Merkle tree.
 
 ## Instructions

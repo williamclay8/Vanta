@@ -108,6 +108,19 @@ assert.equal(packet.productionCapabilityGate.requiredSendProofMode, "actual_priv
 assert.equal(packet.productionCapabilityGate.staleSendProofMode, "send_circuit_request");
 assert.equal(packet.productionCapabilityGate.executeAllowedWhenStale, false);
 
+assert.deepEqual(packet.solanaSpendProofBoundary, {
+  currentInstructionLengthBytes: 161,
+  currentSolanaSpendAbiCarriesProofData: false,
+  proofCarryingVerifierAbiRequired: true,
+  forbiddenProofLikeOutputFields: [
+    "onChainVerifier",
+    "proofBytes",
+    "proofArtifact",
+    "verifierProgramId",
+    "verifyingKeyHash",
+  ],
+});
+
 assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_ACTUAL_PRIVATE_MAINNET_WALLET_PUBLIC_KEY_REF")));
 assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN")));
 assert.ok(packet.shellExportTemplate.some((line) => line.includes("VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_JSON")));
@@ -132,6 +145,25 @@ for (const forbidden of [
   assert.ok(!serialized.includes(forbidden), `Operator packet must not include ${forbidden}.`);
 }
 
+const forbiddenProofLikeOutputKeys = new Set([
+  "onChainVerifier",
+  "proof",
+  "proof_artifact",
+  "proof_bytes",
+  "proofArtifact",
+  "proofBackend",
+  "proofBytes",
+  "proofSystem",
+  "verifierProgramId",
+  "verifier_program_id",
+  "verifying_key_hash",
+  "verifyingKey",
+  "verifyingKeyHash",
+]);
+for (const violation of collectForbiddenProofLikeKeys(packet)) {
+  assert.fail(`Operator packet must not include proof-like output key ${violation}.`);
+}
+
 assert.equal(
   packageJson.scripts["mainnet:actual-private-settlement-operator-packet"],
   "node scripts/print-vanta-actual-private-settlement-operator-packet.mjs",
@@ -152,4 +184,23 @@ function parseSolLamports(value) {
   assert.ok(match, "maximumFundsAtRiskRef must use '<amount> SOL' with at most 9 decimal places.");
   const [, whole, fraction = ""] = match;
   return Number(BigInt(whole) * 1_000_000_000n + BigInt(fraction.padEnd(9, "0")));
+}
+
+function collectForbiddenProofLikeKeys(value, path = "$") {
+  if (!value || typeof value !== "object") {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item, index) => collectForbiddenProofLikeKeys(item, `${path}[${index}]`));
+  }
+
+  const violations = [];
+  for (const [key, child] of Object.entries(value)) {
+    if (forbiddenProofLikeOutputKeys.has(key)) {
+      violations.push(`${path}.${key}`);
+    }
+    violations.push(...collectForbiddenProofLikeKeys(child, `${path}.${key}`));
+  }
+  return violations;
 }

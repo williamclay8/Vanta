@@ -112,6 +112,30 @@ assert.deepEqual(
   [],
   "Relayer semantic validation must reject before deserialize, sign, simulate, or send.",
 );
+for (const [fieldName, fieldValue] of [
+  ["proofBytes", "base64:abcd"],
+  ["proofArtifact", { proofHex: "abcd" }],
+  ["verifierProgramId", "Verifier1111111111111111111111111111111111"],
+  ["verifyingKeyHash", "sha256:production-vk"],
+]) {
+  const callsBeforeProofFieldReject = calls.length;
+  await assert.rejects(
+    () =>
+      submitter.submitPrivateSpend({
+        [fieldName]: fieldValue,
+        proofReceiptId: `ppv2_forbidden_${fieldName}`,
+        publicInputCommitment: "0xpublic-input",
+        serializedTransaction: `base64:${Buffer.from([9, 8, 7]).toString("base64")}`,
+        settlementId: `settlement:forbidden-${fieldName}`,
+      }),
+    new RegExp(`forbids transaction\\.${fieldName}`),
+  );
+  assert.deepEqual(
+    calls.slice(callsBeforeProofFieldReject),
+    [],
+    `Relayer proof-field rejection for ${fieldName} must happen before deserialize, sign, simulate, or send.`,
+  );
+}
 
 const relayerKeypair = Keypair.generate();
 const spendProgramId = Keypair.generate().publicKey.toBase58();

@@ -2,11 +2,11 @@
 
 Run outcome: `full pass`
 
-## Exact flow proven
+## Exact Lifecycle Flow Exercised
 
 `Public Wallet -> Shield USDC -> Shielded USDC -> Swap USDC -> shielded SOL -> Unshield USDC -> Public Wallet -> Unshield SOL -> Public Wallet`
 
-This proof is for Vanta's constrained mainnet lifecycle only.
+This evidence is for Vanta's constrained mainnet transaction/operator lifecycle only. It is not live private-settlement proof, not on-chain verifier evidence, not production-private readiness, and not a claim that the current Private Pool v2 spend ABI has been rebuilt, redeployed, or live-verified.
 
 ## Transaction signatures
 
@@ -58,7 +58,7 @@ The main blocker was state incoherence across on-chain transitions, operator-loc
 
 ## Final truthful product status
 
-Vanta's constrained mainnet lifecycle is now proven live for:
+Vanta's constrained mainnet lifecycle now has live transaction/operator evidence for:
 - `Shield`
 - `Send`
 - `Swap USDC -> shielded SOL`

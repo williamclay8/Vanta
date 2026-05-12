@@ -139,6 +139,35 @@ function optionalPlainObject(value, fieldName) {
   return value;
 }
 
+const forbiddenPrivateSpendProofTerms = [
+  "onChainVerifier",
+  "proof",
+  "proof_artifact",
+  "proof_bytes",
+  "proofArtifact",
+  "proofBackend",
+  "proofBytes",
+  "proofSystem",
+  "verifierProgramId",
+  "verifier_program_id",
+  "verifying_key_hash",
+  "verifyingKey",
+  "verifyingKeyHash",
+];
+
+function assertNoPrivateSpendProofTerms(value, path = "transaction") {
+  if (!value || typeof value !== "object") {
+    return;
+  }
+
+  for (const [key, child] of Object.entries(value)) {
+    if (forbiddenPrivateSpendProofTerms.includes(key)) {
+      throw new Error(`Private Pool v2 relayer forbids ${path}.${key}.`);
+    }
+    assertNoPrivateSpendProofTerms(child, `${path}.${key}`);
+  }
+}
+
 function sendJson(response, status, payload) {
   response.writeHead(status, { "Content-Type": "application/json" });
   response.end(`${JSON.stringify(normalizeForJson(payload), null, 2)}\n`);
@@ -969,14 +998,16 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
       await save();
       return claim;
     },
-    async submitPrivateSpend({
-      expectedAccounts,
-      expectedPublicInputs,
-      proofReceiptId,
-      publicInputCommitment,
-      serializedTransaction,
-      settlementId,
-    }) {
+    async submitPrivateSpend(input = {}) {
+      assertNoPrivateSpendProofTerms(input);
+      const {
+        expectedAccounts,
+        expectedPublicInputs,
+        proofReceiptId,
+        publicInputCommitment,
+        serializedTransaction,
+        settlementId,
+      } = input;
       await ensureLoaded();
       const key = [settlementId, proofReceiptId, publicInputCommitment].join(":");
       if (privateSpends.has(key)) {
