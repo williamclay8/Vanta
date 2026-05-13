@@ -163,6 +163,59 @@
       "truthBoundary": "This is product copy and guard hardening. It does not make Vanta production-private, does not prove all six lanes are privacy-verified, does not enable Pay production privacy, does not add browser witness generation, does not choose a C01 verifier backend, and does not provide pushed or live deployment evidence for the new copy."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-COPY-CLARITY-FOLLOW-UP",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#20-programmatic-privacy-and-20-copy-clarity",
+        "VANTA_ZK_REVIEW.md#shield-asset-helpers",
+        "VANTA_ZK_REVIEW.md#send-empty-state",
+        "src/solana/shieldAssetCapability.ts",
+        "src/pages/SendPage.tsx",
+        "src/pages/AppDashboardPage.tsx",
+        "src/pages/DocsHomePage.tsx",
+        "src/pages/DocsPayPage.tsx",
+        "src/pages/DocsSecurityPage.tsx",
+        "src/pages/DocsTrustPage.tsx",
+        "src/pages/StrategyPage.tsx",
+        "src/pay/vantaPayMerchantCommandCenter.ts",
+        "src/pricing/vantaPricing.ts",
+        "src/solana/shieldTrustContract.ts",
+        "src/solana/swapTrustContract.ts",
+        "src/solana/unshieldTrustContract.ts"
+      ],
+      "summary": "The copy-clarity follow-up removes the remaining safe vague-product-copy hedges without weakening beta truth: Shield direct-route helpers now say Shield into Vanta instead of tautological shielded-state wording, unsupported Shield targets require a configured Shield target first, Send uses Empty Vault / No send-ready balance yet copy, pricing names Pay/Shield/Send/Swap/Unshield instead of a generic supported action, docs replace vague supported stablecoin/action wording, and Pay/Strategy/lane trust surfaces say production privacy or custody is not enabled instead of spreading claim-lock jargon outside the canonical strip.",
+      "localVerification": [
+        "npm run shield:capability-check",
+        "npm run shield:ui-claim-boundary-check",
+        "npm run send:requires-shielded-state-check",
+        "npm run send:production-privacy-claim-gate",
+        "npm run swap:capability-check",
+        "npm run lanes:trust-contract-check",
+        "npm run pricing:contract-check",
+        "npm run pay:doc-truth-check",
+        "npm run pay:contract-check",
+        "npm run pay-tab:copy-check",
+        "npm run strategy-tab:copy-check",
+        "npm run strategy:private-rail-trust-contract-check",
+        "npm run docs:source-of-truth-check",
+        "npm run docs:browser-check",
+        "npm run product-ui:browser-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:feedback-loop-check",
+        "npm run build",
+        "git diff --check",
+        "git diff --cached --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the copy-clarity follow-up across Shield/Send/Swap/lane trust/Pricing/Pay/Strategy/docs/browser/product UI/privacy-claim/ZK feedback/build/diff checks",
+        "committed": "f3d5135 (Tighten Vanta copy clarity follow-up)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is product copy and guard hardening only. It does not make Vanta production-private, does not prove lane privacy, does not add a public depth oracle, does not add browser witness generation, does not choose a C01 verifier backend, and does not provide pushed or live deployment evidence."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-SEND-WITNESS-INPUT-PROVER",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [

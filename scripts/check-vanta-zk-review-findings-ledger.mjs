@@ -236,6 +236,32 @@ assert(
 );
 assert(copyClaimBoundaryLoopText.includes("8ac1586"), `${copyClaimBoundaryLoopId} must pin the implementation commit`);
 
+const copyClarityFollowUpLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-COPY-CLARITY-FOLLOW-UP";
+assert(activeFeedbackLoopIds.has(copyClarityFollowUpLoopId), `${copyClarityFollowUpLoopId} active feedback loop is missing`);
+const copyClarityFollowUpLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === copyClarityFollowUpLoopId);
+const copyClarityFollowUpLoopText = JSON.stringify(copyClarityFollowUpLoop);
+assert(
+  copyClarityFollowUpLoop?.localVerification?.includes("npm run shield:capability-check"),
+  `${copyClarityFollowUpLoopId} must record the Shield capability guard`,
+);
+assert(
+  copyClarityFollowUpLoop?.localVerification?.includes("npm run docs:browser-check"),
+  `${copyClarityFollowUpLoopId} must record the docs browser guard`,
+);
+assert(
+  copyClarityFollowUpLoopText.includes("No send-ready balance yet"),
+  `${copyClarityFollowUpLoopId} must record the safer Send empty-state copy`,
+);
+assert(
+  copyClarityFollowUpLoopText.includes("configured Shield target first"),
+  `${copyClarityFollowUpLoopId} must record the safer Shield unsupported-target copy`,
+);
+assert(
+  copyClarityFollowUpLoopText.includes("vague-product-copy hedges"),
+  `${copyClarityFollowUpLoopId} must record the supported-copy hedge boundary`,
+);
+assert(copyClarityFollowUpLoopText.includes("f3d5135"), `${copyClarityFollowUpLoopId} must pin the implementation commit`);
+
 const ids = new Set();
 for (const finding of ledger.findings) {
   assert(typeof finding.id === "string", "finding is missing id");
