@@ -223,6 +223,7 @@
     "landing:browser-check": "node scripts/check-vanta-landing-browser.mjs",
     "docs:browser-check": "node scripts/check-vanta-docs-browser.mjs",
     "product-ui:browser-check": "node scripts/check-vanta-product-ui-browser.mjs",
+    "route:fallback-browser-check": "node scripts/check-vanta-route-fallback-browser.mjs",
     "safari:css-contract": "node scripts/check-vanta-safari-css-contract.mjs",
     "safari:browser-check": "node scripts/check-vanta-safari-browser.mjs",
     "safari:verify": "npm run safari:css-contract && npm run safari:browser-check && npm run build",

@@ -1,5 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
+import { NotFoundPage } from "@/pages/NotFoundPage";
 const ProductAppRoot = lazy(() =>
   import("@/ProductAppRoot").then((m) => ({ default: m.ProductAppRoot })),
 );
@@ -57,32 +59,35 @@ const ActualPrivateSettlementPage = lazy(() =>
 function App() {
   return (
     <Suspense fallback={<div className="app-shell">Loading…</div>}>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/docs" element={<DocsLayout />}>
-          <Route index element={<DocsHomePage />} />
-          <Route path="portal" element={<DocsPortalPage />} />
-          <Route path="pay" element={<DocsPayPage />} />
-          <Route path="trust" element={<DocsTrustPage />} />
-          <Route path="security" element={<DocsSecurityPage />} />
-          <Route path="roadmap" element={<DocsRoadmapPage />} />
-          <Route path="*" element={<Navigate to="/docs" replace />} />
-        </Route>
-        <Route path="/app" element={<ProductAppRoot />}>
-          <Route index element={<Navigate to="/app/shield" replace />} />
-          <Route path="dashboard" element={<AppDashboardPage />} />
-          <Route path="shield" element={<ShieldPage />} />
-          <Route path="send" element={<SendPage />} />
-          <Route path="swap" element={<SwapPage />} />
-          <Route path="strategy" element={<StrategyPage />} />
-          <Route path="unshield" element={<UnshieldPage />} />
-          <Route path="pay" element={<PayPage />} />
-          <Route path="launch" element={<LaunchPage />} />
-          <Route path="privacy-review" element={<PrivacyReviewPage />} />
-          <Route path="actual-private-settlement" element={<ActualPrivateSettlementPage />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/app/shield" replace />} />
-      </Routes>
+      <RouteErrorBoundary>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/docs" element={<DocsLayout />}>
+            <Route index element={<DocsHomePage />} />
+            <Route path="portal" element={<DocsPortalPage />} />
+            <Route path="pay" element={<DocsPayPage />} />
+            <Route path="trust" element={<DocsTrustPage />} />
+            <Route path="security" element={<DocsSecurityPage />} />
+            <Route path="roadmap" element={<DocsRoadmapPage />} />
+            <Route path="*" element={<NotFoundPage surface="docs" />} />
+          </Route>
+          <Route path="/app" element={<ProductAppRoot />}>
+            <Route index element={<Navigate to="/app/shield" replace />} />
+            <Route path="dashboard" element={<AppDashboardPage />} />
+            <Route path="shield" element={<ShieldPage />} />
+            <Route path="send" element={<SendPage />} />
+            <Route path="swap" element={<SwapPage />} />
+            <Route path="strategy" element={<StrategyPage />} />
+            <Route path="unshield" element={<UnshieldPage />} />
+            <Route path="pay" element={<PayPage />} />
+            <Route path="launch" element={<LaunchPage />} />
+            <Route path="privacy-review" element={<PrivacyReviewPage />} />
+            <Route path="actual-private-settlement" element={<ActualPrivateSettlementPage />} />
+            <Route path="*" element={<NotFoundPage surface="app" />} />
+          </Route>
+          <Route path="*" element={<NotFoundPage surface="site" />} />
+        </Routes>
+      </RouteErrorBoundary>
     </Suspense>
   );
 }
