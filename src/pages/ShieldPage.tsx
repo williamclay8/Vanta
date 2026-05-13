@@ -2186,14 +2186,28 @@ export function ShieldPage(_props: ShieldPageProps) {
 
               <details className="shield-viewing-key-panel">
                 <summary>
-                  <span>Balance recovery</span>
-                  <strong>{viewingKey ? "Ready" : "Connect wallet"}</strong>
+                  <span>Advanced shield settings</span>
+                  <strong>{viewingKey ? "Recovery ready" : "Connect wallet"}</strong>
                 </summary>
                 <div className="shield-viewing-key-panel__body">
                   <p className="shield-helper shield-helper--meta">
                     Lets this browser recognize your shielded notes. Back it up if you use Vanta
                     on another device.
                   </p>
+                  <div className="shield-advanced-summary-grid" aria-label="Advanced shield settings status">
+                    <div>
+                      <span>Viewing key backup</span>
+                      <strong>{viewingKey ? "Available" : "Connect wallet"}</strong>
+                    </div>
+                    <div>
+                      <span>Decoy batch</span>
+                      <strong>Automatic</strong>
+                    </div>
+                    <div>
+                      <span>Custom route</span>
+                      <strong>Default route</strong>
+                    </div>
+                  </div>
                   <div className="review-list">
                     <div className="review-row">
                       <span>Owner recovery evidence</span>
