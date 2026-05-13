@@ -25,6 +25,7 @@ function includes(source, marker, label) {
 const packageJson = JSON.parse(read("package.json"));
 const scripts = packageJson.scripts ?? {};
 const program = read("programs/vanta_private_pool_v2_spend/src/lib.rs");
+const fuzzHarness = read("fuzz/vanta_private_pool_v2_spend/src/main.rs");
 const readme = read("programs/vanta_private_pool_v2_spend/README.md");
 const decision = read("docs/zk/c01-production-verifier-backend-decision.md");
 const candidate = JSON.parse(read("ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json"));
@@ -57,6 +58,19 @@ for (const marker of [
   "register_verifier_key_rejects_zero_hash_and_wrong_pda",
 ]) {
   includes(program, marker, "spend program verifier-key registry source");
+}
+
+for (const marker of [
+  "const TAG_REGISTER_VERIFIER_KEY: u8 = 5;",
+  "action_register_verifier_key",
+  "register_verifier_key_data",
+  "verifier_key_registration_accounts_for_hash",
+  "registered_verifier_keys",
+  "assert_verifier_key_account",
+  "idempotent verifier-key replay mutated state",
+  "ERR_VERIFIER_KEY_MISMATCH",
+]) {
+  includes(fuzzHarness, marker, "Crucible verifier-key registry harness");
 }
 
 for (const marker of [
