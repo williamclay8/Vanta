@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { sha256 } from "@noble/hashes/sha2";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
+import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { NotePicker, type NotePickerOption } from "@/components/NotePicker";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { PrivacySummary, type PrivacySummaryItem } from "@/components/PrivacySummary";
@@ -1423,16 +1424,15 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         </div>
       </div>
 
-      <div className="send-flow-indicator">
-        {["Shield", "Send", "Hold change"].map((step, index) => (
-          <div
-            key={step}
-            className={index === 1 ? "send-flow-step send-flow-step--active" : "send-flow-step"}
-          >
-            <span>{step}</span>
-          </div>
-        ))}
-      </div>
+      <LaneFlowIndicator
+        ariaLabel="Send flow"
+        activeStepIndex={1}
+        steps={[
+          { id: "shield", label: "Shield" },
+          { id: "send", label: "Send" },
+          { id: "hold-change", label: "Hold change" },
+        ]}
+      />
 
       {recentShield ? (
         <div className="send-context-banner">

@@ -1,5 +1,6 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
+import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import { describePricingForSurface } from "@/pricing/vantaPricing";
@@ -446,16 +447,17 @@ export function StrategyPage() {
           </div>
         </header>
 
-        <div className="send-flow-indicator strategy-flow-indicator" aria-label="Strategy flow">
-          {["Choose route", "Preview plan", "Verify packet", "Execute later"].map((step, index) => (
-            <div
-              key={step}
-              className={index === 1 ? "send-flow-step send-flow-step--active" : "send-flow-step"}
-            >
-              <span>{step}</span>
-            </div>
-          ))}
-        </div>
+        <LaneFlowIndicator
+          ariaLabel="Strategy flow"
+          activeStepIndex={1}
+          className="strategy-flow-indicator"
+          steps={[
+            { id: "choose-route", label: "Choose route" },
+            { id: "preview-plan", label: "Preview plan" },
+            { id: "verify-packet", label: "Verify packet" },
+            { id: "execute-later", label: "Execute later" },
+          ]}
+        />
 
         <div className="strategy-main">
           <form

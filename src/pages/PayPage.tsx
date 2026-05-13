@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
+import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { VANTA_PAY_ASSET_SYMBOLS, type VantaPayAsset } from "@/pay/vantaPayAssets";
 import { VANTA_PAY_MERCHANT_COMMAND_CENTER } from "@/pay/vantaPayMerchantCommandCenter";
 import { VANTA_PAY_MERCHANT_DEMO_CONTENT } from "@/pay/vantaPayMerchantDemoContent";
@@ -362,22 +363,16 @@ export function PayPage() {
           </div>
         </header>
 
-        <div className="send-flow-indicator pay-flow-indicator" aria-label="Pay flow">
-          {["Create", "Approve", "Settle", "Share receipt"].map((step, index) => (
-            <div
-              key={step}
-              className={
-                (phase !== "draft" && index === 0) ||
-                (phase === "settlement_complete" && index === 2) ||
-                (phase === "settlement_complete" && index === 3)
-                  ? "send-flow-step send-flow-step--active"
-                  : "send-flow-step"
-              }
-            >
-              <span>{step}</span>
-            </div>
-          ))}
-        </div>
+        <LaneFlowIndicator
+          ariaLabel="Pay flow"
+          className="pay-flow-indicator"
+          steps={[
+            { id: "create", label: "Create", active: phase !== "draft" },
+            { id: "approve", label: "Approve" },
+            { id: "settle", label: "Settle", active: phase === "settlement_complete" },
+            { id: "share-receipt", label: "Share receipt", active: phase === "settlement_complete" },
+          ]}
+        />
 
         <main className="pay-minimal-stage send-layout">
           <article className="send-card send-card--workspace">

@@ -6,6 +6,7 @@ import {
 } from "@solana/react-hooks";
 import { isBetaMode } from "@/config/deploymentMode";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
+import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import {
@@ -2113,24 +2114,15 @@ export function UnshieldPage() {
         </div>
       </div>
 
-      <div className="send-flow-indicator">
-        {[
-          "Shield",
-          "Hold",
-          `Unshield ${selectedLane}`,
-        ].map((step, index, steps) => (
-          <div
-            key={step}
-            className={
-              index === steps.length - 1
-                ? "send-flow-step send-flow-step--active"
-                : "send-flow-step"
-            }
-          >
-            <span>{step}</span>
-          </div>
-        ))}
-      </div>
+      <LaneFlowIndicator
+        ariaLabel="Unshield flow"
+        activeStepIndex={2}
+        steps={[
+          { id: "shield", label: "Shield" },
+          { id: "hold", label: "Hold" },
+          { id: "unshield", label: `Unshield ${selectedLane}` },
+        ]}
+      />
 
       {showPrivateReleaseCard && (
       <article className="send-card" style={{ marginBottom: 24 }}>

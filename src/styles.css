@@ -2690,22 +2690,34 @@ input {
   overflow: hidden;
 }
 
-.send-flow-indicator {
+.send-flow-indicator,
+.lane-flow-indicator {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--lane-flow-step-count, 4), minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 20px;
 }
 
-.send-flow-step {
+.send-flow-step,
+.lane-flow-step {
+  position: relative;
+  overflow: hidden;
   padding: 12px 14px;
   border-radius: 18px;
   border: 1px solid rgba(0, 229, 200, 0.1);
   background: rgba(0, 229, 200, 0.025);
   color: var(--muted);
+  transition:
+    background 180ms var(--ease-out),
+    border-color 180ms var(--ease-out),
+    color 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-out);
 }
 
-.send-flow-step span {
+.send-flow-step span,
+.lane-flow-step span {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -2714,12 +2726,42 @@ input {
   text-transform: uppercase;
 }
 
-.send-flow-step--active {
+.send-flow-step--active,
+.lane-flow-step--active {
   background:
     linear-gradient(160deg, rgba(0, 229, 200, 0.08), rgba(255, 255, 255, 0.01)),
     rgba(0, 229, 200, 0.03);
   color: var(--muted-strong);
   border-color: rgba(0, 229, 200, 0.3);
+  box-shadow: 0 14px 34px rgba(0, 229, 200, 0.08);
+}
+
+.lane-flow-step--active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 42%;
+  transform: translateX(-130%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.16),
+    rgba(255, 255, 255, 0)
+  );
+  animation: lane-flow-sweep 4s var(--ease-smooth) infinite;
+  pointer-events: none;
+}
+
+@keyframes lane-flow-sweep {
+  0%,
+  18% {
+    transform: translateX(-130%);
+  }
+
+  52%,
+  100% {
+    transform: translateX(260%);
+  }
 }
 
 .send-context-banner {
@@ -7331,6 +7373,12 @@ input {
   .status-bar__fill {
     transform: none;
   }
+
+  .lane-flow-step--active::after {
+    animation: none !important;
+    opacity: 0;
+    transform: translateX(0);
+  }
 }
 
 @media (max-width: 1120px) {
@@ -7340,6 +7388,7 @@ input {
   .shield-layout,
   .send-layout,
   .send-flow-indicator,
+  .lane-flow-indicator,
   .privacy-primitives,
   .audience-grid,
   .roadmap-list,

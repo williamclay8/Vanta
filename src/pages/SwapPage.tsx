@@ -59,6 +59,7 @@ import {
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentSafety.mjs";
 import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
+import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import {
   PrivacySummary,
   type PrivacySummaryItem,
@@ -1617,6 +1618,17 @@ export function SwapPage() {
           selectedTargetAsset,
         )}`
       : sourcePairCapability.actionLabel;
+  const swapFlowActiveIndex =
+    status === "complete"
+      ? 3
+      : status === "awaiting_confirmation" ||
+          status === "recording_transition" ||
+          status === "authorizing_operator" ||
+          status === "finalizing_state"
+        ? 2
+        : status === "quoting" || Boolean(quote)
+          ? 1
+          : 0;
 
   return (
     <section className="send-page swap-page">
@@ -1636,6 +1648,17 @@ export function SwapPage() {
           </p>
         </div>
       </div>
+
+      <LaneFlowIndicator
+        ariaLabel="Swap flow"
+        activeStepIndex={swapFlowActiveIndex}
+        steps={[
+          { id: "choose-trade", label: "Choose trade" },
+          { id: "quote", label: "Quote" },
+          { id: "settle", label: "Settle" },
+          { id: "receive-note", label: "Receive note" },
+        ]}
+      />
 
       <div className="send-layout">
         <article className="send-card send-card--workspace">

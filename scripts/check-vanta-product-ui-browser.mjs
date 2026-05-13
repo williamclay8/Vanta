@@ -675,6 +675,132 @@ function assertActionTabsStayMinimal() {
   }
 }
 
+function assertLaneFlowIndicators() {
+  const cases = [
+    {
+      activeText: "Choose asset",
+      ariaLabel: "Shield flow",
+      expectedActiveCount: 1,
+      labels: ["Choose asset", "Approve", "Private note"],
+      route: "/app/shield",
+    },
+    {
+      activeText: "Send",
+      ariaLabel: "Send flow",
+      expectedActiveCount: 1,
+      labels: ["Shield", "Send", "Hold change"],
+      route: "/app/send",
+    },
+    {
+      activeText: "Choose trade",
+      ariaLabel: "Swap flow",
+      expectedActiveCount: 1,
+      labels: ["Choose trade", "Quote", "Settle", "Receive note"],
+      route: "/app/swap",
+    },
+    {
+      activeText: "Unshield",
+      ariaLabel: "Unshield flow",
+      expectedActiveCount: 1,
+      labels: ["Shield", "Hold", "Unshield"],
+      route: "/app/unshield",
+    },
+    {
+      ariaLabel: "Pay flow",
+      expectedActiveCount: 0,
+      labels: ["Create", "Approve", "Settle", "Share receipt"],
+      route: "/app/pay",
+    },
+    {
+      activeText: "Preview plan",
+      ariaLabel: "Strategy flow",
+      expectedActiveCount: 1,
+      labels: ["Choose route", "Preview plan", "Verify packet", "Execute later"],
+      route: "/app/strategy",
+    },
+  ];
+
+  for (const flowCase of cases) {
+    for (const width of [1440, 390, 320]) {
+      execFileSync(
+        "gsd-browser",
+        ["--session", browserSession, "set-viewport", "--width", String(width), "--height", "900"],
+        { stdio: "ignore" },
+      );
+      execFileSync("gsd-browser", ["--session", browserSession, "navigate", `${baseUrl}${flowCase.route}`], {
+        stdio: "ignore",
+      });
+      execFileSync("gsd-browser", ["--session", browserSession, "wait-for", "--condition", "network_idle"], {
+        stdio: "ignore",
+      });
+
+      const rawResult = execFileSync(
+        "gsd-browser",
+        [
+          "--session",
+          browserSession,
+          "--json",
+          "eval",
+          `(flowCase => {
+            const indicator = document.querySelector(
+              \`.lane-flow-indicator[aria-label="\${flowCase.ariaLabel}"]\`,
+            );
+            const activeSteps = indicator?.querySelectorAll(".lane-flow-step--active") ?? [];
+            const activeText = Array.from(activeSteps)
+              .map((step) => step.textContent?.trim() ?? "")
+              .join(" | ");
+            const indicatorText = indicator?.textContent ?? "";
+            const missingLabels = flowCase.labels.filter((label) => !indicatorText.includes(label));
+            const documentOverflow =
+              Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) -
+              window.innerWidth;
+            const indicatorRect = indicator instanceof HTMLElement ? indicator.getBoundingClientRect() : null;
+            const activeStep = activeSteps[0];
+            const activeStepAnimationName =
+              activeStep instanceof HTMLElement
+                ? window.getComputedStyle(activeStep, "::after").animationName
+                : "";
+            const activeAnimationOk =
+              flowCase.expectedActiveCount === 0 || activeStepAnimationName.includes("lane-flow-sweep");
+
+            return {
+              ok:
+                indicator instanceof HTMLElement &&
+                indicatorRect.width > 0 &&
+                indicatorRect.height > 0 &&
+                activeSteps.length === flowCase.expectedActiveCount &&
+                missingLabels.length === 0 &&
+                (!flowCase.activeText || activeText.includes(flowCase.activeText)) &&
+                activeAnimationOk &&
+                documentOverflow <= 2,
+              activeAnimationOk,
+              activeStepAnimationName,
+              activeSteps: activeSteps.length,
+              activeText,
+              documentOverflow,
+              hasIndicator: indicator instanceof HTMLElement,
+              indicatorHeight: indicatorRect?.height ?? 0,
+              indicatorWidth: indicatorRect?.width ?? 0,
+              missingLabels,
+              route: window.location.pathname,
+              width: window.innerWidth,
+            };
+          })(${JSON.stringify(flowCase)})`,
+        ],
+        { encoding: "utf8" },
+      );
+
+      const result = JSON.parse(rawResult);
+      const rawValue = result.result ?? result.value ?? result;
+      const value = typeof rawValue === "string" ? JSON.parse(rawValue) : rawValue;
+
+      if (!value.ok) {
+        throw new Error(`Lane flow indicator check failed: ${JSON.stringify(value)}`);
+      }
+    }
+  }
+}
+
 function assertSystemStatusStripLayout() {
   for (const route of ["/app/shield", "/app/send", "/app/swap", "/app/unshield", "/app/strategy", "/app/pay"]) {
     for (const width of [1440, 768, 390, 360, 320]) {
@@ -930,6 +1056,7 @@ try {
   assertUnshieldAdvancedDisclosure();
   assertDesktopProductTabsFit();
   assertActionTabsStayMinimal();
+  assertLaneFlowIndicators();
   assertSystemStatusStripLayout();
   assertUnshieldAssetSelectorStaysCompact();
   console.log("vanta product ui browser check: PASS");

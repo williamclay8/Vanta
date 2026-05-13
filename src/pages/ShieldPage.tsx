@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
+import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import {
   usePrivacyFlow,
   type RecentShieldContext,
@@ -2014,6 +2015,15 @@ export function ShieldPage(_props: ShieldPageProps) {
     "Old random-seeded browser-local records stay quarantined local-only. Record-source import verifies wallet-derived records but does not promote legacy records or recover missing secrets.";
 
   const routeLabel = capability.routeLabel;
+  const shieldFlowActiveIndex =
+    status === "complete" || status === "recovery_recorded"
+      ? 2
+      : status === "awaiting_wallet_confirmation" ||
+          status === "routing_public_swap" ||
+          status === "shielding_in_progress" ||
+          status === "entering_shielded_state"
+        ? 1
+        : 0;
 
   return (
     <section className="send-page shield-page">
@@ -2033,6 +2043,16 @@ export function ShieldPage(_props: ShieldPageProps) {
           </p>
         </div>
       </div>
+
+      <LaneFlowIndicator
+        ariaLabel="Shield flow"
+        activeStepIndex={shieldFlowActiveIndex}
+        steps={[
+          { id: "choose-asset", label: "Choose asset" },
+          { id: "approve", label: "Approve" },
+          { id: "private-note", label: "Private note" },
+        ]}
+      />
 
       <div className="send-layout">
         <article className="send-card send-card--workspace">
