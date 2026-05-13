@@ -63,6 +63,12 @@ const sendWitnessProverCheck = read(
 const actualPrivateSpendBrowserWorkerProverCheck = read(
   "scripts/check-vanta-private-pool-v2-actual-private-spend-browser-worker-prover.mjs",
 );
+const browserWorkerProofResultAdapter = read(
+  "src/privacy/privatePoolV2BrowserWorkerProofResultAdapter.ts",
+);
+const browserWorkerProofResultAdapterCheck = read(
+  "scripts/check-vanta-private-pool-v2-browser-worker-proof-result-adapter.mjs",
+);
 const remoteProofArtifactBoundary = read(
   "scripts/check-vanta-private-pool-v2-remote-proof-artifact-boundary.mjs",
 );
@@ -800,7 +806,7 @@ includes(
 
 assert(
   scripts["private-pool-v2:proof-backend-boundary-check"] ===
-    "node scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs && npm run private-pool-v2:browser-worker-prover-check && npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
+    "node scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs && npm run private-pool-v2:browser-worker-prover-check && npm run private-pool-v2:actual-private-spend-browser-worker-prover-check && npm run private-pool-v2:browser-worker-proof-result-adapter-check",
   "package.json must expose private-pool-v2:proof-backend-boundary-check",
 );
 assert(
@@ -827,6 +833,46 @@ assert(
   scripts["private-pool-v2:actual-private-spend-browser-worker-prover-check"] ===
     "node scripts/check-vanta-private-pool-v2-actual-private-spend-browser-worker-prover.mjs",
   "package.json must expose private-pool-v2:actual-private-spend-browser-worker-prover-check",
+);
+assert(
+  scripts["private-pool-v2:browser-worker-proof-result-adapter-check"] ===
+    "node scripts/check-vanta-private-pool-v2-browser-worker-proof-result-adapter.mjs",
+  "package.json must expose private-pool-v2:browser-worker-proof-result-adapter-check",
+);
+includes(
+  browserWorkerProofResultAdapter,
+  "createVantaPrivatePoolV2BrowserProverClient",
+  "browser-worker proof-result adapter client delegation",
+);
+includes(
+  browserWorkerProofResultAdapter,
+  "createVantaPrivatePoolV2LocalBbFixtureProver",
+  "browser-worker proof-result adapter local bb binding reuse",
+);
+includes(
+  browserWorkerProofResultAdapter,
+  "local-bb-derived-artifact",
+  "browser-worker proof-result adapter derived artifact boundary",
+);
+includes(
+  browserWorkerProofResultAdapter,
+  "default local prover remains mock / local-mock",
+  "browser-worker proof-result adapter default mock boundary warning",
+);
+includes(
+  browserWorkerProofResultAdapterCheck,
+  "request transcript drift must reject before invoking the worker client",
+  "browser-worker proof-result adapter pre-worker transcript drift guard",
+);
+includes(
+  browserWorkerProofResultAdapterCheck,
+  "requires local-bb-derived-artifact evidence",
+  "browser-worker proof-result adapter fixture-artifact rejection guard",
+);
+includes(
+  browserWorkerProofResultAdapterCheck,
+  "adapter errors must sanitize owner_secret",
+  "browser-worker proof-result adapter sanitized error guard",
 );
 assert(
   scripts["private-pool-v2:local-prover-check"]?.includes(
@@ -857,6 +903,12 @@ assert(
     "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
   ),
   "package.json private-pool-v2:local-prover-check must include private-pool-v2:actual-private-spend-browser-worker-prover-check",
+);
+assert(
+  scripts["private-pool-v2:local-prover-check"]?.includes(
+    "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
+  ),
+  "package.json private-pool-v2:local-prover-check must include private-pool-v2:browser-worker-proof-result-adapter-check",
 );
 assert(
   scripts["private-pool-v2:remote-proof-artifact-boundary-check"] ===
@@ -944,6 +996,13 @@ assert(
       "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
     ),
   "private-pool-v2:verify must reach the actual-private-spend browser worker prover guard through proof-backend-boundary-check",
+);
+assert(
+  scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:proof-backend-boundary-check") &&
+    scripts["private-pool-v2:proof-backend-boundary-check"]?.includes(
+      "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
+    ),
+  "private-pool-v2:verify must reach the browser-worker proof-result adapter guard through proof-backend-boundary-check",
 );
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:remote-proof-artifact-boundary-check"),

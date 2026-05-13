@@ -94,6 +94,14 @@ const requiredFiles = [
     ],
   },
   {
+    path: "src/privacy/privatePoolV2BrowserWorkerProofResultAdapter.ts",
+    exports: [
+      "VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROOF_RESULT_ADAPTER_SCHEME",
+      "VantaPrivatePoolV2BrowserWorkerProofResultAdapter",
+      "createVantaPrivatePoolV2BrowserWorkerProofResultAdapter",
+    ],
+  },
+  {
     path: "src/privacy/privatePoolV2LocalVerifierRegistry.ts",
     exports: [
       "VANTA_PRIVATE_POOL_V2_LOCAL_VERIFIER_REGISTRY_SCHEME",
