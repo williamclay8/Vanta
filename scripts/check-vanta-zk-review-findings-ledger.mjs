@@ -214,6 +214,28 @@ assert(c01VerifierBackendDecisionLoopText.includes("Groth16 tag-3 Solana verifie
 assert(c01VerifierBackendDecisionLoopText.includes("Noir/bb.js/UltraHonk adaptation path"), `${c01VerifierBackendDecisionLoopId} must record the UltraHonk option`);
 assert(c01VerifierBackendDecisionLoopText.includes("0e1ca25"), `${c01VerifierBackendDecisionLoopId} must pin the implementation commit`);
 
+const copyClaimBoundaryLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-COPY-CLAIM-BOUNDARY";
+assert(activeFeedbackLoopIds.has(copyClaimBoundaryLoopId), `${copyClaimBoundaryLoopId} active feedback loop is missing`);
+const copyClaimBoundaryLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === copyClaimBoundaryLoopId);
+const copyClaimBoundaryLoopText = JSON.stringify(copyClaimBoundaryLoop);
+assert(
+  copyClaimBoundaryLoop?.localVerification?.includes("npm run truth:privacy-claim-gate"),
+  `${copyClaimBoundaryLoopId} must record the privacy claim gate`,
+);
+assert(
+  copyClaimBoundaryLoop?.localVerification?.includes("npm run product-ui:browser-check"),
+  `${copyClaimBoundaryLoopId} must record the product UI browser guard`,
+);
+assert(
+  copyClaimBoundaryLoopText.includes("Beta · receipts where available · 6 claim locks active"),
+  `${copyClaimBoundaryLoopId} must record the safer status-strip framing`,
+);
+assert(
+  copyClaimBoundaryLoopText.includes("future-state overclaims"),
+  `${copyClaimBoundaryLoopId} must record the future-state copy guard`,
+);
+assert(copyClaimBoundaryLoopText.includes("8ac1586"), `${copyClaimBoundaryLoopId} must pin the implementation commit`);
+
 const ids = new Set();
 for (const finding of ledger.findings) {
   assert(typeof finding.id === "string", "finding is missing id");

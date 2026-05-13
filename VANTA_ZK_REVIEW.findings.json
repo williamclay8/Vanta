@@ -124,6 +124,45 @@
       "truthBoundary": "This is dev-only Send browser/Web Worker proof execution from caller-provided compiled bytecode and compressed witness bytes. It is not browser-side witness generation, not live Send routing, not a production remote proof service, not an on-chain verifier, not production verifying-key evidence, not audit acceptance, not live deployment evidence, and not real-funds readiness."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-COPY-CLAIM-BOUNDARY",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#20-programmatic-privacy-and-20-copy-clarity",
+        "VANTA_ZK_REVIEW.md#concrete-rewrites",
+        "src/pages/HomePage.tsx",
+        "src/components/SystemStatusStrip.tsx",
+        "src/pages/PayPage.tsx",
+        "src/pages/DocsHomePage.tsx",
+        "src/pages/DocsPortalPage.tsx",
+        "src/pages/DocsRoadmapPage.tsx",
+        "src/docs/docsContent.ts",
+        "scripts/check-vanta-privacy-claim-gate.mjs"
+      ],
+      "summary": "The 20x copy-clarity feedback is now partly implemented without adopting overclaiming sample rewrites: the home hero leads with Solana settlement, product copy names selected assets/current lanes/verifiable receipts, the status strip leads with Beta · receipts where available · 6 claim locks active, Pay compresses repeated disclaimer chips to test-receipt / production-privacy-not-enabled language, docs remove vague supported-action hedges, and the privacy claim gate now rejects future-state overclaims unless they are explicitly future/blocked context.",
+      "localVerification": [
+        "npm run truth:privacy-claim-gate",
+        "npm run pay:receipt-privacy-contract-check",
+        "npm run pay-tab:copy-check",
+        "npm run docs:source-of-truth-check",
+        "npm run lanes:trust-contract-check",
+        "npm run landing:browser-check",
+        "npm run pay:browser-check",
+        "npm run product-ui:browser-check",
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:feedback-loop-check",
+        "npm run build",
+        "git diff --check",
+        "git diff --cached --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the copy claim boundary slice across privacy-claim, Pay, docs, lane trust, landing browser, Pay browser, product UI browser, review ledger, feedback-loop, build, and diff whitespace checks",
+        "committed": "8ac1586 (Tighten Vanta copy claim boundaries)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is product copy and guard hardening. It does not make Vanta production-private, does not prove all six lanes are privacy-verified, does not enable Pay production privacy, does not add browser witness generation, does not choose a C01 verifier backend, and does not provide pushed or live deployment evidence for the new copy."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-SEND-WITNESS-INPUT-PROVER",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
