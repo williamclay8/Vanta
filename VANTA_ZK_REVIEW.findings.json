@@ -701,6 +701,40 @@
       "truthBoundary": "This is a Pay UX and guard-hardening slice. It preserves the existing local test receipt path and receipt privacy contract, but it is not Pay production readiness, not customer-side ZK Pay proof V8, not live mainnet private settlement, not a production private-rail launch, not pushed, and not live-deployed."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-STRATEGY-PROGRESSIVE-DISCLOSURE",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#pay-and-strategy-redesign-progressive-disclosure",
+        "VANTA_ZK_REVIEW.md#strategy-redesign",
+        "VANTA_ZK_REVIEW.md#the-single-rule",
+        "src/pages/StrategyPage.tsx",
+        "src/styles.css",
+        "src/strategy/strategyPageState.ts",
+        "scripts/check-vanta-strategy-tab-copy.mjs",
+        "scripts/check-vanta-strategy-browser.mjs",
+        "scripts/check-vanta-strategy-page-state.mjs"
+      ],
+      "summary": "The Strategy progressive-disclosure feedback now has a guarded local slice: the first-load form asks What are you trying to do?, shows only side, asset, amount, duration, and a Preview strategy CTA, while the DCA/TWAP mode toggle plus policy, funding, slippage, submit, and destination controls live behind Advanced strategy settings. The existing planner/runtime/private-rail contract remains unchanged, the advanced labels are now plain English (Trade size variation, Schedule pattern, How fast to complete, Submit method, Pay from, Settle to), and the browser guards prove those controls are hidden before opening and still usable when selecting Public wallet.",
+      "localVerification": [
+        "npm run strategy:page-state-check",
+        "npm run strategy-tab:copy-check",
+        "npm run strategy:browser-check",
+        "npm run strategy:private-rail-trust-contract-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run product-ui:browser-check",
+        "npm run build",
+        "git diff --check",
+        "npm run strategy:verify"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for Strategy progressive disclosure across page-state, tab-copy, Strategy browser, private-rail trust contract, privacy claim gate, product UI browser, build, diff whitespace, and the aggregate strategy:verify chain",
+        "committed": "cc99583 (Simplify Strategy front door)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a Strategy UX and guard-hardening slice. It preserves the existing local preview planner, runtime, and private-rail trust packet shape, but it is not Strategy production readiness, not live strategy execution, not live mainnet private settlement, not a production private-rail launch, not pushed, and not live-deployed."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [

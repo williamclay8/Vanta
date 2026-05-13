@@ -759,6 +759,49 @@ for (const phrase of [
   );
 }
 
+const strategyProgressiveDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-STRATEGY-PROGRESSIVE-DISCLOSURE";
+assert(
+  activeFeedbackLoopIds.has(strategyProgressiveDisclosureLoopId),
+  `${strategyProgressiveDisclosureLoopId} active feedback loop is missing`,
+);
+const strategyProgressiveDisclosureLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === strategyProgressiveDisclosureLoopId,
+);
+const strategyProgressiveDisclosureLoopText = JSON.stringify(strategyProgressiveDisclosureLoop);
+for (const command of [
+  "npm run strategy:page-state-check",
+  "npm run strategy-tab:copy-check",
+  "npm run strategy:browser-check",
+  "npm run strategy:private-rail-trust-contract-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run product-ui:browser-check",
+  "npm run strategy:verify",
+  "npm run build",
+]) {
+  assert(
+    strategyProgressiveDisclosureLoop?.localVerification?.includes(command),
+    `${strategyProgressiveDisclosureLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "Advanced strategy settings",
+  "What are you trying to do?",
+  "Preview strategy",
+  "Trade size variation",
+  "Schedule pattern",
+  "Pay from",
+  "Settle to",
+  "hidden before opening",
+  "not Strategy production readiness",
+  "not live strategy execution",
+  "cc99583",
+]) {
+  assert(
+    strategyProgressiveDisclosureLoopText.includes(phrase),
+    `${strategyProgressiveDisclosureLoopId} must record ${phrase}`,
+  );
+}
+
 const publicDepthDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE";
 assert(activeFeedbackLoopIds.has(publicDepthDisclosureLoopId), `${publicDepthDisclosureLoopId} active feedback loop is missing`);
 const publicDepthDisclosureLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === publicDepthDisclosureLoopId);
