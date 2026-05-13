@@ -512,11 +512,20 @@ export class VantaPrivatePoolV2LocalBbFixtureProver implements VantaPrivatePoolV
       throw new Error(readiness.blockers.join(" "));
     }
 
+    const config: VantaPrivatePoolV2LocalBbFixtureTargetConfig | undefined = (
+      LOCAL_BB_FIXTURE_TARGET_CONFIGS as Partial<
+        Record<string, VantaPrivatePoolV2LocalBbFixtureTargetConfig>
+      >
+    )[this.#target];
+    if (!config) {
+      throw new Error("Local bb fixture prover target is unsupported.");
+    }
+
     assertLocalBbFixtureRequestMatchesArtifact(
       request,
       this.#fixtureProofRequest,
       this.#proofArtifact,
-      LOCAL_BB_FIXTURE_TARGET_CONFIGS[this.#target],
+      config,
     );
 
     return {

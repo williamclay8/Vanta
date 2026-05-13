@@ -210,8 +210,7 @@ function createRecordingPrivateSendIndexer() {
   };
 }
 
-function createRecordingShieldIndexer(request) {
-  const outputRoot = readPublicInput(request, "output-root:");
+function createRecordingShieldIndexer(request, { appendedRoot = readPublicInput(request, "output-root:") } = {}) {
   const treeId = readPublicInput(request, "tree-id:");
   const expectedLeafIndex = Number(readPublicInput(request, "leaf-index:"));
   const commitments = Array.from({ length: expectedLeafIndex }, (_, leafIndex) => ({
@@ -235,7 +234,7 @@ function createRecordingShieldIndexer(request) {
         assetId,
         commitment,
         leafIndex: commitments.length,
-        merkleRoot: outputRoot,
+        merkleRoot: appendedRoot,
         treeId: appendedTreeId,
       };
       commitments.push(record);
@@ -508,6 +507,20 @@ try {
   assert(
     appendedShieldCommitment?.merkleRoot === readPublicInput(shieldFixture.proofRequest, "output-root:"),
     "Expected Shield verifier to bind the request output root.",
+  );
+  const wrongRootShieldRegistry = createVantaPrivatePoolV2LocalVerifierRegistry({
+    indexer: createRecordingShieldIndexer(shieldFixture.proofRequest, {
+      appendedRoot: `${BigInt(readPublicInput(shieldFixture.proofRequest, "output-root:")) + 17n}`,
+    }),
+    prover: shieldProver,
+  });
+  await expectRejection(
+    () =>
+      wrongRootShieldRegistry.acceptProof({
+        proof: shieldProof,
+        request: shieldFixture.proofRequest,
+      }),
+    "output root does not match verifier indexer root",
   );
   console.log("private-pool-v2 Shield local bb fixture verifier receipt: PASS");
 
@@ -888,6 +901,16 @@ try {
       "local ACIR bytecode key metadata",
     );
   }
+
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2LocalBbFixtureProver({
+        fixtureProofRequest: shieldFixture.proofRequest,
+        proofArtifact: shieldProofArtifact,
+        target: "unsupported-target",
+      }).prove(shieldFixture.proofRequest),
+    "target is unsupported",
+  );
 
   console.log("private-pool-v2 Shield/Claim/Swap local bb fixture rejection guards: PASS");
 
