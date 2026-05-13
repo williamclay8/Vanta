@@ -764,6 +764,39 @@
       "truthBoundary": "This is a Shield UX and guard-hardening slice. It preserves the existing Shield route, wallet, proof, settlement, recovery, viewing-key, and decoy behavior, but it is not the full Shield redesign, not /app/settings/recovery, not a decoy toggle, not a custom route override, not Shield production privacy, not live mainnet private settlement, not pushed, and not live-deployed."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-SEND-PROGRESSIVE-DISCLOSURE",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#send-page-redesign",
+        "VANTA_ZK_REVIEW.md#shield-send-swap-unshield-redesign-same-pattern-all-four-lanes",
+        "src/pages/SendPage.tsx",
+        "src/components/PrivacySummary.tsx",
+        "src/styles.css",
+        "scripts/check-vanta-send-requires-shielded-state.mjs",
+        "scripts/check-vanta-product-ui-browser.mjs"
+      ],
+      "summary": "The Send progressive-disclosure feedback now has a guarded local first slice: the first-load form leads with To and Amount, the selected spending note is visible with a Change note affordance, the primary action uses Send-language while preserving the beta disabled gate, and a reusable PrivacySummary panel renders the user-facing Privacy summary with current-truth observer wording. The operator line says proof and settlement status instead of witness values or plaintext memo contents. Custom note selection, Encrypted recipient memo status (`Automatic v2 AEAD packet`), and automatic spent-marker status live behind Advanced send settings; the Send guard forbids the stale Operator sees: nothing overclaim and the product UI browser guard proves the advanced panel is closed before opening and visible after opening.",
+      "localVerification": [
+        "npm run send:requires-shielded-state-check",
+        "npm run send:balance-ledger-check",
+        "npm run send:trust-packet-check",
+        "npm run send:production-privacy-claim-gate",
+        "npm run actions:memo-encryption-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run product-ui:browser-check",
+        "npm run build",
+        "npm run send:verify",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for Send progressive disclosure across the Send shield-first guard, ledger contract, trust packet, production privacy claim gate, memo encryption, privacy claim gate, product UI browser, build, full send:verify chain, and diff whitespace check",
+        "committed": "488f2e7 (Simplify Send front door)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a Send UX and guard-hardening slice. It preserves the existing send-transition, safe-send, memo, proof, release-package, spent-marker, ledger-gate, and private-core operator behavior, but it is not the full Send rewrite, not live address or .sol validation, not a receipt modal, not a WalletApprovalSheet replacement, not Send production privacy, not live mainnet private settlement, not pushed, and not live-deployed."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [

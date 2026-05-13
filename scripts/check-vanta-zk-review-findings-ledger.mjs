@@ -844,6 +844,52 @@ for (const phrase of [
   );
 }
 
+const sendProgressiveDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-SEND-PROGRESSIVE-DISCLOSURE";
+assert(
+  activeFeedbackLoopIds.has(sendProgressiveDisclosureLoopId),
+  `${sendProgressiveDisclosureLoopId} active feedback loop is missing`,
+);
+const sendProgressiveDisclosureLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === sendProgressiveDisclosureLoopId,
+);
+const sendProgressiveDisclosureLoopText = JSON.stringify(sendProgressiveDisclosureLoop);
+for (const command of [
+  "npm run send:requires-shielded-state-check",
+  "npm run send:balance-ledger-check",
+  "npm run send:trust-packet-check",
+  "npm run send:production-privacy-claim-gate",
+  "npm run actions:memo-encryption-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run product-ui:browser-check",
+  "npm run send:verify",
+  "npm run build",
+]) {
+  assert(
+    sendProgressiveDisclosureLoop?.localVerification?.includes(command),
+    `${sendProgressiveDisclosureLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "PrivacySummary",
+  "Privacy summary",
+  "Advanced send settings",
+  "Custom note selection",
+  "Encrypted recipient memo",
+  "Automatic v2 AEAD packet",
+  "Operator sees",
+  "proof and settlement status",
+  "forbids the stale Operator sees: nothing overclaim",
+  "not the full Send rewrite",
+  "not live address or .sol validation",
+  "not Send production privacy",
+  "488f2e7",
+]) {
+  assert(
+    sendProgressiveDisclosureLoopText.includes(phrase),
+    `${sendProgressiveDisclosureLoopId} must record ${phrase}`,
+  );
+}
+
 const publicDepthDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE";
 assert(activeFeedbackLoopIds.has(publicDepthDisclosureLoopId), `${publicDepthDisclosureLoopId} active feedback loop is missing`);
 const publicDepthDisclosureLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === publicDepthDisclosureLoopId);
