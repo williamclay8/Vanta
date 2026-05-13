@@ -470,6 +470,7 @@ assert(activeFeedbackLoopIds.has(routeFallbackTruthLoopId), `${routeFallbackTrut
 const routeFallbackTruthLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === routeFallbackTruthLoopId);
 const routeFallbackTruthLoopText = JSON.stringify(routeFallbackTruthLoop);
 const routeFallbackVerificationCommands = [
+  "npm run route:fallback-contract-check",
   "npm run route:fallback-browser-check",
   "npm run product-ui:browser-check",
   "npm run docs:browser-check",
@@ -501,6 +502,47 @@ assert(
   `${routeFallbackTruthLoopId} must preserve the SPA-route truth boundary`,
 );
 assert(routeFallbackTruthLoopText.includes("e8c25ce"), `${routeFallbackTruthLoopId} must pin the implementation commit`);
+
+const feedbackGuardHardeningLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-FEEDBACK-GUARD-HARDENING";
+assert(activeFeedbackLoopIds.has(feedbackGuardHardeningLoopId), `${feedbackGuardHardeningLoopId} active feedback loop is missing`);
+const feedbackGuardHardeningLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === feedbackGuardHardeningLoopId);
+const feedbackGuardHardeningLoopText = JSON.stringify(feedbackGuardHardeningLoop);
+for (const command of [
+  "npm run route:fallback-contract-check",
+  "npm run public:audit-discovery-check",
+  "npm run audit:package-check",
+  "npm run mainnet:secret-exposure-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:feedback-loop-check",
+  "npm run build",
+]) {
+  assert(
+    feedbackGuardHardeningLoop?.localVerification?.includes(command),
+    `${feedbackGuardHardeningLoopId} must record ${command}`,
+  );
+}
+assert(
+  feedbackGuardHardeningLoopText.includes("repo-local refs"),
+  `${feedbackGuardHardeningLoopId} must record the repo-local ref guard`,
+);
+assert(
+  feedbackGuardHardeningLoopText.includes("fragment-built self-tests"),
+  `${feedbackGuardHardeningLoopId} must record secret-safe self-tests`,
+);
+assert(
+  feedbackGuardHardeningLoopText.includes("ref-like fields schema-wide"),
+  `${feedbackGuardHardeningLoopId} must record schema-wide public discovery ref validation`,
+);
+assert(
+  feedbackGuardHardeningLoopText.includes("production browser-runtime proving"),
+  `${feedbackGuardHardeningLoopId} must preserve README browser-prover truth`,
+);
+assert(
+  feedbackGuardHardeningLoopText.includes("latest local feedback-loop changes"),
+  `${feedbackGuardHardeningLoopId} must preserve public discovery push/live precision`,
+);
+assert(feedbackGuardHardeningLoopText.includes("17e6539"), `${feedbackGuardHardeningLoopId} must pin the implementation commit`);
 
 const ids = new Set();
 for (const finding of ledger.findings) {
