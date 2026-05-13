@@ -33,6 +33,9 @@ const groth16ProofFormatCandidate = JSON.parse(
 const productionVerifyingKeyCandidate = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json"),
 );
+const verifierAdapterTestCandidate = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json"),
+);
 const registry = JSON.parse(read("ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json"));
 const decision = read("docs/zk/c01-production-verifier-backend-decision.md");
 
@@ -53,6 +56,10 @@ for (const aggregate of ["zk:review-guards-check", "zk:feedback-loop-check"]) {
   assert(
     scripts[aggregate]?.includes("npm run zk:c01-production-verifying-key-candidate-check"),
     `${aggregate} must include the production verifying-key candidate guard`,
+  );
+  assert(
+    scripts[aggregate]?.includes("npm run zk:c01-verifier-adapter-test-candidate-check"),
+    `${aggregate} must include the verifier adapter-test candidate guard`,
   );
 }
 
@@ -93,6 +100,11 @@ assert(
   options.productionVerifyingKeyCandidateRef ===
     "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
   "backend-options must reference the production verifying-key candidate evidence",
+);
+assert(
+  options.verifierAdapterTestCandidateRef ===
+    "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+  "backend-options must reference the verifier adapter-test candidate evidence",
 );
 
 assert(options.currentTargetContract?.tag === 3, "backend-options must preserve tag 3 as current target");
@@ -203,6 +215,32 @@ assert(
   productionVerifyingKeyCandidate.satisfiesRequiredPositiveEvidence?.productionVerifyingKeyHash === false,
   "production verifying-key candidate packet must not satisfy production verifying-key evidence",
 );
+assert(
+  groth16.verifierAdapterTestCandidateRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+  "Groth16 option must reference the blocked verifier adapter-test candidate packet",
+);
+assert(
+  groth16.verifierAdapterTestCandidateRef?.command ===
+    "npm run zk:c01-verifier-adapter-test-candidate-check",
+  "Groth16 option must record the verifier adapter-test guard",
+);
+assert(
+  groth16.verifierAdapterTestCandidateRef?.status === "blocked-no-verifier-adapter-acceptance-tests",
+  "Groth16 verifier adapter-test candidate ref must remain blocked",
+);
+assert(
+  verifierAdapterTestCandidate.status === "blocked-no-verifier-adapter-acceptance-tests",
+  "verifier adapter-test candidate packet must remain blocked",
+);
+assert(
+  verifierAdapterTestCandidate.currentAdapterArtifact?.artifactRef === null,
+  "verifier adapter-test candidate packet must not carry a current adapter artifact ref",
+);
+assert(
+  verifierAdapterTestCandidate.satisfiesRequiredPositiveEvidence?.verifierAdapter === false,
+  "verifier adapter-test candidate packet must not satisfy verifier adapter evidence",
+);
 
 for (const required of [
   "actual-private-spend-groth16-production-proof-format",
@@ -234,6 +272,7 @@ for (const [field, expected] of [
   ["localProofFormatObservation", true],
   ["verifierKeyRegistryScaffold", true],
   ["productionVerifyingKeyCandidate", true],
+  ["verifierAdapterTestCandidate", true],
   ["candidateEvidencePacket", true],
 ]) {
   assert(options.intermediateEvidenceOnly?.[field] === expected, `${field} must be intermediate-only`);
@@ -271,6 +310,10 @@ assert(
   options.canonicalCommands?.includes("npm run zk:c01-production-verifying-key-candidate-check"),
   "backend-options must record the production verifying-key candidate guard",
 );
+assert(
+  options.canonicalCommands?.includes("npm run zk:c01-verifier-adapter-test-candidate-check"),
+  "backend-options must record the verifier adapter-test candidate guard",
+);
 
 const optionsRef = candidate.intermediateEvidenceRefs?.find(
   (entry) => entry.id === "blocked-verifier-backend-options-matrix",
@@ -299,6 +342,7 @@ for (const marker of [
   "npm run zk:c01-verifier-backend-options-check",
   "npm run zk:c01-groth16-proof-format-candidate-check",
   "npm run zk:c01-production-verifying-key-candidate-check",
+  "npm run zk:c01-verifier-adapter-test-candidate-check",
   "groth16-tag3-solana-v0",
   "noir-bb-ultrahonk-adaptation",
   "does not select a backend",

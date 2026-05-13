@@ -53,6 +53,7 @@ const requiredPhrases = [
   "npm run private-pool-v2:verify",
   "npm run zk:feedback-loop-check",
   "npm run zk:c01-production-verifier-backend-candidate-check",
+  "npm run zk:c01-verifier-adapter-test-candidate-check",
   "npm run zk:c01-verifier-backend-decision-check",
   "npm run private-pool-v2:remote-proof-artifact-boundary-check",
   "npm run pay:verify",

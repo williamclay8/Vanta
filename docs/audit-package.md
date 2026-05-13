@@ -77,6 +77,8 @@ Current C01 status is partial. Read `docs/zk/c01-production-verifier-backend-dec
 
 Reviewers should verify that current remote proof-artifact receipts stay `offchain-remote-proof-artifact-only`, that any `solana-c01-groth16-verifier-ready` overclaim fails closed, that no backend is selected yet between the Groth16 tag-3 Solana verifier path and the Noir/bb.js/UltraHonk adaptation path, and that the refs-only candidate evidence packet still marks every required positive artifact as blocked until real proof-format, production verifying-key, verifier-adapter, positive/negative test, SBF/live-lineage, and audit/reviewer evidence exists.
 
+The current verifier-adapter acceptance-test candidate packet is `ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json`, guarded by `npm run zk:c01-verifier-adapter-test-candidate-check`. It is blocked refs-only evidence for the missing adapter acceptance, `private-spend-public-input-hash` binding, valid-proof mutation, and invalid-proof no-mutation tests; it is not verifier acceptance.
+
 Focused commands:
 
 ```bash
@@ -85,6 +87,7 @@ npm run zk:c01-onchain-proof-boundary-check
 npm run zk:c01-verifier-backend-contract-check
 npm run zk:c01-production-verifier-backend-candidate-check
 npm run zk:c01-production-verifying-key-candidate-check
+npm run zk:c01-verifier-adapter-test-candidate-check
 npm run zk:c01-verifier-backend-decision-check
 npm run private-pool-v2:remote-proof-artifact-boundary-check
 ```

@@ -15,6 +15,8 @@ npm run pay:verify
 
 For the current C01 verifier boundary, read `docs/zk/c01-production-verifier-backend-decision.md` before treating local proof artifacts as verifier evidence. Current proof-artifact receipts remain `offchain-remote-proof-artifact-only`; any `solana-c01-groth16-verifier-ready` claim must stay fail-closed until the chosen production verifier backend, verifier-key commitment, positive verifier tests, SBF/live evidence, and reviewer acceptance exist.
 
+The local C01 verifier-adapter acceptance-test packet is `ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json`, checked by `npm run zk:c01-verifier-adapter-test-candidate-check`. It records missing adapter acceptance, `private-spend-public-input-hash` binding, valid-proof mutation, and invalid-proof no-mutation evidence, and must stay blocked until those artifacts exist.
+
 ## Readiness Truth
 
 Current Pay and Private Pool v2 status surfaces report `productionReady: false`.
@@ -73,6 +75,7 @@ npm run audit:package-check
 npm run zk:feedback-loop-check
 npm run zk:c01-production-verifier-backend-candidate-check
 npm run zk:c01-production-verifying-key-candidate-check
+npm run zk:c01-verifier-adapter-test-candidate-check
 npm run zk:c01-verifier-backend-decision-check
 npm run truth:transaction-check
 npm run truth:privacy-claim-gate

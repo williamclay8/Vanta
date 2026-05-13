@@ -64,6 +64,13 @@
       "artifactRef": "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
       "command": "npm run zk:c01-groth16-proof-format-candidate-check",
       "truthBoundary": "This records the absence of the exact Groth16 tag-3 proof-format artifact required by the current reserved contract. It does not select a backend and does not satisfy production proof-format evidence."
+    },
+    {
+      "id": "blocked-verifier-adapter-acceptance-test-candidate",
+      "status": "blocked-no-verifier-adapter-acceptance-tests",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+      "command": "npm run zk:c01-verifier-adapter-test-candidate-check",
+      "truthBoundary": "This records the absence of verifier adapter acceptance, private-spend public-input hash binding, valid-proof mutation, and invalid-proof no-mutation evidence. It does not satisfy verifier-adapter evidence, verifier-adapter acceptance, or tag-3 proof acceptance."
     }
   ],
   "selectedBackend": null,
@@ -150,6 +157,7 @@
     "npm run zk:c01-verifier-backend-options-check",
     "npm run zk:c01-groth16-proof-format-candidate-check",
     "npm run zk:c01-production-verifying-key-candidate-check",
+    "npm run zk:c01-verifier-adapter-test-candidate-check",
     "npm run private-pool-v2:sbf-abi-check",
     "npm run private-pool-v2:verify"
   ],

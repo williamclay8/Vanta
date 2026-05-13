@@ -47,6 +47,9 @@ const groth16ProofFormatCandidateEvidence = JSON.parse(
 const productionVerifyingKeyCandidateEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json"),
 );
+const verifierAdapterTestCandidateEvidence = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json"),
+);
 const localProofFormatEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json"),
 );
@@ -202,6 +205,23 @@ includes(
   "does not satisfy production verifying-key evidence",
   "C01 verifier candidate production verifying-key truth boundary",
 );
+const verifierAdapterTestRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
+  (entry) => entry.id === "blocked-verifier-adapter-acceptance-test-candidate",
+);
+assert(
+  verifierAdapterTestRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+  "C01 verifier candidate evidence must reference the blocked verifier adapter-test packet",
+);
+assert(
+  verifierAdapterTestRef?.command === "npm run zk:c01-verifier-adapter-test-candidate-check",
+  "C01 verifier candidate evidence must record the blocked verifier adapter-test guard",
+);
+includes(
+  verifierAdapterTestRef?.truthBoundary ?? "",
+  "does not satisfy verifier-adapter evidence",
+  "C01 verifier candidate adapter-test truth boundary",
+);
 assert(
   backendOptionsEvidence.status === "blocked-backend-options-unselected",
   "C01 backend-options evidence must remain blocked while candidate backend is unselected",
@@ -226,6 +246,11 @@ assert(
   groth16BackendOption?.productionVerifyingKeyCandidateRef?.artifactRef ===
     "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
   "C01 backend-options evidence must reference the production verifying-key candidate packet",
+);
+assert(
+  groth16BackendOption?.verifierAdapterTestCandidateRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+  "C01 backend-options evidence must reference the verifier adapter-test candidate packet",
 );
 assert(
   backendOptionsEvidence.backendOptions?.some((entry) => entry.id === "noir-bb-ultrahonk-adaptation"),
@@ -260,6 +285,42 @@ assert(
 assert(
   productionVerifyingKeyCandidateEvidence.satisfiesRequiredPositiveEvidence?.productionVerifyingKeyHash === false,
   "C01 production verifying-key candidate evidence must not satisfy production verifying-key evidence",
+);
+assert(
+  verifierAdapterTestCandidateEvidence.status === "blocked-no-verifier-adapter-acceptance-tests",
+  "C01 verifier adapter-test candidate evidence must remain blocked",
+);
+assert(
+  verifierAdapterTestCandidateEvidence.currentAdapterArtifact?.artifactRef === null,
+  "C01 verifier adapter-test candidate evidence must not attach a current adapter artifact ref",
+);
+assert(
+  verifierAdapterTestCandidateEvidence.currentAcceptanceTests?.validProofMutatesNullifierAndOutputState
+    ?.artifactRef === null,
+  "C01 verifier adapter-test candidate evidence must not attach a valid-proof mutation test ref",
+);
+assert(
+  verifierAdapterTestCandidateEvidence.currentAcceptanceTests?.invalidProofLeavesAccountsUnchanged
+    ?.artifactRef === null,
+  "C01 verifier adapter-test candidate evidence must not attach an invalid-proof no-mutation test ref",
+);
+assert(
+  verifierAdapterTestCandidateEvidence.satisfiesRequiredPositiveEvidence?.verifierAdapter === false,
+  "C01 verifier adapter-test candidate evidence must not satisfy verifier adapter evidence",
+);
+assert(
+  verifierAdapterTestCandidateEvidence.satisfiesRequiredPositiveEvidence?.acceptedProofMutatesStateTest === false,
+  "C01 verifier adapter-test candidate evidence must not satisfy valid-proof mutation evidence",
+);
+assert(
+  verifierAdapterTestCandidateEvidence.satisfiesRequiredPositiveEvidence
+    ?.invalidProofLeavesAccountsUnchangedTest === false,
+  "C01 verifier adapter-test candidate evidence must not satisfy invalid-proof no-mutation evidence",
+);
+assert(
+  verifierAdapterTestCandidateEvidence.satisfiesRequiredPositiveEvidence
+    ?.privateSpendPublicInputHashBinding === false,
+  "C01 verifier adapter-test candidate evidence must not satisfy public input binding evidence",
 );
 assert(
   localProofFormatEvidence.status === "local-proof-format-observed-not-production",
@@ -362,6 +423,12 @@ assert(
   "C01 verifier candidate evidence must record the production verifying-key candidate guard",
 );
 assert(
+  verifierCandidateEvidence.canonicalCommands?.includes(
+    "npm run zk:c01-verifier-adapter-test-candidate-check",
+  ),
+  "C01 verifier candidate evidence must record the verifier adapter-test candidate guard",
+);
+assert(
   localProofFormatEvidence.canonicalCommands?.includes(
     "npm run zk:c01-local-proof-format-evidence-check",
   ),
@@ -437,6 +504,7 @@ for (const marker of [
   "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
   "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
   "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
   "backend, proof-format, production verifying-key, verifier-adapter, positive/negative test",
   "groth16-tag3-solana-v0",
   "noir-bb-ultrahonk-adaptation",
@@ -509,6 +577,11 @@ assert(
   "package.json must expose zk:c01-production-verifying-key-candidate-check",
 );
 assert(
+  scripts["zk:c01-verifier-adapter-test-candidate-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-verifier-adapter-test-candidate.mjs",
+  "package.json must expose zk:c01-verifier-adapter-test-candidate-check",
+);
+assert(
   scripts["zk:review-guards-check"]?.includes("npm run zk:c01-production-verifier-backend-candidate-check"),
   "zk:review-guards-check must include the C01 production verifier backend candidate guard",
 );
@@ -529,6 +602,10 @@ assert(
   "zk:review-guards-check must include the C01 production verifying-key candidate guard",
 );
 assert(
+  scripts["zk:review-guards-check"]?.includes("npm run zk:c01-verifier-adapter-test-candidate-check"),
+  "zk:review-guards-check must include the C01 verifier adapter-test candidate guard",
+);
+assert(
   scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-production-verifier-backend-candidate-check"),
   "zk:feedback-loop-check must include the C01 production verifier backend candidate guard",
 );
@@ -547,6 +624,10 @@ assert(
 assert(
   scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-production-verifying-key-candidate-check"),
   "zk:feedback-loop-check must include the C01 production verifying-key candidate guard",
+);
+assert(
+  scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-verifier-adapter-test-candidate-check"),
+  "zk:feedback-loop-check must include the C01 verifier adapter-test candidate guard",
 );
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run zk:review-guards-check"),

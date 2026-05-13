@@ -1,0 +1,134 @@
+{
+  "version": "vanta-private-pool-v2-c01-verifier-adapter-test-candidate-evidence-0.1",
+  "checkedAt": "2026-05-13T00:00:00.000Z",
+  "status": "blocked-no-verifier-adapter-acceptance-tests",
+  "backendOptionId": "groth16-tag3-solana-v0",
+  "selectedBackend": null,
+  "selectedBackendStatus": "not-selected",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "secretPolicy": "references-and-metadata-only-no-verifying-key-bytes-no-proof-bytes-no-witness-values-no-signed-transactions",
+  "purpose": "Machine-readable blocked feasibility packet for the C01 verifier-adapter acceptance-test path. This packet records the exact adapter and valid/invalid acceptance tests required by the reserved tag-3 Groth16 contract and the current absence of those tests.",
+  "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "backendOptionsRef": "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
+  "groth16ProofFormatCandidateRef": "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+  "productionVerifyingKeyCandidateRef": "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
+  "verifierKeyRegistryRef": "ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json",
+  "localProofFormatRef": "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "requiredAdapterTestShape": {
+    "target": "solana-c01-tag3-groth16-v0",
+    "tag": 3,
+    "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+    "proofSystem": "groth16",
+    "proofByteLength": 256,
+    "publicInputLabel": "private-spend-public-input-hash",
+    "verifyingKeyHashKind": "production-verifying-key-hash",
+    "adapterKind": "in-program-verifier-or-dedicated-verifier-cpi",
+    "status": "required-after-production-proof-format-and-verifying-key-evidence"
+  },
+  "currentAdapterArtifact": {
+    "status": "absent",
+    "artifactRef": null,
+    "adapterKind": null,
+    "verifierProgramRef": null,
+    "satisfiesVerifierAdapterEvidence": false
+  },
+  "currentAcceptanceTests": {
+    "validProofMutatesNullifierAndOutputState": {
+      "status": "absent",
+      "artifactRef": null,
+      "satisfiesAcceptedProofMutatesStateTest": false
+    },
+    "invalidProofLeavesAccountsUnchanged": {
+      "status": "absent",
+      "artifactRef": null,
+      "satisfiesInvalidProofLeavesAccountsUnchangedTest": false
+    },
+    "wrongPublicInputHashLeavesAccountsUnchanged": {
+      "status": "absent",
+      "artifactRef": null,
+      "satisfiesPrivateSpendPublicInputHashBinding": false
+    },
+    "wrongVerifyingKeyLeavesAccountsUnchanged": {
+      "status": "absent",
+      "artifactRef": null,
+      "satisfiesProductionVerifyingKeyBinding": false
+    }
+  },
+  "currentFailClosedObservation": {
+    "tag": 3,
+    "status": "reserved-fail-closed",
+    "customError": 14,
+    "errorName": "ERR_PROOF_VERIFIER_NOT_WIRED",
+    "failsBeforeProofVerification": true,
+    "failsBeforeAccountCreation": true,
+    "failsBeforeNullifierMutation": true,
+    "failsBeforeOutputMutation": true,
+    "failsBeforeSpendAcceptance": true,
+    "truthBoundary": "Reserved tag 3 preflights root, nullifier, output, and verifier-key account shape, then returns ERR_PROOF_VERIFIER_NOT_WIRED before proof verification or mutation. This fail-closed behavior is not positive verifier acceptance."
+  },
+  "blockedPrerequisiteRefs": {
+    "groth16ProofFormatCandidate": {
+      "status": "blocked-no-groth16-production-proof-format-artifact",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+      "command": "npm run zk:c01-groth16-proof-format-candidate-check",
+      "satisfiesProductionProofFormatEvidence": false
+    },
+    "productionVerifyingKeyCandidate": {
+      "status": "blocked-no-production-verifying-key-hash-artifact",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
+      "command": "npm run zk:c01-production-verifying-key-candidate-check",
+      "satisfiesProductionVerifyingKeyEvidence": false
+    },
+    "verifierKeyRegistry": {
+      "status": "source-only-verifier-key-registry-scaffold",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json",
+      "command": "npm run zk:c01-verifier-key-registry-check",
+      "satisfiesProductionVerifyingKeyEvidence": false
+    }
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "backendSelection": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "candidatePacketMustRemain": {
+    "selectedBackend": null,
+    "selectedBackendStatus": "not-selected",
+    "verifierAdapterCurrentArtifactRef": null,
+    "acceptedProofMutatesStateTestCurrentArtifactRef": null,
+    "invalidProofLeavesAccountsUnchangedTestCurrentArtifactRef": null,
+    "privateSpendPublicInputHashBindingCurrentArtifactRef": null,
+    "allRequiredPositiveEvidenceStatus": "blocked"
+  },
+  "forbiddenPromotions": [
+    "solana-c01-groth16-verifier-ready",
+    "production-private",
+    "mainnet-private",
+    "proof-enforced-spend",
+    "on-chain proof verified",
+    "production verifier accepted"
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-verifier-adapter-test-candidate-check",
+    "npm run zk:c01-production-verifying-key-candidate-check",
+    "npm run zk:c01-groth16-proof-format-candidate-check",
+    "npm run zk:c01-verifier-key-registry-check",
+    "npm run zk:c01-verifier-backend-options-check",
+    "npm run zk:c01-production-verifier-backend-candidate-check",
+    "npm run zk:c01-verifier-backend-decision-check",
+    "npm run zk:c01-verifier-backend-contract-check",
+    "npm run zk:c01-onchain-proof-boundary-check"
+  ],
+  "truthBoundary": "This is a blocked verifier-adapter acceptance-test candidate packet only. It records that the exact adapter and valid/invalid mutation tests required by the reserved tag-3 Groth16 contract are absent. It is not verifier-adapter acceptance, not tag-3 proof acceptance, not production proof-format evidence, not production verifying-key evidence, not on-chain proof verification, not SBF/live redeploy or reinit evidence, not audit acceptance, not production-private readiness, and not real-funds readiness."
+}

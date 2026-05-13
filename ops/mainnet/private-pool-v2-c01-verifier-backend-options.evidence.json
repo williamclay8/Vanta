@@ -16,6 +16,7 @@
   "localProofFormatRef": "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
   "verifierKeyRegistryRef": "ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json",
   "productionVerifyingKeyCandidateRef": "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
+  "verifierAdapterTestCandidateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
   "currentTargetContract": {
     "tag": 3,
     "target": "solana-c01-tag3-groth16-v0",
@@ -56,6 +57,12 @@
         "command": "npm run zk:c01-production-verifying-key-candidate-check",
         "truthBoundary": "This packet records that the exact Groth16 tag-3 production verifying-key hash artifact is absent; it does not satisfy production verifying-key evidence."
       },
+      "verifierAdapterTestCandidateRef": {
+        "status": "blocked-no-verifier-adapter-acceptance-tests",
+        "artifactRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+        "command": "npm run zk:c01-verifier-adapter-test-candidate-check",
+        "truthBoundary": "This packet records that adapter acceptance, private-spend public-input hash binding, valid-proof mutation, and invalid-proof no-mutation evidence are absent; it does not satisfy verifier-adapter or proof-acceptance evidence."
+      },
       "requires": [
         "actual-private-spend-groth16-production-proof-format",
         "production-verifying-key-hash",
@@ -73,6 +80,7 @@
         "tag 3 returns ERR_PROOF_VERIFIER_NOT_WIRED before mutation",
         "source-only tag 5 registry metadata is not production VK evidence",
         "no valid-proof mutation or invalid-proof no-mutation tests exist",
+        "no verifier adapter acceptance-test candidate artifact exists",
         "no live redeploy/reinit or audit acceptance exists"
       ],
       "truthBoundary": "This option preserves the current tag-3 Groth16-shaped contract, but it is blocked until the active actual-private-spend circuit has Groth16 production proof format, production verifying-key hash evidence, verifier adapter, positive/negative mutation tests, live SBF lineage, and audit/reviewer acceptance."
@@ -111,6 +119,7 @@
     "localProofFormatObservation": true,
     "verifierKeyRegistryScaffold": true,
     "productionVerifyingKeyCandidate": true,
+    "verifierAdapterTestCandidate": true,
     "candidateEvidencePacket": true
   },
   "satisfiesRequiredPositiveEvidence": {
@@ -136,6 +145,7 @@
     "npm run zk:c01-verifier-backend-options-check",
     "npm run zk:c01-groth16-proof-format-candidate-check",
     "npm run zk:c01-production-verifying-key-candidate-check",
+    "npm run zk:c01-verifier-adapter-test-candidate-check",
     "npm run zk:c01-production-verifier-backend-candidate-check",
     "npm run zk:c01-verifier-backend-decision-check",
     "npm run zk:c01-verifier-backend-contract-check",

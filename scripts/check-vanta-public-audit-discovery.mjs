@@ -13,6 +13,7 @@ const requiredRefs = [
   "VANTA_ZK_REVIEW.findings.json",
   "docs/zk/c01-production-verifier-backend-decision.md",
   "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
   "ops/mainnet/audit-review.packet.template.json",
   "ops/mainnet/legal-compliance-custody.packet.template.json",
   "ops/mainnet/production-key-custody.template.json",
@@ -123,6 +124,10 @@ assert.equal(
   discovery.proofBoundaries?.c01VerifierCandidateEvidence,
   "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
 );
+assert.equal(
+  discovery.proofBoundaries?.c01VerifierAdapterTestCandidateEvidence,
+  "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+);
 assert.equal(discovery.proofBoundaries?.offchainProofArtifactOnly, true);
 assert.equal(discovery.proofBoundaries?.solanaC01Groth16VerifierReady, false);
 assert.equal(discovery.proofBoundaries?.productionVerifierBackendSelected, false);
@@ -168,6 +173,7 @@ for (const command of [
   "npm run public:audit-discovery-check",
   "npm run audit:package-check",
   "npm run zk:c01-production-verifier-backend-candidate-check",
+  "npm run zk:c01-verifier-adapter-test-candidate-check",
   "npm run zk:feedback-loop-check",
   "npm run truth:privacy-claim-gate",
   "npm run build",

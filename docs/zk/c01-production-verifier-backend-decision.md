@@ -12,6 +12,8 @@ Groth16 Proof-Format Candidate packet: `ops/mainnet/private-pool-v2-c01-groth16-
 
 Production Verifying-Key Candidate packet: `ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json`. It is checked by `npm run zk:c01-production-verifying-key-candidate-check` and records `blocked-no-production-verifying-key-hash-artifact` for the current `groth16-tag3-solana-v0` path. This packet does not satisfy production verifying-key evidence; it records that the exact production verifying-key hash artifact for the reserved tag-3 Groth16 path is still absent.
 
+Verifier Adapter Acceptance-Test Candidate packet: `ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json`. It is checked by `npm run zk:c01-verifier-adapter-test-candidate-check` and records `blocked-no-verifier-adapter-acceptance-tests` for the current `groth16-tag3-solana-v0` path. This packet does not satisfy verifier-adapter evidence and does not prove tag-3 proof acceptance; it records that adapter acceptance, `private-spend-public-input-hash` binding, valid-proof mutation, and invalid-proof no-mutation evidence are still absent.
+
 ## Current Truth
 
 - The current Solana tag `3` path is a reserved `TAG_SPEND_WITH_PROOF` preflight, not proof support.
@@ -57,6 +59,16 @@ The required candidate shape is narrow: circuit `vanta_private_pool_v2_actual_pr
 
 The current artifact is absent. The current local proof observation is still `noir-bb / barretenberg-ultrahonk`, 16000 bytes, and `local-acir-bytecode-hash-not-production-vk`. Therefore the packet is useful feasibility evidence, but it does not satisfy production proof-format evidence, production verifying-key evidence, backend selection, verifier-adapter acceptance, tag-3 proof acceptance, or on-chain proof verification.
 
+## Verifier Adapter Acceptance-Test Candidate
+
+The blocked verifier adapter acceptance-test candidate packet is the human-review companion for the verifier-adapter, public-input binding, valid-proof mutation, and invalid-proof no-mutation evidence gates.
+
+Current candidate status: `blocked-no-verifier-adapter-acceptance-tests`.
+
+The required candidate shape is narrow: circuit `vanta_private_pool_v2_actual_private_spend_entry`, target `solana-c01-tag3-groth16-v0`, tag `3`, `proofSystem: "groth16"`, `groth16Proof:256`, one `private-spend-public-input-hash`, `verifyingKeyHashKind: "production-verifying-key-hash"`, and an in-program verifier or dedicated verifier CPI adapter.
+
+The current adapter artifact is absent. The current acceptance-test evidence is also absent: no valid-proof mutation test, no invalid-proof no-mutation test, no wrong-public-input-hash no-mutation test, and no wrong-verifying-key no-mutation test. Reserved tag `3` still returns `ERR_PROOF_VERIFIER_NOT_WIRED` before proof verification, account creation, nullifier/output mutation, or spend acceptance. Therefore the packet is useful feasibility evidence, but it does not satisfy verifier-adapter evidence, public-input hash binding, proof acceptance, backend selection, production proof-format evidence, production verifying-key evidence, tag-3 proof acceptance, or on-chain proof verification; it does not prove tag-3 proof acceptance.
+
 ## Backend Options
 
 The machine-readable options matrix lives in `ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json`; this section is its human review companion.
@@ -101,6 +113,7 @@ npm run zk:c01-verifier-backend-decision-check
 npm run zk:c01-verifier-backend-options-check
 npm run zk:c01-groth16-proof-format-candidate-check
 npm run zk:c01-production-verifying-key-candidate-check
+npm run zk:c01-verifier-adapter-test-candidate-check
 npm run zk:c01-verifier-key-registry-check
 npm run private-pool-v2:proof-backend-boundary-check
 npm run private-pool-v2:remote-proof-artifact-boundary-check
