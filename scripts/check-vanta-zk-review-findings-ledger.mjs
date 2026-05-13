@@ -757,10 +757,25 @@ assert(
   h08.codexRemediation.commits.some((commitRef) => commitRef.includes("21dd00d")),
   "H08 must record the actual-private-spend browser docs source-of-truth commit",
 );
+assert(
+  h08.codexRemediation.commits.some((commitRef) => commitRef.includes("308a1a8")),
+  "H08 must record the local bb fixture lane-completeness commit",
+);
+assert(
+  h08.codexRemediation.commits.some((commitRef) => commitRef.includes("84b8593")),
+  "H08 must record the local bb fixture edge-check commit",
+);
 assert(h08Text.includes("send-public-input-hash"), "H08 must record Send public-input hash binding");
 assert(
   h08Text.includes("private-spend-public-input-hash"),
   "H08 must record actual-private-spend public-input hash binding",
+);
+assert(h08Text.includes("shield-public-input-hash"), "H08 must record Shield public-input hash binding");
+assert(h08Text.includes("claim-public-input-hash"), "H08 must record Claim public-input hash binding");
+assert(h08Text.includes("swap-public-input-hash"), "H08 must record Swap-to-shielded public-input hash binding");
+assert(
+  h08Text.includes("Shield, Claim, Swap-to-shielded, actual-private-spend, and Send local bb fixture"),
+  "H08 must record all local bb fixture proof-result adapter lanes",
 );
 assert(h08Text.includes("local-bb-derived-artifact"), "H08 must record the derived artifact backend");
 assert(h08Text.includes("browser/Web Worker proof-execution"), "H08 must record the browser worker proof-execution boundary");
@@ -776,6 +791,47 @@ assert(
   !h08Text.includes("does not generate witnesses in the browser"),
   "H08 must not preserve the stale browser witness-generation limitation",
 );
+
+const localBbFixtureLaneLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-13-H08-LOCAL-BB-FIXTURE-LANE-COMPLETENESS";
+assert(
+  activeFeedbackLoopIds.has(localBbFixtureLaneLoopId),
+  `${localBbFixtureLaneLoopId} active feedback loop is missing`,
+);
+const localBbFixtureLaneLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === localBbFixtureLaneLoopId,
+);
+const localBbFixtureLaneLoopText = JSON.stringify(localBbFixtureLaneLoop);
+for (const command of [
+  "npm run private-pool-v2:local-bb-fixture-prover-check",
+  "npm run private-pool-v2:shield-proof-artifact-consistency-check",
+  "npm run private-pool-v2:claim-proof-artifact-consistency-check",
+  "npm run private-pool-v2:swap-to-shielded-proof-artifact-consistency-check",
+  "npm run private-pool-v2:local-prover-check",
+  "npm run private-pool-v2:local-verifier-check",
+]) {
+  assert(
+    localBbFixtureLaneLoop?.localVerification?.includes(command),
+    `${localBbFixtureLaneLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "shield-public-input-hash",
+  "claim-public-input-hash",
+  "swap-public-input-hash",
+  "local-bb-fixture-artifact",
+  "default local prover remains mock",
+  "unsupported runtime targets fail closed",
+  "Shield registry guard rejects mismatched appended roots",
+  "not a production prover",
+  "308a1a8",
+  "84b8593",
+]) {
+  assert(
+    localBbFixtureLaneLoopText.includes(phrase),
+    `${localBbFixtureLaneLoopId} must record ${phrase}`,
+  );
+}
 
 const actualPrivateSpendBrowserLoopId =
   "VANTA-ZK-FEEDBACK-2026-05-13-ACTUAL-PRIVATE-SPEND-BROWSER-WORKER-PROVER";
