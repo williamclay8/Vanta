@@ -27,6 +27,20 @@ Refs-only packets for making the remaining external gates real:
 
 These are intake templates, not approvals. They must contain reference names and decisions only, never secrets, private keys, privileged legal text, under-NDA report bodies, signed transactions, or customer private inputs.
 
+## Public discovery
+
+`/.well-known/vanta-audit.json` is a refs-only public discovery surface for reviewers and counterparties who need to find the current Vanta audit handoff without reading the whole repo first.
+
+This public discovery file is not an audit report, not third-party approval, and not production readiness. It must preserve `auditClaimAllowed: false`, `productionReady: false`, and `mainnetReady: false` until the matching external gates actually clear.
+
+The file may point to source-of-truth docs, packet templates, finding ledgers, proof-boundary decisions, and blocker evidence. It must not include secrets, private keys, seed phrases, privileged legal text, under-NDA report bodies, signed transaction bytes, customer private inputs, witness material, or live provider credentials.
+
+Focused guard:
+
+```bash
+npm run public:audit-discovery-check
+```
+
 ## Out of scope
 
 The current repo is not asking reviewers to sign off on:

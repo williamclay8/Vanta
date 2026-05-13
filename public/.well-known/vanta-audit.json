@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "vanta-public-audit-discovery-0.1",
+  "path": "/.well-known/vanta-audit.json",
+  "name": "Vanta public audit discovery",
+  "generatedAt": "2026-05-13",
+  "refsOnly": true,
+  "auditClaimAllowed": false,
+  "thirdPartyAuditAccepted": false,
+  "productionReady": false,
+  "mainnetReady": false,
+  "liveDeploymentVerified": false,
+  "privacyClaimAllowed": false,
+  "anonymityClaimAllowed": false,
+  "securityLimitations": "SECURITY_LIMITATIONS.md",
+  "auditPackage": "docs/audit-package.md",
+  "findingLedger": "VANTA_ZK_REVIEW.findings.json",
+  "proofBoundaries": {
+    "c01VerifierBackendDecision": "docs/zk/c01-production-verifier-backend-decision.md",
+    "offchainProofArtifactOnly": true,
+    "solanaC01Groth16VerifierReady": false,
+    "productionVerifierBackendSelected": false
+  },
+  "intakeTemplates": [
+    "ops/mainnet/audit-review.packet.template.json",
+    "ops/mainnet/legal-compliance-custody.packet.template.json",
+    "ops/mainnet/production-key-custody.template.json"
+  ],
+  "currentBlockers": [
+    {
+      "id": "public-anonymity-depth",
+      "status": "blocked",
+      "currentDistinctCommitments": 2,
+      "minimumDistinctCommitments": 1024,
+      "evidenceRef": "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
+      "claim": "Vanta does not claim live anonymity or production-private mainnet settlement yet."
+    },
+    {
+      "id": "audit-acceptance",
+      "status": "blocked",
+      "claim": "No independent third-party audit has accepted the cryptographic, smart-contract, infrastructure, or application boundary."
+    },
+    {
+      "id": "production-verifier",
+      "status": "blocked",
+      "claim": "No production verifier backend or on-chain verifier is selected or accepted."
+    },
+    {
+      "id": "live-deployment-evidence",
+      "status": "blocked",
+      "claim": "This branch has not been pushed, deployed, or live-verified."
+    }
+  ],
+  "safeCommands": [
+    "npm run public:audit-discovery-check",
+    "npm run audit:package-check",
+    "npm run zk:feedback-loop-check",
+    "npm run truth:privacy-claim-gate",
+    "npm run build"
+  ],
+  "exclusionPolicy": [
+    "reference names only",
+    "no report body text",
+    "no legal text",
+    "no customer inputs",
+    "no witness material",
+    "no transaction bytes",
+    "no signing material"
+  ]
+}
