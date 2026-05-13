@@ -156,34 +156,45 @@ for (const phrase of forbiddenClaimPhrases) {
   assert.ok(!lowerDiscovery.includes(phrase), `Discovery JSON must not overclaim with phrase: ${phrase}`);
 }
 
-const forbiddenSecretOrReportKeys = [
-  "privateKey",
-  "seedPhrase",
-  "secretValue",
-  "signedTransactionBytes",
-  "customerPrivateInput",
-  "reportBody",
-  "legalText",
-  "rawWitness",
+const forbiddenContentPatterns = [
+  /\bprivate[_ -]?key\b/iu,
+  /\bseed[_ -]?phrase\b/iu,
+  /\bmnemonic\b/iu,
+  /\bsecret[_ -]?value\b/iu,
+  /\bsigned[_ -]?transaction(?:[_ -]?bytes?)?\b/iu,
+  /\bcustomer[_ -]?private[_ -]?inputs?\b/iu,
+  /\breport[_ -]?bod(?:y|ies)\b/iu,
+  /\blegal[_ -]?text\b/iu,
+  /\braw[_ -]?witness\b/iu,
+  /\bwitness[_ -]?material\b/iu,
+  /\bprovider[_ -]?credentials?\b/iu,
+  /\blive[_ -]?provider\b/iu,
+  /\bunder[_ -]?nda\b/iu,
+];
+
+const secretValuePatterns = [
+  /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/u,
+  /\bBearer\s+[A-Za-z0-9._=-]{20,}\b/u,
+  /\b(?:sk|pk|secret|api[_-]?key|token)_(?:live|prod|mainnet)_[A-Za-z0-9]{12,}\b/u,
+  /\b(?:gh[pousr]|xox[baprs])-[A-Za-z0-9_-]{20,}\b/u,
 ];
 
 walk(discovery, (value, path) => {
   if (typeof value !== "string") {
     return;
   }
-  for (const forbidden of forbiddenSecretOrReportKeys) {
+  for (const forbidden of forbiddenContentPatterns) {
     assert.ok(
-      !value.includes(forbidden),
-      `Discovery JSON must not include ${forbidden} at ${path}; use refs-only metadata.`,
+      !forbidden.test(value),
+      `Discovery JSON must not include secret/report/witness content marker at ${path}; use refs-only metadata.`,
+    );
+  }
+  for (const pattern of secretValuePatterns) {
+    assert.ok(
+      !pattern.test(value),
+      `Discovery JSON appears to include a secret-shaped value at ${path}; use refs-only metadata.`,
     );
   }
 });
-
-for (const forbidden of forbiddenSecretOrReportKeys) {
-  assert.ok(
-    !Object.keys(discovery).includes(forbidden),
-    `Discovery JSON must not include forbidden top-level key: ${forbidden}`,
-  );
-}
 
 console.log("Vanta public audit discovery check: PASS");

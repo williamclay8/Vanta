@@ -56,14 +56,5 @@
     "npm run zk:feedback-loop-check",
     "npm run truth:privacy-claim-gate",
     "npm run build"
-  ],
-  "exclusionPolicy": [
-    "reference names only",
-    "no report body text",
-    "no legal text",
-    "no customer inputs",
-    "no witness material",
-    "no transaction bytes",
-    "no signing material"
   ]
 }
