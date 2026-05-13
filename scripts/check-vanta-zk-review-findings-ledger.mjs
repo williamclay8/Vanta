@@ -938,6 +938,54 @@ for (const phrase of [
   );
 }
 
+const unshieldProgressiveDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-UNSHIELD-PROGRESSIVE-DISCLOSURE";
+assert(
+  activeFeedbackLoopIds.has(unshieldProgressiveDisclosureLoopId),
+  `${unshieldProgressiveDisclosureLoopId} active feedback loop is missing`,
+);
+const unshieldProgressiveDisclosureLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === unshieldProgressiveDisclosureLoopId,
+);
+const unshieldProgressiveDisclosureLoopText = JSON.stringify(unshieldProgressiveDisclosureLoop);
+for (const command of [
+  "npm run unshield:public-exit-surface-check",
+  "npm run unshield:balance-ledger-check",
+  "npm run unshield:safe-send-adoption-check",
+  "npm run unshield:sol-operator-endpoint-check",
+  "npm run unshield:trust-packet-check",
+  "npm run private-core:unshield-committed-settlement-check",
+  "npm run private-pool-v2:unshield-proof-request-check",
+  "npm run private-pool-v2:onchain-unshield-custody-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run private-core:check",
+  "npm run product-ui:browser-check",
+  "npm run build",
+]) {
+  assert(
+    unshieldProgressiveDisclosureLoop?.localVerification?.includes(command),
+    `${unshieldProgressiveDisclosureLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "PrivacySummary",
+  "Privacy summary",
+  "Advanced unshield settings",
+  "Custom note selection",
+  "Reference note for receipt",
+  "Withdraw",
+  "exit terms and release status",
+  "not the user's full shielded history",
+  "not the full Unshield rewrite",
+  "not program-owned on-chain release custody",
+  "not Unshield production privacy",
+  "61f2582",
+]) {
+  assert(
+    unshieldProgressiveDisclosureLoopText.includes(phrase),
+    `${unshieldProgressiveDisclosureLoopId} must record ${phrase}`,
+  );
+}
+
 const publicDepthDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE";
 assert(activeFeedbackLoopIds.has(publicDepthDisclosureLoopId), `${publicDepthDisclosureLoopId} active feedback loop is missing`);
 const publicDepthDisclosureLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === publicDepthDisclosureLoopId);

@@ -834,6 +834,43 @@
       "truthBoundary": "This is a Swap UX and guard-hardening slice. It preserves the existing Meteora/Jupiter route adapters, signed swap intent, operator endpoints, committed-economics settlement, spent-marker finalization, and route privacy evidence, but it is not the full Swap rewrite, not new production-private routing, not a receipt modal, not a separate SwapAdvancedPanel or QuoteCountdownBar extraction, not Swap production privacy, not live mainnet private settlement, not pushed, and not live-deployed."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-UNSHIELD-PROGRESSIVE-DISCLOSURE",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#unshield-page-redesign",
+        "VANTA_ZK_REVIEW.md#shield-send-swap-unshield-redesign-same-pattern-all-four-lanes",
+        "src/pages/UnshieldPage.tsx",
+        "src/components/PrivacySummary.tsx",
+        "scripts/check-vanta-unshield-public-exit-surface.mjs",
+        "scripts/check-vanta-product-ui-browser.mjs",
+        "src/solana/unshieldTrustContract.ts",
+        "src/zk/liveUnshieldBridge.ts"
+      ],
+      "summary": "The Unshield progressive-disclosure feedback now has a guarded local first slice: the existing locked connected-wallet destination card stays in place, the page reuses PrivacySummary with a rendered Privacy summary label, the primary action reads Withdraw, the USDC amount field has a Max affordance, and Custom note selection plus Reference note for receipt live behind Advanced unshield settings. Custom note selection is real while preserving ledger-spendable note and exact/split-note release rules. The privacy wording stays current-truth safe: chain observers see a public exit transaction to the connected wallet, the recipient sees full amount, asset, and release receipt, and the operator sees exit terms and release status, not the user's full shielded history.",
+      "localVerification": [
+        "npm run unshield:public-exit-surface-check",
+        "npm run unshield:balance-ledger-check",
+        "npm run unshield:safe-send-adoption-check",
+        "npm run unshield:sol-operator-endpoint-check",
+        "npm run unshield:trust-packet-check",
+        "npm run private-core:unshield-committed-settlement-check",
+        "npm run private-pool-v2:unshield-proof-request-check",
+        "npm run private-pool-v2:onchain-unshield-custody-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run private-core:check",
+        "npm run product-ui:browser-check",
+        "npm run build",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for Unshield progressive disclosure across the public-exit surface guard, balance ledger, safe-send adoption, SOL operator endpoint, trust packet, private-core unshield committed settlement, Private Pool v2 unshield proof request and custody checks, privacy claim gate, private-core check, product UI browser, build, and diff whitespace check",
+        "committed": "61f2582 (Simplify Unshield front door)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is an Unshield UX and guard-hardening slice. It preserves signed unshield intents, operator endpoints, USDC/SOL paths, eligibility checks, release receipts, split-note flow, and safe-send behavior, but it is not the full Unshield rewrite, not removal of all transition or release detail, not a WalletApprovalSheet replacement, not a receipt modal, not program-owned on-chain release custody, not Unshield production privacy, not live mainnet private settlement, not pushed, and not live-deployed."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
