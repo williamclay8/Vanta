@@ -986,6 +986,61 @@ for (const phrase of [
   );
 }
 
+const sharedNotePickerLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-SHARED-NOTE-PICKER";
+assert(
+  activeFeedbackLoopIds.has(sharedNotePickerLoopId),
+  `${sharedNotePickerLoopId} active feedback loop is missing`,
+);
+const sharedNotePickerLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === sharedNotePickerLoopId,
+);
+const sharedNotePickerLoopText = JSON.stringify(sharedNotePickerLoop);
+for (const command of [
+  "red-first npm run notes:shared-picker-check",
+  "npm run notes:shared-picker-check",
+  "npm run send:requires-shielded-state-check",
+  "npm run swap:requires-shielded-state-check",
+  "npm run unshield:public-exit-surface-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run product-ui:browser-check",
+  "npm run build",
+  "npm run send:verify",
+  "npm run swap:capability-check",
+  "npm run swap:committed-settlement-check",
+  "npm run private-core:swap-check",
+  "npm run unshield:balance-ledger-check",
+  "npm run unshield:trust-packet-check",
+  "npm run private-core:unshield-committed-settlement-check",
+]) {
+  assert(
+    sharedNotePickerLoop?.localVerification?.includes(command),
+    `${sharedNotePickerLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "NotePicker",
+  "src/components/NotePicker.tsx",
+  "Send",
+  "Swap",
+  "Unshield",
+  "advanced disclosures",
+  "Empty Vault",
+  "start with Shield",
+  "tabular amounts",
+  "exact source-note amount",
+  "ledger-spendable note",
+  "truth:privacy-claim-gate",
+  "not the full four-lane redesign",
+  "not WalletApprovalSheet",
+  "not a new privacy guarantee",
+  "fdf2fd8",
+]) {
+  assert(
+    sharedNotePickerLoopText.includes(phrase),
+    `${sharedNotePickerLoopId} must record ${phrase}`,
+  );
+}
+
 const publicDepthDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE";
 assert(activeFeedbackLoopIds.has(publicDepthDisclosureLoopId), `${publicDepthDisclosureLoopId} active feedback loop is missing`);
 const publicDepthDisclosureLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === publicDepthDisclosureLoopId);

@@ -871,6 +871,46 @@
       "truthBoundary": "This is an Unshield UX and guard-hardening slice. It preserves signed unshield intents, operator endpoints, USDC/SOL paths, eligibility checks, release receipts, split-note flow, and safe-send behavior, but it is not the full Unshield rewrite, not removal of all transition or release detail, not a WalletApprovalSheet replacement, not a receipt modal, not program-owned on-chain release custody, not Unshield production privacy, not live mainnet private settlement, not pushed, and not live-deployed."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-SHARED-NOTE-PICKER",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#cross-cutting-components-build-once-use-four-places",
+        "src/components/NotePicker.tsx",
+        "src/pages/SendPage.tsx",
+        "src/pages/SwapPage.tsx",
+        "src/pages/UnshieldPage.tsx",
+        "src/styles.css",
+        "scripts/check-vanta-shared-note-picker.mjs",
+        "scripts/check-vanta-product-ui-browser.mjs"
+      ],
+      "summary": "The shared NotePicker feedback now has a guarded local first slice: Send, Swap, and Unshield all use src/components/NotePicker.tsx inside their advanced disclosures. The component renders a stable select, note cards with tabular amounts, and an Empty Vault state that tells users to start with Shield. Existing lane behavior is preserved: Send clears amount on note changes, Swap fills the exact source-note amount while preserving exact-note execution, and Unshield prefills USDC exits from the selected ledger-spendable note while preserving exact/split-note release rules. The new notes:shared-picker-check guard is wired into truth:privacy-claim-gate and the lane source guards require NotePicker.",
+      "localVerification": [
+        "red-first npm run notes:shared-picker-check",
+        "npm run notes:shared-picker-check",
+        "npm run send:requires-shielded-state-check",
+        "npm run swap:requires-shielded-state-check",
+        "npm run unshield:public-exit-surface-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run product-ui:browser-check",
+        "npm run build",
+        "npm run send:verify",
+        "npm run swap:capability-check",
+        "npm run swap:committed-settlement-check",
+        "npm run private-core:swap-check",
+        "npm run unshield:balance-ledger-check",
+        "npm run unshield:trust-packet-check",
+        "npm run private-core:unshield-committed-settlement-check",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the shared NotePicker extraction across the focused shared guard, Send/Swap/Unshield source guards, privacy claim gate, product UI browser, build, Send aggregate verification, focused Swap checks, focused Unshield checks, and diff whitespace check",
+        "committed": "fdf2fd8 (Extract shared NotePicker)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is shared UI/control extraction and guard hardening only. It preserves existing note-selection behavior for Send, Swap, and Unshield, but it is not the full four-lane redesign, not AssetPickerGrid, not WalletApprovalSheet, not RecoveryPanel, not LaneFlowIndicator, not TransactionStatusToast, not a receipt modal, not a new privacy guarantee, not production privacy, not live mainnet private settlement, not pushed, and not live-deployed."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
