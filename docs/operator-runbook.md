@@ -72,6 +72,7 @@ npm run pay:production-readiness-contract-check
 npm run audit:package-check
 npm run zk:feedback-loop-check
 npm run zk:c01-production-verifier-backend-candidate-check
+npm run zk:c01-production-verifying-key-candidate-check
 npm run zk:c01-verifier-backend-decision-check
 npm run truth:transaction-check
 npm run truth:privacy-claim-gate

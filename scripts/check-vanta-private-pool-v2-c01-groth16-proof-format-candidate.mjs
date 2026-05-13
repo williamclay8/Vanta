@@ -5,6 +5,7 @@ const repoRoot = resolve(import.meta.dirname, "..");
 const packetPath = "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json";
 const candidatePath = "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json";
 const optionsPath = "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json";
+const productionVerifyingKeyPath = "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json";
 const localProofPath = "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json";
 const decisionPath = "docs/zk/c01-production-verifier-backend-decision.md";
 
@@ -33,6 +34,7 @@ const packetText = read(packetPath);
 const packet = JSON.parse(packetText);
 const candidate = JSON.parse(read(candidatePath));
 const options = JSON.parse(read(optionsPath));
+const productionVerifyingKey = JSON.parse(read(productionVerifyingKeyPath));
 const localProof = JSON.parse(read(localProofPath));
 const decision = read(decisionPath);
 
@@ -45,6 +47,10 @@ for (const aggregate of ["zk:review-guards-check", "zk:feedback-loop-check"]) {
   assert(
     scripts[aggregate]?.includes("npm run zk:c01-groth16-proof-format-candidate-check"),
     `${aggregate} must include the Groth16 proof-format candidate guard`,
+  );
+  assert(
+    scripts[aggregate]?.includes("npm run zk:c01-production-verifying-key-candidate-check"),
+    `${aggregate} must include the production verifying-key candidate guard`,
   );
 }
 
@@ -85,6 +91,28 @@ for (const [field, expected] of [
 ]) {
   assert(packet[field] === expected, `packet ${field} mismatch`);
 }
+assert(
+  packet.productionVerifyingKeyCandidateRef?.artifactRef === productionVerifyingKeyPath,
+  "packet must reference the production verifying-key candidate packet",
+);
+assert(
+  packet.productionVerifyingKeyCandidateRef?.command ===
+    "npm run zk:c01-production-verifying-key-candidate-check",
+  "packet must record the production verifying-key candidate guard",
+);
+assert(
+  packet.productionVerifyingKeyCandidateRef?.status ===
+    "blocked-no-production-verifying-key-hash-artifact",
+  "packet production verifying-key ref must stay blocked",
+);
+assert(
+  productionVerifyingKey.status === "blocked-no-production-verifying-key-hash-artifact",
+  "production verifying-key candidate packet must remain blocked",
+);
+assert(
+  productionVerifyingKey.satisfiesRequiredPositiveEvidence?.productionVerifyingKeyHash === false,
+  "production verifying-key candidate packet must not satisfy production verifying-key evidence",
+);
 
 const required = packet.requiredCandidateShape ?? {};
 for (const [field, expected] of [
@@ -209,6 +237,7 @@ for (const marker of [
 
 for (const command of [
   "npm run zk:c01-groth16-proof-format-candidate-check",
+  "npm run zk:c01-production-verifying-key-candidate-check",
   "npm run zk:c01-verifier-backend-options-check",
   "npm run zk:c01-production-verifier-backend-candidate-check",
 ]) {

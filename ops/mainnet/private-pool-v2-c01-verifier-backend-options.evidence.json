@@ -15,6 +15,7 @@
   "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
   "localProofFormatRef": "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
   "verifierKeyRegistryRef": "ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json",
+  "productionVerifyingKeyCandidateRef": "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
   "currentTargetContract": {
     "tag": 3,
     "target": "solana-c01-tag3-groth16-v0",
@@ -49,6 +50,12 @@
         "command": "npm run zk:c01-groth16-proof-format-candidate-check",
         "truthBoundary": "This packet records that the exact Groth16 tag-3 production proof-format artifact is absent; it does not satisfy production proof-format evidence."
       },
+      "productionVerifyingKeyCandidateRef": {
+        "status": "blocked-no-production-verifying-key-hash-artifact",
+        "artifactRef": "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
+        "command": "npm run zk:c01-production-verifying-key-candidate-check",
+        "truthBoundary": "This packet records that the exact Groth16 tag-3 production verifying-key hash artifact is absent; it does not satisfy production verifying-key evidence."
+      },
       "requires": [
         "actual-private-spend-groth16-production-proof-format",
         "production-verifying-key-hash",
@@ -60,6 +67,7 @@
       ],
       "currentBlockedBy": [
         "Groth16 proof-format candidate packet is blocked with no current artifact ref",
+        "Production verifying-key candidate packet is blocked with no current artifact ref",
         "local proof observation is noir-bb / barretenberg-ultrahonk / 16000 bytes",
         "no production verifying-key hash artifact exists",
         "tag 3 returns ERR_PROOF_VERIFIER_NOT_WIRED before mutation",
@@ -102,6 +110,7 @@
   "intermediateEvidenceOnly": {
     "localProofFormatObservation": true,
     "verifierKeyRegistryScaffold": true,
+    "productionVerifyingKeyCandidate": true,
     "candidateEvidencePacket": true
   },
   "satisfiesRequiredPositiveEvidence": {
@@ -126,6 +135,7 @@
   "canonicalCommands": [
     "npm run zk:c01-verifier-backend-options-check",
     "npm run zk:c01-groth16-proof-format-candidate-check",
+    "npm run zk:c01-production-verifying-key-candidate-check",
     "npm run zk:c01-production-verifier-backend-candidate-check",
     "npm run zk:c01-verifier-backend-decision-check",
     "npm run zk:c01-verifier-backend-contract-check",

@@ -66,12 +66,16 @@ for (const marker of [
   "npm run zk:c01-production-verifier-backend-candidate-check",
   "npm run zk:c01-verifier-backend-options-check",
   "npm run zk:c01-groth16-proof-format-candidate-check",
+  "npm run zk:c01-production-verifying-key-candidate-check",
   "npm run private-pool-v2:remote-proof-artifact-boundary-check",
   "Backend Options Evidence",
   "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
   "Groth16 Proof-Format Candidate packet",
   "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
   "blocked-no-groth16-production-proof-format-artifact",
+  "Production Verifying-Key Candidate packet",
+  "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
+  "blocked-no-production-verifying-key-hash-artifact",
   "groth16-tag3-solana-v0",
   "noir-bb-ultrahonk-adaptation",
 ]) {
@@ -105,6 +109,11 @@ for (const source of [runbook, audit]) {
     "npm run zk:c01-production-verifier-backend-candidate-check",
     "C01 verifier-ready candidate guard handoff",
   );
+  includes(
+    source,
+    "npm run zk:c01-production-verifying-key-candidate-check",
+    "C01 production verifying-key candidate guard handoff",
+  );
   includes(source, "offchain-remote-proof-artifact-only", "C01 offchain-only truth handoff");
   includes(source, "solana-c01-groth16-verifier-ready", "C01 verifier-ready overclaim handoff");
 }
@@ -125,6 +134,11 @@ assert(
   "package.json must expose zk:c01-groth16-proof-format-candidate-check",
 );
 assert(
+  packageJson.scripts?.["zk:c01-production-verifying-key-candidate-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-production-verifying-key-candidate.mjs",
+  "package.json must expose zk:c01-production-verifying-key-candidate-check",
+);
+assert(
   packageJson.scripts?.["zk:review-guards-check"]?.includes("npm run zk:c01-verifier-backend-decision-check"),
   "zk:review-guards-check must include the C01 verifier backend decision guard",
 );
@@ -139,6 +153,12 @@ assert(
   "zk:review-guards-check must include the C01 Groth16 proof-format candidate guard",
 );
 assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes(
+    "npm run zk:c01-production-verifying-key-candidate-check",
+  ),
+  "zk:review-guards-check must include the C01 production verifying-key candidate guard",
+);
+assert(
   packageJson.scripts?.["zk:feedback-loop-check"]?.includes("npm run zk:c01-verifier-backend-decision-check"),
   "zk:feedback-loop-check must include the C01 verifier backend decision guard",
 );
@@ -151,6 +171,12 @@ assert(
     "npm run zk:c01-groth16-proof-format-candidate-check",
   ),
   "zk:feedback-loop-check must include the C01 Groth16 proof-format candidate guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
+    "npm run zk:c01-production-verifying-key-candidate-check",
+  ),
+  "zk:feedback-loop-check must include the C01 production verifying-key candidate guard",
 );
 
 console.log("Vanta ZK C01 verifier backend decision: PASS");

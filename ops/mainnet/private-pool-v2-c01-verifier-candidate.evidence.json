@@ -45,6 +45,13 @@
       "truthBoundary": "This records that tag 5 can create or idempotently verify the program-owned verifier-key PDA required by reserved tag 3 preflight. It does not satisfy production verifying-key evidence, backend selection, verifier adapter evidence, or proof acceptance."
     },
     {
+      "id": "blocked-production-verifying-key-candidate",
+      "status": "blocked-no-production-verifying-key-hash-artifact",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
+      "command": "npm run zk:c01-production-verifying-key-candidate-check",
+      "truthBoundary": "This records the absence of the exact production verifying-key hash artifact required by the current reserved contract. It does not select a backend and does not satisfy production verifying-key evidence."
+    },
+    {
       "id": "blocked-verifier-backend-options-matrix",
       "status": "blocked-options-not-selected",
       "artifactRef": "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
@@ -142,6 +149,7 @@
     "npm run zk:c01-verifier-key-registry-check",
     "npm run zk:c01-verifier-backend-options-check",
     "npm run zk:c01-groth16-proof-format-candidate-check",
+    "npm run zk:c01-production-verifying-key-candidate-check",
     "npm run private-pool-v2:sbf-abi-check",
     "npm run private-pool-v2:verify"
   ],

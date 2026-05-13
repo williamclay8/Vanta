@@ -84,6 +84,7 @@ npm run zk:feedback-loop-check
 npm run zk:c01-onchain-proof-boundary-check
 npm run zk:c01-verifier-backend-contract-check
 npm run zk:c01-production-verifier-backend-candidate-check
+npm run zk:c01-production-verifying-key-candidate-check
 npm run zk:c01-verifier-backend-decision-check
 npm run private-pool-v2:remote-proof-artifact-boundary-check
 ```
