@@ -280,6 +280,50 @@
       "truthBoundary": "This is a blocked Groth16 tag-3 proof-format candidate packet only. It is not backend selection, not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not tag-3 proof acceptance, not on-chain proof verification, not SBF/live redeploy or reinit evidence, not audit acceptance, not production-private readiness, and not real-funds readiness."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-C01-PRODUCTION-VERIFYING-KEY-CANDIDATE",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#1-the-on-chain-solana-program-does-not-verify-proofs-at-all",
+        "docs/zk/c01-production-verifier-backend-decision.md",
+        "docs/operator-runbook.md",
+        "docs/audit-package.md",
+        "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
+        "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+        "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+        "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
+        "ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json",
+        "scripts/check-vanta-private-pool-v2-c01-production-verifying-key-candidate.mjs",
+        "npm run zk:c01-production-verifying-key-candidate-check"
+      ],
+      "summary": "C01 now has a blocked production verifying-key candidate packet for groth16-tag3-solana-v0 with status blocked-no-production-verifying-key-hash-artifact. The packet records the required actual-private-spend tag 3 target solana-c01-tag3-groth16-v0 with proofSystem: \"groth16\", groth16Proof:256, private-spend-public-input-hash, and production-verifying-key-hash, while the current production verifying-key artifact is absent, tag 5 registry metadata remains source-only at [\"vanta2vkey\", pool_state, verifierKeyHash], and the current local observation remains local-acir-bytecode-hash-not-production-vk.",
+      "localVerification": [
+        "red-first npm run zk:c01-production-verifying-key-candidate-check failed while the package script was missing",
+        "npm run zk:c01-production-verifying-key-candidate-check",
+        "npm run zk:c01-production-verifier-backend-candidate-check",
+        "npm run zk:c01-verifier-backend-options-check",
+        "npm run zk:c01-groth16-proof-format-candidate-check",
+        "npm run zk:c01-verifier-key-registry-check",
+        "npm run zk:c01-verifier-backend-decision-check",
+        "npm run zk:c01-verifier-backend-contract-check",
+        "npm run zk:c01-onchain-proof-boundary-check",
+        "npm run operator:runbook-check",
+        "npm run audit:package-check",
+        "npm run zk:review-guards-check",
+        "npm run zk:feedback-loop-check",
+        "npm run private-pool-v2:verify",
+        "npm run build",
+        "git diff --check",
+        "git diff --cached --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the blocked C01 production verifying-key candidate packet, candidate packet guard, backend-options guard, Groth16 proof-format guard, verifier-key registry guard, backend decision guard, backend contract guard, on-chain proof boundary guard, operator runbook, audit package, review guards, feedback-loop guard, full private-pool-v2 aggregate verify before review-ledger docs edits, build, and diff whitespace checks",
+        "committed": "c82b23d (Add C01 production verifying-key candidate packet)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a blocked production verifying-key candidate packet only. It records that the exact production-verifying-key-hash artifact required by the reserved tag-3 Groth16 contract is absent. It is not backend selection, not production verifying-key evidence, not production proof-format evidence, not verifier-adapter acceptance, not tag-3 proof acceptance, not on-chain proof verification, not SBF/live redeploy or reinit evidence, not audit acceptance, not production-private readiness, and not real-funds readiness."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-H08-LOCAL-BB-FIXTURE-LANE-COMPLETENESS",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
@@ -1367,12 +1411,14 @@
         "npm run zk:c01-onchain-proof-boundary-check",
         "npm run zk:c01-verifier-backend-contract-check",
     "npm run zk:c01-production-verifier-backend-candidate-check",
+    "npm run zk:c01-production-verifying-key-candidate-check",
     "npm run zk:c01-local-proof-format-evidence-check",
     "npm run zk:c01-verifier-key-registry-check",
     "npm run zk:c01-verifier-backend-options-check",
     "npm run zk:c01-groth16-proof-format-candidate-check",
     "npm run zk:c01-verifier-backend-decision-check",
     "docs/zk/c01-production-verifier-backend-decision.md",
+    "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
     "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
     "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
     "ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json",
@@ -1402,6 +1448,7 @@
     "Keep the refs-only C01 verifier candidate evidence packet blocked with selectedBackend: null, local-acir-bytecode-hash-not-production-vk, and no satisfied positive verifier artifacts until backend/proof-format/VK/adapter/test/live/audit evidence exists.",
     "Keep the C01 backend-options matrix blocked with selectedBackend: null; groth16-tag3-solana-v0 and noir-bb-ultrahonk-adaptation are options, not selected or satisfied evidence.",
     "Keep the C01 Groth16 proof-format candidate packet at blocked-no-groth16-production-proof-format-artifact with no current artifact: the required solana-c01-tag3-groth16-v0 actual-private-spend tag 3 Groth16 / 256-byte / production-verifying-key-hash shape is not satisfied by the current noir-bb / barretenberg-ultrahonk / 16000-byte local observation.",
+    "Keep the C01 production verifying-key candidate packet at blocked-no-production-verifying-key-hash-artifact with current artifact null: tag 5 source-only registry metadata and local-acir-bytecode-hash-not-production-vk metadata do not satisfy production verifying-key evidence.",
     "Keep the local proof-format observation packet as intermediate evidence only: current noir-bb / barretenberg-ultrahonk / 16000-byte local proof evidence does not satisfy the reserved Groth16 tag-3 256-byte production proof-format requirement.",
     "Keep the source-only TAG_REGISTER_VERIFIER_KEY = 5 registry scaffold as intermediate evidence only: a program-owned verifier-key PDA record at [\"vanta2vkey\", pool_state, verifierKeyHash] does not satisfy production verifying-key evidence or verifier adapter evidence.",
     "Replace operator-fed fixed-slot root-history scaffolding with proof-backed program-owned shared tree state.",
@@ -1416,6 +1463,7 @@
           "npm run zk:c01-onchain-proof-boundary-check",
           "npm run zk:c01-verifier-backend-contract-check",
       "npm run zk:c01-production-verifier-backend-candidate-check",
+      "npm run zk:c01-production-verifying-key-candidate-check",
       "npm run zk:c01-local-proof-format-evidence-check",
       "npm run zk:c01-verifier-key-registry-check",
       "npm run zk:c01-verifier-backend-options-check",
@@ -1437,9 +1485,9 @@
           "npm run private-pool-v2:crucible-check",
           "npm run private-pool-v2:verify"
         ],
-    "localResult": "Rust tests/checks cover the source-level reserved tag 3 proof-carrying ABI shape, malformed/all-zero placeholder rejection, root/nullifier/output/verifier-key preflight, custom-error-14 no-mutation behavior, source-only TAG_REGISTER_VERIFIER_KEY = 5 verifier-key PDA creation/idempotent replay/zero-hash/wrong-PDA rejection, lineage-bound TAG_REGISTER_PROVENANCED_ROOT = 4 root-record creation, malformed root-record rejection, wrong previousRoot rejection, and source-only TAG_UNSHIELD = 6 root/root-record/nullifier/vault-authority preflight. contract-check covers the local authority/root/nullifier-marker/output-record/root-record scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed proof truth boundary, no-proof-bytes tag-1 ABI truth, reserved tag-3 fail-closed preflight truth, and the source-only TAG_UNSHIELD = 6 custody preflight; c01-verifier-backend-contract-check and c01-production-verifier-backend-candidate-check preserve the Groth16 tag-3 verifier target, mark current remote proof-artifact receipts as offchain-remote-proof-artifact-only, reject solana-c01-groth16-verifier-ready overclaims, and require the C01 verifier candidate evidence packet to stay blocked with selectedBackend: null, local-acir-bytecode-hash-not-production-vk, reserved tag 3 / groth16Proof:256 / private-spend-public-input-hash layout, and no positive evidence artifact refs; c01-verifier-backend-options-check guards the blocked groth16-tag3-solana-v0 and noir-bb-ultrahonk-adaptation matrix without selecting either backend; c01-groth16-proof-format-candidate-check guards the blocked groth16-tag3-solana-v0 proof-format candidate, records that the exact actual-private-spend tag 3 Groth16 / 256-byte / production-verifying-key-hash artifact is absent, and keeps the current noir-bb / barretenberg-ultrahonk / 16000-byte local observation from satisfying production proof-format evidence; c01-local-proof-format-evidence-check self-generates the actual-private-spend local proof, verifies the receipt shape, records current noir-bb / barretenberg-ultrahonk / local-bb-fixture-artifact evidence as 16000 bytes / 500 fields / one private-spend-public-input-hash, and records the explicit mismatch with the reserved 256-byte Groth16 tag-3 target without satisfying production proof-format evidence; c01-verifier-key-registry-check guards the source-only tag-5 registry scaffold and confirms it does not satisfy production verifying-key evidence; c01-verifier-backend-decision-check guards the explicit no-backend-selected decision packet, Groth16-vs-UltraHonk fork, local proof-format observation, verifier-key registry scaffold, backend-options matrix, Groth16 proof-format candidate, and operator/audit handoff commands; public-audit-discovery-check and audit-package-check point reviewers to the blocked candidate evidence without claiming audit or production readiness; root-provenance-check guards the root-record source/docs/fuzz/SBF/package surface; solana-spend-transaction-builder-check rejects tag 3 and proof-like builder/validation fields for the current no-verifier live builder; relayer, service-network, trust-packet, and operator-packet checks reject or omit proof-like spend fields before any handoff can imply verifier support; sbf-abi-check reports the locally rebuilt SBF ABI as fresh; private-pool-v2:crucible-check validates the defensive harness setup; private-pool-v2:verify passed locally, while live citation still needs redeploy, reinitialization, and live evidence for the rebuilt ABI.",
-    "proves": "Local write authority, account binding, accepted-root scaffold, deterministic output-record PDA binding, current-ABI proof-field rejection across builder/relayer/service-network/operator-packet surfaces, offchain-only proof-artifact receipt evidence, blocked refs-only C01 verifier candidate evidence with selectedBackend: null and local-acir-bytecode-hash-not-production-vk, blocked backend-options evidence for groth16-tag3-solana-v0 and noir-bb-ultrahonk-adaptation, blocked Groth16 proof-format candidate evidence showing the required actual-private-spend tag 3 Groth16 / 256-byte / production-verifying-key-hash artifact is absent, local actual-private-spend proof-format observation showing a verified noir-bb / barretenberg-ultrahonk / 16000-byte local receipt that mismatches the reserved 256-byte Groth16 tag-3 production target, source-only TAG_REGISTER_VERIFIER_KEY = 5 verifier-key PDA registry creation/idempotent replay and wrong-PDA/zero-hash rejection, source-only lineage-bound root-record metadata for reserved tag-3/tag-6 preflights, malformed/wrong-lineage root-record rejection, reserved tag-3 root/root-record/nullifier/output/verifier-key fail-closed/no-mutation source behavior, source-only TAG_UNSHIELD = 6 vault-authority/root/root-record/nullifier fail-closed/no-mutation preflight behavior, explicit blocked Unshield custody status, local rebuilt-SBF freshness for the current source ABI, and the negative C01 truth boundary are guarded.",
-    "doesNotProve": "On-chain proof verification, proof-carrying spend acceptance, Solana tag 3 Groth16 verifier-ready evidence, selected backend evidence, backend-options matrix as backend selection, production proof-format evidence, blocked Groth16 proof-format candidate packet as production proof-format evidence, production verifying-key evidence, source-only verifier-key registry as production verifying-key evidence, local proof-format observation as production proof-format acceptance, verifier adapter acceptance, verifying-key enforcement, proof that a root transition is correct, deployed/live SBF bytecode for tag 3 or tag 4, program-owned tree state or program-owned shared tree state, backfilled legacy tag 2 roots, program-owned vault custody, proof-verified TAG_UNSHIELD release, audit acceptance, or live deployment correctness."
+    "localResult": "Rust tests/checks cover the source-level reserved tag 3 proof-carrying ABI shape, malformed/all-zero placeholder rejection, root/nullifier/output/verifier-key preflight, custom-error-14 no-mutation behavior, source-only TAG_REGISTER_VERIFIER_KEY = 5 verifier-key PDA creation/idempotent replay/zero-hash/wrong-PDA rejection, lineage-bound TAG_REGISTER_PROVENANCED_ROOT = 4 root-record creation, malformed root-record rejection, wrong previousRoot rejection, and source-only TAG_UNSHIELD = 6 root/root-record/nullifier/vault-authority preflight. contract-check covers the local authority/root/nullifier-marker/output-record/root-record scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed proof truth boundary, no-proof-bytes tag-1 ABI truth, reserved tag-3 fail-closed preflight truth, and the source-only TAG_UNSHIELD = 6 custody preflight; c01-verifier-backend-contract-check and c01-production-verifier-backend-candidate-check preserve the Groth16 tag-3 verifier target, mark current remote proof-artifact receipts as offchain-remote-proof-artifact-only, reject solana-c01-groth16-verifier-ready overclaims, and require the C01 verifier candidate evidence packet to stay blocked with selectedBackend: null, local-acir-bytecode-hash-not-production-vk, reserved tag 3 / groth16Proof:256 / private-spend-public-input-hash layout, and no positive evidence artifact refs; c01-production-verifying-key-candidate-check guards the blocked groth16-tag3-solana-v0 production verifying-key candidate, records that the exact production-verifying-key-hash artifact is absent, keeps tag 5 registry metadata source-only, keeps current artifact refs null, and schema-closes the packet against surprise proof/VK/witness byte-bearing fields; c01-verifier-backend-options-check guards the blocked groth16-tag3-solana-v0 and noir-bb-ultrahonk-adaptation matrix without selecting either backend; c01-groth16-proof-format-candidate-check guards the blocked groth16-tag3-solana-v0 proof-format candidate, records that the exact actual-private-spend tag 3 Groth16 / 256-byte / production-verifying-key-hash artifact is absent, and keeps the current noir-bb / barretenberg-ultrahonk / 16000-byte local observation from satisfying production proof-format evidence; c01-local-proof-format-evidence-check self-generates the actual-private-spend local proof, verifies the receipt shape, records current noir-bb / barretenberg-ultrahonk / local-bb-fixture-artifact evidence as 16000 bytes / 500 fields / one private-spend-public-input-hash, and records the explicit mismatch with the reserved 256-byte Groth16 tag-3 target without satisfying production proof-format evidence; c01-verifier-key-registry-check guards the source-only tag-5 registry scaffold and confirms it does not satisfy production verifying-key evidence; c01-verifier-backend-decision-check guards the explicit no-backend-selected decision packet, Groth16-vs-UltraHonk fork, local proof-format observation, verifier-key registry scaffold, backend-options matrix, Groth16 proof-format candidate, production verifying-key candidate, and operator/audit handoff commands; public-audit-discovery-check and audit-package-check point reviewers to the blocked candidate evidence without claiming audit or production readiness; root-provenance-check guards the root-record source/docs/fuzz/SBF/package surface; solana-spend-transaction-builder-check rejects tag 3 and proof-like builder/validation fields for the current no-verifier live builder; relayer, service-network, trust-packet, and operator-packet checks reject or omit proof-like spend fields before any handoff can imply verifier support; sbf-abi-check reports the locally rebuilt SBF ABI as fresh; private-pool-v2:crucible-check validates the defensive harness setup; private-pool-v2:verify passed locally, while live citation still needs redeploy, reinitialization, and live evidence for the rebuilt ABI.",
+    "proves": "Local write authority, account binding, accepted-root scaffold, deterministic output-record PDA binding, current-ABI proof-field rejection across builder/relayer/service-network/operator-packet surfaces, offchain-only proof-artifact receipt evidence, blocked refs-only C01 verifier candidate evidence with selectedBackend: null and local-acir-bytecode-hash-not-production-vk, blocked backend-options evidence for groth16-tag3-solana-v0 and noir-bb-ultrahonk-adaptation, blocked Groth16 proof-format candidate evidence showing the required actual-private-spend tag 3 Groth16 / 256-byte / production-verifying-key-hash artifact is absent, blocked production verifying-key candidate evidence showing the exact production-verifying-key-hash artifact is absent while tag 5 registry metadata remains source-only, local actual-private-spend proof-format observation showing a verified noir-bb / barretenberg-ultrahonk / 16000-byte local receipt that mismatches the reserved 256-byte Groth16 tag-3 production target, source-only TAG_REGISTER_VERIFIER_KEY = 5 verifier-key PDA registry creation/idempotent replay and wrong-PDA/zero-hash rejection, source-only lineage-bound root-record metadata for reserved tag-3/tag-6 preflights, malformed/wrong-lineage root-record rejection, reserved tag-3 root/root-record/nullifier/output/verifier-key fail-closed/no-mutation source behavior, source-only TAG_UNSHIELD = 6 vault-authority/root/root-record/nullifier fail-closed/no-mutation preflight behavior, explicit blocked Unshield custody status, local rebuilt-SBF freshness for the current source ABI, and the negative C01 truth boundary are guarded.",
+    "doesNotProve": "On-chain proof verification, proof-carrying spend acceptance, Solana tag 3 Groth16 verifier-ready evidence, selected backend evidence, backend-options matrix as backend selection, production proof-format evidence, blocked Groth16 proof-format candidate packet as production proof-format evidence, production verifying-key evidence, blocked production verifying-key candidate packet as production verifying-key evidence, source-only verifier-key registry as production verifying-key evidence, local proof-format observation as production proof-format acceptance, verifier adapter acceptance, verifying-key enforcement, proof that a root transition is correct, deployed/live SBF bytecode for tag 3 or tag 4, program-owned tree state or program-owned shared tree state, backfilled legacy tag 2 roots, program-owned vault custody, proof-verified TAG_UNSHIELD release, audit acceptance, or live deployment correctness."
       },
       "codexRemediation": {
         "commits": [
@@ -1455,9 +1503,10 @@
           "28e07f6 (Add C01 local proof format evidence)",
           "a2fa2f4 (Add C01 verifier key registry scaffold)",
           "1153f4e (Add C01 verifier backend options matrix)",
-          "faead7b (Add C01 Groth16 proof-format candidate packet)"
+          "faead7b (Add C01 Groth16 proof-format candidate packet)",
+          "c82b23d (Add C01 production verifying-key candidate packet)"
         ],
-        "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, proof-like transaction-field rejection for the current no-verifier spend ABI, a verifier-backend contract guard, production verifier backend candidate guard, verifier-backend decision packet, refs-only C01 verifier candidate evidence packet, local proof-format observation packet, source-only verifier-key registry scaffold, blocked backend-options matrix, and blocked Groth16 proof-format candidate packet for the future tag 3 lane, a reserved tag 3 proof-carrying spend ABI that preflights the future account/verifier-key/root-record contract and fails closed before proof verification or mutation, a lineage-bound TAG_REGISTER_PROVENANCED_ROOT = 4 root-record metadata lane for future proof paths, and a source-only TAG_UNSHIELD = 6 preflight that fails closed before proof verification, nullifier consume, token/system CPI, custody transfer, fund release, or mutation.",
+        "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, proof-like transaction-field rejection for the current no-verifier spend ABI, a verifier-backend contract guard, production verifier backend candidate guard, verifier-backend decision packet, refs-only C01 verifier candidate evidence packet, local proof-format observation packet, source-only verifier-key registry scaffold, blocked backend-options matrix, blocked Groth16 proof-format candidate packet, and blocked production verifying-key candidate packet for the future tag 3 lane, a reserved tag 3 proof-carrying spend ABI that preflights the future account/verifier-key/root-record contract and fails closed before proof verification or mutation, a lineage-bound TAG_REGISTER_PROVENANCED_ROOT = 4 root-record metadata lane for future proof paths, and a source-only TAG_UNSHIELD = 6 preflight that fails closed before proof verification, nullifier consume, token/system CPI, custody transfer, fund release, or mutation.",
         "residualRisk": [
           "No production verifier is wired.",
           "The current spend instruction still carries hashes only, not proof bytes.",
@@ -1465,6 +1514,7 @@
           "The C01 verifier candidate evidence packet is blocked refs-only metadata; no required positive verifier artifact is satisfied.",
           "The C01 backend-options matrix names Groth16 tag-3 and UltraHonk adaptation paths but does not select either backend or satisfy their required evidence.",
           "The C01 Groth16 proof-format candidate packet is blocked with no current artifact ref; it records that the required tag 3 Groth16 / 256-byte / production-verifying-key-hash artifact is absent.",
+          "The C01 production verifying-key candidate packet is blocked with current artifact null; tag 5 registry metadata and local ACIR metadata do not satisfy production verifying-key evidence.",
           "The C01 local proof-format observation packet records the current local UltraHonk/noir-bb receipt shape and mismatch with tag 3 Groth16, but it does not satisfy production proof-format evidence.",
           "The source-only TAG_REGISTER_VERIFIER_KEY = 5 registry scaffold creates or verifies a verifier-key PDA record at [\"vanta2vkey\", pool_state, verifierKeyHash], but it does not satisfy production verifying-key evidence.",
           "Reserved tag 3 always returns custom error 14 after preflight and cannot be cited as proof support.",
@@ -1478,8 +1528,8 @@
         ]
       },
       "lumiHygiene": {
-        "local": "verified locally for scaffold, proof-field boundary, reserved proof-carrying ABI, source-only root provenance record, source-only verifier-key registry scaffold, blocked backend-options matrix, blocked Groth16 proof-format candidate packet, C01 verifier-ready evidence overclaim guard, C01 verifier candidate evidence packet, C01 local proof-format observation packet, SBF freshness, Crucible dry-run, feedback-loop guards, review guards, full private-pool-v2 aggregate verify, and build",
-        "committed": "faead7b (Add C01 Groth16 proof-format candidate packet)",
+        "local": "verified locally for scaffold, proof-field boundary, reserved proof-carrying ABI, source-only root provenance record, source-only verifier-key registry scaffold, blocked backend-options matrix, blocked Groth16 proof-format candidate packet, blocked production verifying-key candidate packet, C01 verifier-ready evidence overclaim guard, C01 verifier candidate evidence packet, C01 local proof-format observation packet, SBF freshness, Crucible dry-run, feedback-loop guards, review guards, full private-pool-v2 aggregate verify, and build",
+        "committed": "c82b23d (Add C01 production verifying-key candidate packet)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -1507,7 +1557,9 @@
           "scripts/check-vanta-private-pool-v2-c01-verifier-key-registry.mjs",
           "scripts/check-vanta-private-pool-v2-c01-verifier-backend-options.mjs",
           "scripts/check-vanta-private-pool-v2-c01-groth16-proof-format-candidate.mjs",
+          "scripts/check-vanta-private-pool-v2-c01-production-verifying-key-candidate.mjs",
           "docs/zk/c01-production-verifier-backend-decision.md",
+          "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
           "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
           "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
           "ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json",
@@ -1548,6 +1600,7 @@
           "npm run zk:c01-verifier-key-registry-check",
           "npm run zk:c01-verifier-backend-options-check",
           "npm run zk:c01-groth16-proof-format-candidate-check",
+          "npm run zk:c01-production-verifying-key-candidate-check",
           "npm run zk:feedback-loop-check",
           "npm run private-pool-v2:crucible-check",
           "npm run private-pool-v2:verify"

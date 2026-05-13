@@ -534,6 +534,52 @@ for (const phrase of [
   );
 }
 
+const c01ProductionVerifyingKeyCandidateLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-13-C01-PRODUCTION-VERIFYING-KEY-CANDIDATE";
+assert(
+  activeFeedbackLoopIds.has(c01ProductionVerifyingKeyCandidateLoopId),
+  `${c01ProductionVerifyingKeyCandidateLoopId} active feedback loop is missing`,
+);
+const c01ProductionVerifyingKeyCandidateLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === c01ProductionVerifyingKeyCandidateLoopId,
+);
+const c01ProductionVerifyingKeyCandidateLoopText = JSON.stringify(c01ProductionVerifyingKeyCandidateLoop);
+for (const command of [
+  "npm run zk:c01-production-verifying-key-candidate-check",
+  "npm run zk:c01-production-verifier-backend-candidate-check",
+  "npm run zk:c01-verifier-backend-options-check",
+  "npm run zk:c01-groth16-proof-format-candidate-check",
+  "npm run zk:c01-verifier-key-registry-check",
+  "npm run zk:c01-verifier-backend-decision-check",
+  "npm run zk:c01-verifier-backend-contract-check",
+  "npm run zk:c01-onchain-proof-boundary-check",
+  "npm run zk:review-guards-check",
+  "git diff --check",
+]) {
+  assert(
+    c01ProductionVerifyingKeyCandidateLoop?.localVerification?.includes(command),
+    `${c01ProductionVerifyingKeyCandidateLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
+  "blocked-no-production-verifying-key-hash-artifact",
+  "groth16-tag3-solana-v0",
+  "solana-c01-tag3-groth16-v0",
+  "groth16Proof:256",
+  "private-spend-public-input-hash",
+  "production-verifying-key-hash",
+  "tag 5 registry metadata remains source-only",
+  "local-acir-bytecode-hash-not-production-vk",
+  "not production verifying-key evidence",
+  "c82b23d",
+]) {
+  assert(
+    c01ProductionVerifyingKeyCandidateLoopText.includes(phrase),
+    `${c01ProductionVerifyingKeyCandidateLoopId} must record ${phrase}`,
+  );
+}
+
 const copyClaimBoundaryLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-COPY-CLAIM-BOUNDARY";
 assert(activeFeedbackLoopIds.has(copyClaimBoundaryLoopId), `${copyClaimBoundaryLoopId} active feedback loop is missing`);
 const copyClaimBoundaryLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === copyClaimBoundaryLoopId);
@@ -866,6 +912,12 @@ assert(
   ),
   "C01 must record the Groth16 proof-format candidate packet commit",
 );
+assert(
+  c01.codexRemediation.commits.some((commitRef) =>
+    commitRef.includes("C01 production verifying-key candidate packet")
+  ),
+  "C01 must record the production verifying-key candidate packet commit",
+);
 assert(c01Text.includes("TAG_UNSHIELD = 6"), "C01 must record the source-only TAG_UNSHIELD preflight truth");
 assert(c01Text.includes("TAG_REGISTER_PROVENANCED_ROOT = 4"), "C01 must record the source-only TAG_REGISTER_PROVENANCED_ROOT truth");
 assert(c01Text.includes("TAG_REGISTER_VERIFIER_KEY = 5"), "C01 must record the source-only TAG_REGISTER_VERIFIER_KEY truth");
@@ -891,6 +943,10 @@ assert(
 assert(
   c01Text.includes("zk:c01-groth16-proof-format-candidate-check"),
   "C01 must record the Groth16 proof-format candidate guard",
+);
+assert(
+  c01Text.includes("zk:c01-production-verifying-key-candidate-check"),
+  "C01 must record the production verifying-key candidate guard",
 );
 assert(
   c01Text.includes("zk:c01-verifier-backend-decision-check"),
@@ -920,6 +976,10 @@ assert(
   c01Text.includes("ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json"),
   "C01 must record the Groth16 proof-format candidate evidence packet path",
 );
+assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json"),
+  "C01 must record the production verifying-key candidate evidence packet path",
+);
 assert(c01Text.includes("groth16-tag3-solana-v0"), "C01 must record the Groth16 tag-3 backend option");
 assert(c01Text.includes("solana-c01-tag3-groth16-v0"), "C01 must record the Groth16 candidate target");
 assert(c01Text.includes("noir-bb-ultrahonk-adaptation"), "C01 must record the UltraHonk adaptation backend option");
@@ -933,8 +993,16 @@ assert(
   "C01 must record the blocked Groth16 proof-format candidate status",
 );
 assert(
+  c01Text.includes("blocked-no-production-verifying-key-hash-artifact"),
+  "C01 must record the blocked production verifying-key candidate status",
+);
+assert(
   c01Text.includes("Groth16 proof-format candidate packet is not production proof-format evidence"),
   "C01 must preserve that the Groth16 proof-format candidate is not production proof-format evidence",
+);
+assert(
+  c01Text.includes("blocked production verifying-key candidate packet as production verifying-key evidence"),
+  "C01 must preserve that the production verifying-key candidate is not production verifying-key evidence",
 );
 assert(
   c01Text.includes("local-acir-bytecode-hash-not-production-vk"),
