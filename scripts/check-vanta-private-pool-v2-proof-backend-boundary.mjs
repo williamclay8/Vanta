@@ -767,7 +767,7 @@ includes(
 
 assert(
   scripts["private-pool-v2:proof-backend-boundary-check"] ===
-    "node scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs",
+    "node scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs && npm run private-pool-v2:browser-worker-prover-check",
   "package.json must expose private-pool-v2:proof-backend-boundary-check",
 );
 assert(
@@ -786,6 +786,11 @@ assert(
   "package.json must expose private-pool-v2:send-witness-prover-check",
 );
 assert(
+  scripts["private-pool-v2:browser-worker-prover-check"] ===
+    "node scripts/check-vanta-private-pool-v2-browser-worker-prover.mjs",
+  "package.json must expose private-pool-v2:browser-worker-prover-check",
+);
+assert(
   scripts["private-pool-v2:local-prover-check"]?.includes(
     "npm run private-pool-v2:local-bb-fixture-prover-check",
   ),
@@ -802,6 +807,12 @@ assert(
     "npm run private-pool-v2:send-witness-prover-check",
   ),
   "package.json private-pool-v2:local-prover-check must include private-pool-v2:send-witness-prover-check",
+);
+assert(
+  scripts["private-pool-v2:local-prover-check"]?.includes(
+    "npm run private-pool-v2:browser-worker-prover-check",
+  ),
+  "package.json private-pool-v2:local-prover-check must include private-pool-v2:browser-worker-prover-check",
 );
 assert(
   scripts["private-pool-v2:remote-proof-artifact-boundary-check"] ===

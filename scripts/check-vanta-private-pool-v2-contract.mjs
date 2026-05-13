@@ -71,6 +71,29 @@ const requiredFiles = [
     ],
   },
   {
+    path: "src/privacy/privatePoolV2BrowserProverProtocol.ts",
+    exports: [
+      "VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVER_SCHEME",
+      "VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_MESSAGE",
+      "VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE",
+      "VantaPrivatePoolV2BrowserWorkerSendProverPayload",
+      "VantaPrivatePoolV2BrowserWorkerSendProverMessage",
+      "VantaPrivatePoolV2BrowserWorkerSendProverResponse",
+    ],
+  },
+  {
+    path: "src/privacy/privatePoolV2BrowserProverWorker.ts",
+    exports: ["proveVantaPrivatePoolV2SendInBrowserWorker"],
+  },
+  {
+    path: "src/privacy/privatePoolV2BrowserProverClient.ts",
+    exports: [
+      "VantaPrivatePoolV2BrowserProverClientArgs",
+      "VantaPrivatePoolV2BrowserProverClient",
+      "createVantaPrivatePoolV2BrowserProverClient",
+    ],
+  },
+  {
     path: "src/privacy/privatePoolV2LocalVerifierRegistry.ts",
     exports: [
       "VANTA_PRIVATE_POOL_V2_LOCAL_VERIFIER_REGISTRY_SCHEME",
@@ -992,6 +1015,7 @@ const requiredPackageScripts = [
   "private-pool-v2:local-bb-fixture-prover-check",
   "private-pool-v2:actual-private-spend-witness-prover-check",
   "private-pool-v2:send-witness-prover-check",
+  "private-pool-v2:browser-worker-prover-check",
   "private-pool-v2:mock-proof-boundary-check",
   "private-pool-v2:shield-proof-request-check",
   "private-pool-v2:send-proof-request-check",
