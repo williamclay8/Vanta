@@ -911,6 +911,46 @@
       "truthBoundary": "This is shared UI/control extraction and guard hardening only. It preserves existing note-selection behavior for Send, Swap, and Unshield, but it is not the full four-lane redesign, not AssetPickerGrid, not WalletApprovalSheet, not RecoveryPanel, not LaneFlowIndicator, not TransactionStatusToast, not a receipt modal, not a new privacy guarantee, not production privacy, not live mainnet private settlement, not pushed, and not live-deployed."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-SHARED-LANE-FLOW-INDICATOR",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#cross-cutting-components-build-once-use-four-places",
+        "src/components/LaneFlowIndicator.tsx",
+        "src/pages/ShieldPage.tsx",
+        "src/pages/SendPage.tsx",
+        "src/pages/SwapPage.tsx",
+        "src/pages/UnshieldPage.tsx",
+        "src/pages/PayPage.tsx",
+        "src/pages/StrategyPage.tsx",
+        "src/styles.css",
+        "scripts/check-vanta-shared-lane-flow-indicator.mjs",
+        "scripts/check-vanta-product-ui-browser.mjs"
+      ],
+      "summary": "The shared LaneFlowIndicator feedback now has a guarded local slice: Shield, Send, Swap, and Unshield use src/components/LaneFlowIndicator.tsx across the four core private-settlement lanes, while Pay and Strategy also use it so existing inline flow indicators do not remain a parallel pattern. The component owns active-step state, accessible aria-label and aria-current markers, and the active-step horizontal sweep animation with reduced-motion handling. Shield and Swap gained missing visible flow rhythm without changing proof, quote, wallet approval, settlement, receipt, or operator behavior; Pay preserves its zero-active draft state and multi-active settlement-complete state. The lanes:shared-flow-indicator-check guard is wired into truth:privacy-claim-gate, and product-ui:browser-check now checks the indicators across desktop and narrow mobile widths.",
+      "localVerification": [
+        "red-first npm run lanes:shared-flow-indicator-check",
+        "npm run lanes:shared-flow-indicator-check",
+        "npm run shield:viewing-key-custody-check",
+        "npm run shield:ui-claim-boundary-check",
+        "npm run send:requires-shielded-state-check",
+        "npm run swap:requires-shielded-state-check",
+        "npm run unshield:public-exit-surface-check",
+        "npm run pay:browser-check",
+        "npm run strategy:browser-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run product-ui:browser-check",
+        "npm run build",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the shared LaneFlowIndicator extraction across the focused shared guard, Shield/Send/Swap/Unshield source guards, Pay and Strategy browser checks, privacy claim gate, product UI browser flow/layout assertions, build, and diff whitespace check",
+        "committed": "9a9ed7f (Extract shared LaneFlowIndicator)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is shared UI/visual-rhythm extraction and guard hardening only. It preserves existing lane behavior and adds the missing Shield/Swap visual flow indicator, but it is not the full four-lane redesign, not AssetPickerGrid, not WalletApprovalSheet, not RecoveryPanel, not TransactionStatusToast, not a receipt modal, not a new privacy guarantee, not production privacy, not live mainnet private settlement, not pushed, and not live-deployed."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [

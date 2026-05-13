@@ -1041,6 +1041,60 @@ for (const phrase of [
   );
 }
 
+const sharedLaneFlowIndicatorLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-SHARED-LANE-FLOW-INDICATOR";
+assert(
+  activeFeedbackLoopIds.has(sharedLaneFlowIndicatorLoopId),
+  `${sharedLaneFlowIndicatorLoopId} active feedback loop is missing`,
+);
+const sharedLaneFlowIndicatorLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === sharedLaneFlowIndicatorLoopId,
+);
+const sharedLaneFlowIndicatorLoopText = JSON.stringify(sharedLaneFlowIndicatorLoop);
+for (const command of [
+  "red-first npm run lanes:shared-flow-indicator-check",
+  "npm run lanes:shared-flow-indicator-check",
+  "npm run shield:viewing-key-custody-check",
+  "npm run shield:ui-claim-boundary-check",
+  "npm run send:requires-shielded-state-check",
+  "npm run swap:requires-shielded-state-check",
+  "npm run unshield:public-exit-surface-check",
+  "npm run pay:browser-check",
+  "npm run strategy:browser-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run product-ui:browser-check",
+  "npm run build",
+]) {
+  assert(
+    sharedLaneFlowIndicatorLoop?.localVerification?.includes(command),
+    `${sharedLaneFlowIndicatorLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "LaneFlowIndicator",
+  "src/components/LaneFlowIndicator.tsx",
+  "Shield",
+  "Send",
+  "Swap",
+  "Unshield",
+  "Pay",
+  "Strategy",
+  "active-step horizontal sweep",
+  "reduced-motion",
+  "desktop and narrow mobile widths",
+  "truth:privacy-claim-gate",
+  "not the full four-lane redesign",
+  "not AssetPickerGrid",
+  "not WalletApprovalSheet",
+  "not TransactionStatusToast",
+  "not a new privacy guarantee",
+  "9a9ed7f",
+]) {
+  assert(
+    sharedLaneFlowIndicatorLoopText.includes(phrase),
+    `${sharedLaneFlowIndicatorLoopId} must record ${phrase}`,
+  );
+}
+
 const publicDepthDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE";
 assert(activeFeedbackLoopIds.has(publicDepthDisclosureLoopId), `${publicDepthDisclosureLoopId} active feedback loop is missing`);
 const publicDepthDisclosureLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === publicDepthDisclosureLoopId);
