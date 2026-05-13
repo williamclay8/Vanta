@@ -1119,6 +1119,10 @@ assert(
   "H08 verification commands must include the actual-private-spend browser worker prover guard",
 );
 assert(
+  h08.verification.commands.includes("npm run zk:h08-production-prover-candidate-check"),
+  "H08 verification commands must include the production prover candidate guard",
+);
+assert(
   h08.codexRemediation.commits.some((commitRef) => commitRef.includes("baaff54")),
   "H08 must record the Send witness proof path commit",
 );
@@ -1149,6 +1153,10 @@ assert(
 assert(
   h08.codexRemediation.commits.some((commitRef) => commitRef.includes("1ca9bfa")),
   "H08 must record the browser-worker proof-result adapter commit",
+);
+assert(
+  h08.codexRemediation.commits.some((commitRef) => commitRef.includes("70fcf4b")),
+  "H08 must record the production prover candidate packet commit",
 );
 assert(h08Text.includes("send-public-input-hash"), "H08 must record Send public-input hash binding");
 assert(
@@ -1187,6 +1195,32 @@ assert(
 assert(
   !h08Text.includes("does not generate witnesses in the browser"),
   "H08 must not preserve the stale browser witness-generation limitation",
+);
+assert(
+  h08Text.includes("ops/mainnet/private-pool-v2-h08-production-prover-candidate.evidence.json"),
+  "H08 must record the production prover candidate packet path",
+);
+assert(
+  h08Text.includes("blocked-no-production-prover-runtime-evidence"),
+  "H08 must record the blocked production prover runtime evidence status",
+);
+assert(h08Text.includes("selectedProverRuntime: null"), "H08 must record selectedProverRuntime remains null");
+assert(
+  h08Text.includes("deployed prover health"),
+  "H08 must record deployed prover health remains required evidence",
+);
+assert(h08Text.includes("job-log"), "H08 must record job-log evidence remains required");
+assert(
+  h08Text.includes("valid proof roundtrip"),
+  "H08 must record valid proof roundtrip remains required evidence",
+);
+assert(
+  h08Text.includes("invalid proof rejection"),
+  "H08 must record invalid proof rejection remains required evidence",
+);
+assert(
+  h08Text.includes("not production prover runtime selection"),
+  "H08 must preserve the production-prover selection boundary",
 );
 
 const localBbFixtureLaneLoopId =
@@ -1267,6 +1301,45 @@ for (const phrase of [
   assert(
     browserWorkerAdapterLoopText.includes(phrase),
     `${browserWorkerAdapterLoopId} must record ${phrase}`,
+  );
+}
+
+const h08ProductionProverCandidateLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-13-H08-PRODUCTION-PROVER-CANDIDATE";
+assert(
+  activeFeedbackLoopIds.has(h08ProductionProverCandidateLoopId),
+  `${h08ProductionProverCandidateLoopId} active feedback loop is missing`,
+);
+const h08ProductionProverCandidateLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === h08ProductionProverCandidateLoopId,
+);
+const h08ProductionProverCandidateLoopText = JSON.stringify(h08ProductionProverCandidateLoop);
+for (const command of [
+  "npm run zk:h08-production-prover-candidate-check",
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:review-guards-check",
+  "npm run zk:feedback-loop-check",
+]) {
+  assert(
+    h08ProductionProverCandidateLoop?.localVerification?.includes(command),
+    `${h08ProductionProverCandidateLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "ops/mainnet/private-pool-v2-h08-production-prover-candidate.evidence.json",
+  "blocked-no-production-prover-runtime-evidence",
+  "selectedProverRuntime: null",
+  "production prover runtime selection",
+  "production proof-format",
+  "production verifying-key",
+  "live route wiring",
+  "C01 verifier compatibility",
+  "deployed/live evidence",
+  "70fcf4b",
+]) {
+  assert(
+    h08ProductionProverCandidateLoopText.includes(phrase),
+    `${h08ProductionProverCandidateLoopId} must record ${phrase}`,
   );
 }
 
