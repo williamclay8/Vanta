@@ -1,0 +1,142 @@
+version: 2
+
+goal:
+  title: "Hourly Top 5 Improvement Goals (Vanta)"
+  slug: "hourly-top-5-improvement-goals"
+  kind: recurring
+  tranche: "2026-05-13 (tranche 001)"
+  status: active
+  intake:
+    original_request: "Find the current top five highest-leverage improvement goals from local project state, GoalBuddy boards, repo status, durable notes, and recent receipts, then execute the safe local portions."
+    interpreted_outcome: "A durable hourly loop with GoalBuddy state + verified receipts + Lumi hygiene clarity for the Vanta repo."
+    input_shape: recurring
+    audience: "Clay operating /Users/clay/Desktop/Vanta"
+    authority: requested
+    proof_type: receipts
+    completion_proof: "Top five goals recorded, safe local portions executed, verification receipts captured, and Lumi hygiene reported."
+
+rules:
+  pm_owns_state: true
+  one_active_task: true
+  max_write_workers: 1
+  no_completion_without_judge_or_pm_audit: false
+  planning_is_not_completion: true
+
+visual_board:
+  selected: none
+  local:
+    status: not_requested
+    url: null
+    command: "npx goalbuddy board docs/goals/hourly-top-5-improvement-goals"
+
+active_task: null
+
+top_five:
+  - id: G001
+    title: "Extend Crucible harness coverage for legacy root + verifier-key registry"
+    status: done
+    delivered:
+      - "fuzz/vanta_private_pool_v2_spend/src/main.rs"
+      - "scripts/check-vanta-private-pool-v2-root-provenance.mjs"
+      - "scripts/check-vanta-private-pool-v2-contract.mjs"
+      - "scripts/check-vanta-private-pool-v2-c01-verifier-key-registry.mjs"
+  - id: G002
+    title: "Keep ZK feedback-loop guard green after changes"
+    status: done
+    delivered:
+      - "Verified via npm run zk:feedback-loop-check"
+  - id: G003
+    title: "Create GoalBuddy tranche board + receipts inside this repo"
+    status: done
+    delivered:
+      - "docs/goals/hourly-top-5-improvement-goals/goal.md"
+      - "docs/goals/hourly-top-5-improvement-goals/state.yaml"
+      - "docs/goals/hourly-top-5-improvement-goals/notes/2026-05-13-tranche-001.md"
+  - id: G004
+    title: "Preserve Lumi hygiene (clean tree, committed keepers)"
+    status: done
+    delivered:
+      - "Commit 4e640b1 (no push; no deploy)"
+  - id: G005
+    title: "Push/deploy/live verification tranche (approval-gated)"
+    status: blocked
+    delivered:
+      - "Blocker packet recorded in notes"
+
+tasks:
+  - id: T001
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: low
+    objective: "Extend Crucible harness coverage for legacy root + verifier-key registry, run the relevant local verification, and commit the keeper diff."
+    allowed_files:
+      - "fuzz/vanta_private_pool_v2_spend/src/main.rs"
+      - "scripts/check-vanta-private-pool-v2-root-provenance.mjs"
+      - "scripts/check-vanta-private-pool-v2-contract.mjs"
+      - "scripts/check-vanta-private-pool-v2-c01-verifier-key-registry.mjs"
+    verify:
+      - "npm run private-pool-v2:crucible-check"
+      - "npm run private-pool-v2:root-provenance-check"
+      - "npm run private-pool-v2:contract-check"
+      - "npm run zk:c01-verifier-key-registry-check"
+      - "git diff --check"
+    receipt:
+      result: done
+      commit: "4e640b1"
+      note: "notes/2026-05-13-tranche-001.md"
+
+  - id: T002
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: low
+    objective: "Re-run the ZK feedback-loop guard to ensure the local truth/guard bundle stays green."
+    allowed_files: []
+    verify:
+      - "npm run zk:feedback-loop-check"
+    receipt:
+      result: done
+      note: "notes/2026-05-13-tranche-001.md"
+
+  - id: T003
+    type: pm
+    assignee: PM
+    status: done
+    reasoning_hint: low
+    objective: "Create or update the local GoalBuddy board for this hourly tranche."
+    allowed_files:
+      - "docs/goals/hourly-top-5-improvement-goals/goal.md"
+      - "docs/goals/hourly-top-5-improvement-goals/state.yaml"
+      - "docs/goals/hourly-top-5-improvement-goals/notes/2026-05-13-tranche-001.md"
+    verify:
+      - "test -f docs/goals/hourly-top-5-improvement-goals/state.yaml"
+    receipt:
+      result: done
+      note: "notes/2026-05-13-tranche-001.md"
+
+  - id: T004
+    type: pm
+    assignee: PM
+    status: done
+    reasoning_hint: low
+    objective: "Sync a minimal tranche receipt into the external Vanta Vault daily note."
+    allowed_files:
+      - "/Users/clay/Desktop/Vanta Vault/01 Daily/2026-05-13.md"
+    verify:
+      - "rg -n \"Hourly tranche 001\" /Users/clay/Desktop/'Vanta Vault'/'01 Daily'/2026-05-13.md"
+    receipt:
+      result: done
+      note: "notes/2026-05-13-tranche-001.md"
+
+  - id: T005
+    type: pm
+    assignee: PM
+    status: blocked
+    reasoning_hint: low
+    objective: "Push the local commits to origin and/or deploy and live-verify any changed surfaces."
+    constraints:
+      - "Requires explicit approval: pushing, deploying, provider actions, or any live verification."
+    receipt:
+      result: blocked
+      note: "notes/2026-05-13-tranche-001.md"
