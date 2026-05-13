@@ -22,17 +22,34 @@ const forbiddenMarkers = [
   "Coming soon",
   "disabled={disabled}",
   "Configure the private-core operator endpoint before this send proof can execute.",
+  "Operator sees: nothing",
 ];
 
 const requiredPageMarkers = [
   "Shielded balance:",
-  "<span>You send</span>",
+  "<span>To</span>",
+  "<span>Amount</span>",
   "listShieldedSendAssetOptions",
   "getShieldedSendAssetCapability",
   'aria-label="Send shielded asset"',
   "Shield the asset first",
   "selectedSpendableNote",
   "unsupported-private-send-asset",
+  "sendPrimaryActionLabel",
+  "PrivacySummary",
+  "SEND_PRIVACY_SUMMARY_ITEMS",
+  "Chain sees",
+  "a transaction happened, plus encrypted memo packets",
+  "Recipient sees",
+  "amount, asset, and recovery data with the matched viewing key",
+  "Operator sees",
+  "proof and settlement status, not witness values or plaintext memo contents",
+  "Advanced send settings",
+  "Custom note selection",
+  "Encrypted recipient memo",
+  "Automatic v2 AEAD packet",
+  "Spent marker",
+  "Plaintext memo contents stay out of the operator packet.",
 ];
 
 const requiredPrivateCorePrimarySendMarkers = [

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { sha256 } from "@noble/hashes/sha2";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
+import { PrivacySummary, type PrivacySummaryItem } from "@/components/PrivacySummary";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
 import { isBetaMode } from "@/config/deploymentMode";
 import { usePrivacyFlow, type PrivacyAssetKey } from "@/data/context/PrivacyFlowContext";
@@ -105,6 +106,21 @@ type PrivateCoreSendExecutionState = {
 };
 
 const DEFAULT_USDC_DECIMALS = 6;
+
+const SEND_PRIVACY_SUMMARY_ITEMS: readonly PrivacySummaryItem[] = [
+  {
+    label: "Chain sees",
+    value: "a transaction happened, plus encrypted memo packets",
+  },
+  {
+    label: "Recipient sees",
+    value: "amount, asset, and recovery data with the matched viewing key",
+  },
+  {
+    label: "Operator sees",
+    value: "proof and settlement status, not witness values or plaintext memo contents",
+  },
+];
 
 function getInitialSendAsset(asset: PrivacyAssetKey | undefined): ShieldedSendAssetKey {
   if (asset === "SOL") {
@@ -396,6 +412,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   );
   const [recipient, setRecipient] = useState("");
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  const [isSendAdvancedOpen, setIsSendAdvancedOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [status, setStatus] = useState<
     "idle" | "review" | "awaiting_confirmation" | "sending" | "settling" | "complete" | "failed"
@@ -1358,6 +1375,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     selectedAsset === "USDC" && isAmountValid && selectedSpendableNote
       ? Number(Math.max(selectedBalance - parsedAmount, 0).toFixed(6))
       : selectedBalance;
+  const sendPrimaryActionLabel = isAmountValid
+    ? `Send ${formatBalance(parsedAmount, selectedAsset)}`
+    : `Send ${selectedAsset}`;
   const sendHelperMessage = shieldStateError
     ? shieldStateError
     : isBetaMode
@@ -1440,7 +1460,28 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             <div className="swap-module">
               <div className="swap-module__field">
                 <div className="swap-module__label-row">
-                  <span>You send</span>
+                  <span>To</span>
+                </div>
+                <div className="amount-field">
+                  <input
+                    id="send-recipient"
+                    className="input-compact"
+                    value={recipient}
+                    onChange={(event) => {
+                      setRecipient(event.target.value);
+                      setStatus("idle");
+                      setFlowError(null);
+                    }}
+                    placeholder="Solana address or .sol name"
+                  />
+                </div>
+              </div>
+
+              <div className="swap-module__divider" aria-hidden="true" />
+
+              <div className="swap-module__field">
+                <div className="swap-module__label-row">
+                  <span>Amount</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
                     Shielded balance: {formatBalance(selectedBalance, selectedAsset)}
                   </div>
@@ -1476,46 +1517,105 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                       Max
                     </button>
                   </div>
-              </div>
-                <div className="send-asset-field">
-                  <select
-                    aria-label="Send shielded asset"
-                    value={selectedAsset}
-                    onChange={(event) => {
-                      setSelectedAsset(event.target.value as ShieldedSendAssetKey);
-                      setStatus("idle");
-                      setFlowError(null);
-                    }}
-                  >
-                    {sendShieldedAssetOptions.map(({ label, symbol }) => (
-                      <option key={symbol} value={symbol}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="send-asset-field">
+                    <select
+                      aria-label="Send shielded asset"
+                      value={selectedAsset}
+                      onChange={(event) => {
+                        setSelectedAsset(event.target.value as ShieldedSendAssetKey);
+                        setStatus("idle");
+                        setFlowError(null);
+                      }}
+                    >
+                      {sendShieldedAssetOptions.map(({ label, symbol }) => (
+                        <option key={symbol} value={symbol}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              <div className="swap-module__divider" aria-hidden="true" />
-
-              <div className="swap-module__field">
-                <div className="swap-module__label-row">
-                  <span>Destination address</span>
+              <div className="send-note-summary">
+                <div>
+                  <span>Spending</span>
+                  <strong>
+                    {selectedSpendableNote
+                      ? `${formatBalance(selectedSpendableNote.amount, selectedAsset)} note`
+                      : "No send-ready note"}
+                  </strong>
+                  {selectedSpendableNote && (
+                    <small>
+                      {abbreviate(selectedSpendableNote.noteId) ?? selectedSpendableNote.noteId}
+                    </small>
+                  )}
                 </div>
-                <div className="amount-field">
-                  <input
-                    id="send-recipient"
-                    className="input-compact"
-                    value={recipient}
-                    onChange={(event) => {
-                      setRecipient(event.target.value);
-                      setStatus("idle");
-                      setFlowError(null);
-                    }}
-                    placeholder="Destination address"
-                  />
-                </div>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
+                    setIsSendAdvancedOpen(true);
+                  }}
+                  disabled={spendableNotes.length === 0}
+                >
+                  Change note
+                </button>
               </div>
+
+              <PrivacySummary
+                items={SEND_PRIVACY_SUMMARY_ITEMS}
+                note="Beta truth: production Send privacy remains claim-locked until live evidence, approval, audit, replay, and operator gates pass."
+              />
+
+              <details
+                className="send-advanced-panel"
+                open={isSendAdvancedOpen}
+                onToggle={(event) => {
+                  setIsSendAdvancedOpen(event.currentTarget.open);
+                }}
+              >
+                <summary>Advanced send settings</summary>
+                <div className="send-advanced-panel__grid">
+                  <label className="send-advanced-panel__field">
+                    <span>Custom note selection</span>
+                    <select
+                      value={selectedNoteId ?? ""}
+                      onChange={(event) => {
+                        const nextNoteId = event.target.value || null;
+                        setSelectedNoteId(nextNoteId);
+                        setAmount("");
+                        setStatus("idle");
+                        setFlowError(null);
+                      }}
+                      disabled={spendableNotes.length === 0}
+                    >
+                      {spendableNotes.length === 0 ? (
+                        <option value="">No send-ready notes</option>
+                      ) : (
+                        spendableNotes.map((note) => (
+                          <option key={note.noteId} value={note.noteId}>
+                            {formatBalance(note.amount, note.asset)} -{" "}
+                            {abbreviate(note.noteId) ?? note.noteId}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </label>
+
+                  <div className="send-advanced-panel__field">
+                    <span>Encrypted recipient memo</span>
+                    <strong>Automatic v2 AEAD packet</strong>
+                    <small>Plaintext memo contents stay out of the operator packet.</small>
+                  </div>
+
+                  <div className="send-advanced-panel__field">
+                    <span>Spent marker</span>
+                    <strong>Automatic</strong>
+                    <small>The marker is attached after wallet confirmation.</small>
+                  </div>
+                </div>
+              </details>
 
               <p className="shield-helper">{sendHelperMessage}</p>
 
@@ -1534,7 +1634,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                     status === "settling"
                   }
                 >
-                  {isBetaMode ? "Beta mode" : "Verify private-core send proof"}
+                  {sendPrimaryActionLabel}
                 </button>
               </div>
             </div>

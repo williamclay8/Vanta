@@ -127,7 +127,13 @@ function runBrowserBatch() {
       checks: [
         { kind: "selector_visible", selector: ".app-header" },
         { kind: "selector_visible", selector: ".app-header__tabs[data-product-nav]" },
+        { kind: "selector_visible", selector: ".privacy-summary" },
+        { kind: "selector_visible", selector: ".send-advanced-panel" },
         { kind: "text_visible", text: "Send" },
+        { kind: "text_visible", text: "Privacy summary" },
+        { kind: "text_visible", text: "Chain sees" },
+        { kind: "text_visible", text: "Operator sees" },
+        { kind: "text_visible", text: "Advanced send settings" },
         { kind: "no_console_errors" },
       ],
     },
@@ -305,6 +311,90 @@ function assertSendWorkspaceCardCentered() {
 
   if (!value.ok) {
     throw new Error(`Send workspace card is not centered: ${JSON.stringify(value)}`);
+  }
+}
+
+function assertSendAdvancedDisclosure() {
+  execFileSync("gsd-browser", ["--session", browserSession, "set-viewport", "--width", "1440", "--height", "1000"], {
+    stdio: "ignore",
+  });
+  execFileSync("gsd-browser", ["--session", browserSession, "navigate", `${baseUrl}/app/send`], {
+    stdio: "ignore",
+  });
+  execFileSync("gsd-browser", ["--session", browserSession, "wait-for", "--condition", "network_idle"], {
+    stdio: "ignore",
+  });
+
+  const rawBefore = execFileSync(
+    "gsd-browser",
+    [
+      "--session",
+      browserSession,
+      "--json",
+      "eval",
+      `(() => {
+        const panel = document.querySelector(".send-advanced-panel");
+        const noteSelect = document.querySelector(".send-advanced-panel select");
+
+        return {
+          ok: panel instanceof HTMLDetailsElement && !panel.open && noteSelect instanceof HTMLSelectElement,
+          hasNoteSelect: noteSelect instanceof HTMLSelectElement,
+          open: panel instanceof HTMLDetailsElement ? panel.open : null,
+        };
+      })()`,
+    ],
+    { encoding: "utf8" },
+  );
+  const beforeResult = JSON.parse(rawBefore);
+  const beforeRawValue = beforeResult.result ?? beforeResult.value ?? beforeResult;
+  const before = typeof beforeRawValue === "string" ? JSON.parse(beforeRawValue) : beforeRawValue;
+
+  if (!before.ok) {
+    throw new Error(`Send advanced disclosure is not closed with note selection ready: ${JSON.stringify(before)}`);
+  }
+
+  execFileSync(
+    "gsd-browser",
+    [
+      "--session",
+      browserSession,
+      "eval",
+      `document.querySelector(".send-advanced-panel summary")?.click()`,
+    ],
+    { stdio: "ignore" },
+  );
+
+  const rawAfter = execFileSync(
+    "gsd-browser",
+    [
+      "--session",
+      browserSession,
+      "--json",
+      "eval",
+      `(() => {
+        const panel = document.querySelector(".send-advanced-panel");
+        const panelText = panel?.textContent ?? "";
+
+        return {
+          ok:
+            panel instanceof HTMLDetailsElement &&
+            panel.open &&
+            panelText.includes("Custom note selection") &&
+            panelText.includes("Encrypted recipient memo") &&
+            panelText.includes("Spent marker"),
+          open: panel instanceof HTMLDetailsElement ? panel.open : null,
+          panelText,
+        };
+      })()`,
+    ],
+    { encoding: "utf8" },
+  );
+  const afterResult = JSON.parse(rawAfter);
+  const afterRawValue = afterResult.result ?? afterResult.value ?? afterResult;
+  const after = typeof afterRawValue === "string" ? JSON.parse(afterRawValue) : afterRawValue;
+
+  if (!after.ok) {
+    throw new Error(`Send advanced disclosure did not reveal advanced controls: ${JSON.stringify(after)}`);
   }
 }
 
@@ -655,6 +745,7 @@ try {
   await waitForVite();
   runBrowserBatchWithRetry();
   assertSendWorkspaceCardCentered();
+  assertSendAdvancedDisclosure();
   assertDesktopProductTabsFit();
   assertActionTabsStayMinimal();
   assertSystemStatusStripLayout();
