@@ -12,6 +12,7 @@ import {
   PrivacySummary,
   type PrivacySummaryItem,
 } from "@/components/PrivacySummary";
+import { NotePicker, type NotePickerOption } from "@/components/NotePicker";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
@@ -711,6 +712,16 @@ export function UnshieldPage() {
       : canonicalSpendableShieldNotesByLane[selectedLane];
   const selectedUnshieldNote =
     selectedLane === "SOL" ? selectedSolNote : selectedShieldNote;
+  const unshieldNotePickerOptions = useMemo<NotePickerOption[]>(
+    () =>
+      currentSpendableUnshieldNotes.map((note) => ({
+        id: note.noteId,
+        metaLabel: "Ledger-spendable exit note",
+        primaryLabel: formatUnshieldAmount(note.amount, selectedLane),
+        secondaryLabel: abbreviate(note.noteId),
+      })),
+    [currentSpendableUnshieldNotes, selectedLane],
+  );
   useEffect(() => {
     if (!selectedUnshieldNoteId) {
       return;
@@ -2921,13 +2932,13 @@ export function UnshieldPage() {
                   <div className="send-advanced-panel__field">
                     <span>Custom note selection</span>
                     <strong>{selectedUnshieldNoteLabel}</strong>
-                    <select
-                      aria-label="Unshield note selection"
-                      value={selectedUnshieldNoteId ?? ""}
-                      disabled={currentSpendableUnshieldNotes.length === 0}
-                      onChange={(event) => {
-                        const nextNoteId = event.target.value;
-
+                    <NotePicker
+                      ariaLabel="Unshield note selection"
+                      automaticLabel="Automatic best note"
+                      emptyCopy="start with Shield to create a ledger-spendable exit note."
+                      emptyOptionLabel="No ledger-spendable notes"
+                      helperText="Unshield still releases only from ledger-spendable notes."
+                      onSelectNote={(nextNoteId) => {
                         if (!nextNoteId) {
                           setSelectedUnshieldNoteId(null);
                           return;
@@ -2953,14 +2964,9 @@ export function UnshieldPage() {
                         setStatus("idle");
                         setFlowError(null);
                       }}
-                    >
-                      <option value="">Automatic best note</option>
-                      {currentSpendableUnshieldNotes.map((note) => (
-                        <option key={note.noteId} value={note.noteId}>
-                          {`${formatUnshieldAmount(note.amount, selectedLane)} - ${abbreviate(note.noteId)}`}
-                        </option>
-                      ))}
-                    </select>
+                      options={unshieldNotePickerOptions}
+                      selectedNoteId={selectedUnshieldNoteId}
+                    />
                     <small>Unshield still releases only from ledger-spendable notes.</small>
                   </div>
                   <div className="send-advanced-panel__field">

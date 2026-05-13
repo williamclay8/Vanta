@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { sha256 } from "@noble/hashes/sha2";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
+import { NotePicker, type NotePickerOption } from "@/components/NotePicker";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { PrivacySummary, type PrivacySummaryItem } from "@/components/PrivacySummary";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
@@ -588,6 +589,16 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const selectedSpendableNote = useMemo(() => {
     return spendableNotes.find((note) => note.noteId === selectedNoteId) ?? null;
   }, [selectedNoteId, spendableNotes]);
+  const sendNotePickerOptions = useMemo<NotePickerOption[]>(
+    () =>
+      spendableNotes.map((note) => ({
+        id: note.noteId,
+        metaLabel: "Ledger-spendable note",
+        primaryLabel: formatBalance(note.amount, note.asset),
+        secondaryLabel: abbreviate(note.noteId) ?? note.noteId,
+      })),
+    [spendableNotes],
+  );
 
   const selectedCanonicalSendLedgerNote = useMemo(() => {
     if (
@@ -1579,28 +1590,21 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 <div className="send-advanced-panel__grid">
                   <label className="send-advanced-panel__field">
                     <span>Custom note selection</span>
-                    <select
-                      value={selectedNoteId ?? ""}
-                      onChange={(event) => {
-                        const nextNoteId = event.target.value || null;
+                    <NotePicker
+                      ariaLabel="Send note selection"
+                      automaticLabel="Automatic best note"
+                      emptyCopy="start with Shield to create a send-ready note."
+                      emptyOptionLabel="No send-ready notes"
+                      helperText="Send still spends from ledger-ready shielded notes."
+                      onSelectNote={(nextNoteId) => {
                         setSelectedNoteId(nextNoteId);
                         setAmount("");
                         setStatus("idle");
                         setFlowError(null);
                       }}
-                      disabled={spendableNotes.length === 0}
-                    >
-                      {spendableNotes.length === 0 ? (
-                        <option value="">No send-ready notes</option>
-                      ) : (
-                        spendableNotes.map((note) => (
-                          <option key={note.noteId} value={note.noteId}>
-                            {formatBalance(note.amount, note.asset)} -{" "}
-                            {abbreviate(note.noteId) ?? note.noteId}
-                          </option>
-                        ))
-                      )}
-                    </select>
+                      options={sendNotePickerOptions}
+                      selectedNoteId={selectedNoteId}
+                    />
                   </label>
 
                   <div className="send-advanced-panel__field">

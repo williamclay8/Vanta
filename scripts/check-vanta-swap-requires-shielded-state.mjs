@@ -52,6 +52,7 @@ const requiredMarkers = [
   "Advanced swap settings",
   "Max slippage",
   "Note selection",
+  "NotePicker",
   "Venue routing",
   "selectedSourceAsset",
   "sourcePairCapability",

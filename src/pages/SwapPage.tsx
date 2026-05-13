@@ -63,6 +63,7 @@ import {
   PrivacySummary,
   type PrivacySummaryItem,
 } from "@/components/PrivacySummary";
+import { NotePicker, type NotePickerOption } from "@/components/NotePicker";
 
 type PendingSpentMarker = {
   asset: ShieldedSwapAssetKey;
@@ -461,6 +462,16 @@ export function SwapPage() {
       null,
     );
   }, [spendableNotes]);
+  const swapNotePickerOptions = useMemo<NotePickerOption[]>(
+    () =>
+      spendableNotes.map((note) => ({
+        id: note.noteId,
+        metaLabel: "Exact-note source candidate",
+        primaryLabel: formatAssetAmount(note.amount, selectedSourceAsset),
+        secondaryLabel: formatShortSwapId(note.noteId),
+      })),
+    [selectedSourceAsset, spendableNotes],
+  );
   const maxAvailableAmount = maxSwappableNote?.amount ?? 0;
   const requiresPrivateSwap = sourcePairCapability.status === "live";
 
@@ -1785,13 +1796,13 @@ export function SwapPage() {
                   <div className="send-advanced-panel__field">
                     <span>Note selection</span>
                     <strong>{selectedSwapNoteLabel}</strong>
-                    <select
-                      aria-label="Swap note selection"
-                      value={selectedSwapNoteId ?? ""}
-                      disabled={spendableNotes.length === 0}
-                      onChange={(event) => {
-                        const nextNoteId = event.target.value;
-
+                    <NotePicker
+                      ariaLabel="Swap note selection"
+                      automaticLabel="Automatic exact-note match"
+                      emptyCopy={`start with Shield to create a spendable shielded ${selectedSourceAsset} note.`}
+                      emptyOptionLabel={`No spendable shielded ${selectedSourceAsset} notes`}
+                      helperText="Swap execution still requires an exact shielded source note."
+                      onSelectNote={(nextNoteId) => {
                         if (!nextNoteId) {
                           setSelectedSwapNoteId(null);
                           return;
@@ -1811,14 +1822,9 @@ export function SwapPage() {
                         setQuote(null);
                         setQuoteError(null);
                       }}
-                    >
-                      <option value="">Automatic exact-note match</option>
-                      {spendableNotes.map((note) => (
-                        <option key={note.noteId} value={note.noteId}>
-                          {`${formatAssetAmount(note.amount, selectedSourceAsset)} - ${formatShortSwapId(note.noteId)}`}
-                        </option>
-                      ))}
-                    </select>
+                      options={swapNotePickerOptions}
+                      selectedNoteId={selectedSwapNoteId}
+                    />
                     <small>Swap execution still requires an exact shielded source note.</small>
                   </div>
                   <div className="send-advanced-panel__field">

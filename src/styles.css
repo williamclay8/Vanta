@@ -3433,6 +3433,82 @@ input {
   padding: 0 12px;
 }
 
+.note-picker {
+  display: grid;
+  gap: 10px;
+}
+
+.note-picker__select {
+  min-height: 44px;
+  width: 100%;
+  border: 1px solid rgba(0, 229, 200, 0.14);
+  border-radius: 12px;
+  background: rgba(2, 6, 12, 0.84);
+  color: var(--text);
+  padding: 0 12px;
+}
+
+.note-picker__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.note-picker__card,
+.note-picker__empty {
+  min-height: 86px;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  text-align: left;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 229, 200, 0.1);
+  background: rgba(0, 229, 200, 0.025);
+}
+
+.note-picker__card {
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.note-picker__card:hover,
+.note-picker__card[data-selected="true"] {
+  border-color: rgba(0, 229, 200, 0.34);
+  background: rgba(0, 229, 200, 0.07);
+}
+
+.note-picker__card:active {
+  transform: scale(0.96);
+}
+
+.note-picker__card span {
+  color: var(--muted-strong);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.note-picker__card strong,
+.note-picker__empty strong {
+  color: var(--text);
+  font-family: "Syne", sans-serif;
+  font-size: 0.94rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+}
+
+.note-picker__card small,
+.note-picker__empty small,
+.note-picker__helper {
+  color: var(--muted);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
 .shield-balance-stack {
   display: grid;
   gap: 3px;

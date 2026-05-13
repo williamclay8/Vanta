@@ -37,6 +37,8 @@ for (const phrase of [
   "exit terms and release status",
   "Advanced unshield settings",
   "Custom note selection",
+  "NotePicker",
+  "No ledger-spendable notes",
   "Reference note for receipt",
   "selectedUnshieldNoteId",
   "unshieldPrimaryActionLabel",
