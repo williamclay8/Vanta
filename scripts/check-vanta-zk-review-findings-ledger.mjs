@@ -421,6 +421,43 @@ for (const phrase of [
   );
 }
 
+const c01VerifierKeyRegistryLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-13-C01-VERIFIER-KEY-REGISTRY";
+assert(
+  activeFeedbackLoopIds.has(c01VerifierKeyRegistryLoopId),
+  `${c01VerifierKeyRegistryLoopId} active feedback loop is missing`,
+);
+const c01VerifierKeyRegistryLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === c01VerifierKeyRegistryLoopId,
+);
+const c01VerifierKeyRegistryLoopText = JSON.stringify(c01VerifierKeyRegistryLoop);
+for (const command of [
+  "cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
+  "npm run zk:c01-verifier-key-registry-check",
+  "npm run zk:c01-production-verifier-backend-candidate-check",
+  "npm run zk:c01-verifier-backend-contract-check",
+  "npm run zk:c01-onchain-proof-boundary-check",
+]) {
+  assert(
+    c01VerifierKeyRegistryLoop?.localVerification?.includes(command),
+    `${c01VerifierKeyRegistryLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "TAG_REGISTER_VERIFIER_KEY = 5",
+  "source-only verifier-key registry scaffold",
+  "ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json",
+  "vanta2vkey",
+  "not production verifying-key evidence",
+  "ERR_PROOF_VERIFIER_NOT_WIRED",
+  "a2fa2f4",
+]) {
+  assert(
+    c01VerifierKeyRegistryLoopText.includes(phrase),
+    `${c01VerifierKeyRegistryLoopId} must record ${phrase}`,
+  );
+}
+
 const copyClaimBoundaryLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-COPY-CLAIM-BOUNDARY";
 assert(activeFeedbackLoopIds.has(copyClaimBoundaryLoopId), `${copyClaimBoundaryLoopId} active feedback loop is missing`);
 const copyClaimBoundaryLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === copyClaimBoundaryLoopId);
@@ -735,9 +772,17 @@ assert(
   c01.codexRemediation.commits.some((commitRef) => commitRef.includes("28e07f6")),
   "C01 must record the local proof-format observation commit",
 );
+assert(
+  c01.codexRemediation.commits.some((commitRef) =>
+    commitRef.includes("C01 verifier key registry scaffold")
+  ),
+  "C01 must record the verifier-key registry scaffold commit",
+);
 assert(c01Text.includes("TAG_UNSHIELD = 6"), "C01 must record the source-only TAG_UNSHIELD preflight truth");
 assert(c01Text.includes("TAG_REGISTER_PROVENANCED_ROOT = 4"), "C01 must record the source-only TAG_REGISTER_PROVENANCED_ROOT truth");
+assert(c01Text.includes("TAG_REGISTER_VERIFIER_KEY = 5"), "C01 must record the source-only TAG_REGISTER_VERIFIER_KEY truth");
 assert(c01Text.includes("vanta2root"), "C01 must record the root-record PDA seed");
+assert(c01Text.includes("vanta2vkey"), "C01 must record the verifier-key PDA seed");
 assert(c01Text.includes("private-pool-v2:root-provenance-check"), "C01 must record the root provenance guard");
 assert(
   c01Text.includes("zk:c01-production-verifier-backend-candidate-check"),
@@ -746,6 +791,10 @@ assert(
 assert(
   c01Text.includes("zk:c01-local-proof-format-evidence-check"),
   "C01 must record the local proof-format evidence guard",
+);
+assert(
+  c01Text.includes("zk:c01-verifier-key-registry-check"),
+  "C01 must record the verifier-key registry guard",
 );
 assert(
   c01Text.includes("zk:c01-verifier-backend-decision-check"),
@@ -762,6 +811,10 @@ assert(
 assert(
   c01Text.includes("ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json"),
   "C01 must record the local proof-format evidence packet path",
+);
+assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json"),
+  "C01 must record the verifier-key registry evidence packet path",
 );
 assert(c01Text.includes("selectedBackend"), "C01 must record backend selection remains blocked");
 assert(
@@ -781,6 +834,10 @@ assert(
 assert(
   c01Text.includes("not satisfy production proof-format evidence"),
   "C01 must preserve that local proof-format observation does not satisfy production proof-format evidence",
+);
+assert(
+  c01Text.includes("not satisfy production verifying-key evidence"),
+  "C01 must preserve that verifier-key registry observation does not satisfy production verifying-key evidence",
 );
 assert(
   c01Text.includes("solana-c01-groth16-verifier-ready"),
