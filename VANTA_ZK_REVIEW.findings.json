@@ -735,6 +735,35 @@
       "truthBoundary": "This is a Strategy UX and guard-hardening slice. It preserves the existing local preview planner, runtime, and private-rail trust packet shape, but it is not Strategy production readiness, not live strategy execution, not live mainnet private settlement, not a production private-rail launch, not pushed, and not live-deployed."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-SHIELD-ADVANCED-DISCLOSURE",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#shield-send-swap-unshield-redesign-same-pattern-all-four-lanes",
+        "VANTA_ZK_REVIEW.md#shield-page-redesign",
+        "src/pages/ShieldPage.tsx",
+        "src/styles.css",
+        "scripts/check-vanta-shield-viewing-key-custody.mjs"
+      ],
+      "summary": "The Shield progressive-disclosure feedback now has a guarded local first slice: the exposed Balance recovery disclosure is now Advanced shield settings, existing record-source and viewing-key backup/import/reset controls remain inside that closed disclosure, and the advanced surface names the current power-control truth with Viewing key backup, Decoy batch: Automatic, and Custom route: Default route. No Shield routing, wallet approval, proof, settlement, decoy execution, recovery, or viewing-key behavior changed.",
+      "localVerification": [
+        "npm run shield:viewing-key-custody-check",
+        "npm run shield:decoy-batcher-check",
+        "npm run shield:ui-claim-boundary-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run product-ui:browser-check",
+        "npm run build",
+        "npm run shield:verify",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for Shield advanced disclosure across viewing-key custody, decoy batcher, Shield UI claim boundary, privacy claim gate, product UI browser, build, diff whitespace, and the aggregate shield:verify chain",
+        "committed": "861fd1e (Add Shield advanced settings disclosure)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a Shield UX and guard-hardening slice. It preserves the existing Shield route, wallet, proof, settlement, recovery, viewing-key, and decoy behavior, but it is not the full Shield redesign, not /app/settings/recovery, not a decoy toggle, not a custom route override, not Shield production privacy, not live mainnet private settlement, not pushed, and not live-deployed."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [

@@ -4384,6 +4384,8 @@ After the user clicks Shield, `<WalletApprovalSheet>` slides in from the right s
 
 Effort: **3-4 days** of per-lane work, after the shared components land.
 
+**Codex status, 2026-05-13 Shield advanced-disclosure slice:** commit `861fd1e` locally implements the smallest safe Shield front-door slice from this redesign without changing Shield routing, wallet approval, decoy execution, proof, settlement, recovery, or viewing-key behavior. `src/pages/ShieldPage.tsx` now changes the exposed `Balance recovery` disclosure into `Advanced shield settings`, keeps the recovery/export/import controls inside that closed disclosure, and adds a compact status grid for `Viewing key backup`, `Decoy batch`, and `Custom route` so the current power controls are named without pretending the future `RecoveryPanel`, decoy toggle, or custom route override exists yet. `scripts/check-vanta-shield-viewing-key-custody.mjs` now guards those advanced labels and the CSS container. Verified locally with `npm run shield:viewing-key-custody-check`, `npm run shield:decoy-batcher-check`, `npm run shield:ui-claim-boundary-check`, `npm run truth:privacy-claim-gate`, `npm run product-ui:browser-check`, `npm run build`, `npm run shield:verify`, and `git diff --check`. This improves Shield first-use framing and guard coverage only; it is not the full Shield redesign, not `/app/settings/recovery`, not a decoy toggle or custom route override, not Shield production privacy, not live mainnet private settlement, not pushed, and not live-deployed.
+
 ## Send page redesign
 
 ### Current state

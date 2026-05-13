@@ -802,6 +802,48 @@ for (const phrase of [
   );
 }
 
+const shieldAdvancedDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-SHIELD-ADVANCED-DISCLOSURE";
+assert(
+  activeFeedbackLoopIds.has(shieldAdvancedDisclosureLoopId),
+  `${shieldAdvancedDisclosureLoopId} active feedback loop is missing`,
+);
+const shieldAdvancedDisclosureLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === shieldAdvancedDisclosureLoopId,
+);
+const shieldAdvancedDisclosureLoopText = JSON.stringify(shieldAdvancedDisclosureLoop);
+for (const command of [
+  "npm run shield:viewing-key-custody-check",
+  "npm run shield:decoy-batcher-check",
+  "npm run shield:ui-claim-boundary-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run product-ui:browser-check",
+  "npm run shield:verify",
+  "npm run build",
+]) {
+  assert(
+    shieldAdvancedDisclosureLoop?.localVerification?.includes(command),
+    `${shieldAdvancedDisclosureLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "Advanced shield settings",
+  "Viewing key backup",
+  "Decoy batch",
+  "Custom route",
+  "Automatic",
+  "Default route",
+  "not the full Shield redesign",
+  "not /app/settings/recovery",
+  "not a decoy toggle",
+  "not Shield production privacy",
+  "861fd1e",
+]) {
+  assert(
+    shieldAdvancedDisclosureLoopText.includes(phrase),
+    `${shieldAdvancedDisclosureLoopId} must record ${phrase}`,
+  );
+}
+
 const publicDepthDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE";
 assert(activeFeedbackLoopIds.has(publicDepthDisclosureLoopId), `${publicDepthDisclosureLoopId} active feedback loop is missing`);
 const publicDepthDisclosureLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === publicDepthDisclosureLoopId);
