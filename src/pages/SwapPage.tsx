@@ -59,6 +59,10 @@ import {
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentSafety.mjs";
 import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
+import {
+  PrivacySummary,
+  type PrivacySummaryItem,
+} from "@/components/PrivacySummary";
 
 type PendingSpentMarker = {
   asset: ShieldedSwapAssetKey;
@@ -111,6 +115,20 @@ type PendingSwapBridge = {
 type ActiveSwapQuote = SwapQuote | SolToShieldedRouteQuote;
 const STALE_EXECUTION_QUOTE_MESSAGE =
   "The latest live quote expired, so the swap path is blocked until a fresh quote is available.";
+const SWAP_PRIVACY_SUMMARY_ITEMS: readonly PrivacySummaryItem[] = [
+  {
+    label: "Chain sees",
+    value: "a transaction happened plus encrypted swap memo packets",
+  },
+  {
+    label: "Venue sees",
+    value: "operator-visible route settlement terms, not a production-private route",
+  },
+  {
+    label: "You see",
+    value: "a shielded output note after settlement finalizes",
+  },
+];
 
 function assertFreshExecutionQuote(freshQuote: ActiveSwapQuote) {
   if (freshQuote.quoteExpiresAt <= Date.now()) {
@@ -154,6 +172,22 @@ function formatExactSwapInputAmount(value: number, asset: ShieldedSwapAssetKey) 
   return value.toFixed(decimals).replace(/\.?0+$/, "");
 }
 
+function formatShortSwapId(value: string) {
+  if (value.length <= 14) {
+    return value;
+  }
+
+  return `${value.slice(0, 8)}...${value.slice(-4)}`;
+}
+
+function formatSwapSlippage(value: number | null) {
+  if (value === null || !Number.isFinite(value)) {
+    return "Route adapter default";
+  }
+
+  return `${(value / 100).toFixed(2).replace(/\.?0+$/, "")}% max`;
+}
+
 function isLiveShieldTokenAssetKey(asset: ShieldedSwapAssetKey): asset is LiveShieldTokenAssetKey {
   return asset !== "SOL";
 }
@@ -191,6 +225,9 @@ export function SwapPage() {
   const [laneHealth, setLaneHealth] = useState<SwapLaneHealth | null>(null);
   const [laneHealthError, setLaneHealthError] = useState<string | null>(null);
   const [quoteRefreshNonce, setQuoteRefreshNonce] = useState(0);
+  const [quoteClockMs, setQuoteClockMs] = useState(() => Date.now());
+  const [autoRefreshingQuoteId, setAutoRefreshingQuoteId] = useState<string | null>(null);
+  const [selectedSwapNoteId, setSelectedSwapNoteId] = useState<string | null>(null);
   const [pendingSpentMarker, setPendingSpentMarker] = useState<PendingSpentMarker | null>(null);
   const [pendingSwapBridge, setPendingSwapBridge] = useState<PendingSwapBridge | null>(null);
   const [swapBridgeError, setSwapBridgeError] = useState<string | null>(null);
@@ -349,6 +386,16 @@ export function SwapPage() {
   ]);
 
   useEffect(() => {
+    if (!selectedSwapNoteId) {
+      return;
+    }
+
+    if (!spendableNotes.some((note) => note.noteId === selectedSwapNoteId)) {
+      setSelectedSwapNoteId(null);
+    }
+  }, [selectedSwapNoteId, spendableNotes]);
+
+  useEffect(() => {
     if (!optimisticallyConsumedNoteId) {
       return;
     }
@@ -388,12 +435,20 @@ export function SwapPage() {
     }
 
     const targetAmount = toAssetBaseUnits(parsedAmount, selectedSourceAsset);
-    return (
-      spendableNotes.find(
-        (note) => toAssetBaseUnits(note.amount, selectedSourceAsset) === targetAmount,
-      ) ?? null
+    const exactNotes = spendableNotes.filter(
+      (note) => toAssetBaseUnits(note.amount, selectedSourceAsset) === targetAmount,
     );
-  }, [parsedAmount, selectedSourceAsset, spendableNotes]);
+
+    if (selectedSwapNoteId) {
+      return (
+        exactNotes.find((note) => note.noteId === selectedSwapNoteId) ??
+        exactNotes[0] ??
+        null
+      );
+    }
+
+    return exactNotes[0] ?? null;
+  }, [parsedAmount, selectedSourceAsset, selectedSwapNoteId, spendableNotes]);
   const maxSwappableNote = useMemo(() => {
     return spendableNotes.reduce<VantaShieldNote | VantaShieldedSolNote | null>(
       (largestNote, note) => {
@@ -972,7 +1027,7 @@ export function SwapPage() {
 
   const expectedOutputAmount =
     sourcePairCapability.status === "live" ? Number(quote?.outputAmount ?? "0") : 0;
-  const isQuoteFresh = quote ? Date.now() <= quote.quoteExpiresAt : true;
+  const isQuoteFresh = quote ? quoteClockMs <= quote.quoteExpiresAt : true;
   const usesLegacyUsdcSolOperator =
     sourcePairCapability.executionMode === "operator-usdc-sol";
   const isLaneHealthy =
@@ -993,6 +1048,56 @@ export function SwapPage() {
     Boolean(selectedShieldAsset.vaultOwner) &&
     (!requiresPrivateSwap || !usesLegacyUsdcSolOperator || liveSwapPair.configured) &&
     canUseExistingNote;
+
+  useEffect(() => {
+    if (!quote) {
+      setAutoRefreshingQuoteId(null);
+      return;
+    }
+
+    setQuoteClockMs(Date.now());
+    const quoteClock = window.setInterval(() => {
+      setQuoteClockMs(Date.now());
+    }, 1000);
+
+    return () => {
+      window.clearInterval(quoteClock);
+    };
+  }, [quote]);
+
+  useEffect(() => {
+    if (!quote) {
+      return;
+    }
+
+    if (quote.quoteExpiresAt > quoteClockMs) {
+      if (autoRefreshingQuoteId === quote.quoteId) {
+        setAutoRefreshingQuoteId(null);
+      }
+      return;
+    }
+
+    if (
+      autoRefreshingQuoteId === quote.quoteId ||
+      !walletConnected ||
+      !isAmountValid ||
+      sourcePairCapability.status !== "live" ||
+      status === "quoting"
+    ) {
+      return;
+    }
+
+    setAutoRefreshingQuoteId(quote.quoteId);
+    setQuoteRefreshNonce((currentNonce) => currentNonce + 1);
+  }, [
+    autoRefreshingQuoteId,
+    isAmountValid,
+    quote,
+    quoteClockMs,
+    sourcePairCapability.status,
+    status,
+    walletConnected,
+  ]);
   const routeLabel = (() => {
     if (sourcePairCapability.blockers.length > 0) {
       return sourcePairCapability.blockers[0];
@@ -1463,6 +1568,44 @@ export function SwapPage() {
     sourceBalance,
     selectedSourceAsset,
   );
+  const quoteTotalMs = quote
+    ? Math.max(quote.quoteExpiresAt - quote.quoteTimestamp, 1)
+    : 1;
+  const quoteRemainingMs = quote
+    ? Math.max(quote.quoteExpiresAt - quoteClockMs, 0)
+    : 0;
+  const quoteRemainingSeconds = Math.ceil(quoteRemainingMs / 1000);
+  const quoteProgressPercent = quote
+    ? Math.max(0, Math.min(100, Math.round((quoteRemainingMs / quoteTotalMs) * 100)))
+    : 0;
+  const quoteProgressTone = quote && quoteProgressPercent <= 24 ? "warning" : "fresh";
+  const quoteStatusLabel = quote
+    ? quoteRemainingSeconds > 0
+      ? `Quote refreshes in ${quoteRemainingSeconds}s`
+      : "Refreshing quote"
+    : status === "quoting"
+      ? "Fetching quote"
+      : "Quote appears after amount";
+  const quoteVenueLabel = quote
+    ? `${quote.venueName} ${quote.venueFamily}`
+    : sourcePairCapability.status === "live"
+      ? "Live route adapter"
+      : "Route unavailable";
+  const selectedSwapNoteLabel = exactSpendableNote
+    ? `${formatAssetAmount(exactSpendableNote.amount, selectedSourceAsset)} note · ${formatShortSwapId(exactSpendableNote.noteId)}`
+    : spendableNotes.length > 0
+      ? "Choose a note or enter an exact note amount"
+      : `No spendable shielded ${selectedSourceAsset} note ready`;
+  const quoteSlippageBps =
+    quote && "slippageBps" in quote ? quote.slippageBps : null;
+  const swapPrimaryActionLabel = isBetaMode
+    ? "Beta mode"
+    : isReady
+      ? `Swap ${formatAssetAmount(parsedAmount, selectedSourceAsset)} for ${formatAssetAmount(
+          expectedOutputAmount,
+          selectedTargetAsset,
+        )}`
+      : sourcePairCapability.actionLabel;
 
   return (
     <section className="send-page swap-page">
@@ -1493,21 +1636,62 @@ export function SwapPage() {
 
           <div className="shield-form swap-widget">
             <div className="swap-module">
-              <div className="swap-module__field">
-                <div className="swap-module__label-row">
-                  <span>You send</span>
-                  <div className="send-balance-line shield-helper shield-helper--meta">
-                    Shielded balance: {sourceBalanceLabel}
+              <div
+                className="swap-quote-progress"
+                data-tone={quoteProgressTone}
+                aria-label={quoteStatusLabel}
+              >
+                <span style={{ width: `${quoteProgressPercent}%` }} />
+              </div>
+
+              <div className="swap-route-card" aria-label="Swap route">
+                <div className="swap-route-card__row">
+                  <div className="swap-choice-group" role="group" aria-label="From shielded asset">
+                    <span>From</span>
+                    <div className="send-asset-field">
+                      <select
+                        aria-label="From shielded asset"
+                        value={
+                          availableSourceAssetOptions.some((asset) => asset.symbol === selectedSourceAsset)
+                            ? selectedSourceAsset
+                            : ""
+                        }
+                        disabled={availableSourceAssetOptions.length === 0}
+                        onChange={(event) => {
+                          setSelectedSourceAsset(event.target.value as ShieldedSwapAssetKey);
+                          setSelectedSwapNoteId(null);
+                          setStatus("idle");
+                          setFlowError(null);
+                          setQuote(null);
+                          setQuoteError(null);
+                        }}
+                      >
+                        {availableSourceAssetOptions.length === 0 && (
+                          <option value="">No shielded assets ready</option>
+                        )}
+                        {availableSourceAssetOptions.map((asset) => (
+                          <option key={asset.symbol} value={asset.symbol}>
+                            {formatReadyAssetOptionLabel({
+                              balance: asset.balance,
+                              configured: asset.configured,
+                              label: asset.label,
+                              symbol: asset.symbol,
+                            })}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <small>Shielded balance: {sourceBalanceLabel}</small>
                   </div>
-                </div>
-                <div className="send-entry-grid swap-entry-grid">
-                  <div className="amount-field">
+
+                  <div className="amount-field swap-amount-field">
                     <input
                       id="swap-amount"
                       inputMode="decimal"
                       value={amount}
                       onChange={(event) => {
                         setAmount(event.target.value);
+                        setSelectedSwapNoteId(null);
                         setStatus("idle");
                         setFlowError(null);
                         setQuote(null);
@@ -1520,10 +1704,11 @@ export function SwapPage() {
                       type="button"
                       disabled={maxAvailableAmount <= 0}
                       onClick={() => {
-                        if (maxAvailableAmount <= 0) {
+                        if (maxAvailableAmount <= 0 || !maxSwappableNote) {
                           return;
                         }
 
+                        setSelectedSwapNoteId(maxSwappableNote.noteId);
                         setAmount(formatExactSwapInputAmount(maxAvailableAmount, selectedSourceAsset));
                         setStatus("idle");
                         setFlowError(null);
@@ -1535,87 +1720,114 @@ export function SwapPage() {
                     </button>
                   </div>
                 </div>
-              </div>
 
-              <div className="swap-choice-grid" aria-label="Swap route">
-                <div className="swap-choice-group" role="group" aria-label="From shielded asset">
-                  <span>From</span>
-                  <div className="send-asset-field">
-                    <select
-                      aria-label="From shielded asset"
-                      value={
-                        availableSourceAssetOptions.some((asset) => asset.symbol === selectedSourceAsset)
-                          ? selectedSourceAsset
-                          : ""
-                      }
-                      disabled={availableSourceAssetOptions.length === 0}
-                      onChange={(event) => {
-                        setSelectedSourceAsset(event.target.value as ShieldedSwapAssetKey);
-                        setStatus("idle");
-                        setFlowError(null);
-                        setQuote(null);
-                        setQuoteError(null);
-                      }}
-                    >
-                      {availableSourceAssetOptions.length === 0 && (
-                        <option value="">No shielded assets ready</option>
-                      )}
-                      {availableSourceAssetOptions.map((asset) => (
-                        <option key={asset.symbol} value={asset.symbol}>
-                          {formatReadyAssetOptionLabel({
-                            balance: asset.balance,
-                            configured: asset.configured,
-                            label: asset.label,
-                            symbol: asset.symbol,
-                          })}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="swap-route-card__connector" aria-hidden="true">
+                  to
                 </div>
-                <div className="swap-choice-group" role="group" aria-label="To shielded asset">
-                  <span>To</span>
-                  <div className="send-asset-field">
-                    <select
-                      aria-label="To shielded asset"
-                      value={selectedTargetAsset}
-                      onChange={(event) => {
-                        setSelectedTargetAsset(event.target.value as ShieldedSwapAssetKey);
-                        setStatus("idle");
-                        setFlowError(null);
-                        setQuote(null);
-                        setQuoteError(null);
-                      }}
-                    >
-                      {shieldedSwapAssets.map((asset) => (
-                        <option key={asset.symbol} value={asset.symbol}>
-                          {asset.label}
-                        </option>
-                      ))}
-                    </select>
+
+                <div className="swap-route-card__row">
+                  <div className="swap-choice-group" role="group" aria-label="To shielded asset">
+                    <span>To</span>
+                    <div className="send-asset-field">
+                      <select
+                        aria-label="To shielded asset"
+                        value={selectedTargetAsset}
+                        onChange={(event) => {
+                          setSelectedTargetAsset(event.target.value as ShieldedSwapAssetKey);
+                          setStatus("idle");
+                          setFlowError(null);
+                          setQuote(null);
+                          setQuoteError(null);
+                        }}
+                      >
+                        {shieldedSwapAssets.map((asset) => (
+                          <option key={asset.symbol} value={asset.symbol}>
+                            {asset.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="swap-quote-line">
+                    <strong>
+                      {status === "quoting"
+                        ? "Getting best available quote..."
+                        : formatAssetAmount(expectedOutputAmount, selectedTargetAsset)}
+                    </strong>
+                    <span>{`Shielded ${selectedTargetAsset}`}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="swap-module__divider" aria-hidden="true" />
-
-              <div className="swap-module__field">
-                <div className="swap-module__label-row">
-                  <span>You receive</span>
-                </div>
-                <div className="swap-quote-line">
-                  <strong>
-                    {status === "quoting"
-                      ? "Getting best available quote..."
-                      : formatAssetAmount(expectedOutputAmount, selectedTargetAsset)}
-                  </strong>
-                  <span>{`Shielded ${selectedTargetAsset}`}</span>
-                </div>
+              <div className="swap-route-summary">
+                <strong>{`${selectedSourceAsset} -> ${selectedTargetAsset} via ${quoteVenueLabel}`}</strong>
+                <span>{quoteStatusLabel}</span>
               </div>
 
               <p className="shield-helper shield-helper--meta">{routeLabel}</p>
               <p className="shield-helper shield-helper--meta">{routeTruthLabel}</p>
               <p className="shield-helper">{validationMessage}</p>
+
+              <PrivacySummary
+                items={SWAP_PRIVACY_SUMMARY_ITEMS}
+                note="Production Swap privacy remains claim-locked until private route adapters, verifier-backed settlement, audit evidence, and operator gates pass."
+              />
+
+              <details className="send-advanced-panel swap-advanced-panel">
+                <summary>Advanced swap settings</summary>
+                <div className="send-advanced-panel__grid">
+                  <div className="send-advanced-panel__field">
+                    <span>Max slippage</span>
+                    <strong>{formatSwapSlippage(quoteSlippageBps)}</strong>
+                    <small>Displayed from the current route adapter when the quote exposes it.</small>
+                  </div>
+                  <div className="send-advanced-panel__field">
+                    <span>Note selection</span>
+                    <strong>{selectedSwapNoteLabel}</strong>
+                    <select
+                      aria-label="Swap note selection"
+                      value={selectedSwapNoteId ?? ""}
+                      disabled={spendableNotes.length === 0}
+                      onChange={(event) => {
+                        const nextNoteId = event.target.value;
+
+                        if (!nextNoteId) {
+                          setSelectedSwapNoteId(null);
+                          return;
+                        }
+
+                        const nextNote = spendableNotes.find((note) => note.noteId === nextNoteId);
+
+                        if (!nextNote) {
+                          setSelectedSwapNoteId(null);
+                          return;
+                        }
+
+                        setSelectedSwapNoteId(nextNote.noteId);
+                        setAmount(formatExactSwapInputAmount(nextNote.amount, selectedSourceAsset));
+                        setStatus("idle");
+                        setFlowError(null);
+                        setQuote(null);
+                        setQuoteError(null);
+                      }}
+                    >
+                      <option value="">Automatic exact-note match</option>
+                      {spendableNotes.map((note) => (
+                        <option key={note.noteId} value={note.noteId}>
+                          {`${formatAssetAmount(note.amount, selectedSourceAsset)} - ${formatShortSwapId(note.noteId)}`}
+                        </option>
+                      ))}
+                    </select>
+                    <small>Swap execution still requires an exact shielded source note.</small>
+                  </div>
+                  <div className="send-advanced-panel__field">
+                    <span>Venue routing</span>
+                    <strong>{quoteVenueLabel}</strong>
+                    <small>{routeTruthLabel}</small>
+                  </div>
+                </div>
+              </details>
 
               <div className="shield-form__actions">
                 <button
@@ -1632,7 +1844,7 @@ export function SwapPage() {
                     status === "finalizing_state"
                   }
                 >
-                  {isBetaMode ? "Beta mode" : sourcePairCapability.actionLabel}
+                  {swapPrimaryActionLabel}
                 </button>
               </div>
             </div>
