@@ -8,6 +8,8 @@ Current refs-only candidate evidence packet: `ops/mainnet/private-pool-v2-c01-ve
 
 Backend Options Evidence packet: `ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json`. It is checked by `npm run zk:c01-verifier-backend-options-check` and records the `groth16-tag3-solana-v0` and `noir-bb-ultrahonk-adaptation` paths as blocked options. This packet does not select a backend, does not satisfy production proof-format evidence, and does not promote local proof or verifier-key registry evidence.
 
+Groth16 Proof-Format Candidate packet: `ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json`. It is checked by `npm run zk:c01-groth16-proof-format-candidate-check` and records `blocked-no-groth16-production-proof-format-artifact` for the current `groth16-tag3-solana-v0` path. This packet does not satisfy production proof-format evidence; it records that the exact 256-byte Groth16 production artifact for `vanta_private_pool_v2_actual_private_spend_entry` is still absent.
+
 ## Current Truth
 
 - The current Solana tag `3` path is a reserved `TAG_SPEND_WITH_PROOF` preflight, not proof support.
@@ -32,6 +34,16 @@ Source-only verifier-key registry evidence is now recorded at `ops/mainnet/priva
 Tag `5` (`TAG_REGISTER_VERIFIER_KEY`) creates or idempotently verifies the program-owned verifier-key PDA derived from `["vanta2vkey", pool_state, verifierKeyHash]`. The record stores the pool and verifier-key hash that reserved tag `3` preflights before returning `ERR_PROOF_VERIFIER_NOT_WIRED`.
 
 This source-only verifier-key registry scaffold is useful because tag `3` no longer depends on tests hand-writing verifier-key accounts. It is still not backend selection, not production verifying-key evidence, not verifier-adapter acceptance, not tag-3 proof acceptance, and not on-chain proof verification.
+
+## Groth16 Proof-Format Candidate
+
+The blocked Groth16 proof-format candidate packet is the human-review companion for the `groth16-tag3-solana-v0` option.
+
+Current candidate status: `blocked-no-groth16-production-proof-format-artifact`.
+
+The required candidate shape is narrow: circuit `vanta_private_pool_v2_actual_private_spend_entry`, target `solana-c01-tag3-groth16-v0`, tag `3`, `proofSystem: "groth16"`, `groth16Proof:256`, one `private-spend-public-input-hash`, and `verifyingKeyHashKind: "production-verifying-key-hash"`.
+
+The current artifact is absent. The current local proof observation is still `noir-bb / barretenberg-ultrahonk`, 16000 bytes, and `local-acir-bytecode-hash-not-production-vk`. Therefore the packet is useful feasibility evidence, but it does not satisfy production proof-format evidence, production verifying-key evidence, backend selection, verifier-adapter acceptance, tag-3 proof acceptance, or on-chain proof verification.
 
 ## Backend Options
 
@@ -75,6 +87,7 @@ npm run zk:c01-verifier-backend-contract-check
 npm run zk:c01-production-verifier-backend-candidate-check
 npm run zk:c01-verifier-backend-decision-check
 npm run zk:c01-verifier-backend-options-check
+npm run zk:c01-groth16-proof-format-candidate-check
 npm run zk:c01-verifier-key-registry-check
 npm run private-pool-v2:proof-backend-boundary-check
 npm run private-pool-v2:remote-proof-artifact-boundary-check

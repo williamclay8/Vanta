@@ -1,0 +1,96 @@
+{
+  "version": "vanta-private-pool-v2-c01-groth16-proof-format-candidate-evidence-0.1",
+  "checkedAt": "2026-05-13T00:00:00.000Z",
+  "status": "blocked-no-groth16-production-proof-format-artifact",
+  "backendOptionId": "groth16-tag3-solana-v0",
+  "selectedBackend": null,
+  "selectedBackendStatus": "not-selected",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "secretPolicy": "references-and-metadata-only-no-proof-bytes-no-witness-values",
+  "purpose": "Machine-readable blocked feasibility packet for the C01 Groth16 tag-3 proof-format path. This packet records the exact production proof-format candidate shape required by the reserved tag-3 contract and the current absence of that artifact.",
+  "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "backendOptionsRef": "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
+  "localProofFormatRef": "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "requiredCandidateShape": {
+    "target": "solana-c01-tag3-groth16-v0",
+    "tag": 3,
+    "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+    "proofSystem": "groth16",
+    "proofByteLength": 256,
+    "publicInputLabel": "private-spend-public-input-hash",
+    "verifyingKeyHashKind": "production-verifying-key-hash",
+    "status": "required-before-groth16-tag3-selection"
+  },
+  "currentCandidateArtifact": {
+    "status": "absent",
+    "artifactRef": null,
+    "proofSystem": null,
+    "proofByteLength": null,
+    "verifyingKeyHashKind": null,
+    "satisfiesProductionProofFormat": false
+  },
+  "currentLocalObservation": {
+    "proofSystem": "noir-bb",
+    "backend": "barretenberg-ultrahonk",
+    "proofByteLength": 16000,
+    "proofFieldCount": 500,
+    "publicInputLabel": "private-spend-public-input-hash",
+    "verifyingKeyHashKind": "local-acir-bytecode-hash-not-production-vk",
+    "status": "local-observation-only"
+  },
+  "mismatch": {
+    "proofSystem": "current local proof is noir-bb; required candidate proof system is groth16",
+    "proofByteLength": "current local proof is 16000 bytes; required candidate proof length is 256 bytes",
+    "verifyingKeyHashKind": "current local metadata is local-acir-bytecode-hash-not-production-vk; required candidate key evidence is production-verifying-key-hash"
+  },
+  "blockedBy": [
+    "no Groth16 production proof artifact exists for vanta_private_pool_v2_actual_private_spend_entry",
+    "current local proof observation is noir-bb / barretenberg-ultrahonk / 16000 bytes",
+    "no production verifying-key hash artifact exists",
+    "source-only tag 5 registry metadata is not production verifying-key evidence",
+    "reserved tag 3 still returns ERR_PROOF_VERIFIER_NOT_WIRED before proof verification or mutation",
+    "no valid-proof mutation or invalid-proof no-mutation test exists",
+    "no live redeploy/reinit lineage or audit/reviewer acceptance exists"
+  ],
+  "satisfiesRequiredPositiveEvidence": {
+    "backendSelection": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "candidatePacketMustRemain": {
+    "selectedBackend": null,
+    "selectedBackendStatus": "not-selected",
+    "actualPrivateSpendProductionProofFormatCurrentArtifactRef": null,
+    "allRequiredPositiveEvidenceStatus": "blocked"
+  },
+  "forbiddenPromotions": [
+    "solana-c01-groth16-verifier-ready",
+    "production-private",
+    "mainnet-private",
+    "proof-enforced-spend",
+    "on-chain proof verified",
+    "production verifier accepted"
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-groth16-proof-format-candidate-check",
+    "npm run zk:c01-verifier-backend-options-check",
+    "npm run zk:c01-production-verifier-backend-candidate-check",
+    "npm run zk:c01-verifier-backend-decision-check",
+    "npm run zk:c01-verifier-backend-contract-check",
+    "npm run zk:c01-local-proof-format-evidence-check",
+    "npm run zk:c01-verifier-key-registry-check",
+    "npm run zk:c01-onchain-proof-boundary-check"
+  ],
+  "truthBoundary": "This is a blocked Groth16 tag-3 proof-format candidate packet only. It records that the exact production proof-format artifact required by the reserved tag-3 contract is absent. It is not backend selection, not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not tag-3 proof acceptance, not on-chain proof verification, not SBF/live redeploy or reinit evidence, not audit acceptance, not production-private readiness, and not real-funds readiness."
+}

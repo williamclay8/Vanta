@@ -27,6 +27,9 @@ const scripts = packageJson.scripts ?? {};
 const options = JSON.parse(read("ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json"));
 const candidate = JSON.parse(read("ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json"));
 const localProofFormat = JSON.parse(read("ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json"));
+const groth16ProofFormatCandidate = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json"),
+);
 const registry = JSON.parse(read("ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json"));
 const decision = read("docs/zk/c01-production-verifier-backend-decision.md");
 
@@ -39,6 +42,10 @@ for (const aggregate of ["zk:review-guards-check", "zk:feedback-loop-check"]) {
   assert(
     scripts[aggregate]?.includes("npm run zk:c01-verifier-backend-options-check"),
     `${aggregate} must include the backend-options guard`,
+  );
+  assert(
+    scripts[aggregate]?.includes("npm run zk:c01-groth16-proof-format-candidate-check"),
+    `${aggregate} must include the Groth16 proof-format candidate guard`,
   );
 }
 
@@ -132,6 +139,31 @@ assert(ultrahonk.selectsCurrentTag3Contract === false, "UltraHonk option must re
 assert(groth16.proofSystem === "groth16", "Groth16 option must name Groth16");
 assert(ultrahonk.proofSystem === "noir-bb", "UltraHonk option must name noir-bb");
 assert(ultrahonk.backend === "barretenberg-ultrahonk", "UltraHonk option must name barretenberg-ultrahonk");
+assert(
+  groth16.proofFormatCandidateRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+  "Groth16 option must reference the blocked proof-format candidate packet",
+);
+assert(
+  groth16.proofFormatCandidateRef?.command === "npm run zk:c01-groth16-proof-format-candidate-check",
+  "Groth16 option must record the proof-format candidate guard",
+);
+assert(
+  groth16.proofFormatCandidateRef?.status === "blocked-no-groth16-production-proof-format-artifact",
+  "Groth16 proof-format candidate ref must remain blocked",
+);
+assert(
+  groth16ProofFormatCandidate.status === "blocked-no-groth16-production-proof-format-artifact",
+  "Groth16 proof-format candidate packet must remain blocked",
+);
+assert(
+  groth16ProofFormatCandidate.currentCandidateArtifact?.artifactRef === null,
+  "Groth16 proof-format candidate packet must not carry a current artifact ref",
+);
+assert(
+  groth16ProofFormatCandidate.satisfiesRequiredPositiveEvidence?.actualPrivateSpendProductionProofFormat === false,
+  "Groth16 proof-format candidate packet must not satisfy production proof-format evidence",
+);
 
 for (const required of [
   "actual-private-spend-groth16-production-proof-format",
@@ -191,6 +223,10 @@ assert(
   options.canonicalCommands?.includes("npm run zk:c01-verifier-backend-options-check"),
   "backend-options must record its canonical guard",
 );
+assert(
+  options.canonicalCommands?.includes("npm run zk:c01-groth16-proof-format-candidate-check"),
+  "backend-options must record the Groth16 proof-format candidate guard",
+);
 
 const optionsRef = candidate.intermediateEvidenceRefs?.find(
   (entry) => entry.id === "blocked-verifier-backend-options-matrix",
@@ -217,6 +253,7 @@ for (const marker of [
   "Backend Options Evidence",
   "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
   "npm run zk:c01-verifier-backend-options-check",
+  "npm run zk:c01-groth16-proof-format-candidate-check",
   "groth16-tag3-solana-v0",
   "noir-bb-ultrahonk-adaptation",
   "does not select a backend",

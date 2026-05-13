@@ -50,6 +50,13 @@
       "artifactRef": "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
       "command": "npm run zk:c01-verifier-backend-options-check",
       "truthBoundary": "This records the Groth16 tag-3 Solana verifier path and Noir/bb.js/UltraHonk adaptation path as blocked options. It does not select a backend or satisfy production proof-format, verifying-key, verifier-adapter, test, live-lineage, or audit evidence."
+    },
+    {
+      "id": "blocked-groth16-proof-format-candidate",
+      "status": "blocked-no-groth16-production-proof-format-artifact",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+      "command": "npm run zk:c01-groth16-proof-format-candidate-check",
+      "truthBoundary": "This records the absence of the exact Groth16 tag-3 proof-format artifact required by the current reserved contract. It does not select a backend and does not satisfy production proof-format evidence."
     }
   ],
   "selectedBackend": null,
@@ -134,6 +141,7 @@
     "npm run zk:c01-onchain-proof-boundary-check",
     "npm run zk:c01-verifier-key-registry-check",
     "npm run zk:c01-verifier-backend-options-check",
+    "npm run zk:c01-groth16-proof-format-candidate-check",
     "npm run private-pool-v2:sbf-abi-check",
     "npm run private-pool-v2:verify"
   ],

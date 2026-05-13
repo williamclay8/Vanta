@@ -41,6 +41,9 @@ const verifierCandidateEvidence = JSON.parse(
 const backendOptionsEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json"),
 );
+const groth16ProofFormatCandidateEvidence = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json"),
+);
 const localProofFormatEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json"),
 );
@@ -162,6 +165,23 @@ includes(
   "does not select a backend",
   "C01 verifier candidate backend-options truth boundary",
 );
+const groth16ProofFormatRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
+  (entry) => entry.id === "blocked-groth16-proof-format-candidate",
+);
+assert(
+  groth16ProofFormatRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+  "C01 verifier candidate evidence must reference the blocked Groth16 proof-format packet",
+);
+assert(
+  groth16ProofFormatRef?.command === "npm run zk:c01-groth16-proof-format-candidate-check",
+  "C01 verifier candidate evidence must record the blocked Groth16 proof-format guard",
+);
+includes(
+  groth16ProofFormatRef?.truthBoundary ?? "",
+  "does not satisfy production proof-format evidence",
+  "C01 verifier candidate Groth16 proof-format truth boundary",
+);
 assert(
   backendOptionsEvidence.status === "blocked-backend-options-unselected",
   "C01 backend-options evidence must remain blocked while candidate backend is unselected",
@@ -174,9 +194,30 @@ assert(
   backendOptionsEvidence.backendOptions?.some((entry) => entry.id === "groth16-tag3-solana-v0"),
   "C01 backend-options evidence must record the Groth16 tag-3 option",
 );
+const groth16BackendOption = backendOptionsEvidence.backendOptions?.find(
+  (entry) => entry.id === "groth16-tag3-solana-v0",
+);
+assert(
+  groth16BackendOption?.proofFormatCandidateRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+  "C01 backend-options evidence must reference the Groth16 proof-format candidate packet",
+);
 assert(
   backendOptionsEvidence.backendOptions?.some((entry) => entry.id === "noir-bb-ultrahonk-adaptation"),
   "C01 backend-options evidence must record the UltraHonk adaptation option",
+);
+assert(
+  groth16ProofFormatCandidateEvidence.status === "blocked-no-groth16-production-proof-format-artifact",
+  "C01 Groth16 proof-format candidate evidence must remain blocked",
+);
+assert(
+  groth16ProofFormatCandidateEvidence.currentCandidateArtifact?.artifactRef === null,
+  "C01 Groth16 proof-format candidate evidence must not attach a current artifact ref",
+);
+assert(
+  groth16ProofFormatCandidateEvidence.satisfiesRequiredPositiveEvidence
+    ?.actualPrivateSpendProductionProofFormat === false,
+  "C01 Groth16 proof-format candidate evidence must not satisfy production proof-format evidence",
 );
 assert(
   localProofFormatEvidence.status === "local-proof-format-observed-not-production",
@@ -267,6 +308,12 @@ assert(
   "C01 verifier candidate evidence must record the backend-options guard",
 );
 assert(
+  verifierCandidateEvidence.canonicalCommands?.includes(
+    "npm run zk:c01-groth16-proof-format-candidate-check",
+  ),
+  "C01 verifier candidate evidence must record the Groth16 proof-format candidate guard",
+);
+assert(
   localProofFormatEvidence.canonicalCommands?.includes(
     "npm run zk:c01-local-proof-format-evidence-check",
   ),
@@ -341,6 +388,7 @@ for (const marker of [
   "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
   "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
   "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
   "backend, proof-format, production verifying-key, verifier-adapter, positive/negative test",
   "groth16-tag3-solana-v0",
   "noir-bb-ultrahonk-adaptation",
@@ -403,6 +451,11 @@ assert(
   "package.json must expose zk:c01-verifier-backend-options-check",
 );
 assert(
+  scripts["zk:c01-groth16-proof-format-candidate-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-groth16-proof-format-candidate.mjs",
+  "package.json must expose zk:c01-groth16-proof-format-candidate-check",
+);
+assert(
   scripts["zk:review-guards-check"]?.includes("npm run zk:c01-production-verifier-backend-candidate-check"),
   "zk:review-guards-check must include the C01 production verifier backend candidate guard",
 );
@@ -415,6 +468,10 @@ assert(
   "zk:review-guards-check must include the C01 backend-options guard",
 );
 assert(
+  scripts["zk:review-guards-check"]?.includes("npm run zk:c01-groth16-proof-format-candidate-check"),
+  "zk:review-guards-check must include the C01 Groth16 proof-format candidate guard",
+);
+assert(
   scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-production-verifier-backend-candidate-check"),
   "zk:feedback-loop-check must include the C01 production verifier backend candidate guard",
 );
@@ -425,6 +482,10 @@ assert(
 assert(
   scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-verifier-backend-options-check"),
   "zk:feedback-loop-check must include the C01 backend-options guard",
+);
+assert(
+  scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-groth16-proof-format-candidate-check"),
+  "zk:feedback-loop-check must include the C01 Groth16 proof-format candidate guard",
 );
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run zk:review-guards-check"),

@@ -43,6 +43,12 @@
       "proofByteLength": 256,
       "publicInputLabel": "private-spend-public-input-hash",
       "verifyingKeyHashKind": "production-verifying-key-hash",
+      "proofFormatCandidateRef": {
+        "status": "blocked-no-groth16-production-proof-format-artifact",
+        "artifactRef": "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+        "command": "npm run zk:c01-groth16-proof-format-candidate-check",
+        "truthBoundary": "This packet records that the exact Groth16 tag-3 production proof-format artifact is absent; it does not satisfy production proof-format evidence."
+      },
       "requires": [
         "actual-private-spend-groth16-production-proof-format",
         "production-verifying-key-hash",
@@ -53,6 +59,7 @@
         "audit-or-reviewer-acceptance"
       ],
       "currentBlockedBy": [
+        "Groth16 proof-format candidate packet is blocked with no current artifact ref",
         "local proof observation is noir-bb / barretenberg-ultrahonk / 16000 bytes",
         "no production verifying-key hash artifact exists",
         "tag 3 returns ERR_PROOF_VERIFIER_NOT_WIRED before mutation",
@@ -118,6 +125,7 @@
   ],
   "canonicalCommands": [
     "npm run zk:c01-verifier-backend-options-check",
+    "npm run zk:c01-groth16-proof-format-candidate-check",
     "npm run zk:c01-production-verifier-backend-candidate-check",
     "npm run zk:c01-verifier-backend-decision-check",
     "npm run zk:c01-verifier-backend-contract-check",
