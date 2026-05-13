@@ -12,7 +12,7 @@ export function DocsPortalPage() {
     <DocsPageTemplate
       title={page.title}
       summary={page.summary}
-      readFirst="Vanta privacy starts when supported stablecoins are shielded into Vanta. Before that, a normal Solana wallet flow is still public."
+      readFirst="Vanta privacy starts when selected stablecoins are shielded into Vanta. Before that, a normal Solana wallet flow is still public."
       badge={page.badge}
       nextStep={page.nextStep}
     >
@@ -20,14 +20,14 @@ export function DocsPortalPage() {
         <h2>What Vanta Portal is</h2>
         <p>
           Vanta Portal is the wallet side of Vanta&apos;s private-settlement
-          system. It helps a user move supported Solana stablecoins out of a
-          normal public trail and into Vanta before using supported private
-          actions.
+          system. It helps a user move selected Solana stablecoins out of a
+          normal public trail and into Vanta before using current private
+          lanes.
         </p>
         <p>
           The plain version: a normal wallet flow is public. Vanta starts after
-          a shield action. From there, the app can support gated private
-          actions and produce clearer settlement evidence. Swap and other lanes
+          a shield action. From there, the app can show current private lanes
+          and produce clearer settlement evidence. Swap and other lanes
           remain constrained until their production-status blockers clear.
         </p>
       </section>
@@ -39,15 +39,15 @@ export function DocsPortalPage() {
             <span>1</span>
             <strong>Shield</strong>
             <p>
-              Move supported stablecoins from a public wallet into Vanta&apos;s
+              Move selected stablecoins from a public wallet into Vanta&apos;s
               private state. This is the privacy entry point.
             </p>
           </article>
           <article className="docs-step-card">
             <span>2</span>
-            <strong>Use a supported lane</strong>
+            <strong>Use a current lane</strong>
             <p>
-              Use the private actions Vanta currently supports. The goal is to
+              Use the private actions Vanta currently exposes. The goal is to
               settle without turning every product step into an ordinary public
               account trail.
             </p>
@@ -70,7 +70,7 @@ export function DocsPortalPage() {
           <strong>Portal is useful because it gives privacy a clear start and end.</strong>
           <p>
             It gives users a simple rule: public wallet first, shield into
-            Vanta for privacy, use supported private actions, then produce a
+            Vanta for privacy, use current private lanes, then produce a
             receipt or unshield back out when needed. That is easier to trust
             than vague privacy claims.
           </p>

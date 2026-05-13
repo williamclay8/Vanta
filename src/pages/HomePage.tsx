@@ -4,19 +4,19 @@ import { BrandMark } from "@/components/BrandMark";
 
 const productPoints = [
   {
-    copy: "Move supported Solana assets into shielded state before sending, swapping, or exiting.",
+    copy: "Move selected Solana assets into Vanta before sending, swapping, or exiting.",
     title: "Shield assets",
   },
   {
-    copy: "Use guarded shielded-state flows while production privacy claims stay locked behind evidence.",
-    title: "Use guarded rails",
+    copy: "Test Shield, Send, Swap, and Unshield with receipts that show what can be verified.",
+    title: "Use current lanes",
   },
   {
-    copy: "Create payment links, preview checkout, track runtime balances, and inspect merchant settlement preview controls.",
+    copy: "Create payment requests and local receipt-backed records merchants can inspect.",
     title: "Accept payments",
   },
   {
-    copy: "Unshield supported balances and move funds back to public wallets only when you choose to exit.",
+    copy: "Move balances back to a public wallet when you choose to leave Vanta.",
     title: "Exit on your terms",
   },
 ];
@@ -75,14 +75,14 @@ export function HomePage() {
       </nav>
 
       <section className="landing-minimal__hero">
-        <div className="landing-minimal__kicker">Privacy rails for supported settlement</div>
+        <div className="landing-minimal__kicker">Receipt-backed Solana settlement</div>
         <h1>
-          Make supported Solana activity
+          Make Solana settlement
           <span> less public.</span>
         </h1>
         <p>
-          Vanta helps users move supported assets out of public wallet trails,
-          use supported private actions, and return to public wallets when needed.
+          Move selected assets into Vanta, test Shield, Send, Swap, and
+          Unshield, and share receipts that show what can be verified.
         </p>
 
         <div className="landing-minimal__actions">
@@ -121,7 +121,7 @@ export function HomePage() {
       >
         <div className="landing-minimal__section-header">
           <span>Inside the app</span>
-          <h2>The constrained actions Vanta can show honestly.</h2>
+          <h2>The actions Vanta can show honestly.</h2>
         </div>
 
         <div className="landing-minimal__action-list" aria-label="Vanta app actions">

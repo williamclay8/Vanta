@@ -39,8 +39,8 @@ export function DocsRoadmapPage() {
           <article className="docs-connection-card">
             <h3>Portal explains the model</h3>
             <p>
-              Portal gives the simple system path: shield supported stablecoins
-              into Vanta, use a supported private action, and unshield when
+              Portal gives the simple system path: shield selected stablecoins
+              into Vanta, use a current private lane, and unshield when
               needed.
             </p>
           </article>

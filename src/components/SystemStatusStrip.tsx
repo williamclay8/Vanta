@@ -35,14 +35,14 @@ export function SystemStatusStrip({ showBetaMode }: SystemStatusStripProps) {
         {showBetaMode ? (
           <span>No funds move in test mode. Live private settlement stays blocked until evidence, approval, audit, replay, and operator-surface gates clear.</span>
         ) : (
-          <span>Production privacy claims remain gated by the lane trust contracts.</span>
+          <span>Beta · receipts where available · {lockedLaneCount} claim locks active.</span>
         )}
       </div>
 
       <details className="system-status-strip__details">
         <summary>
           <span className="system-status-strip__count">
-            {lockedLaneCount}/{laneStatuses.length} lane claims locked
+            Beta · receipts where available · {lockedLaneCount} claim locks active
           </span>
           <span className="system-status-strip__summary">
             {visibleSummary}

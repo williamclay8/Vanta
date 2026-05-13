@@ -52,6 +52,25 @@ const dangerousClaims = [
   /\breal private Send\b/iu,
   /\blive mainnet private settlement\b/iu,
   /\bmeaningfully private\b/iu,
+  /\bcredibly private\b/iu,
+  /\brobustly private\b/iu,
+  /\bdefensibly private\b/iu,
+  /\bcompliantly private\b/iu,
+  /\bchain sees\b[^\n]*(?:not what|not who|does not see what|does not see who)\b/iu,
+  /\bPay anyone without exposing\b/iu,
+  /\bexit privately\b/iu,
+  /\bWithdraw to any wallet\b/iu,
+];
+
+const futureStateOnlyClaims = [
+  /\bcredibly private\b/iu,
+  /\brobustly private\b/iu,
+  /\bdefensibly private\b/iu,
+  /\bcompliantly private\b/iu,
+  /\bchain sees\b[^\n]*(?:not what|not who|does not see what|does not see who)\b/iu,
+  /\bPay anyone without exposing\b/iu,
+  /\bexit privately\b/iu,
+  /\bWithdraw to any wallet\b/iu,
 ];
 
 const safeContextPatterns = [
@@ -89,11 +108,36 @@ const safeContextPatterns = [
   /\bmissing\b/iu,
 ];
 
+const sameLineFutureContextPatterns = [
+  /\bafter\b/iu,
+  /\bbefore\b/iu,
+  /\bend state\b/iu,
+  /\bfuture[-\s]?state\b/iu,
+  /\bfuture target\b/iu,
+  /\bonce\b/iu,
+  /\bby week\b/iu,
+  /\breplace\b/iu,
+  /\bsuggest(?:ed|ion)?\b/iu,
+  /\bcurrent copy\b/iu,
+  /\bif product copy implies\b/iu,
+];
+
 function lineHasDangerousClaim(line) {
   return dangerousClaims.some((pattern) => pattern.test(line));
 }
 
 function lineIsSafeContext(line, lines, index) {
+  if (futureStateOnlyClaims.some((pattern) => pattern.test(line))) {
+    return (
+      sameLineFutureContextPatterns.some((pattern) => pattern.test(line)) ||
+      /\b(?:not|do not|does not|must not|blocked|avoid|banned|forbidden)\b/iu.test(line)
+    );
+  }
+
+  if (sameLineFutureContextPatterns.some((pattern) => pattern.test(line))) {
+    return true;
+  }
+
   const context = [
     lines[index - 10],
     lines[index - 9],

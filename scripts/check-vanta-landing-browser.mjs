@@ -95,8 +95,8 @@ function checkLandingViewport(width, height) {
         hasDocsAndAppPrimaryPaths: ["/docs", "/app"].every((href) =>
           [...document.querySelectorAll("a")].some((link) => link.getAttribute("href") === href),
         ),
-        hasPaymentsCopy: document.body.innerText.includes("Create payment links") && document.body.innerText.includes("merchant settlement preview"),
-        hasShieldFirstHeading: document.body.innerText.includes("The constrained actions Vanta can show honestly."),
+        hasPaymentsCopy: document.body.innerText.includes("payment requests") && document.body.innerText.includes("receipt-backed records"),
+        hasShieldFirstHeading: document.body.innerText.includes("The actions Vanta can show honestly."),
         hidesBetaCopy: !document.body.innerText.toLowerCase().includes("beta"),
         hasPointedActions: ["shield", "send", "swap", "strategy", "unshield", "pay"].every((path) =>
           [...document.querySelectorAll("a")].some((link) => link.getAttribute("href") === "/app/" + path),
@@ -121,7 +121,7 @@ function checkLandingViewport(width, height) {
     throw new Error(`Landing route should stay at /, got ${result.path}.`);
   }
 
-  if (!result.headline.includes("Make supported Solana activity") || !result.headline.includes("less public")) {
+  if (!result.headline.includes("Make Solana settlement") || !result.headline.includes("less public")) {
     throw new Error(`Landing headline missing: ${result.headline}`);
   }
 

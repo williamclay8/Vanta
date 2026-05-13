@@ -39,7 +39,7 @@ const contractSource = requireMarkers("src/pay/vantaPayReceiptPrivacyContract.ts
   "vanta-pay-receipt-privacy-contract-0.1",
   "getVantaPayReceiptPrivacyContract",
   "receipt-backed test settlement",
-  "production privacy claims remain locked",
+  "production privacy not enabled",
   "fully_private_pay_claim: false",
 ]);
 
@@ -51,7 +51,7 @@ const payPageSource = requireMarkers("src/pages/PayPage.tsx", [
   "Verified by",
   "Receipt packet ready",
   "Proof receipt ID",
-  "Production privacy claims remain locked.",
+  "Test receipt only.",
 ]);
 
 for (const banned of [

@@ -60,14 +60,14 @@ export const docsPages: DocsPageMeta[] = [
     nextStep: {
       label: "Start with Vanta Portal",
       href: "/docs/portal",
-      description: "See how supported stablecoin flows enter private state.",
+      description: "See how selected stablecoin flows enter Vanta.",
     },
   },
   {
     slug: "/docs/portal",
     title: "Vanta Portal",
     summary:
-      "Portal is the wallet path for supported Solana stablecoin flows: shield into Vanta, use supported private actions, and unshield when needed.",
+      "Portal is the wallet path for selected Solana stablecoin flows: shield into Vanta, use current lanes, and unshield when needed.",
     track: "portal",
     section: "portal",
     badge: "preview",

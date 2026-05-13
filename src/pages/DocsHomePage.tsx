@@ -17,9 +17,9 @@ export function DocsHomePage() {
         <h1 className="docs-home__title">Vanta is private settlement for Solana stablecoin flows.</h1>
         <p className="docs-home__lede">
           Vanta is building policy-safe privacy for payments and settlement:
-          shield supported stablecoins into Vanta, use supported private
-          actions, and give counterparties enough proof to trust the result
-          without exposing the whole wallet trail.
+          move selected stablecoin flows into Vanta, use the current lanes,
+          and give counterparties enough proof to trust the result without
+          exposing the whole wallet trail.
         </p>
         <div className="docs-home__hero-note">
           <strong>The beta truth is part of the product.</strong>
@@ -41,7 +41,7 @@ export function DocsHomePage() {
         <article>
           <span>2</span>
           <strong>Shield into Vanta</strong>
-          <p>Move supported assets into private state before private actions begin.</p>
+          <p>Move selected assets into Vanta before private actions begin.</p>
         </article>
         <article>
           <span>3</span>
@@ -65,8 +65,8 @@ export function DocsHomePage() {
           <span className="docs-path-card__label">{portalPage.title}</span>
           <strong>{portalPage.summary}</strong>
           <p>
-            Start here for the wallet path: shield supported stablecoins, use a
-            supported private action, and understand the exit boundary.
+            Start here for the wallet path: shield selected stablecoins, use a
+            current lane, and understand the exit boundary.
           </p>
         </Link>
         <Link className="docs-path-card docs-path-card--pay" to={payPage.slug}>
@@ -129,7 +129,7 @@ export function DocsHomePage() {
           <article className="docs-home__truth-card">
             <h3>Portal</h3>
             <p>
-              Portal explains where privacy begins: supported assets move from
+              Portal explains where privacy begins: selected assets move from
               a public wallet into Vanta before any private action can be
               claimed.
             </p>

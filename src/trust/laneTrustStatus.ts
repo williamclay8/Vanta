@@ -147,7 +147,7 @@ function buildLaneTrustStatuses(): readonly LaneTrustStatus[] {
       currentTruth: strategy.currentTruth,
       claimControls: normalizeStandardClaimControls(strategy.claimControls),
       visibleStatusCopy:
-        "Strategy uses hash-bound proof-public rail evidence; production privacy claims stay locked behind readiness, operator, audit, and mainnet gates.",
+        "Strategy uses hash-bound proof-public rail evidence; production privacy is not enabled until readiness, operator, audit, and mainnet gates pass.",
       verificationSurfaces: strategy.verificationSurfaces,
     }),
     buildLaneTrustStatus({

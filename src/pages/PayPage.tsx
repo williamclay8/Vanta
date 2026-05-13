@@ -351,7 +351,7 @@ export function PayPage() {
             <div className="pay-hero-badges" aria-label="Pay beta status">
               <span>{isBetaMode ? "Test mode" : "Test harness"}</span>
               <span>No production funds moved.</span>
-              <span>Production privacy claims remain locked.</span>
+              <span>Test receipt only.</span>
             </div>
           </div>
           <div className="module-state module-state--pay-demo">
@@ -703,7 +703,7 @@ export function PayPage() {
                   <p>No test payment request created yet.</p>
                 )}
                 {phase === "settlement_complete" && createdRecord ? (
-                  <p>No production funds moved. Production privacy claims remain locked.</p>
+                  <p>No production funds moved. Test receipt only.</p>
                 ) : null}
                 {payActionError ? <p>{payActionError}</p> : null}
                 {latestRefund ? (
@@ -817,8 +817,7 @@ export function PayPage() {
                 </p>
                 <p>
                   <span>Trust rail</span>
-                  {VANTA_PAY_MERCHANT_COMMAND_CENTER.betaNotice} Production privacy claims remain
-                  locked.
+                  {VANTA_PAY_MERCHANT_COMMAND_CENTER.betaNotice} Production privacy is not enabled.
                 </p>
               </div>
             </section>

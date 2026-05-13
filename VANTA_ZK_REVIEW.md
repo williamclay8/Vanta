@@ -3039,7 +3039,7 @@ This is the voice of a contract review, not the voice of a product. It's accurat
 A privacy product's voice should be *quietly confident.* Not technical-defensive. Not marketing-warm. Confident, materially-aware, with a slight understatement that signals seriousness. Examples:
 
 > *"Your USDC enters Vanta. The door closes behind it."*
-> *"Send privately. The chain sees that something happened. It does not see what."*
+> *"Future-state sample after verifier, shared-pool, relayer, and audit gates: Send privately. The chain sees that something happened. It does not see what."*
 > *"Your trust packet is sealed. Counterparties verify it without opening it."*
 > *"You can leave whenever you want. The door always opens from inside."*
 
@@ -3962,17 +3962,19 @@ The current copy reads like an engineering changelog. Accurate, careful, exhaust
 **Home page product points.** Current 57 words across four bullets, hedge-laden. → 37 words:
 
 - **Seal.** *"Move USDC, SOL, and stablecoins into the Vault."*
-- **Send.** *"Pay anyone without exposing the amount or your wallet history."*
+- **Send.** Future-state sample after verifier/shared-pool/relayer gates: *"Pay anyone without exposing the amount or your wallet history."*
 - **Pay.** *"Accept stablecoin payments. Issue verifiable receipts."*
-- **Exit.** *"Withdraw to any wallet when you choose to leave."*
+- **Exit.** Future-state sample after proof-authorized custody and exit-routing gates: *"Withdraw to any wallet when you choose to leave."*
 
 **App dashboard trust hero.** Current 27 words with 7 Vanta-specific terms. → *"What Vanta can prove today"* (h2, 5 words) + *"You can shield, send, swap, and exit on test funds. Public mainnet support is gated on the trust contracts below."* (21).
 
 **Pay page hero.** Current 18-word sentence + three redundant badges. → *"Pay"* + *"Accept stablecoin payments. Every payment issues a Letter — a receipt your customer and your accountant can verify without seeing the rest of your books."* (25) + single badge *"Test mode — no funds move."*
 
-**Docs home.** Current 73 words across hero + beta note. → 35 words: *"Vanta is private settlement for Solana."* + *"Move stablecoins into the Vault. Send, swap, and exit privately. Give counterparties a receipt they can verify."* + *"Vanta is in beta. We label what's live and what isn't."*
+**Docs home.** Current 73 words across hero + beta note. → Future-state docs sample after verifier/shared-pool/relayer gates: *"Vanta is private settlement for Solana."* + *"Move stablecoins into the Vault. Send, swap, and exit privately. Give counterparties a receipt they can verify."* + *"Vanta is in beta. We label what's live and what isn't."*
 
 **SystemStatusStrip.** Current leads with *"6/6 lane claims locked."* → Flip framing: *"Beta · receipt-backed · 6 lanes verified"*. Same data; opposite emotional read.
+
+**Codex status, 2026-05-13 copy-clarity pushback:** the copy direction is accepted, but the broad sample rewrites above are not current product copy because they would overclaim today's privacy. The landed safe slice replaces the home hero with "Make Solana settlement less public", rewrites the supporting copy around selected assets, current lanes, and verifiable receipts, changes the status strip to lead with "Beta · receipts where available · 6 claim locks active", and compresses repeated Pay disclaimers to "Test receipt only" / "production privacy not enabled". The stronger "pay anyone without exposing", "withdraw to any wallet", "exit privately", "chain sees not what/who", and "6 lanes verified" formulations remain future-state examples until the verifier, shared anonymity tree, relayer, custody, live evidence, and audit gates support them.
 
 **Shield asset helpers.** *"Vanta will shield SOL directly so it remains SOL in shielded state."* (12, tautological) → *"Shield SOL into private SOL."* (5).
 

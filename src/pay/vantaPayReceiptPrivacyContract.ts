@@ -11,7 +11,7 @@ export function getVantaPayReceiptPrivacyContract(): VantaPayReceiptPrivacyContr
       fully_private_pay_claim: false,
       production_privacy_claims_locked: true,
     },
-    claimSummary: "production privacy claims remain locked",
+    claimSummary: "production privacy not enabled",
     currentTruth: "receipt-backed test settlement",
     fields: [
       {

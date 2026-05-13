@@ -167,6 +167,8 @@ const systemStatusStripSource = requireMarkers("src/components/SystemStatusStrip
   "getLaneTrustStatuses",
   "system-status-strip",
   "aria-label=\"Vanta lane trust status\"",
+  "Beta · receipts where available ·",
+  "claim locks active",
   "Claim locked",
   "Shield: Claim locked",
   "Send: Claim locked",
