@@ -2546,7 +2546,7 @@ A new user opening this page is hit with five different framings of "current sta
 
 The form is well-engineered: amount entry with Max button, asset selector (with public-route capability detection), shielded-balance preview, route helper, recovery panel, viewing-key panel, decoy-batcher option (presumably exposed somewhere), wallet approval review, route progress indicator. All correct.
 
-The problem is purely UX. Above the form's submit button there are routinely **8–12 helper lines** depending on state: route label, route progress, validation messages, recovery hints, viewing-key state, transitional warnings, and so on. The shield-helper class is used 30+ times in this file. The user-facing form has "Choose what to shield" and "Vanta will shield X directly so it remains X in shielded state" and "asset can enter shielded state as itself" — copy that's correct but feels machine-generated.
+The problem is purely UX. Above the form's submit button there are routinely **8–12 helper lines** depending on state: route label, route progress, validation messages, recovery hints, viewing-key state, transitional warnings, and so on. The shield-helper class is used 30+ times in this file. Earlier copy had "Choose what to shield", "Vanta will shield X directly so it remains X in shielded state", and "asset can enter shielded state as itself" — copy that was correct but felt machine-generated. The direct-route helper examples are now tightened locally; the remaining layout recommendations still stand.
 
 **Recommendations:**
 
@@ -2560,7 +2560,7 @@ The problem is purely UX. Above the form's submit button there are routinely **8
 
 **File:** `src/pages/SendPage.tsx` (2692 lines)
 
-Same form pattern as Shield, scoped to USDC-only. The page leads with `[Shield] [Send] [Hold change]` flow indicator and a context banner ("No shielded funds ready to send. Shield first, then send from the private balance."). Form follows: amount, recipient, send notes, plus the same family of helper text and approval review.
+Same form pattern as Shield, scoped to USDC-only. The page leads with `[Shield] [Send] [Hold change]` flow indicator and a context banner that now uses the shorter Empty Vault / no spendable notes framing. Form follows: amount, recipient, send notes, plus the same family of helper text and approval review.
 
 The flow indicator is excellent — exactly the kind of visual chunking the rest of the app needs. It's also currently the only good visual rhythm element on the page.
 
@@ -3635,7 +3635,7 @@ That's real progress. The baseline this audit is grading against is higher than 
 
 Three items are partially landed and need finishing:
 
-- **The `SystemStatusStrip` is consolidated but still leads with the locked-claim count.** The current copy is `"{lockedLaneCount}/{laneStatuses.length} lane claims locked"` followed by per-lane `Claim locked` previews. This is *better* than the original disclaimer sprawl, but a user landing on the page sees `6/6 lane claims locked` as the most prominent strip-level information. The taste move is to flip the framing — lead with the affirmative (what *is* live: "Receipt-backed test settlement on Solana mainnet · 6 lanes verified · Production claims gated") and put the locked-claim count inside the expandable `<details>`. Same data, opposite emotional read.
+- **The `SystemStatusStrip` is consolidated and now leads with safer affirmative beta framing.** The current copy is `Beta · receipts where available · 6 claim locks active` followed by per-lane `Claim locked` previews. This is better than the original disclaimer sprawl. The future taste move is to keep raising the affirmative evidence only as the matching lane-verification/live-evidence gates exist, not to imply `6 lanes verified` today.
 - **The landing-page hero has motion now but no visualization.** `landing-minimal__grid`, `landing-minimal__glow--left`, `landing-minimal__glow--right` create atmospheric depth via CSS, but there's still no kinetic content. The recommendation to add a "wallet → shield → vault" particle visualization isn't in code yet. This is the single highest-leverage taste move still on the table — without it the home page is atmospherically polished but narratively flat.
 - **The DocsSidebar exists but the docs pages themselves still lack inline diagrams.** Same per-page step-grid pattern as before. The docs-pass D-recommendation to add SVG diagrams alongside the step grids hasn't shipped. The infrastructure (`DocsPageTemplate`, `DocsSidebar`, `docsContent` module) is now in place; the visual layer is the missing piece.
 
@@ -3646,7 +3646,7 @@ Twelve moves the original taste pass laid out; current status of each on the act
 | # | Taste move | Current status | Concrete next step |
 |---|---|---|---|
 | T1 | Pick an aesthetic that means something | Not done. `--bg: #030406` is still the base. | Replace with `#000` true black on the home page only first. Add `body.landing-body { background: #000 }` override (the class is already toggled in `HomePage.tsx:37`). Ship in one PR. See if the brand-mark glow against true black reads as more committed. If yes, propagate to the app shell next sprint. |
-| T2 | Develop a voice the product speaks in | Not done. Current copy still includes "Use guarded shielded-state flows while production privacy claims stay locked behind evidence" — engineering-defensive voice. | Write a one-page voice spec. Apply to the next ten copy edits. Replace `productPoints[1].copy` in `HomePage.tsx` with "Send privately. The chain sees that something happened. It does not see what." |
+| T2 | Develop a voice the product speaks in | Partially done. The latest copy loops remove several defensive product-copy hedges and replace repeated claim-lock phrasing with beta receipt/readiness language, but the product still needs a durable one-page voice spec. | Write a one-page voice spec. Apply to the next ten copy edits while preserving beta-truth gates; avoid future-state samples like "The chain sees that something happened. It does not see what" until verifier, shared-pool, relayer, and live-evidence gates support them. |
 | T3 | Commit to a vocabulary | Not done. App nav still says Shield / Send / Swap / Strategy / Unshield / Pay. | Rename "trust packet" to "Letter" in `vantaPayReceiptPrivacyContract.ts` and all UI copy. Rename "vault PDA" to "the Vault" everywhere in the on-chain program comments and operator docs. Two strings; ripple effect over months. |
 | T4 | Make privacy visible by making time visible | Not done. No depth-oracle visualization exists. | Add a new `<DepthOracleStrip />` between the hero and the "What it does" section on the home page. Pulls live deposit counts from the operator's `private-pool-v2:state` endpoint, renders a horizontal time-axis with deposit density. ~2 days of work; ~150 lines of TSX + a small SVG sparkline. **Highest-leverage single addition.** |
 | T5 | Build the receipt as an artifact | Not done. Trust packets are still JSON-shape. | Add a `<LetterPDF>` React component that renders the receipt to a PDF via `react-pdf` or `@react-pdf/renderer`. Letterhead, serial number, QR code, embossed brand-mark watermark. Add a `/letter/:id` route that mirrors the PDF layout. Ship in `src/pay/` first; extend to send/swap/unshield receipts in a second pass. |
@@ -3972,13 +3972,15 @@ The current copy reads like an engineering changelog. Accurate, careful, exhaust
 
 **Docs home.** Current 73 words across hero + beta note. → Future-state docs sample after verifier/shared-pool/relayer gates: *"Vanta is private settlement for Solana."* + *"Move stablecoins into the Vault. Send, swap, and exit privately. Give counterparties a receipt they can verify."* + *"Vanta is in beta. We label what's live and what isn't."*
 
-**SystemStatusStrip.** Current leads with *"6/6 lane claims locked."* → Flip framing: *"Beta · receipt-backed · 6 lanes verified"*. Same data; opposite emotional read.
+**SystemStatusStrip.** Current leads with *"6/6 lane claims locked."* → Safe current framing: *"Beta · receipts where available · 6 claim locks active"*. The stronger *"Beta · receipt-backed · 6 lanes verified"* sample is future-state only until the lane-verification/live-evidence gates exist.
 
 **Codex status, 2026-05-13 copy-clarity pushback:** the copy direction is accepted, but the broad sample rewrites above are not current product copy because they would overclaim today's privacy. Commit `8ac1586` replaces the home hero with "Make Solana settlement less public", rewrites the supporting copy around selected assets, current lanes, and verifiable receipts, changes the status strip to lead with "Beta · receipts where available · 6 claim locks active", and compresses repeated Pay disclaimers to "Test receipt only" / "production privacy not enabled". The stronger "pay anyone without exposing", "withdraw to any wallet", "exit privately", "chain sees not what/who", and "6 lanes verified" formulations remain future-state examples until the verifier, shared anonymity tree, relayer, custody, live evidence, and audit gates support them. Guards: `npm run truth:privacy-claim-gate`, `npm run landing:browser-check`, `npm run pay:browser-check`, `npm run product-ui:browser-check`, `npm run zk:feedback-loop-check`, and `npm run build`.
 
 **Shield asset helpers.** *"Vanta will shield SOL directly so it remains SOL in shielded state."* (12, tautological) → *"Shield SOL into private SOL."* (5).
 
 **Send empty state.** *"No shielded funds ready to send. Shield first, then send from the private balance."* → *"Empty Vault. You haven't sealed anything yet. Start with Shield."*
+
+**Codex status, 2026-05-13 copy-clarity follow-up:** locally implemented the safe current subset of the Shield helper and Send empty-state rewrites without adopting the future-state "private SOL" / "sealed" wording as a production privacy claim. Direct Shield route copy now says "Shield SOL directly into Vanta" / "Shield [asset] directly into Vanta", unsupported Shield targets say they need a configured Shield target first, Send's empty state says "Empty Vault" and "No send-ready balance yet", pricing names the current charged surfaces instead of "supported action", and Pay/Strategy/lane readiness labels avoid claim-lock jargon outside the canonical status strip. Final focused guards run locally: `npm run shield:capability-check`, `npm run shield:ui-claim-boundary-check`, `npm run send:requires-shielded-state-check`, `npm run send:production-privacy-claim-gate`, `npm run swap:capability-check`, `npm run lanes:trust-contract-check`, `npm run pricing:contract-check`, `npm run pay:doc-truth-check`, `npm run pay:contract-check`, `npm run pay-tab:copy-check`, `npm run strategy-tab:copy-check`, `npm run strategy:private-rail-trust-contract-check`, `npm run docs:source-of-truth-check`, `npm run docs:browser-check`, `npm run product-ui:browser-check`, `npm run truth:privacy-claim-gate`, `npm run zk:feedback-loop-check`, `npm run build`, and `git diff --check`.
 
 ### What 20× clarity looks like in aggregate
 
@@ -3997,7 +3999,9 @@ Applied to *every new line of copy* going forward, the effect compounds. Every p
 
 ### The single rule that does most of the work
 
-**Delete the word "supported" wherever it appears as a hedge.**
+**Delete the word "supported" wherever it appears as a vague product-copy hedge.**
+
+Keep `supported` where it names a typed capability, status, operator contract field, or intentionally frozen lane. Delete it when it only means "things we have today" without telling the reader which thing.
 
 `grep -rn "supported" src/pages/*.tsx` returns 30+ matches. In every case it's a defensive hedge — "supported assets," "supported lanes," "supported private actions," "supported destinations." Readers get no information from "supported"; they only get the apologetic tone.
 

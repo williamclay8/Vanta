@@ -41,7 +41,7 @@ const visibleStrategyCopy = [
   "Hash-bound packet preview",
   "Operator plaintext shared",
   "Shielded private-core note required",
-  "Live private strategy claims stay locked until readiness, operator, audit, and mainnet gates pass.",
+  "Live strategy execution still needs readiness, operator, audit, and mainnet evidence.",
   "npm run strategy:private-rail-check",
   "Funding source",
   "Proceeds destination",

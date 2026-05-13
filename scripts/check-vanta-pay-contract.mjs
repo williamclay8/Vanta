@@ -76,7 +76,7 @@ function assertFileContains(path, markers) {
 assertFileContains("src/pay/vantaPayMerchantCommandCenter.ts", [
   "vanta-pay-merchant-command-center-0.1",
   "Privacy readiness",
-  "Production privacy claims are not enabled yet.",
+  "Production privacy is not enabled yet.",
   "No funds move in beta mode.",
   "Operator status",
   "Settlement queue",

@@ -68,10 +68,10 @@ Vanta is not production-ready until it has real mainnet-compatible private settl
 ## Pricing
 
 - `0 monthly fee`
-- `0.25%` only when a supported action completes successfully
+- `0.25%` only when Pay, Shield, Send, Swap, or Unshield completes successfully
 - network, off-ramp, and third-party execution costs stay separate when they apply
 
-Pricing only applies when Vanta is actually providing a supported completed action. Preview-only surfaces must not imply a fee is already active.
+Pricing only applies when Vanta is actually providing a completed Pay, Shield, Send, Swap, or Unshield action. Preview-only surfaces must not imply a fee is already active.
 
 Net Vanta-collected fees are reserved for ecosystem growth, including supply buybacks, marketing, operator infrastructure, security, and product development. This excludes network, off-ramp, and third-party pass-through costs.
 

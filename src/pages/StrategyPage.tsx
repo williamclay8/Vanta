@@ -317,7 +317,7 @@ export function StrategyPage() {
     ? "Locked"
     : "Needs review";
   const strategyProductionClaimCopy = strategyPrivateRailTrustContract.claimControls.productionPrivacyClaimsLocked
-    ? "Live private strategy claims stay locked until readiness, operator, audit, and mainnet gates pass."
+    ? "Live strategy execution still needs readiness, operator, audit, and mainnet evidence."
     : "Live private strategy claims require a fresh readiness review before they can be shown.";
 
   const parsedAmount = useMemo(() => parseStrategyAmount(form.totalSize), [form.totalSize]);
@@ -758,7 +758,7 @@ export function StrategyPage() {
                 <small>Raw pair, total notional, child sizing, and schedule stay outside the packet.</small>
               </div>
               <div className="strategy-prerequisite-item">
-                <span>Production claim status</span>
+                <span>Production readiness</span>
                 <strong>{strategyProductionClaimStatus}</strong>
                 <small>{strategyProductionClaimCopy}</small>
               </div>

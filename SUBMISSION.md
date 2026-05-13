@@ -63,7 +63,7 @@ Vanta is designed for users, traders, teams, builders, and merchants who need mo
 Vanta is designed to be easy to try:
 
 - `0 monthly fee`
-- `0.25%` only when a supported action completes successfully
+- `0.25%` only when Pay, Shield, Send, Swap, or Unshield completes successfully
 - pass-through network, off-ramp, and third-party execution costs remain separate
 
 The `$VANTA` roadmap remains utility-first rather than token-first.

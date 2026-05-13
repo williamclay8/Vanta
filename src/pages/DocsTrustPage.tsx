@@ -49,7 +49,7 @@ export function DocsTrustPage() {
             <span>1</span>
             <strong>What happened</strong>
             <p>
-              The receipt should describe the supported action in plain
+              The receipt should describe the settlement action in plain
               settlement language, not only protocol terms.
             </p>
           </article>

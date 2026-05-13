@@ -17,11 +17,11 @@ assert.deepEqual(VANTA_PRICING_CONTRACT.passThroughCostLabels, [
 
 assert.equal(
   VANTA_PRICING_COPY.headline,
-  "0 monthly fee. 0.25% only when a supported action completes successfully.",
+  "0 monthly fee. 0.25% only when Pay, Shield, Send, Swap, or Unshield completes successfully.",
 );
 assert.equal(
   VANTA_PRICING_COPY.supporting,
-  "Vanta only charges when a supported product action completes successfully.",
+  "Vanta only charges when Pay, Shield, Send, Swap, or Unshield completes successfully.",
 );
 assert.equal(
   VANTA_PRICING_COPY.passThrough,
@@ -42,7 +42,7 @@ assert.equal(shouldChargeVantaFee({ surface: "strategy", status: "completed" }),
 assert.equal(shouldChargeVantaFee({ surface: "dashboard", status: "read_only" }), false);
 
 assert.deepEqual(describePricingForSurface("pay"), {
-  feeLabel: "0.25% on verified supported payment actions after preview",
+  feeLabel: "0.25% on verified Pay actions after preview",
   passThroughLabel: "Network, off-ramp, and third-party execution costs stay separate.",
   shouldShowLiveFeeCopy: true,
 });

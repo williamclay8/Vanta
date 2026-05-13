@@ -1418,9 +1418,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       ) : (
         <div className="send-context-banner send-context-banner--quiet">
           <div>
-            <span>Start with Shield</span>
-            <h3>No shielded funds ready to send.</h3>
-            <p>Shield first, then send from the private balance.</p>
+            <span>Empty Vault</span>
+            <h3>No send-ready balance yet.</h3>
+            <p>Start with Shield.</p>
           </div>
           <Link className="button button-ghost" to="/app/shield">
             Shield funds first
@@ -1883,8 +1883,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               <span>Send proof verified</span>
               <p>
                 The operator verified and recorded the send transition. Recipient delivery or
-                recovery remains a separate supported flow; the remaining private balance is ready
-                for the next hold or unshield step.
+                recovery remains separate. The remaining balance can stay held or move to
+                Unshield.
               </p>
               <div className="success-metrics">
                 <div className="preview-card preview-card--accent">

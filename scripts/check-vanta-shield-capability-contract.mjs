@@ -17,8 +17,12 @@ const requiredCapabilityCopy = [
   "supportsDirectShield",
   "requiresPublicRoute",
   "targetShieldAsset",
-  "asset can enter shielded state as itself",
-  "source asset must be routed into a configured shield asset before shielding",
+  "direct Vanta shield route",
+  "Shield SOL directly into Vanta.",
+  "Shield ${selectedShieldAsset.symbol} directly into Vanta.",
+  "route required before Shield",
+  "Route ${sourceAsset.symbol} into ${selectedShieldAsset.symbol} before Shield.",
+  "This asset needs a configured Shield target first.",
 ];
 
 const failures = [];

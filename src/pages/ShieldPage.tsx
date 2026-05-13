@@ -342,11 +342,11 @@ function describeRecentShieldCompletion(recentShield: RecentShieldContext, warni
   }
 
   if (recentShield.claimTier === "local_private_core_note") {
-    return `${amountLabel} was recorded as a local Private Core note; production privacy remains blocked.${suffix}`;
+    return `${amountLabel} was recorded as a local Private Core note. Production privacy is not enabled.${suffix}`;
   }
 
   if (recentShield.claimTier === "local_shield_state") {
-    return `${amountLabel} was recorded in local shield-state; proof-backed production privacy remains blocked.${suffix}`;
+    return `${amountLabel} was recorded in local shield-state. Production privacy is not enabled.${suffix}`;
   }
 
   return `${amountLabel} reached the Vanta vault as a public deposit; local shield-state proof is still unavailable.${suffix}`;

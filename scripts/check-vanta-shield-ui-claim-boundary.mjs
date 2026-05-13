@@ -53,7 +53,7 @@ for (const phrase of [
   "Shield deposit recorded",
   "Recording local shield-state evidence",
   "Vault transfer approval",
-  "proof-backed production privacy remains blocked",
+  "Production privacy is not enabled",
 ]) {
   assert.ok(shieldPage.includes(phrase), `Shield page missing bounded claim phrase: ${phrase}`);
 }

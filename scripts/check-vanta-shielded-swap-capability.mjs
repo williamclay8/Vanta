@@ -86,7 +86,7 @@ const requiredSwapTrustMarkers = [
   "Target C operator-visible Swap beta",
   "programmaticPrivateSwapClaim: false",
   "operator-visible/custodial",
-  "production-private programmatic settlement stays locked",
+  "production-private programmatic settlement is not enabled",
 ];
 
 const forbiddenPageMarkers = [

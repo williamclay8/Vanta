@@ -72,7 +72,7 @@ export function DocsSecurityPage() {
           </article>
           <article>
             <strong>Private state</strong>
-            <p>The supported Vanta path after a shield action, with narrower claims than broad wallet privacy.</p>
+            <p>The Vanta path after a shield action, with narrower claims than broad wallet privacy.</p>
           </article>
           <article>
             <strong>Preview</strong>

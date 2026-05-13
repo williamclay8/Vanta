@@ -53,9 +53,9 @@ export function createShieldAssetCapability(args: {
     return {
       blockers: [],
       mode: "direct-native-sol",
-      privacyNote: "asset can enter shielded state as itself",
+      privacyNote: "direct Vanta shield route",
       requiresPublicRoute: false,
-      routeLabel: "Vanta will shield SOL directly so it remains SOL in shielded state.",
+      routeLabel: "Shield SOL directly into Vanta.",
       sourceAsset,
       supportsDirectShield: true,
       targetShieldAsset: {
@@ -78,9 +78,9 @@ export function createShieldAssetCapability(args: {
     return {
       blockers: [],
       mode: "direct-configured-token",
-      privacyNote: "asset can enter shielded state as itself",
+      privacyNote: "direct Vanta shield route",
       requiresPublicRoute: false,
-      routeLabel: `Vanta will shield ${selectedShieldAsset.symbol} directly.`,
+      routeLabel: `Shield ${selectedShieldAsset.symbol} directly into Vanta.`,
       sourceAsset,
       supportsDirectShield: true,
       targetShieldAsset,
@@ -90,9 +90,9 @@ export function createShieldAssetCapability(args: {
   return {
     blockers: [],
     mode: "route-to-configured-shield-token",
-    privacyNote: "source asset must be routed into a configured shield asset before shielding",
+    privacyNote: "route required before Shield",
     requiresPublicRoute: true,
-    routeLabel: `Vanta will route ${sourceAsset.symbol} into ${selectedShieldAsset.symbol}, then shield it automatically.`,
+    routeLabel: `Route ${sourceAsset.symbol} into ${selectedShieldAsset.symbol} before Shield.`,
     sourceAsset,
     supportsDirectShield: false,
     targetShieldAsset,
@@ -108,7 +108,7 @@ function createUnsupportedCapability(args: {
   return {
     blockers: [args.blocker],
     mode: "unsupported",
-    privacyNote: "asset cannot enter shielded state until a supported shield target exists",
+    privacyNote: "This asset needs a configured Shield target first.",
     requiresPublicRoute: false,
     routeLabel: args.routeLabel,
     sourceAsset: args.sourceAsset,

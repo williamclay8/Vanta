@@ -96,7 +96,7 @@ export function DocsHomePage() {
           <article className="docs-home__connection-card">
             <h3>Payers</h3>
             <p>
-              Use Vanta when a supported stablecoin action should not expose a
+              Use Vanta when a stablecoin action should not expose a
               normal public wallet trail to everyone watching the chain.
             </p>
           </article>

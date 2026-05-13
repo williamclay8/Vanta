@@ -56,7 +56,7 @@ export function DocsPayPage() {
             <h3>Same settlement model</h3>
             <p>
               Pay is the business version of the same idea Portal explains:
-              move supported stablecoin value into a more private flow, do
+              move stablecoin value into a more private flow, do
               useful work, and keep the proof and exit paths understandable.
             </p>
           </article>

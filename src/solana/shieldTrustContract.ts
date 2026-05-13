@@ -25,7 +25,7 @@ export function getShieldTrustContract(): ShieldTrustContract {
       productionPrivacyClaimsLocked: true,
     },
     visibleStatusCopy:
-      "Shield records committed shielded-state evidence; production privacy claims stay locked until anonymity, relayer, audit, and mainnet gates pass.",
+      "Shield records committed shielded-state evidence. Production privacy is not enabled until anonymity, relayer, audit, and mainnet gates pass.",
     verificationSurfaces: [
       "npm run shield:verify",
       "npm run shield:privacy-readiness-check",

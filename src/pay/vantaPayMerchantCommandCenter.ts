@@ -113,8 +113,8 @@ export const VANTA_PAY_MERCHANT_COMMAND_CENTER = {
     },
     {
       label: "Privacy readiness",
-      value: "Claims blocked",
-      detail: "Production privacy claims are not enabled yet.",
+      value: "Not enabled",
+      detail: "Production privacy is not enabled yet.",
       tone: "blocked",
     },
   ],

@@ -29,9 +29,9 @@ export const VANTA_PRICING_CONTRACT = {
 
 export const VANTA_PRICING_COPY = {
   headline:
-    "0 monthly fee. 0.25% only when a supported action completes successfully.",
+    "0 monthly fee. 0.25% only when Pay, Shield, Send, Swap, or Unshield completes successfully.",
   supporting:
-    "Vanta only charges when a supported product action completes successfully.",
+    "Vanta only charges when Pay, Shield, Send, Swap, or Unshield completes successfully.",
   passThrough:
     "Network, off-ramp, and third-party execution costs are shown separately when they apply.",
   tokenRoadmap:
@@ -87,7 +87,7 @@ export function describePricingForSurface(surface: VantaPricedSurface): {
     Exclude<VantaPricedSurface, "strategy" | "dashboard">,
     string
   > = {
-    pay: "0.25% on verified supported payment actions after preview",
+    pay: "0.25% on verified Pay actions after preview",
     send: "0.25% on successful service-backed sends",
     shield: "0.25% on successful service-backed shield actions",
     swap: "0.25% on verified swaps routed through Vanta",

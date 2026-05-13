@@ -27,7 +27,7 @@ export function getSwapTrustContract(): SwapTrustContract {
       productionPrivacyClaimsLocked: true,
     },
     visibleStatusCopy:
-      "Swap is a Target C beta: constrained routes can record committed receipt checks, but route execution remains operator-visible/custodial and production-private programmatic settlement stays locked.",
+      "Swap is a Target C beta: constrained routes can record committed receipt checks, but route execution remains operator-visible/custodial and production-private programmatic settlement is not enabled.",
     verificationSurfaces: [
       "npm run swap:capability-check",
       "npm run swap:trust-packet-check",

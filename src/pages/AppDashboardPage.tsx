@@ -202,7 +202,7 @@ export function AppDashboardPage() {
     {
       badge: hasSpendableShieldedValue ? "Available" : "Needs notes",
       detail: hasSpendableShieldedValue
-        ? "Swap from shielded state into the supported output lane."
+        ? "Swap spendable shielded value through the current output lane."
         : "Swap needs spendable shielded state first.",
       href: "/app/swap",
       label: "Open Swap",
