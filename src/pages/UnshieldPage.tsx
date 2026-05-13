@@ -8,6 +8,10 @@ import { isBetaMode } from "@/config/deploymentMode";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
+import {
+  PrivacySummary,
+  type PrivacySummaryItem,
+} from "@/components/PrivacySummary";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
@@ -126,6 +130,21 @@ type PendingUnshieldBridge = {
   vaultOwner: string;
 };
 
+const UNSHIELD_PRIVACY_SUMMARY_ITEMS: readonly PrivacySummaryItem[] = [
+  {
+    label: "Chain sees",
+    value: "a public exit transaction to your connected wallet",
+  },
+  {
+    label: "Recipient (you) sees",
+    value: "full amount, asset, and release receipt",
+  },
+  {
+    label: "Operator sees",
+    value: "exit terms and release status, not your full shielded history",
+  },
+];
+
 type SpendableTokenNote = {
   amount: number;
   createdAt: number;
@@ -232,6 +251,21 @@ function chooseBestSpendableNote<T extends { amount: number; createdAt: number }
 
     return right.createdAt - left.createdAt;
   })[0] ?? null;
+}
+
+function chooseSelectedSpendableNote<T extends { amount: number; createdAt: number; noteId: string }>(
+  notes: readonly T[],
+  selectedNoteId: string | null,
+) {
+  if (selectedNoteId) {
+    const selectedNote = notes.find((note) => note.noteId === selectedNoteId);
+
+    if (selectedNote) {
+      return selectedNote;
+    }
+  }
+
+  return chooseBestSpendableNote(notes);
 }
 
 function isCanonicalTokenSpendableNote(note: { noteId: string; stateSignature: string }) {
@@ -499,6 +533,7 @@ export function UnshieldPage() {
   const canonicalShieldState = useVantaShieldState();
   const usdcShieldEntry = shieldRegistry.byAssetKey.USDC;
   const [selectedLane, setSelectedLane] = useState<UnshieldLane>("USDC");
+  const [selectedUnshieldNoteId, setSelectedUnshieldNoteId] = useState<string | null>(null);
   const [requestedAmountInput, setRequestedAmountInput] = useState("");
   const [status, setStatus] = useState<UnshieldStatus>("idle");
   const [flowError, setFlowError] = useState<string | null>(null);
@@ -540,6 +575,7 @@ export function UnshieldPage() {
   const [privateCoreActionPending, setPrivateCoreActionPending] = useState(false);
   const selectUnshieldLane = useCallback((nextLane: UnshieldLane) => {
     setSelectedLane(nextLane);
+    setSelectedUnshieldNoteId(null);
     setStatus("idle");
     setFlowError(null);
     setUnshieldReceiptCopyStatus("idle");
@@ -655,8 +691,8 @@ export function UnshieldPage() {
     spendableSolNotes.length,
   ]);
   const selectedSolNote = useMemo(
-    () => chooseBestSpendableNote(spendableSolNotes),
-    [spendableSolNotes],
+    () => chooseSelectedSpendableNote(spendableSolNotes, selectedUnshieldNoteId),
+    [selectedUnshieldNoteId, spendableSolNotes],
   );
 
   const selectedShieldAsset = selectedLane === "SOL" ? null : getLiveShieldTokenAsset(selectedLane);
@@ -665,10 +701,32 @@ export function UnshieldPage() {
   const selectedShieldNote =
     selectedLane === "SOL"
       ? null
-      : chooseBestSpendableNote(canonicalSpendableShieldNotesByLane[selectedLane]);
+      : chooseSelectedSpendableNote(
+          canonicalSpendableShieldNotesByLane[selectedLane],
+          selectedUnshieldNoteId,
+        );
+  const currentSpendableUnshieldNotes =
+    selectedLane === "SOL"
+      ? spendableSolNotes
+      : canonicalSpendableShieldNotesByLane[selectedLane];
+  const selectedUnshieldNote =
+    selectedLane === "SOL" ? selectedSolNote : selectedShieldNote;
   useEffect(() => {
+    if (!selectedUnshieldNoteId) {
+      return;
+    }
+
+    if (!currentSpendableUnshieldNotes.some((note) => note.noteId === selectedUnshieldNoteId)) {
+      setSelectedUnshieldNoteId(null);
+    }
+  }, [currentSpendableUnshieldNotes, selectedUnshieldNoteId]);
+  useEffect(() => {
+    if (selectedUnshieldNoteId) {
+      return;
+    }
+
     setRequestedAmountInput("");
-  }, [selectedLane, selectedShieldNote, selectedSolNote]);
+  }, [selectedLane, selectedShieldNote, selectedSolNote, selectedUnshieldNoteId]);
   const selectedSolAggregateAmount = sumSpendableAmounts(spendableSolNotes, 9);
   const selectedSolPendingAmount = sumSpendableAmounts(pendingSolNotes, 9);
   const selectedFullAmount =
@@ -1983,6 +2041,16 @@ export function UnshieldPage() {
       : currentUnshieldTransactionEvidence.wallet.status === "signature-recorded"
         ? "Transition signature captured"
         : "Pending operator release";
+  const selectedUnshieldNoteLabel = selectedUnshieldNote
+    ? `${formatUnshieldAmount(selectedUnshieldNote.amount, selectedLane)} note - ${abbreviate(
+        selectedUnshieldNote.noteId,
+      )}`
+    : `No ledger-spendable shielded ${selectedLane} note selected`;
+  const unshieldPrimaryActionLabel = isBetaMode
+    ? "Beta mode"
+    : selectedAmount > 0
+      ? `Withdraw ${formatUnshieldAmount(selectedAmount, selectedLane)}`
+      : `Withdraw ${selectedLane}`;
   const copyUnshieldReceipt = useCallback(async () => {
     if (!lastCompletion) {
       setUnshieldReceiptCopyStatus("failed");
@@ -2800,7 +2868,7 @@ export function UnshieldPage() {
                   <span>Amount</span>
                 </div>
                 {selectedLane === "USDC" ? (
-                  <div className="amount-field amount-field--solo">
+                  <div className="amount-field">
                     <input
                       aria-label="Unshield amount"
                       inputMode="decimal"
@@ -2813,6 +2881,22 @@ export function UnshieldPage() {
                       }}
                       placeholder="0.00"
                     />
+                    <button
+                      className="button button-ghost"
+                      type="button"
+                      disabled={selectedFullAmount <= 0}
+                      onClick={() => {
+                        if (selectedFullAmount <= 0) {
+                          return;
+                        }
+
+                        setRequestedAmountInput(formatEditableAmount(selectedFullAmount, selectedLaneDecimals));
+                        setStatus("idle");
+                        setFlowError(null);
+                      }}
+                    >
+                      Max
+                    </button>
                   </div>
                 ) : (
                   <div className="unshield-fixed-field unshield-fixed-field--amount">
@@ -2825,6 +2909,67 @@ export function UnshieldPage() {
                   </div>
                 )}
               </div>
+
+              <PrivacySummary
+                items={UNSHIELD_PRIVACY_SUMMARY_ITEMS}
+                note="Production Unshield privacy remains claim-locked until program-owned release custody, on-chain proof-verified TAG_UNSHIELD release, audit evidence, and live settlement gates pass."
+              />
+
+              <details className="send-advanced-panel unshield-advanced-panel">
+                <summary>Advanced unshield settings</summary>
+                <div className="send-advanced-panel__grid">
+                  <div className="send-advanced-panel__field">
+                    <span>Custom note selection</span>
+                    <strong>{selectedUnshieldNoteLabel}</strong>
+                    <select
+                      aria-label="Unshield note selection"
+                      value={selectedUnshieldNoteId ?? ""}
+                      disabled={currentSpendableUnshieldNotes.length === 0}
+                      onChange={(event) => {
+                        const nextNoteId = event.target.value;
+
+                        if (!nextNoteId) {
+                          setSelectedUnshieldNoteId(null);
+                          return;
+                        }
+
+                        const nextNote = currentSpendableUnshieldNotes.find(
+                          (note) => note.noteId === nextNoteId,
+                        );
+
+                        if (!nextNote) {
+                          setSelectedUnshieldNoteId(null);
+                          return;
+                        }
+
+                        setSelectedUnshieldNoteId(nextNote.noteId);
+
+                        if (selectedLane === "USDC") {
+                          setRequestedAmountInput(
+                            formatEditableAmount(nextNote.amount, selectedLaneDecimals),
+                          );
+                        }
+
+                        setStatus("idle");
+                        setFlowError(null);
+                      }}
+                    >
+                      <option value="">Automatic best note</option>
+                      {currentSpendableUnshieldNotes.map((note) => (
+                        <option key={note.noteId} value={note.noteId}>
+                          {`${formatUnshieldAmount(note.amount, selectedLane)} - ${abbreviate(note.noteId)}`}
+                        </option>
+                      ))}
+                    </select>
+                    <small>Unshield still releases only from ledger-spendable notes.</small>
+                  </div>
+                  <div className="send-advanced-panel__field">
+                    <span>Reference note for receipt</span>
+                    <strong>{selectedUnshieldNote ? abbreviate(selectedUnshieldNote.noteId) : "Unavailable"}</strong>
+                    <small>Receipt references stay bounded to the selected exit note and public release record.</small>
+                  </div>
+                </div>
+              </details>
 
               <div className="unshield-ticket__action">
                 <p className="shield-helper">{validationMessage}</p>
@@ -2847,7 +2992,7 @@ export function UnshieldPage() {
                     status === "finalizing_state"
                   }
                 >
-                  {isBetaMode ? "Beta mode" : "Move to public wallet"}
+                  {unshieldPrimaryActionLabel}
                 </button>
               </div>
             </div>

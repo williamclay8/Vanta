@@ -215,7 +215,13 @@ function runBrowserBatch() {
       action: "assert",
       checks: [
         { kind: "url_contains", text: "/app/unshield" },
+        { kind: "selector_visible", selector: ".privacy-summary" },
+        { kind: "selector_visible", selector: ".unshield-advanced-panel" },
         { kind: "text_visible", text: "Unshield" },
+        { kind: "text_visible", text: "Privacy summary" },
+        { kind: "text_visible", text: "Chain sees" },
+        { kind: "text_visible", text: "Operator sees" },
+        { kind: "text_visible", text: "Advanced unshield settings" },
         { kind: "no_console_errors" },
       ],
     },
@@ -486,6 +492,89 @@ function assertSwapAdvancedDisclosure() {
 
   if (!after.ok) {
     throw new Error(`Swap advanced disclosure did not reveal advanced controls: ${JSON.stringify(after)}`);
+  }
+}
+
+function assertUnshieldAdvancedDisclosure() {
+  execFileSync("gsd-browser", ["--session", browserSession, "set-viewport", "--width", "1440", "--height", "1000"], {
+    stdio: "ignore",
+  });
+  execFileSync("gsd-browser", ["--session", browserSession, "navigate", `${baseUrl}/app/unshield`], {
+    stdio: "ignore",
+  });
+  execFileSync("gsd-browser", ["--session", browserSession, "wait-for", "--condition", "network_idle"], {
+    stdio: "ignore",
+  });
+
+  const rawBefore = execFileSync(
+    "gsd-browser",
+    [
+      "--session",
+      browserSession,
+      "--json",
+      "eval",
+      `(() => {
+        const panel = document.querySelector(".unshield-advanced-panel");
+        const noteSelect = document.querySelector(".unshield-advanced-panel select");
+
+        return {
+          ok: panel instanceof HTMLDetailsElement && !panel.open && noteSelect instanceof HTMLSelectElement,
+          hasNoteSelect: noteSelect instanceof HTMLSelectElement,
+          open: panel instanceof HTMLDetailsElement ? panel.open : null,
+        };
+      })()`,
+    ],
+    { encoding: "utf8" },
+  );
+  const beforeResult = JSON.parse(rawBefore);
+  const beforeRawValue = beforeResult.result ?? beforeResult.value ?? beforeResult;
+  const before = typeof beforeRawValue === "string" ? JSON.parse(beforeRawValue) : beforeRawValue;
+
+  if (!before.ok) {
+    throw new Error(`Unshield advanced disclosure is not closed with note selection ready: ${JSON.stringify(before)}`);
+  }
+
+  execFileSync(
+    "gsd-browser",
+    [
+      "--session",
+      browserSession,
+      "eval",
+      `document.querySelector(".unshield-advanced-panel summary")?.click()`,
+    ],
+    { stdio: "ignore" },
+  );
+
+  const rawAfter = execFileSync(
+    "gsd-browser",
+    [
+      "--session",
+      browserSession,
+      "--json",
+      "eval",
+      `(() => {
+        const panel = document.querySelector(".unshield-advanced-panel");
+        const panelText = panel?.textContent ?? "";
+
+        return {
+          ok:
+            panel instanceof HTMLDetailsElement &&
+            panel.open &&
+            panelText.includes("Custom note selection") &&
+            panelText.includes("Reference note for receipt"),
+          open: panel instanceof HTMLDetailsElement ? panel.open : null,
+          panelText,
+        };
+      })()`,
+    ],
+    { encoding: "utf8" },
+  );
+  const afterResult = JSON.parse(rawAfter);
+  const afterRawValue = afterResult.result ?? afterResult.value ?? afterResult;
+  const after = typeof afterRawValue === "string" ? JSON.parse(afterRawValue) : afterRawValue;
+
+  if (!after.ok) {
+    throw new Error(`Unshield advanced disclosure did not reveal advanced controls: ${JSON.stringify(after)}`);
   }
 }
 
@@ -838,6 +927,7 @@ try {
   assertSendWorkspaceCardCentered();
   assertSendAdvancedDisclosure();
   assertSwapAdvancedDisclosure();
+  assertUnshieldAdvancedDisclosure();
   assertDesktopProductTabsFit();
   assertActionTabsStayMinimal();
   assertSystemStatusStripLayout();

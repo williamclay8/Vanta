@@ -29,6 +29,18 @@ const transactionEvidenceSource = readRepoFile("src/transactions/vantaTransactio
 const transactionEvidenceCheck = readRepoFile("scripts/check-vanta-transaction-evidence.mjs");
 
 for (const phrase of [
+  "PrivacySummary",
+  "UNSHIELD_PRIVACY_SUMMARY_ITEMS",
+  "Chain sees",
+  "Recipient (you) sees",
+  "Operator sees",
+  "exit terms and release status",
+  "Advanced unshield settings",
+  "Custom note selection",
+  "Reference note for receipt",
+  "selectedUnshieldNoteId",
+  "unshieldPrimaryActionLabel",
+  "Withdraw",
   "signUnshieldIntent",
   "signSolUnshieldIntent",
   "signWalletMessageIntentWithSafety",
@@ -59,6 +71,18 @@ for (const phrase of [
   assert.ok(
     unshieldPageSource.includes(phrase),
     `Unshield Phantom-safe public-exit flow missing ${phrase}.`,
+  );
+}
+
+for (const phrase of [
+  "Operator sees: nothing",
+  "fully private Unshield",
+  "anonymous Unshield",
+  "untraceable Unshield",
+]) {
+  assert.ok(
+    !unshieldPageSource.includes(phrase),
+    `Unshield page must not overclaim progressive-disclosure privacy: ${phrase}`,
   );
 }
 
