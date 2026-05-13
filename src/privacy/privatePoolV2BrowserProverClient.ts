@@ -1,6 +1,7 @@
 import {
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_MESSAGE,
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE,
+  type VantaPrivatePoolV2BrowserWorkerSendCompressedWitnessPayload,
   type VantaPrivatePoolV2BrowserWorkerSendProverMessage,
   type VantaPrivatePoolV2BrowserWorkerSendProverPayload,
   type VantaPrivatePoolV2BrowserWorkerSendProverResponse,
@@ -31,14 +32,48 @@ function messageId() {
     .slice(2)}`;
 }
 
-function copyPayloadForTransfer(payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload) {
+function hasCompressedWitnessPayload(
+  payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
+): payload is VantaPrivatePoolV2BrowserWorkerSendCompressedWitnessPayload {
+  return "compressedWitness" in payload && payload.compressedWitness !== undefined;
+}
+
+function copyCompressedWitnessForTransfer(value: ArrayBuffer | Uint8Array) {
+  const source = value instanceof Uint8Array ? value : new Uint8Array(value);
+  const copy = new Uint8Array(source.byteLength);
+  copy.set(source);
+  return copy;
+}
+
+function copyPayloadForTransfer(
+  payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
+): VantaPrivatePoolV2BrowserWorkerSendProverPayload {
+  if (!hasCompressedWitnessPayload(payload)) {
+    return { ...payload };
+  }
+
   return {
-    ...payload,
-    compressedWitness:
-      payload.compressedWitness instanceof Uint8Array
-        ? new Uint8Array(payload.compressedWitness)
-        : new Uint8Array(payload.compressedWitness.slice(0)),
+    circuit: payload.circuit,
+    compiledProgramBytecode: payload.compiledProgramBytecode,
+    compressedWitness: copyCompressedWitnessForTransfer(payload.compressedWitness),
+    expectedPublicInputHash: payload.expectedPublicInputHash,
+    proofRuntimeVersion: payload.proofRuntimeVersion,
+    target: payload.target,
   };
+}
+
+function transferListForPayload(
+  payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
+): Transferable[] {
+  if (!hasCompressedWitnessPayload(payload)) {
+    return [];
+  }
+
+  return [
+    payload.compressedWitness instanceof Uint8Array
+      ? (payload.compressedWitness.buffer as ArrayBuffer)
+      : payload.compressedWitness,
+  ];
 }
 
 export function createVantaPrivatePoolV2BrowserProverClient({
@@ -61,6 +96,10 @@ export function createVantaPrivatePoolV2BrowserProverClient({
           worker.terminate();
           reject(new Error("Private Pool v2 browser worker prover timed out."));
         }, timeoutMs);
+        const cleanup = () => {
+          window.clearTimeout(timeout);
+          worker.terminate();
+        };
 
         worker.onmessage = (
           event: MessageEvent<VantaPrivatePoolV2BrowserWorkerSendProverResponse>,
@@ -73,8 +112,7 @@ export function createVantaPrivatePoolV2BrowserProverClient({
             return;
           }
 
-          window.clearTimeout(timeout);
-          worker.terminate();
+          cleanup();
 
           if (response.ok) {
             resolve(response.artifact);
@@ -85,12 +123,16 @@ export function createVantaPrivatePoolV2BrowserProverClient({
         };
 
         worker.onerror = (event) => {
-          window.clearTimeout(timeout);
-          worker.terminate();
+          cleanup();
           reject(new Error(event.message || "Private Pool v2 browser worker prover failed."));
         };
 
-        worker.postMessage(request, [requestPayload.compressedWitness.buffer]);
+        try {
+          worker.postMessage(request, transferListForPayload(requestPayload));
+        } catch (error) {
+          cleanup();
+          reject(error instanceof Error ? error : new Error(String(error)));
+        }
       });
     },
   };

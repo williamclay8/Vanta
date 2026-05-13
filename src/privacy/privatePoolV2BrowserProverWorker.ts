@@ -1,4 +1,5 @@
 import { Barretenberg, UltraHonkBackend } from "@aztec/bb.js";
+import { Noir, type CompiledCircuit, type InputMap } from "@noir-lang/noir_js";
 import {
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_MESSAGE,
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE,
@@ -6,6 +7,10 @@ import {
   type VantaPrivatePoolV2BrowserWorkerSendProverPayload,
   type VantaPrivatePoolV2BrowserWorkerSendProverResponse,
 } from "./privatePoolV2BrowserProverProtocol";
+import {
+  createVantaPrivatePoolV2SendCircuitFixtureFromWitnessInput,
+  createVantaPrivatePoolV2SendCircuitNoirInputs,
+} from "./privatePoolV2SendCircuitFixture";
 import type { VantaPrivatePoolV2SendProofArtifact } from "./privatePoolV2Types";
 
 const SEND_CIRCUIT = "vanta_private_pool_v2_send_entry" as const;
@@ -52,6 +57,30 @@ function compressedWitnessBytes(value: ArrayBuffer | Uint8Array) {
   return bytes;
 }
 
+function hasCompressedWitness(
+  payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
+): payload is VantaPrivatePoolV2BrowserWorkerSendProverPayload & {
+  compressedWitness: ArrayBuffer | Uint8Array;
+} {
+  return "compressedWitness" in payload && payload.compressedWitness !== undefined;
+}
+
+function hasWitnessInput(
+  payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
+): payload is VantaPrivatePoolV2BrowserWorkerSendProverPayload & {
+  compiledProgramAbi: CompiledCircuit["abi"];
+  witnessInput: unknown;
+} {
+  return "witnessInput" in payload && payload.witnessInput !== undefined;
+}
+
+function assertCompiledProgramAbi(value: unknown): asserts value is CompiledCircuit["abi"] {
+  assert(
+    value !== null && typeof value === "object" && !Array.isArray(value),
+    "Browser worker witness generation requires the compiled Noir program ABI.",
+  );
+}
+
 function assertSendPayload(payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload) {
   assert(payload.target === "send", "Browser worker prover only supports Send.");
   assert(payload.circuit === SEND_CIRCUIT, "Browser worker prover requires the Send circuit.");
@@ -67,13 +96,47 @@ function assertSendPayload(payload: VantaPrivatePoolV2BrowserWorkerSendProverPay
   if (payload.expectedPublicInputHash !== undefined) {
     normalizeFieldString(payload.expectedPublicInputHash, "expected Send public input hash");
   }
+
+  const compressedWitnessProvided = hasCompressedWitness(payload);
+  const witnessInputProvided = hasWitnessInput(payload);
+  assert(
+    compressedWitnessProvided !== witnessInputProvided,
+    "Browser worker prover requires exactly one Send witness source: compressedWitness or witnessInput.",
+  );
+
+  if (witnessInputProvided) {
+    assertCompiledProgramAbi(payload.compiledProgramAbi);
+  }
+}
+
+async function generateSendCompressedWitness(
+  payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
+) {
+  if (hasCompressedWitness(payload)) {
+    return compressedWitnessBytes(payload.compressedWitness);
+  }
+
+  assert(hasWitnessInput(payload), "Browser worker prover requires Send witness input.");
+  assertCompiledProgramAbi(payload.compiledProgramAbi);
+
+  const fixture = createVantaPrivatePoolV2SendCircuitFixtureFromWitnessInput(
+    payload.witnessInput,
+  );
+  const noirInputs = createVantaPrivatePoolV2SendCircuitNoirInputs(fixture);
+  const noir = new Noir({
+    abi: payload.compiledProgramAbi,
+    bytecode: payload.compiledProgramBytecode,
+  } as CompiledCircuit);
+  const { witness } = await noir.execute(noirInputs as InputMap);
+
+  return compressedWitnessBytes(witness);
 }
 
 async function proveVantaPrivatePoolV2SendInBrowserWorkerImpl(
   payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
 ): Promise<VantaPrivatePoolV2SendProofArtifact> {
   assertSendPayload(payload);
-  const compressedWitness = compressedWitnessBytes(payload.compressedWitness);
+  const compressedWitness = await generateSendCompressedWitness(payload);
   const api = await Barretenberg.new({ threads: 1 });
 
   try {
@@ -122,6 +185,20 @@ export function proveVantaPrivatePoolV2SendInBrowserWorker(
   return proveVantaPrivatePoolV2SendInBrowserWorkerImpl(payload);
 }
 
+function browserWorkerErrorMessage({
+  error,
+  payload,
+}: {
+  error: unknown;
+  payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload;
+}) {
+  if (hasWitnessInput(payload)) {
+    return "Private Pool v2 browser worker prover rejected the Send witness input.";
+  }
+
+  return error instanceof Error ? error.message : String(error);
+}
+
 type WorkerLikeGlobal = typeof globalThis & {
   addEventListener?: (
     type: "message",
@@ -155,7 +232,7 @@ if (isWorkerScope) {
       })
       .catch((error: unknown) => {
         workerGlobal.postMessage!({
-          error: error instanceof Error ? error.message : String(error),
+          error: browserWorkerErrorMessage({ error, payload: message.payload }),
           id: message.id,
           kind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE,
           ok: false,

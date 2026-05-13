@@ -88,6 +88,38 @@ export type VantaPrivatePoolV2SendCircuitWitnessInput = {
   send_context_tag: bigint | string;
 };
 
+export type VantaPrivatePoolV2SendCircuitNoirInputs = {
+  asset_id_commitment: string;
+  change_amount: string;
+  change_append_path: string[];
+  change_append_path_direction_bits: string[];
+  change_leaf_index: string;
+  change_memo_ciphertext_body_hash_field: string;
+  change_output_commitment: string;
+  change_output_root: string;
+  economics_blinding: string;
+  economics_commitment: string;
+  input_amount: string;
+  input_commitment: string;
+  input_leaf_index: string;
+  input_root: string;
+  membership_path: string[];
+  membership_path_direction_bits: string[];
+  nullifier: string;
+  owner_commitment: string;
+  owner_secret: string;
+  recipient_amount: string;
+  recipient_append_path: string[];
+  recipient_append_path_direction_bits: string[];
+  recipient_leaf_index: string;
+  recipient_memo_ciphertext_body_hash_field: string;
+  recipient_output_commitment: string;
+  recipient_output_root: string;
+  request_version: string;
+  send_context_tag: string;
+  send_public_input_hash: string;
+};
+
 export type VantaPrivatePoolV2SendCircuitFixtureMode =
   | "valid"
   | "forged-input-membership"
@@ -732,6 +764,50 @@ export function createVantaPrivatePoolV2SendCircuitFixtureFromWitnessInput(input
     memoCiphertextBodyHashes: normalized.memoCiphertextBodyHashes,
     witness: normalized.witness,
   });
+}
+
+export function createVantaPrivatePoolV2SendCircuitNoirInputs(
+  fixture: VantaPrivatePoolV2SendCircuitFixture,
+): VantaPrivatePoolV2SendCircuitNoirInputs {
+  const { witness } = fixture;
+
+  return {
+    asset_id_commitment: toCircuitString(witness.asset_id_commitment),
+    change_amount: toCircuitString(witness.change_amount),
+    change_append_path: witness.change_append_path.map(toCircuitString),
+    change_append_path_direction_bits:
+      witness.change_append_path_direction_bits.map(toCircuitString),
+    change_leaf_index: toCircuitString(witness.change_leaf_index),
+    change_memo_ciphertext_body_hash_field: toCircuitString(
+      witness.change_memo_ciphertext_body_hash_field,
+    ),
+    change_output_commitment: toCircuitString(witness.change_output_commitment),
+    change_output_root: toCircuitString(witness.change_output_root),
+    economics_blinding: toCircuitString(witness.economics_blinding),
+    economics_commitment: toCircuitString(witness.economics_commitment),
+    input_amount: toCircuitString(witness.input_amount),
+    input_commitment: toCircuitString(witness.input_commitment),
+    input_leaf_index: toCircuitString(witness.input_leaf_index),
+    input_root: toCircuitString(witness.input_root),
+    membership_path: witness.membership_path.map(toCircuitString),
+    membership_path_direction_bits: witness.membership_path_direction_bits.map(toCircuitString),
+    nullifier: toCircuitString(witness.nullifier),
+    owner_commitment: toCircuitString(witness.owner_commitment),
+    owner_secret: toCircuitString(witness.owner_secret),
+    recipient_amount: toCircuitString(witness.recipient_amount),
+    recipient_append_path: witness.recipient_append_path.map(toCircuitString),
+    recipient_append_path_direction_bits:
+      witness.recipient_append_path_direction_bits.map(toCircuitString),
+    recipient_leaf_index: toCircuitString(witness.recipient_leaf_index),
+    recipient_memo_ciphertext_body_hash_field: toCircuitString(
+      witness.recipient_memo_ciphertext_body_hash_field,
+    ),
+    recipient_output_commitment: toCircuitString(witness.recipient_output_commitment),
+    recipient_output_root: toCircuitString(witness.recipient_output_root),
+    request_version: toCircuitString(witness.request_version),
+    send_context_tag: toCircuitString(witness.send_context_tag),
+    send_public_input_hash: toCircuitString(fixture.sendPublicInputHash),
+  };
 }
 
 function assertMemoCiphertextBodyHashFieldMatches({
