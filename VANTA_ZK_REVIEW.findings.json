@@ -216,6 +216,40 @@
       "truthBoundary": "This is product copy and guard hardening only. It does not make Vanta production-private, does not prove lane privacy, does not add a public depth oracle, does not add browser witness generation, does not choose a C01 verifier backend, and does not provide pushed or live deployment evidence."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#v11-public-depth-oracle-as-privacy-disclosure",
+        "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
+        "src/privacy/privatePoolV2AnonymityDisclosure.ts",
+        "src/components/AnonymityDepthDisclosure.tsx",
+        "src/pages/HomePage.tsx",
+        "scripts/check-vanta-private-pool-v2-public-depth-disclosure.mjs"
+      ],
+      "summary": "The V11 depth-oracle feedback now has a truthful local public disclosure instead of waiting for the future live oracle: the homepage shows Anonymity readiness: blocked, current reviewed spend evidence reports 2 distinct commitments toward the 1,024 minimum, and the copy explicitly says Vanta does not claim live anonymity or production-private mainnet settlement yet. The browser-safe disclosure module derives the counts from the anonymity-set evidence JSON, and the public-depth guard is wired into the privacy claim gate, landing alias, ZK review guards, and ZK feedback-loop guard.",
+      "localVerification": [
+        "npm run private-pool-v2:public-depth-disclosure-check",
+        "npm run landing:anonymity-disclosure-check",
+        "npm run private-pool-v2:anonymity-set-readiness-check",
+        "npm run private-pool-v2:anonymity-set-metrics-check",
+        "npm run private-pool-v2:anonymity-set-evidence-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run landing:browser-check",
+        "npm run product-ui:browser-check",
+        "npm run zk:review-guards-check",
+        "npm run build",
+        "git diff --check",
+        "git diff --cached --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the public anonymity-depth disclosure across focused public-depth, landing alias, anonymity readiness/metrics/evidence, privacy-claim, landing browser, product UI browser, ZK review guards, build, and diff whitespace checks",
+        "committed": "2a6c7fa (Add public anonymity depth disclosure)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a truthful local disclosure of current evidence-recorded pool depth. It is not a live depth oracle, not a shared on-chain anonymity tree, not independent reviewer acceptance, not an audited anonymity set, not production-private mainnet settlement, not pushed, and not live-deployed."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-SEND-WITNESS-INPUT-PROVER",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [

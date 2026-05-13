@@ -262,6 +262,40 @@ assert(
 );
 assert(copyClarityFollowUpLoopText.includes("f3d5135"), `${copyClarityFollowUpLoopId} must pin the implementation commit`);
 
+const publicDepthDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE";
+assert(activeFeedbackLoopIds.has(publicDepthDisclosureLoopId), `${publicDepthDisclosureLoopId} active feedback loop is missing`);
+const publicDepthDisclosureLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === publicDepthDisclosureLoopId);
+const publicDepthDisclosureLoopText = JSON.stringify(publicDepthDisclosureLoop);
+assert(
+  publicDepthDisclosureLoop?.localVerification?.includes("npm run private-pool-v2:public-depth-disclosure-check"),
+  `${publicDepthDisclosureLoopId} must record the public-depth disclosure guard`,
+);
+assert(
+  publicDepthDisclosureLoop?.localVerification?.includes("npm run landing:browser-check"),
+  `${publicDepthDisclosureLoopId} must record the landing browser guard`,
+);
+assert(
+  publicDepthDisclosureLoopText.includes("Anonymity readiness: blocked"),
+  `${publicDepthDisclosureLoopId} must record the blocked readiness label`,
+);
+assert(
+  publicDepthDisclosureLoopText.includes("2 distinct commitments"),
+  `${publicDepthDisclosureLoopId} must record the current measured commitment count`,
+);
+assert(
+  publicDepthDisclosureLoopText.includes("1,024 minimum"),
+  `${publicDepthDisclosureLoopId} must record the current minimum threshold`,
+);
+assert(
+  publicDepthDisclosureLoopText.includes("does not claim live anonymity"),
+  `${publicDepthDisclosureLoopId} must preserve the live-anonymity non-claim`,
+);
+assert(
+  publicDepthDisclosureLoopText.includes("not a live depth oracle"),
+  `${publicDepthDisclosureLoopId} must preserve the V11 live-oracle boundary`,
+);
+assert(publicDepthDisclosureLoopText.includes("2a6c7fa"), `${publicDepthDisclosureLoopId} must pin the implementation commit`);
+
 const ids = new Set();
 for (const finding of ledger.findings) {
   assert(typeof finding.id === "string", "finding is missing id");
