@@ -673,6 +673,10 @@ assert(
   "H08 verification commands must include the Send browser worker prover guard",
 );
 assert(
+  h08.verification.commands.includes("npm run private-pool-v2:actual-private-spend-browser-worker-prover-check"),
+  "H08 verification commands must include the actual-private-spend browser worker prover guard",
+);
+assert(
   h08.codexRemediation.commits.some((commitRef) => commitRef.includes("baaff54")),
   "H08 must record the Send witness proof path commit",
 );
@@ -684,10 +688,21 @@ assert(
   h08.codexRemediation.commits.some((commitRef) => commitRef.includes("1611ad4")),
   "H08 must record the Send browser worker witness-generation commit",
 );
+assert(
+  h08.codexRemediation.commits.some((commitRef) => commitRef.includes("374dc21")),
+  "H08 must record the actual-private-spend browser worker prover commit",
+);
 assert(h08Text.includes("send-public-input-hash"), "H08 must record Send public-input hash binding");
+assert(
+  h08Text.includes("private-spend-public-input-hash"),
+  "H08 must record actual-private-spend public-input hash binding",
+);
 assert(h08Text.includes("local-bb-derived-artifact"), "H08 must record the derived artifact backend");
 assert(h08Text.includes("browser/Web Worker proof-execution"), "H08 must record the browser worker proof-execution boundary");
-assert(h08Text.includes("typed Send witness input"), "H08 must record the typed Send witness-input boundary");
+assert(
+  h08Text.includes("typed witness input"),
+  "H08 must record typed witness-input browser worker boundaries",
+);
 assert(
   h08Text.includes("worker-side witness generation"),
   "H08 must record the worker-side witness-generation boundary",
@@ -695,6 +710,58 @@ assert(
 assert(
   !h08Text.includes("does not generate witnesses in the browser"),
   "H08 must not preserve the stale browser witness-generation limitation",
+);
+
+const actualPrivateSpendBrowserLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-13-ACTUAL-PRIVATE-SPEND-BROWSER-WORKER-PROVER";
+assert(
+  activeFeedbackLoopIds.has(actualPrivateSpendBrowserLoopId),
+  `${actualPrivateSpendBrowserLoopId} active feedback loop is missing`,
+);
+const actualPrivateSpendBrowserLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === actualPrivateSpendBrowserLoopId,
+);
+const actualPrivateSpendBrowserLoopText = JSON.stringify(actualPrivateSpendBrowserLoop);
+for (const command of [
+  "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
+  "npm run private-pool-v2:browser-worker-prover-check",
+  "npm run private-pool-v2:proof-backend-boundary-check",
+  "npm run private-pool-v2:local-prover-check",
+  "npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
+  "npm run private-pool-v2:actual-private-spend-operator-no-witness-check",
+]) {
+  assert(
+    actualPrivateSpendBrowserLoop?.localVerification?.includes(command),
+    `${actualPrivateSpendBrowserLoopId} must record ${command}`,
+  );
+}
+assert(
+  actualPrivateSpendBrowserLoopText.includes("private-spend-public-input-hash"),
+  `${actualPrivateSpendBrowserLoopId} must record actual-private-spend public-input binding`,
+);
+assert(
+  actualPrivateSpendBrowserLoopText.includes("local-bb-derived-artifact"),
+  `${actualPrivateSpendBrowserLoopId} must record the derived artifact backend`,
+);
+assert(
+  actualPrivateSpendBrowserLoopText.includes("typed actual-private-spend witness input"),
+  `${actualPrivateSpendBrowserLoopId} must record the typed actual-private-spend witness-input boundary`,
+);
+assert(
+  actualPrivateSpendBrowserLoopText.includes("worker-side witness generation"),
+  `${actualPrivateSpendBrowserLoopId} must record worker-side witness generation`,
+);
+assert(
+  actualPrivateSpendBrowserLoopText.includes("postMessage"),
+  `${actualPrivateSpendBrowserLoopId} must record postMessage cleanup coverage`,
+);
+assert(
+  actualPrivateSpendBrowserLoopText.includes("not routed live actual-private-spend execution"),
+  `${actualPrivateSpendBrowserLoopId} must preserve the live-routing boundary`,
+);
+assert(
+  actualPrivateSpendBrowserLoopText.includes("374dc21"),
+  `${actualPrivateSpendBrowserLoopId} must pin the implementation commit`,
 );
 
 const severityCounts = ledger.findings.reduce((counts, finding) => {
