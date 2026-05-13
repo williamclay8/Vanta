@@ -64,7 +64,10 @@ const requiredPageMarkers = [
   "Operator-visible swap beta",
   "Finalizing beta route evidence",
   "operator-visible settlement",
-  "{shieldedSwapAssets.map((asset) => (",
+  "swapSourceAssetPickerOptions",
+  "swapTargetAssetPickerOptions",
+  "<AssetPickerGrid",
+  "disabledReason",
   "!isReady ||",
   "This shielded pair needs a route adapter with committed settlement evidence before it can execute.",
 ];

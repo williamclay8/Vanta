@@ -59,6 +59,7 @@ import {
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentSafety.mjs";
 import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
+import { AssetPickerGrid, type AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import {
   PrivacySummary,
@@ -333,6 +334,44 @@ export function SwapPage() {
   const availableSourceAssetOptions = useMemo(
     () => readySourceAssetOptions.filter((asset) => asset.ready),
     [readySourceAssetOptions],
+  );
+  const swapSourceAssetPickerOptions = useMemo<AssetPickerGridOption[]>(
+    () =>
+      availableSourceAssetOptions.map((asset) => ({
+        balanceLabel: formatAssetAmount(asset.balance, asset.symbol),
+        id: asset.symbol,
+        label: formatReadyAssetOptionLabel({
+          balance: asset.balance,
+          configured: asset.configured,
+          label: asset.label,
+          symbol: asset.symbol,
+        }),
+        name: asset.name,
+        statusLabel: "Ready",
+        symbol: asset.symbol,
+      })),
+    [availableSourceAssetOptions],
+  );
+  const swapTargetAssetPickerOptions = useMemo<AssetPickerGridOption[]>(
+    () =>
+      shieldedSwapAssets.map((asset) => {
+        const pairCapability = getShieldedSwapPairCapability({
+          inputAsset: selectedSourceAsset,
+          outputAsset: asset.symbol,
+        });
+        const disabled = pairCapability.status !== "live";
+
+        return {
+          disabled,
+          disabledReason: disabled ? pairCapability.blockers[0] ?? "Route unavailable" : undefined,
+          id: asset.symbol,
+          label: asset.label,
+          name: asset.name,
+          statusLabel: disabled ? "Unavailable" : "Ready",
+          symbol: asset.symbol,
+        };
+      }),
+    [selectedSourceAsset, shieldedSwapAssets],
   );
 
   useEffect(() => {
@@ -1682,39 +1721,25 @@ export function SwapPage() {
                 <div className="swap-route-card__row">
                   <div className="swap-choice-group" role="group" aria-label="From shielded asset">
                     <span>From</span>
-                    <div className="send-asset-field">
-                      <select
-                        aria-label="From shielded asset"
-                        value={
-                          availableSourceAssetOptions.some((asset) => asset.symbol === selectedSourceAsset)
-                            ? selectedSourceAsset
-                            : ""
-                        }
-                        disabled={availableSourceAssetOptions.length === 0}
-                        onChange={(event) => {
-                          setSelectedSourceAsset(event.target.value as ShieldedSwapAssetKey);
-                          setSelectedSwapNoteId(null);
-                          setStatus("idle");
-                          setFlowError(null);
-                          setQuote(null);
-                          setQuoteError(null);
-                        }}
-                      >
-                        {availableSourceAssetOptions.length === 0 && (
-                          <option value="">No shielded assets ready</option>
-                        )}
-                        {availableSourceAssetOptions.map((asset) => (
-                          <option key={asset.symbol} value={asset.symbol}>
-                            {formatReadyAssetOptionLabel({
-                              balance: asset.balance,
-                              configured: asset.configured,
-                              label: asset.label,
-                              symbol: asset.symbol,
-                            })}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    <AssetPickerGrid
+                      ariaLabel="From shielded asset"
+                      disabled={availableSourceAssetOptions.length === 0}
+                      emptyLabel="No shielded assets ready"
+                      onSelectOption={(nextSourceAsset) => {
+                        setSelectedSourceAsset(nextSourceAsset as ShieldedSwapAssetKey);
+                        setSelectedSwapNoteId(null);
+                        setStatus("idle");
+                        setFlowError(null);
+                        setQuote(null);
+                        setQuoteError(null);
+                      }}
+                      options={swapSourceAssetPickerOptions}
+                      selectedOptionId={
+                        availableSourceAssetOptions.some((asset) => asset.symbol === selectedSourceAsset)
+                          ? selectedSourceAsset
+                          : ""
+                      }
+                    />
                     <small>Shielded balance: {sourceBalanceLabel}</small>
                   </div>
 
@@ -1762,25 +1787,18 @@ export function SwapPage() {
                 <div className="swap-route-card__row">
                   <div className="swap-choice-group" role="group" aria-label="To shielded asset">
                     <span>To</span>
-                    <div className="send-asset-field">
-                      <select
-                        aria-label="To shielded asset"
-                        value={selectedTargetAsset}
-                        onChange={(event) => {
-                          setSelectedTargetAsset(event.target.value as ShieldedSwapAssetKey);
-                          setStatus("idle");
-                          setFlowError(null);
-                          setQuote(null);
-                          setQuoteError(null);
-                        }}
-                      >
-                        {shieldedSwapAssets.map((asset) => (
-                          <option key={asset.symbol} value={asset.symbol}>
-                            {asset.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    <AssetPickerGrid
+                      ariaLabel="To shielded asset"
+                      onSelectOption={(nextTargetAsset) => {
+                        setSelectedTargetAsset(nextTargetAsset as ShieldedSwapAssetKey);
+                        setStatus("idle");
+                        setFlowError(null);
+                        setQuote(null);
+                        setQuoteError(null);
+                      }}
+                      options={swapTargetAssetPickerOptions}
+                      selectedOptionId={selectedTargetAsset}
+                    />
                   </div>
 
                   <div className="swap-quote-line">

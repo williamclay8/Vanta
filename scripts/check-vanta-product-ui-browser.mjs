@@ -801,6 +801,114 @@ function assertLaneFlowIndicators() {
   }
 }
 
+function assertAssetPickerGrids() {
+  const cases = [
+    {
+      labels: ["Shield source asset", "Shield target asset"],
+      route: "/app/shield",
+    },
+    {
+      labels: ["From shielded asset", "To shielded asset"],
+      route: "/app/swap",
+    },
+  ];
+
+  for (const assetCase of cases) {
+    for (const width of [1440, 390, 320]) {
+      execFileSync(
+        "gsd-browser",
+        ["--session", browserSession, "set-viewport", "--width", String(width), "--height", "900"],
+        { stdio: "ignore" },
+      );
+      execFileSync("gsd-browser", ["--session", browserSession, "navigate", `${baseUrl}${assetCase.route}`], {
+        stdio: "ignore",
+      });
+      execFileSync("gsd-browser", ["--session", browserSession, "wait-for", "--condition", "network_idle"], {
+        stdio: "ignore",
+      });
+
+      const rawResult = execFileSync(
+        "gsd-browser",
+        [
+          "--session",
+          browserSession,
+          "--json",
+          "eval",
+          `(assetCase => {
+            const bodyText = document.body.innerText;
+            const normalizedBodyText = bodyText.toLowerCase();
+            const missingPickers = assetCase.labels.filter(
+              (label) => !(document.querySelector(\`.asset-picker-grid[aria-label="\${label}"]\`) instanceof HTMLElement),
+            );
+            const legacySelects = Array.from(
+              document.querySelectorAll(
+                'select[aria-label="From asset"], select[aria-label="From shielded asset"], select[aria-label="To shielded asset"]',
+              ),
+            ).map((select) => select.getAttribute("aria-label"));
+            const grids = Array.from(document.querySelectorAll(".asset-picker-grid"));
+            const swapSourcePicker = document.querySelector('.asset-picker-grid[aria-label="From shielded asset"]');
+            const swapSourceOptionCount =
+              swapSourcePicker instanceof HTMLElement
+                ? swapSourcePicker.querySelectorAll(".asset-picker-grid__option").length
+                : 0;
+            const swapSourcePickerText =
+              swapSourcePicker instanceof HTMLElement ? swapSourcePicker.textContent ?? "" : "";
+            const disabledOptionCount = document.querySelectorAll(".asset-picker-grid__option--disabled").length;
+            const documentOverflow =
+              Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) -
+              window.innerWidth;
+            const gridOverflow = grids.reduce(
+              (max, grid) =>
+                grid instanceof HTMLElement ? Math.max(max, grid.scrollWidth - grid.clientWidth) : max,
+              0,
+            );
+            const swapTruthOk =
+              assetCase.route !== "/app/swap" ||
+              (normalizedBodyText.includes("operator-visible") &&
+                (swapSourcePickerText.includes("No shielded assets ready") || swapSourceOptionCount > 0) &&
+                disabledOptionCount > 0);
+            const shieldTruthOk =
+              assetCase.route !== "/app/shield" ||
+              (bodyText.includes("Route:") && !bodyText.toLowerCase().includes("production private"));
+
+            return {
+              ok:
+                missingPickers.length === 0 &&
+                legacySelects.length === 0 &&
+                grids.length >= assetCase.labels.length &&
+                documentOverflow <= 2 &&
+                gridOverflow <= 2 &&
+                swapTruthOk &&
+                shieldTruthOk,
+              disabledOptionCount,
+              documentOverflow,
+              gridCount: grids.length,
+              gridOverflow,
+              legacySelects,
+              missingPickers,
+              route: window.location.pathname,
+              shieldTruthOk,
+              swapSourceOptionCount,
+              swapSourcePickerText,
+              swapTruthOk,
+              width: window.innerWidth,
+            };
+          })(${JSON.stringify(assetCase)})`,
+        ],
+        { encoding: "utf8" },
+      );
+
+      const result = JSON.parse(rawResult);
+      const rawValue = result.result ?? result.value ?? result;
+      const value = typeof rawValue === "string" ? JSON.parse(rawValue) : rawValue;
+
+      if (!value.ok) {
+        throw new Error(`Asset picker grid check failed: ${JSON.stringify(value)}`);
+      }
+    }
+  }
+}
+
 function assertSystemStatusStripLayout() {
   for (const route of ["/app/shield", "/app/send", "/app/swap", "/app/unshield", "/app/strategy", "/app/pay"]) {
     for (const width of [1440, 768, 390, 360, 320]) {
@@ -1057,6 +1165,7 @@ try {
   assertDesktopProductTabsFit();
   assertActionTabsStayMinimal();
   assertLaneFlowIndicators();
+  assertAssetPickerGrids();
   assertSystemStatusStripLayout();
   assertUnshieldAssetSelectorStaysCompact();
   console.log("vanta product ui browser check: PASS");

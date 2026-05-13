@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
+import { AssetPickerGrid, type AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import {
   usePrivacyFlow,
@@ -962,6 +963,68 @@ export function ShieldPage(_props: ShieldPageProps) {
         : targetShieldSymbol
           ? formatAssetAmount(targetShieldedBalance, targetShieldSymbol)
         : "Choose asset";
+  const sourceAssetPickerOptions = useMemo<AssetPickerGridOption[]>(
+    () =>
+      executableSourceAssets.map((asset) => {
+        const loading = asset.balanceStatus === "loading";
+        const unavailable = asset.balanceStatus === "error";
+        const balanceLabel = loading
+          ? "Loading..."
+          : unavailable
+            ? "Temporarily unavailable"
+            : formatAssetAmount(asset.balance, asset.symbol);
+
+        return {
+          balanceLabel,
+          disabled: !walletConnected || loading || unavailable,
+          disabledReason: !walletConnected
+            ? "Connect wallet"
+            : loading
+              ? "Loading balance"
+              : unavailable
+                ? "Balance recovery unavailable"
+                : undefined,
+          id: asset.id,
+          label: formatShieldSourceAssetOptionLabel(asset),
+          loading,
+          name: asset.label,
+          statusLabel: loading ? "Loading" : unavailable ? "Unavailable" : asset.balance > 0 ? "Ready" : "No balance",
+          symbol: asset.symbol,
+        };
+      }),
+    [executableSourceAssets, walletConnected],
+  );
+  const shieldTargetAssetPickerOptions = useMemo<AssetPickerGridOption[]>(
+    () => [
+      {
+        balanceLabel: targetShieldedBalanceLabel,
+        disabled: !capability.targetShieldAsset || !selectedShieldAsset?.vaultOwner,
+        disabledReason: !walletConnected
+          ? "Connect wallet"
+          : !capability.targetShieldAsset
+            ? "No configured target"
+            : !selectedShieldAsset?.vaultOwner
+              ? "Vault owner unavailable"
+              : undefined,
+        id: capability.targetShieldAsset?.assetKey ?? "no-shield-target",
+        label: isNativeSolShield
+          ? "Shielded SOL"
+          : capability.targetShieldAsset?.label ?? "Shielded asset",
+        loading: targetShieldedBalanceLabel === "Loading...",
+        name: targetShieldName ?? (walletConnected ? "Automatic shield target" : "Connect wallet"),
+        statusLabel: selectedShieldAsset?.vaultOwner ? "Automatic target" : "Unavailable",
+        symbol: capability.targetShieldAsset?.assetKey ?? "Vanta",
+      },
+    ],
+    [
+      capability.targetShieldAsset,
+      isNativeSolShield,
+      selectedShieldAsset?.vaultOwner,
+      targetShieldName,
+      targetShieldedBalanceLabel,
+      walletConnected,
+    ],
+  );
 
   async function beginShieldTransfer(
     amountDisplay: string,
@@ -2110,28 +2173,19 @@ export function ShieldPage(_props: ShieldPageProps) {
                 <div className="swap-module__label-row">
                   <span>From</span>
                 </div>
-                <div className="send-asset-field">
-                  <select
-                    aria-label="From asset"
-                    value={sourceSelectValue}
-                    disabled={sourceSelectDisabled}
-                    onChange={(event) => {
-                      setSelectedSourceAssetId(event.target.value);
-                      setStatus("idle");
-                      setRecentShield(null);
-                      setFlowError(null);
-                    }}
-                  >
-                    {executableSourceAssets.length === 0 && (
-                      <option value="">{sourcePlaceholderLabel}</option>
-                    )}
-                    {executableSourceAssets.map((asset) => (
-                      <option key={asset.id} value={asset.id}>
-                        {formatShieldSourceAssetOptionLabel(asset)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <AssetPickerGrid
+                  ariaLabel="Shield source asset"
+                  disabled={sourceSelectDisabled}
+                  emptyLabel={sourcePlaceholderLabel}
+                  onSelectOption={(nextSourceAssetId) => {
+                    setSelectedSourceAssetId(nextSourceAssetId);
+                    setStatus("idle");
+                    setRecentShield(null);
+                    setFlowError(null);
+                  }}
+                  options={sourceAssetPickerOptions}
+                  selectedOptionId={sourceSelectValue}
+                />
               </div>
 
               <div className="swap-module__divider" aria-hidden="true" />
@@ -2150,10 +2204,13 @@ export function ShieldPage(_props: ShieldPageProps) {
                     )}
                   </div>
                 </div>
-                <div className="swap-quote-line">
-                  <strong>{isNativeSolShield ? "Shielded SOL" : capability.targetShieldAsset?.label ?? "Shielded asset"}</strong>
-                  <span>{targetShieldName ?? (walletConnected ? "Choose target" : "Connect wallet")}</span>
-                </div>
+                <AssetPickerGrid
+                  ariaLabel="Shield target asset"
+                  options={shieldTargetAssetPickerOptions}
+                  onSelectOption={() => undefined}
+                  readOnly
+                  selectedOptionId={shieldTargetAssetPickerOptions[0]?.id ?? ""}
+                />
                 <p className="shield-helper shield-helper--route">
                   Route: {selectedSourceAsset?.symbol ?? "Asset"} {"->"} {capability.targetShieldAsset?.label ?? "Shielded asset"}
                 </p>
