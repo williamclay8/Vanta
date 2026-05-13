@@ -168,6 +168,42 @@
       "truthBoundary": "This is opt-in local fixture replay and verifier receipt testing only. It is not a production prover, not live Shield/Claim/Swap/Send/actual-private-spend routing, not a production browser runtime prover, not a remote proof service, not on-chain proof verification, not production verifying-key evidence, not audit acceptance, not live deployment evidence, and not real-funds readiness."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-H08-BROWSER-WORKER-PROOF-RESULT-ADAPTER",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#still-open-2--replace-the-mock-prover-with-bbjs",
+        "src/privacy/privatePoolV2BrowserWorkerProofResultAdapter.ts",
+        "src/privacy/privatePoolV2BrowserProverClient.ts",
+        "src/privacy/privatePoolV2LocalProver.ts",
+        "scripts/check-vanta-private-pool-v2-browser-worker-proof-result-adapter.mjs",
+        "scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs",
+        "scripts/check-vanta-private-pool-v2-contract.mjs",
+        "README.md",
+        "SECURITY_LIMITATIONS.md",
+        "npm run private-pool-v2:browser-worker-proof-result-adapter-check"
+      ],
+      "summary": "An opt-in browser-worker proof-result adapter now implements VantaPrivatePoolV2Prover for Send and actual-private-spend only. It delegates to the browser prover client, injects the expected send-public-input-hash or private-spend-public-input-hash into the worker payload, rejects request transcript drift before invoking the worker client, requires worker artifacts to remain noir-bb / local-bb-derived-artifact, reuses the local bb proof-result validator, and leaves the default local prover on mock / local-mock.",
+      "localVerification": [
+        "red-first npm run private-pool-v2:browser-worker-proof-result-adapter-check failed before the adapter file existed",
+        "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
+        "npm run private-pool-v2:browser-worker-prover-check",
+        "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
+        "npm run private-pool-v2:proof-backend-boundary-check",
+        "npm run private-pool-v2:contract-check",
+        "npm run private-pool-v2:local-prover-check",
+        "npm run build",
+        "git diff --check",
+        "git diff --cached --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the browser-worker proof-result adapter, browser worker Send/actual-private-spend proof paths, proof-backend boundary, private-pool-v2 contract, local-prover aggregate, build, and diff whitespace checks",
+        "committed": "1ca9bfa (Add browser worker proof adapter)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is an opt-in dev-only bridge from browser-worker local proof artifacts into the local prover interface. It is not live Send routing, not routed live actual-private-spend execution, not a production browser runtime prover, not a production remote proof service, not on-chain proof verification, not production verifying-key evidence, not audit acceptance, not live deployment evidence, and not real-funds readiness."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-SEND-BROWSER-WORKER-PROVER",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
@@ -1739,6 +1775,9 @@
         "npm run private-pool-v2:browser-worker-prover-check",
         "scripts/check-vanta-private-pool-v2-actual-private-spend-browser-worker-prover.mjs",
         "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
+        "src/privacy/privatePoolV2BrowserWorkerProofResultAdapter.ts",
+        "scripts/check-vanta-private-pool-v2-browser-worker-proof-result-adapter.mjs",
+        "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
         "npm run private-pool-v2:contract-check",
         "npm run private-pool-v2:verify",
         "npm run build"
@@ -1757,7 +1796,8 @@
         "Keep remote-services mode required for production startup.",
         "Keep Send local witness-input proving strict, no-witness in emitted artifacts, and blocked from production proof mode.",
         "Keep Send browser/Web Worker proof execution and worker-side witness generation dev-only, no-witness in emitted artifacts, and blocked from production proof mode until production verifier evidence and live routing exist.",
-        "Keep actual-private-spend browser/Web Worker proof execution and worker-side witness generation dev-only, no-witness in emitted artifacts, and blocked from production proof mode until production verifier evidence and live routing exist."
+        "Keep actual-private-spend browser/Web Worker proof execution and worker-side witness generation dev-only, no-witness in emitted artifacts, and blocked from production proof mode until production verifier evidence and live routing exist.",
+        "Keep any browser-worker proof-result adapter opt-in, exact-request-bound, limited to Send and actual-private-spend, local-bb-derived-artifact only, and blocked from production proof mode until production verifier evidence and live routing exist."
       ],
       "verification": {
         "commands": [
@@ -1784,6 +1824,7 @@
           "npm run private-pool-v2:send-witness-prover-check",
           "npm run private-pool-v2:browser-worker-prover-check",
           "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
+          "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
           "npm run private-pool-v2:contract-check",
           "npm run send:verify",
           "npm run private-pool-v2:local-prover-check",
@@ -1792,8 +1833,8 @@
           "npm run private-pool-v2:crucible-check",
           "npm run private-pool-v2:verify"
         ],
-        "localResult": "Mock-proof boundary, proof-backend boundary, remote-services, remote proof-artifact boundary with transcript binding, local bb fixture proof-result adapters for Shield, Claim, Swap-to-shielded, actual-private-spend, and Send, the actual-private-spend witness-input prover guard, the Send witness-input prover guard, the Send browser worker prover/witness guard, the actual-private-spend browser worker prover/witness guard, SOL-to-shielded adapter, swap capability, protocol-client, Shield proof-artifact consistency, Shield operator no-witness, Claim proof-artifact consistency, Claim operator no-witness, Swap-to-shielded proof-artifact consistency, Swap-to-shielded operator no-witness, Send proof-artifact consistency, actual-private-spend proof-artifact consistency, Send operator no-witness, actual-private-spend operator no-witness, send:verify, local-prover, local-verifier, fresh local SBF ABI status, Crucible dry-run, build, and full private-pool-v2 aggregate verify pass locally. H08 remains partial because live Send/actual-private-spend routing through the worker, production remote proving, on-chain verifier enforcement, audit acceptance, and live settlement evidence are still absent.",
-        "proves": "Mock proofs and local proof backends are explicit and blocked from production/real-funds acceptance paths covered by the guard, including spoofed noir-bb/local-backend receipts, relabelled Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof artifacts, witness-alias sidecars, remote prover mock/local-backend responses, remote verifier local-backend requests, and the live Jupiter SOL-to-shielded adapter boundary. Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof artifacts can be checked locally without accepting private witness material; actual-private-spend has a strict local witness-input proof path that validates canonical fields, a depth-20 path, derived leaf index, recomputed root/nullifier, unique outputs, and derived private-spend-public-input-hash before emitting a no-witness local-bb-derived-artifact; Send now has a strict local witness-input proof path that validates canonical BN254 fields, u128 amounts, depth-20 input/recipient/change paths, boolean direction bits, derived leaf indices, recomputed input/recipient/change roots, recomputed nullifier, amount conservation, economics commitment, memo ciphertext body-hash fields, unique outputs, and derived send-public-input-hash before emitting a no-witness local-bb-derived-artifact. Send and actual-private-spend also have dev-only browser/Web Worker proof-execution and worker-side witness-generation paths that accept caller-provided compiled ACIR bytecode plus either compressed witness bytes or typed witness input, normalize witness input through their strict fixture builders, generate compressed witnesses with NoirJS, run @aztec/bb.js / UltraHonkBackend with threads: 1, verify generated proofs, bind send-public-input-hash or private-spend-public-input-hash, return no witness material, structured-clone typed witness input/ABI through the client path, sanitize worker-scope witness-input errors, and leave the default local prover on mock/local-mock. Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator verification require matching expected public-input hashes and reject unbound extra expected-input keys; the opt-in Shield, Claim, Swap-to-shielded, actual-private-spend, and Send local bb fixture adapters return noir-bb local fixture artifacts only for exact verified proof-request transcripts, bind shield-public-input-hash, claim-public-input-hash, swap-public-input-hash, private-spend-public-input-hash, or send-public-input-hash, reject transition-field drift, request-metadata drift, cross-target artifacts, disabled mode, artifact relabeling, malformed local ACIR metadata, and proof-result tampering, preserve local verifier-registry replay rejection where exercised, and leave the default local prover on mock/local-mock. Shield operator verification is explicitly read-only and checks receipt/settlement counts do not change; the production-mode proof-artifact verifier-handoff guard delegates remote-service artifacts to the configured verifier registry in a local harness, rejects local fixture artifacts, relabelled local verifying-key ids, mock proof systems, local verifying-key hashes, and witness aliases, requires the returned remote verifier receipt transcript to match the submitted artifact across ACIR hash, circuit, backend/runtime metadata, proof system/backend, proof bytes, public inputs/labels/commitment, and verifying-key fields, and still appends no receipts or settlements; and proof-system/backend metadata plus local ACIR bytecode metadata remain guarded against mock/local production misuse.",
+        "localResult": "Mock-proof boundary, proof-backend boundary, remote-services, remote proof-artifact boundary with transcript binding, local bb fixture proof-result adapters for Shield, Claim, Swap-to-shielded, actual-private-spend, and Send, the actual-private-spend witness-input prover guard, the Send witness-input prover guard, the Send browser worker prover/witness guard, the actual-private-spend browser worker prover/witness guard, the browser-worker proof-result adapter guard, SOL-to-shielded adapter, swap capability, protocol-client, Shield proof-artifact consistency, Shield operator no-witness, Claim proof-artifact consistency, Claim operator no-witness, Swap-to-shielded proof-artifact consistency, Swap-to-shielded operator no-witness, Send proof-artifact consistency, actual-private-spend proof-artifact consistency, Send operator no-witness, actual-private-spend operator no-witness, send:verify, local-prover, local-verifier, fresh local SBF ABI status, Crucible dry-run, build, and full private-pool-v2 aggregate verify pass locally. H08 remains partial because live Send/actual-private-spend routing through the worker, production remote proving, on-chain verifier enforcement, audit acceptance, and live settlement evidence are still absent.",
+        "proves": "Mock proofs and local proof backends are explicit and blocked from production/real-funds acceptance paths covered by the guard, including spoofed noir-bb/local-backend receipts, relabelled Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof artifacts, witness-alias sidecars, remote prover mock/local-backend responses, remote verifier local-backend requests, and the live Jupiter SOL-to-shielded adapter boundary. Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof artifacts can be checked locally without accepting private witness material; actual-private-spend has a strict local witness-input proof path that validates canonical fields, a depth-20 path, derived leaf index, recomputed root/nullifier, unique outputs, and derived private-spend-public-input-hash before emitting a no-witness local-bb-derived-artifact; Send now has a strict local witness-input proof path that validates canonical BN254 fields, u128 amounts, depth-20 input/recipient/change paths, boolean direction bits, derived leaf indices, recomputed input/recipient/change roots, recomputed nullifier, amount conservation, economics commitment, memo ciphertext body-hash fields, unique outputs, and derived send-public-input-hash before emitting a no-witness local-bb-derived-artifact. Send and actual-private-spend also have dev-only browser/Web Worker proof-execution and worker-side witness-generation paths that accept caller-provided compiled ACIR bytecode plus either compressed witness bytes or typed witness input, normalize witness input through their strict fixture builders, generate compressed witnesses with NoirJS, run @aztec/bb.js / UltraHonkBackend with threads: 1, verify generated proofs, bind send-public-input-hash or private-spend-public-input-hash, return no witness material, structured-clone typed witness input/ABI through the client path, sanitize worker-scope witness-input errors, and leave the default local prover on mock/local-mock. The opt-in browser-worker proof-result adapter implements VantaPrivatePoolV2Prover for Send and actual-private-spend only, injects expected public-input hashes into worker payloads, rejects request transcript drift before invoking the worker client, requires local-bb-derived-artifact evidence, rejects fixture-artifact and cross-target returns, sanitizes worker errors containing owner_secret or note_secret, and reuses the local bb proof-result validator. Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator verification require matching expected public-input hashes and reject unbound extra expected-input keys; the opt-in Shield, Claim, Swap-to-shielded, actual-private-spend, and Send local bb fixture adapters return noir-bb local fixture artifacts only for exact verified proof-request transcripts, bind shield-public-input-hash, claim-public-input-hash, swap-public-input-hash, private-spend-public-input-hash, or send-public-input-hash, reject transition-field drift, request-metadata drift, cross-target artifacts, disabled mode, artifact relabeling, malformed local ACIR metadata, and proof-result tampering, preserve local verifier-registry replay rejection where exercised, and leave the default local prover on mock/local-mock. Shield operator verification is explicitly read-only and checks receipt/settlement counts do not change; the production-mode proof-artifact verifier-handoff guard delegates remote-service artifacts to the configured verifier registry in a local harness, rejects local fixture artifacts, relabelled local verifying-key ids, mock proof systems, local verifying-key hashes, and witness aliases, requires the returned remote verifier receipt transcript to match the submitted artifact across ACIR hash, circuit, backend/runtime metadata, proof system/backend, proof bytes, public inputs/labels/commitment, and verifying-key fields, and still appends no receipts or settlements; and proof-system/backend metadata plus local ACIR bytecode metadata remain guarded against mock/local production misuse.",
         "doesNotProve": "Live Send or actual-private-spend routing through the browser worker, a production browser runtime prover, a production remote prover, live verifier, on-chain proof verifier, audit acceptance, live settlement evidence, or real-funds ZK readiness."
       },
       "codexRemediation": {
@@ -1820,9 +1861,10 @@
           "374dc21 (Add actual private spend browser worker prover)",
           "21dd00d (Sync actual private browser docs)",
           "308a1a8 (Extend local bb fixture prover lanes)",
-          "84b8593 (Harden local bb fixture edge checks)"
+          "84b8593 (Harden local bb fixture edge checks)",
+          "1ca9bfa (Add browser worker proof adapter)"
         ],
-        "summary": "Persisted proofSystem and proofBackend through proof receipts, guarded production startup and settlement boundaries against mock/local proof evidence, made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary, added local no-witness Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof-artifact checks with alias/tamper/metadata/relabel guards, required Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator proof-artifact verification to bind matching expected public-input hashes where operator routes exist, rejects unbound extra expected-input keys, kept Shield operator artifact verification read-only with receipt/settlement count checks, added a production proof-artifact verifier handoff that delegates remote-service artifacts to the configured verifier registry while rejecting local fixture artifacts, relabelled-local key ids, local/mocked verifier responses, and remote receipt drift, hardened the remote-services client so remote prover/verifier responses cannot launder mock/local proof metadata or witness sidecars into remote-service evidence, added opt-in Shield, Claim, Swap-to-shielded, actual-private-spend, and Send local bb fixture proof-result adapters that are exact-fixture-request-bound and still local/no-real-funds only, added unsupported-target and Shield appended-root mismatch guards for that adapter path, added strict actual-private-spend and Send local witness-input proof paths that emit no-witness local-bb-derived-artifacts for derived requests, added dev-only Send and actual-private-spend browser worker proof-execution paths for caller-provided compiled ACIR bytecode plus compressed witness bytes, and extended both worker targets to generate witnesses from typed witness input using NoirJS while preserving client transfer cleanup and sanitized worker-scope witness errors.",
+        "summary": "Persisted proofSystem and proofBackend through proof receipts, guarded production startup and settlement boundaries against mock/local proof evidence, made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary, added local no-witness Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof-artifact checks with alias/tamper/metadata/relabel guards, required Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator proof-artifact verification to bind matching expected public-input hashes where operator routes exist, rejects unbound extra expected-input keys, kept Shield operator artifact verification read-only with receipt/settlement count checks, added a production proof-artifact verifier handoff that delegates remote-service artifacts to the configured verifier registry while rejecting local fixture artifacts, relabelled-local key ids, local/mocked verifier responses, and remote receipt drift, hardened the remote-services client so remote prover/verifier responses cannot launder mock/local proof metadata or witness sidecars into remote-service evidence, added opt-in Shield, Claim, Swap-to-shielded, actual-private-spend, and Send local bb fixture proof-result adapters that are exact-fixture-request-bound and still local/no-real-funds only, added unsupported-target and Shield appended-root mismatch guards for that adapter path, added strict actual-private-spend and Send local witness-input proof paths that emit no-witness local-bb-derived-artifacts for derived requests, added dev-only Send and actual-private-spend browser worker proof-execution paths for caller-provided compiled ACIR bytecode plus compressed witness bytes, extended both worker targets to generate witnesses from typed witness input using NoirJS while preserving client transfer cleanup and sanitized worker-scope witness errors, and added an opt-in browser-worker proof-result adapter that wraps Send and actual-private-spend worker artifacts into VantaPrivatePoolV2ProofResult only for exact bound requests and local-bb-derived-artifact evidence.",
         "residualRisk": [
           "The mock prover still exists for local evidence.",
           "The Shield, Claim, Swap-to-shielded, Send, and actual-private-spend local proof-artifact checks remain local-only fixture evidence.",
@@ -1835,12 +1877,13 @@
           "The local role-service harness is deterministic no-real-funds infrastructure, even though the client now rejects mock/local proof metadata.",
           "A production/routed prover and verifier remain open.",
           "The Send and actual-private-spend browser worker provers are dev-only and can generate worker-side witnesses from typed local witness input or consume caller-provided compressed witness bytes; live Send and actual-private-spend routing remain open.",
+          "The browser-worker proof-result adapter is opt-in local no-real-funds evidence and does not route live Send or actual-private-spend execution.",
           "The actual-private-spend and Send local witness-input paths are local no-real-funds paths and do not imply remote-service, on-chain verifier, audit, live deployment, or real-funds readiness."
         ]
       },
       "lumiHygiene": {
-        "local": "verified locally for boundary, remote proof-artifact boundary/transcript binding, actual-private-spend witness-input proof path, Send witness-input proof path, Send browser worker prover/witness path, actual-private-spend browser worker prover/witness path, Shield/Claim/Swap-to-shielded/actual-private-spend/Send local bb fixture proof-result adapters, Shield proof-artifact, Shield operator, Claim proof-artifact, Claim operator, Swap-to-shielded proof-artifact, Swap-to-shielded operator, Send proof-artifact, actual-private-spend proof-artifact, Send operator, actual-private-spend operator, send:verify, local-prover, local-verifier, build, full private-pool-v2 aggregate verify, fresh local SBF ABI status, and Crucible dry-run",
-        "committed": "308a1a8 (Extend local bb fixture prover lanes); 84b8593 (Harden local bb fixture edge checks)",
+        "local": "verified locally for boundary, remote proof-artifact boundary/transcript binding, actual-private-spend witness-input proof path, Send witness-input proof path, Send browser worker prover/witness path, actual-private-spend browser worker prover/witness path, browser-worker proof-result adapter, Shield/Claim/Swap-to-shielded/actual-private-spend/Send local bb fixture proof-result adapters, Shield proof-artifact, Shield operator, Claim proof-artifact, Claim operator, Swap-to-shielded proof-artifact, Swap-to-shielded operator, Send proof-artifact, actual-private-spend proof-artifact, Send operator, actual-private-spend operator, send:verify, local-prover, local-verifier, build, full private-pool-v2 aggregate verify, fresh local SBF ABI status, and Crucible dry-run",
+        "committed": "308a1a8 (Extend local bb fixture prover lanes); 84b8593 (Harden local bb fixture edge checks); 1ca9bfa (Add browser worker proof adapter)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -1879,8 +1922,10 @@
           "src/privacy/privatePoolV2BrowserProverProtocol.ts",
           "src/privacy/privatePoolV2BrowserProverWorker.ts",
           "src/privacy/privatePoolV2BrowserProverClient.ts",
+          "src/privacy/privatePoolV2BrowserWorkerProofResultAdapter.ts",
           "scripts/check-vanta-private-pool-v2-browser-worker-prover.mjs",
-          "scripts/check-vanta-private-pool-v2-actual-private-spend-browser-worker-prover.mjs"
+          "scripts/check-vanta-private-pool-v2-actual-private-spend-browser-worker-prover.mjs",
+          "scripts/check-vanta-private-pool-v2-browser-worker-proof-result-adapter.mjs"
         ],
         "watchCommands": [
           "npm run private-pool-v2:mock-proof-boundary-check",
@@ -1907,6 +1952,7 @@
           "npm run private-pool-v2:send-witness-prover-check",
           "npm run private-pool-v2:browser-worker-prover-check",
           "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
+          "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
           "npm run private-pool-v2:contract-check",
           "npm run private-pool-v2:local-prover-check",
           "npm run build",

@@ -765,6 +765,10 @@ assert(
   h08.codexRemediation.commits.some((commitRef) => commitRef.includes("84b8593")),
   "H08 must record the local bb fixture edge-check commit",
 );
+assert(
+  h08.codexRemediation.commits.some((commitRef) => commitRef.includes("1ca9bfa")),
+  "H08 must record the browser-worker proof-result adapter commit",
+);
 assert(h08Text.includes("send-public-input-hash"), "H08 must record Send public-input hash binding");
 assert(
   h08Text.includes("private-spend-public-input-hash"),
@@ -779,6 +783,18 @@ assert(
 );
 assert(h08Text.includes("local-bb-derived-artifact"), "H08 must record the derived artifact backend");
 assert(h08Text.includes("browser/Web Worker proof-execution"), "H08 must record the browser worker proof-execution boundary");
+assert(
+  h08Text.includes("browser-worker proof-result adapter"),
+  "H08 must record the browser-worker proof-result adapter boundary",
+);
+assert(
+  h08Text.includes("local-bb-derived-artifact evidence"),
+  "H08 must record the browser-worker adapter derived-artifact-only boundary",
+);
+assert(
+  h08Text.includes("rejects request transcript drift before invoking the worker client"),
+  "H08 must record pre-worker request drift rejection",
+);
 assert(
   h08Text.includes("typed witness input"),
   "H08 must record typed witness-input browser worker boundaries",
@@ -830,6 +846,46 @@ for (const phrase of [
   assert(
     localBbFixtureLaneLoopText.includes(phrase),
     `${localBbFixtureLaneLoopId} must record ${phrase}`,
+  );
+}
+
+const browserWorkerAdapterLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-13-H08-BROWSER-WORKER-PROOF-RESULT-ADAPTER";
+assert(
+  activeFeedbackLoopIds.has(browserWorkerAdapterLoopId),
+  `${browserWorkerAdapterLoopId} active feedback loop is missing`,
+);
+const browserWorkerAdapterLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === browserWorkerAdapterLoopId,
+);
+const browserWorkerAdapterLoopText = JSON.stringify(browserWorkerAdapterLoop);
+for (const command of [
+  "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
+  "npm run private-pool-v2:browser-worker-prover-check",
+  "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
+  "npm run private-pool-v2:proof-backend-boundary-check",
+  "npm run private-pool-v2:contract-check",
+  "npm run private-pool-v2:local-prover-check",
+]) {
+  assert(
+    browserWorkerAdapterLoop?.localVerification?.includes(command),
+    `${browserWorkerAdapterLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "VantaPrivatePoolV2Prover",
+  "send-public-input-hash",
+  "private-spend-public-input-hash",
+  "local-bb-derived-artifact",
+  "request transcript drift before invoking the worker client",
+  "default local prover on mock",
+  "not live Send routing",
+  "not routed live actual-private-spend execution",
+  "1ca9bfa",
+]) {
+  assert(
+    browserWorkerAdapterLoopText.includes(phrase),
+    `${browserWorkerAdapterLoopId} must record ${phrase}`,
   );
 }
 

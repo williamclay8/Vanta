@@ -135,6 +135,11 @@ requirePhrase(
   "actual-private-spend and Send also have dev-only browser/Web Worker proof execution plus worker-side witness generation from typed witness input",
   "README.md",
 );
+requirePhrase(
+  readme,
+  "opt-in browser-worker proof-result adapter",
+  "README.md",
+);
 
 if (packageJson.scripts["docs:source-of-truth-check"] !== "node scripts/check-vanta-docs-source-of-truth.mjs") {
   throw new Error("package.json must expose docs:source-of-truth-check.");
