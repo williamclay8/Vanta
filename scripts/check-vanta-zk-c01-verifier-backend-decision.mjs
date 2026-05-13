@@ -70,6 +70,11 @@ for (const marker of [
 }
 
 for (const marker of [
+  "docs/zk/c01-production-verifier-backend-decision.md",
+  "no production verifier backend is selected yet",
+  "Groth16 tag-3 Solana verifier path",
+  "Noir/bb.js/UltraHonk adaptation path",
+  "npm run zk:c01-verifier-backend-decision-check",
   "TAG_INIT = 0",
   "TAG_SPEND = 1",
   "TAG_REGISTER_ROOT = 2",
