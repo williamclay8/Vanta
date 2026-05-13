@@ -44,6 +44,8 @@ Primary circuit and proof commands:
 ```bash
 npm run private-core:verify
 npm run private-pool-v2:verify
+npm run zk:c01-production-verifier-backend-candidate-check
+npm run zk:c01-verifier-backend-decision-check
 ```
 
 Reviewers should inspect:
@@ -54,6 +56,23 @@ Reviewers should inspect:
 - whether valid fixtures pass and invalid fixtures fail
 - whether proof artifacts can be reproduced
 - whether the current fixed-depth and narrow-lane assumptions are explicit
+
+## C01 verifier/backend review
+
+Current C01 status is partial. Read `docs/zk/c01-production-verifier-backend-decision.md` before accepting any verifier-ready claim.
+
+Reviewers should verify that current remote proof-artifact receipts stay `offchain-remote-proof-artifact-only`, that any `solana-c01-groth16-verifier-ready` overclaim fails closed, and that no backend is selected yet between the Groth16 tag-3 Solana verifier path and the Noir/bb.js/UltraHonk adaptation path.
+
+Focused commands:
+
+```bash
+npm run zk:feedback-loop-check
+npm run zk:c01-onchain-proof-boundary-check
+npm run zk:c01-verifier-backend-contract-check
+npm run zk:c01-production-verifier-backend-candidate-check
+npm run zk:c01-verifier-backend-decision-check
+npm run private-pool-v2:remote-proof-artifact-boundary-check
+```
 
 ## Operator review
 

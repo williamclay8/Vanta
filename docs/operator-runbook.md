@@ -8,9 +8,12 @@ Start with these three commands. Together they give a reviewer the fastest truth
 
 ```bash
 npm run mainnet:readiness-json
+npm run zk:feedback-loop-check
 npm run private-pool-v2:verify
 npm run pay:verify
 ```
+
+For the current C01 verifier boundary, read `docs/zk/c01-production-verifier-backend-decision.md` before treating local proof artifacts as verifier evidence. Current proof-artifact receipts remain `offchain-remote-proof-artifact-only`; any `solana-c01-groth16-verifier-ready` claim must stay fail-closed until the chosen production verifier backend, verifier-key commitment, positive verifier tests, SBF/live evidence, and reviewer acceptance exist.
 
 ## Readiness Truth
 
@@ -67,6 +70,9 @@ npm run mainnet:approval-gates-check
 npm run mainnet:real-funds-approval-check
 npm run pay:production-readiness-contract-check
 npm run audit:package-check
+npm run zk:feedback-loop-check
+npm run zk:c01-production-verifier-backend-candidate-check
+npm run zk:c01-verifier-backend-decision-check
 npm run truth:transaction-check
 npm run truth:privacy-claim-gate
 npm run mainnet:transaction-evidence-check
