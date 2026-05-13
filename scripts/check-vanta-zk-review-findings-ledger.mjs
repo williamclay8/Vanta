@@ -107,7 +107,11 @@ assert(Array.isArray(ledger.allowedStatuses), "allowedStatuses must be present")
 assert(Array.isArray(ledger.allowedSeverities), "allowedSeverities must be present");
 assert(Array.isArray(ledger.activeFeedbackLoops), "activeFeedbackLoops must be an array");
 assert(Array.isArray(ledger.findings), "findings must be an array");
-assertKnownAncestorCommit(ledger.lumiBaseline?.lastKnownCommit, "lumiBaseline.lastKnownCommit");
+assert(
+  !Object.hasOwn(ledger.lumiBaseline ?? {}, "lastKnownCommit"),
+  "lumiBaseline must use baselineCommit instead of lastKnownCommit",
+);
+assertKnownAncestorCommit(ledger.lumiBaseline?.baselineCommit, "lumiBaseline.baselineCommit");
 assertPinnedCommittedText(ledger.lumiBaseline?.committed, "lumiBaseline.committed");
 
 for (const status of ledger.allowedStatuses) {
@@ -152,6 +156,18 @@ for (const loop of ledger.activeFeedbackLoops) {
     assert(Object.hasOwn(scripts, scriptName), `${loop.id} localVerification references missing package script ${scriptName}`);
   }
 }
+
+const sendWitnessLoopId = "VANTA-ZK-FEEDBACK-2026-05-12-SEND-WITNESS-INPUT-PROVER";
+assert(activeFeedbackLoopIds.has(sendWitnessLoopId), `${sendWitnessLoopId} active feedback loop is missing`);
+const sendWitnessLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === sendWitnessLoopId);
+const sendWitnessLoopText = JSON.stringify(sendWitnessLoop);
+assert(
+  sendWitnessLoop?.localVerification?.includes("npm run private-pool-v2:send-witness-prover-check"),
+  `${sendWitnessLoopId} must record the Send witness prover guard`,
+);
+assert(sendWitnessLoopText.includes("send-public-input-hash"), `${sendWitnessLoopId} must record Send public-input binding`);
+assert(sendWitnessLoopText.includes("local-bb-derived-artifact"), `${sendWitnessLoopId} must record the derived artifact backend`);
+assert(sendWitnessLoopText.includes("baaff54"), `${sendWitnessLoopId} must pin the implementation commit`);
 
 const ids = new Set();
 for (const finding of ledger.findings) {
@@ -216,6 +232,30 @@ for (const finding of ledger.findings) {
 for (const expectedId of expectedIds) {
   assert(ids.has(expectedId), `missing expected original review finding ${expectedId}`);
 }
+
+const findingById = new Map(ledger.findings.map((finding) => [finding.id, finding]));
+const c01 = findingById.get("VANTA-ZK-2026-05-09-C01");
+const h08 = findingById.get("VANTA-ZK-2026-05-09-H08");
+const c01Text = JSON.stringify(c01);
+const h08Text = JSON.stringify(h08);
+
+assert(c01, "missing C01 finding");
+assert(h08, "missing H08 finding");
+assert(
+  c01.codexRemediation.commits.some((commitRef) => commitRef.includes("71e8932")),
+  "C01 must record the Unshield vault preflight commit",
+);
+assert(c01Text.includes("TAG_UNSHIELD = 6"), "C01 must record the source-only TAG_UNSHIELD preflight truth");
+assert(
+  h08.verification.commands.includes("npm run private-pool-v2:send-witness-prover-check"),
+  "H08 verification commands must include the Send witness prover guard",
+);
+assert(
+  h08.codexRemediation.commits.some((commitRef) => commitRef.includes("baaff54")),
+  "H08 must record the Send witness proof path commit",
+);
+assert(h08Text.includes("send-public-input-hash"), "H08 must record Send public-input hash binding");
+assert(h08Text.includes("local-bb-derived-artifact"), "H08 must record the derived artifact backend");
 
 const severityCounts = ledger.findings.reduce((counts, finding) => {
   counts[finding.severity] = (counts[finding.severity] ?? 0) + 1;
