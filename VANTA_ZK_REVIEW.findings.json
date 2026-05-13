@@ -60,6 +60,40 @@
       "truthBoundary": "This is local proof-artifact truth-boundary hardening. It is not a Solana Groth16 verifier, not tag 3 proof acceptance, not production remote proving evidence, not deployed/live SBF evidence, not proof that root transitions are correct, not audit acceptance, and not production-private readiness."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-C01-VERIFIER-BACKEND-DECISION-PACKET",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#1-the-on-chain-solana-program-does-not-verify-proofs-at-all",
+        "docs/zk/c01-production-verifier-backend-decision.md",
+        "docs/operator-runbook.md",
+        "docs/audit-package.md",
+        "scripts/check-vanta-zk-c01-verifier-backend-decision.mjs",
+        "npm run zk:c01-verifier-backend-decision-check"
+      ],
+      "summary": "The C01 verifier-backend decision is now a guarded handoff packet instead of implicit review prose: it records that no production verifier backend is selected yet, separates the Groth16 tag-3 Solana verifier path from a Noir/bb.js/UltraHonk adaptation path, and makes operator/audit handoffs name offchain-only proof artifacts plus fail-closed solana-c01-groth16-verifier-ready overclaim handling.",
+      "localVerification": [
+        "npm run zk:c01-verifier-backend-decision-check",
+        "npm run operator:runbook-check",
+        "npm run audit:package-check",
+        "npm run zk:c01-onchain-proof-boundary-check",
+        "npm run zk:c01-verifier-backend-contract-check",
+        "npm run zk:c01-production-verifier-backend-candidate-check",
+        "npm run docs:source-of-truth-check",
+        "npm run zk:review-guards-check",
+        "npm run zk:feedback-loop-check",
+        "npm run build",
+        "git diff --check",
+        "git diff --cached --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the C01 verifier-backend decision packet, operator runbook, audit package, focused C01 guards, docs source-of-truth, review guards, feedback-loop bundle, build, and diff whitespace checks",
+        "committed": "0e1ca25 (Add C01 verifier backend decision packet)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a guarded decision packet and handoff checklist. It is not a selected verifier backend, not Groth16 proof generation, not UltraHonk-on-chain verifier support, not tag 3 proof acceptance, not production verifying-key evidence, not SBF/live deployment evidence, not audit acceptance, and not production-private readiness."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-SEND-WITNESS-INPUT-PROVER",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
@@ -779,9 +813,11 @@
         "programs/vanta_private_pool_v2_spend/README.md",
         "npm run private-pool-v2:contract-check",
         "npm run zk:c01-onchain-proof-boundary-check",
-        "npm run zk:c01-verifier-backend-contract-check",
-        "npm run zk:c01-production-verifier-backend-candidate-check",
-        "npm run private-pool-v2:solana-spend-transaction-builder-check",
+    "npm run zk:c01-verifier-backend-contract-check",
+    "npm run zk:c01-production-verifier-backend-candidate-check",
+    "npm run zk:c01-verifier-backend-decision-check",
+    "docs/zk/c01-production-verifier-backend-decision.md",
+    "npm run private-pool-v2:solana-spend-transaction-builder-check",
         "npm run private-pool-v2:solana-spend-transaction-check",
         "npm run private-pool-v2:solana-relayer-submission-check",
         "npm run private-pool-v2:service-network-check",
@@ -812,6 +848,7 @@
           "npm run zk:c01-onchain-proof-boundary-check",
           "npm run zk:c01-verifier-backend-contract-check",
           "npm run zk:c01-production-verifier-backend-candidate-check",
+          "npm run zk:c01-verifier-backend-decision-check",
           "npm run private-pool-v2:solana-spend-transaction-builder-check",
           "npm run private-pool-v2:solana-spend-transaction-check",
           "npm run private-pool-v2:solana-relayer-submission-check",
@@ -824,7 +861,7 @@
           "npm run private-pool-v2:crucible-check",
           "npm run private-pool-v2:verify"
         ],
-        "localResult": "Rust tests/checks cover the source-level reserved tag 3 proof-carrying ABI shape, malformed/all-zero placeholder rejection, root/nullifier/output/verifier-key preflight, custom-error-14 no-mutation behavior, lineage-bound TAG_REGISTER_PROVENANCED_ROOT = 4 root-record creation, malformed root-record rejection, wrong previousRoot rejection, and source-only TAG_UNSHIELD = 6 root/root-record/nullifier/vault-authority preflight. contract-check covers the local authority/root/nullifier-marker/output-record/root-record scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed proof truth boundary, no-proof-bytes tag-1 ABI truth, reserved tag-3 fail-closed preflight truth, and the source-only TAG_UNSHIELD = 6 custody preflight; c01-verifier-backend-contract-check and c01-production-verifier-backend-candidate-check preserve the Groth16 tag-3 verifier target, mark current remote proof-artifact receipts as offchain-remote-proof-artifact-only, and reject solana-c01-groth16-verifier-ready overclaims; root-provenance-check guards the root-record source/docs/fuzz/SBF/package surface; solana-spend-transaction-builder-check rejects tag 3 and proof-like builder/validation fields for the current no-verifier live builder; relayer, service-network, trust-packet, and operator-packet checks reject or omit proof-like spend fields before any handoff can imply verifier support; sbf-abi-check reports the locally rebuilt SBF ABI as fresh; private-pool-v2:crucible-check validates the defensive harness setup; private-pool-v2:verify passed locally, while live citation still needs redeploy, reinitialization, and live evidence for the rebuilt ABI.",
+        "localResult": "Rust tests/checks cover the source-level reserved tag 3 proof-carrying ABI shape, malformed/all-zero placeholder rejection, root/nullifier/output/verifier-key preflight, custom-error-14 no-mutation behavior, lineage-bound TAG_REGISTER_PROVENANCED_ROOT = 4 root-record creation, malformed root-record rejection, wrong previousRoot rejection, and source-only TAG_UNSHIELD = 6 root/root-record/nullifier/vault-authority preflight. contract-check covers the local authority/root/nullifier-marker/output-record/root-record scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed proof truth boundary, no-proof-bytes tag-1 ABI truth, reserved tag-3 fail-closed preflight truth, and the source-only TAG_UNSHIELD = 6 custody preflight; c01-verifier-backend-contract-check and c01-production-verifier-backend-candidate-check preserve the Groth16 tag-3 verifier target, mark current remote proof-artifact receipts as offchain-remote-proof-artifact-only, and reject solana-c01-groth16-verifier-ready overclaims; c01-verifier-backend-decision-check guards the explicit no-backend-selected decision packet, Groth16-vs-UltraHonk fork, and operator/audit handoff commands; root-provenance-check guards the root-record source/docs/fuzz/SBF/package surface; solana-spend-transaction-builder-check rejects tag 3 and proof-like builder/validation fields for the current no-verifier live builder; relayer, service-network, trust-packet, and operator-packet checks reject or omit proof-like spend fields before any handoff can imply verifier support; sbf-abi-check reports the locally rebuilt SBF ABI as fresh; private-pool-v2:crucible-check validates the defensive harness setup; private-pool-v2:verify passed locally, while live citation still needs redeploy, reinitialization, and live evidence for the rebuilt ABI.",
         "proves": "Local write authority, account binding, accepted-root scaffold, deterministic output-record PDA binding, current-ABI proof-field rejection across builder/relayer/service-network/operator-packet surfaces, offchain-only proof-artifact receipt evidence, source-only lineage-bound root-record metadata for reserved tag-3/tag-6 preflights, malformed/wrong-lineage root-record rejection, reserved tag-3 root/root-record/nullifier/output/verifier-key fail-closed/no-mutation source behavior, source-only TAG_UNSHIELD = 6 vault-authority/root/root-record/nullifier fail-closed/no-mutation preflight behavior, explicit blocked Unshield custody status, local rebuilt-SBF freshness for the current source ABI, and the negative C01 truth boundary are guarded.",
         "doesNotProve": "On-chain proof verification, proof-carrying spend acceptance, Solana tag 3 Groth16 verifier-ready evidence, verifying-key enforcement, proof that a root transition is correct, deployed/live SBF bytecode for tag 3 or tag 4, program-owned tree state or program-owned shared tree state, backfilled legacy tag 2 roots, program-owned vault custody, proof-verified TAG_UNSHIELD release, audit acceptance, or live deployment correctness."
       },
@@ -836,9 +873,10 @@
           "68b8c9c (Preflight proof-carrying spend ABI)",
           "71e8932 (Add Unshield vault preflight guard)",
           "c28e922 (Add root provenance preflight spine)",
-          "b766bad (Guard C01 verifier-ready evidence)"
+          "b766bad (Guard C01 verifier-ready evidence)",
+          "0e1ca25 (Add C01 verifier backend decision packet)"
         ],
-        "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, proof-like transaction-field rejection for the current no-verifier spend ABI, a verifier-backend contract guard and production verifier backend candidate guard for the future tag 3 lane, a reserved tag 3 proof-carrying spend ABI that preflights the future account/verifier-key/root-record contract and fails closed before proof verification or mutation, a lineage-bound TAG_REGISTER_PROVENANCED_ROOT = 4 root-record metadata lane for future proof paths, and a source-only TAG_UNSHIELD = 6 preflight that fails closed before proof verification, nullifier consume, token/system CPI, custody transfer, fund release, or mutation.",
+        "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, proof-like transaction-field rejection for the current no-verifier spend ABI, a verifier-backend contract guard, production verifier backend candidate guard, and verifier-backend decision packet for the future tag 3 lane, a reserved tag 3 proof-carrying spend ABI that preflights the future account/verifier-key/root-record contract and fails closed before proof verification or mutation, a lineage-bound TAG_REGISTER_PROVENANCED_ROOT = 4 root-record metadata lane for future proof paths, and a source-only TAG_UNSHIELD = 6 preflight that fails closed before proof verification, nullifier consume, token/system CPI, custody transfer, fund release, or mutation.",
         "residualRisk": [
           "No production verifier is wired.",
           "The current spend instruction still carries hashes only, not proof bytes.",
@@ -855,7 +893,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally for scaffold, proof-field boundary, reserved proof-carrying ABI, source-only root provenance record, C01 verifier-ready evidence overclaim guard, SBF freshness, Crucible dry-run, feedback-loop guards, review guards, full private-pool-v2 aggregate verify, and build",
-        "committed": "b766bad (Guard C01 verifier-ready evidence)",
+        "committed": "0e1ca25 (Add C01 verifier backend decision packet)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -878,8 +916,14 @@
           "fuzz/vanta_private_pool_v2_spend/src/main.rs",
           "scripts/check-vanta-private-pool-v2-root-provenance.mjs",
           "scripts/check-vanta-zk-c01-verifier-backend-contract.mjs",
-          "scripts/check-vanta-private-pool-v2-production-verifier-backend-candidate.mjs",
-          "scripts/check-vanta-private-pool-v2-remote-proof-artifact-boundary.mjs",
+      "scripts/check-vanta-private-pool-v2-production-verifier-backend-candidate.mjs",
+      "docs/zk/c01-production-verifier-backend-decision.md",
+      "scripts/check-vanta-zk-c01-verifier-backend-decision.mjs",
+      "docs/operator-runbook.md",
+      "docs/audit-package.md",
+      "scripts/check-vanta-operator-runbook.mjs",
+      "scripts/check-vanta-audit-package.mjs",
+      "scripts/check-vanta-private-pool-v2-remote-proof-artifact-boundary.mjs",
           "scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs",
           "src/privacy/privatePoolV2Types.ts",
           "src/privacy/privatePoolV2RemoteServices.ts",

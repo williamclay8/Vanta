@@ -195,6 +195,25 @@ assert(c01VerifierReadyLoopText.includes("offchain-remote-proof-artifact-only"),
 assert(c01VerifierReadyLoopText.includes("solana-c01-groth16-verifier-ready"), `${c01VerifierReadyLoopId} must record the C01 verifier-ready marker`);
 assert(c01VerifierReadyLoopText.includes("b766bad"), `${c01VerifierReadyLoopId} must pin the implementation commit`);
 
+const c01VerifierBackendDecisionLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-C01-VERIFIER-BACKEND-DECISION-PACKET";
+assert(activeFeedbackLoopIds.has(c01VerifierBackendDecisionLoopId), `${c01VerifierBackendDecisionLoopId} active feedback loop is missing`);
+const c01VerifierBackendDecisionLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === c01VerifierBackendDecisionLoopId,
+);
+const c01VerifierBackendDecisionLoopText = JSON.stringify(c01VerifierBackendDecisionLoop);
+assert(
+  c01VerifierBackendDecisionLoop?.localVerification?.includes("npm run zk:c01-verifier-backend-decision-check"),
+  `${c01VerifierBackendDecisionLoopId} must record the C01 verifier backend decision guard`,
+);
+assert(
+  c01VerifierBackendDecisionLoopText.includes("docs/zk/c01-production-verifier-backend-decision.md"),
+  `${c01VerifierBackendDecisionLoopId} must record the decision packet path`,
+);
+assert(c01VerifierBackendDecisionLoopText.includes("no production verifier backend is selected yet"), `${c01VerifierBackendDecisionLoopId} must preserve the decision boundary`);
+assert(c01VerifierBackendDecisionLoopText.includes("Groth16 tag-3 Solana verifier path"), `${c01VerifierBackendDecisionLoopId} must record the Groth16 option`);
+assert(c01VerifierBackendDecisionLoopText.includes("Noir/bb.js/UltraHonk adaptation path"), `${c01VerifierBackendDecisionLoopId} must record the UltraHonk option`);
+assert(c01VerifierBackendDecisionLoopText.includes("0e1ca25"), `${c01VerifierBackendDecisionLoopId} must pin the implementation commit`);
+
 const ids = new Set();
 for (const finding of ledger.findings) {
   assert(typeof finding.id === "string", "finding is missing id");
@@ -279,6 +298,10 @@ assert(
   c01.codexRemediation.commits.some((commitRef) => commitRef.includes("b766bad")),
   "C01 must record the verifier-ready evidence guard commit",
 );
+assert(
+  c01.codexRemediation.commits.some((commitRef) => commitRef.includes("0e1ca25")),
+  "C01 must record the verifier backend decision packet commit",
+);
 assert(c01Text.includes("TAG_UNSHIELD = 6"), "C01 must record the source-only TAG_UNSHIELD preflight truth");
 assert(c01Text.includes("TAG_REGISTER_PROVENANCED_ROOT = 4"), "C01 must record the source-only TAG_REGISTER_PROVENANCED_ROOT truth");
 assert(c01Text.includes("vanta2root"), "C01 must record the root-record PDA seed");
@@ -286,6 +309,14 @@ assert(c01Text.includes("private-pool-v2:root-provenance-check"), "C01 must reco
 assert(
   c01Text.includes("zk:c01-production-verifier-backend-candidate-check"),
   "C01 must record the production verifier backend candidate guard",
+);
+assert(
+  c01Text.includes("zk:c01-verifier-backend-decision-check"),
+  "C01 must record the verifier backend decision guard",
+);
+assert(
+  c01Text.includes("docs/zk/c01-production-verifier-backend-decision.md"),
+  "C01 must record the verifier backend decision packet",
 );
 assert(
   c01Text.includes("offchain-remote-proof-artifact-only"),
