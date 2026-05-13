@@ -890,6 +890,54 @@ for (const phrase of [
   );
 }
 
+const swapProgressiveDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-SWAP-PROGRESSIVE-DISCLOSURE";
+assert(
+  activeFeedbackLoopIds.has(swapProgressiveDisclosureLoopId),
+  `${swapProgressiveDisclosureLoopId} active feedback loop is missing`,
+);
+const swapProgressiveDisclosureLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === swapProgressiveDisclosureLoopId,
+);
+const swapProgressiveDisclosureLoopText = JSON.stringify(swapProgressiveDisclosureLoop);
+for (const command of [
+  "npm run swap:requires-shielded-state-check",
+  "npm run swap:capability-check",
+  "npm run swap:committed-settlement-check",
+  "npm run swap:trust-packet-check",
+  "npm run swap:safe-send-adoption-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run product-ui:browser-check",
+  "npm run private-core:swap-check",
+  "npm run private-core:swap-boundary-check",
+  "npm run private-core:swap-live-path-check",
+  "npm run build",
+]) {
+  assert(
+    swapProgressiveDisclosureLoop?.localVerification?.includes(command),
+    `${swapProgressiveDisclosureLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "PrivacySummary",
+  "Privacy summary",
+  "quote countdown progress",
+  "Advanced swap settings",
+  "Max slippage",
+  "exact-note selection",
+  "Venue routing",
+  "operator-visible route settlement terms",
+  "forbids stale operator/venue invisibility",
+  "not the full Swap rewrite",
+  "not new production-private routing",
+  "not Swap production privacy",
+  "a0c1664",
+]) {
+  assert(
+    swapProgressiveDisclosureLoopText.includes(phrase),
+    `${swapProgressiveDisclosureLoopId} must record ${phrase}`,
+  );
+}
+
 const publicDepthDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE";
 assert(activeFeedbackLoopIds.has(publicDepthDisclosureLoopId), `${publicDepthDisclosureLoopId} active feedback loop is missing`);
 const publicDepthDisclosureLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === publicDepthDisclosureLoopId);

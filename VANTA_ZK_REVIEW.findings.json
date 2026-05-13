@@ -797,6 +797,43 @@
       "truthBoundary": "This is a Send UX and guard-hardening slice. It preserves the existing send-transition, safe-send, memo, proof, release-package, spent-marker, ledger-gate, and private-core operator behavior, but it is not the full Send rewrite, not live address or .sol validation, not a receipt modal, not a WalletApprovalSheet replacement, not Send production privacy, not live mainnet private settlement, not pushed, and not live-deployed."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-SWAP-PROGRESSIVE-DISCLOSURE",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#swap-page-redesign",
+        "VANTA_ZK_REVIEW.md#shield-send-swap-unshield-redesign-same-pattern-all-four-lanes",
+        "src/pages/SwapPage.tsx",
+        "src/components/PrivacySummary.tsx",
+        "src/styles.css",
+        "scripts/check-vanta-swap-requires-shielded-state.mjs",
+        "scripts/check-vanta-product-ui-browser.mjs",
+        "src/solana/shieldedSwapCapability.ts",
+        "src/solana/swapTrustContract.ts"
+      ],
+      "summary": "The Swap progressive-disclosure feedback now has a guarded local first slice: the page presents Swap as a trade surface with From asset/amount, To shielded output, route summary, quote countdown progress, a user-action primary label, and a reusable PrivacySummary panel labeled Privacy summary. Max slippage, exact-note selection, and Venue routing live behind Advanced swap settings; exact-note selection is real and still preserves the existing exact shielded source note requirement. The privacy wording stays current-truth safe: chain observers see a transaction plus encrypted swap memo packets, venues see operator-visible route settlement terms rather than a production-private route, and the user sees a shielded output note after settlement finalizes. The Swap guard forbids stale operator/venue invisibility and fully-private/anonymous/untraceable Swap overclaims.",
+      "localVerification": [
+        "npm run swap:requires-shielded-state-check",
+        "npm run swap:capability-check",
+        "npm run swap:committed-settlement-check",
+        "npm run swap:trust-packet-check",
+        "npm run swap:safe-send-adoption-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run product-ui:browser-check",
+        "npm run private-core:swap-check",
+        "npm run private-core:swap-boundary-check",
+        "npm run private-core:swap-live-path-check",
+        "npm run build",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for Swap progressive disclosure across the Swap shield-first guard, capability route checks, committed-settlement bridge, trust packet, safe-send adoption, privacy claim gate, product UI browser, private-core swap circuit/boundary/live-path checks, build, and diff whitespace check",
+        "committed": "a0c1664 (Simplify Swap front door)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a Swap UX and guard-hardening slice. It preserves the existing Meteora/Jupiter route adapters, signed swap intent, operator endpoints, committed-economics settlement, spent-marker finalization, and route privacy evidence, but it is not the full Swap rewrite, not new production-private routing, not a receipt modal, not a separate SwapAdvancedPanel or QuoteCountdownBar extraction, not Swap production privacy, not live mainnet private settlement, not pushed, and not live-deployed."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
