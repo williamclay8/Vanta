@@ -165,8 +165,11 @@ C01 verifier backend contract:
 
 - the reserved tag `3` target is a Groth16-compatible Solana verifier path with `verifierKeyHash:32` and `groth16Proof:256`
 - current local bb.js/UltraHonk artifacts are not on-chain verifier evidence
+- current remote proof-artifact receipts are only `offchain-remote-proof-artifact-only` verifier-handoff evidence with `onChainVerifierTarget: "none"`
+- a future `solana-c01-groth16-verifier-ready` receipt must be a tag `3` candidate with proofSystem: `groth16`, `proofBackend: "remote-service"`, circuit `vanta_private_pool_v2_actual_private_spend_entry`, `private-spend-public-input-hash`, `groth16Proof:256`, and `production-verifying-key-hash` evidence
 - `local-acir-bytecode-hash-not-production-vk` is local fixture metadata and must not be accepted as a production verifying key
 - a future positive verifier lane must use `production-verifying-key-hash` evidence and replace the fail-closed custom error `14` boundary with reviewed verifier tests
+- guard: `npm run zk:c01-production-verifier-backend-candidate-check`
 
 ### `6` - proof-verified unshield release preflight (reserved, fail closed)
 

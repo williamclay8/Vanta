@@ -90,6 +90,7 @@ for (const marker of [
   "local-acir-bytecode-hash-not-production-vk",
   "production-verifying-key-hash",
   "npm run zk:c01-verifier-backend-contract-check",
+  "npm run zk:c01-production-verifier-backend-candidate-check",
 ]) {
   includes(review, marker, reviewPath);
 }
@@ -114,6 +115,10 @@ for (const marker of [
 for (const marker of [
   "\"groth16\"",
   "\"noir-bb\"",
+  "offchain-remote-proof-artifact-only",
+  "solana-c01-groth16-verifier-ready",
+  "solana-c01-tag3-groth16-v0",
+  "assertNoC01VerifierReadyOverclaim",
   "PRODUCTION_VERIFYING_KEY_HASH_KIND",
   "VANTA_PRIVATE_POOL_V2_LOCAL_PROOF_ARTIFACT_VERIFYING_KEY_ID_PREFIX",
   "Private Pool v2 remote proof-artifact verification requires a production verifying-key hash.",
@@ -135,6 +140,11 @@ includes(
   "npm run zk:c01-verifier-backend-contract-check",
   "C01 verification commands",
 );
+includes(
+  c01.verification.commands.join("\n"),
+  "npm run zk:c01-production-verifier-backend-candidate-check",
+  "C01 production verifier backend candidate command",
+);
 
 assert(
   packageJson.scripts?.["zk:c01-verifier-backend-contract-check"] ===
@@ -142,12 +152,25 @@ assert(
   "package.json must expose zk:c01-verifier-backend-contract-check",
 );
 assert(
+  packageJson.scripts?.["zk:c01-production-verifier-backend-candidate-check"] ===
+    "node scripts/check-vanta-private-pool-v2-production-verifier-backend-candidate.mjs",
+  "package.json must expose zk:c01-production-verifier-backend-candidate-check",
+);
+assert(
   packageJson.scripts?.["zk:review-guards-check"]?.includes("npm run zk:c01-verifier-backend-contract-check"),
   "zk:review-guards-check must include the C01 verifier backend contract guard",
 );
 assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes("npm run zk:c01-production-verifier-backend-candidate-check"),
+  "zk:review-guards-check must include the C01 production verifier backend candidate guard",
+);
+assert(
   packageJson.scripts?.["zk:feedback-loop-check"]?.includes("npm run zk:c01-verifier-backend-contract-check"),
   "zk:feedback-loop-check must include the C01 verifier backend contract guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes("npm run zk:c01-production-verifier-backend-candidate-check"),
+  "zk:feedback-loop-check must include the C01 production verifier backend candidate guard",
 );
 
 const possibleVerifierArtifacts = [

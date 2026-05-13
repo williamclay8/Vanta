@@ -131,6 +131,17 @@ const remoteServer = createServer(async (request, response) => {
     return;
   }
 
+  if (shieldPublicInputHash === "801") {
+    sendJson(response, 200, {
+      verifiedReceipt: {
+        ...remoteShieldReceipt("801"),
+        onChainVerifierEvidence: "solana-c01-groth16-verifier-ready",
+        onChainVerifierTarget: "solana-c01-tag3-groth16-v0",
+      },
+    });
+    return;
+  }
+
   if (shieldPublicInputHash === "235") {
     sendJson(response, 200, {
       verifiedReceipt: {
@@ -321,6 +332,15 @@ try {
     "Expected remote-service proof backend.",
   );
   assert(
+    accepted.parsed?.verifiedReceipt?.onChainVerifierEvidence ===
+      "offchain-remote-proof-artifact-only",
+    "Expected offchain-only verifier evidence for remote proof-artifact handoff.",
+  );
+  assert(
+    accepted.parsed?.verifiedReceipt?.onChainVerifierTarget === "none",
+    "Expected no on-chain verifier target for remote proof-artifact handoff.",
+  );
+  assert(
     accepted.parsed?.verifiedReceipt?.verifiedPublicInputs?.shieldPublicInputHash === "123",
     "Expected Shield public input binding from remote verifier.",
   );
@@ -415,6 +435,23 @@ try {
     "Relabelled local proof artifact key id should reject before remote verifier call.",
   );
 
+  await expectReject(
+    "private-pool-v2 production C01-ready request overclaim rejection",
+    {
+      expectedPublicInputs: { shieldPublicInputHash: "123" },
+      proofArtifact: {
+        ...remoteShieldArtifact("123"),
+        onChainVerifierEvidence: "solana-c01-groth16-verifier-ready",
+        onChainVerifierTarget: "solana-c01-tag3-groth16-v0",
+      },
+    },
+    "C01 on-chain verifier-ready evidence requires",
+  );
+  assert(
+    remoteCalls.length === 1,
+    "C01-ready proof-artifact request overclaim should reject before remote verifier call.",
+  );
+
   for (const { field, publicInput } of [
     { field: "acirBytecodeHash", publicInput: "229" },
     { field: "circuit", publicInput: "233" },
@@ -437,6 +474,15 @@ try {
     );
   }
   assert(remoteCalls.length === 11, "Expected remote verifier calls for acceptance plus drift cases.");
+
+  await expectReject(
+    "private-pool-v2 production C01-ready remote receipt overclaim rejection",
+    {
+      expectedPublicInputs: { shieldPublicInputHash: "801" },
+      proofArtifact: remoteShieldArtifact("801"),
+    },
+    "C01 on-chain verifier-ready evidence requires",
+  );
 
   await expectReject(
     "private-pool-v2 production remote mock proofSystem response rejection",

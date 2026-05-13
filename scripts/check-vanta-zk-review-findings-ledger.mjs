@@ -267,6 +267,18 @@ assert(c01Text.includes("TAG_UNSHIELD = 6"), "C01 must record the source-only TA
 assert(c01Text.includes("TAG_REGISTER_PROVENANCED_ROOT = 4"), "C01 must record the source-only TAG_REGISTER_PROVENANCED_ROOT truth");
 assert(c01Text.includes("vanta2root"), "C01 must record the root-record PDA seed");
 assert(c01Text.includes("private-pool-v2:root-provenance-check"), "C01 must record the root provenance guard");
+assert(
+  c01Text.includes("zk:c01-production-verifier-backend-candidate-check"),
+  "C01 must record the production verifier backend candidate guard",
+);
+assert(
+  c01Text.includes("offchain-remote-proof-artifact-only"),
+  "C01 must record the offchain-only remote proof-artifact evidence marker",
+);
+assert(
+  c01Text.includes("solana-c01-groth16-verifier-ready"),
+  "C01 must record the Solana C01 verifier-ready evidence marker",
+);
 assert(c01Text.includes("not proof that the root transition is correct"), "C01 must preserve the root transition proof boundary");
 assert(c01Text.includes("legacy tag 2 roots"), "C01 must record the legacy-root no-backfill boundary");
 assert(

@@ -377,6 +377,8 @@ async function verifyVantaPrivatePoolV2ProofArtifact(args, profile) {
       acirBytecodeHash: proofArtifact.acirBytecodeHash,
       backend: proofArtifact.backend,
       circuit: proofArtifact.circuit,
+      onChainVerifierEvidence: "offchain-remote-proof-artifact-only",
+      onChainVerifierTarget: "none",
       proofBackend: proofArtifact.proofBackend,
       proofByteLength: proofData.proof.length,
       proofFieldCount: Math.floor(proofData.proof.length / 32),

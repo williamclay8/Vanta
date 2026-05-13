@@ -99,6 +99,12 @@ export type VantaPrivatePoolV2ProofBackend =
 export type VantaPrivatePoolV2ProofArtifactVerifyingKeyHashKind =
   | "local-acir-bytecode-hash-not-production-vk"
   | "production-verifying-key-hash";
+export type VantaPrivatePoolV2OnChainVerifierEvidence =
+  | "offchain-remote-proof-artifact-only"
+  | "solana-c01-groth16-verifier-ready";
+export type VantaPrivatePoolV2OnChainVerifierTarget =
+  | "none"
+  | "solana-c01-tag3-groth16-v0";
 
 export type VantaPrivatePoolV2ProofResult = {
   proofBackend?: VantaPrivatePoolV2ProofBackend;
@@ -197,6 +203,8 @@ export type VantaPrivatePoolV2ProofArtifactVerificationReceipt = {
   acirBytecodeHash: string;
   backend: "barretenberg-ultrahonk";
   circuit: string;
+  onChainVerifierEvidence: VantaPrivatePoolV2OnChainVerifierEvidence;
+  onChainVerifierTarget: VantaPrivatePoolV2OnChainVerifierTarget;
   proofBackend: VantaPrivatePoolV2ProofBackend;
   proofByteLength: number;
   proofFieldCount: number;

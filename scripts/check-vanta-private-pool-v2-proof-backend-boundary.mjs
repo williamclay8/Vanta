@@ -88,6 +88,12 @@ includes(
   "privatePoolV2Types Actual Private Spend proof artifact contract",
 );
 includes(types, "VantaPrivatePoolV2ProofArtifactVerificationReceipt", "privatePoolV2Types proof artifact receipt contract");
+includes(types, "VantaPrivatePoolV2OnChainVerifierEvidence", "privatePoolV2Types proof artifact on-chain verifier evidence contract");
+includes(
+  types,
+  "onChainVerifierTarget: VantaPrivatePoolV2OnChainVerifierTarget",
+  "privatePoolV2Types proof artifact on-chain verifier target contract",
+);
 
 includes(localProver, 'VANTA_PRIVATE_POOL_V2_LOCAL_PROOF_BACKEND =\n  "local-mock"', "local prover");
 includes(localProver, "proof.proofBackend === expected.proofBackend", "local prover verification");
@@ -125,6 +131,26 @@ includes(
   remoteServices,
   "VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_ARTIFACT_TRANSCRIPT_FIELDS",
   "remote services proof-artifact transcript field list",
+);
+includes(
+  remoteServices,
+  "assertNoC01VerifierReadyOverclaim",
+  "remote services C01 verifier-ready overclaim guard",
+);
+includes(
+  remoteServices,
+  "offchain-remote-proof-artifact-only",
+  "remote services offchain-only proof-artifact evidence marker",
+);
+includes(
+  remoteServices,
+  "solana-c01-groth16-verifier-ready",
+  "remote services Solana C01 verifier-ready evidence marker",
+);
+includes(
+  remoteServices,
+  "wire the Solana tag3 Groth16 verifier adapter before enabling this claim",
+  "remote services C01 verifier-ready fail-closed message",
 );
 includes(
   remoteServices,
@@ -239,6 +265,16 @@ includes(
   proofArtifact,
   "assertVantaPrivatePoolV2ProofArtifactHasNoWitnessMaterial",
   "Private Pool v2 generic no-witness guard",
+);
+includes(
+  proofArtifact,
+  'onChainVerifierEvidence: "offchain-remote-proof-artifact-only"',
+  "Private Pool v2 local proof artifact offchain-only evidence marker",
+);
+includes(
+  proofArtifact,
+  'onChainVerifierTarget: "none"',
+  "Private Pool v2 local proof artifact no on-chain target marker",
 );
 includes(proofArtifact, "forbiddenNoWitnessNormalizedKeys", "Private Pool v2 Send no-witness alias guard");
 includes(proofArtifact, "publicInputCommitment mismatch", "Private Pool v2 Send public-input binding guard");
@@ -535,6 +571,11 @@ includes(
 );
 includes(
   remoteProofArtifactBoundary,
+  "Expected offchain-only verifier evidence for remote proof-artifact handoff.",
+  "remote proof-artifact offchain-only evidence guard",
+);
+includes(
+  remoteProofArtifactBoundary,
   "production local proof artifact rejection",
   "remote proof-artifact local rejection guard",
 );
@@ -547,6 +588,16 @@ includes(
   remoteProofArtifactBoundary,
   "production relabelled local proof artifact key-id rejection",
   "remote proof-artifact relabelled local key-id rejection guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  "production C01-ready request overclaim rejection",
+  "remote proof-artifact C01-ready request overclaim guard",
+);
+includes(
+  remoteProofArtifactBoundary,
+  "production C01-ready remote receipt overclaim rejection",
+  "remote proof-artifact C01-ready receipt overclaim guard",
 );
 includes(
   remoteProofArtifactBoundary,

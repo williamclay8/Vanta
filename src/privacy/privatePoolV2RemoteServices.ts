@@ -6,6 +6,8 @@ import {
   type VantaPrivatePoolV2Indexer,
   type VantaPrivatePoolV2MerkleProof,
   type VantaPrivatePoolV2Nullifier,
+  type VantaPrivatePoolV2OnChainVerifierEvidence,
+  type VantaPrivatePoolV2OnChainVerifierTarget,
   type VantaPrivatePoolV2ProofRequest,
   type VantaPrivatePoolV2ProofArtifactVerificationReceipt,
   type VantaPrivatePoolV2ProofResult,
@@ -19,6 +21,18 @@ import type { VantaPrivacyNetwork } from "./protocolAdapter";
 const VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND = "remote-service" as const;
 const VANTA_PRIVATE_POOL_V2_REMOTE_PRODUCTION_VERIFYING_KEY_HASH_KIND =
   "production-verifying-key-hash" as const;
+const VANTA_PRIVATE_POOL_V2_OFFCHAIN_REMOTE_PROOF_ARTIFACT_EVIDENCE =
+  "offchain-remote-proof-artifact-only" as const;
+const VANTA_PRIVATE_POOL_V2_SOLANA_C01_GROTH16_VERIFIER_READY =
+  "solana-c01-groth16-verifier-ready" as const;
+const VANTA_PRIVATE_POOL_V2_NO_ONCHAIN_VERIFIER_TARGET = "none" as const;
+const VANTA_PRIVATE_POOL_V2_SOLANA_C01_TAG3_GROTH16_TARGET =
+  "solana-c01-tag3-groth16-v0" as const;
+const VANTA_PRIVATE_POOL_V2_C01_ACTUAL_PRIVATE_SPEND_CIRCUIT =
+  "vanta_private_pool_v2_actual_private_spend_entry" as const;
+const VANTA_PRIVATE_POOL_V2_C01_PRIVATE_SPEND_PUBLIC_INPUT_LABEL =
+  "private-spend-public-input-hash" as const;
+const VANTA_PRIVATE_POOL_V2_C01_GROTH16_PROOF_BYTE_LENGTH = 256;
 const VANTA_PRIVATE_POOL_V2_LOCAL_PROOF_ARTIFACT_VERIFYING_KEY_ID_PREFIX =
   "local-acir-bytecode:";
 const VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_ARTIFACT_TRANSCRIPT_FIELDS = [
@@ -228,6 +242,80 @@ function toStringArray(value: unknown, fieldName: string): string[] {
   return value.map(String);
 }
 
+function normalizeOnChainVerifierEvidenceFields(value: Record<string, unknown>): {
+  onChainVerifierEvidence: VantaPrivatePoolV2OnChainVerifierEvidence;
+  onChainVerifierTarget: VantaPrivatePoolV2OnChainVerifierTarget;
+} {
+  const onChainVerifierEvidence = String(
+    value.onChainVerifierEvidence ?? VANTA_PRIVATE_POOL_V2_OFFCHAIN_REMOTE_PROOF_ARTIFACT_EVIDENCE,
+  );
+  const onChainVerifierTarget = String(
+    value.onChainVerifierTarget ??
+      (onChainVerifierEvidence === VANTA_PRIVATE_POOL_V2_OFFCHAIN_REMOTE_PROOF_ARTIFACT_EVIDENCE
+        ? VANTA_PRIVATE_POOL_V2_NO_ONCHAIN_VERIFIER_TARGET
+        : ""),
+  );
+
+  if (onChainVerifierEvidence === VANTA_PRIVATE_POOL_V2_OFFCHAIN_REMOTE_PROOF_ARTIFACT_EVIDENCE) {
+    if (onChainVerifierTarget !== VANTA_PRIVATE_POOL_V2_NO_ONCHAIN_VERIFIER_TARGET) {
+      throw new Error(
+        "Private Pool v2 offchain remote proof-artifact evidence must use onChainVerifierTarget=none.",
+      );
+    }
+
+    return {
+      onChainVerifierEvidence,
+      onChainVerifierTarget,
+    };
+  }
+
+  if (onChainVerifierEvidence === VANTA_PRIVATE_POOL_V2_SOLANA_C01_GROTH16_VERIFIER_READY) {
+    if (onChainVerifierTarget !== VANTA_PRIVATE_POOL_V2_SOLANA_C01_TAG3_GROTH16_TARGET) {
+      throw new Error(
+        "Private Pool v2 C01 on-chain verifier-ready evidence must target solana-c01-tag3-groth16-v0.",
+      );
+    }
+
+    return {
+      onChainVerifierEvidence,
+      onChainVerifierTarget,
+    };
+  }
+
+  throw new Error(
+    "Private Pool v2 proof-artifact verification received an unknown on-chain verifier evidence marker.",
+  );
+}
+
+function assertNoC01VerifierReadyOverclaim(value: Record<string, unknown>, label: string) {
+  const { onChainVerifierEvidence } = normalizeOnChainVerifierEvidenceFields(value);
+  if (onChainVerifierEvidence !== VANTA_PRIVATE_POOL_V2_SOLANA_C01_GROTH16_VERIFIER_READY) {
+    return;
+  }
+
+  const publicInputLabels = Array.isArray(value.publicInputLabels)
+    ? value.publicInputLabels.map(String)
+    : [];
+  const hasC01Groth16Shape =
+    String(value.proofSystem ?? "") === "groth16" &&
+    String(value.proofBackend ?? "") === VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_BACKEND &&
+    String(value.circuit ?? "") === VANTA_PRIVATE_POOL_V2_C01_ACTUAL_PRIVATE_SPEND_CIRCUIT &&
+    JSON.stringify(publicInputLabels) ===
+      JSON.stringify([VANTA_PRIVATE_POOL_V2_C01_PRIVATE_SPEND_PUBLIC_INPUT_LABEL]) &&
+    Number(value.proofByteLength) === VANTA_PRIVATE_POOL_V2_C01_GROTH16_PROOF_BYTE_LENGTH &&
+    value.verifyingKeyHashKind === VANTA_PRIVATE_POOL_V2_REMOTE_PRODUCTION_VERIFYING_KEY_HASH_KIND;
+
+  if (!hasC01Groth16Shape) {
+    throw new Error(
+      `${label} C01 on-chain verifier-ready evidence requires proofSystem=groth16, proofBackend=remote-service, circuit=vanta_private_pool_v2_actual_private_spend_entry, publicInputLabels=["private-spend-public-input-hash"], proofByteLength=256, verifyingKeyHashKind=production-verifying-key-hash, and onChainVerifierTarget=solana-c01-tag3-groth16-v0.`,
+    );
+  }
+
+  throw new Error(
+    `${label} C01 on-chain verifier-ready evidence is not accepted by the current bb.js/UltraHonk remote proof-artifact receipt boundary; wire the Solana tag3 Groth16 verifier adapter before enabling this claim.`,
+  );
+}
+
 function transcriptString(value: unknown) {
   return String(value ?? "").trim();
 }
@@ -302,6 +390,10 @@ function assertRemoteProductionProofArtifactRequest(body: {
     );
   }
   assertRemoteProductionVerifyingKeyId(artifact.verifyingKeyId);
+  assertNoC01VerifierReadyOverclaim(
+    artifact,
+    "Private Pool v2 remote proof-artifact request",
+  );
 }
 
 function toProofArtifactVerificationReceipt(
@@ -316,6 +408,12 @@ function toProofArtifactVerificationReceipt(
 
   const proofSystem = normalizeRemoteProofSystem(receipt.proofSystem);
   const proofBackend = normalizeRemoteProofBackend(receipt.proofBackend, { allowMissing: false });
+  const { onChainVerifierEvidence, onChainVerifierTarget } =
+    normalizeOnChainVerifierEvidenceFields(receipt);
+  assertNoC01VerifierReadyOverclaim(
+    receipt,
+    "Private Pool v2 remote verifier receipt",
+  );
   if (receipt.verified !== true) {
     throw new Error("Private Pool v2 remote proof-artifact verification requires verified=true.");
   }
@@ -343,6 +441,8 @@ function toProofArtifactVerificationReceipt(
     acirBytecodeHash: String(receipt.acirBytecodeHash),
     backend: String(receipt.backend) as "barretenberg-ultrahonk",
     circuit: String(receipt.circuit),
+    onChainVerifierEvidence,
+    onChainVerifierTarget,
     proofBackend,
     proofByteLength: Number(receipt.proofByteLength),
     proofFieldCount: Number(receipt.proofFieldCount),
