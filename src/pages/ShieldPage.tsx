@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import { AssetPickerGrid, type AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
+import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import {
   usePrivacyFlow,
   type RecentShieldContext,
@@ -2522,20 +2523,14 @@ export function ShieldPage(_props: ShieldPageProps) {
                             : "Approve the shield action in your wallet to continue."}
                 </p>
                 {pendingUmbraApprovalDisplay && status !== "complete" && status !== "failed" && (
-                  <details className="shield-approval-review" aria-label="Wallet approval review">
-                    <summary>
-                      <span>Vault transfer approval</span>
-                      <strong>{pendingUmbraApprovalDisplay.walletPrompt}</strong>
-                    </summary>
-                    <div className="shield-approval-review__rows">
-                      {pendingUmbraApprovalDisplay.rows.map((row) => (
-                        <div key={row.label}>
-                          <span>{row.label}</span>
-                          <strong>{row.value}</strong>
-                        </div>
-                      ))}
-                    </div>
-                  </details>
+                  <WalletApprovalSheet
+                    heading="Vault transfer approval"
+                    walletPrompt={pendingUmbraApprovalDisplay.walletPrompt}
+                    signingMode={pendingUmbraApprovalDisplay.signingMode}
+                    rows={pendingUmbraApprovalDisplay.rows}
+                    note="Approve only if your wallet shows the same asset, amount, cluster, and Vanta vault destination."
+                    truthBoundary="Local approval review only; it does not prove production privacy or mainnet readiness."
+                  />
                 )}
                 {status === "awaiting_wallet_confirmation" && (
                   <div className="shield-wallet-warning-note" role="note">

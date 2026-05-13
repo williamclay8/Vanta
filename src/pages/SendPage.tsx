@@ -7,6 +7,7 @@ import { NotePicker, type NotePickerOption } from "@/components/NotePicker";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { PrivacySummary, type PrivacySummaryItem } from "@/components/PrivacySummary";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
+import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import { isBetaMode } from "@/config/deploymentMode";
 import { usePrivacyFlow, type PrivacyAssetKey } from "@/data/context/PrivacyFlowContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
@@ -1648,6 +1649,26 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             <div className="status-panel">
               <span>Awaiting wallet confirmation</span>
               <p>Approve this shielded-state send in your wallet.</p>
+              <WalletApprovalSheet
+                heading="Send wallet approval"
+                walletPrompt="Wallet approval"
+                signingMode="Transaction approval"
+                rows={[
+                  { label: "Action", value: "Record a constrained Send transition" },
+                  { label: "Asset", value: selectedAsset },
+                  {
+                    label: "Amount",
+                    value: isAmountValid ? formatBalance(parsedAmount, selectedAsset) : "Pending",
+                  },
+                  { label: "Recipient", value: abbreviate(trimmedRecipient) ?? "Pending" },
+                  {
+                    label: "Input note",
+                    value: abbreviate(selectedSpendableNote?.noteId) ?? "Automatic best note",
+                  },
+                ]}
+                note="Approve this shielded-state send only after the wallet prompt matches the selected recipient, asset, and amount."
+                truthBoundary="This is a local wallet approval review; it does not prove production Send privacy or live mainnet-private settlement."
+              />
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>

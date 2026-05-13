@@ -61,6 +61,7 @@ import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentS
 import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
 import { AssetPickerGrid, type AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
+import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import {
   PrivacySummary,
   type PrivacySummaryItem,
@@ -1944,6 +1945,36 @@ export function SwapPage() {
                     Quote from {quote.venueName} {quote.venueFamily} ·{" "}
                     {formatQuoteTimestamp(quote.quoteTimestamp)}
                   </p>
+                )}
+                {status === "awaiting_confirmation" && (
+                  <WalletApprovalSheet
+                    heading="Swap wallet approval"
+                    walletPrompt="Wallet approval"
+                    signingMode="Transaction approval"
+                    rows={[
+                      {
+                        label: "Action",
+                        value: "Authorize operator-visible route settlement",
+                      },
+                      {
+                        label: "From",
+                        value: formatAssetAmount(parsedAmount, selectedSourceAsset),
+                      },
+                      {
+                        label: "To",
+                        value: formatAssetAmount(expectedOutputAmount, selectedTargetAsset),
+                      },
+                      { label: "Venue", value: quoteVenueLabel },
+                      {
+                        label: "Input note",
+                        value: exactSpendableNote
+                          ? formatShortSwapId(exactSpendableNote.noteId)
+                          : "Exact-note match required",
+                      },
+                    ]}
+                    note="Approve only if the wallet prompt matches the selected route, asset, amount, and destination."
+                    truthBoundary="This is a local wallet approval review; route settlement remains operator-visible and is not production-private."
+                  />
                 )}
                 {swapBridgeError && status === "complete" && (
                   <p className="shield-helper shield-helper--meta">{swapBridgeError}</p>

@@ -9,6 +9,7 @@ import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePa
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
+import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import {
   PrivacySummary,
   type PrivacySummaryItem,
@@ -3005,20 +3006,15 @@ export function UnshieldPage() {
                   : "Vanta is preparing and simulating the constrained unshield transition."}
               </p>
               {pendingUmbraApprovalDisplay && (
-                <details className="shield-approval-review" aria-label="Wallet approval review">
-                  <summary>
-                    <span>Private rail approval</span>
-                    <strong>{pendingUmbraApprovalDisplay.walletPrompt}</strong>
-                  </summary>
-                  <div className="shield-approval-review__rows">
-                    {pendingUmbraApprovalDisplay.rows.slice(0, 4).map((row) => (
-                      <div key={row.label}>
-                        <span>{row.label}</span>
-                        <strong>{row.value}</strong>
-                      </div>
-                    ))}
-                  </div>
-                </details>
+                <WalletApprovalSheet
+                  heading="Private rail approval"
+                  walletPrompt={pendingUmbraApprovalDisplay.walletPrompt}
+                  signingMode={pendingUmbraApprovalDisplay.signingMode}
+                  rows={pendingUmbraApprovalDisplay.rows}
+                  maxRows={4}
+                  note="Approve only if your wallet shows the same asset, amount, cluster, and destination."
+                  truthBoundary="Local approval review only; it does not prove production privacy or mainnet readiness."
+                />
               )}
               <div className="status-bar">
                 <div className="status-bar__fill" />
