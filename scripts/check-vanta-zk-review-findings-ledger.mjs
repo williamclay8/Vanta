@@ -426,12 +426,21 @@ assert(
   h08.codexRemediation.commits.some((commitRef) => commitRef.includes("7f5c57c")),
   "H08 must record the Send browser worker prover commit",
 );
+assert(
+  h08.codexRemediation.commits.some((commitRef) => commitRef.includes("1611ad4")),
+  "H08 must record the Send browser worker witness-generation commit",
+);
 assert(h08Text.includes("send-public-input-hash"), "H08 must record Send public-input hash binding");
 assert(h08Text.includes("local-bb-derived-artifact"), "H08 must record the derived artifact backend");
 assert(h08Text.includes("browser/Web Worker proof-execution"), "H08 must record the browser worker proof-execution boundary");
+assert(h08Text.includes("typed Send witness input"), "H08 must record the typed Send witness-input boundary");
 assert(
-  h08Text.includes("does not generate witnesses in the browser"),
-  "H08 must preserve the browser witness-generation limitation",
+  h08Text.includes("worker-side witness generation"),
+  "H08 must record the worker-side witness-generation boundary",
+);
+assert(
+  !h08Text.includes("does not generate witnesses in the browser"),
+  "H08 must not preserve the stale browser witness-generation limitation",
 );
 
 const severityCounts = ledger.findings.reduce((counts, finding) => {

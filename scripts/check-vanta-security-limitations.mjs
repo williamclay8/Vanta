@@ -6,7 +6,7 @@ const source = readFileSync(resolve(repoRoot, "SECURITY_LIMITATIONS.md"), "utf8"
 
 const requiredPhrases = [
   "# Vanta Security Limitations",
-  "Last validated against repo-local code: 2026-05-12",
+  "Last validated against repo-local code: 2026-05-13",
   "Not mainnet-production ready",
   "Current private-settlement truth",
   "alpha-public-warning",
@@ -25,7 +25,7 @@ const requiredPhrases = [
   "actual-private-spend and Send",
   "local actual-private-spend witness-input proof path",
   "dev-only Send browser/Web Worker proof-execution path",
-  "does not generate witnesses in the browser",
+  "generate a Send witness in the worker from typed witness input using NoirJS",
   "not a production browser runtime prover",
   "reserved Private Pool v2 tag `3` proof-carrying spend ABI is source/local rebuilt-SBF fail-closed scaffolding",
   "preflights the root/root-record/nullifier/output/verifier-key account contract and then returns custom error `14` before proof verification, account creation, nullifier/output mutation, or spend acceptance",
