@@ -113,7 +113,7 @@ function createOnchainUnshieldCustodyStatus() {
       "Remove operator vault-keypair release authority from the production Unshield path.",
     ],
     truth:
-      "Current Unshield release remains an operator-keypair public exit: the operator signs SPL/SOL transfers from the configured vault owner. The local TAG_UNSHIELD source ABI is reserved fail-closed with source-only root/nullifier/vault-authority preflight and cannot release funds. This is beta custodial infrastructure, not program-owned on-chain custody.",
+      "Current Unshield release remains an operator-keypair public exit: the operator signs SPL/SOL transfers from the configured vault owner. The local TAG_UNSHIELD source ABI is reserved fail-closed with source-only root/root-record/nullifier/vault-authority preflight and cannot release funds. This is beta custodial infrastructure, not program-owned on-chain custody.",
   };
 }
 

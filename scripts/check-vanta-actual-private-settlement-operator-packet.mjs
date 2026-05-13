@@ -137,6 +137,8 @@ assert.equal(
   packet.solanaSpendSbfAbiStatus.sourceOnlyReservedSpendStatus,
   "fail-closed-verifier-key-preflight-source-only",
 );
+assert.equal(packet.solanaSpendSbfAbiStatus.sourceOnlyRootProvenanceReserved, true);
+assert.equal(packet.solanaSpendSbfAbiStatus.rootRecordSeed, "vanta2root");
 assert.equal(
   packet.solanaSpendSbfAbiStatus.sourceOnlyReservedUnshieldStatus,
   "fail-closed-vault-preflight-source-only",
@@ -150,6 +152,10 @@ if (packet.solanaSpendSbfAbiStatus.abiFresh) {
   assert.ok(
     packet.solanaSpendSbfAbiStatus.truthBoundary.includes("local SBF ABI is fresh"),
     "Operator packet must carry fresh local SBF ABI truth.",
+  );
+  assert.ok(
+    packet.solanaSpendSbfAbiStatus.truthBoundary.includes("provenanced-root ABI shapes"),
+    "Operator packet must carry source-only provenanced-root ABI truth.",
   );
   assert.ok(
     packet.solanaSpendSbfAbiStatus.truthBoundary.includes("not redeployed, reinitialized, or live-verified"),

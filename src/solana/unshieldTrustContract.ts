@@ -53,7 +53,7 @@ export function getUnshieldTrustContract(): UnshieldTrustContract {
       guardCommand: "npm run private-pool-v2:onchain-unshield-custody-check",
     },
     visibleStatusCopy:
-      "Unshield currently uses an operator-keypair public exit. The local TAG_UNSHIELD source ABI now preflights root, nullifier, and vault-authority accounts but remains fail-closed and cannot release funds; production custody claims stay locked until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
+      "Unshield currently uses an operator-keypair public exit. The local TAG_UNSHIELD source ABI now preflights root, root-record, nullifier, and vault-authority accounts but remains fail-closed and cannot release funds; production custody claims stay locked until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
     verificationSurfaces: [
       "npm run private-core:check",
       "npm run private-core:verify",

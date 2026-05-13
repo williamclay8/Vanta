@@ -57,18 +57,28 @@ includes(c01.verification.doesNotProve, "program-owned tree state", "C01 doesNot
 for (const marker of [
   "const TAG_REGISTER_ROOT: u8 = 2;",
   "const TAG_SPEND_WITH_PROOF: u8 = 3;",
+  "const TAG_REGISTER_PROVENANCED_ROOT: u8 = 4;",
   "const VERIFIER_KEY_MAGIC",
   "const VERIFIER_KEY_SEED",
   "const ROOT_MAGIC",
+  "const ROOT_RECORD_MAGIC",
+  "const ROOT_RECORD_SEED",
   "const SPEND_PAYLOAD_LEN: usize = 1 + HASH_LEN * 5;",
+  "const PROVENANCED_ROOT_PAYLOAD_LEN",
   "const SPEND_WITH_PROOF_PAYLOAD_LEN",
   "const ERR_PROOF_VERIFIER_NOT_WIRED: u32 = 14;",
   "const ERR_VERIFIER_KEY_MISMATCH: u32 = 17;",
+  "const ERR_ROOT_RECORD_MISMATCH: u32 = 18;",
   "fn process_register_root",
+  "fn process_register_provenanced_root",
   "fn process_spend_with_proof",
+  "fn require_previous_root_matches_history",
+  "fn require_root_record",
+  "fn ensure_root_record",
   "fn require_verifier_key_hash",
   "proof-carrying spend ABI is reserved; verifier not wired",
   "fixed_slot_contains(&root_data, HASH_LEN, accepted_root)?",
+  "require_root_record(program_id, pool_state, root_record, accepted_root)?;",
   "ensure_nullifier_marker(",
 ]) {
   includes(program, marker, programPath);
@@ -80,11 +90,16 @@ for (const marker of [
   "records the public transcript",
   "it still does not verify proofs",
   "accepted root",
+  "program-owned root provenance record",
+  "verifies `previousRoot` is zero for the first provenanced root",
+  "Roots already registered through legacy tag `2` cannot be backfilled with tag `4`",
   "root_history",
+  "root_record",
   "nullifier_marker",
   "proof-carrying spend (reserved, fail closed)",
   "returns custom error `14`",
   "[\"vanta2vkey\", pool_state, verifierKeyHash]",
+  "[\"vanta2root\", pool_state, acceptedRoot]",
 ]) {
   includes(readme, marker, readmePath);
 }
@@ -95,7 +110,9 @@ for (const marker of [
   "current 161-byte spend ABI carries no proof bytes",
   "returns custom error `14` before proof verification",
   "proofCarryingSpendStatus: \"fail-closed-verifier-key-preflight-source-only\"",
-  "root history is only a local operator-authorized fixed-slot scaffold",
+  "TAG_REGISTER_PROVENANCED_ROOT = 4",
+  "program-owned root provenance record",
+  "not proof that the root transition is correct",
   "program-owned shared tree state",
 ]) {
   includes(review, marker, reviewPath);

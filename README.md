@@ -424,6 +424,7 @@ npm run protocol:browser-check
 npm run pay:verify
 npm run security:limitations-check
 npm run private-pool-v2:contract-check
+npm run private-pool-v2:root-provenance-check
 npm run private-pool-v2:local-runtime-check
 npm run private-pool-v2:local-bb-fixture-prover-check
 npm run private-pool-v2:send-witness-prover-check
@@ -460,6 +461,7 @@ These commands cover the current Vanta-owned Private Pool v2 benchmark lane:
 - local prover public-input commitment verification plus tamper rejection
 - an opt-in actual-private-spend and Send local bb artifact-backed proof-result adapter that returns `noir-bb` / `local-bb-fixture-artifact` for exact verified fixture transcripts, and can return actual-private-spend or Send `noir-bb` / `local-bb-derived-artifact` from strict local witness inputs whose derived requests bind `private-spend-public-input-hash` or `send-public-input-hash`; it rejects public-input drift, transition-field drift, request-metadata drift, cross-target artifact relabeling, and no-witness artifact leakage, but remains local no-real-funds evidence, not a browser/runtime prover, remote proof service, on-chain verifier, or production proof acceptance
 - local relayer claim submission plus replay rejection
+- local source-only Private Pool v2 root provenance records via `TAG_REGISTER_PROVENANCED_ROOT = 4`, guarded as lineage-bound program-owned metadata for reserved proof/unshield preflights and not as proof that the root transition is correct
 - the first Noir-backed shield-entry circuit with valid, invalid-binding, and invalid-root fixtures
 - the first Noir-backed claim/spend circuit with valid, invalid-binding, and invalid-nullifier fixtures
 - local Barretenberg UltraHonk proof generation and verification for Shield, Claim, Swap-to-shielded, Send, and actual-private-spend fixture lanes

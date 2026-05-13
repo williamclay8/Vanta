@@ -171,7 +171,7 @@ const packets = {
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Unshield currently releases through an operator-keypair public exit. The local TAG_UNSHIELD source ABI preflights root, nullifier, and vault-authority accounts, then fails closed before proof verification, token CPI, custody transfer, or fund release. This is not a production-private exit or custody claim until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
+        "Unshield currently releases through an operator-keypair public exit. The local TAG_UNSHIELD source ABI preflights root, root-record, nullifier, and vault-authority accounts, then fails closed before proof verification, token CPI, custody transfer, or fund release. This is not a production-private exit or custody claim until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
     },
     custodyBoundary: {
       productionCustodyReady: false,
@@ -363,7 +363,7 @@ if (checkMode) {
       "Unshield packet must name the current operator-keypair public-exit release model.",
     );
     assert.ok(
-      packet.claimBoundary.safeClaim.includes("preflights root, nullifier, and vault-authority accounts"),
+      packet.claimBoundary.safeClaim.includes("preflights root, root-record, nullifier, and vault-authority accounts"),
       "Unshield packet must name the source-only TAG_UNSHIELD preflight boundary.",
     );
     assert.ok(

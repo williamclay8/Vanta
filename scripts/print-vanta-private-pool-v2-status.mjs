@@ -162,6 +162,7 @@ try {
     },
     verificationCommands: [
       "private-pool-v2:contract-check",
+      "private-pool-v2:root-provenance-check",
       "private-pool-v2:local-runtime-check",
       "private-pool-v2:hidden-economics-request-check",
       "private-pool-v2:public-input-hash-alignment-check",

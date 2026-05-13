@@ -16,6 +16,7 @@ const TAG_INIT: u8 = 0;
 const TAG_SPEND: u8 = 1;
 const TAG_REGISTER_ROOT: u8 = 2;
 const TAG_SPEND_WITH_PROOF: u8 = 3;
+const TAG_REGISTER_PROVENANCED_ROOT: u8 = 4;
 const TAG_UNSHIELD: u8 = 6;
 
 const VERSION: u8 = 1;
@@ -25,9 +26,11 @@ const NULLIFIER_MARKER_MAGIC: &[u8; 8] = b"VNTA2NMK";
 const OUTPUT_MAGIC: &[u8; 8] = b"VNTA2OUT";
 const OUTPUT_RECORD_MAGIC: &[u8; 8] = b"VNTA2ORC";
 const ROOT_MAGIC: &[u8; 8] = b"VNTA2ROT";
+const ROOT_RECORD_MAGIC: &[u8; 8] = b"VNTA2RRC";
 const VERIFIER_KEY_MAGIC: &[u8; 8] = b"VNTA2VKY";
 const NULLIFIER_MARKER_SEED: &[u8] = b"vanta2nul";
 const OUTPUT_RECORD_SEED: &[u8] = b"vanta2out";
+const ROOT_RECORD_SEED: &[u8] = b"vanta2root";
 const VAULT_AUTHORITY_SEED: &[u8] = b"vanta2vault";
 const VERIFIER_KEY_SEED: &[u8] = b"vanta2vkey";
 
@@ -47,6 +50,13 @@ const SPEND_PAYLOAD_LEN: usize = 1 + HASH_LEN * 5;
 const RESERVED_GROTH16_PROOF_LEN: usize = 256;
 const SPEND_WITH_PROOF_PAYLOAD_LEN: usize =
     SPEND_PAYLOAD_LEN + HASH_LEN + RESERVED_GROTH16_PROOF_LEN;
+const PROVENANCED_ROOT_ACCEPTED_ROOT_OFFSET: usize = 0;
+const PROVENANCED_ROOT_PREVIOUS_ROOT_OFFSET: usize = HASH_LEN;
+const PROVENANCED_ROOT_TRANSITION_PUBLIC_INPUT_HASH_OFFSET: usize = HASH_LEN * 2;
+const PROVENANCED_ROOT_LEAF_INDEX_BASE_OFFSET: usize = HASH_LEN * 3;
+const PROVENANCED_ROOT_LEAF_COUNT_OFFSET: usize = PROVENANCED_ROOT_LEAF_INDEX_BASE_OFFSET + 8;
+const PROVENANCED_ROOT_TRANSITION_KIND_OFFSET: usize = PROVENANCED_ROOT_LEAF_COUNT_OFFSET + 4;
+const PROVENANCED_ROOT_PAYLOAD_LEN: usize = 1 + PROVENANCED_ROOT_TRANSITION_KIND_OFFSET + 1;
 const UNSHIELD_ACCEPTED_ROOT_OFFSET: usize = HASH_LEN;
 const UNSHIELD_EXIT_DESTINATION_OFFSET: usize = HASH_LEN * 2;
 const UNSHIELD_EXIT_ASSET_ID_OFFSET: usize = HASH_LEN * 3;
@@ -64,6 +74,17 @@ const OUTPUT_RECORD_PUBLIC_INPUT_HASH_OFFSET: usize = OUTPUT_RECORD_OUTPUT1_OFFS
 const NULLIFIER_MARKER_LEN: usize = HEADER_LEN + HASH_LEN * 2;
 const NULLIFIER_MARKER_POOL_OFFSET: usize = HEADER_LEN;
 const NULLIFIER_MARKER_NULLIFIER_OFFSET: usize = HEADER_LEN + HASH_LEN;
+const ROOT_RECORD_ACCOUNT_LEN: usize = HEADER_LEN + 8 + HASH_LEN * 4 + 8 + 4 + 1;
+const ROOT_RECORD_SEQUENCE_OFFSET: usize = HEADER_LEN;
+const ROOT_RECORD_POOL_OFFSET: usize = HEADER_LEN + 8;
+const ROOT_RECORD_PREVIOUS_ROOT_OFFSET: usize = ROOT_RECORD_POOL_OFFSET + HASH_LEN;
+const ROOT_RECORD_ACCEPTED_ROOT_OFFSET: usize = ROOT_RECORD_PREVIOUS_ROOT_OFFSET + HASH_LEN;
+const ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET: usize =
+    ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN;
+const ROOT_RECORD_LEAF_INDEX_BASE_OFFSET: usize =
+    ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN;
+const ROOT_RECORD_LEAF_COUNT_OFFSET: usize = ROOT_RECORD_LEAF_INDEX_BASE_OFFSET + 8;
+const ROOT_RECORD_TRANSITION_KIND_OFFSET: usize = ROOT_RECORD_LEAF_COUNT_OFFSET + 4;
 const VERIFIER_KEY_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 2;
 const VERIFIER_KEY_POOL_OFFSET: usize = HEADER_LEN;
 const VERIFIER_KEY_HASH_OFFSET: usize = HEADER_LEN + HASH_LEN;
@@ -84,6 +105,7 @@ const ERR_PROOF_VERIFIER_NOT_WIRED: u32 = 14;
 const ERR_UNSHIELD_RELEASE_NOT_WIRED: u32 = 15;
 const ERR_VAULT_AUTHORITY_MISMATCH: u32 = 16;
 const ERR_VERIFIER_KEY_MISMATCH: u32 = 17;
+const ERR_ROOT_RECORD_MISMATCH: u32 = 18;
 
 pub fn process_instruction(
     program_id: &Pubkey,
@@ -99,6 +121,9 @@ pub fn process_instruction(
         TAG_SPEND => process_spend(program_id, accounts, rest),
         TAG_REGISTER_ROOT => process_register_root(program_id, accounts, rest),
         TAG_SPEND_WITH_PROOF => process_spend_with_proof(program_id, accounts, rest),
+        TAG_REGISTER_PROVENANCED_ROOT => {
+            process_register_provenanced_root(program_id, accounts, rest)
+        }
         TAG_UNSHIELD => process_unshield(program_id, accounts, rest),
         _ => Err(ProgramError::InvalidInstructionData),
     }
@@ -294,6 +319,88 @@ fn process_register_root(
     Ok(())
 }
 
+fn process_register_provenanced_root(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    rest: &[u8],
+) -> ProgramResult {
+    if rest.len() + 1 != PROVENANCED_ROOT_PAYLOAD_LEN {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let accepted_root = &rest
+        [PROVENANCED_ROOT_ACCEPTED_ROOT_OFFSET..PROVENANCED_ROOT_ACCEPTED_ROOT_OFFSET + HASH_LEN];
+    let previous_root = &rest
+        [PROVENANCED_ROOT_PREVIOUS_ROOT_OFFSET..PROVENANCED_ROOT_PREVIOUS_ROOT_OFFSET + HASH_LEN];
+    let transition_public_input_hash = &rest[PROVENANCED_ROOT_TRANSITION_PUBLIC_INPUT_HASH_OFFSET
+        ..PROVENANCED_ROOT_TRANSITION_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN];
+    let leaf_index_base = read_u64(rest, PROVENANCED_ROOT_LEAF_INDEX_BASE_OFFSET)?;
+    let leaf_count = read_u32(rest, PROVENANCED_ROOT_LEAF_COUNT_OFFSET)?;
+    let transition_kind = rest[PROVENANCED_ROOT_TRANSITION_KIND_OFFSET];
+
+    if accepted_root.iter().all(|byte| *byte == 0)
+        || transition_public_input_hash.iter().all(|byte| *byte == 0)
+        || leaf_count == 0
+        || transition_kind == 0
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let mut account_iter = accounts.iter();
+    let pool_state = next_account_info(&mut account_iter)?;
+    let root_history = next_account_info(&mut account_iter)?;
+    let root_record = next_account_info(&mut account_iter)?;
+    let authority = next_account_info(&mut account_iter)?;
+    let system_program_info = next_account_info(&mut account_iter)?;
+
+    require_readonly_program_account(program_id, pool_state)?;
+    require_writable_program_account(program_id, root_history)?;
+    require_writable_account(root_record)?;
+    require_system_program(system_program_info)?;
+    if root_record.owner != program_id && !authority.is_writable {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    let pool_data = pool_state.try_borrow_data()?;
+    let mut root_data = root_history.try_borrow_mut_data()?;
+    require_pool_header(&pool_data)?;
+    require_authority(&pool_data, authority)?;
+    require_pool_root_history_binding(&pool_data, root_history)?;
+    require_fixed_slot_header(&root_data, ROOT_MAGIC, HASH_LEN)?;
+    require_root_record_available(program_id, pool_state, root_record, accepted_root)?;
+
+    if fixed_slot_contains(&root_data, HASH_LEN, accepted_root)? {
+        return Err(ProgramError::Custom(ERR_DUPLICATE_ROOT));
+    }
+
+    let root_count = read_count(&root_data)? as usize;
+    let root_capacity = fixed_slot_capacity(&root_data, HASH_LEN)?;
+    if root_count >= root_capacity {
+        return Err(ProgramError::Custom(ERR_ROOT_HISTORY_FULL));
+    }
+    require_previous_root_matches_history(&root_data, root_count, previous_root)?;
+
+    ensure_root_record(
+        program_id,
+        pool_state,
+        root_record,
+        authority,
+        system_program_info,
+        root_count as u64,
+        previous_root,
+        accepted_root,
+        transition_public_input_hash,
+        leaf_index_base,
+        leaf_count,
+        transition_kind,
+    )?;
+    write_hash_slot(&mut root_data, root_count, HASH_LEN, accepted_root)?;
+    write_count(&mut root_data, root_count + 1)?;
+
+    msg!("vanta_private_pool_v2_spend: registered provenanced accepted root");
+    Ok(())
+}
+
 fn process_spend_with_proof(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
@@ -326,6 +433,7 @@ fn process_spend_with_proof(
     let nullifier_set = next_account_info(&mut account_iter)?;
     let output_queue = next_account_info(&mut account_iter)?;
     let root_history = next_account_info(&mut account_iter)?;
+    let root_record = next_account_info(&mut account_iter)?;
     let nullifier_marker = next_account_info(&mut account_iter)?;
     let output_record = next_account_info(&mut account_iter)?;
     let verifier_key = next_account_info(&mut account_iter)?;
@@ -349,6 +457,7 @@ fn process_spend_with_proof(
     if !fixed_slot_contains(&root_data, HASH_LEN, accepted_root)? {
         return Err(ProgramError::Custom(ERR_UNKNOWN_ACCEPTED_ROOT));
     }
+    require_root_record(program_id, pool_state, root_record, accepted_root)?;
 
     let spend_count = read_u64(&pool_data, POOL_SPEND_COUNT_OFFSET)? as usize;
     let output_count = read_count(&output_data)? as usize;
@@ -399,6 +508,7 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
     let mut account_iter = accounts.iter();
     let pool_state = next_account_info(&mut account_iter)?;
     let root_history = next_account_info(&mut account_iter)?;
+    let root_record = next_account_info(&mut account_iter)?;
     let nullifier_marker = next_account_info(&mut account_iter)?;
     let vault_authority = next_account_info(&mut account_iter)?;
 
@@ -414,11 +524,12 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
     if !fixed_slot_contains(&root_data, HASH_LEN, accepted_root)? {
         return Err(ProgramError::Custom(ERR_UNKNOWN_ACCEPTED_ROOT));
     }
+    require_root_record(program_id, pool_state, root_record, accepted_root)?;
 
     require_nullifier_marker_available(program_id, pool_state, nullifier_marker, nullifier)?;
     require_vault_authority(program_id, pool_state, vault_authority, exit_asset_id)?;
 
-    msg!("vanta_private_pool_v2_spend: proof-verified unshield release ABI passed root/nullifier/vault-authority preflight; release not wired");
+    msg!("vanta_private_pool_v2_spend: proof-verified unshield release ABI passed root/root-record/nullifier/vault-authority preflight; release not wired");
     Err(ProgramError::Custom(ERR_UNSHIELD_RELEASE_NOT_WIRED))
 }
 
@@ -710,6 +821,206 @@ fn require_nullifier_marker(
             != nullifier
     {
         return Err(ProgramError::Custom(ERR_NULLIFIER_MARKER_MISMATCH));
+    }
+    Ok(())
+}
+
+fn require_root_record_available(
+    program_id: &Pubkey,
+    pool_state: &AccountInfo,
+    root_record: &AccountInfo,
+    accepted_root: &[u8],
+) -> ProgramResult {
+    let (expected_record, _) = Pubkey::find_program_address(
+        &[ROOT_RECORD_SEED, pool_state.key.as_ref(), accepted_root],
+        program_id,
+    );
+    if expected_record != *root_record.key {
+        return Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH));
+    }
+
+    if root_record.owner == program_id {
+        let record_data = root_record.try_borrow_data()?;
+        if record_data.iter().all(|byte| *byte == 0) {
+            if record_data.len() < ROOT_RECORD_ACCOUNT_LEN {
+                return Err(ProgramError::AccountDataTooSmall);
+            }
+            return Ok(());
+        }
+        require_root_record_data(record_data.as_ref(), pool_state, accepted_root)?;
+        return Err(ProgramError::Custom(ERR_DUPLICATE_ROOT));
+    }
+
+    if root_record.owner != &system_program::ID {
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    let record_data = root_record.try_borrow_data()?;
+    if !record_data.is_empty() || root_record.lamports() != 0 {
+        return Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH));
+    }
+    Ok(())
+}
+
+fn ensure_root_record<'a>(
+    program_id: &Pubkey,
+    pool_state: &AccountInfo<'a>,
+    root_record: &AccountInfo<'a>,
+    authority: &AccountInfo<'a>,
+    system_program_info: &AccountInfo<'a>,
+    sequence: u64,
+    previous_root: &[u8],
+    accepted_root: &[u8],
+    transition_public_input_hash: &[u8],
+    leaf_index_base: u64,
+    leaf_count: u32,
+    transition_kind: u8,
+) -> ProgramResult {
+    let (expected_record, bump) = Pubkey::find_program_address(
+        &[ROOT_RECORD_SEED, pool_state.key.as_ref(), accepted_root],
+        program_id,
+    );
+    if expected_record != *root_record.key {
+        return Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH));
+    }
+
+    if root_record.owner == program_id {
+        let mut record_data = root_record.try_borrow_mut_data()?;
+        if record_data.iter().all(|byte| *byte == 0) {
+            return write_root_record(
+                &mut record_data,
+                pool_state,
+                sequence,
+                previous_root,
+                accepted_root,
+                transition_public_input_hash,
+                leaf_index_base,
+                leaf_count,
+                transition_kind,
+            );
+        }
+        require_root_record_data(record_data.as_ref(), pool_state, accepted_root)?;
+        return Err(ProgramError::Custom(ERR_DUPLICATE_ROOT));
+    }
+
+    if root_record.owner != &system_program::ID {
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    {
+        let record_data = root_record.try_borrow_data()?;
+        if !record_data.is_empty() || root_record.lamports() != 0 {
+            return Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH));
+        }
+    }
+
+    let rent_lamports = Rent::get()?.minimum_balance(ROOT_RECORD_ACCOUNT_LEN);
+    let create_record = system_instruction::create_account(
+        authority.key,
+        root_record.key,
+        rent_lamports,
+        ROOT_RECORD_ACCOUNT_LEN as u64,
+        program_id,
+    );
+    invoke_signed(
+        &create_record,
+        &[
+            authority.clone(),
+            root_record.clone(),
+            system_program_info.clone(),
+        ],
+        &[&[
+            ROOT_RECORD_SEED,
+            pool_state.key.as_ref(),
+            accepted_root,
+            &[bump],
+        ]],
+    )?;
+
+    let mut record_data = root_record.try_borrow_mut_data()?;
+    write_root_record(
+        &mut record_data,
+        pool_state,
+        sequence,
+        previous_root,
+        accepted_root,
+        transition_public_input_hash,
+        leaf_index_base,
+        leaf_count,
+        transition_kind,
+    )
+}
+
+fn require_root_record(
+    program_id: &Pubkey,
+    pool_state: &AccountInfo,
+    root_record: &AccountInfo,
+    accepted_root: &[u8],
+) -> ProgramResult {
+    let (expected_record, _) = Pubkey::find_program_address(
+        &[ROOT_RECORD_SEED, pool_state.key.as_ref(), accepted_root],
+        program_id,
+    );
+    if expected_record != *root_record.key {
+        return Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH));
+    }
+    require_readonly_program_account(program_id, root_record)?;
+    let record_data = root_record.try_borrow_data()?;
+    require_root_record_data(record_data.as_ref(), pool_state, accepted_root)
+}
+
+fn require_root_record_data(
+    record_data: &[u8],
+    pool_state: &AccountInfo,
+    accepted_root: &[u8],
+) -> ProgramResult {
+    if record_data.len() != ROOT_RECORD_ACCOUNT_LEN
+        || &record_data[..8] != ROOT_RECORD_MAGIC
+        || record_data[8] != VERSION
+        || read_count(record_data)? != 1
+    {
+        return Err(ProgramError::Custom(ERR_INVALID_HEADER));
+    }
+    if record_data[ROOT_RECORD_POOL_OFFSET..ROOT_RECORD_POOL_OFFSET + HASH_LEN]
+        != *pool_state.key.as_ref()
+        || &record_data
+            [ROOT_RECORD_ACCEPTED_ROOT_OFFSET..ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN]
+            != accepted_root
+    {
+        return Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH));
+    }
+    let transition_public_input_hash = &record_data[ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET
+        ..ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN];
+    if transition_public_input_hash.iter().all(|byte| *byte == 0)
+        || read_u32(record_data, ROOT_RECORD_LEAF_COUNT_OFFSET)? == 0
+        || record_data[ROOT_RECORD_TRANSITION_KIND_OFFSET] == 0
+    {
+        return Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH));
+    }
+    Ok(())
+}
+
+fn require_previous_root_matches_history(
+    root_data: &[u8],
+    root_count: usize,
+    previous_root: &[u8],
+) -> ProgramResult {
+    if previous_root.len() != HASH_LEN {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+    if root_count == 0 {
+        if previous_root.iter().any(|byte| *byte != 0) {
+            return Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH));
+        }
+        return Ok(());
+    }
+
+    let start = HEADER_LEN + (root_count - 1) * HASH_LEN;
+    let last_root = root_data
+        .get(start..start + HASH_LEN)
+        .ok_or(ProgramError::AccountDataTooSmall)?;
+    if last_root != previous_root {
+        return Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH));
     }
     Ok(())
 }
@@ -1011,6 +1322,47 @@ fn write_output_record(
     Ok(())
 }
 
+fn write_root_record(
+    data: &mut [u8],
+    pool_state: &AccountInfo,
+    sequence: u64,
+    previous_root: &[u8],
+    accepted_root: &[u8],
+    transition_public_input_hash: &[u8],
+    leaf_index_base: u64,
+    leaf_count: u32,
+    transition_kind: u8,
+) -> ProgramResult {
+    if data.len() != ROOT_RECORD_ACCOUNT_LEN
+        || previous_root.len() != HASH_LEN
+        || accepted_root.len() != HASH_LEN
+        || transition_public_input_hash.len() != HASH_LEN
+        || leaf_count == 0
+        || transition_kind == 0
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    data.fill(0);
+    data[..8].copy_from_slice(ROOT_RECORD_MAGIC);
+    data[8] = VERSION;
+    write_count(data, 1)?;
+    write_u64(data, ROOT_RECORD_SEQUENCE_OFFSET, sequence)?;
+    data[ROOT_RECORD_POOL_OFFSET..ROOT_RECORD_POOL_OFFSET + HASH_LEN]
+        .copy_from_slice(pool_state.key.as_ref());
+    data[ROOT_RECORD_PREVIOUS_ROOT_OFFSET..ROOT_RECORD_PREVIOUS_ROOT_OFFSET + HASH_LEN]
+        .copy_from_slice(previous_root);
+    data[ROOT_RECORD_ACCEPTED_ROOT_OFFSET..ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN]
+        .copy_from_slice(accepted_root);
+    data[ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET
+        ..ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN]
+        .copy_from_slice(transition_public_input_hash);
+    write_u64(data, ROOT_RECORD_LEAF_INDEX_BASE_OFFSET, leaf_index_base)?;
+    write_u32(data, ROOT_RECORD_LEAF_COUNT_OFFSET, leaf_count)?;
+    data[ROOT_RECORD_TRANSITION_KIND_OFFSET] = transition_kind;
+    Ok(())
+}
+
 fn read_count(data: &[u8]) -> Result<u32, ProgramError> {
     read_u32(data, COUNT_OFFSET)
 }
@@ -1121,7 +1473,7 @@ mod tests {
             let authority_info = account_info(
                 &authority,
                 &program_id,
-                false,
+                true,
                 true,
                 &mut authority_lamports,
                 &mut signer_data,
@@ -1239,32 +1591,33 @@ mod tests {
     }
 
     #[test]
-    fn proof_carrying_spend_preflights_accounts_before_fail_closed_verifier() {
+    fn provenanced_root_registration_writes_root_record_and_rejects_duplicates() {
         let program_id = Pubkey::new_unique();
         let pool_state = Pubkey::new_unique();
         let nullifier_set = Pubkey::new_unique();
         let output_queue = Pubkey::new_unique();
         let root_history = Pubkey::new_unique();
-        let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &[1; HASH_LEN]);
-        let output_record = output_record_pubkey(&program_id, &pool_state, &[5; HASH_LEN]);
-        let verifier_key = verifier_key_pubkey(&program_id, &pool_state, &[6; HASH_LEN]);
+        let accepted_root = [4; HASH_LEN];
+        let root_record = root_record_pubkey(&program_id, &pool_state, &accepted_root);
+        let wrong_root_record = Pubkey::new_unique();
+        let system_program_id = system_program::ID;
         let authority = Pubkey::new_unique();
         let mut pool_lamports = 1_000_000;
         let mut nullifier_lamports = 1_000_000;
         let mut output_lamports = 1_000_000;
         let mut root_lamports = 1_000_000;
-        let mut marker_lamports = 1_000_000;
-        let mut record_lamports = 1_000_000;
-        let mut verifier_lamports = 1_000_000;
+        let mut root_record_lamports = 1_000_000;
+        let mut wrong_root_record_lamports = 1_000_000;
         let mut authority_lamports = 1_000_000;
+        let mut system_lamports = 1_000_000;
         let mut pool_data = vec![0; POOL_STATE_LEN];
         let mut nullifier_data = vec![0; HEADER_LEN + HASH_LEN * 4];
         let mut output_data = vec![0; HEADER_LEN];
         let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
-        let mut marker_data = vec![0; NULLIFIER_MARKER_LEN];
-        let mut record_data = vec![0; OUTPUT_RECORD_PDA_LEN];
-        let mut verifier_data = vec![0; VERIFIER_KEY_ACCOUNT_LEN];
+        let mut root_record_data = vec![0; ROOT_RECORD_ACCOUNT_LEN];
+        let mut wrong_root_record_data = vec![0; ROOT_RECORD_ACCOUNT_LEN];
         let mut signer_data = [];
+        let mut system_data = [];
 
         {
             let pool = account_info(
@@ -1302,7 +1655,683 @@ mod tests {
             let authority_info = account_info(
                 &authority,
                 &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let accounts = vec![pool, nullifier, output, roots, authority_info];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &[TAG_INIT]),
+                Ok(())
+            );
+        }
+
+        let before_wrong_record = (
+            pool_data.clone(),
+            root_data.clone(),
+            root_record_data.clone(),
+            wrong_root_record_data.clone(),
+        );
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
                 false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let root = account_info(
+                &wrong_root_record,
+                &program_id,
+                true,
+                false,
+                &mut wrong_root_record_lamports,
+                &mut wrong_root_record_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, roots, root, authority_info, system_info];
+
+            assert_eq!(
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_provenanced_root_instruction()
+                ),
+                Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH))
+            );
+        }
+        assert_eq!(
+            before_wrong_record,
+            (
+                pool_data.clone(),
+                root_data.clone(),
+                root_record_data.clone(),
+                wrong_root_record_data
+            )
+        );
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                true,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, roots, root, authority_info, system_info];
+
+            assert_eq!(
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_provenanced_root_instruction()
+                ),
+                Ok(())
+            );
+        }
+
+        assert_eq!(read_count(&root_data), Ok(1));
+        assert_eq!(
+            &root_data[HEADER_LEN..HEADER_LEN + HASH_LEN],
+            &accepted_root
+        );
+        assert_eq!(&root_record_data[..8], ROOT_RECORD_MAGIC);
+        assert_eq!(read_count(&root_record_data), Ok(1));
+        assert_eq!(
+            read_u64(&root_record_data, ROOT_RECORD_SEQUENCE_OFFSET),
+            Ok(0)
+        );
+        assert_eq!(
+            &root_record_data[ROOT_RECORD_POOL_OFFSET..ROOT_RECORD_POOL_OFFSET + HASH_LEN],
+            pool_state.as_ref()
+        );
+        assert_eq!(
+            &root_record_data
+                [ROOT_RECORD_ACCEPTED_ROOT_OFFSET..ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN],
+            &accepted_root
+        );
+        assert_eq!(
+            &root_record_data[ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET
+                ..ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN],
+            &[8; HASH_LEN]
+        );
+        assert_eq!(
+            read_u64(&root_record_data, ROOT_RECORD_LEAF_INDEX_BASE_OFFSET),
+            Ok(9)
+        );
+        assert_eq!(
+            read_u32(&root_record_data, ROOT_RECORD_LEAF_COUNT_OFFSET),
+            Ok(2)
+        );
+        assert_eq!(root_record_data[ROOT_RECORD_TRANSITION_KIND_OFFSET], 1);
+
+        let before_duplicate = (root_data.clone(), root_record_data.clone());
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                true,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, roots, root, authority_info, system_info];
+
+            assert_eq!(
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_provenanced_root_instruction()
+                ),
+                Err(ProgramError::Custom(ERR_DUPLICATE_ROOT))
+            );
+        }
+        assert_eq!(before_duplicate, (root_data, root_record_data));
+    }
+
+    #[test]
+    fn provenanced_root_registration_requires_root_history_lineage() {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let nullifier_set = Pubkey::new_unique();
+        let output_queue = Pubkey::new_unique();
+        let root_history = Pubkey::new_unique();
+        let first_root = [4; HASH_LEN];
+        let second_root = [9; HASH_LEN];
+        let first_root_record = root_record_pubkey(&program_id, &pool_state, &first_root);
+        let second_root_record = root_record_pubkey(&program_id, &pool_state, &second_root);
+        let system_program_id = system_program::ID;
+        let authority = Pubkey::new_unique();
+        let mut pool_lamports = 1_000_000;
+        let mut nullifier_lamports = 1_000_000;
+        let mut output_lamports = 1_000_000;
+        let mut root_lamports = 1_000_000;
+        let mut first_record_lamports = 1_000_000;
+        let mut second_record_lamports = 1_000_000;
+        let mut authority_lamports = 1_000_000;
+        let mut system_lamports = 1_000_000;
+        let mut pool_data = vec![0; POOL_STATE_LEN];
+        let mut nullifier_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut output_data = vec![0; HEADER_LEN];
+        let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut first_record_data = vec![0; ROOT_RECORD_ACCOUNT_LEN];
+        let mut second_record_data = vec![0; ROOT_RECORD_ACCOUNT_LEN];
+        let mut signer_data = [];
+        let mut system_data = [];
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                true,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let nullifier = account_info(
+                &nullifier_set,
+                &program_id,
+                true,
+                false,
+                &mut nullifier_lamports,
+                &mut nullifier_data,
+            );
+            let output = account_info(
+                &output_queue,
+                &program_id,
+                true,
+                false,
+                &mut output_lamports,
+                &mut output_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let accounts = vec![pool, nullifier, output, roots, authority_info];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &[TAG_INIT]),
+                Ok(())
+            );
+        }
+
+        let before_wrong_bootstrap = (root_data.clone(), first_record_data.clone());
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let root = account_info(
+                &first_root_record,
+                &program_id,
+                true,
+                false,
+                &mut first_record_lamports,
+                &mut first_record_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, roots, root, authority_info, system_info];
+
+            assert_eq!(
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_provenanced_root_instruction_with(first_root, [7; HASH_LEN])
+                ),
+                Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH))
+            );
+        }
+        assert_eq!(
+            before_wrong_bootstrap,
+            (root_data.clone(), first_record_data.clone())
+        );
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let root = account_info(
+                &first_root_record,
+                &program_id,
+                true,
+                false,
+                &mut first_record_lamports,
+                &mut first_record_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, roots, root, authority_info, system_info];
+
+            assert_eq!(
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_provenanced_root_instruction_with(first_root, [0; HASH_LEN])
+                ),
+                Ok(())
+            );
+        }
+
+        let before_wrong_lineage = (root_data.clone(), second_record_data.clone());
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let root = account_info(
+                &second_root_record,
+                &program_id,
+                true,
+                false,
+                &mut second_record_lamports,
+                &mut second_record_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, roots, root, authority_info, system_info];
+
+            assert_eq!(
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_provenanced_root_instruction_with(second_root, [8; HASH_LEN])
+                ),
+                Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH))
+            );
+        }
+        assert_eq!(
+            before_wrong_lineage,
+            (root_data.clone(), second_record_data.clone())
+        );
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let root = account_info(
+                &second_root_record,
+                &program_id,
+                true,
+                false,
+                &mut second_record_lamports,
+                &mut second_record_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, roots, root, authority_info, system_info];
+
+            assert_eq!(
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_provenanced_root_instruction_with(second_root, first_root)
+                ),
+                Ok(())
+            );
+        }
+
+        assert_eq!(read_count(&root_data), Ok(2));
+        assert_eq!(
+            &second_record_data
+                [ROOT_RECORD_PREVIOUS_ROOT_OFFSET..ROOT_RECORD_PREVIOUS_ROOT_OFFSET + HASH_LEN],
+            &first_root
+        );
+    }
+
+    #[test]
+    fn root_record_validation_rejects_malformed_metadata() {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let accepted_root = [4; HASH_LEN];
+        let transition_public_input_hash = [8; HASH_LEN];
+        let previous_root = [0; HASH_LEN];
+        let mut pool_lamports = 1_000_000;
+        let mut pool_data = [];
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            false,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
+        let mut record_data = vec![0; ROOT_RECORD_ACCOUNT_LEN];
+
+        assert_eq!(
+            write_root_record(
+                &mut record_data,
+                &pool,
+                0,
+                &previous_root,
+                &accepted_root,
+                &transition_public_input_hash,
+                9,
+                2,
+                1
+            ),
+            Ok(())
+        );
+        assert_eq!(
+            require_root_record_data(&record_data, &pool, &accepted_root),
+            Ok(())
+        );
+
+        let mut zero_transition_hash = record_data.clone();
+        zero_transition_hash[ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET
+            ..ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN]
+            .fill(0);
+        assert_eq!(
+            require_root_record_data(&zero_transition_hash, &pool, &accepted_root),
+            Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH))
+        );
+
+        let mut zero_leaf_count = record_data.clone();
+        assert_eq!(
+            write_u32(&mut zero_leaf_count, ROOT_RECORD_LEAF_COUNT_OFFSET, 0),
+            Ok(())
+        );
+        assert_eq!(
+            require_root_record_data(&zero_leaf_count, &pool, &accepted_root),
+            Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH))
+        );
+
+        let mut zero_transition_kind = record_data.clone();
+        zero_transition_kind[ROOT_RECORD_TRANSITION_KIND_OFFSET] = 0;
+        assert_eq!(
+            require_root_record_data(&zero_transition_kind, &pool, &accepted_root),
+            Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH))
+        );
+
+        let mut oversized_record = record_data;
+        oversized_record.push(0);
+        assert_eq!(
+            require_root_record_data(&oversized_record, &pool, &accepted_root),
+            Err(ProgramError::Custom(ERR_INVALID_HEADER))
+        );
+    }
+
+    #[test]
+    fn proof_carrying_spend_preflights_accounts_before_fail_closed_verifier() {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let nullifier_set = Pubkey::new_unique();
+        let output_queue = Pubkey::new_unique();
+        let root_history = Pubkey::new_unique();
+        let root_record = root_record_pubkey(&program_id, &pool_state, &[4; HASH_LEN]);
+        let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &[1; HASH_LEN]);
+        let output_record = output_record_pubkey(&program_id, &pool_state, &[5; HASH_LEN]);
+        let verifier_key = verifier_key_pubkey(&program_id, &pool_state, &[6; HASH_LEN]);
+        let system_program_id = system_program::ID;
+        let authority = Pubkey::new_unique();
+        let mut pool_lamports = 1_000_000;
+        let mut nullifier_lamports = 1_000_000;
+        let mut output_lamports = 1_000_000;
+        let mut root_lamports = 1_000_000;
+        let mut root_record_lamports = 1_000_000;
+        let mut marker_lamports = 1_000_000;
+        let mut record_lamports = 1_000_000;
+        let mut verifier_lamports = 1_000_000;
+        let mut authority_lamports = 1_000_000;
+        let mut system_lamports = 1_000_000;
+        let mut pool_data = vec![0; POOL_STATE_LEN];
+        let mut nullifier_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut output_data = vec![0; HEADER_LEN];
+        let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut root_record_data = vec![0; ROOT_RECORD_ACCOUNT_LEN];
+        let mut marker_data = vec![0; NULLIFIER_MARKER_LEN];
+        let mut record_data = vec![0; OUTPUT_RECORD_PDA_LEN];
+        let mut verifier_data = vec![0; VERIFIER_KEY_ACCOUNT_LEN];
+        let mut signer_data = [];
+        let mut system_data = [];
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                true,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let nullifier = account_info(
+                &nullifier_set,
+                &program_id,
+                true,
+                false,
+                &mut nullifier_lamports,
+                &mut nullifier_data,
+            );
+            let output = account_info(
+                &output_queue,
+                &program_id,
+                true,
+                false,
+                &mut output_lamports,
+                &mut output_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
                 true,
                 &mut authority_lamports,
                 &mut signer_data,
@@ -1332,18 +2361,38 @@ mod tests {
                 &mut root_lamports,
                 &mut root_data,
             );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                true,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
             let authority_info = account_info(
                 &authority,
                 &program_id,
-                false,
+                true,
                 true,
                 &mut authority_lamports,
                 &mut signer_data,
             );
-            let accounts = vec![pool, roots, authority_info];
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, roots, root, authority_info, system_info];
 
             assert_eq!(
-                process_instruction(&program_id, &accounts, &register_root_instruction()),
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_provenanced_root_instruction()
+                ),
                 Ok(())
             );
         }
@@ -1354,6 +2403,7 @@ mod tests {
             nullifier_data.clone(),
             output_data.clone(),
             root_data.clone(),
+            root_record_data.clone(),
             marker_data.clone(),
             record_data.clone(),
             verifier_data.clone(),
@@ -1392,6 +2442,14 @@ mod tests {
                 &mut root_lamports,
                 &mut root_data,
             );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                false,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
             let marker = account_info(
                 &nullifier_marker,
                 &program_id,
@@ -1416,7 +2474,9 @@ mod tests {
                 &mut verifier_lamports,
                 &mut verifier_data,
             );
-            let accounts = vec![pool, nullifier, output, roots, marker, record, verifier];
+            let accounts = vec![
+                pool, nullifier, output, roots, root, marker, record, verifier,
+            ];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &spend_with_proof_instruction()),
@@ -1431,6 +2491,7 @@ mod tests {
                 nullifier_data,
                 output_data,
                 root_data,
+                root_record_data,
                 marker_data,
                 record_data,
                 verifier_data,
@@ -1451,6 +2512,7 @@ mod tests {
         let nullifier_set = Pubkey::new_unique();
         let output_queue = Pubkey::new_unique();
         let root_history = Pubkey::new_unique();
+        let root_record = root_record_pubkey(&program_id, &pool_state, &[4; HASH_LEN]);
         let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &[1; HASH_LEN]);
         let output_record = output_record_pubkey(&program_id, &pool_state, &[5; HASH_LEN]);
         let verifier_key = verifier_key_pubkey(&program_id, &pool_state, &[6; HASH_LEN]);
@@ -1458,6 +2520,7 @@ mod tests {
         let mut nullifier_lamports = 1_000_000;
         let mut output_lamports = 1_000_000;
         let mut root_lamports = 1_000_000;
+        let mut root_record_lamports = 1_000_000;
         let mut marker_lamports = 1_000_000;
         let mut record_lamports = 1_000_000;
         let mut verifier_lamports = 1_000_000;
@@ -1465,6 +2528,7 @@ mod tests {
         let mut nullifier_data = vec![0; HEADER_LEN + HASH_LEN * 4];
         let mut output_data = vec![0; HEADER_LEN];
         let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut root_record_data = vec![0; ROOT_RECORD_ACCOUNT_LEN];
         let mut marker_data = vec![0; NULLIFIER_MARKER_LEN];
         let mut record_data = vec![0; OUTPUT_RECORD_PDA_LEN];
         let mut verifier_data = vec![0; VERIFIER_KEY_ACCOUNT_LEN];
@@ -1517,6 +2581,14 @@ mod tests {
             &mut root_lamports,
             &mut root_data,
         );
+        let root = account_info(
+            &root_record,
+            &program_id,
+            false,
+            false,
+            &mut root_record_lamports,
+            &mut root_record_data,
+        );
         let marker = account_info(
             &nullifier_marker,
             &program_id,
@@ -1541,7 +2613,9 @@ mod tests {
             &mut verifier_lamports,
             &mut verifier_data,
         );
-        let accounts = vec![pool, nullifier, output, roots, marker, record, verifier];
+        let accounts = vec![
+            pool, nullifier, output, roots, root, marker, record, verifier,
+        ];
 
         assert_eq!(
             process_instruction(&program_id, &accounts, &spend_with_proof_instruction()),
@@ -1629,23 +2703,29 @@ mod tests {
         let nullifier_set = Pubkey::new_unique();
         let output_queue = Pubkey::new_unique();
         let root_history = Pubkey::new_unique();
+        let root_record = root_record_pubkey(&program_id, &pool_state, &[4; HASH_LEN]);
         let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &[1; HASH_LEN]);
         let vault_authority = vault_authority_pubkey(&program_id, &pool_state, &[3; HASH_LEN]);
+        let system_program_id = system_program::ID;
         let authority = Pubkey::new_unique();
         let mut pool_lamports = 1_000_000;
         let mut nullifier_lamports = 1_000_000;
         let mut output_lamports = 1_000_000;
         let mut root_lamports = 1_000_000;
+        let mut root_record_lamports = 1_000_000;
         let mut marker_lamports = 1_000_000;
         let mut vault_lamports = 0;
         let mut authority_lamports = 1_000_000;
+        let mut system_lamports = 1_000_000;
         let mut pool_data = vec![0; POOL_STATE_LEN];
         let mut nullifier_data = vec![0; HEADER_LEN + HASH_LEN * 4];
         let mut output_data = vec![0; HEADER_LEN];
         let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut root_record_data = vec![0; ROOT_RECORD_ACCOUNT_LEN];
         let mut marker_data = vec![0; NULLIFIER_MARKER_LEN];
         let mut vault_data = [];
         let mut signer_data = [];
+        let mut system_data = [];
 
         {
             let pool = account_info(
@@ -1683,7 +2763,7 @@ mod tests {
             let authority_info = account_info(
                 &authority,
                 &program_id,
-                false,
+                true,
                 true,
                 &mut authority_lamports,
                 &mut signer_data,
@@ -1713,23 +2793,48 @@ mod tests {
                 &mut root_lamports,
                 &mut root_data,
             );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                true,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
             let authority_info = account_info(
                 &authority,
                 &program_id,
-                false,
+                true,
                 true,
                 &mut authority_lamports,
                 &mut signer_data,
             );
-            let accounts = vec![pool, roots, authority_info];
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, roots, root, authority_info, system_info];
 
             assert_eq!(
-                process_instruction(&program_id, &accounts, &register_root_instruction()),
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_provenanced_root_instruction()
+                ),
                 Ok(())
             );
         }
 
-        let before = (pool_data.clone(), root_data.clone(), marker_data.clone());
+        let before = (
+            pool_data.clone(),
+            root_data.clone(),
+            root_record_data.clone(),
+            marker_data.clone(),
+        );
 
         {
             let pool = account_info(
@@ -1748,6 +2853,14 @@ mod tests {
                 &mut root_lamports,
                 &mut root_data,
             );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                false,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
             let marker = account_info(
                 &nullifier_marker,
                 &program_id,
@@ -1764,7 +2877,7 @@ mod tests {
                 &mut vault_lamports,
                 &mut vault_data,
             );
-            let accounts = vec![pool, roots, marker, vault];
+            let accounts = vec![pool, roots, root, marker, vault];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &unshield_instruction()),
@@ -1772,7 +2885,10 @@ mod tests {
             );
         }
 
-        assert_eq!(before, (pool_data, root_data, marker_data));
+        assert_eq!(
+            before,
+            (pool_data, root_data, root_record_data, marker_data)
+        );
     }
 
     #[test]
@@ -1846,31 +2962,37 @@ mod tests {
         let nullifier_set = Pubkey::new_unique();
         let output_queue = Pubkey::new_unique();
         let root_history = Pubkey::new_unique();
+        let root_record = root_record_pubkey(&program_id, &pool_state, &[4; HASH_LEN]);
         let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &[1; HASH_LEN]);
         let wrong_nullifier_marker = Pubkey::new_unique();
         let vault_authority = vault_authority_pubkey(&program_id, &pool_state, &[3; HASH_LEN]);
         let wrong_vault_authority = Pubkey::new_unique();
+        let system_program_id = system_program::ID;
         let authority = Pubkey::new_unique();
         let mut pool_lamports = 1_000_000;
         let mut nullifier_lamports = 1_000_000;
         let mut output_lamports = 1_000_000;
         let mut root_lamports = 1_000_000;
+        let mut root_record_lamports = 1_000_000;
         let mut marker_lamports = 1_000_000;
         let mut wrong_marker_lamports = 1_000_000;
         let mut consumed_marker_lamports = 1_000_000;
         let mut vault_lamports = 0;
         let mut wrong_vault_lamports = 0;
         let mut authority_lamports = 1_000_000;
+        let mut system_lamports = 1_000_000;
         let mut pool_data = vec![0; POOL_STATE_LEN];
         let mut nullifier_data = vec![0; HEADER_LEN + HASH_LEN * 4];
         let mut output_data = vec![0; HEADER_LEN];
         let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut root_record_data = vec![0; ROOT_RECORD_ACCOUNT_LEN];
         let mut marker_data = vec![0; NULLIFIER_MARKER_LEN];
         let mut wrong_marker_data = vec![0; NULLIFIER_MARKER_LEN];
         let mut consumed_marker_data = vec![0; NULLIFIER_MARKER_LEN];
         let mut vault_data = [];
         let mut wrong_vault_data = [];
         let mut signer_data = [];
+        let mut system_data = [];
 
         {
             let pool = account_info(
@@ -1908,7 +3030,7 @@ mod tests {
             let authority_info = account_info(
                 &authority,
                 &program_id,
-                false,
+                true,
                 true,
                 &mut authority_lamports,
                 &mut signer_data,
@@ -1938,18 +3060,38 @@ mod tests {
                 &mut root_lamports,
                 &mut root_data,
             );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                true,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
             let authority_info = account_info(
                 &authority,
                 &program_id,
-                false,
+                true,
                 true,
                 &mut authority_lamports,
                 &mut signer_data,
             );
-            let accounts = vec![pool, roots, authority_info];
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, roots, root, authority_info, system_info];
 
             assert_eq!(
-                process_instruction(&program_id, &accounts, &register_root_instruction()),
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_provenanced_root_instruction()
+                ),
                 Ok(())
             );
         }
@@ -1957,6 +3099,7 @@ mod tests {
         let before = (
             pool_data.clone(),
             root_data.clone(),
+            root_record_data.clone(),
             marker_data.clone(),
             wrong_marker_data.clone(),
         );
@@ -1978,6 +3121,14 @@ mod tests {
                 &mut root_lamports,
                 &mut root_data,
             );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                false,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
             let marker = account_info(
                 &nullifier_marker,
                 &program_id,
@@ -1994,7 +3145,7 @@ mod tests {
                 &mut vault_lamports,
                 &mut vault_data,
             );
-            let accounts = vec![pool, roots, marker, vault];
+            let accounts = vec![pool, roots, root, marker, vault];
 
             assert_eq!(
                 process_instruction(
@@ -2023,6 +3174,14 @@ mod tests {
                 &mut root_lamports,
                 &mut root_data,
             );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                false,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
             let marker = account_info(
                 &wrong_nullifier_marker,
                 &program_id,
@@ -2039,7 +3198,7 @@ mod tests {
                 &mut vault_lamports,
                 &mut vault_data,
             );
-            let accounts = vec![pool, roots, marker, vault];
+            let accounts = vec![pool, roots, root, marker, vault];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &unshield_instruction()),
@@ -2073,6 +3232,14 @@ mod tests {
                 &mut root_lamports,
                 &mut root_data,
             );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                false,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
             let marker = account_info(
                 &nullifier_marker,
                 &program_id,
@@ -2089,7 +3256,7 @@ mod tests {
                 &mut vault_lamports,
                 &mut vault_data,
             );
-            let accounts = vec![pool, roots, marker, vault];
+            let accounts = vec![pool, roots, root, marker, vault];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &unshield_instruction()),
@@ -2115,6 +3282,14 @@ mod tests {
                 &mut root_lamports,
                 &mut root_data,
             );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                false,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
             let marker = account_info(
                 &nullifier_marker,
                 &program_id,
@@ -2131,7 +3306,7 @@ mod tests {
                 &mut vault_lamports,
                 &mut vault_data,
             );
-            let accounts = vec![pool, roots, marker, vault];
+            let accounts = vec![pool, roots, root, marker, vault];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &unshield_instruction()),
@@ -2156,6 +3331,14 @@ mod tests {
                 &mut root_lamports,
                 &mut root_data,
             );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                false,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
             let marker = account_info(
                 &nullifier_marker,
                 &program_id,
@@ -2172,7 +3355,7 @@ mod tests {
                 &mut wrong_vault_lamports,
                 &mut wrong_vault_data,
             );
-            let accounts = vec![pool, roots, marker, vault];
+            let accounts = vec![pool, roots, root, marker, vault];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &unshield_instruction()),
@@ -2182,7 +3365,13 @@ mod tests {
 
         assert_eq!(
             before,
-            (pool_data, root_data, marker_data, wrong_marker_data)
+            (
+                pool_data,
+                root_data,
+                root_record_data,
+                marker_data,
+                wrong_marker_data
+            )
         );
     }
 
@@ -2241,7 +3430,7 @@ mod tests {
             let authority_info = account_info(
                 &authority,
                 &program_id,
-                false,
+                true,
                 true,
                 &mut authority_lamports,
                 &mut signer_data,
@@ -2297,7 +3486,7 @@ mod tests {
             let authority_info = account_info(
                 &authority,
                 &program_id,
-                false,
+                true,
                 true,
                 &mut authority_lamports,
                 &mut signer_data,
@@ -2380,7 +3569,7 @@ mod tests {
             let authority_info = account_info(
                 &authority,
                 &program_id,
-                false,
+                true,
                 true,
                 &mut authority_lamports,
                 &mut signer_data,
@@ -2569,7 +3758,7 @@ mod tests {
             let authority_info = account_info(
                 &authority,
                 &program_id,
-                false,
+                true,
                 true,
                 &mut authority_lamports,
                 &mut signer_data,
@@ -2705,7 +3894,7 @@ mod tests {
             let authority_info = account_info(
                 &authority,
                 &program_id,
-                false,
+                true,
                 true,
                 &mut authority_lamports,
                 &mut signer_data,
@@ -3177,6 +4366,18 @@ mod tests {
         .0
     }
 
+    fn root_record_pubkey(
+        program_id: &Pubkey,
+        pool_state: &Pubkey,
+        accepted_root: &[u8],
+    ) -> Pubkey {
+        Pubkey::find_program_address(
+            &[ROOT_RECORD_SEED, pool_state.as_ref(), accepted_root],
+            program_id,
+        )
+        .0
+    }
+
     fn vault_authority_pubkey(
         program_id: &Pubkey,
         pool_state: &Pubkey,
@@ -3283,6 +4484,25 @@ mod tests {
         let mut data = Vec::with_capacity(REGISTER_ROOT_PAYLOAD_LEN);
         data.push(TAG_REGISTER_ROOT);
         data.extend_from_slice(&[4; HASH_LEN]);
+        data
+    }
+
+    fn register_provenanced_root_instruction() -> Vec<u8> {
+        register_provenanced_root_instruction_with([4; HASH_LEN], [0; HASH_LEN])
+    }
+
+    fn register_provenanced_root_instruction_with(
+        accepted_root: [u8; HASH_LEN],
+        previous_root: [u8; HASH_LEN],
+    ) -> Vec<u8> {
+        let mut data = Vec::with_capacity(PROVENANCED_ROOT_PAYLOAD_LEN);
+        data.push(TAG_REGISTER_PROVENANCED_ROOT);
+        data.extend_from_slice(&accepted_root);
+        data.extend_from_slice(&previous_root);
+        data.extend_from_slice(&[8; HASH_LEN]);
+        data.extend_from_slice(&9_u64.to_le_bytes());
+        data.extend_from_slice(&2_u32.to_le_bytes());
+        data.push(1);
         data
     }
 }

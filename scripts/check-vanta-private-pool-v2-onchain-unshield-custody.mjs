@@ -50,15 +50,18 @@ for (const blocker of [
 
 for (const marker of [
   "const TAG_UNSHIELD: u8 = 6;",
+  "const ROOT_RECORD_SEED: &[u8] = b\"vanta2root\";",
   "const VAULT_AUTHORITY_SEED: &[u8] = b\"vanta2vault\";",
   "const UNSHIELD_PAYLOAD_LEN",
   "const ERR_UNSHIELD_RELEASE_NOT_WIRED: u32 = 15;",
   "const ERR_VAULT_AUTHORITY_MISMATCH: u32 = 16;",
+  "const ERR_ROOT_RECORD_MISMATCH: u32 = 18;",
   "TAG_UNSHIELD => process_unshield",
   "UNSHIELD_ACCEPTED_ROOT_OFFSET",
   "fn process_unshield",
+  "require_root_record(",
   "require_vault_authority(",
-  "proof-verified unshield release ABI passed root/nullifier/vault-authority preflight; release not wired",
+  "proof-verified unshield release ABI passed root/root-record/nullifier/vault-authority preflight; release not wired",
 ]) {
   assert.ok(programSource.includes(marker), `Reserved TAG_UNSHIELD fail-closed source marker missing: ${marker}`);
 }
@@ -66,11 +69,14 @@ for (const marker of [
 for (const marker of [
   "### `6` - proof-verified unshield release preflight (reserved, fail closed)",
   "Unshield preflight accounts:",
+  "`root_record` read-only program-owned PDA derived from `[\"vanta2root\", pool_state, acceptedRoot]`",
   "`vault_authority` read-only, non-signer PDA derived from `[\"vanta2vault\", pool_state, exitAssetId]`",
   "Instruction data is exactly 425 bytes",
   "acceptedRoot:32",
+  "preflights the deterministic root-record PDA",
   "preflights the deterministic vault-authority PDA without token accounts or SPL Token CPI",
   "returns custom error `15` after preflight and before mutating accounts",
+  "`18`: supplied root record PDA or account content does not match the expected pool/root provenance record",
   "`16`: supplied Unshield vault authority PDA does not match the expected pool/asset vault authority",
 ]) {
   assert.ok(programReadme.includes(marker), `Reserved TAG_UNSHIELD README marker missing: ${marker}`);

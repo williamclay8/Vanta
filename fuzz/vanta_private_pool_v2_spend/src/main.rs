@@ -9,8 +9,8 @@ use std::rc::Rc;
 
 const TAG_INIT: u8 = 0;
 const TAG_SPEND: u8 = 1;
-const TAG_REGISTER_ROOT: u8 = 2;
 const TAG_SPEND_WITH_PROOF: u8 = 3;
+const TAG_REGISTER_PROVENANCED_ROOT: u8 = 4;
 const TAG_UNSHIELD: u8 = 6;
 
 const VERSION: u8 = 1;
@@ -20,9 +20,11 @@ const NULLIFIER_MARKER_MAGIC: &[u8; 8] = b"VNTA2NMK";
 const OUTPUT_MAGIC: &[u8; 8] = b"VNTA2OUT";
 const OUTPUT_RECORD_MAGIC: &[u8; 8] = b"VNTA2ORC";
 const ROOT_MAGIC: &[u8; 8] = b"VNTA2ROT";
+const ROOT_RECORD_MAGIC: &[u8; 8] = b"VNTA2RRC";
 const VERIFIER_KEY_MAGIC: &[u8; 8] = b"VNTA2VKY";
 const NULLIFIER_MARKER_SEED: &[u8] = b"vanta2nul";
 const OUTPUT_RECORD_SEED: &[u8] = b"vanta2out";
+const ROOT_RECORD_SEED: &[u8] = b"vanta2root";
 const VAULT_AUTHORITY_SEED: &[u8] = b"vanta2vault";
 const VERIFIER_KEY_SEED: &[u8] = b"vanta2vkey";
 
@@ -48,6 +50,17 @@ const OUTPUT_RECORD_PUBLIC_INPUT_HASH_OFFSET: usize = OUTPUT_RECORD_OUTPUT1_OFFS
 const NULLIFIER_MARKER_LEN: usize = HEADER_LEN + HASH_LEN * 2;
 const NULLIFIER_MARKER_POOL_OFFSET: usize = HEADER_LEN;
 const NULLIFIER_MARKER_NULLIFIER_OFFSET: usize = HEADER_LEN + HASH_LEN;
+const ROOT_RECORD_ACCOUNT_LEN: usize = HEADER_LEN + 8 + HASH_LEN * 4 + 8 + 4 + 1;
+const ROOT_RECORD_SEQUENCE_OFFSET: usize = HEADER_LEN;
+const ROOT_RECORD_POOL_OFFSET: usize = HEADER_LEN + 8;
+const ROOT_RECORD_PREVIOUS_ROOT_OFFSET: usize = ROOT_RECORD_POOL_OFFSET + HASH_LEN;
+const ROOT_RECORD_ACCEPTED_ROOT_OFFSET: usize = ROOT_RECORD_PREVIOUS_ROOT_OFFSET + HASH_LEN;
+const ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET: usize =
+    ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN;
+const ROOT_RECORD_LEAF_INDEX_BASE_OFFSET: usize =
+    ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN;
+const ROOT_RECORD_LEAF_COUNT_OFFSET: usize = ROOT_RECORD_LEAF_INDEX_BASE_OFFSET + 8;
+const ROOT_RECORD_TRANSITION_KIND_OFFSET: usize = ROOT_RECORD_LEAF_COUNT_OFFSET + 4;
 const VERIFIER_KEY_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 2;
 const VERIFIER_KEY_POOL_OFFSET: usize = HEADER_LEN;
 const VERIFIER_KEY_HASH_OFFSET: usize = HEADER_LEN + HASH_LEN;
@@ -65,6 +78,7 @@ const ERR_PROOF_VERIFIER_NOT_WIRED: u32 = 14;
 const ERR_UNSHIELD_RELEASE_NOT_WIRED: u32 = 15;
 const ERR_VAULT_AUTHORITY_MISMATCH: u32 = 16;
 const ERR_VERIFIER_KEY_MISMATCH: u32 = 17;
+const ERR_ROOT_RECORD_MISMATCH: u32 = 18;
 
 #[derive(Clone)]
 struct OutputRecord {
@@ -72,6 +86,17 @@ struct OutputRecord {
     output0: [u8; HASH_LEN],
     output1: [u8; HASH_LEN],
     public_input_hash: [u8; HASH_LEN],
+}
+
+#[derive(Clone)]
+struct RootRecord {
+    sequence: u64,
+    previous_root: [u8; HASH_LEN],
+    accepted_root: [u8; HASH_LEN],
+    transition_public_input_hash: [u8; HASH_LEN],
+    leaf_index_base: u64,
+    leaf_count: u32,
+    transition_kind: u8,
 }
 
 #[derive(Clone)]
@@ -95,6 +120,7 @@ struct VantaPrivatePoolV2Spend {
     root_capacity: usize,
     accepted_nullifiers: Vec<[u8; HASH_LEN]>,
     accepted_roots: Vec<[u8; HASH_LEN]>,
+    root_records: Vec<RootRecord>,
     output_records: Vec<OutputRecord>,
     latest_public_input_hash: [u8; HASH_LEN],
 }
@@ -167,6 +193,7 @@ impl VantaPrivatePoolV2Spend {
             root_capacity: 4,
             accepted_nullifiers: Vec::new(),
             accepted_roots: Vec::new(),
+            root_records: Vec::new(),
             output_records: Vec::new(),
             latest_public_input_hash: [0; HASH_LEN],
         }
@@ -209,9 +236,11 @@ impl VantaPrivatePoolV2Spend {
             return;
         }
         let root = make_hash(seed, 4);
-        let before = self.snapshot_accounts();
-        let outcome =
-            self.call_authorized(register_root_data(root), self.root_registration_accounts());
+        let record = self.root_record_for_registration(seed, root);
+        self.ensure_root_record_placeholder(&record.accepted_root);
+        let accounts = self.root_registration_accounts_for_root(&record.accepted_root);
+        let before = self.snapshot_account_metas(&accounts);
+        let outcome = self.call_authorized(provenanced_root_data(&record), accounts.clone());
         if self.accepted_roots.iter().any(|seen| seen == &root) {
             fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
             fuzz_assert_eq!(
@@ -220,7 +249,7 @@ impl VantaPrivatePoolV2Spend {
             );
             fuzz_assert_eq!(
                 before,
-                self.snapshot_accounts(),
+                self.snapshot_account_metas(&accounts),
                 "duplicate root mutated state"
             );
             return;
@@ -233,7 +262,7 @@ impl VantaPrivatePoolV2Spend {
             );
             fuzz_assert_eq!(
                 before,
-                self.snapshot_accounts(),
+                self.snapshot_account_metas(&accounts),
                 "full root history mutated state"
             );
             return;
@@ -241,7 +270,47 @@ impl VantaPrivatePoolV2Spend {
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_success));
         if outcome.is_some_and(|o| o.is_success()) {
             self.accepted_roots.push(root);
+            self.root_records.push(record);
         }
+    }
+
+    pub fn action_register_root_wrong_lineage(&mut self, seed: u64) {
+        if !self.initialized
+            || self.state_error_code.is_some()
+            || self.accepted_roots.len() >= self.root_capacity
+        {
+            return;
+        }
+        let root = make_hash(seed.wrapping_add(17), 4);
+        if self.accepted_roots.iter().any(|seen| seen == &root) {
+            return;
+        }
+        let mut record = self.root_record_for_registration(seed, root);
+        record.previous_root = make_hash(seed, 81);
+        if self.accepted_roots.is_empty() && record.previous_root == [0; HASH_LEN] {
+            record.previous_root = [1; HASH_LEN];
+        }
+        if self
+            .accepted_roots
+            .last()
+            .is_some_and(|expected| expected == &record.previous_root)
+        {
+            record.previous_root = [2; HASH_LEN];
+        }
+        self.ensure_root_record_placeholder(&record.accepted_root);
+        let accounts = self.root_registration_accounts_for_root(&record.accepted_root);
+        let before = self.snapshot_account_metas(&accounts);
+        let outcome = self.call_authorized(provenanced_root_data(&record), accounts.clone());
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+        fuzz_assert_eq!(
+            outcome.as_ref().and_then(TxOutcome::error_code),
+            Some(ERR_ROOT_RECORD_MISMATCH)
+        );
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_account_metas(&accounts),
+            "wrong root lineage mutated state"
+        );
     }
 
     pub fn action_spend_duplicate(&mut self) {
@@ -673,6 +742,10 @@ fn invariant_test(fixture: &mut VantaPrivatePoolV2Spend) {
         let start = HEADER_LEN + index * HASH_LEN;
         fuzz_assert_eq!(&roots[start..start + HASH_LEN], root);
     }
+
+    for record in fixture.root_records.iter() {
+        fixture.assert_root_record(record);
+    }
 }
 
 impl VantaPrivatePoolV2Spend {
@@ -693,6 +766,7 @@ impl VantaPrivatePoolV2Spend {
         self.root_capacity = root_capacity;
         self.accepted_nullifiers.clear();
         self.accepted_roots.clear();
+        self.root_records.clear();
         self.output_records.clear();
         self.latest_public_input_hash = [0; HASH_LEN];
     }
@@ -707,6 +781,7 @@ impl VantaPrivatePoolV2Spend {
             self.expected_count = 0;
             self.accepted_nullifiers.clear();
             self.accepted_roots.clear();
+            self.root_records.clear();
             self.output_records.clear();
             self.latest_public_input_hash = [0; HASH_LEN];
         } else {
@@ -770,6 +845,18 @@ impl VantaPrivatePoolV2Spend {
             return Some(ERR_DUPLICATE_NULLIFIER);
         }
         None
+    }
+
+    fn root_record_for_registration(&self, seed: u64, accepted_root: [u8; HASH_LEN]) -> RootRecord {
+        RootRecord {
+            sequence: self.accepted_roots.len() as u64,
+            previous_root: self.accepted_roots.last().copied().unwrap_or([0; HASH_LEN]),
+            accepted_root,
+            transition_public_input_hash: make_hash(seed, 80),
+            leaf_index_base: seed,
+            leaf_count: 2,
+            transition_kind: 1,
+        }
     }
 
     fn accepted_root_for_spend(&self, seed: u64) -> [u8; HASH_LEN] {
@@ -852,6 +939,7 @@ impl VantaPrivatePoolV2Spend {
         vec![
             AccountMeta::new_readonly(self.pool_state, false),
             AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
             AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
             AccountMeta::new_readonly(self.vault_authority_pubkey(&payload.exit_asset_id), false),
         ]
@@ -866,6 +954,7 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new_readonly(self.nullifier_set, false),
             AccountMeta::new_readonly(self.output_queue, false),
             AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
             AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
             AccountMeta::new(self.output_record_pubkey(&payload.public_input_hash), false),
             AccountMeta::new_readonly(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
@@ -881,6 +970,7 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new_readonly(self.nullifier_set, false),
             AccountMeta::new_readonly(self.output_queue, false),
             AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
             AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
             AccountMeta::new(self.output_record_pubkey(&payload.public_input_hash), false),
             AccountMeta::new_readonly(self.wrong_root_history, false),
@@ -896,6 +986,7 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new_readonly(self.nullifier_set, false),
             AccountMeta::new_readonly(self.output_queue, false),
             AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
             AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
             AccountMeta::new(self.output_record_pubkey(&payload.public_input_hash), false),
             AccountMeta::new(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
@@ -906,6 +997,7 @@ impl VantaPrivatePoolV2Spend {
         vec![
             AccountMeta::new_readonly(self.pool_state, false),
             AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
             AccountMeta::new(self.wrong_nullifier_set, false),
             AccountMeta::new_readonly(self.vault_authority_pubkey(&payload.exit_asset_id), false),
         ]
@@ -915,6 +1007,7 @@ impl VantaPrivatePoolV2Spend {
         vec![
             AccountMeta::new_readonly(self.pool_state, false),
             AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
             AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
             AccountMeta::new_readonly(self.wrong_root_history, false),
         ]
@@ -924,16 +1017,22 @@ impl VantaPrivatePoolV2Spend {
         vec![
             AccountMeta::new_readonly(self.pool_state, false),
             AccountMeta::new_readonly(self.root_history, false),
+            AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
             AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
             AccountMeta::new(self.vault_authority_pubkey(&payload.exit_asset_id), false),
         ]
     }
 
-    fn root_registration_accounts(&self) -> Vec<AccountMeta> {
+    fn root_registration_accounts_for_root(
+        &self,
+        accepted_root: &[u8; HASH_LEN],
+    ) -> Vec<AccountMeta> {
         vec![
             AccountMeta::new_readonly(self.pool_state, false),
             AccountMeta::new(self.root_history, false),
-            AccountMeta::new_readonly(self.operator_authority.pubkey(), true),
+            AccountMeta::new(self.root_record_pubkey(accepted_root), false),
+            AccountMeta::new(self.operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
         ]
     }
 
@@ -1021,12 +1120,14 @@ impl VantaPrivatePoolV2Spend {
     }
 
     fn ensure_spend_with_proof_placeholders(&mut self, payload: &SpendWithProofPayload) {
+        self.ensure_root_record_placeholder(&payload.accepted_root);
         self.ensure_marker_placeholder(&payload.nullifier);
         self.ensure_output_record_placeholder(&payload.public_input_hash);
         self.ensure_verifier_key_account(&payload.verifier_key_hash);
     }
 
     fn ensure_unshield_placeholders(&mut self, payload: &UnshieldPayload) {
+        self.ensure_root_record_placeholder(&payload.accepted_root);
         self.ensure_marker_placeholder(&payload.nullifier);
         self.ensure_vault_authority_placeholder(&payload.exit_asset_id);
     }
@@ -1048,6 +1149,21 @@ impl VantaPrivatePoolV2Spend {
 
     fn ensure_output_record_placeholder(&mut self, public_input_hash: &[u8; HASH_LEN]) {
         let record = self.output_record_pubkey(public_input_hash);
+        if self.ctx.get_account(&record).is_ok() {
+            return;
+        }
+        self.ctx
+            .create_account()
+            .pubkey(record)
+            .lamports(0)
+            .owner(system_program::ID)
+            .size(0)
+            .create()
+            .unwrap();
+    }
+
+    fn ensure_root_record_placeholder(&mut self, accepted_root: &[u8; HASH_LEN]) {
+        let record = self.root_record_pubkey(accepted_root);
         if self.ctx.get_account(&record).is_ok() {
             return;
         }
@@ -1144,6 +1260,49 @@ impl VantaPrivatePoolV2Spend {
         );
     }
 
+    fn assert_root_record(&self, record: &RootRecord) {
+        let record_data = self.account_data(self.root_record_pubkey(&record.accepted_root));
+        fuzz_assert!(record_data.len() >= ROOT_RECORD_ACCOUNT_LEN);
+        fuzz_assert_eq!(&record_data[..8], ROOT_RECORD_MAGIC);
+        fuzz_assert_eq!(record_data[8], VERSION);
+        fuzz_assert_eq!(read_u32(&record_data, COUNT_OFFSET), 1);
+        fuzz_assert_eq!(
+            read_u64(&record_data, ROOT_RECORD_SEQUENCE_OFFSET),
+            record.sequence
+        );
+        fuzz_assert_eq!(
+            &record_data[ROOT_RECORD_POOL_OFFSET..ROOT_RECORD_POOL_OFFSET + HASH_LEN],
+            &self.pool_state.to_bytes()
+        );
+        fuzz_assert_eq!(
+            &record_data
+                [ROOT_RECORD_PREVIOUS_ROOT_OFFSET..ROOT_RECORD_PREVIOUS_ROOT_OFFSET + HASH_LEN],
+            &record.previous_root
+        );
+        fuzz_assert_eq!(
+            &record_data
+                [ROOT_RECORD_ACCEPTED_ROOT_OFFSET..ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN],
+            &record.accepted_root
+        );
+        fuzz_assert_eq!(
+            &record_data[ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET
+                ..ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN],
+            &record.transition_public_input_hash
+        );
+        fuzz_assert_eq!(
+            read_u64(&record_data, ROOT_RECORD_LEAF_INDEX_BASE_OFFSET),
+            record.leaf_index_base
+        );
+        fuzz_assert_eq!(
+            read_u32(&record_data, ROOT_RECORD_LEAF_COUNT_OFFSET),
+            record.leaf_count
+        );
+        fuzz_assert_eq!(
+            record_data[ROOT_RECORD_TRANSITION_KIND_OFFSET],
+            record.transition_kind
+        );
+    }
+
     fn nullifier_marker_pubkey(&self, nullifier: &[u8; HASH_LEN]) -> Pubkey {
         Pubkey::find_program_address(
             &[NULLIFIER_MARKER_SEED, self.pool_state.as_ref(), nullifier],
@@ -1159,6 +1318,14 @@ impl VantaPrivatePoolV2Spend {
                 self.pool_state.as_ref(),
                 public_input_hash,
             ],
+            &self.program_id,
+        )
+        .0
+    }
+
+    fn root_record_pubkey(&self, accepted_root: &[u8; HASH_LEN]) -> Pubkey {
+        Pubkey::find_program_address(
+            &[ROOT_RECORD_SEED, self.pool_state.as_ref(), accepted_root],
             &self.program_id,
         )
         .0
@@ -1206,6 +1373,7 @@ struct SpendPayload {
 struct SpendWithProofPayload {
     data: Vec<u8>,
     nullifier: [u8; HASH_LEN],
+    accepted_root: [u8; HASH_LEN],
     public_input_hash: [u8; HASH_LEN],
     verifier_key_hash: [u8; HASH_LEN],
 }
@@ -1214,6 +1382,7 @@ struct SpendWithProofPayload {
 struct UnshieldPayload {
     data: Vec<u8>,
     nullifier: [u8; HASH_LEN],
+    accepted_root: [u8; HASH_LEN],
     exit_asset_id: [u8; HASH_LEN],
 }
 
@@ -1260,6 +1429,7 @@ fn spend_with_proof_payload_with_nullifier(
             verifier_key_hash,
         ),
         nullifier,
+        accepted_root,
         public_input_hash,
         verifier_key_hash,
     }
@@ -1286,6 +1456,7 @@ fn unshield_payload_with_nullifier(
             public_input_hash,
         ),
         nullifier,
+        accepted_root,
         exit_asset_id,
     }
 }
@@ -1366,10 +1537,15 @@ fn seeded_exit_amount(exit_asset_id: &[u8; HASH_LEN]) -> [u8; EXIT_AMOUNT_LEN] {
     exit_asset_id[0..EXIT_AMOUNT_LEN].try_into().unwrap()
 }
 
-fn register_root_data(root: [u8; HASH_LEN]) -> Vec<u8> {
-    let mut data = Vec::with_capacity(1 + HASH_LEN);
-    data.push(TAG_REGISTER_ROOT);
-    data.extend_from_slice(&root);
+fn provenanced_root_data(record: &RootRecord) -> Vec<u8> {
+    let mut data = Vec::with_capacity(1 + HASH_LEN * 3 + 8 + 4 + 1);
+    data.push(TAG_REGISTER_PROVENANCED_ROOT);
+    data.extend_from_slice(&record.accepted_root);
+    data.extend_from_slice(&record.previous_root);
+    data.extend_from_slice(&record.transition_public_input_hash);
+    data.extend_from_slice(&record.leaf_index_base.to_le_bytes());
+    data.extend_from_slice(&record.leaf_count.to_le_bytes());
+    data.push(record.transition_kind);
     data
 }
 

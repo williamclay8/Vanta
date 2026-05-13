@@ -83,7 +83,7 @@ const laneContracts = [
       "tag-unshield-reserved-fail-closed",
       "tag-unshield-token-cpi-release-not-wired",
       "npm run private-pool-v2:onchain-unshield-custody-check",
-      "preflights root, nullifier, and vault-authority accounts",
+      "preflights root, root-record, nullifier, and vault-authority accounts",
       "program-owned vault + on-chain TAG_UNSHIELD proof-verified release",
     ],
   },
