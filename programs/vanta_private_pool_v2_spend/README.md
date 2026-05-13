@@ -101,6 +101,33 @@ Behavior:
 
 This is provenance metadata only. It is not proof that the root transition is correct, not a program-owned Merkle tree, and not on-chain verifier evidence.
 
+### `5` - register verifier key
+
+Creates or idempotently verifies the source-only verifier-key registry PDA required by reserved tag `3` preflight.
+
+Register-verifier-key accounts:
+
+1. `pool_state` read-only, program-owned
+2. `verifier_key` writable PDA derived from `["vanta2vkey", pool_state, verifierKeyHash]`
+3. `operator_authority` writable signer when verifier-key record creation is needed; must match the pubkey stored during init and funds verifier-key record creation when needed
+4. `system_program` read-only
+
+Register-verifier-key instruction data is exactly 33 bytes:
+
+```text
+[5, verifierKeyHash:32]
+```
+
+Behavior:
+
+- verifies the stored operator authority signed the registration
+- rejects zero verifier-key hashes
+- verifies the supplied verifier-key PDA matches `["vanta2vkey", pool_state, verifierKeyHash]`
+- creates or verifies a program-owned verifier-key record containing `pool_state` and `verifierKeyHash`
+- permits idempotent replay when the existing verifier-key record already matches the same pool and hash
+
+This is a source-only verifier-key registry scaffold. It is not backend selection, not production verifying-key evidence, not a verifier adapter, not tag `3` proof acceptance, and not on-chain proof verification. Guard: `npm run zk:c01-verifier-key-registry-check`.
+
 ### `1` - spend
 
 Spend accounts:
@@ -158,12 +185,14 @@ Behavior today:
   7. `output_record` (writable PDA derived from `["vanta2out", pool_state, publicInputHash]`)
   8. `verifier_key` (read-only program-owned PDA derived from `["vanta2vkey", pool_state, verifierKeyHash]`)
 - validates account headers, registered `acceptedRoot`, root-record provenance, output-index/spend-count consistency, unused nullifier marker, unused output record, and the verifier-key hash account
+- the verifier-key hash account can now be created or idempotently verified by tag `5`, but that registry record is source-only metadata and not production verifying-key evidence
 - returns custom error `14` after preflight and before proof verification, nullifier/output mutation, account creation, or proof-enforced spend acceptance
 - must not be used as proof-enforced spend evidence until the actual Groth16 verifier, verifying-key commitment, fresh post-verifier SBF rebuild, redeploy/reinit, and live/audit evidence exist
 
 C01 verifier backend contract:
 
 - the reserved tag `3` target is a Groth16-compatible Solana verifier path with `verifierKeyHash:32` and `groth16Proof:256`
+- tag `5` registers the source-only verifier-key PDA scaffold for that target, but does not satisfy production verifying-key evidence
 - current local bb.js/UltraHonk artifacts are not on-chain verifier evidence
 - current remote proof-artifact receipts are only `offchain-remote-proof-artifact-only` verifier-handoff evidence with `onChainVerifierTarget: "none"`
 - a future `solana-c01-groth16-verifier-ready` receipt must be a tag `3` candidate with proofSystem: `groth16`, `proofBackend: "remote-service"`, circuit `vanta_private_pool_v2_actual_private_spend_entry`, `private-spend-public-input-hash`, `groth16Proof:256`, and `production-verifying-key-hash` evidence

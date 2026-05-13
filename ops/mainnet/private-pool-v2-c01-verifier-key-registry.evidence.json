@@ -1,0 +1,72 @@
+{
+  "version": "vanta-private-pool-v2-c01-verifier-key-registry-evidence-0.1",
+  "checkedAt": "2026-05-13T00:00:00.000Z",
+  "status": "source-only-verifier-key-registry-scaffold",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "secretPolicy": "references-and-metadata-only-no-verifying-key-bytes-no-proof-bytes-no-witness-values",
+  "purpose": "Source-only C01 verifier-key PDA registry scaffold. This records that tag 5 can create or idempotently verify the program-owned verifier-key hash account required by reserved tag 3 preflight, without selecting a backend or claiming production verifying-key evidence.",
+  "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "instruction": {
+    "tag": 5,
+    "name": "TAG_REGISTER_VERIFIER_KEY",
+    "payloadLayout": "[5, verifierKeyHash:32]",
+    "payloadByteLength": 33,
+    "pdaSeed": "[\"vanta2vkey\", pool_state, verifierKeyHash]",
+    "recordMagic": "VNTA2VKY",
+    "recordByteLength": 80,
+    "operatorAuthorityRequired": true,
+    "zeroVerifierKeyHashRejected": true,
+    "wrongVerifierKeyPdaRejected": true,
+    "idempotentSameRecordReplay": true,
+    "createsOrVerifiesOnly": true
+  },
+  "reservedTag3Relationship": {
+    "target": "solana-c01-tag3-groth16-v0",
+    "tag": 3,
+    "requiresVerifierKeyPda": true,
+    "verifierKeyPdaSeed": "[\"vanta2vkey\", pool_state, verifierKeyHash]",
+    "stillFailsClosedWith": "ERR_PROOF_VERIFIER_NOT_WIRED",
+    "acceptedProofMutationEnabled": false
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "backendSelection": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "currentCandidatePacketMustRemain": {
+    "selectedBackend": null,
+    "selectedBackendStatus": "not-selected",
+    "allRequiredPositiveEvidenceStatus": "blocked",
+    "allRequiredPositiveEvidenceCurrentArtifactRef": null
+  },
+  "forbiddenPromotions": [
+    "solana-c01-groth16-verifier-ready",
+    "production-verifying-key-hash-accepted",
+    "production-private",
+    "mainnet-private",
+    "proof-enforced-spend",
+    "on-chain proof verified",
+    "production verifier accepted"
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-verifier-key-registry-check",
+    "cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
+    "npm run zk:c01-production-verifier-backend-candidate-check",
+    "npm run zk:c01-verifier-backend-contract-check",
+    "npm run zk:c01-onchain-proof-boundary-check",
+    "npm run private-pool-v2:sbf-abi-check",
+    "npm run private-pool-v2:crucible-check"
+  ],
+  "truthBoundary": "This is a source-only verifier-key registry scaffold. It creates or verifies a program-owned verifier-key hash PDA for the reserved tag-3 preflight path, but it is not backend selection, not production verifying-key evidence, not verifier-adapter acceptance, not tag-3 proof acceptance, not on-chain proof verification, not SBF/live redeploy or reinit evidence, not audit acceptance, not production-private readiness, and not real-funds readiness."
+}

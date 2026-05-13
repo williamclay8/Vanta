@@ -17,6 +17,7 @@ const TAG_SPEND: u8 = 1;
 const TAG_REGISTER_ROOT: u8 = 2;
 const TAG_SPEND_WITH_PROOF: u8 = 3;
 const TAG_REGISTER_PROVENANCED_ROOT: u8 = 4;
+const TAG_REGISTER_VERIFIER_KEY: u8 = 5;
 const TAG_UNSHIELD: u8 = 6;
 
 const VERSION: u8 = 1;
@@ -57,6 +58,7 @@ const PROVENANCED_ROOT_LEAF_INDEX_BASE_OFFSET: usize = HASH_LEN * 3;
 const PROVENANCED_ROOT_LEAF_COUNT_OFFSET: usize = PROVENANCED_ROOT_LEAF_INDEX_BASE_OFFSET + 8;
 const PROVENANCED_ROOT_TRANSITION_KIND_OFFSET: usize = PROVENANCED_ROOT_LEAF_COUNT_OFFSET + 4;
 const PROVENANCED_ROOT_PAYLOAD_LEN: usize = 1 + PROVENANCED_ROOT_TRANSITION_KIND_OFFSET + 1;
+const REGISTER_VERIFIER_KEY_PAYLOAD_LEN: usize = 1 + HASH_LEN;
 const UNSHIELD_ACCEPTED_ROOT_OFFSET: usize = HASH_LEN;
 const UNSHIELD_EXIT_DESTINATION_OFFSET: usize = HASH_LEN * 2;
 const UNSHIELD_EXIT_ASSET_ID_OFFSET: usize = HASH_LEN * 3;
@@ -124,6 +126,7 @@ pub fn process_instruction(
         TAG_REGISTER_PROVENANCED_ROOT => {
             process_register_provenanced_root(program_id, accounts, rest)
         }
+        TAG_REGISTER_VERIFIER_KEY => process_register_verifier_key(program_id, accounts, rest),
         TAG_UNSHIELD => process_unshield(program_id, accounts, rest),
         _ => Err(ProgramError::InvalidInstructionData),
     }
@@ -479,6 +482,46 @@ fn process_spend_with_proof(
 
     msg!("vanta_private_pool_v2_spend: proof-carrying spend ABI is reserved; verifier not wired after root/nullifier/output/verifier-key preflight");
     Err(ProgramError::Custom(ERR_PROOF_VERIFIER_NOT_WIRED))
+}
+
+fn process_register_verifier_key(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    rest: &[u8],
+) -> ProgramResult {
+    if rest.len() + 1 != REGISTER_VERIFIER_KEY_PAYLOAD_LEN {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let verifier_key_hash = &rest[0..HASH_LEN];
+    if verifier_key_hash.iter().all(|byte| *byte == 0) {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let mut account_iter = accounts.iter();
+    let pool_state = next_account_info(&mut account_iter)?;
+    let verifier_key = next_account_info(&mut account_iter)?;
+    let authority = next_account_info(&mut account_iter)?;
+    let system_program_info = next_account_info(&mut account_iter)?;
+
+    require_readonly_program_account(program_id, pool_state)?;
+    require_writable_account(verifier_key)?;
+    require_system_program(system_program_info)?;
+    if verifier_key.owner != program_id && !authority.is_writable {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    let pool_data = pool_state.try_borrow_data()?;
+    require_pool_header(&pool_data)?;
+    require_authority(&pool_data, authority)?;
+    ensure_verifier_key(
+        program_id,
+        pool_state,
+        verifier_key,
+        authority,
+        system_program_info,
+        verifier_key_hash,
+    )
 }
 
 fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) -> ProgramResult {
@@ -1072,10 +1115,18 @@ fn require_verifier_key_hash(
     require_readonly_program_account(program_id, verifier_key)?;
 
     let key_data = verifier_key.try_borrow_data()?;
-    if key_data.len() < VERIFIER_KEY_ACCOUNT_LEN
+    require_verifier_key_record_data(key_data.as_ref(), pool_state, verifier_key_hash)
+}
+
+fn require_verifier_key_record_data(
+    key_data: &[u8],
+    pool_state: &AccountInfo,
+    verifier_key_hash: &[u8],
+) -> ProgramResult {
+    if key_data.len() != VERIFIER_KEY_ACCOUNT_LEN
         || &key_data[..8] != VERIFIER_KEY_MAGIC
         || key_data[8] != VERSION
-        || read_count(&key_data)? != 1
+        || read_count(key_data)? != 1
         || key_data[VERIFIER_KEY_POOL_OFFSET..VERIFIER_KEY_POOL_OFFSET + HASH_LEN]
             != *pool_state.key.as_ref()
         || &key_data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN]
@@ -1085,6 +1136,76 @@ fn require_verifier_key_hash(
     }
 
     Ok(())
+}
+
+fn ensure_verifier_key<'a>(
+    program_id: &Pubkey,
+    pool_state: &AccountInfo<'a>,
+    verifier_key: &AccountInfo<'a>,
+    authority: &AccountInfo<'a>,
+    system_program_info: &AccountInfo<'a>,
+    verifier_key_hash: &[u8],
+) -> ProgramResult {
+    if verifier_key_hash.len() != HASH_LEN {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let (expected_key, bump) = Pubkey::find_program_address(
+        &[
+            VERIFIER_KEY_SEED,
+            pool_state.key.as_ref(),
+            verifier_key_hash,
+        ],
+        program_id,
+    );
+    if expected_key != *verifier_key.key {
+        return Err(ProgramError::Custom(ERR_VERIFIER_KEY_MISMATCH));
+    }
+
+    if verifier_key.owner == program_id {
+        let mut key_data = verifier_key.try_borrow_mut_data()?;
+        if key_data.iter().all(|byte| *byte == 0) {
+            return write_verifier_key_account(&mut key_data, pool_state, verifier_key_hash);
+        }
+        return require_verifier_key_record_data(key_data.as_ref(), pool_state, verifier_key_hash);
+    }
+
+    if verifier_key.owner != &system_program::ID {
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    {
+        let key_data = verifier_key.try_borrow_data()?;
+        if !key_data.is_empty() || verifier_key.lamports() != 0 {
+            return Err(ProgramError::Custom(ERR_VERIFIER_KEY_MISMATCH));
+        }
+    }
+
+    let rent_lamports = Rent::get()?.minimum_balance(VERIFIER_KEY_ACCOUNT_LEN);
+    let create_key = system_instruction::create_account(
+        authority.key,
+        verifier_key.key,
+        rent_lamports,
+        VERIFIER_KEY_ACCOUNT_LEN as u64,
+        program_id,
+    );
+    invoke_signed(
+        &create_key,
+        &[
+            authority.clone(),
+            verifier_key.clone(),
+            system_program_info.clone(),
+        ],
+        &[&[
+            VERIFIER_KEY_SEED,
+            pool_state.key.as_ref(),
+            verifier_key_hash,
+            &[bump],
+        ]],
+    )?;
+
+    let mut key_data = verifier_key.try_borrow_mut_data()?;
+    write_verifier_key_account(&mut key_data, pool_state, verifier_key_hash)
 }
 
 fn write_nullifier_marker(
@@ -1360,6 +1481,26 @@ fn write_root_record(
     write_u64(data, ROOT_RECORD_LEAF_INDEX_BASE_OFFSET, leaf_index_base)?;
     write_u32(data, ROOT_RECORD_LEAF_COUNT_OFFSET, leaf_count)?;
     data[ROOT_RECORD_TRANSITION_KIND_OFFSET] = transition_kind;
+    Ok(())
+}
+
+fn write_verifier_key_account(
+    data: &mut [u8],
+    pool_state: &AccountInfo,
+    verifier_key_hash: &[u8],
+) -> ProgramResult {
+    if data.len() != VERIFIER_KEY_ACCOUNT_LEN || verifier_key_hash.len() != HASH_LEN {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    data.fill(0);
+    data[..8].copy_from_slice(VERIFIER_KEY_MAGIC);
+    data[8] = VERSION;
+    write_count(data, 1)?;
+    data[VERIFIER_KEY_POOL_OFFSET..VERIFIER_KEY_POOL_OFFSET + HASH_LEN]
+        .copy_from_slice(pool_state.key.as_ref());
+    data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN]
+        .copy_from_slice(verifier_key_hash);
     Ok(())
 }
 
@@ -2258,6 +2399,206 @@ mod tests {
         assert_eq!(
             require_root_record_data(&oversized_record, &pool, &accepted_root),
             Err(ProgramError::Custom(ERR_INVALID_HEADER))
+        );
+    }
+
+    #[test]
+    fn register_verifier_key_writes_source_only_key_registry_record() {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let verifier_key_hash = [6; HASH_LEN];
+        let verifier_key = verifier_key_pubkey(&program_id, &pool_state, &verifier_key_hash);
+        let system_program_id = system_program::ID;
+        let authority = Pubkey::new_unique();
+        let mut pool_lamports = 1_000_000;
+        let mut verifier_lamports = 1_000_000;
+        let mut authority_lamports = 1_000_000;
+        let mut system_lamports = 1_000_000;
+        let mut pool_data = vec![0; POOL_STATE_LEN];
+        let mut verifier_data = vec![0; VERIFIER_KEY_ACCOUNT_LEN];
+        let mut signer_data = [];
+        let mut system_data = [];
+
+        pool_data[..8].copy_from_slice(POOL_MAGIC);
+        pool_data[8] = VERSION;
+        pool_data[POOL_AUTHORITY_OFFSET..POOL_AUTHORITY_OFFSET + HASH_LEN]
+            .copy_from_slice(authority.as_ref());
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let verifier = account_info(
+                &verifier_key,
+                &program_id,
+                true,
+                false,
+                &mut verifier_lamports,
+                &mut verifier_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, verifier, authority_info, system_info];
+
+            assert_eq!(
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_verifier_key_instruction(verifier_key_hash)
+                ),
+                Ok(())
+            );
+        }
+
+        assert_eq!(&verifier_data[..8], VERIFIER_KEY_MAGIC);
+        assert_eq!(verifier_data[8], VERSION);
+        assert_eq!(read_count(&verifier_data), Ok(1));
+        assert_eq!(
+            &verifier_data[VERIFIER_KEY_POOL_OFFSET..VERIFIER_KEY_POOL_OFFSET + HASH_LEN],
+            pool_state.as_ref()
+        );
+        assert_eq!(
+            &verifier_data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN],
+            &verifier_key_hash
+        );
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let verifier = account_info(
+                &verifier_key,
+                &program_id,
+                true,
+                false,
+                &mut verifier_lamports,
+                &mut verifier_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, verifier, authority_info, system_info];
+
+            assert_eq!(
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_verifier_key_instruction(verifier_key_hash)
+                ),
+                Ok(())
+            );
+        }
+    }
+
+    #[test]
+    fn register_verifier_key_rejects_zero_hash_and_wrong_pda() {
+        let program_id = Pubkey::new_unique();
+
+        assert_eq!(
+            process_instruction(
+                &program_id,
+                &[],
+                &register_verifier_key_instruction([0; HASH_LEN])
+            ),
+            Err(ProgramError::InvalidInstructionData)
+        );
+
+        let pool_state = Pubkey::new_unique();
+        let wrong_verifier_key = Pubkey::new_unique();
+        let system_program_id = system_program::ID;
+        let authority = Pubkey::new_unique();
+        let mut pool_lamports = 1_000_000;
+        let mut verifier_lamports = 1_000_000;
+        let mut authority_lamports = 1_000_000;
+        let mut system_lamports = 1_000_000;
+        let mut pool_data = vec![0; POOL_STATE_LEN];
+        let mut verifier_data = vec![0; VERIFIER_KEY_ACCOUNT_LEN];
+        let mut signer_data = [];
+        let mut system_data = [];
+
+        pool_data[..8].copy_from_slice(POOL_MAGIC);
+        pool_data[8] = VERSION;
+        pool_data[POOL_AUTHORITY_OFFSET..POOL_AUTHORITY_OFFSET + HASH_LEN]
+            .copy_from_slice(authority.as_ref());
+
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            false,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
+        let verifier = account_info(
+            &wrong_verifier_key,
+            &program_id,
+            true,
+            false,
+            &mut verifier_lamports,
+            &mut verifier_data,
+        );
+        let authority_info = account_info(
+            &authority,
+            &program_id,
+            true,
+            true,
+            &mut authority_lamports,
+            &mut signer_data,
+        );
+        let system_info = account_info(
+            &system_program_id,
+            &system_program_id,
+            false,
+            false,
+            &mut system_lamports,
+            &mut system_data,
+        );
+        let accounts = vec![pool, verifier, authority_info, system_info];
+
+        assert_eq!(
+            process_instruction(
+                &program_id,
+                &accounts,
+                &register_verifier_key_instruction([6; HASH_LEN])
+            ),
+            Err(ProgramError::Custom(ERR_VERIFIER_KEY_MISMATCH))
         );
     }
 
@@ -4503,6 +4844,13 @@ mod tests {
         data.extend_from_slice(&9_u64.to_le_bytes());
         data.extend_from_slice(&2_u32.to_le_bytes());
         data.push(1);
+        data
+    }
+
+    fn register_verifier_key_instruction(verifier_key_hash: [u8; HASH_LEN]) -> Vec<u8> {
+        let mut data = Vec::with_capacity(REGISTER_VERIFIER_KEY_PAYLOAD_LEN);
+        data.push(TAG_REGISTER_VERIFIER_KEY);
+        data.extend_from_slice(&verifier_key_hash);
         data
     }
 }

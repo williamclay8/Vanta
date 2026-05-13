@@ -36,6 +36,13 @@
       "artifactRef": "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
       "command": "npm run zk:c01-local-proof-format-evidence-check",
       "truthBoundary": "This records the current local noir-bb / barretenberg-ultrahonk actual-private-spend proof receipt shape and its mismatch with the reserved tag-3 Groth16 format. It does not satisfy required production proof-format evidence."
+    },
+    {
+      "id": "source-only-verifier-key-registry-scaffold",
+      "status": "source-only-not-production",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json",
+      "command": "npm run zk:c01-verifier-key-registry-check",
+      "truthBoundary": "This records that tag 5 can create or idempotently verify the program-owned verifier-key PDA required by reserved tag 3 preflight. It does not satisfy production verifying-key evidence, backend selection, verifier adapter evidence, or proof acceptance."
     }
   ],
   "selectedBackend": null,
@@ -118,6 +125,7 @@
     "npm run zk:c01-verifier-backend-decision-check",
     "npm run zk:c01-verifier-backend-contract-check",
     "npm run zk:c01-onchain-proof-boundary-check",
+    "npm run zk:c01-verifier-key-registry-check",
     "npm run private-pool-v2:sbf-abi-check",
     "npm run private-pool-v2:verify"
   ],

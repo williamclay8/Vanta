@@ -23,6 +23,14 @@ The packet records that the active local actual-private-spend proof receipt for 
 
 That observation is useful for the backend decision because it makes the mismatch explicit: the current reserved Solana tag `3` target expects a 256-byte Groth16 tag-3 proof and `production-verifying-key-hash` evidence for `solana-c01-tag3-groth16-v0`. This is not backend selection, not production proof-format acceptance, not production verifying-key evidence, not tag-3 proof acceptance, and not on-chain proof verification.
 
+## Verifier-Key Registry Scaffold
+
+Source-only verifier-key registry evidence is now recorded at `ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json` and checked by `npm run zk:c01-verifier-key-registry-check`.
+
+Tag `5` (`TAG_REGISTER_VERIFIER_KEY`) creates or idempotently verifies the program-owned verifier-key PDA derived from `["vanta2vkey", pool_state, verifierKeyHash]`. The record stores the pool and verifier-key hash that reserved tag `3` preflights before returning `ERR_PROOF_VERIFIER_NOT_WIRED`.
+
+This source-only verifier-key registry scaffold is useful because tag `3` no longer depends on tests hand-writing verifier-key accounts. It is still not backend selection, not production verifying-key evidence, not verifier-adapter acceptance, not tag-3 proof acceptance, and not on-chain proof verification.
+
 ## Backend Options
 
 ### Groth16 Tag-3 Solana Verifier Path
@@ -33,6 +41,7 @@ Required positive evidence:
 
 - Compile the active `vanta_private_pool_v2_actual_private_spend_entry` circuit to a Groth16-compatible proof/public-witness format.
 - Commit a production verifying-key hash with `verifyingKeyHashKind: production-verifying-key-hash`.
+- Replace the source-only tag `5` registry scaffold with reviewed production verifying-key evidence for the selected backend.
 - Wire in-program verification or a dedicated verifier CPI for `solana-c01-tag3-groth16-v0`.
 - Replace custom error `14` only after positive verifier tests prove accepted proofs mutate state and invalid proofs leave accounts unchanged.
 - Keep proof bytes at the reviewed `groth16Proof:256` layout unless a new ABI and guard replace it.
@@ -61,6 +70,7 @@ npm run zk:c01-onchain-proof-boundary-check
 npm run zk:c01-verifier-backend-contract-check
 npm run zk:c01-production-verifier-backend-candidate-check
 npm run zk:c01-verifier-backend-decision-check
+npm run zk:c01-verifier-key-registry-check
 npm run private-pool-v2:proof-backend-boundary-check
 npm run private-pool-v2:remote-proof-artifact-boundary-check
 ```
