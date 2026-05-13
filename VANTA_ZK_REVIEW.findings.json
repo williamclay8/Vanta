@@ -30,6 +30,36 @@
   },
   "activeFeedbackLoops": [
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-12-C01-VERIFIER-READY-EVIDENCE-GUARD",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#1-the-on-chain-solana-program-does-not-verify-proofs-at-all",
+        "src/privacy/privatePoolV2RemoteServices.ts",
+        "src/privacy/privatePoolV2Types.ts",
+        "operator/private-pool-v2-proof-artifact.mjs",
+        "scripts/check-vanta-private-pool-v2-production-verifier-backend-candidate.mjs",
+        "npm run zk:c01-production-verifier-backend-candidate-check"
+      ],
+      "summary": "Current local and remote proof-artifact receipts now explicitly carry offchain-remote-proof-artifact-only / none evidence, while any solana-c01-groth16-verifier-ready request or receipt overclaim fails closed until a real tag 3 Groth16 verifier candidate exists for actual-private-spend, private-spend-public-input-hash, a 256-byte proof layout, and production-verifying-key-hash evidence.",
+      "localVerification": [
+        "npm run zk:c01-production-verifier-backend-candidate-check",
+        "npm run private-pool-v2:proof-backend-boundary-check",
+        "npm run private-pool-v2:remote-proof-artifact-boundary-check",
+        "npm run zk:c01-verifier-backend-contract-check",
+        "npm run zk:feedback-loop-check",
+        "npm run zk:review-guards-check",
+        "npm run build",
+        "npm run private-pool-v2:verify"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the focused C01 verifier-ready evidence guard, proof-backend boundary, remote proof-artifact overclaim matrix, C01 backend contract, feedback-loop guard, review guards, build, diff check, and full private-pool-v2 aggregate verify",
+        "committed": "b766bad (Guard C01 verifier-ready evidence)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is local proof-artifact truth-boundary hardening. It is not a Solana Groth16 verifier, not tag 3 proof acceptance, not production remote proving evidence, not deployed/live SBF evidence, not proof that root transitions are correct, not audit acceptance, and not production-private readiness."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-SEND-WITNESS-INPUT-PROVER",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
@@ -805,7 +835,8 @@
           "14022f1 (Reserve proof-carrying spend ABI)",
           "68b8c9c (Preflight proof-carrying spend ABI)",
           "71e8932 (Add Unshield vault preflight guard)",
-          "c28e922 (Add root provenance preflight spine)"
+          "c28e922 (Add root provenance preflight spine)",
+          "b766bad (Guard C01 verifier-ready evidence)"
         ],
         "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, proof-like transaction-field rejection for the current no-verifier spend ABI, a verifier-backend contract guard and production verifier backend candidate guard for the future tag 3 lane, a reserved tag 3 proof-carrying spend ABI that preflights the future account/verifier-key/root-record contract and fails closed before proof verification or mutation, a lineage-bound TAG_REGISTER_PROVENANCED_ROOT = 4 root-record metadata lane for future proof paths, and a source-only TAG_UNSHIELD = 6 preflight that fails closed before proof verification, nullifier consume, token/system CPI, custody transfer, fund release, or mutation.",
         "residualRisk": [
@@ -823,8 +854,8 @@
         ]
       },
       "lumiHygiene": {
-        "local": "verified locally for scaffold, proof-field boundary, reserved proof-carrying ABI, source-only root provenance record, SBF freshness, Crucible dry-run, feedback-loop guards, review guards, full private-pool-v2 aggregate verify, and build",
-        "committed": "c28e922 (Add root provenance preflight spine)",
+        "local": "verified locally for scaffold, proof-field boundary, reserved proof-carrying ABI, source-only root provenance record, C01 verifier-ready evidence overclaim guard, SBF freshness, Crucible dry-run, feedback-loop guards, review guards, full private-pool-v2 aggregate verify, and build",
+        "committed": "b766bad (Guard C01 verifier-ready evidence)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },

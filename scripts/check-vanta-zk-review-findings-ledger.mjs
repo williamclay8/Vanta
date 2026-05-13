@@ -183,6 +183,18 @@ assert(rootProvenanceLoopText.includes("lineage-bound"), `${rootProvenanceLoopId
 assert(rootProvenanceLoopText.includes("not proof that the root transition is correct"), `${rootProvenanceLoopId} must preserve the proof boundary`);
 assert(rootProvenanceLoopText.includes("c28e922"), `${rootProvenanceLoopId} must pin the implementation commit`);
 
+const c01VerifierReadyLoopId = "VANTA-ZK-FEEDBACK-2026-05-12-C01-VERIFIER-READY-EVIDENCE-GUARD";
+assert(activeFeedbackLoopIds.has(c01VerifierReadyLoopId), `${c01VerifierReadyLoopId} active feedback loop is missing`);
+const c01VerifierReadyLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === c01VerifierReadyLoopId);
+const c01VerifierReadyLoopText = JSON.stringify(c01VerifierReadyLoop);
+assert(
+  c01VerifierReadyLoop?.localVerification?.includes("npm run zk:c01-production-verifier-backend-candidate-check"),
+  `${c01VerifierReadyLoopId} must record the C01 production verifier backend candidate guard`,
+);
+assert(c01VerifierReadyLoopText.includes("offchain-remote-proof-artifact-only"), `${c01VerifierReadyLoopId} must record the offchain-only evidence marker`);
+assert(c01VerifierReadyLoopText.includes("solana-c01-groth16-verifier-ready"), `${c01VerifierReadyLoopId} must record the C01 verifier-ready marker`);
+assert(c01VerifierReadyLoopText.includes("b766bad"), `${c01VerifierReadyLoopId} must pin the implementation commit`);
+
 const ids = new Set();
 for (const finding of ledger.findings) {
   assert(typeof finding.id === "string", "finding is missing id");
@@ -262,6 +274,10 @@ assert(
 assert(
   c01.codexRemediation.commits.some((commitRef) => commitRef.includes("c28e922")),
   "C01 must record the root provenance implementation commit",
+);
+assert(
+  c01.codexRemediation.commits.some((commitRef) => commitRef.includes("b766bad")),
+  "C01 must record the verifier-ready evidence guard commit",
 );
 assert(c01Text.includes("TAG_UNSHIELD = 6"), "C01 must record the source-only TAG_UNSHIELD preflight truth");
 assert(c01Text.includes("TAG_REGISTER_PROVENANCED_ROOT = 4"), "C01 must record the source-only TAG_REGISTER_PROVENANCED_ROOT truth");
