@@ -1,0 +1,116 @@
+{
+  "version": "vanta-private-pool-v2-c01-verifier-candidate-evidence-0.1",
+  "checkedAt": "2026-05-13T00:00:00.000Z",
+  "status": "blocked-no-production-verifier-backend-selected",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "purpose": "Refs-only packet for C01 production verifier candidate evidence. This packet makes the backend/proof/verifying-key/test gates explicit without selecting a backend or claiming on-chain verifier readiness.",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "currentOnChainVerifierTarget": "solana-c01-tag3-groth16-v0",
+  "currentReservedProofLayout": {
+    "tag": 3,
+    "target": "solana-c01-tag3-groth16-v0",
+    "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+    "proofSystem": "groth16",
+    "proofByteLength": 256,
+    "publicInputLabel": "private-spend-public-input-hash",
+    "verifyingKeyHashKind": "production-verifying-key-hash",
+    "status": "reserved-fail-closed"
+  },
+  "currentLocalProofEvidence": {
+    "proofSystem": "noir-bb",
+    "backend": "barretenberg-ultrahonk",
+    "proofBackend": "local-bb-fixture-artifact-or-local-bb-derived-artifact",
+    "verifyingKeyHashKind": "local-acir-bytecode-hash-not-production-vk",
+    "onChainVerifierEvidence": "offchain-remote-proof-artifact-only",
+    "status": "local-no-real-funds-evidence-only"
+  },
+  "selectedBackend": null,
+  "selectedBackendStatus": "not-selected",
+  "requiredPositiveEvidence": [
+    {
+      "id": "backend-selection",
+      "status": "blocked",
+      "requiredArtifactShape": "decision:<groth16-tag3-or-ultrahonk-adaptation-selected-with-rationale>",
+      "currentArtifactRef": null,
+      "truthBoundary": "Choosing the backend is a production architecture decision; this packet does not choose it."
+    },
+    {
+      "id": "actual-private-spend-production-proof-format",
+      "status": "blocked",
+      "requiredArtifactShape": "proof-format:<actual-private-spend-production-proof-and-public-witness-format>",
+      "currentArtifactRef": null,
+      "truthBoundary": "Local bb.js/UltraHonk artifacts are not Solana verifier-ready proof format evidence."
+    },
+    {
+      "id": "private-spend-public-input-hash-binding",
+      "status": "blocked",
+      "requiredArtifactShape": "test:<verifier-binds-private-spend-public-input-hash>",
+      "currentArtifactRef": null,
+      "truthBoundary": "A proof must verify the exact public input hash for the spend transcript before it can become C01 evidence."
+    },
+    {
+      "id": "production-verifying-key-hash",
+      "status": "blocked",
+      "requiredArtifactShape": "verifying-key:<production-verifying-key-hash-for-selected-backend>",
+      "currentArtifactRef": null,
+      "truthBoundary": "The current local ACIR bytecode hash kind is explicitly not production verifying-key evidence."
+    },
+    {
+      "id": "verifier-adapter",
+      "status": "blocked",
+      "requiredArtifactShape": "adapter:<in-program-verifier-or-dedicated-verifier-cpi-for-selected-backend>",
+      "currentArtifactRef": null,
+      "truthBoundary": "Tag 3 still returns ERR_PROOF_VERIFIER_NOT_WIRED before mutation."
+    },
+    {
+      "id": "accepted-proof-mutates-state-test",
+      "status": "blocked",
+      "requiredArtifactShape": "test:<valid-proof-accepts-and-mutates-nullifier-output-state>",
+      "currentArtifactRef": null,
+      "truthBoundary": "No positive proof-acceptance mutation test exists."
+    },
+    {
+      "id": "invalid-proof-leaves-accounts-unchanged-test",
+      "status": "blocked",
+      "requiredArtifactShape": "test:<invalid-proof-rejects-and-leaves-account-bytes-unchanged>",
+      "currentArtifactRef": null,
+      "truthBoundary": "No invalid-proof no-mutation verifier test exists."
+    },
+    {
+      "id": "sbf-live-lineage",
+      "status": "blocked",
+      "requiredArtifactShape": "lineage:<rebuilt-redeployed-reinitialized-sbf-and-account-evidence-for-selected-verifier>",
+      "currentArtifactRef": null,
+      "truthBoundary": "Fresh local SBF ABI status is not live redeploy or reinitialization evidence."
+    },
+    {
+      "id": "audit-reviewer-acceptance",
+      "status": "blocked",
+      "requiredArtifactShape": "audit-or-review:<selected-verifier-backend-accepted-for-c01>",
+      "currentArtifactRef": null,
+      "truthBoundary": "Repo-local checks are not external audit or reviewer acceptance."
+    }
+  ],
+  "forbiddenPromotions": [
+    "solana-c01-groth16-verifier-ready",
+    "production-private",
+    "mainnet-private",
+    "proof-enforced-spend",
+    "on-chain proof verified",
+    "production verifier accepted"
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-production-verifier-backend-candidate-check",
+    "npm run zk:c01-verifier-backend-decision-check",
+    "npm run zk:c01-verifier-backend-contract-check",
+    "npm run zk:c01-onchain-proof-boundary-check",
+    "npm run private-pool-v2:sbf-abi-check",
+    "npm run private-pool-v2:verify"
+  ],
+  "truthBoundary": "This packet is a blocked evidence contract for the next C01 verifier candidate. It is not backend selection, production proof format evidence, production verifying-key evidence, on-chain verifier execution, live deployment evidence, audit acceptance, or real-funds readiness."
+}

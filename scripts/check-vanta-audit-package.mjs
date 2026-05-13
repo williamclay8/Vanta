@@ -28,6 +28,8 @@ const requiredPhrases = [
   "Circuit review",
   "C01 verifier/backend review",
   "docs/zk/c01-production-verifier-backend-decision.md",
+  "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "proof-format, production verifying-key, verifier-adapter, positive/negative test, SBF/live-lineage, and audit/reviewer evidence",
   "offchain-remote-proof-artifact-only",
   "solana-c01-groth16-verifier-ready",
   "Groth16 tag-3 Solana verifier path",

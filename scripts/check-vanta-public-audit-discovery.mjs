@@ -12,6 +12,7 @@ const requiredRefs = [
   "docs/audit-package.md",
   "VANTA_ZK_REVIEW.findings.json",
   "docs/zk/c01-production-verifier-backend-decision.md",
+  "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
   "ops/mainnet/audit-review.packet.template.json",
   "ops/mainnet/legal-compliance-custody.packet.template.json",
   "ops/mainnet/production-key-custody.template.json",
@@ -118,6 +119,10 @@ assert.equal(
   discovery.proofBoundaries?.c01VerifierBackendDecision,
   "docs/zk/c01-production-verifier-backend-decision.md",
 );
+assert.equal(
+  discovery.proofBoundaries?.c01VerifierCandidateEvidence,
+  "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+);
 assert.equal(discovery.proofBoundaries?.offchainProofArtifactOnly, true);
 assert.equal(discovery.proofBoundaries?.solanaC01Groth16VerifierReady, false);
 assert.equal(discovery.proofBoundaries?.productionVerifierBackendSelected, false);
@@ -151,10 +156,18 @@ for (const id of ["audit-acceptance", "production-verifier", "live-deployment-ev
     `Discovery JSON must preserve blocker: ${id}`,
   );
 }
+const productionVerifierBlocker = discovery.currentBlockers?.find(
+  (blocker) => blocker?.id === "production-verifier",
+);
+assert.equal(
+  productionVerifierBlocker?.evidenceRef,
+  "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+);
 
 for (const command of [
   "npm run public:audit-discovery-check",
   "npm run audit:package-check",
+  "npm run zk:c01-production-verifier-backend-candidate-check",
   "npm run zk:feedback-loop-check",
   "npm run truth:privacy-claim-gate",
   "npm run build",

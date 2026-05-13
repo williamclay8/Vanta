@@ -16,6 +16,7 @@
   "findingLedger": "VANTA_ZK_REVIEW.findings.json",
   "proofBoundaries": {
     "c01VerifierBackendDecision": "docs/zk/c01-production-verifier-backend-decision.md",
+    "c01VerifierCandidateEvidence": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
     "offchainProofArtifactOnly": true,
     "solanaC01Groth16VerifierReady": false,
     "productionVerifierBackendSelected": false
@@ -42,6 +43,7 @@
     {
       "id": "production-verifier",
       "status": "blocked",
+      "evidenceRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
       "claim": "No production verifier backend or on-chain verifier is selected or accepted."
     },
     {
@@ -53,6 +55,7 @@
   "safeCommands": [
     "npm run public:audit-discovery-check",
     "npm run audit:package-check",
+    "npm run zk:c01-production-verifier-backend-candidate-check",
     "npm run zk:feedback-loop-check",
     "npm run truth:privacy-claim-gate",
     "npm run build"

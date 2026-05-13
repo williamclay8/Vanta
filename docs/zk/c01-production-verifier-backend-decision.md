@@ -4,6 +4,8 @@ Status: no production verifier backend selected yet.
 
 This packet exists so reviewers do not confuse local proof-artifact hardening with C01 closure. C01 remains partial until Vanta chooses a production verifier backend and wires positive verifier acceptance for the exact deployed lineage.
 
+Current refs-only candidate evidence packet: `ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json`. It is intentionally blocked and exists to name the exact backend, proof-format, production verifying-key, verifier-adapter, positive/negative test, SBF/live-lineage, and audit/reviewer artifacts required before any `solana-c01-groth16-verifier-ready` claim can promote.
+
 ## Current Truth
 
 - The current Solana tag `3` path is a reserved `TAG_SPEND_WITH_PROOF` preflight, not proof support.

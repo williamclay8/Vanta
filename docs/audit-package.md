@@ -73,9 +73,9 @@ Reviewers should inspect:
 
 ## C01 verifier/backend review
 
-Current C01 status is partial. Read `docs/zk/c01-production-verifier-backend-decision.md` before accepting any verifier-ready claim.
+Current C01 status is partial. Read `docs/zk/c01-production-verifier-backend-decision.md` and `ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json` before accepting any verifier-ready claim.
 
-Reviewers should verify that current remote proof-artifact receipts stay `offchain-remote-proof-artifact-only`, that any `solana-c01-groth16-verifier-ready` overclaim fails closed, and that no backend is selected yet between the Groth16 tag-3 Solana verifier path and the Noir/bb.js/UltraHonk adaptation path.
+Reviewers should verify that current remote proof-artifact receipts stay `offchain-remote-proof-artifact-only`, that any `solana-c01-groth16-verifier-ready` overclaim fails closed, that no backend is selected yet between the Groth16 tag-3 Solana verifier path and the Noir/bb.js/UltraHonk adaptation path, and that the refs-only candidate evidence packet still marks every required positive artifact as blocked until real proof-format, production verifying-key, verifier-adapter, positive/negative test, SBF/live-lineage, and audit/reviewer evidence exists.
 
 Focused commands:
 
