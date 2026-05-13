@@ -951,6 +951,46 @@
       "truthBoundary": "This is shared UI/visual-rhythm extraction and guard hardening only. It preserves existing lane behavior and adds the missing Shield/Swap visual flow indicator, but it is not the full four-lane redesign, not AssetPickerGrid, not WalletApprovalSheet, not RecoveryPanel, not TransactionStatusToast, not a receipt modal, not a new privacy guarantee, not production privacy, not live mainnet private settlement, not pushed, and not live-deployed."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-SHARED-ASSET-PICKER-GRID",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#cross-cutting-components-build-once-use-four-places",
+        "src/components/AssetPickerGrid.tsx",
+        "src/pages/ShieldPage.tsx",
+        "src/pages/SwapPage.tsx",
+        "src/styles.css",
+        "scripts/check-vanta-shared-asset-picker-grid.mjs",
+        "scripts/check-vanta-product-ui-browser.mjs",
+        "scripts/check-vanta-shielded-swap-capability.mjs",
+        "npm run assets:picker-grid-check"
+      ],
+      "summary": "The shared AssetPickerGrid feedback now has a guarded local slice: Shield uses src/components/AssetPickerGrid.tsx for the source asset choice and read-only target asset preview, while Swap uses it for input and output shielded asset choices. The component owns token-logo fallback, loading shimmer, selected and disabled states, balance/status metadata, and disabled reasons. Shield preserves source selection, universal target resolution, route truth, and the intentional no-manual-target-selection behavior; Swap preserves shielded-state source filtering, exact-note execution, quote clearing, operator-visible copy, unsupported-pair disabled states, and the No shielded assets ready empty state. The assets:picker-grid-check guard is wired into truth:privacy-claim-gate, and product-ui:browser-check now checks the asset grids across desktop and narrow mobile widths.",
+      "localVerification": [
+        "red-first npm run assets:picker-grid-check",
+        "npm run assets:picker-grid-check",
+        "npm run shield:asset-labels-check",
+        "npm run shield:capability-check",
+        "npm run shield:universal-target-check",
+        "npm run shield:ui-claim-boundary-check",
+        "npm run swap:requires-shielded-state-check",
+        "npm run swap:capability-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run product-ui:browser-check",
+        "npm run build",
+        "npm run swap:committed-settlement-check",
+        "npm run private-core:swap-check",
+        "npm run shield:verify",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the shared AssetPickerGrid extraction across the focused shared guard, Shield asset/capability/target/claim guards, Swap source/capability/private-core checks, privacy claim gate, product UI browser grid/layout assertions, build, Shield aggregate verification, and diff whitespace check",
+        "committed": "a5ceae5 (Extract shared AssetPickerGrid)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is shared UI/control extraction and guard hardening only. It preserves Shield source selection, read-only target route truth, Swap shielded-state source filtering, unsupported target disabled states, exact-note execution, quote clearing, and operator-visible copy, but it is not the full four-lane redesign, not manual Shield target selection, not WalletApprovalSheet, not RecoveryPanel, not TransactionStatusToast, not a receipt modal, not a new privacy guarantee, not production privacy, not live mainnet private settlement, not pushed, and not live-deployed."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [

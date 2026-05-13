@@ -1095,6 +1095,60 @@ for (const phrase of [
   );
 }
 
+const sharedAssetPickerGridLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-SHARED-ASSET-PICKER-GRID";
+assert(
+  activeFeedbackLoopIds.has(sharedAssetPickerGridLoopId),
+  `${sharedAssetPickerGridLoopId} active feedback loop is missing`,
+);
+const sharedAssetPickerGridLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === sharedAssetPickerGridLoopId,
+);
+const sharedAssetPickerGridLoopText = JSON.stringify(sharedAssetPickerGridLoop);
+for (const command of [
+  "red-first npm run assets:picker-grid-check",
+  "npm run assets:picker-grid-check",
+  "npm run shield:asset-labels-check",
+  "npm run shield:capability-check",
+  "npm run shield:universal-target-check",
+  "npm run shield:ui-claim-boundary-check",
+  "npm run swap:requires-shielded-state-check",
+  "npm run swap:capability-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run product-ui:browser-check",
+  "npm run build",
+  "npm run swap:committed-settlement-check",
+  "npm run private-core:swap-check",
+  "npm run shield:verify",
+]) {
+  assert(
+    sharedAssetPickerGridLoop?.localVerification?.includes(command),
+    `${sharedAssetPickerGridLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "AssetPickerGrid",
+  "src/components/AssetPickerGrid.tsx",
+  "Shield",
+  "Swap",
+  "source asset",
+  "target asset",
+  "disabled states",
+  "No shielded assets ready",
+  "operator-visible",
+  "exact-note",
+  "route truth",
+  "truth:privacy-claim-gate",
+  "not manual Shield target selection",
+  "not the full four-lane redesign",
+  "not a new privacy guarantee",
+  "a5ceae5",
+]) {
+  assert(
+    sharedAssetPickerGridLoopText.includes(phrase),
+    `${sharedAssetPickerGridLoopId} must record ${phrase}`,
+  );
+}
+
 const publicDepthDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE";
 assert(activeFeedbackLoopIds.has(publicDepthDisclosureLoopId), `${publicDepthDisclosureLoopId} active feedback loop is missing`);
 const publicDepthDisclosureLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === publicDepthDisclosureLoopId);
