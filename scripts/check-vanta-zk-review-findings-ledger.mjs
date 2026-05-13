@@ -692,6 +692,10 @@ assert(
   h08.codexRemediation.commits.some((commitRef) => commitRef.includes("374dc21")),
   "H08 must record the actual-private-spend browser worker prover commit",
 );
+assert(
+  h08.codexRemediation.commits.some((commitRef) => commitRef.includes("21dd00d")),
+  "H08 must record the actual-private-spend browser docs source-of-truth commit",
+);
 assert(h08Text.includes("send-public-input-hash"), "H08 must record Send public-input hash binding");
 assert(
   h08Text.includes("private-spend-public-input-hash"),
@@ -729,6 +733,7 @@ for (const command of [
   "npm run private-pool-v2:local-prover-check",
   "npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
   "npm run private-pool-v2:actual-private-spend-operator-no-witness-check",
+  "npm run docs:source-of-truth-check",
 ]) {
   assert(
     actualPrivateSpendBrowserLoop?.localVerification?.includes(command),
@@ -762,6 +767,20 @@ assert(
 assert(
   actualPrivateSpendBrowserLoopText.includes("374dc21"),
   `${actualPrivateSpendBrowserLoopId} must pin the implementation commit`,
+);
+assert(
+  actualPrivateSpendBrowserLoopText.includes("21dd00d"),
+  `${actualPrivateSpendBrowserLoopId} must pin the docs source-of-truth follow-up commit`,
+);
+assert(
+  actualPrivateSpendBrowserLoopText.includes("SECURITY_LIMITATIONS.md") &&
+    actualPrivateSpendBrowserLoopText.includes("README.md"),
+  `${actualPrivateSpendBrowserLoopId} must pin the docs source-of-truth refs`,
+);
+assert(
+  actualPrivateSpendBrowserLoopText.includes("not-live") ||
+    actualPrivateSpendBrowserLoopText.includes("not routed live actual-private-spend execution"),
+  `${actualPrivateSpendBrowserLoopId} must preserve the not-live boundary`,
 );
 
 const severityCounts = ledger.findings.reduce((counts, finding) => {

@@ -134,9 +134,13 @@
         "src/privacy/privatePoolV2BrowserProverClient.ts",
         "scripts/check-vanta-private-pool-v2-actual-private-spend-browser-worker-prover.mjs",
         "scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs",
+        "SECURITY_LIMITATIONS.md",
+        "README.md",
+        "scripts/check-vanta-security-limitations.mjs",
+        "scripts/check-vanta-docs-source-of-truth.mjs",
         "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check"
       ],
-      "summary": "Actual-private-spend now has dev-only browser/Web Worker proof execution and worker-side witness generation parity with Send: the worker accepts caller-provided compiled ACIR bytecode plus either compressed witness bytes or typed actual-private-spend witness input, normalizes witness input through the strict actual-private-spend fixture builder, derives NoirJS inputs, runs @aztec/bb.js / UltraHonkBackend with threads: 1, verifies the generated proof, binds private-spend-public-input-hash, and returns a no-witness local-bb-derived-artifact without replacing the default mock prover; the client path copies transfer buffers, structured-clones typed witness input/ABI, and cleans up workers/timers when postMessage fails.",
+      "summary": "Actual-private-spend now has dev-only browser/Web Worker proof execution and worker-side witness generation parity with Send: the worker accepts caller-provided compiled ACIR bytecode plus either compressed witness bytes or typed actual-private-spend witness input, normalizes witness input through the strict actual-private-spend fixture builder, derives NoirJS inputs, runs @aztec/bb.js / UltraHonkBackend with threads: 1, verifies the generated proof, binds private-spend-public-input-hash, and returns a no-witness local-bb-derived-artifact without replacing the default mock prover; the client path copies transfer buffers, structured-clones typed witness input/ABI, and cleans up workers/timers when postMessage fails. Follow-up docs/source guards now require README and SECURITY_LIMITATIONS.md to describe actual-private-spend browser worker parity beside Send while preserving the not-live/not-production boundary.",
       "localVerification": [
         "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
         "npm run private-pool-v2:browser-worker-prover-check",
@@ -144,6 +148,8 @@
         "npm run private-pool-v2:local-prover-check",
         "npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
         "npm run private-pool-v2:actual-private-spend-operator-no-witness-check",
+        "npm run docs:source-of-truth-check",
+        "npm run zk:feedback-loop-check",
         "npm run truth:privacy-claim-gate",
         "npm run security:limitations-check",
         "npm run mainnet:secret-exposure-check",
@@ -152,8 +158,8 @@
         "git diff --cached --check"
       ],
       "lumiHygiene": {
-        "local": "verified locally for actual-private-spend browser worker proof execution, Send browser worker regression, proof-backend boundary, local-prover aggregate with build, actual-private-spend artifact/no-witness guards, privacy claim gate, security limitations, secret exposure, and diff whitespace checks",
-        "committed": "374dc21 (Add actual private spend browser worker prover)",
+        "local": "verified locally for actual-private-spend browser worker proof execution, Send browser worker regression, proof-backend boundary, local-prover aggregate with build, actual-private-spend artifact/no-witness guards, docs source-of-truth, feedback-loop guard, privacy claim gate, security limitations, secret exposure, and diff whitespace checks",
+        "committed": "374dc21 (Add actual private spend browser worker prover); 21dd00d (Sync actual private browser docs)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -1728,7 +1734,8 @@
           "baaff54 (Add Send witness proof path)",
           "7f5c57c (Add Send browser worker prover)",
           "1611ad4 (Add Send browser witness generation)",
-          "374dc21 (Add actual private spend browser worker prover)"
+          "374dc21 (Add actual private spend browser worker prover)",
+          "21dd00d (Sync actual private browser docs)"
         ],
         "summary": "Persisted proofSystem and proofBackend through proof receipts, guarded production startup and settlement boundaries against mock/local proof evidence, made live SOL-to-shielded adapter settlement reject mock proof receipts after preflighting the remote proof-trust boundary, added local no-witness Shield, Claim, Swap-to-shielded, Send, and actual-private-spend proof-artifact checks with alias/tamper/metadata/relabel guards, required Shield, Claim, Swap-to-shielded, Send, and actual-private-spend operator proof-artifact verification to bind matching expected public-input hashes where operator routes exist, rejects unbound extra expected-input keys, kept Shield operator artifact verification read-only with receipt/settlement count checks, added a production proof-artifact verifier handoff that delegates remote-service artifacts to the configured verifier registry while rejecting local fixture artifacts, relabelled-local key ids, local/mocked verifier responses, and remote receipt drift, hardened the remote-services client so remote prover/verifier responses cannot launder mock/local proof metadata or witness sidecars into remote-service evidence, added opt-in actual-private-spend and Send local bb fixture proof-result adapters that are exact-fixture-request-bound and still local/no-real-funds only, added strict actual-private-spend and Send local witness-input proof paths that emit no-witness local-bb-derived-artifacts for derived requests, added dev-only Send and actual-private-spend browser worker proof-execution paths for caller-provided compiled ACIR bytecode plus compressed witness bytes, and extended both worker targets to generate witnesses from typed witness input using NoirJS while preserving client transfer cleanup and sanitized worker-scope witness errors.",
         "residualRisk": [
