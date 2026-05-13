@@ -458,6 +458,41 @@ for (const phrase of [
   );
 }
 
+const c01VerifierBackendOptionsLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-13-C01-VERIFIER-BACKEND-OPTIONS";
+assert(
+  activeFeedbackLoopIds.has(c01VerifierBackendOptionsLoopId),
+  `${c01VerifierBackendOptionsLoopId} active feedback loop is missing`,
+);
+const c01VerifierBackendOptionsLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === c01VerifierBackendOptionsLoopId,
+);
+const c01VerifierBackendOptionsLoopText = JSON.stringify(c01VerifierBackendOptionsLoop);
+for (const command of [
+  "npm run zk:c01-verifier-backend-options-check",
+  "npm run zk:c01-production-verifier-backend-candidate-check",
+  "npm run zk:c01-verifier-backend-decision-check",
+  "npm run zk:c01-verifier-backend-contract-check",
+]) {
+  assert(
+    c01VerifierBackendOptionsLoop?.localVerification?.includes(command),
+    `${c01VerifierBackendOptionsLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
+  "groth16-tag3-solana-v0",
+  "noir-bb-ultrahonk-adaptation",
+  "selectedBackend: null",
+  "does not select a backend",
+  "1153f4e",
+]) {
+  assert(
+    c01VerifierBackendOptionsLoopText.includes(phrase),
+    `${c01VerifierBackendOptionsLoopId} must record ${phrase}`,
+  );
+}
+
 const copyClaimBoundaryLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-COPY-CLAIM-BOUNDARY";
 assert(activeFeedbackLoopIds.has(copyClaimBoundaryLoopId), `${copyClaimBoundaryLoopId} active feedback loop is missing`);
 const copyClaimBoundaryLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === copyClaimBoundaryLoopId);
@@ -778,6 +813,12 @@ assert(
   ),
   "C01 must record the verifier-key registry scaffold commit",
 );
+assert(
+  c01.codexRemediation.commits.some((commitRef) =>
+    commitRef.includes("C01 verifier backend options matrix")
+  ),
+  "C01 must record the verifier backend options matrix commit",
+);
 assert(c01Text.includes("TAG_UNSHIELD = 6"), "C01 must record the source-only TAG_UNSHIELD preflight truth");
 assert(c01Text.includes("TAG_REGISTER_PROVENANCED_ROOT = 4"), "C01 must record the source-only TAG_REGISTER_PROVENANCED_ROOT truth");
 assert(c01Text.includes("TAG_REGISTER_VERIFIER_KEY = 5"), "C01 must record the source-only TAG_REGISTER_VERIFIER_KEY truth");
@@ -795,6 +836,10 @@ assert(
 assert(
   c01Text.includes("zk:c01-verifier-key-registry-check"),
   "C01 must record the verifier-key registry guard",
+);
+assert(
+  c01Text.includes("zk:c01-verifier-backend-options-check"),
+  "C01 must record the verifier backend-options guard",
 );
 assert(
   c01Text.includes("zk:c01-verifier-backend-decision-check"),
@@ -816,7 +861,17 @@ assert(
   c01Text.includes("ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json"),
   "C01 must record the verifier-key registry evidence packet path",
 );
+assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json"),
+  "C01 must record the verifier backend-options evidence packet path",
+);
+assert(c01Text.includes("groth16-tag3-solana-v0"), "C01 must record the Groth16 tag-3 backend option");
+assert(c01Text.includes("noir-bb-ultrahonk-adaptation"), "C01 must record the UltraHonk adaptation backend option");
 assert(c01Text.includes("selectedBackend"), "C01 must record backend selection remains blocked");
+assert(
+  c01Text.includes("backend-options matrix as backend selection"),
+  "C01 must preserve that backend-options matrix is not backend selection",
+);
 assert(
   c01Text.includes("local-acir-bytecode-hash-not-production-vk"),
   "C01 must preserve local ACIR is not production VK",
