@@ -665,6 +665,42 @@
       "truthBoundary": "This is product copy and guard hardening only. It does not make Vanta production-private, does not prove lane privacy, does not add a public depth oracle, does not add browser witness generation, does not choose a C01 verifier backend, and does not provide pushed or live deployment evidence."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-PAY-PROGRESSIVE-DISCLOSURE",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#pay-and-strategy-redesign-progressive-disclosure",
+        "VANTA_ZK_REVIEW.md#pay-redesign",
+        "VANTA_ZK_REVIEW.md#the-single-rule",
+        "src/pages/PayPage.tsx",
+        "src/styles.css",
+        "scripts/check-vanta-pay-browser.mjs",
+        "scripts/check-vanta-pay-tab-copy.mjs",
+        "scripts/check-vanta-pay-committed-checkout-acceptance.mjs",
+        "docs/pay-merchant-trust-surface.md"
+      ],
+      "summary": "The Pay progressive-disclosure feedback now has a guarded local slice: the hero collapses from three beta badges into one compact Test mode status pill, the front-door form shows Description, Amount, Asset, and one Create payment request button, Customer email plus hosted/embedded/modal Checkout type live behind Advanced payment settings, and the Pay browser guard proves those advanced controls are hidden before opening and still usable before receipt generation. The stale committed-checkout acceptance guard was also aligned with the current Solana spend account-ref gate so npm run pay:verify passes against the live relayer boundary.",
+      "localVerification": [
+        "npm run pay-tab:copy-check",
+        "npm run pay:doc-truth-check",
+        "npm run app:layout-nav-check",
+        "npm run pay:browser-check",
+        "npm run product-ui:browser-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run pay:contract-check",
+        "npm run pay:committed-checkout-acceptance-check",
+        "npm run pay:verify",
+        "npm run build",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for Pay progressive disclosure across Pay copy/doc/nav guards, Pay browser, product UI browser, privacy claim gate, Pay contract, committed-checkout acceptance, the aggregate pay:verify chain, build, and diff whitespace checks",
+        "committed": "7175dae (Simplify Pay front door)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a Pay UX and guard-hardening slice. It preserves the existing local test receipt path and receipt privacy contract, but it is not Pay production readiness, not customer-side ZK Pay proof V8, not live mainnet private settlement, not a production private-rail launch, not pushed, and not live-deployed."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [

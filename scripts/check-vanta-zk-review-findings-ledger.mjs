@@ -719,6 +719,46 @@ assert(
 );
 assert(copyClarityFollowUpLoopText.includes("f3d5135"), `${copyClarityFollowUpLoopId} must pin the implementation commit`);
 
+const payProgressiveDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PAY-PROGRESSIVE-DISCLOSURE";
+assert(
+  activeFeedbackLoopIds.has(payProgressiveDisclosureLoopId),
+  `${payProgressiveDisclosureLoopId} active feedback loop is missing`,
+);
+const payProgressiveDisclosureLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === payProgressiveDisclosureLoopId,
+);
+const payProgressiveDisclosureLoopText = JSON.stringify(payProgressiveDisclosureLoop);
+for (const command of [
+  "npm run pay-tab:copy-check",
+  "npm run pay:doc-truth-check",
+  "npm run pay:browser-check",
+  "npm run product-ui:browser-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run pay:committed-checkout-acceptance-check",
+  "npm run pay:verify",
+  "npm run build",
+]) {
+  assert(
+    payProgressiveDisclosureLoop?.localVerification?.includes(command),
+    `${payProgressiveDisclosureLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "Advanced payment settings",
+  "Customer email",
+  "Checkout type",
+  "hidden before opening",
+  "Solana spend account-ref gate",
+  "not Pay production readiness",
+  "not customer-side ZK Pay proof V8",
+  "7175dae",
+]) {
+  assert(
+    payProgressiveDisclosureLoopText.includes(phrase),
+    `${payProgressiveDisclosureLoopId} must record ${phrase}`,
+  );
+}
+
 const publicDepthDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-DEPTH-DISCLOSURE";
 assert(activeFeedbackLoopIds.has(publicDepthDisclosureLoopId), `${publicDepthDisclosureLoopId} active feedback loop is missing`);
 const publicDepthDisclosureLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === publicDepthDisclosureLoopId);
