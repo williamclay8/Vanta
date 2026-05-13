@@ -458,6 +458,43 @@ for (const phrase of [
   );
 }
 
+const c01CrucibleHarnessLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-13-C01-CRUCIBLE-HARNESS-HARDENING";
+assert(
+  activeFeedbackLoopIds.has(c01CrucibleHarnessLoopId),
+  `${c01CrucibleHarnessLoopId} active feedback loop is missing`,
+);
+const c01CrucibleHarnessLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === c01CrucibleHarnessLoopId,
+);
+const c01CrucibleHarnessLoopText = JSON.stringify(c01CrucibleHarnessLoop);
+for (const command of [
+  "cargo check --manifest-path fuzz/vanta_private_pool_v2_spend/Cargo.toml --features invariant_test",
+  "npm run private-pool-v2:crucible-check",
+  "npm run zk:c01-verifier-key-registry-check",
+  "npm run private-pool-v2:root-provenance-check",
+  "npm run private-pool-v2:contract-check",
+  "npm run private-pool-v2:verify",
+]) {
+  assert(
+    c01CrucibleHarnessLoop?.localVerification?.includes(command),
+    `${c01CrucibleHarnessLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "legacy tag 2 root registration",
+  "tag 5 verifier-key registration",
+  "wrong root-record PDA rejection",
+  "duplicate-nullifier Unshield rejection",
+  "4e640b1",
+  "not proof acceptance",
+]) {
+  assert(
+    c01CrucibleHarnessLoopText.includes(phrase),
+    `${c01CrucibleHarnessLoopId} must record ${phrase}`,
+  );
+}
+
 const c01VerifierBackendOptionsLoopId =
   "VANTA-ZK-FEEDBACK-2026-05-13-C01-VERIFIER-BACKEND-OPTIONS";
 assert(
@@ -1077,6 +1114,22 @@ assert(
 assert(
   c01.codexRemediation.commits.some((commitRef) => commitRef.includes("c0831fe")),
   "C01 must record the verifier adapter acceptance-test candidate implementation commit",
+);
+assert(
+  c01.codexRemediation.commits.some((commitRef) => commitRef.includes("4e640b1")),
+  "C01 must record the Crucible harness hardening implementation commit",
+);
+assert(
+  c01Text.includes("Crucible harness hardening"),
+  "C01 must record the Crucible harness hardening slice",
+);
+assert(
+  c01Text.includes("legacy tag 2 roots failing before proof-verifier"),
+  "C01 must record the legacy tag 2 fail-closed harness boundary",
+);
+assert(
+  c01Text.includes("duplicate-nullifier Unshield rejection"),
+  "C01 must record duplicate-nullifier Unshield harness coverage",
 );
 assert(
   c01Text.includes("local-acir-bytecode-hash-not-production-vk"),
