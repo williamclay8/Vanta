@@ -1353,6 +1353,14 @@ assert(
   scripts["zk:review-guards-check"]?.includes("npm run zk:review-findings-ledger-check"),
   "zk:review-guards-check must include zk:review-findings-ledger-check",
 );
+assert(
+  scripts["zk:feedback-loop-check"]?.includes("npm run zk:review-findings-ledger-check"),
+  "zk:feedback-loop-check must include zk:review-findings-ledger-check",
+);
+assert(
+  scripts["zk:feedback-loop-check"]?.includes("npm run public:audit-discovery-check"),
+  "zk:feedback-loop-check must include public:audit-discovery-check",
+);
 
 console.log("Vanta ZK review findings ledger: PASS");
 console.log(
