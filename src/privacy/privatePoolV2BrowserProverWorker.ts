@@ -1,19 +1,36 @@
 import { Barretenberg, UltraHonkBackend } from "@aztec/bb.js";
 import { Noir, type CompiledCircuit, type InputMap } from "@noir-lang/noir_js";
 import {
+  VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_MESSAGE,
+  VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_RESPONSE,
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_MESSAGE,
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE,
+  type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverMessage,
+  type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
+  type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverResponse,
+  type VantaPrivatePoolV2BrowserWorkerProverMessage,
+  type VantaPrivatePoolV2BrowserWorkerProverPayload,
+  type VantaPrivatePoolV2BrowserWorkerProverResponse,
   type VantaPrivatePoolV2BrowserWorkerSendProverMessage,
   type VantaPrivatePoolV2BrowserWorkerSendProverPayload,
   type VantaPrivatePoolV2BrowserWorkerSendProverResponse,
 } from "./privatePoolV2BrowserProverProtocol";
 import {
+  createVantaPrivatePoolV2ActualPrivateSpendCircuitFixtureFromWitnessInput,
+  createVantaPrivatePoolV2ActualPrivateSpendCircuitNoirInputs,
+} from "./privatePoolV2ActualPrivateSpendCircuitFixture";
+import {
   createVantaPrivatePoolV2SendCircuitFixtureFromWitnessInput,
   createVantaPrivatePoolV2SendCircuitNoirInputs,
 } from "./privatePoolV2SendCircuitFixture";
-import type { VantaPrivatePoolV2SendProofArtifact } from "./privatePoolV2Types";
+import type {
+  VantaPrivatePoolV2ActualPrivateSpendProofArtifact,
+  VantaPrivatePoolV2SendProofArtifact,
+} from "./privatePoolV2Types";
 
 const SEND_CIRCUIT = "vanta_private_pool_v2_send_entry" as const;
+const ACTUAL_PRIVATE_SPEND_CIRCUIT =
+  "vanta_private_pool_v2_actual_private_spend_entry" as const;
 const BN254_SCALAR_FIELD =
   21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 
@@ -58,16 +75,16 @@ function compressedWitnessBytes(value: ArrayBuffer | Uint8Array) {
 }
 
 function hasCompressedWitness(
-  payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
-): payload is VantaPrivatePoolV2BrowserWorkerSendProverPayload & {
+  payload: VantaPrivatePoolV2BrowserWorkerProverPayload,
+): payload is VantaPrivatePoolV2BrowserWorkerProverPayload & {
   compressedWitness: ArrayBuffer | Uint8Array;
 } {
   return "compressedWitness" in payload && payload.compressedWitness !== undefined;
 }
 
 function hasWitnessInput(
-  payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
-): payload is VantaPrivatePoolV2BrowserWorkerSendProverPayload & {
+  payload: VantaPrivatePoolV2BrowserWorkerProverPayload,
+): payload is VantaPrivatePoolV2BrowserWorkerProverPayload & {
   compiledProgramAbi: CompiledCircuit["abi"];
   witnessInput: unknown;
 } {
@@ -109,6 +126,45 @@ function assertSendPayload(payload: VantaPrivatePoolV2BrowserWorkerSendProverPay
   }
 }
 
+function assertActualPrivateSpendPayload(
+  payload: VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
+) {
+  assert(
+    payload.target === "actual-private-spend",
+    "Browser worker prover only supports actual-private-spend.",
+  );
+  assert(
+    payload.circuit === ACTUAL_PRIVATE_SPEND_CIRCUIT,
+    "Browser worker prover requires the actual-private-spend circuit.",
+  );
+  assert(
+    typeof payload.compiledProgramBytecode === "string" &&
+      payload.compiledProgramBytecode.length > 0,
+    "Browser worker prover requires compiled ACIR bytecode.",
+  );
+  assert(
+    typeof payload.proofRuntimeVersion === "string" && payload.proofRuntimeVersion.length > 0,
+    "Browser worker prover requires the bb.js runtime version.",
+  );
+  if (payload.expectedPublicInputHash !== undefined) {
+    normalizeFieldString(
+      payload.expectedPublicInputHash,
+      "expected actual-private-spend public input hash",
+    );
+  }
+
+  const compressedWitnessProvided = hasCompressedWitness(payload);
+  const witnessInputProvided = hasWitnessInput(payload);
+  assert(
+    compressedWitnessProvided !== witnessInputProvided,
+    "Browser worker prover requires exactly one actual-private-spend witness source: compressedWitness or witnessInput.",
+  );
+
+  if (witnessInputProvided) {
+    assertCompiledProgramAbi(payload.compiledProgramAbi);
+  }
+}
+
 async function generateSendCompressedWitness(
   payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
 ) {
@@ -123,6 +179,32 @@ async function generateSendCompressedWitness(
     payload.witnessInput,
   );
   const noirInputs = createVantaPrivatePoolV2SendCircuitNoirInputs(fixture);
+  const noir = new Noir({
+    abi: payload.compiledProgramAbi,
+    bytecode: payload.compiledProgramBytecode,
+  } as CompiledCircuit);
+  const { witness } = await noir.execute(noirInputs as InputMap);
+
+  return compressedWitnessBytes(witness);
+}
+
+async function generateActualPrivateSpendCompressedWitness(
+  payload: VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
+) {
+  if (hasCompressedWitness(payload)) {
+    return compressedWitnessBytes(payload.compressedWitness);
+  }
+
+  assert(
+    hasWitnessInput(payload),
+    "Browser worker prover requires actual-private-spend witness input.",
+  );
+  assertCompiledProgramAbi(payload.compiledProgramAbi);
+
+  const fixture = createVantaPrivatePoolV2ActualPrivateSpendCircuitFixtureFromWitnessInput(
+    payload.witnessInput,
+  );
+  const noirInputs = createVantaPrivatePoolV2ActualPrivateSpendCircuitNoirInputs(fixture);
   const noir = new Noir({
     abi: payload.compiledProgramAbi,
     bytecode: payload.compiledProgramBytecode,
@@ -179,10 +261,73 @@ async function proveVantaPrivatePoolV2SendInBrowserWorkerImpl(
   }
 }
 
+async function proveVantaPrivatePoolV2ActualPrivateSpendInBrowserWorkerImpl(
+  payload: VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
+): Promise<VantaPrivatePoolV2ActualPrivateSpendProofArtifact> {
+  assertActualPrivateSpendPayload(payload);
+  const compressedWitness = await generateActualPrivateSpendCompressedWitness(payload);
+  const api = await Barretenberg.new({ threads: 1 });
+
+  try {
+    const backend = new UltraHonkBackend(payload.compiledProgramBytecode, api);
+    const proofData = await backend.generateProof(compressedWitness);
+    const verified = await backend.verifyProof(proofData);
+    assert(verified, "Browser worker prover generated a proof that did not verify.");
+
+    const publicInputs = proofData.publicInputs.map((input) => String(input));
+    assert(
+      publicInputs.length === 1,
+      "Browser worker actual-private-spend proof must expose one public input.",
+    );
+    const publicInput = normalizeFieldString(
+      publicInputs[0]!,
+      "browser worker actual-private-spend public input",
+    );
+    if (payload.expectedPublicInputHash !== undefined) {
+      assert(
+        publicInput ===
+          normalizeFieldString(
+            payload.expectedPublicInputHash,
+            "expected actual-private-spend public input hash",
+          ),
+        "Browser worker actual-private-spend proof public input does not match the expected actual-private-spend public-input hash.",
+      );
+    }
+
+    const acirBytecodeHash = `sha256:${await sha256HexUtf8(payload.compiledProgramBytecode)}`;
+    const proofHex = bytesToHex(new Uint8Array(proofData.proof));
+
+    return {
+      acirBytecodeHash,
+      backend: "barretenberg-ultrahonk",
+      circuit: ACTUAL_PRIVATE_SPEND_CIRCUIT,
+      proofBackend: "local-bb-derived-artifact",
+      proofHex,
+      proofRuntimePackage: "@aztec/bb.js",
+      proofRuntimeVersion: payload.proofRuntimeVersion,
+      proofSystem: "noir-bb",
+      publicInputCommitment: await proofArtifactPublicInputCommitment(publicInputs),
+      publicInputLabels: ["private-spend-public-input-hash"],
+      publicInputs,
+      verifyingKeyHash: acirBytecodeHash,
+      verifyingKeyHashKind: "local-acir-bytecode-hash-not-production-vk",
+      verifyingKeyId: `local-acir-bytecode:${ACTUAL_PRIVATE_SPEND_CIRCUIT}:${acirBytecodeHash}`,
+    };
+  } finally {
+    await api.destroy();
+  }
+}
+
 export function proveVantaPrivatePoolV2SendInBrowserWorker(
   payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
 ): Promise<VantaPrivatePoolV2SendProofArtifact> {
   return proveVantaPrivatePoolV2SendInBrowserWorkerImpl(payload);
+}
+
+export function proveVantaPrivatePoolV2ActualPrivateSpendInBrowserWorker(
+  payload: VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
+): Promise<VantaPrivatePoolV2ActualPrivateSpendProofArtifact> {
+  return proveVantaPrivatePoolV2ActualPrivateSpendInBrowserWorkerImpl(payload);
 }
 
 function browserWorkerErrorMessage({
@@ -190,9 +335,13 @@ function browserWorkerErrorMessage({
   payload,
 }: {
   error: unknown;
-  payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload;
+  payload: VantaPrivatePoolV2BrowserWorkerProverPayload;
 }) {
   if (hasWitnessInput(payload)) {
+    if (payload.target === "actual-private-spend") {
+      return "Private Pool v2 browser worker prover rejected the actual-private-spend witness input.";
+    }
+
     return "Private Pool v2 browser worker prover rejected the Send witness input.";
   }
 
@@ -202,10 +351,10 @@ function browserWorkerErrorMessage({
 type WorkerLikeGlobal = typeof globalThis & {
   addEventListener?: (
     type: "message",
-    listener: (event: MessageEvent<VantaPrivatePoolV2BrowserWorkerSendProverMessage>) => void,
+    listener: (event: MessageEvent<VantaPrivatePoolV2BrowserWorkerProverMessage>) => void,
   ) => void;
   document?: unknown;
-  postMessage?: (message: VantaPrivatePoolV2BrowserWorkerSendProverResponse) => void;
+  postMessage?: (message: VantaPrivatePoolV2BrowserWorkerProverResponse) => void;
 };
 
 const workerGlobal = globalThis as WorkerLikeGlobal;
@@ -217,26 +366,55 @@ const isWorkerScope =
 if (isWorkerScope) {
   workerGlobal.addEventListener!("message", (event) => {
     const message = event.data;
-    if (message?.kind !== VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_MESSAGE) {
+
+    if (message?.kind === VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_MESSAGE) {
+      const sendMessage: VantaPrivatePoolV2BrowserWorkerSendProverMessage = message;
+      void proveVantaPrivatePoolV2SendInBrowserWorker(sendMessage.payload)
+        .then((artifact) => {
+          workerGlobal.postMessage!({
+            artifact,
+            id: sendMessage.id,
+            kind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE,
+            ok: true,
+          } satisfies VantaPrivatePoolV2BrowserWorkerSendProverResponse);
+        })
+        .catch((error: unknown) => {
+          workerGlobal.postMessage!({
+            error: browserWorkerErrorMessage({ error, payload: sendMessage.payload }),
+            id: sendMessage.id,
+            kind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE,
+            ok: false,
+          } satisfies VantaPrivatePoolV2BrowserWorkerSendProverResponse);
+        });
+
       return;
     }
 
-    void proveVantaPrivatePoolV2SendInBrowserWorker(message.payload)
-      .then((artifact) => {
-        workerGlobal.postMessage!({
-          artifact,
-          id: message.id,
-          kind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE,
-          ok: true,
+    if (message?.kind === VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_MESSAGE) {
+      const actualPrivateSpendMessage:
+        VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverMessage = message;
+      void proveVantaPrivatePoolV2ActualPrivateSpendInBrowserWorker(
+        actualPrivateSpendMessage.payload,
+      )
+        .then((artifact) => {
+          workerGlobal.postMessage!({
+            artifact,
+            id: actualPrivateSpendMessage.id,
+            kind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_RESPONSE,
+            ok: true,
+          } satisfies VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverResponse);
+        })
+        .catch((error: unknown) => {
+          workerGlobal.postMessage!({
+            error: browserWorkerErrorMessage({
+              error,
+              payload: actualPrivateSpendMessage.payload,
+            }),
+            id: actualPrivateSpendMessage.id,
+            kind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_RESPONSE,
+            ok: false,
+          } satisfies VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverResponse);
         });
-      })
-      .catch((error: unknown) => {
-        workerGlobal.postMessage!({
-          error: browserWorkerErrorMessage({ error, payload: message.payload }),
-          id: message.id,
-          kind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE,
-          ok: false,
-        });
-      });
+    }
   });
 }

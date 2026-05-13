@@ -56,6 +56,23 @@ export type VantaPrivatePoolV2ActualPrivateSpendCircuitWitnessInput = {
   request_version: bigint | string;
 };
 
+export type VantaPrivatePoolV2ActualPrivateSpendCircuitNoirInputs = {
+  accepted_root: string;
+  asset_cohort: string;
+  context_hash: string;
+  input_commitment: string;
+  leaf_index: string;
+  membership_path: string[];
+  membership_path_direction_bits: string[];
+  nullifier: string;
+  note_secret: string;
+  output_commitment_0: string;
+  output_commitment_1: string;
+  pool_id: string;
+  private_spend_public_input_hash: string;
+  request_version: string;
+};
+
 const DEFAULT_WITNESS_BASE = {
   asset_cohort: 202n,
   context_hash: 909n,
@@ -364,6 +381,29 @@ export function createVantaPrivatePoolV2ActualPrivateSpendCircuitFixtureFromWitn
   return createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture({
     witness: normalizeVantaPrivatePoolV2ActualPrivateSpendCircuitWitnessInput(input),
   });
+}
+
+export function createVantaPrivatePoolV2ActualPrivateSpendCircuitNoirInputs(
+  fixture: VantaPrivatePoolV2ActualPrivateSpendCircuitFixture,
+): VantaPrivatePoolV2ActualPrivateSpendCircuitNoirInputs {
+  const { witness } = fixture;
+
+  return {
+    accepted_root: toCircuitString(witness.accepted_root),
+    asset_cohort: toCircuitString(witness.asset_cohort),
+    context_hash: toCircuitString(witness.context_hash),
+    input_commitment: toCircuitString(witness.input_commitment),
+    leaf_index: toCircuitString(witness.leaf_index),
+    membership_path: witness.membership_path.map(toCircuitString),
+    membership_path_direction_bits: witness.membership_path_direction_bits.map(toCircuitString),
+    nullifier: toCircuitString(witness.nullifier),
+    note_secret: toCircuitString(witness.note_secret),
+    output_commitment_0: toCircuitString(witness.output_commitment_0),
+    output_commitment_1: toCircuitString(witness.output_commitment_1),
+    pool_id: toCircuitString(witness.pool_id),
+    private_spend_public_input_hash: toCircuitString(fixture.privateSpendPublicInputHash),
+    request_version: toCircuitString(witness.request_version),
+  };
 }
 
 export function serializeVantaPrivatePoolV2ActualPrivateSpendCircuitFixtureToToml(

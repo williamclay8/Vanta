@@ -1,12 +1,20 @@
 import {
+  VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_MESSAGE,
+  VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_RESPONSE,
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_MESSAGE,
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE,
+  type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendCompressedWitnessPayload,
+  type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
+  type VantaPrivatePoolV2BrowserWorkerProverMessage,
+  type VantaPrivatePoolV2BrowserWorkerProverPayload,
+  type VantaPrivatePoolV2BrowserWorkerProverResponse,
   type VantaPrivatePoolV2BrowserWorkerSendCompressedWitnessPayload,
-  type VantaPrivatePoolV2BrowserWorkerSendProverMessage,
   type VantaPrivatePoolV2BrowserWorkerSendProverPayload,
-  type VantaPrivatePoolV2BrowserWorkerSendProverResponse,
 } from "./privatePoolV2BrowserProverProtocol";
-import type { VantaPrivatePoolV2SendProofArtifact } from "./privatePoolV2Types";
+import type {
+  VantaPrivatePoolV2ActualPrivateSpendProofArtifact,
+  VantaPrivatePoolV2SendProofArtifact,
+} from "./privatePoolV2Types";
 
 export type VantaPrivatePoolV2BrowserProverClientArgs = {
   timeoutMs?: number;
@@ -14,6 +22,9 @@ export type VantaPrivatePoolV2BrowserProverClientArgs = {
 };
 
 export type VantaPrivatePoolV2BrowserProverClient = {
+  proveActualPrivateSpend(
+    payload: VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
+  ): Promise<VantaPrivatePoolV2ActualPrivateSpendProofArtifact>;
   proveSend(
     payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
   ): Promise<VantaPrivatePoolV2SendProofArtifact>;
@@ -33,8 +44,10 @@ function messageId() {
 }
 
 function hasCompressedWitnessPayload(
-  payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
-): payload is VantaPrivatePoolV2BrowserWorkerSendCompressedWitnessPayload {
+  payload: VantaPrivatePoolV2BrowserWorkerProverPayload,
+): payload is
+  | VantaPrivatePoolV2BrowserWorkerSendCompressedWitnessPayload
+  | VantaPrivatePoolV2BrowserWorkerActualPrivateSpendCompressedWitnessPayload {
   return "compressedWitness" in payload && payload.compressedWitness !== undefined;
 }
 
@@ -45,25 +58,21 @@ function copyCompressedWitnessForTransfer(value: ArrayBuffer | Uint8Array) {
   return copy;
 }
 
-function copyPayloadForTransfer(
-  payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
-): VantaPrivatePoolV2BrowserWorkerSendProverPayload {
+function copyPayloadForTransfer<T extends VantaPrivatePoolV2BrowserWorkerProverPayload>(
+  payload: T,
+): T {
   if (!hasCompressedWitnessPayload(payload)) {
     return { ...payload };
   }
 
   return {
-    circuit: payload.circuit,
-    compiledProgramBytecode: payload.compiledProgramBytecode,
+    ...payload,
     compressedWitness: copyCompressedWitnessForTransfer(payload.compressedWitness),
-    expectedPublicInputHash: payload.expectedPublicInputHash,
-    proofRuntimeVersion: payload.proofRuntimeVersion,
-    target: payload.target,
-  };
+  } as T;
 }
 
 function transferListForPayload(
-  payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
+  payload: VantaPrivatePoolV2BrowserWorkerProverPayload,
 ): Transferable[] {
   if (!hasCompressedWitnessPayload(payload)) {
     return [];
@@ -76,64 +85,96 @@ function transferListForPayload(
   ];
 }
 
+function postWorkerProverRequest({
+  payload,
+  requestKind,
+  responseKind,
+  timeoutMs,
+  workerFactory,
+}: {
+  payload: VantaPrivatePoolV2BrowserWorkerProverPayload;
+  requestKind:
+    | typeof VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_MESSAGE
+    | typeof VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_MESSAGE;
+  responseKind:
+    | typeof VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE
+    | typeof VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_RESPONSE;
+  timeoutMs: number;
+  workerFactory: () => Worker;
+}): Promise<
+  VantaPrivatePoolV2SendProofArtifact | VantaPrivatePoolV2ActualPrivateSpendProofArtifact
+> {
+  const worker = workerFactory();
+  const requestPayload = copyPayloadForTransfer(payload);
+  const id = messageId();
+  const request = {
+    id,
+    kind: requestKind,
+    payload: requestPayload,
+  } as VantaPrivatePoolV2BrowserWorkerProverMessage;
+
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      worker.terminate();
+      reject(new Error("Private Pool v2 browser worker prover timed out."));
+    }, timeoutMs);
+    const cleanup = () => {
+      window.clearTimeout(timeout);
+      worker.terminate();
+    };
+
+    worker.onmessage = (event: MessageEvent<VantaPrivatePoolV2BrowserWorkerProverResponse>) => {
+      const response = event.data;
+      if (response?.kind !== responseKind || response.id !== id) {
+        return;
+      }
+
+      cleanup();
+
+      if (response.ok) {
+        resolve(response.artifact);
+        return;
+      }
+
+      reject(new Error("error" in response ? response.error : "Private Pool v2 browser worker prover failed."));
+    };
+
+    worker.onerror = (event) => {
+      cleanup();
+      reject(new Error(event.message || "Private Pool v2 browser worker prover failed."));
+    };
+
+    try {
+      worker.postMessage(request, transferListForPayload(requestPayload));
+    } catch (error) {
+      cleanup();
+      reject(error instanceof Error ? error : new Error(String(error)));
+    }
+  });
+}
+
 export function createVantaPrivatePoolV2BrowserProverClient({
   timeoutMs = 120_000,
   workerFactory = createVantaPrivatePoolV2BrowserProverWorker,
 }: VantaPrivatePoolV2BrowserProverClientArgs = {}): VantaPrivatePoolV2BrowserProverClient {
   return {
+    proveActualPrivateSpend(payload) {
+      return postWorkerProverRequest({
+        payload,
+        requestKind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_MESSAGE,
+        responseKind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_RESPONSE,
+        timeoutMs,
+        workerFactory,
+      }) as Promise<VantaPrivatePoolV2ActualPrivateSpendProofArtifact>;
+    },
     proveSend(payload) {
-      const worker = workerFactory();
-      const requestPayload = copyPayloadForTransfer(payload);
-      const id = messageId();
-      const request = {
-        id,
-        kind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_MESSAGE,
-        payload: requestPayload,
-      } satisfies VantaPrivatePoolV2BrowserWorkerSendProverMessage;
-
-      return new Promise((resolve, reject) => {
-        const timeout = window.setTimeout(() => {
-          worker.terminate();
-          reject(new Error("Private Pool v2 browser worker prover timed out."));
-        }, timeoutMs);
-        const cleanup = () => {
-          window.clearTimeout(timeout);
-          worker.terminate();
-        };
-
-        worker.onmessage = (
-          event: MessageEvent<VantaPrivatePoolV2BrowserWorkerSendProverResponse>,
-        ) => {
-          const response = event.data;
-          if (
-            response?.kind !== VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE ||
-            response.id !== id
-          ) {
-            return;
-          }
-
-          cleanup();
-
-          if (response.ok) {
-            resolve(response.artifact);
-            return;
-          }
-
-          reject(new Error("error" in response ? response.error : "Private Pool v2 browser worker prover failed."));
-        };
-
-        worker.onerror = (event) => {
-          cleanup();
-          reject(new Error(event.message || "Private Pool v2 browser worker prover failed."));
-        };
-
-        try {
-          worker.postMessage(request, transferListForPayload(requestPayload));
-        } catch (error) {
-          cleanup();
-          reject(error instanceof Error ? error : new Error(String(error)));
-        }
-      });
+      return postWorkerProverRequest({
+        payload,
+        requestKind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_MESSAGE,
+        responseKind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE,
+        timeoutMs,
+        workerFactory,
+      }) as Promise<VantaPrivatePoolV2SendProofArtifact>;
     },
   };
 }
