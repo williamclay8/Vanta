@@ -15,18 +15,14 @@ const baseUrl = `http://127.0.0.1:${port}`;
 
 const visibleStrategyCopy = [
   "Strategy",
-  "Preview DCA",
-  "Preview TWAP",
-  "Review strategy settings",
+  "What are you trying to do?",
+  "Advanced strategy settings",
+  "Vanta splits this into smaller preview trades over the window and settles to your private balance by default.",
   "Beta mode keeps Strategy visible while live execution stays locked.",
-  "Shield funds from your public wallet into your Vanta private balance before live execution.",
-  "Connect a wallet to choose the public wallet, then shield funds before live execution.",
+  "Beta mode",
+  "Beta mode keeps settings editable while live strategy execution stays locked.",
   "Vanta private balance",
-  "Public wallet",
   "Connected wallet",
-  "Treasury wallet",
-  "Use funds from",
-  "Proceeds go to",
   "Child-order schedule",
   "Strategy preview ledger",
   "Child trades",
@@ -48,8 +44,19 @@ const visibleStrategyCopy = [
   "This screen shapes a local strategy preview. No funds move and no trades are submitted.",
   "No fee while Strategy remains preview-only.",
   "If live execution ships later, external execution costs should stay separate.",
-  "Keep settings editable while live strategy execution remains unavailable.",
   "Preview sizing and cadence for a shielded-balance strategy. No trades are submitted from this screen.",
+];
+
+const advancedStrategyCopy = [
+  "Preview DCA",
+  "Preview TWAP",
+  "Trade size variation",
+  "Schedule pattern",
+  "How fast to complete",
+  "Max slippage",
+  "Submit method",
+  "Pay from",
+  "Settle to",
 ];
 
 const bannedStrategyCopy = [
@@ -121,6 +128,16 @@ function runBrowserCopyCheck() {
       checks: [
         { kind: "url_contains", text: "/app/strategy" },
         ...visibleStrategyCopy.map((text) => ({ kind: "text_visible", text })),
+        ...advancedStrategyCopy.map((text) => ({ kind: "text_hidden", text })),
+        { kind: "no_console_errors" },
+      ],
+    },
+    { action: "click", selector: ".strategy-advanced summary" },
+    { action: "wait_for", condition: "text_visible", value: "Preview DCA" },
+    {
+      action: "assert",
+      checks: [
+        ...advancedStrategyCopy.map((text) => ({ kind: "text_visible", text })),
         { kind: "no_console_errors" },
       ],
     },
@@ -253,6 +270,18 @@ if (
 
 if (!pageSource.includes('className="strategy-mode__spark"') || !stylesSource.includes(".strategy-mode__spark")) {
   failures.push("Strategy mode toggle must include per-mode visual tick previews.");
+}
+
+if (
+  !pageSource.includes("Advanced strategy settings") ||
+  !pageSource.includes("Trade size variation") ||
+  !pageSource.includes("Schedule pattern") ||
+  !pageSource.includes("How fast to complete") ||
+  !pageSource.includes("Submit method") ||
+  !pageSource.includes("Pay from") ||
+  !pageSource.includes("Settle to")
+) {
+  failures.push("Strategy page must keep advanced controls behind a plain-English Advanced strategy settings disclosure.");
 }
 
 if (

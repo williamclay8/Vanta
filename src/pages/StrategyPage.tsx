@@ -106,7 +106,7 @@ const strategyModePreviews: Record<
   },
 };
 const strategyPricing = describePricingForSurface("strategy");
-const strategyReviewCta = "Review strategy settings";
+const strategyReviewCta = "Preview strategy";
 const strategyEnvironmentUnavailableCopy =
   "Beta mode keeps Strategy visible while live execution stays locked.";
 const strategyPublicFundingCopy =
@@ -182,7 +182,7 @@ function createStrategyPreviewLedger(plan: VantaStrategyPlan, settlementTarget: 
   const childTrades = `~${childCount}`;
   const averageChildSize = formatStrategyMoney(plan.averageChildSize);
   const windowLabel = formatStrategyWindow(plan.windowHours);
-  const summary = `This ${formatStrategyModeLabel(plan.mode)} preview produces ${childTrades} child trades over ${windowLabel}, averaging ${averageChildSize}, with ${cadenceEstimate.toLowerCase()} and settlement to ${settlementTarget}.`;
+  const summary = `This strategy preview produces ${childTrades} child trades over ${windowLabel}, averaging ${averageChildSize}, with ${cadenceEstimate.toLowerCase()} and settlement to ${settlementTarget}.`;
 
   return {
     averageChildSize,
@@ -470,34 +470,8 @@ export function StrategyPage() {
           >
             <div className="shield-card__header strategy-card__header">
               <div>
-                <span className="strategy-kicker">Choose route</span>
-                <h2>{formatStrategyModeLabel(form.mode)}</h2>
-              </div>
-              <div className="strategy-mode-toggle" aria-label="Strategy type">
-                {([strategyModeDca, strategyModeTwap] as StrategyMode[]).map((mode) => (
-                  <button
-                    className={mode === form.mode ? "strategy-mode strategy-mode--active" : "strategy-mode"}
-                    key={mode}
-                    onClick={() => {
-                      updateForm("mode", mode);
-                    }}
-                    title={strategyModePreviews[mode].hoverCopy}
-                    type="button"
-                  >
-                    <span className="strategy-mode__spark" aria-hidden="true">
-                      {strategyModePreviews[mode].ticks.map((height, index) => (
-                        <span
-                          key={`${mode}-${index}`}
-                          style={{ "--strategy-mode-tick-height": `${height}px` } as CSSProperties}
-                        />
-                      ))}
-                    </span>
-                    <span className="strategy-mode__content">
-                      <span>{formatStrategyModeLabel(mode)}</span>
-                      <small>{strategyModePreviews[mode].shortCopy}</small>
-                    </span>
-                  </button>
-                ))}
+                <span className="strategy-kicker">Build preview</span>
+                <h2>What are you trying to do?</h2>
               </div>
             </div>
 
@@ -545,6 +519,10 @@ export function StrategyPage() {
                 }}
               />
             </div>
+
+            <p className="strategy-front-door-note">
+              Vanta splits this into smaller preview trades over the window and settles to your private balance by default.
+            </p>
 
             {form.timeWindow === STRATEGY_CUSTOM_TIME_WINDOW ? (
               <label className="strategy-field strategy-field--custom-duration">
@@ -616,10 +594,36 @@ export function StrategyPage() {
             ) : null}
 
             <details className="strategy-advanced">
-              <summary>Tune execution</summary>
+              <summary>Advanced strategy settings</summary>
               <div className="strategy-form-grid strategy-form-grid--advanced">
+                <div className="strategy-mode-toggle strategy-mode-toggle--advanced" aria-label="Strategy style">
+                  {([strategyModeDca, strategyModeTwap] as StrategyMode[]).map((mode) => (
+                    <button
+                      className={mode === form.mode ? "strategy-mode strategy-mode--active" : "strategy-mode"}
+                      key={mode}
+                      onClick={() => {
+                        updateForm("mode", mode);
+                      }}
+                      title={strategyModePreviews[mode].hoverCopy}
+                      type="button"
+                    >
+                      <span className="strategy-mode__spark" aria-hidden="true">
+                        {strategyModePreviews[mode].ticks.map((height, index) => (
+                          <span
+                            key={`${mode}-${index}`}
+                            style={{ "--strategy-mode-tick-height": `${height}px` } as CSSProperties}
+                          />
+                        ))}
+                      </span>
+                      <span className="strategy-mode__content">
+                        <span>{formatStrategyModeLabel(mode)}</span>
+                        <small>{strategyModePreviews[mode].shortCopy}</small>
+                      </span>
+                    </button>
+                  ))}
+                </div>
                 <StrategySelect
-                  label="Slice policy"
+                  label="Trade size variation"
                   options={slicePolicyOptions}
                   value={form.slicePolicy}
                   onChange={(value) => {
@@ -627,7 +631,7 @@ export function StrategyPage() {
                   }}
                 />
                 <StrategySelect
-                  label="Timing policy"
+                  label="Schedule pattern"
                   options={timingPolicyOptions}
                   value={form.timingPolicy}
                   onChange={(value) => {
@@ -635,7 +639,7 @@ export function StrategyPage() {
                   }}
                 />
                 <StrategySelect
-                  label="Urgency"
+                  label="How fast to complete"
                   options={urgencies}
                   value={form.urgency}
                   onChange={(value) => {
@@ -660,7 +664,7 @@ export function StrategyPage() {
                   ) : null}
                 </label>
                 <StrategySelect
-                  label="Landing mode"
+                  label="Submit method"
                   options={landingModes}
                   value={form.landingMode}
                   onChange={(value) => {
@@ -668,7 +672,7 @@ export function StrategyPage() {
                   }}
                 />
                 <StrategySelect
-                  label="Proceeds go to"
+                  label="Settle to"
                   options={strategyDestinations}
                   value={form.destination}
                   onChange={(value) => {
@@ -676,7 +680,7 @@ export function StrategyPage() {
                   }}
                 />
                 <StrategySelect
-                  label="Use funds from"
+                  label="Pay from"
                   options={strategyFundingSources}
                   value={form.fundingSource}
                   onChange={(value) => {

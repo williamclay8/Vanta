@@ -177,7 +177,7 @@ export function createStrategyCapabilityState(input: {
 
   return {
     blockingIssues,
-    ctaLabel: "Review strategy settings",
+    ctaLabel: "Preview strategy",
     destination: input.destination,
     fundingSource: input.fundingSource,
     livePrerequisitesMet,
