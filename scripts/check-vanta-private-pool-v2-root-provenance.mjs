@@ -135,5 +135,9 @@ assert.ok(
   packageJson.scripts?.["zk:review-guards-check"]?.includes("npm run private-pool-v2:root-provenance-check"),
   "zk:review-guards-check must include root provenance check",
 );
+assert.ok(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes("npm run private-pool-v2:root-provenance-check"),
+  "zk:feedback-loop-check must include root provenance check",
+);
 
 console.log("Vanta Private Pool v2 root provenance check: PASS");

@@ -694,6 +694,45 @@
         "deployedLive": "not-live-verified"
       },
       "truthBoundary": "This is a source-only reserved verifier-boundary preflight scaffold. It is not a Groth16 verifier, not proof-byte acceptance, not verifying-key enforcement, not deployed/live SBF program evidence, not audit acceptance, and not real-funds readiness."
+    },
+    {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-12-C01-ROOT-PROVENANCE-RECORD",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#1-the-on-chain-solana-program-does-not-verify-proofs-at-all",
+        "programs/vanta_private_pool_v2_spend/src/lib.rs",
+        "programs/vanta_private_pool_v2_spend/README.md",
+        "fuzz/vanta_private_pool_v2_spend/src/main.rs",
+        "scripts/check-vanta-private-pool-v2-root-provenance.mjs",
+        "scripts/check-vanta-private-pool-v2-sbf-abi-status.mjs",
+        "npm run private-pool-v2:root-provenance-check"
+      ],
+      "summary": "TAG_REGISTER_PROVENANCED_ROOT = 4 now creates or verifies a lineage-bound program-owned root-record PDA at [\"vanta2root\", pool_state, acceptedRoot]. Reserved tag 3 spend-with-proof and tag 6 Unshield require that record before failing closed, while legacy tag 2 roots are not backfilled into the provenance lane. The record is provenance metadata only, not proof that the root transition is correct.",
+      "localVerification": [
+        "cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
+        "cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
+        "cargo check --manifest-path fuzz/vanta_private_pool_v2_spend/Cargo.toml --features invariant_test",
+        "npm run private-pool-v2:root-provenance-check",
+        "npm run private-pool-v2:sbf-abi-check",
+        "npm run private-pool-v2:crucible-check",
+        "npm run zk:c01-onchain-proof-boundary-check",
+        "npm run zk:c01-verifier-backend-contract-check",
+        "npm run zk:feedback-loop-check",
+        "npm run zk:review-guards-check",
+        "npm run private-pool-v2:contract-check",
+        "npm run mainnet:actual-private-settlement-operator-packet-check",
+        "npm run private-pool-v2:onchain-unshield-custody-check",
+        "npm run private-pool-v2:verify",
+        "npm run build",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the C01 root provenance record slice, including lineage unit tests, SBF freshness, Crucible dry-run, feedback-loop guards, review guards, full private-pool-v2 aggregate verify, build, and diff whitespace check",
+        "committed": "c28e922 (Add root provenance preflight spine)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is local source, local rebuilt-SBF, and local harness evidence for lineage-bound root provenance metadata. It is not proof that the root transition is correct, not a program-owned shared Merkle tree, not verifier enforcement, not proof acceptance, not redeployed/live program evidence, not audit acceptance, and not production-private readiness."
     }
   ],
   "findings": [
@@ -717,9 +756,12 @@
         "npm run mainnet:actual-private-settlement-operator-packet-check",
         "npm run private-pool-v2:onchain-unshield-custody-check",
         "npm run private-pool-v2:sbf-abi-status-json",
-        "npm run private-pool-v2:sbf-abi-check"
+        "npm run private-pool-v2:sbf-abi-check",
+        "scripts/check-vanta-private-pool-v2-root-provenance.mjs",
+        "npm run private-pool-v2:root-provenance-check",
+        "fuzz/vanta_private_pool_v2_spend/src/main.rs"
       ],
-      "failureMode": "The local program now gates writes with operator authority, accepted-root scaffolding, deterministic nullifier-marker PDA replay checks, and deterministic output-record PDA writes, but no verifier enforces a real proof or verifying-key hash on chain, and the current 161-byte spend ABI carries no proof bytes. A separate reserved tag 3 proof-carrying spend ABI exists in source as a 449-byte fail-closed preflight shape, but it only checks the future account/verifier-key contract and returns custom error 14 before proof verification, account creation, nullifier/output mutation, or spend acceptance; the current transaction builder rejects tag 3.",
+      "failureMode": "The local program now gates writes with operator authority, accepted-root scaffolding, deterministic nullifier-marker PDA replay checks, deterministic output-record PDA writes, and a lineage-bound source-only root provenance record lane, but no verifier enforces a real proof or verifying-key hash on chain, and the current 161-byte spend ABI carries no proof bytes. TAG_REGISTER_PROVENANCED_ROOT = 4 creates program-owned root-record metadata at [\"vanta2root\", pool_state, acceptedRoot] and reserved tag 3/tag 6 require it before failing closed, but that metadata is not proof that the root transition is correct and is not program-owned shared tree state; legacy tag 2 roots are not backfilled into the provenance lane.",
       "requiredFix": [
         "Commit a verifying-key hash or verifier program boundary for the active circuit.",
         "Verify a real proof against the public input hash in-program or via a dedicated verifier CPI.",
@@ -727,7 +769,9 @@
         "Keep the reserved tag 3 proof-carrying ABI returning custom error 14 before proof verification, account creation, nullifier/output mutation, or spend acceptance until a real verifier, verifying-key commitment, verifier-backend contract, and positive verifier tests replace the scaffold.",
         "Replace operator-fed fixed-slot root-history scaffolding with proof-backed program-owned shared tree state.",
         "Replace the operator-keypair Unshield release path with program-owned vault custody and a proof-verified TAG_UNSHIELD release instruction.",
-        "Rebuild, redeploy, and reinitialize before citing live evidence."
+        "Rebuild, redeploy, and reinitialize before citing live evidence.",
+        "Do not treat root-record metadata as transition correctness; replace source-only provenance with proof-backed program-owned shared tree state.",
+        "Define and implement a reviewed migration/reinitialization path before legacy tag 2 roots can be cited as part of the provenance lane."
       ],
       "verification": {
         "commands": [
@@ -741,11 +785,14 @@
           "npm run mainnet:actual-private-settlement-operator-packet-check",
           "npm run private-pool-v2:onchain-unshield-custody-check",
           "npm run private-pool-v2:sbf-abi-status-json",
-          "npm run private-pool-v2:sbf-abi-check"
+          "npm run private-pool-v2:sbf-abi-check",
+          "npm run private-pool-v2:root-provenance-check",
+          "npm run private-pool-v2:crucible-check",
+          "npm run private-pool-v2:verify"
         ],
-        "localResult": "Rust tests/checks cover the source-level reserved tag 3 proof-carrying ABI shape, malformed/all-zero placeholder rejection, root/nullifier/output/verifier-key preflight, and the custom-error-14 no-mutation behavior; contract-check covers the local authority/root/nullifier-marker/output-record scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed proof truth boundary, no-proof-bytes tag-1 ABI truth, reserved tag-3 fail-closed preflight truth, and the source-only TAG_UNSHIELD = 6 vault-authority/root/nullifier preflight that fails closed before proof verification, nullifier consume, token/system CPI, custody transfer, release, or mutation; solana-spend-transaction-builder-check rejects tag 3 and proof-like builder/validation fields for the current no-verifier live builder; relayer, service-network, and operator-packet checks reject or omit proof-like spend fields before any handoff can imply verifier support; onchain-unshield-custody-check preserves the blocked operator-keypair/public-exit custody truth boundary; sbf-abi-status-json now discovers the installed Solana active-release toolchain and reports the locally rebuilt SBF ABI as fresh; sbf-abi-check passes locally, while live citation still needs redeploy, reinitialization, and live evidence for the rebuilt ABI.",
-        "proves": "Local write authority, account binding, accepted-root scaffold, deterministic output-record PDA binding, current-ABI proof-field rejection across builder/relayer/service-network/operator-packet surfaces, reserved tag-3 root/nullifier/output/verifier-key fail-closed/no-mutation source behavior, source-only TAG_UNSHIELD = 6 vault-authority/root/nullifier fail-closed/no-mutation preflight behavior, explicit blocked Unshield custody status, local rebuilt-SBF freshness for the current source ABI, and the negative C01 truth boundary are guarded.",
-        "doesNotProve": "On-chain proof verification, proof-carrying spend acceptance, verifying-key enforcement, deployed/live SBF bytecode for tag 3, program-owned tree state, program-owned vault custody, proof-verified TAG_UNSHIELD release, audit acceptance, or live deployment correctness."
+        "localResult": "Rust tests/checks cover the source-level reserved tag 3 proof-carrying ABI shape, malformed/all-zero placeholder rejection, root/nullifier/output/verifier-key preflight, custom-error-14 no-mutation behavior, lineage-bound TAG_REGISTER_PROVENANCED_ROOT = 4 root-record creation, malformed root-record rejection, wrong previousRoot rejection, and source-only TAG_UNSHIELD = 6 root/root-record/nullifier/vault-authority preflight. contract-check covers the local authority/root/nullifier-marker/output-record/root-record scaffolding; c01-onchain-proof-boundary-check preserves the partial/fail-closed proof truth boundary, no-proof-bytes tag-1 ABI truth, reserved tag-3 fail-closed preflight truth, and the source-only TAG_UNSHIELD = 6 custody preflight; root-provenance-check guards the root-record source/docs/fuzz/SBF/package surface; solana-spend-transaction-builder-check rejects tag 3 and proof-like builder/validation fields for the current no-verifier live builder; relayer, service-network, trust-packet, and operator-packet checks reject or omit proof-like spend fields before any handoff can imply verifier support; sbf-abi-check reports the locally rebuilt SBF ABI as fresh; private-pool-v2:crucible-check validates the defensive harness setup; private-pool-v2:verify passed locally, while live citation still needs redeploy, reinitialization, and live evidence for the rebuilt ABI.",
+        "proves": "Local write authority, account binding, accepted-root scaffold, deterministic output-record PDA binding, current-ABI proof-field rejection across builder/relayer/service-network/operator-packet surfaces, source-only lineage-bound root-record metadata for reserved tag-3/tag-6 preflights, malformed/wrong-lineage root-record rejection, reserved tag-3 root/root-record/nullifier/output/verifier-key fail-closed/no-mutation source behavior, source-only TAG_UNSHIELD = 6 vault-authority/root/root-record/nullifier fail-closed/no-mutation preflight behavior, explicit blocked Unshield custody status, local rebuilt-SBF freshness for the current source ABI, and the negative C01 truth boundary are guarded.",
+        "doesNotProve": "On-chain proof verification, proof-carrying spend acceptance, verifying-key enforcement, proof that a root transition is correct, deployed/live SBF bytecode for tag 3 or tag 4, program-owned tree state or program-owned shared tree state, backfilled legacy tag 2 roots, program-owned vault custody, proof-verified TAG_UNSHIELD release, audit acceptance, or live deployment correctness."
       },
       "codexRemediation": {
         "commits": [
@@ -753,9 +800,10 @@
           "698ca41 (C01 proof-field fail-closed feedback loop)",
           "14022f1 (Reserve proof-carrying spend ABI)",
           "68b8c9c (Preflight proof-carrying spend ABI)",
-          "71e8932 (Add Unshield vault preflight guard)"
+          "71e8932 (Add Unshield vault preflight guard)",
+          "c28e922 (Add root provenance preflight spine)"
         ],
-        "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, proof-like transaction-field rejection for the current no-verifier spend ABI, a verifier-backend contract guard for the future tag 3 lane, a reserved tag 3 proof-carrying spend ABI that preflights the future account/verifier-key contract and fails closed before proof verification or mutation, and a source-only TAG_UNSHIELD = 6 preflight that fails closed before proof verification, nullifier consume, token/system CPI, custody transfer, fund release, or mutation.",
+        "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, proof-like transaction-field rejection for the current no-verifier spend ABI, a verifier-backend contract guard for the future tag 3 lane, a reserved tag 3 proof-carrying spend ABI that preflights the future account/verifier-key/root-record contract and fails closed before proof verification or mutation, a lineage-bound TAG_REGISTER_PROVENANCED_ROOT = 4 root-record metadata lane for future proof paths, and a source-only TAG_UNSHIELD = 6 preflight that fails closed before proof verification, nullifier consume, token/system CPI, custody transfer, fund release, or mutation.",
         "residualRisk": [
           "No production verifier is wired.",
           "The current spend instruction still carries hashes only, not proof bytes.",
@@ -763,12 +811,15 @@
           "Reviewed mainnet evidence predates the current ABI.",
           "The accepted-root list remains an operator-authorized scaffold.",
           "The source-only TAG_UNSHIELD = 6 preflight still fails closed before proof verification, nullifier consume, token/system CPI, custody transfer, release, or mutation.",
-          "Local SBF freshness is not redeploy, reinitialization, or live program evidence for the rebuilt ABI."
+          "Local SBF freshness is not redeploy, reinitialization, or live program evidence for the rebuilt ABI.",
+          "Root-record metadata is local source-only provenance and is not proof that a root transition is correct.",
+          "Legacy tag 2 roots are not backfilled into the tag 4 provenance lane.",
+          "The accepted-root/root-record lane still is not program-owned shared Merkle tree state."
         ]
       },
       "lumiHygiene": {
-        "local": "verified locally for scaffold, proof-field boundary, and reserved proof-carrying ABI checks",
-        "committed": "68b8c9c (Preflight proof-carrying spend ABI)",
+        "local": "verified locally for scaffold, proof-field boundary, reserved proof-carrying ABI, source-only root provenance record, SBF freshness, Crucible dry-run, feedback-loop guards, review guards, full private-pool-v2 aggregate verify, and build",
+        "committed": "c28e922 (Add root provenance preflight spine)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -787,7 +838,17 @@
           "src/privacy/privatePoolV2SolanaRelayerSubmission.mjs",
           "operator/private-pool-v2-service-network.mjs",
           "scripts/print-vanta-actual-private-settlement-operator-packet.mjs",
-          "scripts/check-vanta-actual-private-settlement-operator-packet.mjs"
+          "scripts/check-vanta-actual-private-settlement-operator-packet.mjs",
+          "fuzz/vanta_private_pool_v2_spend/src/main.rs",
+          "scripts/check-vanta-private-pool-v2-root-provenance.mjs",
+          "scripts/check-vanta-zk-c01-verifier-backend-contract.mjs",
+          "scripts/check-vanta-security-limitations.mjs",
+          "README.md",
+          "SECURITY_LIMITATIONS.md",
+          "docs/mainnet-shield-setup.md",
+          "package.json",
+          "scripts/print-vanta-private-pool-v2-status.mjs",
+          "scripts/print-vanta-protocol-trust-packet.mjs"
         ],
         "watchCommands": [
           "npm run private-pool-v2:contract-check",
@@ -799,10 +860,15 @@
           "npm run mainnet:actual-private-settlement-operator-packet-check",
           "npm run private-pool-v2:onchain-unshield-custody-check",
           "npm run private-pool-v2:sbf-abi-status-json",
-          "npm run private-pool-v2:sbf-abi-check"
+          "npm run private-pool-v2:sbf-abi-check",
+          "npm run private-pool-v2:root-provenance-check",
+          "npm run zk:c01-verifier-backend-contract-check",
+          "npm run zk:feedback-loop-check",
+          "npm run private-pool-v2:crucible-check",
+          "npm run private-pool-v2:verify"
         ]
       },
-      "truthBoundary": "Use beta/local-scaffold language until a real verifier, program-owned tree state, program-owned vault custody with proof-verified TAG_UNSHIELD release, rebuilt SBF binary, redeploy/reinit evidence, and audit acceptance exist."
+      "truthBoundary": "Use beta/local-scaffold language until a real verifier, proof-backed root transition correctness, program-owned shared tree state, program-owned vault custody with proof-verified TAG_UNSHIELD release, rebuilt/redeployed/reinitialized SBF evidence, live verification, and audit acceptance exist. TAG_REGISTER_PROVENANCED_ROOT = 4 root records are lineage-bound source-local metadata only."
     },
     {
       "id": "VANTA-ZK-2026-05-09-C02",

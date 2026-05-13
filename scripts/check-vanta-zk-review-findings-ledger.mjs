@@ -169,6 +169,20 @@ assert(sendWitnessLoopText.includes("send-public-input-hash"), `${sendWitnessLoo
 assert(sendWitnessLoopText.includes("local-bb-derived-artifact"), `${sendWitnessLoopId} must record the derived artifact backend`);
 assert(sendWitnessLoopText.includes("baaff54"), `${sendWitnessLoopId} must pin the implementation commit`);
 
+const rootProvenanceLoopId = "VANTA-ZK-FEEDBACK-2026-05-12-C01-ROOT-PROVENANCE-RECORD";
+assert(activeFeedbackLoopIds.has(rootProvenanceLoopId), `${rootProvenanceLoopId} active feedback loop is missing`);
+const rootProvenanceLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === rootProvenanceLoopId);
+const rootProvenanceLoopText = JSON.stringify(rootProvenanceLoop);
+assert(
+  rootProvenanceLoop?.localVerification?.includes("npm run private-pool-v2:root-provenance-check"),
+  `${rootProvenanceLoopId} must record the root provenance guard`,
+);
+assert(rootProvenanceLoopText.includes("TAG_REGISTER_PROVENANCED_ROOT = 4"), `${rootProvenanceLoopId} must record tag 4`);
+assert(rootProvenanceLoopText.includes("vanta2root"), `${rootProvenanceLoopId} must record the root record PDA seed`);
+assert(rootProvenanceLoopText.includes("lineage-bound"), `${rootProvenanceLoopId} must record lineage-bound provenance`);
+assert(rootProvenanceLoopText.includes("not proof that the root transition is correct"), `${rootProvenanceLoopId} must preserve the proof boundary`);
+assert(rootProvenanceLoopText.includes("c28e922"), `${rootProvenanceLoopId} must pin the implementation commit`);
+
 const ids = new Set();
 for (const finding of ledger.findings) {
   assert(typeof finding.id === "string", "finding is missing id");
@@ -245,7 +259,16 @@ assert(
   c01.codexRemediation.commits.some((commitRef) => commitRef.includes("71e8932")),
   "C01 must record the Unshield vault preflight commit",
 );
+assert(
+  c01.codexRemediation.commits.some((commitRef) => commitRef.includes("c28e922")),
+  "C01 must record the root provenance implementation commit",
+);
 assert(c01Text.includes("TAG_UNSHIELD = 6"), "C01 must record the source-only TAG_UNSHIELD preflight truth");
+assert(c01Text.includes("TAG_REGISTER_PROVENANCED_ROOT = 4"), "C01 must record the source-only TAG_REGISTER_PROVENANCED_ROOT truth");
+assert(c01Text.includes("vanta2root"), "C01 must record the root-record PDA seed");
+assert(c01Text.includes("private-pool-v2:root-provenance-check"), "C01 must record the root provenance guard");
+assert(c01Text.includes("not proof that the root transition is correct"), "C01 must preserve the root transition proof boundary");
+assert(c01Text.includes("legacy tag 2 roots"), "C01 must record the legacy-root no-backfill boundary");
 assert(
   h08.verification.commands.includes("npm run private-pool-v2:send-witness-prover-check"),
   "H08 verification commands must include the Send witness prover guard",
