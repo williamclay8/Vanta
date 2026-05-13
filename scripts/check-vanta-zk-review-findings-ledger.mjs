@@ -296,6 +296,57 @@ assert(
 );
 assert(publicDepthDisclosureLoopText.includes("2a6c7fa"), `${publicDepthDisclosureLoopId} must pin the implementation commit`);
 
+const publicAuditDiscoveryLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-AUDIT-DISCOVERY";
+assert(activeFeedbackLoopIds.has(publicAuditDiscoveryLoopId), `${publicAuditDiscoveryLoopId} active feedback loop is missing`);
+const publicAuditDiscoveryLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === publicAuditDiscoveryLoopId);
+const publicAuditDiscoveryLoopText = JSON.stringify(publicAuditDiscoveryLoop);
+assert(
+  publicAuditDiscoveryLoop?.localVerification?.includes("npm run public:audit-discovery-check"),
+  `${publicAuditDiscoveryLoopId} must record the public audit discovery guard`,
+);
+assert(
+  publicAuditDiscoveryLoop?.localVerification?.includes("npm run audit:package-check"),
+  `${publicAuditDiscoveryLoopId} must record the audit package guard`,
+);
+assert(
+  publicAuditDiscoveryLoopText.includes("/.well-known/vanta-audit.json"),
+  `${publicAuditDiscoveryLoopId} must record the public discovery path`,
+);
+assert(
+  publicAuditDiscoveryLoopText.includes("refs-only"),
+  `${publicAuditDiscoveryLoopId} must record the refs-only boundary`,
+);
+assert(
+  publicAuditDiscoveryLoopText.includes("auditClaimAllowed: false"),
+  `${publicAuditDiscoveryLoopId} must preserve the audit claim false gate`,
+);
+assert(
+  publicAuditDiscoveryLoopText.includes("productionReady: false"),
+  `${publicAuditDiscoveryLoopId} must preserve the production readiness false gate`,
+);
+assert(
+  publicAuditDiscoveryLoopText.includes("mainnetReady: false"),
+  `${publicAuditDiscoveryLoopId} must preserve the mainnet readiness false gate`,
+);
+assert(
+  publicAuditDiscoveryLoopText.includes("public-anonymity-depth"),
+  `${publicAuditDiscoveryLoopId} must record the public depth blocker`,
+);
+assert(
+  publicAuditDiscoveryLoopText.includes("not an audit report"),
+  `${publicAuditDiscoveryLoopId} must preserve the no-audit-report truth boundary`,
+);
+assert(
+  publicAuditDiscoveryLoopText.includes("broader secret/report/witness/provider-content markers"),
+  `${publicAuditDiscoveryLoopId} must record the broadened leak guard`,
+);
+assert(
+  publicAuditDiscoveryLoopText.includes("refs/status metadata"),
+  `${publicAuditDiscoveryLoopId} must record the refs/status-only public JSON boundary`,
+);
+assert(publicAuditDiscoveryLoopText.includes("146f212"), `${publicAuditDiscoveryLoopId} must pin the discovery implementation commit`);
+assert(publicAuditDiscoveryLoopText.includes("9f452a5"), `${publicAuditDiscoveryLoopId} must pin the guard hardening commit`);
+
 const ids = new Set();
 for (const finding of ledger.findings) {
   assert(typeof finding.id === "string", "finding is missing id");

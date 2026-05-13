@@ -250,6 +250,36 @@
       "truthBoundary": "This is a truthful local disclosure of current evidence-recorded pool depth. It is not a live depth oracle, not a shared on-chain anonymity tree, not independent reviewer acceptance, not an audited anonymity set, not production-private mainnet settlement, not pushed, and not live-deployed."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-PUBLIC-AUDIT-DISCOVERY",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#new-observations-from-the-re-walk",
+        "public/.well-known/vanta-audit.json",
+        "docs/audit-package.md",
+        "scripts/check-vanta-public-audit-discovery.mjs",
+        "scripts/check-vanta-audit-package.mjs",
+        "npm run public:audit-discovery-check"
+      ],
+      "summary": "The audit handoff is now publicly discoverable through /.well-known/vanta-audit.json as a refs-only reviewer and counterparty surface. The JSON points to security limitations, the audit package, the VANTA_ZK finding ledger, the C01 verifier-backend decision, external-gate intake templates, and public-anonymity-depth blocker evidence while preserving auditClaimAllowed: false, thirdPartyAuditAccepted: false, productionReady: false, mainnetReady: false, liveDeploymentVerified: false, privacyClaimAllowed: false, and anonymityClaimAllowed: false. The follow-up guard blocks overclaim phrases plus broader secret/report/witness/provider-content markers and keeps the JSON itself to refs/status metadata instead of policy prose.",
+      "localVerification": [
+        "npm run public:audit-discovery-check",
+        "npm run audit:package-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:feedback-loop-check",
+        "npm run build",
+        "git diff --check",
+        "git diff --cached --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the public audit discovery JSON, audit-package guard wiring, broadened leak/overclaim guard, privacy-claim gate, ZK review ledger, feedback-loop bundle, build, and diff whitespace checks",
+        "committed": "9f452a5 (Tighten public audit discovery guard; follows 146f212 Add public audit discovery)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a refs-only public discovery surface for current review evidence and blockers. It is not an audit report, not third-party acceptance, not legal/compliance/custody approval, not a production verifier selection, not production readiness, not mainnet readiness, not pushed, and not live-deployed."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-SEND-WITNESS-INPUT-PROVER",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
