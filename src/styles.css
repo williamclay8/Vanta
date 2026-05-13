@@ -4017,6 +4017,13 @@ input {
   color: rgba(236, 255, 252, 0.78);
 }
 
+.pay-page .pay-hero-badges--compact span {
+  min-height: 30px;
+  width: fit-content;
+  max-width: 100%;
+  letter-spacing: 0.06em;
+}
+
 .pay-topbar h1,
 .pay-hero h1,
 .pay-section-header h2,
@@ -4385,6 +4392,73 @@ input {
 
 .pay-field--wide {
   grid-column: 1 / -1;
+}
+
+.pay-advanced-settings {
+  border: 1px solid rgba(0, 229, 200, 0.1);
+  border-radius: 12px;
+  background: rgba(246, 248, 245, 0.02);
+}
+
+.pay-advanced-settings:focus-within {
+  border-color: rgba(119, 242, 212, 0.24);
+  box-shadow: 0 0 0 3px rgba(119, 242, 212, 0.08);
+}
+
+.pay-advanced-settings summary {
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 14px;
+  align-items: center;
+  padding: 12px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.pay-advanced-settings summary::-webkit-details-marker {
+  display: none;
+}
+
+.pay-advanced-settings summary::after {
+  content: "+";
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(119, 242, 212, 0.16);
+  border-radius: 999px;
+  color: var(--accent);
+  font-family: "Space Mono", monospace;
+  font-size: 0.82rem;
+}
+
+.pay-advanced-settings[open] summary::after {
+  content: "-";
+}
+
+.pay-advanced-settings summary:focus-visible {
+  outline: 2px solid rgba(119, 242, 212, 0.62);
+  outline-offset: 3px;
+}
+
+.pay-advanced-settings summary span {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.pay-advanced-settings summary small {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.pay-advanced-settings__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+  gap: 12px;
+  padding: 0 14px 14px;
 }
 
 .pay-payment-card {
@@ -7420,6 +7494,7 @@ input {
   .pay-request-grid,
   .pay-path-steps,
   .pay-record-list,
+  .pay-advanced-settings__grid,
   .pay-mode-control,
   .pay-suite-plain-rows p {
     grid-template-columns: 1fr;

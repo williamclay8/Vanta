@@ -486,7 +486,7 @@ try {
   await startOperator({
     VANTA_PRIVATE_POOL_V2_REQUIRE_RELAYER_SERIALIZED_TRANSACTION: "true",
   });
-  const withRelayerTransaction = await requestJson("/private-pool-v2/protocol-settlements", {
+  const missingSolanaSpendAccountRefs = await requestJson("/private-pool-v2/protocol-settlements", {
     body: JSON.stringify({
       ...txGateRequest,
       changeOutputCommitment: `${txGateRequest.changeOutputCommitment}:with-tx`,
@@ -504,12 +504,15 @@ try {
     () => ({ ok: true, error: "" }),
     (error) => ({ ok: false, error: error instanceof Error ? error.message : String(error) }),
   );
-  assert(!withRelayerTransaction.ok, "Expected required relayer transaction gate to reject non-Solana submission evidence.");
   assert(
-    withRelayerTransaction.error.includes("did not return a Solana transaction signature"),
-    withRelayerTransaction.error || "Expected Solana signature gate error.",
+    !missingSolanaSpendAccountRefs.ok,
+    "Expected required relayer transaction gate to reject missing Solana spend account refs.",
   );
-  console.log("vanta-pay committed checkout relayer transaction gate: PASS");
+  assert(
+    missingSolanaSpendAccountRefs.error.includes("requires expected Solana spend account refs"),
+    missingSolanaSpendAccountRefs.error || "Expected Solana spend account-ref gate error.",
+  );
+  console.log("vanta-pay committed checkout Solana spend account-ref gate: PASS");
 
   await stopOperator();
   rmSync(storePath, { force: true });

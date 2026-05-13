@@ -348,10 +348,11 @@ export function PayPage() {
               Create a buyer preview, generate a local receipt-backed settlement record, and show
               what each party can verify.
             </p>
-            <div className="pay-hero-badges" aria-label="Pay beta status">
-              <span>{isBetaMode ? "Test mode" : "Test harness"}</span>
-              <span>No production funds moved.</span>
-              <span>Test receipt only.</span>
+            <div className="pay-hero-badges pay-hero-badges--compact" aria-label="Pay beta status">
+              <span>
+                {isBetaMode ? "Test mode" : "Test harness"} - no production funds moved - test
+                receipt only
+              </span>
             </div>
           </div>
           <div className="module-state module-state--pay-demo">
@@ -433,40 +434,48 @@ export function PayPage() {
                     options={VANTA_PAY_ASSET_SYMBOLS}
                     value={asset}
                   />
-                  <PayField
-                    error={emailError}
-                    label="Customer email"
-                    name="customer-email"
-                    onChange={(value) => {
-                      setCustomerEmail(value);
-                      resetLifecycleForEdit();
-                    }}
-                    placeholder="customer@example.com"
-                    type="email"
-                    value={customerEmail}
-                  />
-                  <label className="pay-field pay-field--wide">
-                    <span>Checkout type</span>
-                    <div className="pay-mode-control" role="group" aria-label="Checkout type">
-                      {[
-                        ["hosted", "Hosted checkout"],
-                        ["embedded", "Embedded checkout"],
-                        ["modal", "Modal checkout"],
-                      ].map(([value, label]) => (
-                        <button
-                          aria-pressed={checkoutMode === value}
-                          key={value}
-                          onClick={() => {
-                            setCheckoutMode(value as CheckoutMode);
-                            resetLifecycleForEdit();
-                          }}
-                          type="button"
-                        >
-                          {label}
-                        </button>
-                      ))}
+                  <details className="pay-advanced-settings pay-field--wide">
+                    <summary>
+                      <span>Advanced payment settings</span>
+                      <small>Optional customer email and checkout mode.</small>
+                    </summary>
+                    <div className="pay-advanced-settings__grid">
+                      <PayField
+                        error={emailError}
+                        label="Customer email"
+                        name="customer-email"
+                        onChange={(value) => {
+                          setCustomerEmail(value);
+                          resetLifecycleForEdit();
+                        }}
+                        placeholder="customer@example.com"
+                        type="email"
+                        value={customerEmail}
+                      />
+                      <label className="pay-field pay-field--wide">
+                        <span>Checkout type</span>
+                        <div className="pay-mode-control" role="group" aria-label="Checkout type">
+                          {[
+                            ["hosted", "Hosted checkout"],
+                            ["embedded", "Embedded checkout"],
+                            ["modal", "Modal checkout"],
+                          ].map(([value, label]) => (
+                            <button
+                              aria-pressed={checkoutMode === value}
+                              key={value}
+                              onClick={() => {
+                                setCheckoutMode(value as CheckoutMode);
+                                resetLifecycleForEdit();
+                              }}
+                              type="button"
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </label>
                     </div>
-                  </label>
+                  </details>
                   <PayButton
                     type="submit"
                   >
@@ -491,8 +500,8 @@ export function PayPage() {
                     <dd>{createdRecord?.session.checkoutUrl ?? checkoutUrl}</dd>
                   </div>
                   <div>
-                    <dt>Checkout type</dt>
-                    <dd>{checkoutMode[0].toUpperCase() + checkoutMode.slice(1)} checkout</dd>
+                    <dt>Checkout mode</dt>
+                    <dd>{checkoutMode[0].toUpperCase() + checkoutMode.slice(1)}</dd>
                   </div>
                   <div>
                     <dt>Status</dt>

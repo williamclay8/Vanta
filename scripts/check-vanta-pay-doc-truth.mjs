@@ -16,7 +16,7 @@ const docChecks = [
       "test-mode checkout session handling",
       "receipt-backed test payment records from the local/operator harness",
       "explicit customer payment evidence before production completion can be claimed",
-      "`Payment details`, `Description`, `Amount`, `Asset`, `Customer email`, `Checkout type`, and `Review payment`",
+      "`Payment details`, `Description`, `Amount`, `Asset`, `Advanced payment settings`, `Customer email`, `Checkout type`, and `Review payment`",
       "subscriptions, refunds, withdrawals, reconciliation, developer controls",
       "keys, and signed webhooks",
       "Checkout session, client token, receipt-backed test payment record, and locked",

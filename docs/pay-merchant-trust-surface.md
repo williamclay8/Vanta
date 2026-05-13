@@ -25,10 +25,10 @@ Today, that means:
 
 ## What stays legible
 
-The Pay tab should stay action-first. On `/app/pay`, the visible inputs and
-review fields are:
+The Pay tab should stay action-first. On `/app/pay`, the front-door inputs,
+advanced disclosure, and review fields are:
 
-- `Payment details`, `Description`, `Amount`, `Asset`, `Customer email`, `Checkout type`, and `Review payment`
+- `Payment details`, `Description`, `Amount`, `Asset`, `Advanced payment settings`, `Customer email`, `Checkout type`, and `Review payment`
 
 The visible suite inventory can include checkout, payment links, invoices,
 subscriptions, refunds, withdrawals, reconciliation, developer controls, API
