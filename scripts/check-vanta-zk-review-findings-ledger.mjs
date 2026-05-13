@@ -347,6 +347,43 @@ assert(
 assert(publicAuditDiscoveryLoopText.includes("146f212"), `${publicAuditDiscoveryLoopId} must pin the discovery implementation commit`);
 assert(publicAuditDiscoveryLoopText.includes("9f452a5"), `${publicAuditDiscoveryLoopId} must pin the guard hardening commit`);
 
+const routeFallbackTruthLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-ROUTE-FALLBACK-TRUTH";
+assert(activeFeedbackLoopIds.has(routeFallbackTruthLoopId), `${routeFallbackTruthLoopId} active feedback loop is missing`);
+const routeFallbackTruthLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === routeFallbackTruthLoopId);
+const routeFallbackTruthLoopText = JSON.stringify(routeFallbackTruthLoop);
+const routeFallbackVerificationCommands = [
+  "npm run route:fallback-browser-check",
+  "npm run product-ui:browser-check",
+  "npm run docs:browser-check",
+  "npm run mobile:browser-check",
+  "npm run performance:route-code-split-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run build",
+];
+for (const command of routeFallbackVerificationCommands) {
+  assert(
+    routeFallbackTruthLoop?.localVerification?.includes(command),
+    `${routeFallbackTruthLoopId} must record ${command}`,
+  );
+}
+assert(
+  routeFallbackTruthLoopText.includes("Nothing moved"),
+  `${routeFallbackTruthLoopId} must record the no-action route fallback truth`,
+);
+assert(
+  routeFallbackTruthLoopText.includes("production privacy is not enabled"),
+  `${routeFallbackTruthLoopId} must record the production-privacy-disabled copy`,
+);
+assert(
+  routeFallbackTruthLoopText.includes("instead of silently redirecting into /app/shield"),
+  `${routeFallbackTruthLoopId} must record the stale redirect behavior it replaced`,
+);
+assert(
+  routeFallbackTruthLoopText.includes("not a static-host HTTP 404 guarantee"),
+  `${routeFallbackTruthLoopId} must preserve the SPA-route truth boundary`,
+);
+assert(routeFallbackTruthLoopText.includes("e8c25ce"), `${routeFallbackTruthLoopId} must pin the implementation commit`);
+
 const ids = new Set();
 for (const finding of ledger.findings) {
   assert(typeof finding.id === "string", "finding is missing id");

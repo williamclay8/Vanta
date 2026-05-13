@@ -280,6 +280,37 @@
       "truthBoundary": "This is a refs-only public discovery surface for current review evidence and blockers. It is not an audit report, not third-party acceptance, not legal/compliance/custody approval, not a production verifier selection, not production readiness, not mainnet readiness, not pushed, and not live-deployed."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-ROUTE-FALLBACK-TRUTH",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#new-observations-from-the-re-walk",
+        "src/App.tsx",
+        "src/pages/NotFoundPage.tsx",
+        "src/components/RouteErrorBoundary.tsx",
+        "scripts/check-vanta-route-fallback-browser.mjs",
+        "npm run route:fallback-browser-check"
+      ],
+      "summary": "Unknown site, docs, and app routes now render a truthful recovery surface instead of silently redirecting into /app/shield or /docs. App-scoped misses keep the app shell and trust status visible, docs-scoped misses keep the docs shell visible, the copy says Nothing moved and production privacy is not enabled, and RouteErrorBoundary resets by pathname while preserving claim-safe recovery links.",
+      "localVerification": [
+        "npm run route:fallback-browser-check",
+        "npm run product-ui:browser-check",
+        "npm run docs:browser-check",
+        "npm run mobile:browser-check",
+        "npm run performance:route-code-split-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run build",
+        "git diff --check",
+        "git diff --cached --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for route fallback browser behavior, product UI browser, docs browser, mobile browser, route code splitting, privacy claim gate, build, and diff whitespace checks",
+        "committed": "e8c25ce (Add truthful route fallback)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is SPA route recovery and claim-truth hardening. It is not a static-host HTTP 404 guarantee, not a production privacy claim, not an audit or reviewer acceptance artifact, not pushed, and not live-deployed."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-SEND-WITNESS-INPUT-PROVER",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
