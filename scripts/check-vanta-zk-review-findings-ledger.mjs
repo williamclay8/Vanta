@@ -380,6 +380,47 @@ assert(
 );
 assert(c01VerifierCandidateEvidenceLoopText.includes("0ed3fab"), `${c01VerifierCandidateEvidenceLoopId} must pin the implementation commit`);
 
+const c01LocalProofFormatLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-13-C01-LOCAL-PROOF-FORMAT-OBSERVATION";
+assert(
+  activeFeedbackLoopIds.has(c01LocalProofFormatLoopId),
+  `${c01LocalProofFormatLoopId} active feedback loop is missing`,
+);
+const c01LocalProofFormatLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === c01LocalProofFormatLoopId,
+);
+const c01LocalProofFormatLoopText = JSON.stringify(c01LocalProofFormatLoop);
+for (const command of [
+  "npm run zk:c01-local-proof-format-evidence-check",
+  "npm run zk:c01-production-verifier-backend-candidate-check",
+  "npm run zk:c01-verifier-backend-decision-check",
+  "npm run zk:c01-verifier-backend-contract-check",
+  "npm run zk:c01-onchain-proof-boundary-check",
+  "npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
+]) {
+  assert(
+    c01LocalProofFormatLoop?.localVerification?.includes(command),
+    `${c01LocalProofFormatLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
+  "16000-byte",
+  "500-field",
+  "private-spend-public-input-hash",
+  "local-acir-bytecode-hash-not-production-vk",
+  "256 proof bytes",
+  "production-verifying-key-hash",
+  "not production proof-format acceptance",
+  "not tag-3 proof acceptance",
+  "28e07f6",
+]) {
+  assert(
+    c01LocalProofFormatLoopText.includes(phrase),
+    `${c01LocalProofFormatLoopId} must record ${phrase}`,
+  );
+}
+
 const copyClaimBoundaryLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-COPY-CLAIM-BOUNDARY";
 assert(activeFeedbackLoopIds.has(copyClaimBoundaryLoopId), `${copyClaimBoundaryLoopId} active feedback loop is missing`);
 const copyClaimBoundaryLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === copyClaimBoundaryLoopId);
@@ -690,6 +731,10 @@ assert(
   c01.codexRemediation.commits.some((commitRef) => commitRef.includes("0ed3fab")),
   "C01 must record the verifier candidate evidence packet commit",
 );
+assert(
+  c01.codexRemediation.commits.some((commitRef) => commitRef.includes("28e07f6")),
+  "C01 must record the local proof-format observation commit",
+);
 assert(c01Text.includes("TAG_UNSHIELD = 6"), "C01 must record the source-only TAG_UNSHIELD preflight truth");
 assert(c01Text.includes("TAG_REGISTER_PROVENANCED_ROOT = 4"), "C01 must record the source-only TAG_REGISTER_PROVENANCED_ROOT truth");
 assert(c01Text.includes("vanta2root"), "C01 must record the root-record PDA seed");
@@ -697,6 +742,10 @@ assert(c01Text.includes("private-pool-v2:root-provenance-check"), "C01 must reco
 assert(
   c01Text.includes("zk:c01-production-verifier-backend-candidate-check"),
   "C01 must record the production verifier backend candidate guard",
+);
+assert(
+  c01Text.includes("zk:c01-local-proof-format-evidence-check"),
+  "C01 must record the local proof-format evidence guard",
 );
 assert(
   c01Text.includes("zk:c01-verifier-backend-decision-check"),
@@ -710,6 +759,10 @@ assert(
   c01Text.includes("ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json"),
   "C01 must record the verifier candidate evidence packet path",
 );
+assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json"),
+  "C01 must record the local proof-format evidence packet path",
+);
 assert(c01Text.includes("selectedBackend"), "C01 must record backend selection remains blocked");
 assert(
   c01Text.includes("local-acir-bytecode-hash-not-production-vk"),
@@ -718,6 +771,16 @@ assert(
 assert(
   c01Text.includes("offchain-remote-proof-artifact-only"),
   "C01 must record the offchain-only remote proof-artifact evidence marker",
+);
+assert(c01Text.includes("16000-byte"), "C01 must record the current local proof byte length");
+assert(c01Text.includes("500 fields"), "C01 must record the current local proof field count");
+assert(
+  c01Text.includes("reserved 256-byte Groth16 tag-3"),
+  "C01 must record the reserved Groth16 tag-3 mismatch",
+);
+assert(
+  c01Text.includes("not satisfy production proof-format evidence"),
+  "C01 must preserve that local proof-format observation does not satisfy production proof-format evidence",
 );
 assert(
   c01Text.includes("solana-c01-groth16-verifier-ready"),

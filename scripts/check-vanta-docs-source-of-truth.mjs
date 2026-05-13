@@ -140,6 +140,11 @@ requirePhrase(
   "opt-in browser-worker proof-result adapter",
   "README.md",
 );
+requirePhrase(
+  readme,
+  "C01 local proof-format observation",
+  "README.md",
+);
 
 if (packageJson.scripts["docs:source-of-truth-check"] !== "node scripts/check-vanta-docs-source-of-truth.mjs") {
   throw new Error("package.json must expose docs:source-of-truth-check.");
