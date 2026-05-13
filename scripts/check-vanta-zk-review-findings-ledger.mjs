@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { resolve } from "node:path";
+import { isAbsolute, resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const ledgerPath = resolve(repoRoot, "VANTA_ZK_REVIEW.findings.json");
@@ -58,10 +58,92 @@ function assertPinnedCommittedText(value, label) {
   assertKnownAncestorCommit(value, label);
 }
 
+function assertNoSecretValues(source, label) {
+  for (const pattern of secretValuePatterns) {
+    assert(!pattern.test(source), `${label} appears to contain a secret-shaped string`);
+  }
+  for (const pattern of forbiddenStructuredAssignmentPatterns) {
+    assert(!pattern.test(source), `${label} appears to contain a structured secret/report/witness field`);
+  }
+}
+
+function assertSecretLeakSelfTests() {
+  const secretValueSamples = [
+    ["Bearer", "abcdefghijklmnopqrstuvwxyz123456"].join(" "),
+    ["sk", "live", "abcdefghijklmnopqrstuvwxyz"].join("_"),
+    ["ghp", "abcdefghijklmnopqrstuvwxyz123456"].join("_"),
+    ["-----BEGIN", "PRIVATE KEY-----"].join(" "),
+  ];
+  for (const sample of secretValueSamples) {
+    assert(
+      secretValuePatterns.some((pattern) => pattern.test(sample)),
+      `secret leak guard self-test missed ${sample}`,
+    );
+  }
+  for (const key of [
+    "privateKey",
+    "seed_phrase",
+    "reportBody",
+    "legal_text",
+    "signedTransactionBytes",
+    "raw_witness",
+    "providerCredentials",
+  ]) {
+    assert(
+      forbiddenStructuredSecretKeyPatterns.some((pattern) => pattern.test(key)),
+      `structured secret key guard self-test missed ${key}`,
+    );
+  }
+  for (const sample of [
+    "report_body: ...",
+    "\"signedTransactionBytes\": \"...\"",
+    "raw_witness = ...",
+  ]) {
+    assert(
+      forbiddenStructuredAssignmentPatterns.some((pattern) => pattern.test(sample)),
+      `structured assignment guard self-test missed ${sample}`,
+    );
+  }
+}
+
+function assertRepoLocalRefOrCommand(ref, label) {
+  assert(typeof ref === "string" && ref.length > 0, `${label} must be a non-empty string`);
+
+  if (ref.startsWith("npm run ")) {
+    const scriptName = ref.slice("npm run ".length).split(/\s/u)[0];
+    assert(Object.hasOwn(scripts, scriptName), `${label} references missing package script ${scriptName}`);
+    return;
+  }
+
+  assert(!isAbsolute(ref), `${label} must be repo-local, not absolute: ${ref}`);
+  assert(!ref.includes("://"), `${label} must be repo-local, not a URL: ${ref}`);
+  assert(!ref.startsWith("../"), `${label} must stay inside the repo: ${ref}`);
+  assert(!ref.includes("/../"), `${label} must stay inside the repo: ${ref}`);
+
+  const [pathPart] = ref.split("#");
+  assert(pathPart.length > 0, `${label} must include a repo path before any anchor: ${ref}`);
+  assert(existsSync(resolve(repoRoot, pathPart)), `${label} must point to an existing repo path: ${ref}`);
+}
+
+function walkLedger(value, visitor, path = "$") {
+  visitor(value, path);
+  if (Array.isArray(value)) {
+    value.forEach((entry, index) => walkLedger(entry, visitor, `${path}[${index}]`));
+    return;
+  }
+  if (value && typeof value === "object") {
+    for (const [key, entry] of Object.entries(value)) {
+      visitor(key, `${path}.${key}#key`);
+      walkLedger(entry, visitor, `${path}.${key}`);
+    }
+  }
+}
+
 assert(existsSync(reviewPath), "missing VANTA_ZK_REVIEW.md");
 assert(existsSync(ledgerPath), "missing VANTA_ZK_REVIEW.findings.json");
 
 const ledgerSource = readFileSync(ledgerPath, "utf8");
+const reviewSource = readFileSync(reviewPath, "utf8");
 const ledger = readJson(ledgerPath);
 const packageJson = readJson(packagePath);
 const scripts = packageJson.scripts ?? {};
@@ -95,10 +177,35 @@ const allowedStatuses = new Set([
   "stale",
 ]);
 const allowedSeverities = new Set(["critical", "high", "medium"]);
-const secretLikePatterns = [
+const secretValuePatterns = [
   /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/u,
-  /\b(?:seed phrase|mnemonic|private key)\s*[:=]\s*["'][^"']+["']/iu,
-  /\b(?:sk|secret|api[_-]?key|token)_(?:live|prod|mainnet)_[A-Za-z0-9]{12,}\b/u,
+  /\bBearer\s+[A-Za-z0-9._=-]{20,}\b/u,
+  /\b(?:sk|pk|secret|api[_-]?key|token)_(?:live|prod|mainnet)_[A-Za-z0-9]{12,}\b/u,
+  /\b(?:gh[pousr]|xox[baprs])[-_][A-Za-z0-9_-]{20,}\b/u,
+];
+const forbiddenStructuredSecretKeyPatterns = [
+  /^(?:private[_-]?key|privateKey)$/iu,
+  /^(?:seed[_-]?phrase|seedPhrase)$/iu,
+  /^mnemonic$/iu,
+  /^(?:secret[_-]?value|secretValue)$/iu,
+  /^(?:signed[_-]?transaction(?:[_-]?bytes?)?|signedTransactionBytes)$/iu,
+  /^(?:customer[_-]?private[_-]?inputs?|customerPrivateInputs?)$/iu,
+  /^(?:report[_-]?bod(?:y|ies)|reportBody)$/iu,
+  /^(?:legal[_-]?text|legalText)$/iu,
+  /^(?:raw[_-]?witness|rawWitness)$/iu,
+  /^(?:provider[_-]?credentials?|providerCredentials?)$/iu,
+  /^(?:live[_-]?provider(?:[_-]?credentials?)?|liveProviderCredentials?)$/iu,
+  /^(?:under[_-]?nda|underNda)$/iu,
+];
+const forbiddenStructuredAssignmentPatterns = [
+  /["']?(?:private[_-]?key|privateKey)["']?\s*[:=]/iu,
+  /["']?(?:seed[_-]?phrase|seedPhrase)["']?\s*[:=]/iu,
+  /["']?mnemonic["']?\s*[:=]/iu,
+  /["']?(?:signed[_-]?transaction(?:[_-]?bytes?)?|signedTransactionBytes)["']?\s*[:=]/iu,
+  /["']?(?:report[_-]?bod(?:y|ies)|reportBody)["']?\s*[:=]/iu,
+  /["']?(?:legal[_-]?text|legalText)["']?\s*[:=]/iu,
+  /["']?(?:raw[_-]?witness|rawWitness)["']?\s*[:=]/iu,
+  /["']?(?:provider[_-]?credentials?|providerCredentials?)["']?\s*[:=]/iu,
 ];
 
 assert(ledger.schemaVersion === 1, "schemaVersion must be 1");
@@ -120,9 +227,17 @@ for (const status of ledger.allowedStatuses) {
 for (const severity of ledger.allowedSeverities) {
   assert(allowedSeverities.has(severity), `unknown allowed severity ${severity}`);
 }
-for (const pattern of secretLikePatterns) {
-  assert(!pattern.test(ledgerSource), "ledger appears to contain a secret-shaped string");
-}
+assertSecretLeakSelfTests();
+assertNoSecretValues(ledgerSource, "ledger");
+assertNoSecretValues(reviewSource, "review document");
+walkLedger(ledger, (value, path) => {
+  if (typeof value !== "string" || !path.endsWith("#key")) {
+    return;
+  }
+  for (const pattern of forbiddenStructuredSecretKeyPatterns) {
+    assert(!pattern.test(value), `ledger uses forbidden secret/report/witness key at ${path}`);
+  }
+});
 
 const activeFeedbackLoopIds = new Set();
 for (const loop of ledger.activeFeedbackLoops) {
@@ -138,6 +253,9 @@ for (const loop of ledger.activeFeedbackLoops) {
     `${loop.id} missing feedback-loop status`,
   );
   assert(Array.isArray(loop.sourceReviewRefs) && loop.sourceReviewRefs.length > 0, `${loop.id} missing sourceReviewRefs`);
+  loop.sourceReviewRefs.forEach((ref, index) => {
+    assertRepoLocalRefOrCommand(ref, `${loop.id} sourceReviewRefs[${index}]`);
+  });
   assert(typeof loop.summary === "string" && loop.summary.length > 20, `${loop.id} missing summary`);
   assert(Array.isArray(loop.localVerification) && loop.localVerification.length > 0, `${loop.id} missing localVerification`);
   assert(typeof loop.truthBoundary === "string" && loop.truthBoundary.length > 20, `${loop.id} missing truthBoundary`);
@@ -398,6 +516,9 @@ for (const finding of ledger.findings) {
   assert(typeof finding.claimAtRisk === "string" && finding.claimAtRisk.length > 20, `${finding.id} missing claimAtRisk`);
   assert(typeof finding.failureMode === "string" && finding.failureMode.length > 20, `${finding.id} missing failureMode`);
   assert(Array.isArray(finding.evidenceRefs) && finding.evidenceRefs.length > 0, `${finding.id} missing evidenceRefs`);
+  finding.evidenceRefs.forEach((ref, index) => {
+    assertRepoLocalRefOrCommand(ref, `${finding.id} evidenceRefs[${index}]`);
+  });
   assert(Array.isArray(finding.requiredFix) && finding.requiredFix.length > 0, `${finding.id} missing requiredFix`);
   assert(typeof finding.truthBoundary === "string" && finding.truthBoundary.length > 20, `${finding.id} missing truthBoundary`);
 
@@ -423,6 +544,9 @@ for (const finding of ledger.findings) {
 
   const staleControl = finding.staleControl ?? {};
   assert(Array.isArray(staleControl.watchFiles) && staleControl.watchFiles.length > 0, `${finding.id} missing staleControl.watchFiles`);
+  staleControl.watchFiles.forEach((ref, index) => {
+    assertRepoLocalRefOrCommand(ref, `${finding.id} staleControl.watchFiles[${index}]`);
+  });
   assert(Array.isArray(staleControl.watchCommands) && staleControl.watchCommands.length > 0, `${finding.id} missing staleControl.watchCommands`);
 
   for (const command of [...verification.commands, ...staleControl.watchCommands]) {

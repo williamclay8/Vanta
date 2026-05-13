@@ -47,7 +47,7 @@
     {
       "id": "live-deployment-evidence",
       "status": "blocked",
-      "claim": "This branch has not been pushed, deployed, or live-verified."
+      "claim": "Latest local feedback-loop changes have not been pushed, deployed, or live-verified."
     }
   ],
   "safeCommands": [

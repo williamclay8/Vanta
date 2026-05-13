@@ -46,6 +46,42 @@ function walk(value, visitor, path = "$") {
   }
 }
 
+function isRepoRefKey(key) {
+  return (
+    /(?:Ref|Refs|Package|Ledger|Decision|Template|Templates)$/u.test(key) ||
+    key === "securityLimitations"
+  );
+}
+
+function assertRepoRefsForKey(key, value, path) {
+  if (!isRepoRefKey(key)) {
+    return;
+  }
+  if (typeof value === "string") {
+    assertRelativeRepoRef(value);
+    return;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((entry, index) => {
+      assert.equal(typeof entry, "string", `${path}[${index}] must be a repo-local ref string.`);
+      assertRelativeRepoRef(entry);
+    });
+  }
+}
+
+function walkRepoRefs(value, path = "$") {
+  if (Array.isArray(value)) {
+    value.forEach((entry, index) => walkRepoRefs(entry, `${path}[${index}]`));
+    return;
+  }
+  if (value && typeof value === "object") {
+    for (const [key, entry] of Object.entries(value)) {
+      assertRepoRefsForKey(key, entry, `${path}.${key}`);
+      walkRepoRefs(entry, `${path}.${key}`);
+    }
+  }
+}
+
 assert.ok(existsSync(discoveryPath), "Missing public/.well-known/vanta-audit.json.");
 assert.ok(existsSync(auditPackagePath), "Missing docs/audit-package.md.");
 
@@ -176,7 +212,7 @@ const secretValuePatterns = [
   /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/u,
   /\bBearer\s+[A-Za-z0-9._=-]{20,}\b/u,
   /\b(?:sk|pk|secret|api[_-]?key|token)_(?:live|prod|mainnet)_[A-Za-z0-9]{12,}\b/u,
-  /\b(?:gh[pousr]|xox[baprs])-[A-Za-z0-9_-]{20,}\b/u,
+  /\b(?:gh[pousr]|xox[baprs])[-_][A-Za-z0-9_-]{20,}\b/u,
 ];
 
 walk(discovery, (value, path) => {
@@ -196,5 +232,7 @@ walk(discovery, (value, path) => {
     );
   }
 });
+
+walkRepoRefs(discovery);
 
 console.log("Vanta public audit discovery check: PASS");
