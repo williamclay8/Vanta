@@ -20,7 +20,7 @@ This review is now an active feedback-loop document, not only a point-in-time au
 | Canonical note membership | Placeholder additive note/tree hashing was replaced with Poseidon note, leaf, and node hashing plus direction/leaf-index constraints; note amount limbs are now `u64` in the local circuit ABI. | `npm run zk:canonical-note-membership-check` |
 | Canonical note proving commitment | `CanonicalNoteArtifacts` now carries both legacy SHA-256 display commitment and Poseidon/BN254 proof-facing `provingCommitment`; Live Shield records both and Live Send preserves the proof-facing commitment through redaction. | `npm run zk:canonical-note-proving-commitment-check` |
 | Private Pool v2 entry circuits | Local fixed-depth lanes now prove input membership and path-based successor append roots for Shield, Send, Swap-to-shielded, Claim, and actual-private spend where applicable. | `npm run private-pool-v2:verify` |
-| Private Pool v2 no-witness proof artifacts | Shield, Claim, Swap-to-shielded, Send, and actual-private-spend now emit local bb.js/UltraHonk fixture artifacts without witness or bytecode sidecars; artifact verifiers recompile the matching Noir circuit, check ACIR/verifying-key metadata, bind the single public-input hash label, and reject tampered proof bytes, public inputs, circuit/proof-system/backend/label relabeling, and witness aliases. Actual-private-spend and Send now also have strict local witness-input proof paths: the input builders require canonical BN254 fields, depth-20 Merkle/append paths, boolean direction bits, derived leaf indices, recomputed roots/nullifiers, unique outputs, and derived public-input hashes; the Node proof script can emit no-witness `local-bb-derived-artifact` receipts for those derived requests. The operator no-witness route requires matching expected public-input hashes for Shield, Claim, Swap-to-shielded, Send, and actual-private-spend artifacts and rejects unbound extra `expectedPublicInputs` keys; the Shield route is read-only artifact verification only and does not append commitments, persist receipts, or accept Shield settlement. The opt-in actual-private-spend and Send local bb artifact adapter can convert verified local artifacts plus exact proof-request transcripts into `VantaPrivatePoolV2ProofResult` values with `proofSystem: "noir-bb"`, while keeping the default local prover on `mock` / `local-mock`. In production proof mode, remote-service proof artifacts hit a local production-mode verifier-handoff guard: relabelled local fixture metadata such as local verifying-key hash kinds or `local-acir-bytecode:` key ids rejects before delegation, returned remote receipts must match the submitted artifact transcript across circuit, ACIR hash, backend/runtime metadata, proof system/backend, proof bytes, public inputs/labels/commitment, and verifying-key fields, and accepted receipts are marked `offchain-remote-proof-artifact-only` with `onChainVerifierTarget: "none"`. Any `solana-c01-groth16-verifier-ready` overclaim is fail-closed unless a separate Solana tag `3` Groth16 verifier-ready evidence lane exists. This remains local proof generation and local handoff hardening; local artifacts still reject in production proof mode and no production remote prover/verifier is proven. | `npm run private-pool-v2:local-verifier-check`; `npm run private-pool-v2:local-bb-fixture-prover-check`; `npm run private-pool-v2:actual-private-spend-witness-prover-check`; `npm run private-pool-v2:send-witness-prover-check`; `npm run private-pool-v2:remote-proof-artifact-boundary-check`; `npm run private-pool-v2:shield-proof-artifact-consistency-check`; `npm run private-pool-v2:shield-operator-no-witness-check`; `npm run private-pool-v2:claim-proof-artifact-consistency-check`; `npm run private-pool-v2:claim-operator-no-witness-check`; `npm run private-pool-v2:swap-to-shielded-proof-artifact-consistency-check`; `npm run private-pool-v2:swap-to-shielded-operator-no-witness-check`; `npm run private-pool-v2:send-proof-artifact-consistency-check`; `npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check`; `npm run private-pool-v2:send-operator-no-witness-check`; `npm run private-pool-v2:actual-private-spend-operator-no-witness-check`; `npm run private-pool-v2:proof-backend-boundary-check`; `npm run zk:c01-production-verifier-backend-candidate-check` |
+| Private Pool v2 no-witness proof artifacts | Shield, Claim, Swap-to-shielded, Send, and actual-private-spend now emit local bb.js/UltraHonk fixture artifacts without witness or bytecode sidecars; artifact verifiers recompile the matching Noir circuit, check ACIR/verifying-key metadata, bind the single public-input hash label, and reject tampered proof bytes, public inputs, circuit/proof-system/backend/label relabeling, and witness aliases. Actual-private-spend and Send now also have strict local witness-input proof paths: the input builders require canonical BN254 fields, depth-20 Merkle/append paths, boolean direction bits, derived leaf indices, recomputed roots/nullifiers, unique outputs, and derived public-input hashes; the Node proof script can emit no-witness `local-bb-derived-artifact` receipts for those derived requests. A dev-only browser/Web Worker Send prover can take caller-provided compiled ACIR bytecode plus compressed witness bytes, run bb.js/UltraHonk with `threads: 1`, and return a no-witness `local-bb-derived-artifact` that verifies against `send-public-input-hash`; it still does not generate the witness in the browser or replace the default local `mock` prover. The operator no-witness route requires matching expected public-input hashes for Shield, Claim, Swap-to-shielded, Send, and actual-private-spend artifacts and rejects unbound extra `expectedPublicInputs` keys; the Shield route is read-only artifact verification only and does not append commitments, persist receipts, or accept Shield settlement. The opt-in actual-private-spend and Send local bb artifact adapter can convert verified local artifacts plus exact proof-request transcripts into `VantaPrivatePoolV2ProofResult` values with `proofSystem: "noir-bb"`, while keeping the default local prover on `mock` / `local-mock`. In production proof mode, remote-service proof artifacts hit a local production-mode verifier-handoff guard: relabelled local fixture metadata such as local verifying-key hash kinds or `local-acir-bytecode:` key ids rejects before delegation, returned remote receipts must match the submitted artifact transcript across circuit, ACIR hash, backend/runtime metadata, proof system/backend, proof bytes, public inputs/labels/commitment, and verifying-key fields, and accepted receipts are marked `offchain-remote-proof-artifact-only` with `onChainVerifierTarget: "none"`. Any `solana-c01-groth16-verifier-ready` overclaim is fail-closed unless a separate Solana tag `3` Groth16 verifier-ready evidence lane exists. This remains local proof generation and local handoff hardening; local artifacts still reject in production proof mode and no production remote prover/verifier is proven. | `npm run private-pool-v2:local-verifier-check`; `npm run private-pool-v2:local-bb-fixture-prover-check`; `npm run private-pool-v2:actual-private-spend-witness-prover-check`; `npm run private-pool-v2:send-witness-prover-check`; `npm run private-pool-v2:browser-worker-prover-check`; `npm run private-pool-v2:remote-proof-artifact-boundary-check`; `npm run private-pool-v2:shield-proof-artifact-consistency-check`; `npm run private-pool-v2:shield-operator-no-witness-check`; `npm run private-pool-v2:claim-proof-artifact-consistency-check`; `npm run private-pool-v2:claim-operator-no-witness-check`; `npm run private-pool-v2:swap-to-shielded-proof-artifact-consistency-check`; `npm run private-pool-v2:swap-to-shielded-operator-no-witness-check`; `npm run private-pool-v2:send-proof-artifact-consistency-check`; `npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check`; `npm run private-pool-v2:send-operator-no-witness-check`; `npm run private-pool-v2:actual-private-spend-operator-no-witness-check`; `npm run private-pool-v2:proof-backend-boundary-check`; `npm run zk:c01-production-verifier-backend-candidate-check` |
 | Active proving-lane Merkle depth | Private Pool v2 Shield/Send/Swap-to-shielded/Claim/actual-private-spend and Private Core Send/Swap/Unshield now use `MERKLE_DEPTH = 20`; fixture builders emit 20-sibling paths with sparse depth-20 trees; the depth lint now fails closed if active lanes regress to depth 3. | `npm run zk:circuit-soundness-lint`; `npm run private-pool-v2:shield-circuit-check`; `npm run private-core:check` |
 | Private Pool v2 Shield/Send/Claim amount range | Shield, Send, and Claim raw amount witnesses are constrained as `u128`; Send also proves a private economics commitment and checks `input_amount == recipient_amount + change_amount`; Claim relayer-fee is constrained as `u128`. | `npm run private-pool-v2:shield-circuit-check`; `npm run private-pool-v2:send-circuit-check`; `npm run private-pool-v2:claim-circuit-check` |
 | Private Core tree hashing | Single-field membership paths and standard Poseidon node hashing are now guarded across send/swap/unshield. | `npm run zk:merkle-node-hash-contract-check` |
@@ -3536,6 +3536,8 @@ Recommendation unchanged from shield W7 at the prover level: wire `@aztec/bb.js`
 
 **Codex status, 2026-05-12 local bb artifact proof-result adapter:** partially remediated locally for opt-in actual-private-spend and Send runtime evidence lanes. `src/privacy/privatePoolV2LocalProver.ts` now exports `createVantaPrivatePoolV2LocalBbFixtureProver`, which can replay a verified local `local-bb-fixture-artifact` plus its exact actual-private-spend or Send fixture proof-request transcript into a `VantaPrivatePoolV2ProofResult` with `proofSystem: "noir-bb"` and `proofBackend: "local-bb-fixture-artifact"`; for actual-private-spend and Send, it can also replay matching no-witness `local-bb-derived-artifact` evidence generated from strict local witness-input proof scripts. The adapter rejects missing/duplicated `request.circuitPublicInputs.private-spend-public-input-hash` or `request.circuitPublicInputs.send-public-input-hash`, transition-field drift in actual-private-spend fields (`pool-id`, `asset-cohort`, `accepted-root`, `nullifier`, output commitments, `context-hash`) and Send fields (`input-root`, `input-commitment`, `nullifier`, recipient/change output commitments, recipient/change leaf indices, recipient/change output roots, memo body-hash fields, `asset-id-commitment`, `economics-commitment`, `owner-commitment`, `send-context-tag`), request-metadata drift in the fixture transcript, cross-target artifacts, relabelled artifact circuit/backend/proof-system/public-input metadata, malformed proof/key metadata, disabled mode, and tampered proof-result verification; the default `createVantaPrivatePoolV2LocalProver` still returns `mock` / `local-mock` for both lanes. Guards: `npm run private-pool-v2:local-bb-fixture-prover-check`, `npm run private-pool-v2:actual-private-spend-witness-prover-check`, and `npm run private-pool-v2:send-witness-prover-check`, wired into Send, local prover/verifier, `private-pool-v2:verify`, `private-pool-v2:proof-backend-boundary-check`, and `private-pool-v2:contract-check`. Residual caveat: this is local no-real-funds proof generation and artifact replay for verifier receipt testing. It is not browser/Web Worker prover plumbing, not a remote proof service, not on-chain proof verification, not a production verifying-key registry, not audit acceptance, not live deployment evidence, and not real-funds readiness.
 
+**Codex status, 2026-05-13 browser worker proof plumbing:** partially remediated locally for dev-only Send browser/Web Worker proof execution. `src/privacy/privatePoolV2BrowserProverWorker.ts` exports a worker-safe `proveVantaPrivatePoolV2SendInBrowserWorker` path that accepts caller-provided compiled ACIR bytecode plus compressed witness bytes, runs `@aztec/bb.js` / `UltraHonkBackend` with `threads: 1`, verifies the generated proof, binds the expected `send-public-input-hash`, and returns a no-witness `local-bb-derived-artifact` with `local-acir-bytecode-hash-not-production-vk` metadata. `src/privacy/privatePoolV2BrowserProverClient.ts` constructs the worker with Vite's module-worker URL pattern without importing the heavy worker into the main bundle, and `npm run private-pool-v2:browser-worker-prover-check` compiles the protocol/client/worker with DOM/WebWorker libs, generates the existing Send witness through the local Node/nargo lane, calls the worker prover function, rejects witness leakage in the returned artifact, and verifies the artifact through the existing Send proof-artifact verifier. The default local prover still returns `mock` / `local-mock`, and `private-pool-v2:proof-backend-boundary-check` plus `private-pool-v2:local-prover-check` now include this browser-worker guard. Residual caveat: this is not browser-side witness generation, not routed live Send execution, not a production remote proof service, not an on-chain Groth16 verifier, not a production verifying-key registry, not audit acceptance, not live deployment evidence, and not real-funds readiness.
+
 After this and the on-chain verifier land, the system still needs program-owned tree/vault state, redeploy/reinit plus live SBF evidence, audit acceptance, and deployed service evidence before any production-private claim is safe. Everything else in this document either depends on that or is parallel polish.
 
 ### Partially remediated #3 — new live records use wallet-derived owner context, recovery evidence, and record-source import/export UX
@@ -3830,3 +3832,209 @@ None of this requires the cryptography to be at Target A yet. All of it can ship
 Taste makes the product memorable. Polish makes the product trustworthy. The 90-day plan above ships both, layered on top of the cryptographic work that's already in flight. The team that ships both in parallel is the team that ends 2026 as the default Solana privacy suite.
 
 Three things are non-negotiable for that outcome: (1) the depth-oracle visualization, (2) the Letter PDF artifact, (3) a single committed aesthetic. Everything else is multiplier. Without those three, the polish work makes a better generic privacy app. With them, the polish work makes Vanta.
+
+---
+
+# 20× Programmatic Privacy and 20× Copy Clarity
+
+Two questions, one section:
+
+1. **What actually has to change to make transactions cryptographically private** at the protocol level, not just labeled as private?
+2. **What copy can be cut or rewritten** so a reader understands what Vanta does in one pass?
+
+The first half is the wire format. The second half is the words on top of it. Both need work.
+
+---
+
+## Part 1 — How to make Vanta programmatically private
+
+### The honest current state
+
+A transaction in Vanta today is private along some axes and public along others:
+
+| Privacy property | Status |
+|---|---|
+| Note ownership (proven via spending key) | ✓ Closed in unshield circuit; partial elsewhere |
+| Note membership in the pool (Merkle proof) | ✓ Closed in all four v2 entry circuits |
+| Nullifier uniqueness on chain | ✓ Closed (PDA-based markers) |
+| Authority-gated state writes | ✓ Closed (operator authority signature) |
+| Value conservation in send | ✓ Closed in send circuit |
+| Economics hidden behind a commitment in shield | ✓ Closed |
+| Memo ciphertexts (AEAD-encrypted) | ✓ Closed (v2 memo prefixes) |
+| **Real ZK proof generated for each action** | ✗ Mock prover still in production path |
+| **On-chain proof verification** | ✗ No Groth16 verifier in program |
+| **Non-custodial vault (program-owned PDA)** | ✗ Operator keypair still holds funds |
+| **Anonymity set ≥ k for meaningful k** | ✗ Effectively k = 1 (per-user localStorage state) |
+| **Amount-distribution obfuscation** | ✗ Variable amounts cluster transactions by value |
+| **Timing obfuscation** | ✗ Submit-and-settle is immediate, observable |
+| **Relayer separation from wallet signer** | ✗ User wallet signs the on-chain transaction |
+| **Forward secrecy on viewing keys** | ✗ Single long-lived viewing key per user |
+| **Cross-asset linkability** | ✗ Swap input/output observable to operator |
+
+Seven ✓ of real progress. Eight ✗ of real gaps. Each ✗ is a separate place an adversary breaks the privacy claim.
+
+### Twelve programmatic-privacy moves
+
+Concrete, scoped to current files, ordered by privacy-impact-per-week. None require new research.
+
+**V1. Ship a real prover.** Replace `src/privacy/privatePoolV2LocalProver.ts` (returns `proofSystem: "mock"`) with `@aztec/bb.js` or `snarkjs`. Generate Groth16 proofs in a Web Worker. **1-2 weeks.** Without this, every privacy claim is unsubstantiated.
+
+**V2. Embed a Groth16 verifier in the program.** `programs/vanta_private_pool_v2_spend/src/lib.rs:process_spend` accepts payloads without proof verification. Pull in Light Protocol's `groth16-solana`; commit the verifying key in `process_init`; call `groth16_verify(vk, public_inputs_hash, proof_bytes)` before accepting. **1 week.** Turns the operator's authority signature from "the trust anchor" into "a permissioning policy on top of cryptographic proof."
+
+**V3. Program-owned vault PDA.** `operator/unshield-server.mjs` loads `vaultSignerSecretKeyEnvName` from env to sign release transfers. Replace: deposits go to a PDA; unshields invoke a CPI signed as the PDA. **2-3 weeks.** Removes the largest custody risk.
+
+**V4. Shared on-chain anonymity tree.** The commitment tree currently lives in browser localStorage (`vanta.zk.phase1.live-shield-records.v1`). Each user has their own tree of size 1+. Move on chain: every shield appends to a single program-owned incremental Merkle tree. All users prove membership against the same tree. **2-3 weeks. The single biggest privacy multiplier.** Anonymity grows from k=1 to k=N where N is daily depositors. 100 active users = 100×. 10,000 = 10,000×.
+
+**V5. Denomination obfuscation.** A 17.42 USDC shield and 17.42 USDC unshield are correlatable by amount alone. Fixed denominations (Tornado: 10/100/1000/10000) or amount splitting (Aztec/Penumbra: split deposits into standard sizes internally). **1-2 weeks (fixed) / 3-4 weeks (splitting).** Without this, amount-matching breaks every other privacy claim.
+
+**V6. Relayer batching.** Submit-and-settle is immediate; observers correlate by timing. Add a batcher: hold proofs in a 5-30 second window, submit in randomized order at fixed cadence. **1-2 weeks.** `shieldDecoyBatcher.ts` is already shaped for this.
+
+**V7. Relayer separation (signer ≠ wallet).** The user's wallet signs the on-chain transaction. Even with perfect proofs, the fee-payer is a permanent on-chain link. Add a relayer that submits on the user's behalf. User signs only the proof. **1 week.**
+
+**V8. Customer-side ZK proof in Pay.** Today the customer's wallet SPL-transfers to the operator's vault — public link to the merchant. Required: customer signs one transaction that (a) transfers tokens to a program-owned escrow PDA AND (b) includes a ZK proof binding `(session_id, customer_owner_commitment, paid_amount)`. **3-4 weeks.** Requires V1 and V4.
+
+**V9. Forward-secret viewing keys.** A single long-lived viewing key means a future compromise reveals all historical decryptions. Rotate ephemeral viewing keys per epoch (e.g., 24h). **1 week.** Builds on wallet-derived recovery seed.
+
+**V10. Cross-asset privacy in swap.** Today the operator routes USDC into SOL via Jupiter — input/output linkage visible. Fix: asset transitions inside the pool with pricing from an on-chain oracle. The pool holds a portfolio and rebalances in aggregate. **4+ weeks.** Highest complexity.
+
+**V11. Public depth oracle as privacy disclosure.** Show live anonymity set size on the home page. Users see "your deposit joins 1,247 deposits over 14 days" before they shield. Honest about weak privacy when k is small; self-strengthening when k is large. **2 days** once V4's events are indexed.
+
+**V12. Compliance-aware privacy via Privacy Pools.** Without association sets, Vanta's anonymity set includes sanctioned funds. Regulated counterparties (exchanges, payroll, banks) reject Vanta withdrawals as compliance-tainted; effective k drops back to 1 for compliance-aware users. Add the Buterin/Heimbach construction: at withdraw, prove "I'm in the pool AND my deposit is in association set S." **2-4 weeks.** This unlocks the merchant market.
+
+### Twelve-move summary
+
+| # | Move | Effort | Privacy multiplier |
+|---|---|---|---|
+| V1 | Real Barretenberg prover | 1-2 wk | Required for everything else |
+| V2 | Groth16 verifier in program | 1 wk | Real cryptographic enforcement |
+| V3 | Program-owned vault PDA | 2-3 wk | Removes custody risk |
+| V4 | Shared on-chain anonymity tree | 2-3 wk | k=1 → k=N (~100×+) |
+| V5 | Denomination obfuscation | 1-4 wk | Defeats amount-matching |
+| V6 | Relayer batching | 1-2 wk | Defeats timing analysis |
+| V7 | Relayer separation | 1 wk | Defeats wallet linkage |
+| V8 | Customer-side ZK proof in Pay | 3-4 wk | Defeats merchant↔customer link |
+| V9 | Forward-secret viewing keys | 1 wk | Limits compromise blast radius |
+| V10 | Cross-asset privacy in swap | 4+ wk | Defeats input↔output linkage |
+| V11 | Public depth oracle | 2 d | Privacy that users can verify |
+| V12 | Privacy Pools association sets | 2-4 wk | Compliance-compatible privacy |
+
+After V1-V4: **credibly** private (~50-100× current). After V5-V8: **robustly** private against standard attacks (200-1000× depending on volume). After V9-V12: **compliantly** private — usable by regulated counterparties.
+
+### The single thing that 20× privacy more than anything else
+
+If only one item ships: **V4 (shared on-chain anonymity tree)**.
+
+- Today: k = 1 per user. Privacy = log₂(1) = 0 bits.
+- 100 sharing depositors: k = 100. Privacy ≈ 6.6 bits.
+- 1,000: ~10 bits. 10,000: ~13 bits. 100,000: ~16.6 bits.
+
+V4 *creates* privacy. Everything else *protects* it from leakage. Without V4, the other eleven items protect nothing.
+
+If two items: V4 + V1+V2 so privacy is cryptographically enforced rather than operator-attested.
+
+---
+
+## Part 2 — How to 20× the clarity of the copy
+
+The current copy reads like an engineering changelog. Accurate, careful, exhausting. A new visitor needs four reads of the home page before understanding what Vanta does. That's a comprehension failure.
+
+### Three diagnoses
+
+**1. Defensive disclaimers infest product copy.** "Production privacy claims remain locked" or close variants appears in `HomePage.tsx`, `PayPage.tsx`, `SystemStatusStrip.tsx`, `DocsHomePage.tsx`, and `vantaPayReceiptPrivacyContract.ts`. Important once. Repeated everywhere, it becomes the loudest thing the product says. **Rule:** disclaimers live in one canonical surface (`SystemStatusStrip` + `SECURITY_LIMITATIONS.md`). Nowhere else.
+
+**2. Tautological copy.** *"Vanta will shield X directly so it remains X in shielded state."* / *"asset can enter shielded state as itself"* / *"Use guarded shielded-state flows while production privacy claims stay locked behind evidence."* Grammatical without information. **Rule:** every sentence must pass "would a smart reader who hasn't seen the product before learn something from this sentence?" If no — cut.
+
+**3. Jargon stacks.** *"This is the counterparty-facing truth surface: beta state, usable lane, receipt package, and the verification boundary before anyone trusts a private settlement."* Seven Vanta-specific terms in 27 words. **Rule:** any sentence using more than one Vanta-specific term is doing too much work.
+
+### Six editorial rules
+
+1. **Cut disclaimers from product copy.** They live in `SystemStatusStrip` and `SECURITY_LIMITATIONS.md`.
+2. **One idea per sentence.** Current sentences chain 3-4 ideas with commas.
+3. **No tautologies.** Say what's true.
+4. **Active voice, concrete verbs.** Not "production claims remain locked" — "We're not yet ready for production funds."
+5. **Numbers and names beat adjectives.** Not "constrained lane" — "USDC-only."
+6. **Average sentence length ≤ 14 words.** Current is closer to 22.
+
+### Concrete rewrites
+
+**Home page hero.** Current: *"Make supported Solana activity less public."* (6) + *"Vanta helps users move supported assets out of public wallet trails, use supported private actions, and return to public wallets when needed."* (24). → *"Make your Solana wallet less public."* (6) + *"Vanta seals your assets in a private balance. Send, swap, and exit when you want to."* (16). "Supported" appears 3×; cut to zero.
+
+**Home page product points.** Current 57 words across four bullets, hedge-laden. → 37 words:
+
+- **Seal.** *"Move USDC, SOL, and stablecoins into the Vault."*
+- **Send.** *"Pay anyone without exposing the amount or your wallet history."*
+- **Pay.** *"Accept stablecoin payments. Issue verifiable receipts."*
+- **Exit.** *"Withdraw to any wallet when you choose to leave."*
+
+**App dashboard trust hero.** Current 27 words with 7 Vanta-specific terms. → *"What Vanta can prove today"* (h2, 5 words) + *"You can shield, send, swap, and exit on test funds. Public mainnet support is gated on the trust contracts below."* (21).
+
+**Pay page hero.** Current 18-word sentence + three redundant badges. → *"Pay"* + *"Accept stablecoin payments. Every payment issues a Letter — a receipt your customer and your accountant can verify without seeing the rest of your books."* (25) + single badge *"Test mode — no funds move."*
+
+**Docs home.** Current 73 words across hero + beta note. → 35 words: *"Vanta is private settlement for Solana."* + *"Move stablecoins into the Vault. Send, swap, and exit privately. Give counterparties a receipt they can verify."* + *"Vanta is in beta. We label what's live and what isn't."*
+
+**SystemStatusStrip.** Current leads with *"6/6 lane claims locked."* → Flip framing: *"Beta · receipt-backed · 6 lanes verified"*. Same data; opposite emotional read.
+
+**Shield asset helpers.** *"Vanta will shield SOL directly so it remains SOL in shielded state."* (12, tautological) → *"Shield SOL into private SOL."* (5).
+
+**Send empty state.** *"No shielded funds ready to send. Shield first, then send from the private balance."* → *"Empty Vault. You haven't sealed anything yet. Start with Shield."*
+
+### What 20× clarity looks like in aggregate
+
+Home page sample:
+
+| Section | Current | Rewritten | Reduction |
+|---|---|---|---|
+| Hero h1 + p | 30 | 22 | -27% |
+| 4 product points | 57 | 37 | -35% |
+| Subheading + 6 link labels | 28 | 14 | -50% |
+| **Total** | **115** | **73** | **-37%** |
+
+Estimated across the site: Home -37%, App dashboard -45%, Pay -40%, Docs -30%, Shield/Send/Swap/Unshield heroes -50%, SystemStatusStrip -40%. Average ~40% word reduction with no information loss — 1.7× more concise per page.
+
+Applied to *every new line of copy* going forward, the effect compounds. Every page someone reads at 1.7× the comprehension speed leaves them more able to absorb the next.
+
+### The single rule that does most of the work
+
+**Delete the word "supported" wherever it appears as a hedge.**
+
+`grep -rn "supported" src/pages/*.tsx` returns 30+ matches. In every case it's a defensive hedge — "supported assets," "supported lanes," "supported private actions," "supported destinations." Readers get no information from "supported"; they only get the apologetic tone.
+
+Replace with specifics where the constraint matters ("USDC and SOL") or delete where context makes it clear. One regex, one cleanup pass, dramatic improvement.
+
+Second-place rule: **delete every sentence using both "claim" and "locked" or "gated."** Those are disclaimer-in-product-copy; they belong only in `SystemStatusStrip` and `SECURITY_LIMITATIONS.md`.
+
+---
+
+## How privacy and clarity reinforce each other
+
+The privacy work and the copy work are not separate. A product whose copy says "production privacy claims remain locked" needs that copy because the privacy isn't real yet. As the privacy work in Part 1 lands, the copy stops apologizing.
+
+- After **V4** (shared anonymity tree): "anonymity set not proven" → "your privacy depends on N other users — live count on the home page."
+- After **V2** (Groth16 verifier on chain): operator-trust disclaimers shrink to a footnote.
+- After **V8** (customer-side ZK proof in Pay): the merchant page drops "test mode" framing for the customer flow, replaces it with "your customers' wallets are never linked to your merchant account."
+
+End state: *"Vanta seals your assets into a private balance. Send, swap, pay, and exit privately. The chain sees that you moved, not what you moved or who you moved it to."* Every word cryptographically true.
+
+## Order to ship in
+
+**Week 1 — copy:** apply six editorial rules across all pages. Delete every defensive "supported." Collapse disclaimer chips into SystemStatusStrip. Rewrite home hero and product points. **2 days of focused editing, ships immediately.**
+
+**Weeks 2-3 — V1 + V2:** prover + on-chain verifier. After this, "no proof verification" disclaimers become removable.
+
+**Weeks 4-6 — V4:** the privacy multiplier. "Anonymity set not proven" becomes a live depth oracle.
+
+**Weeks 7-9 — V5 + V6 + V7:** denominations + batching + relayer. After this, "Vanta transactions are privacy-preserving against chain-analytic adversaries" is defensible.
+
+**Weeks 10-12 — V3 + V8:** PDA vault + customer-side Pay proof.
+
+**Weeks 13-16 — V9 + V11 + V12:** forward secrecy + public oracle + Privacy Pools.
+
+**Weeks 17+ — V10:** cross-asset swap privacy. Hardest; defer until rest lands.
+
+By week 12: **credibly private** end-to-end. By week 16: **defensibly private** in compliance and resilience terms. By week 17+: **fully private** including cross-asset.
+
+Paired with copy work front-loaded in week 1, by month 4 the deployed product has both the cryptographic substance and the editorial clarity that make it the obvious choice for merchants and users who actually care about privacy.
+
+20× the privacy and 20× the clarity, shipped in 90-100 days against current velocity.
+
+The hardest items remaining are V4 and V5 — the on-chain anonymity tree and denomination obfuscation. Both are bounded engineering work, not research.

@@ -333,11 +333,24 @@ assert(
   "H08 verification commands must include the Send witness prover guard",
 );
 assert(
+  h08.verification.commands.includes("npm run private-pool-v2:browser-worker-prover-check"),
+  "H08 verification commands must include the Send browser worker prover guard",
+);
+assert(
   h08.codexRemediation.commits.some((commitRef) => commitRef.includes("baaff54")),
   "H08 must record the Send witness proof path commit",
 );
+assert(
+  h08.codexRemediation.commits.some((commitRef) => commitRef.includes("7f5c57c")),
+  "H08 must record the Send browser worker prover commit",
+);
 assert(h08Text.includes("send-public-input-hash"), "H08 must record Send public-input hash binding");
 assert(h08Text.includes("local-bb-derived-artifact"), "H08 must record the derived artifact backend");
+assert(h08Text.includes("browser/Web Worker proof-execution"), "H08 must record the browser worker proof-execution boundary");
+assert(
+  h08Text.includes("does not generate witnesses in the browser"),
+  "H08 must preserve the browser witness-generation limitation",
+);
 
 const severityCounts = ledger.findings.reduce((counts, finding) => {
   counts[finding.severity] = (counts[finding.severity] ?? 0) + 1;
