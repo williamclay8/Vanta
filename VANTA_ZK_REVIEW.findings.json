@@ -324,6 +324,53 @@
       "truthBoundary": "This is a blocked production verifying-key candidate packet only. It records that the exact production-verifying-key-hash artifact required by the reserved tag-3 Groth16 contract is absent. It is not backend selection, not production verifying-key evidence, not production proof-format evidence, not verifier-adapter acceptance, not tag-3 proof acceptance, not on-chain proof verification, not SBF/live redeploy or reinit evidence, not audit acceptance, not production-private readiness, and not real-funds readiness."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-13-C01-VERIFIER-ADAPTER-TEST-CANDIDATE",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#1-the-on-chain-solana-program-does-not-verify-proofs-at-all",
+        "docs/zk/c01-production-verifier-backend-decision.md",
+        "docs/operator-runbook.md",
+        "docs/audit-package.md",
+        "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+        "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+        "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
+        "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
+        "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+        "scripts/check-vanta-private-pool-v2-c01-verifier-adapter-test-candidate.mjs",
+        "npm run zk:c01-verifier-adapter-test-candidate-check"
+      ],
+      "summary": "C01 now has a blocked verifier adapter acceptance-test candidate packet for groth16-tag3-solana-v0 with status blocked-no-verifier-adapter-acceptance-tests. The packet records the required actual-private-spend reserved tag 3 target solana-c01-tag3-groth16-v0 with proofSystem: \"groth16\", groth16Proof:256, one private-spend-public-input-hash, production-verifying-key-hash, and an in-program verifier or dedicated verifier CPI adapter, while current artifact refs null and positive acceptance-test refs are absent. Reserved tag 3 still fails closed with ERR_PROOF_VERIFIER_NOT_WIRED before proof verification or mutation.",
+      "localVerification": [
+        "red-first npm run zk:c01-verifier-adapter-test-candidate-check failed while the package script was missing",
+        "npm run zk:c01-verifier-adapter-test-candidate-check",
+        "npm run zk:c01-production-verifier-backend-candidate-check",
+        "npm run zk:c01-verifier-backend-options-check",
+        "npm run zk:c01-groth16-proof-format-candidate-check",
+        "npm run zk:c01-production-verifying-key-candidate-check",
+        "npm run zk:c01-verifier-key-registry-check",
+        "npm run zk:c01-verifier-backend-decision-check",
+        "npm run zk:c01-verifier-backend-contract-check",
+        "npm run zk:c01-onchain-proof-boundary-check",
+        "npm run operator:runbook-check",
+        "npm run audit:package-check",
+        "npm run public:audit-discovery-check",
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:review-guards-check",
+        "npm run zk:feedback-loop-check",
+        "npm run private-pool-v2:verify",
+        "npm run build",
+        "git diff --check",
+        "git diff --cached --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the blocked C01 verifier adapter acceptance-test candidate packet, candidate packet guard, backend-options guard, Groth16 proof-format guard, production verifying-key guard, verifier-key registry guard, backend decision guard, backend contract guard, on-chain proof boundary guard, operator runbook, audit package, public audit discovery, findings ledger, review guards, feedback-loop guard, full private-pool-v2 aggregate verify, build, and diff whitespace checks",
+        "committed": "c0831fe (Add C01 verifier adapter test packet)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a blocked verifier adapter acceptance-test candidate packet only. It records that verifier adapter acceptance, private-spend public-input hash binding, valid-proof mutation, invalid-proof no-mutation, wrong-public-input-hash no-mutation, and wrong-verifying-key no-mutation evidence are absent. It is not backend selection, not verifier-adapter acceptance or proof acceptance evidence, not production proof-format evidence, not production verifying-key evidence, not tag-3 proof acceptance, not on-chain proof verification, not SBF/live redeploy or reinit evidence, not audit acceptance, not production-private readiness, and not real-funds readiness."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-H08-LOCAL-BB-FIXTURE-LANE-COMPLETENESS",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
@@ -1508,7 +1555,8 @@
           "a2fa2f4 (Add C01 verifier key registry scaffold)",
           "1153f4e (Add C01 verifier backend options matrix)",
           "faead7b (Add C01 Groth16 proof-format candidate packet)",
-          "c82b23d (Add C01 production verifying-key candidate packet)"
+          "c82b23d (Add C01 production verifying-key candidate packet)",
+          "c0831fe (Add C01 verifier adapter test packet)"
         ],
         "summary": "Codex hardened the local spend authority/root-history/nullifier-marker/output-record ABI, fail-closed SBF status surfaces, proof-like transaction-field rejection for the current no-verifier spend ABI, a verifier-backend contract guard, production verifier backend candidate guard, verifier-backend decision packet, refs-only C01 verifier candidate evidence packet, local proof-format observation packet, source-only verifier-key registry scaffold, blocked backend-options matrix, blocked Groth16 proof-format candidate packet, blocked production verifying-key candidate packet, and blocked verifier adapter acceptance-test candidate packet for the future tag 3 lane, a reserved tag 3 proof-carrying spend ABI that preflights the future account/verifier-key/root-record contract and fails closed before proof verification or mutation, a lineage-bound TAG_REGISTER_PROVENANCED_ROOT = 4 root-record metadata lane for future proof paths, and a source-only TAG_UNSHIELD = 6 preflight that fails closed before proof verification, nullifier consume, token/system CPI, custody transfer, fund release, or mutation.",
         "residualRisk": [
@@ -1534,7 +1582,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally for scaffold, proof-field boundary, reserved proof-carrying ABI, source-only root provenance record, source-only verifier-key registry scaffold, blocked backend-options matrix, blocked Groth16 proof-format candidate packet, blocked production verifying-key candidate packet, blocked verifier adapter acceptance-test candidate packet, C01 verifier-ready evidence overclaim guard, C01 verifier candidate evidence packet, C01 local proof-format observation packet, SBF freshness, Crucible dry-run, feedback-loop guards, review guards, full private-pool-v2 aggregate verify, and build",
-        "committed": "c82b23d (Add C01 production verifying-key candidate packet)",
+        "committed": "c0831fe (Add C01 verifier adapter test packet)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },

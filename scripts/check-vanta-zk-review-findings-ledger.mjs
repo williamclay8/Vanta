@@ -580,6 +580,60 @@ for (const phrase of [
   );
 }
 
+const c01VerifierAdapterTestCandidateLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-13-C01-VERIFIER-ADAPTER-TEST-CANDIDATE";
+assert(
+  activeFeedbackLoopIds.has(c01VerifierAdapterTestCandidateLoopId),
+  `${c01VerifierAdapterTestCandidateLoopId} active feedback loop is missing`,
+);
+const c01VerifierAdapterTestCandidateLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === c01VerifierAdapterTestCandidateLoopId,
+);
+const c01VerifierAdapterTestCandidateLoopText = JSON.stringify(c01VerifierAdapterTestCandidateLoop);
+for (const command of [
+  "npm run zk:c01-verifier-adapter-test-candidate-check",
+  "npm run zk:c01-production-verifier-backend-candidate-check",
+  "npm run zk:c01-verifier-backend-options-check",
+  "npm run zk:c01-groth16-proof-format-candidate-check",
+  "npm run zk:c01-production-verifying-key-candidate-check",
+  "npm run zk:c01-verifier-key-registry-check",
+  "npm run zk:c01-verifier-backend-decision-check",
+  "npm run zk:c01-verifier-backend-contract-check",
+  "npm run zk:c01-onchain-proof-boundary-check",
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:review-guards-check",
+  "git diff --check",
+]) {
+  assert(
+    c01VerifierAdapterTestCandidateLoop?.localVerification?.includes(command),
+    `${c01VerifierAdapterTestCandidateLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+  "blocked-no-verifier-adapter-acceptance-tests",
+  "groth16-tag3-solana-v0",
+  "solana-c01-tag3-groth16-v0",
+  "groth16Proof:256",
+  "private-spend-public-input-hash",
+  "production-verifying-key-hash",
+  "in-program verifier or dedicated verifier CPI adapter",
+  "current artifact refs null",
+  "valid-proof mutation",
+  "invalid-proof no-mutation",
+  "wrong-public-input-hash no-mutation",
+  "wrong-verifying-key no-mutation",
+  "reserved tag 3",
+  "ERR_PROOF_VERIFIER_NOT_WIRED",
+  "not verifier-adapter acceptance",
+  "c0831fe",
+]) {
+  assert(
+    c01VerifierAdapterTestCandidateLoopText.includes(phrase),
+    `${c01VerifierAdapterTestCandidateLoopId} must record ${phrase}`,
+  );
+}
+
 const copyClaimBoundaryLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-COPY-CLAIM-BOUNDARY";
 assert(activeFeedbackLoopIds.has(copyClaimBoundaryLoopId), `${copyClaimBoundaryLoopId} active feedback loop is missing`);
 const copyClaimBoundaryLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === copyClaimBoundaryLoopId);
@@ -980,6 +1034,10 @@ assert(
   c01Text.includes("ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json"),
   "C01 must record the production verifying-key candidate evidence packet path",
 );
+assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json"),
+  "C01 must record the verifier adapter acceptance-test candidate evidence packet path",
+);
 assert(c01Text.includes("groth16-tag3-solana-v0"), "C01 must record the Groth16 tag-3 backend option");
 assert(c01Text.includes("solana-c01-tag3-groth16-v0"), "C01 must record the Groth16 candidate target");
 assert(c01Text.includes("noir-bb-ultrahonk-adaptation"), "C01 must record the UltraHonk adaptation backend option");
@@ -997,12 +1055,28 @@ assert(
   "C01 must record the blocked production verifying-key candidate status",
 );
 assert(
+  c01Text.includes("blocked-no-verifier-adapter-acceptance-tests"),
+  "C01 must record the blocked verifier adapter acceptance-test candidate status",
+);
+assert(
+  c01Text.includes("blocked verifier adapter acceptance-test candidate"),
+  "C01 must record the blocked verifier adapter acceptance-test candidate",
+);
+assert(
   c01Text.includes("Groth16 proof-format candidate packet is not production proof-format evidence"),
   "C01 must preserve that the Groth16 proof-format candidate is not production proof-format evidence",
 );
 assert(
   c01Text.includes("blocked production verifying-key candidate packet as production verifying-key evidence"),
   "C01 must preserve that the production verifying-key candidate is not production verifying-key evidence",
+);
+assert(
+  c01Text.includes("blocked verifier adapter acceptance-test packet as verifier adapter acceptance or proof acceptance evidence"),
+  "C01 must preserve that the verifier adapter acceptance-test packet is not verifier adapter acceptance or proof acceptance evidence",
+);
+assert(
+  c01.codexRemediation.commits.some((commitRef) => commitRef.includes("c0831fe")),
+  "C01 must record the verifier adapter acceptance-test candidate implementation commit",
 );
 assert(
   c01Text.includes("local-acir-bytecode-hash-not-production-vk"),
