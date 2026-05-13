@@ -332,6 +332,54 @@ assert(c01VerifierBackendDecisionLoopText.includes("Groth16 tag-3 Solana verifie
 assert(c01VerifierBackendDecisionLoopText.includes("Noir/bb.js/UltraHonk adaptation path"), `${c01VerifierBackendDecisionLoopId} must record the UltraHonk option`);
 assert(c01VerifierBackendDecisionLoopText.includes("0e1ca25"), `${c01VerifierBackendDecisionLoopId} must pin the implementation commit`);
 
+const c01VerifierCandidateEvidenceLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-13-C01-VERIFIER-CANDIDATE-EVIDENCE-PACKET";
+assert(
+  activeFeedbackLoopIds.has(c01VerifierCandidateEvidenceLoopId),
+  `${c01VerifierCandidateEvidenceLoopId} active feedback loop is missing`,
+);
+const c01VerifierCandidateEvidenceLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === c01VerifierCandidateEvidenceLoopId,
+);
+const c01VerifierCandidateEvidenceLoopText = JSON.stringify(c01VerifierCandidateEvidenceLoop);
+assert(
+  c01VerifierCandidateEvidenceLoop?.localVerification?.includes(
+    "npm run zk:c01-production-verifier-backend-candidate-check",
+  ),
+  `${c01VerifierCandidateEvidenceLoopId} must record the C01 verifier candidate evidence guard`,
+);
+assert(
+  c01VerifierCandidateEvidenceLoop?.localVerification?.includes("npm run public:audit-discovery-check"),
+  `${c01VerifierCandidateEvidenceLoopId} must record the public audit discovery guard`,
+);
+assert(
+  c01VerifierCandidateEvidenceLoopText.includes(
+    "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  ),
+  `${c01VerifierCandidateEvidenceLoopId} must record the evidence packet path`,
+);
+assert(
+  c01VerifierCandidateEvidenceLoopText.includes("selectedBackend: null"),
+  `${c01VerifierCandidateEvidenceLoopId} must preserve no backend selected`,
+);
+assert(
+  c01VerifierCandidateEvidenceLoopText.includes("offchain-remote-proof-artifact-only"),
+  `${c01VerifierCandidateEvidenceLoopId} must preserve offchain-only proof evidence`,
+);
+assert(
+  c01VerifierCandidateEvidenceLoopText.includes("local-acir-bytecode-hash-not-production-vk"),
+  `${c01VerifierCandidateEvidenceLoopId} must preserve local ACIR is not production VK`,
+);
+assert(
+  c01VerifierCandidateEvidenceLoopText.includes("production verifying-key"),
+  `${c01VerifierCandidateEvidenceLoopId} must record the production verifying-key evidence boundary`,
+);
+assert(
+  c01VerifierCandidateEvidenceLoopText.includes("solana-c01-groth16-verifier-ready"),
+  `${c01VerifierCandidateEvidenceLoopId} must record the blocked verifier-ready marker`,
+);
+assert(c01VerifierCandidateEvidenceLoopText.includes("0ed3fab"), `${c01VerifierCandidateEvidenceLoopId} must pin the implementation commit`);
+
 const copyClaimBoundaryLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-COPY-CLAIM-BOUNDARY";
 assert(activeFeedbackLoopIds.has(copyClaimBoundaryLoopId), `${copyClaimBoundaryLoopId} active feedback loop is missing`);
 const copyClaimBoundaryLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === copyClaimBoundaryLoopId);
@@ -638,6 +686,10 @@ assert(
   c01.codexRemediation.commits.some((commitRef) => commitRef.includes("0e1ca25")),
   "C01 must record the verifier backend decision packet commit",
 );
+assert(
+  c01.codexRemediation.commits.some((commitRef) => commitRef.includes("0ed3fab")),
+  "C01 must record the verifier candidate evidence packet commit",
+);
 assert(c01Text.includes("TAG_UNSHIELD = 6"), "C01 must record the source-only TAG_UNSHIELD preflight truth");
 assert(c01Text.includes("TAG_REGISTER_PROVENANCED_ROOT = 4"), "C01 must record the source-only TAG_REGISTER_PROVENANCED_ROOT truth");
 assert(c01Text.includes("vanta2root"), "C01 must record the root-record PDA seed");
@@ -653,6 +705,15 @@ assert(
 assert(
   c01Text.includes("docs/zk/c01-production-verifier-backend-decision.md"),
   "C01 must record the verifier backend decision packet",
+);
+assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json"),
+  "C01 must record the verifier candidate evidence packet path",
+);
+assert(c01Text.includes("selectedBackend"), "C01 must record backend selection remains blocked");
+assert(
+  c01Text.includes("local-acir-bytecode-hash-not-production-vk"),
+  "C01 must preserve local ACIR is not production VK",
 );
 assert(
   c01Text.includes("offchain-remote-proof-artifact-only"),
