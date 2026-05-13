@@ -927,6 +927,91 @@ input {
     box-shadow 180ms var(--ease-out);
 }
 
+.app-header__more {
+  position: relative;
+  display: inline-flex;
+  flex: 1 1 0;
+  min-width: 82px;
+}
+
+.app-header__tab--button {
+  width: 100%;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.app-header__more-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 70;
+  display: grid;
+  gap: 6px;
+  width: min(240px, calc(100vw - 40px));
+  padding: 8px;
+  border: 1px solid rgba(246, 248, 245, 0.12);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(19, 26, 24, 0.98), rgba(9, 13, 12, 0.96));
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(18px);
+}
+
+.app-header__more-item {
+  min-height: 48px;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  padding: 9px 11px;
+  border-radius: 6px;
+  color: var(--muted-strong);
+  text-decoration: none;
+  transition:
+    background 180ms var(--ease-out),
+    color 180ms var(--ease-out),
+    transform 180ms var(--ease-out);
+}
+
+.app-header__more-item span {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.app-header__more-item small {
+  color: rgba(243, 247, 242, 0.58);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.app-header__more-item:hover,
+.app-header__more-item:focus-visible {
+  color: var(--accent);
+  background: rgba(119, 242, 212, 0.07);
+  transform: translateY(-1px);
+}
+
+.app-header__more-item:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.app-header__more-item:focus-visible {
+  outline: 2px solid rgba(119, 242, 212, 0.62);
+  outline-offset: 3px;
+}
+
+.app-header__more-item--active {
+  color: var(--accent);
+  background:
+    linear-gradient(180deg, rgba(119, 242, 212, 0.1), rgba(228, 199, 129, 0.045));
+}
+
 .app-header__tab::after {
   content: "";
   position: absolute;
@@ -6919,7 +7004,7 @@ input {
     gap: 6px;
     width: 100%;
     max-width: 100%;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .app-header__tabs {
@@ -6936,6 +7021,11 @@ input {
   }
 
   .app-header__tab {
+    flex: 1 1 112px;
+    min-width: 112px;
+  }
+
+  .app-header__more {
     flex: 1 1 112px;
     min-width: 112px;
   }
@@ -7210,7 +7300,7 @@ input {
 
   .app-header__tabs {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     align-items: stretch;
     justify-content: stretch;
     gap: 4px;
@@ -7225,6 +7315,15 @@ input {
     min-width: 0;
     min-height: 44px;
     padding: 6px 4px;
+  }
+
+  .app-header__more {
+    min-width: 0;
+  }
+
+  .app-header__more-menu {
+    right: 0;
+    width: min(232px, calc(100vw - 32px));
   }
 
   .app-header__tab span {

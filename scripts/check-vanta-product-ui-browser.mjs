@@ -177,7 +177,8 @@ function runBrowserBatch() {
         { kind: "no_console_errors" },
       ],
     },
-    { action: "click", selector: 'a[href="/app/strategy"]' },
+    { action: "click", selector: ".app-header__more > button" },
+    { action: "click", selector: '.app-header__more-menu a[href="/app/strategy"]' },
     { action: "wait_for", condition: "network_idle" },
     {
       action: "assert",
@@ -205,7 +206,8 @@ function runBrowserBatch() {
         { kind: "no_console_errors" },
       ],
     },
-    { action: "click", selector: 'a[href="/app/pay"]' },
+    { action: "click", selector: ".app-header__more > button" },
+    { action: "click", selector: '.app-header__more-menu a[href="/app/pay"]' },
     { action: "wait_for", condition: "network_idle" },
     {
       action: "assert",

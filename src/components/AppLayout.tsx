@@ -17,9 +17,13 @@ const appLinks = [
   { to: "/app/shield", label: "Shield", action: "Add funds", end: false },
   { to: "/app/send", label: "Send", action: "Send shielded", end: false },
   { to: "/app/swap", label: "Swap", action: "Swap shielded", end: false },
-  { to: "/app/strategy", label: "Strategy", action: "Plan trades", end: false },
   { to: "/app/unshield", label: "Unshield", action: "Move out", end: false },
+];
+
+const moreAppLinks = [
   { to: "/app/pay", label: "Pay", action: "Get paid", end: false },
+  { to: "/app/strategy", label: "Strategy", action: "Plan trades", end: false },
+  { to: "/app/launch", label: "Launch", action: "Coming soon", end: false },
 ];
 
 type MobileWalletOpenLink = {
@@ -64,9 +68,15 @@ export function AppLayout() {
   const [showRouteWalletPrompt, setShowRouteWalletPrompt] = useState(false);
   const [mobileWalletOpenLinks, setMobileWalletOpenLinks] = useState<MobileWalletOpenLink[]>([]);
   const [walletConnectionError, setWalletConnectionError] = useState<string | null>(null);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const peerLaunchAttemptRef = useRef(0);
   const tabRefs = useRef(new Map<string, HTMLAnchorElement>());
+  const moreMenuRef = useRef<HTMLDivElement>(null);
   const walletPickerOpenRef = useRef(walletPickerOpen);
+  const activeMoreLink = moreAppLinks.find((link) => location.pathname.startsWith(link.to));
+  const moreMenuAccessibleLabel = activeMoreLink
+    ? `More app routes, current route ${activeMoreLink.label}`
+    : "More app routes";
   const connectedWalletLabel = walletAddressShort ?? currentConnectorName ?? "Connected";
   const accountTriggerLabel = !walletReady
     ? "Checking"
@@ -129,6 +139,7 @@ export function AppLayout() {
                 : null);
 
   const openWalletPicker = () => {
+    setMoreMenuOpen(false);
     setWalletPickerOpen((isOpen) => !isOpen);
   };
 
@@ -200,6 +211,8 @@ export function AppLayout() {
   }, [walletPickerOpen]);
 
   useEffect(() => {
+    setMoreMenuOpen(false);
+
     if (typeof window === "undefined") {
       return;
     }
@@ -234,6 +247,35 @@ export function AppLayout() {
       });
     });
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!moreMenuOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (target instanceof Node && moreMenuRef.current?.contains(target)) {
+        return;
+      }
+
+      setMoreMenuOpen(false);
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMoreMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [moreMenuOpen]);
 
   useEffect(() => {
     if (!walletPickerOpen) {
@@ -325,6 +367,57 @@ export function AppLayout() {
                 <small>{link.action}</small>
               </NavLink>
             ))}
+            <div className="app-header__more" ref={moreMenuRef}>
+              <button
+                type="button"
+                className={[
+                  "app-header__tab",
+                  "app-header__tab--button",
+                  activeMoreLink ? "app-header__tab--active" : null,
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                aria-haspopup="menu"
+                aria-expanded={moreMenuOpen}
+                aria-controls="app-header-more-menu"
+                aria-label={moreMenuAccessibleLabel}
+                onClick={() => {
+                  setWalletPickerOpen(false);
+                  setMoreMenuOpen((isOpen) => !isOpen);
+                }}
+              >
+                <span>More</span>
+                <small>{activeMoreLink?.label ?? "More flows"}</small>
+              </button>
+              {moreMenuOpen && (
+                <div
+                  id="app-header-more-menu"
+                  className="app-header__more-menu"
+                  role="menu"
+                  aria-label="More app routes"
+                >
+                  {moreAppLinks.map((link) => (
+                    <NavLink
+                      key={link.to}
+                      to={link.to}
+                      end={link.end}
+                      role="menuitem"
+                      className={({ isActive }) =>
+                        [
+                          "app-header__more-item",
+                          isActive ? "app-header__more-item--active" : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" ")
+                      }
+                    >
+                      <span>{link.label}</span>
+                      <small>{link.action}</small>
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+            </div>
           </nav>
           <span className="app-header__tabs-cue" aria-hidden="true">
             Swipe for more

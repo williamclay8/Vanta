@@ -4071,3 +4071,541 @@ Paired with copy work front-loaded in week 1, by month 4 the deployed product ha
 20× the privacy and 20× the clarity, shipped in 90-100 days against current velocity.
 
 The hardest items remaining are V4 and V5 — the on-chain anonymity tree and denomination obfuscation. Both are bounded engineering work, not research.
+
+---
+
+# Pay and Strategy Redesign — Progressive Disclosure
+
+The Pay and Strategy tabs in their current form are too dense for their target audiences. Both pages ask the user to make 8-11 decisions simultaneously, surface jargon ("slice policy," "timing policy," "settlement preview controls," "counterparty-facing truth surface"), and bury the primary action under panels of contextual information. A first-time merchant or first-time trader bounces before completing the form.
+
+The fix is the same for both pages: **one decision per screen, opinionated defaults that work for 80% of users, an "Advanced" disclosure that exposes the rest.** Capability is preserved. Privacy is preserved. The dense form moves from the front door to a side panel.
+
+## Why this matters
+
+A product's front door should ask **one question**. Not eleven. The eleven exist; they live inside.
+
+- Stripe's front door asks "How much do you want to charge?" Everything else is in the dashboard.
+- Cash App asks "Pay or request?" Everything else is in settings.
+- Robinhood asks "Buy or sell?" Every advanced order type is one tap away but invisible by default.
+
+Vanta Pay's front door should ask "What are you charging?" Vanta Strategy's front door should ask "What are you trying to do?" The current pages ask all the questions at once, and the user — correctly — bounces.
+
+## Pay redesign
+
+### Current state
+
+`src/pages/PayPage.tsx` (835 lines) renders six panels on first load: hero with three disclaimer badges, merchant demo card, request builder with 8+ fields, review card, status panel, next-actions workspace, record panel. A merchant takes ~25 taps to send their first payment link.
+
+### Target state
+
+A merchant takes 6 taps total. Three fields, one button:
+
+```
+[Thin merchant identity strip: merchant name, "Test mode" pill]
+
+         What are you charging for?
+
+         $  50.00      [USDC ▾]
+
+         For (optional): _____________________
+
+         [   Create payment link   ]
+```
+
+After clicking:
+
+```
+✓ Created
+
+  Send this link to your customer:
+  vantaprivacy.xyz/pay/cs_a1b2c3...
+  [Copy]  [QR code]
+
+  Status: Waiting for payment
+```
+
+### File-by-file changes
+
+Split `src/pages/PayPage.tsx` into four files:
+
+- **`src/pages/PayPage.tsx`** (~150 lines, replaces current). Renders only: merchant identity strip, three-field create form (amount, asset, optional description), single primary button. Shows a thin "Recent payments" strip below the fold with the last 5 transactions; clicking one opens `<PayReceiptModal>`. After creating a link, the form replaces with a confirmation card showing the link, a Copy button, and a QR code.
+- **`src/pages/PaySettingsPage.tsx`** (~200 lines, new). Route: `/app/pay/settings`. Houses: line items configuration, checkout type (hosted/embedded/modal), success URL, cancel URL, branding, payout destination. Reuses the existing form-field components from PayPage.
+- **`src/pages/PayDeveloperPage.tsx`** (~200 lines, new). Route: `/app/pay/developer`. Houses: API keys, webhook endpoints and signing secret, recent webhook deliveries, recent API calls. The existing webhook-signing logic in `vantaPayRuntime.ts` doesn't change; only its UI surface moves.
+- **`src/components/PayReceiptModal.tsx`** (~150 lines, new). The receipt detail view, opened from the recent-payments list. Renders the receipt as the Letter PDF preview (per the taste pass T5). Eventually exports as a real PDF via `@react-pdf/renderer`.
+
+Route additions in `src/App.tsx`:
+
+```tsx
+<Route path="/app/pay" element={<PayPage />} />
+<Route path="/app/pay/settings" element={<PaySettingsPage />} />
+<Route path="/app/pay/developer" element={<PayDeveloperPage />} />
+```
+
+A small in-page tab strip on the Pay route lets the merchant move between Create / Settings / Developer. Default tab is Create.
+
+### What's preserved
+
+- **Receipt privacy contract** (`vantaPayReceiptPrivacyContract.ts`): unchanged. The Letter is still generated with every settled payment.
+- **Settlement adapter** (`vantaPayPrivateSettlementAdapter.ts`): unchanged. Economics commitments still hide raw values from the operator.
+- **Customer-side ZK proof flow (V8)**: plugs in at `/pay/cs_...` on the customer's side. Invisible to the merchant.
+- **Webhook signing** (HMAC-SHA256, `t=ts,v1=sig` header): unchanged. Lives in PayDeveloperPage now.
+- **Idempotency keys**: unchanged.
+- **All checkout types** (hosted/embedded/modal): exposed in Settings, configurable once.
+- **Test-mode badging**: collapsed to a single pill in the merchant identity strip. The other two badges' content moves to the `SystemStatusStrip` (already shared across the app).
+
+Effort: 3-5 days of focused work. Mostly file moves, route additions, and stripping disclaimer copy.
+
+## Strategy redesign
+
+### Current state
+
+`src/pages/StrategyPage.tsx` (570 lines) renders a form with 11+ fields: mode (Stealth DCA / Private TWAP), side, asset, totalSize, timeWindow, slicePolicy (4 options), timingPolicy (4 options), urgency (3 options), landingMode (3 options), maxSlippage, fundingSource (3 options), destination (3 options). Plus a hash-bound packet preview panel and lane-disclaimer badges.
+
+Each field uses jargon a non-trader won't recognize: "slice policy," "timing policy," "landing mode," "funding source." Even traders don't think in these terms.
+
+### Target state
+
+Three inline-form decisions. One sentence form. One button:
+
+```
+[Thin nav, test-mode pill]
+
+         What are you trying to do?
+
+         Buy  [SOL ▾]  worth  $ [10,000]  over  [24 hours ▾]
+
+         Vanta splits this into smaller trades over the window
+         and settles to your private balance.
+
+         [   Preview strategy   ]
+
+         ▸ Advanced settings (slippage, timing, destination)
+```
+
+After clicking Preview:
+
+```
+[Strategy preview]
+
+  24 trades, ~$416 each
+  Every ~60 minutes ± 17 minutes
+  Completes by tomorrow 6:42 PM
+  Settles to: Private balance
+
+  [Horizontal timeline: 24 tick marks across the window,
+   sized by notional, colored by readiness]
+
+  [Cancel]   [Start strategy]
+                ^ disabled in beta with a clear inline note
+```
+
+### File-by-file changes
+
+- **`src/pages/StrategyPage.tsx`** (~100 lines, replaces current). The three-field inline form: side+asset, amount, time window. One explanatory sentence below the form. One primary button. A collapsed `<StrategyAdvancedPanel>` below.
+- **`src/components/StrategyAdvancedPanel.tsx`** (~150 lines, new). Collapsible disclosure containing the remaining 8 fields. **Rename every label to plain English:**
+  - `slicePolicy` → "Trade size variation" (currently displays "Randomized sizing / Fixed count / Min/max child size / Venue threshold")
+  - `timingPolicy` → "Schedule pattern" (currently "Randomized cadence / Evenly spaced / Volatility-aware / Liquidity-aware")
+  - `urgency` → "How fast to complete" (currently "Low footprint / Balanced / Fastest completion")
+  - `landingMode` → "Submit method" (currently "Protected landing / Bundle-preferred / Standard")
+  - `fundingSource` → "Pay from" (currently "Connected wallet / Public wallet balance / Vanta private balance")
+  - `destination` → "Settle to" (currently "Vanta private balance / Connected wallet / Treasury wallet")
+  - `maxSlippage` → "Max slippage"
+- **`src/components/StrategyTimelinePreview.tsx`** (~150 lines, new). Renders the strategy as a horizontal timeline with one tick per child order, sized by notional, colored by readiness. Replaces the current "hash-bound packet preview" panel with a human-readable visualization. Same data, different surface.
+- **Rename the user-facing labels** in `src/strategy/strategyPageState.ts`: keep the internal codenames (Stealth DCA / Private TWAP) but consider renaming the user-facing strings. The mode toggle can disappear from the front door entirely — infer mode from inputs, or show it only in Advanced.
+
+### What's preserved
+
+- **The planner** (`strategyPlanner.mjs`): unchanged. Same `createStrategyPlan(input)` API; the inputs come from Advanced if non-default.
+- **The execution adapter** (`strategyExecutionAdapter.mjs`): unchanged.
+- **The runtime** (`strategyRuntime.mjs`): unchanged, including the fail-closed gate on `liveSubmission`.
+- **The trust contract** (`strategyPrivateRailTrustContract.ts`): unchanged. The redacted handoff still produces commitments-only operator packets.
+- **All 11+ form fields**: still exist, in Advanced. Power users override every default. Default users never see them.
+- **The hash-bound packet preview**: same data, rendered as the human-readable timeline + summary block. The `StrategyPrivateRailOperatorPacket` shape is unchanged.
+
+Effort: 3-5 days of focused work, mostly UI restructuring and label rewriting.
+
+## Navigation reorganization
+
+A separate but related question: should Pay and Strategy be peer tabs in `AppLayout`'s primary nav today?
+
+The honest answer is probably not. Current `AppLayout.tsx` renders Shield / Send / Swap / Strategy / Unshield / Pay as six peer tabs. The framing is "Vanta has six products." The reality is:
+
+- Shield, Send, Swap, Unshield are the core wallet flows. Live (preview, cryptographic work in flight). These are the product today.
+- Pay has a real API surface, but the in-app UI is currently a developer console; the customer-side flow (V8) doesn't exist yet.
+- Strategy has a real planner, but the runtime fail-closes on `liveSubmission`. The in-app UI is genuinely preview-only.
+
+Recommended change in `src/components/AppLayout.tsx`:
+
+```tsx
+const appLinks = [
+  { to: "/app/shield", label: "Shield", action: "Add funds" },
+  { to: "/app/send", label: "Send", action: "Send shielded" },
+  { to: "/app/swap", label: "Swap", action: "Swap shielded" },
+  { to: "/app/unshield", label: "Unshield", action: "Move out" },
+];
+
+const moreLinks = [
+  { to: "/app/pay", label: "Pay", action: "Get paid" },
+  { to: "/app/strategy", label: "Strategy", action: "Plan trades" },
+  { to: "/app/launch", label: "Launch", action: "Coming soon" },
+];
+```
+
+Renders four peer tabs (the wallet flows) and a "More" menu containing Pay, Strategy, Launch. Discoverable in one click. No implicit promise that Pay and Strategy are first-class user products in their current state.
+
+When the customer-side Pay flow (V8) ships and Strategy's runtime actually executes live, both can be promoted back to peer tabs. That promotion becomes a real product moment — "Pay is live" / "Strategy is live" — instead of having both quietly disappoint users for months.
+
+Effort: ~half a day. Add a `<MoreMenu>` component to `AppLayout`; move two entries from `appLinks` to `moreLinks`.
+
+**Codex status, 2026-05-13 AppLayout nav reorganization:** locally implemented the first product-truth slice from this UX feedback. `src/components/AppLayout.tsx` now keeps Shield, Send, Swap, and Unshield as the primary app tabs while Pay, Strategy, and Launch live in an accessible More menu with active-route state, Escape/outside-click dismissal, and direct links to the existing routes. `scripts/check-vanta-app-layout-nav.mjs` and `npm run app:layout-nav-check` guard that Pay and Strategy stay out of the primary tabs until their production/user-facing gates justify promotion; the guard is also included in `npm run truth:privacy-claim-gate`. This does not claim Pay or Strategy readiness, does not change their underlying privacy/proof/runtime state, and does not promote any production-private claim.
+
+## The single rule
+
+A product's front door asks one question. Not eleven.
+
+For Pay: "What are you charging?" Three fields. One button.
+For Strategy: "What are you trying to do?" Three fields. One button.
+
+Everything else is real and exposed — in Settings, in Advanced, in Developer. The capability is the same. The privacy is the same. The first impression is completely different.
+
+## Combined effort
+
+| Change | Effort | Risk |
+|---|---|---|
+| Split PayPage into four files | 3-5 days | Low |
+| Strip PayPage hero copy + badges | 0.5 day | Low |
+| Build StrategyAdvancedPanel + rename labels | 2-3 days | Low |
+| Build StrategyTimelinePreview component | 2 days | Low |
+| Strip StrategyPage hero copy | 0.5 day | Low |
+| Reorganize AppLayout nav (More menu) | 0.5 day | Low |
+| **Total** | **~2 weeks for one developer** | **Low** |
+
+No cryptography changes. No privacy regression. No capability loss. The dense forms still exist for the users who need them; they just stop being the first thing every new user sees.
+
+## What this unblocks
+
+After this work lands:
+
+1. **First-time merchants** can take a test payment in 6 taps. They'll actually try it.
+2. **First-time traders** can preview a Stealth DCA in 4 taps. They'll actually try it.
+3. **Power users** still have every field they had before, one click away in Advanced or Settings.
+4. **The main nav stops promising features that aren't yet real** for the user — Strategy and Pay live in More until they're ready to be promoted.
+5. **The trust-contract and privacy work** is unaffected. Same code paths, same operator boundaries, same circuits.
+
+This is one of the highest-leverage UX changes in the entire review. The fields exist because the product needs them; the front door doesn't have to show them.
+
+---
+
+# Shield, Send, Swap, Unshield Redesign — Same Pattern, All Four Lanes
+
+The four wallet-flow pages have the same problem as Pay and Strategy: dense forms with too many simultaneously-visible fields, helper text that runs 8-12 lines deep, recovery/viewing-key/approval-review panels embedded in the main flow instead of separated out. The pages are large (Shield 2,157 lines, Send 2,692, Swap 1,667, Unshield 3,232) because they're trying to handle every state on one screen.
+
+The fix is identical to the Pay/Strategy redesign: **one question on the front door, opinionated defaults, advanced fields in a side panel.** The shared shape across all four lanes lets us extract reusable components that get built once and used four places.
+
+## What's distinctive about each lane
+
+| Lane | Front-door question | Required fields |
+|---|---|---|
+| Shield | "What are you shielding?" | Amount + asset (target is inferred) |
+| Send | "Send to whom?" | Recipient + amount (note picker via shared component) |
+| Swap | "Swap what for what?" | From asset + to asset + amount (quote computed) |
+| Unshield | "Withdraw how much?" | Amount (destination locked to self today; note picker shared) |
+
+Two to three fields each. Today each page renders 8-12 visible fields on first load. The reduction is the same shape across all four.
+
+## Cross-cutting components — build once, use four places
+
+Before the per-lane work, six shared components emerge from the redesign. Each is built once and used across at least three lane pages. Building them first reduces per-lane effort substantially.
+
+- **`<AssetPickerGrid>`** (~120 lines, new). Token-logo pill grid replacing every `<select>` for asset selection. Used in Shield (source + target), Swap (input + output). Disabled states for unsupported pairs. Loading shimmer for unloaded logos.
+- **`<NotePicker>`** (~150 lines, new). Pick which input note to spend from the user's vault. Renders as a list of note cards with amount, age, asset. Used in Send, Swap, Unshield. Includes empty-state ("Empty Vault — start with Shield").
+- **`<WalletApprovalSheet>`** (~200 lines, new). Slide-over that shows exactly what the user is about to sign — instructions, accounts, amounts, fee estimate. Replaces the inline `<details className="shield-approval-review">` accordion pattern in every lane. Used during the awaiting-confirmation state in Shield, Send, Swap, Unshield. Safety win: users pre-read what they're signing.
+- **`<RecoveryPanel>`** (~180 lines, new). Viewing key creation, backup, import. Currently embedded in `ShieldPage.tsx` as a `<details>` accordion. Move to a separate route `/app/settings/recovery` or sidebar. Used by Shield (first time setup) and surfaced in Settings.
+- **`<LaneFlowIndicator>`** (~80 lines, promoted from per-page). The `Shield → Send → Hold change` indicator already exists inline on SendPage. Extract to a shared component used across all four lanes plus Pay. Animate the active step with a gentle horizontal sweep light.
+- **`<TransactionStatusToast>`** (~150 lines, new). Pending → confirmed → complete states for any submitted transaction. Slide-in toast bottom-right, persistent until dismissed or 8s timeout. Used universally; replaces the per-page status banners that today live above the form.
+
+Total shared-component effort: **~5-7 days** for one developer. After this, per-lane work compresses substantially.
+
+## Shield page redesign
+
+### Current state
+
+`src/pages/ShieldPage.tsx` (2,157 lines) renders: hero with disclaimer badges, amount field with Max button, source asset `<select>`, target shielded asset preview, route helper, route progress label, validation messages, balance line, pending native-SOL evidence indicator, recovery panel (`<details>`), viewing-key panel (`<details>` with create/import/export sub-actions), shield form actions, wallet approval review (`<details>`), wallet warning note, route progress label (duplicate), submit button. The `shield-helper` class appears 30+ times in the file.
+
+### Target state
+
+Three fields. One button. Approval as a slide-over instead of an accordion.
+
+```
+[Top: page hero — one line]
+  "Shield"
+  "Move assets out of the public ledger and into your private balance."
+
+[Center, large]
+  Amount     $ [50.00]          Max
+  From       [USDC ▾]           Balance: 1,247.50 USDC
+  To         Shielded USDC      Balance: 0.00
+
+  [   Shield USDC   ]
+
+  Route: USDC → Shielded USDC
+
+▸ Advanced settings
+  └ Viewing key backup
+  └ Decoy batch
+  └ Custom route
+```
+
+After the user clicks Shield, `<WalletApprovalSheet>` slides in from the right showing the exact transaction. After confirm, the form is replaced with a `<TransactionStatusToast>` and the new note appears in the user's Vault grid with a "pending" badge.
+
+### File-by-file changes
+
+- **`src/pages/ShieldPage.tsx`** (~250 lines, replaces current). Renders the three-field form, one explanatory line, route helper, primary button. Wires in `<AssetPickerGrid>` for source selection. Wires in `<WalletApprovalSheet>` for the awaiting-confirmation state.
+- **`src/components/ShieldAdvancedPanel.tsx`** (~150 lines, new). Collapsible disclosure containing viewing-key backup CTA (opens `<RecoveryPanel>`), decoy-batch toggle (today `runShieldWithDecoys`), custom route override.
+- **`src/pages/SettingsRecoveryPage.tsx`** (~250 lines, new). Route: `/app/settings/recovery`. Wraps `<RecoveryPanel>`. Houses viewing-key creation, backup file download, import, and the future wallet-derived seed (shield W2) flow.
+- **Delete from ShieldPage**: all 30+ `shield-helper` instances except the single "Route:" line; the route-progress duplicates; the `shield-wallet-warning-note` (move to the approval sheet); the inline viewing-key panel (move to `/app/settings/recovery`).
+
+### What's preserved
+
+- All shield asset configurations and routing logic (`createShieldAssetCapability`, `selectUniversalShieldTarget`, etc.).
+- The decoy batcher (`shieldDecoyBatcher.ts`), exposed as a toggle in Advanced.
+- The native SOL vs SPL paths.
+- The committed-economics settlement adapter.
+- The recovery/viewing-key flows — they just live at `/app/settings/recovery` instead of inline.
+- The wallet approval review — promoted from an accordion to a side sheet, more visible than before. Safety win.
+
+Effort: **3-4 days** of per-lane work, after the shared components land.
+
+## Send page redesign
+
+### Current state
+
+`src/pages/SendPage.tsx` (2,692 lines) renders: hero with disclaimer badges, send-flow indicator, context banner ("Syncing — deposit recorded" or "Start with Shield — no shielded funds"), amount field, recipient input (plain `<input>` with no validation feedback), asset display (USDC-only today), wallet approval review (`<details>`), release-package state panel, send-record diagnostics, spent-marker submission flow, multiple status banners.
+
+### Target state
+
+Two fields. The note picker handles "which input do you want to spend." Asset is inferred from the note.
+
+```
+[Top]
+  "Send"
+  "Send from shielded state with a clear privacy summary."
+
+[Center]
+  To       [Solana address or .sol name]
+           ✓ valid recipient · USDC
+
+  Amount   $ [25.00]          Max (from selected note)
+
+  Spending: 50.00 USDC note from 2 days ago    [Change note]
+
+  [   Send 25.00 USDC   ]
+
+  Privacy summary:
+  • Chain sees: a transaction happened
+  • Recipient sees: amount, asset, optional memo
+  • Operator sees: nothing
+
+▸ Advanced
+  └ Custom note selection
+  └ Send memo (encrypted to recipient)
+  └ Spent marker (auto)
+```
+
+The "Privacy summary" box is the move that converts a generic-looking send into a privacy-product send. Users see exactly what each party can observe — once the AEAD memos and customer-side flow land, this box becomes literally true.
+
+After Send, `<WalletApprovalSheet>` slides in. After confirm, the receipt appears with a "Letter" badge linking to the verifiable receipt URL.
+
+### File-by-file changes
+
+- **`src/pages/SendPage.tsx`** (~300 lines, replaces current). Two-field form, default note selection (most recent / largest-fits), one-line privacy summary, primary button. Wires in `<NotePicker>` (collapsed by default, expands when user clicks "Change note") and `<WalletApprovalSheet>`.
+- **`src/components/SendAdvancedPanel.tsx`** (~120 lines, new). Custom note selection, encrypted memo to recipient, spent-marker visibility toggle.
+- **`src/components/PrivacySummary.tsx`** (~80 lines, new). The three-line "chain sees / recipient sees / operator sees" panel. Used by Send and Swap; eventually by Unshield.
+- **`src/components/SendReceiptModal.tsx`** (~150 lines, new). Receipt detail opened from the recent-sends list. Renders the Letter (per taste pass T5). Replaces the inline release-package and send-record panels.
+- **Delete from SendPage**: context banner (move to `<NotePicker>` empty state), send-record diagnostics (move to receipt modal), the spent-marker UI (auto-attached, no user interaction needed), the multiple status banners (replaced by `<TransactionStatusToast>`).
+- **Add address validation**. The recipient `<input>` needs: live validation as the user types, .sol name resolution (Bonfida), recent-recipients dropdown, paste-detection that flips to checksum-validated state. ~50 lines of new logic in `<RecipientField>` (extract from the form).
+
+### What's preserved
+
+- The full send-transition logic (`createPreparedSendMemo`, `useVantaSafeSendTransaction`).
+- The change-note accounting (input = recipient + change, enforced in the circuit).
+- The encrypted memo via v2 `VANTA_SEND_MEMO_PREFIX_V2`.
+- The spent-marker emission — runs automatically, no user-visible button.
+- The release package + canonical lifecycle — moves to a per-send receipt modal.
+
+Effort: **4-5 days** of per-lane work, after shared components.
+
+## Swap page redesign
+
+### Current state
+
+`src/pages/SwapPage.tsx` (1,667 lines) renders: hero with disclaimer badges, swap-flow indicator, input note picker, output amount preview, venue badge ("Meteora · DLMM · Mainnet"), quote expiry countdown, slippage indicator, route protection toggles, last-swap summary, wallet approval review, spent-marker flow, helper text.
+
+### Target state
+
+Three fields. The quote is the visual centerpiece, not a row in a list.
+
+```
+[Top]
+  "Swap"
+  "Trade between assets inside your private balance."
+
+[Center, large]
+  From    [USDC ▾]   50.00
+                       ↓
+  To      [SOL  ▾]   ≈ 0.31
+
+  Route: USDC → SOL via Meteora    Quote refreshes in 28s
+  [───────────────|──────] (countdown bar)
+
+  Privacy summary:
+  • Chain sees: a transaction happened
+  • Venue sees: an operator wallet swapped 50 USDC for SOL
+  • You see: 0.31 SOL in your private balance
+
+  [   Swap 50.00 USDC for 0.31 SOL   ]
+
+▸ Advanced
+  └ Max slippage
+  └ Note selection
+  └ Venue routing
+```
+
+Quote-expiry countdown becomes a thin progress bar at the top of the swap card (drains from accent-mint to warning-amber). When it hits zero, the quote refreshes automatically with a subtle pulse.
+
+### File-by-file changes
+
+- **`src/pages/SwapPage.tsx`** (~280 lines, replaces current). The from/to/amount form with auto-computed output, quote-expiry bar, route summary line, privacy summary, primary button. Uses `<AssetPickerGrid>` for both from and to. Note picker collapsed by default.
+- **`src/components/SwapAdvancedPanel.tsx`** (~100 lines, new). Max slippage, custom note selection, venue routing override.
+- **`src/components/QuoteCountdownBar.tsx`** (~80 lines, new). Thin progress bar across the top of the swap card. Drains color over the quote TTL. Resets on refresh.
+- **`src/components/SwapReceiptModal.tsx`** (~150 lines, new). Last-swap summary as a modal opened from recent-swaps list.
+- **Delete from SwapPage**: hero disclaimer badges (consolidated in `SystemStatusStrip`), the inline last-swap summary panel, the spent-marker UI (auto-attached), most helper text.
+
+### What's preserved
+
+- The Meteora DLMM and Jupiter SOL-to-Shielded routing paths.
+- The signed swap intent (`signSwapIntent`) — runs identically.
+- The operator's `/private-core/swap-proof` and `/swap-transition` endpoints — unchanged.
+- The committed-economics settlement.
+- The route privacy evidence module.
+
+Effort: **3-4 days** of per-lane work after shared components.
+
+## Unshield page redesign
+
+### Current state
+
+`src/pages/UnshieldPage.tsx` (3,232 lines — largest file in `src/pages/`) renders the most complex form in the app. Today it exposes: full-vs-partial unshield, transition-vs-wallet-direct authorization toggle, USDC-vs-SOL split, destination field (locked to self), amount field, note picker, recovery hints, multiple approval review accordions, release-record diagnostics, multiple status banners.
+
+### Target state
+
+One field — amount. Destination is the user's wallet (locked, per the unshield-lane code). Asset and note come from context.
+
+```
+[Top]
+  "Withdraw"
+  "Move shielded funds back to your wallet."
+
+[Center, large]
+  Amount     $ [25.00]            Max (50.00 USDC available)
+
+  To         Your wallet
+             7yU...rtdi               [Locked to your wallet]
+
+  From note  50.00 USDC · 2 days ago  [Change note]
+
+  Privacy summary:
+  • Chain sees: a transfer from Vanta to your wallet
+  • Recipient (you) sees: full amount, asset
+  • Operator sees: nothing about your shielded history
+
+  [   Withdraw 25.00 USDC   ]
+
+▸ Advanced
+  └ Custom note selection
+  └ Reference note for receipt
+```
+
+The destination field is now a labeled, non-editable card showing the user's connected wallet address with a "Locked to your wallet" pill. A future "Send to a different wallet" toggle is shown disabled with "Coming soon — needs unshield-to-fresh-wallet support" (this aligns with the unshield-lane U2 recommendation).
+
+### File-by-file changes
+
+- **`src/pages/UnshieldPage.tsx`** (~300 lines, replaces 3,232). One amount field, destination card (locked), note picker (collapsed by default), privacy summary, primary button. Auto-selects the most appropriate note for the amount.
+- **`src/components/UnshieldAdvancedPanel.tsx`** (~100 lines, new). Custom note selection, reference note for receipt.
+- **`src/components/UnshieldReceiptModal.tsx`** (~150 lines, new). Letter for the exit transaction. Links to the on-chain Solscan signature.
+- **Delete from UnshieldPage**:
+  - **Transition-authorized vs wallet-direct toggle entirely.** Aligns with unshield-lane U4 — remove the parallel authorization path. Every unshield uses the real Ed25519 signature path.
+  - The multiple `<details>` accordions for approval review (replaced by `<WalletApprovalSheet>`).
+  - Release-record diagnostics (move to receipt modal).
+  - Helper text around the destination field (replaced by the locked card).
+  - Most of the "full vs partial" branching UI — partial is the default, "Max" button gives full.
+
+### What's preserved
+
+- The signed unshield intent flow (`signUnshieldIntent`).
+- The operator's `/unshield` and `/unshield/sol` endpoints.
+- USDC and SOL unshield paths.
+- The eligibility checks (`waitForEligibleUnshieldTransition`, `assertEligibleDirectUnshieldRelease` — though the latter goes away once transition-auth is deleted).
+- The release receipts.
+
+Effort: **5-6 days** of per-lane work, because UnshieldPage is the largest existing file. After this, the file is roughly 10% of its current size and substantially clearer.
+
+## Total effort across all four lanes
+
+| Component | Effort | Reuses |
+|---|---|---|
+| **Shared (build once)** | | |
+| `<AssetPickerGrid>` | 1 day | Shield, Swap |
+| `<NotePicker>` | 1.5 days | Send, Swap, Unshield |
+| `<WalletApprovalSheet>` | 2 days | All 4 lanes + Pay |
+| `<RecoveryPanel>` | 1.5 days | Shield, Settings |
+| `<LaneFlowIndicator>` | 0.5 day | All 4 lanes + Pay |
+| `<TransactionStatusToast>` | 1 day | All 4 lanes + Pay |
+| `<PrivacySummary>` | 0.5 day | Send, Swap, Unshield |
+| **Subtotal shared** | **~8 days** | |
+| **Per-lane work** | | |
+| Shield redesign | 3-4 days | |
+| Send redesign | 4-5 days | |
+| Swap redesign | 3-4 days | |
+| Unshield redesign | 5-6 days | |
+| **Subtotal per-lane** | **~17 days** | |
+| **Combined total** | **~5 weeks for one developer** | |
+
+If two developers split shared + per-lane work, the wall-clock time drops to ~3 weeks. Add the Pay + Strategy redesigns (~2 weeks) and the nav reorganization (0.5 days) and the entire UX overhaul ships in **~4-5 weeks of focused work** across all six product surfaces.
+
+## Cross-cutting wins from the redesign
+
+Beyond the per-page improvements, the shared components produce structural wins:
+
+- **One single approval-review surface.** `<WalletApprovalSheet>` is built once, used everywhere. A safety improvement (consistent, always-visible during signing) AND a polish improvement (one place to perfect the design).
+- **`<NotePicker>` is the Vault metaphor made tangible.** Per the taste pass, a `<ShieldedStateGrid>` was the highest-leverage design move. `<NotePicker>` is a step toward it — the user sees their notes as discrete objects, not as a faceless balance. Build this carefully and it becomes the visual identity of the wallet side of the product.
+- **`<PrivacySummary>`** appears on Send / Swap / Unshield with literal, accurate copy. Today the privacy claims are abstract; with this component, every page shows the user exactly what's visible to whom. After the V1-V8 cryptographic work lands, the copy becomes cryptographically true.
+- **All 13,400 lines across the four lane pages collapse to ~1,150 lines of page-shell code** plus ~1,150 lines of shared components. ~80% reduction in page-level code with no capability loss.
+- **Maintainability**: each page is now small enough that a new engineer can read it in one sitting and understand the flow. Today's 3,232-line UnshieldPage is unreadable.
+
+## What this doesn't change
+
+- All cryptographic surfaces (circuits, prover, on-chain program, settlement adapter, viewing-key crypto).
+- All operator-side state and replay protection.
+- All trust-contract / readiness-gate logic.
+- All canonical-note / lifecycle bookkeeping (the `liveShieldBridge` / `liveSendBridge` / `liveSwapBridge` / `liveUnshieldBridge` modules) — these stay; they just stop being directly rendered as JSON in the UI.
+- All v2 AEAD memo emission.
+- All wallet-safe-send hook logic — the form just calls into it with cleaner inputs.
+
+Privacy is identical. Capability is identical. The dense forms still exist for power users — they're in Advanced panels and Settings routes. The front door asks one question per page.
+
+## Codex-actionable summary
+
+If Codex is implementing this:
+
+1. **Week 1**: Build the 7 shared components (`AssetPickerGrid`, `NotePicker`, `WalletApprovalSheet`, `RecoveryPanel`, `LaneFlowIndicator`, `TransactionStatusToast`, `PrivacySummary`). Each gets a Storybook story with all states. Each is exported from `src/components/` and used by zero pages yet.
+
+2. **Week 2**: Redesign Shield + Swap (the two simpler lanes). Move the recovery flow to `/app/settings/recovery`. Strip helper text. Replace `<select>` with `<AssetPickerGrid>`. Strip disclaimer chips (consolidated in `SystemStatusStrip` already).
+
+3. **Week 3**: Redesign Send. Add address validation + .sol name resolution. Wire `<PrivacySummary>`. Move release-package UI into `<SendReceiptModal>`.
+
+4. **Week 4**: Redesign Unshield (the largest file). **Delete the transition-authorized auth path entirely** as part of this. Move release-record diagnostics into the receipt modal.
+
+5. **Week 5**: Polish pass on all four pages. Add `<TransactionStatusToast>` everywhere. Add the `<LaneFlowIndicator>` animation. Audit copy against the editorial rules (no "supported" hedges, no disclaimer infestation).
+
+After 5 weeks: six pages (Shield, Send, Swap, Unshield, Pay, Strategy) all using the same progressive-disclosure pattern, the same shared components, the same privacy framing, and the same plain-English copy. Every privacy guarantee preserved. Every capability preserved. The product looks like one product instead of six related forms.
