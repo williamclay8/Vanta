@@ -7370,7 +7370,8 @@ input {
 }
 
 .landing-minimal__hero,
-.landing-minimal__panel {
+.landing-minimal__panel,
+.landing-depth-disclosure {
   position: relative;
   z-index: 2;
   width: min(1080px, calc(100vw - 48px));
@@ -7428,6 +7429,119 @@ input {
   justify-content: flex-start;
   gap: 12px;
   margin-top: 34px;
+}
+
+.landing-depth-disclosure {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.8fr);
+  gap: 24px;
+  align-items: stretch;
+  margin-top: 4px;
+  padding: 24px;
+  border: 1px solid rgba(255, 205, 109, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 205, 109, 0.07), rgba(119, 242, 212, 0.018)),
+    rgba(7, 9, 13, 0.9);
+  box-shadow:
+    0 0 0 1px rgba(246, 248, 245, 0.025),
+    0 18px 52px rgba(0, 0, 0, 0.24);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+.landing-depth-disclosure__copy {
+  min-width: 0;
+}
+
+.landing-depth-disclosure__copy > span,
+.landing-depth-disclosure__evidence > span {
+  color: #ffcd6d;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.landing-depth-disclosure__copy h2 {
+  max-width: 620px;
+  margin: 12px 0 0;
+  color: var(--landing-ice);
+  font-family: "Manrope", system-ui, sans-serif;
+  font-size: clamp(1.45rem, 2.5vw, 2.35rem);
+  letter-spacing: 0;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.landing-depth-disclosure__copy p {
+  max-width: 690px;
+  margin: 16px 0 0;
+  color: var(--landing-ice-dim);
+  font-size: 0.95rem;
+  line-height: 1.72;
+  text-wrap: pretty;
+}
+
+.landing-depth-disclosure__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  min-width: 0;
+  border-radius: 6px;
+  background: rgba(246, 248, 245, 0.08);
+}
+
+.landing-depth-disclosure__metrics div {
+  min-width: 0;
+  min-height: 128px;
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  padding: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 205, 109, 0.055), rgba(119, 242, 212, 0) 56px),
+    rgba(5, 8, 15, 0.94);
+}
+
+.landing-depth-disclosure__metrics strong {
+  color: var(--landing-ice);
+  font-size: clamp(1.45rem, 2.6vw, 2.2rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.landing-depth-disclosure__metrics span {
+  color: var(--landing-ice-dim);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.landing-depth-disclosure__evidence {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid rgba(246, 248, 245, 0.08);
+}
+
+.landing-depth-disclosure__evidence code {
+  max-width: 100%;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  overflow-wrap: anywhere;
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: rgba(246, 248, 245, 0.055);
+  color: var(--landing-ice-dim);
+  font-size: 0.76rem;
 }
 
 .landing-minimal__panel {
@@ -8408,6 +8522,10 @@ input {
     grid-template-columns: 1fr 1fr;
   }
 
+  .landing-depth-disclosure {
+    grid-template-columns: 1fr;
+  }
+
   .landing-minimal__hero {
     gap: 24px;
   }
@@ -8499,7 +8617,8 @@ input {
   }
 
   .landing-minimal__hero,
-  .landing-minimal__panel {
+  .landing-minimal__panel,
+  .landing-depth-disclosure {
     width: min(100%, calc(100vw - 28px));
   }
 
@@ -8559,6 +8678,32 @@ input {
     margin-top: 14px;
     padding: 16px;
     border-radius: 20px;
+  }
+
+  .landing-depth-disclosure {
+    gap: 16px;
+    margin-top: 6px;
+    padding: 16px;
+  }
+
+  .landing-depth-disclosure__copy h2 {
+    font-size: clamp(1.35rem, 7vw, 1.9rem);
+  }
+
+  .landing-depth-disclosure__copy p {
+    font-size: 0.9rem;
+  }
+
+  .landing-depth-disclosure__metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-depth-disclosure__metrics div {
+    min-height: 96px;
+  }
+
+  .landing-depth-disclosure__evidence {
+    display: grid;
   }
 
   .landing-minimal__section-header {

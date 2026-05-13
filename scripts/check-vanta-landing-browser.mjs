@@ -97,6 +97,14 @@ function checkLandingViewport(width, height) {
         ),
         hasPaymentsCopy: document.body.innerText.includes("payment requests") && document.body.innerText.includes("receipt-backed records"),
         hasShieldFirstHeading: document.body.innerText.includes("The actions Vanta can show honestly."),
+        hasPublicDepthDisclosure: Boolean(document.querySelector(".landing-depth-disclosure")) &&
+          document.body.innerText.toLowerCase().includes("anonymity readiness: blocked") &&
+          document.body.innerText.includes("Current pool depth is below the privacy threshold.") &&
+          document.body.innerText.includes("2") &&
+          document.body.innerText.includes("1,024") &&
+          document.body.innerText.toLowerCase().includes("evidence-recorded commitments") &&
+          document.body.innerText.toLowerCase().includes("required minimum") &&
+          document.body.innerText.includes("Vanta does not claim live anonymity or production-private mainnet settlement yet"),
         hidesBetaCopy: !document.body.innerText.toLowerCase().includes("beta"),
         hasPointedActions: ["shield", "send", "swap", "strategy", "unshield", "pay"].every((path) =>
           [...document.querySelectorAll("a")].some((link) => link.getAttribute("href") === "/app/" + path),
@@ -147,6 +155,10 @@ function checkLandingViewport(width, height) {
 
   if (!result.hasShieldFirstHeading) {
     throw new Error("Landing page must use the constrained-action app heading.");
+  }
+
+  if (!result.hasPublicDepthDisclosure) {
+    throw new Error("Landing page must show the truthful public anonymity-depth disclosure.");
   }
 
   if (!result.hidesBetaCopy) {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { AnonymityDepthDisclosure } from "@/components/AnonymityDepthDisclosure";
 import { BrandMark } from "@/components/BrandMark";
 
 const productPoints = [
@@ -94,6 +95,8 @@ export function HomePage() {
           </a>
         </div>
       </section>
+
+      <AnonymityDepthDisclosure />
 
       <section
         className="landing-minimal__panel landing-minimal__panel--narrative"
