@@ -38,6 +38,9 @@ const c01DecisionPacket = read("docs/zk/c01-production-verifier-backend-decision
 const verifierCandidateEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json"),
 );
+const backendOptionsEvidence = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json"),
+);
 const localProofFormatEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json"),
 );
@@ -143,6 +146,38 @@ includes(
   "does not satisfy required production proof-format evidence",
   "C01 verifier candidate intermediate evidence truth boundary",
 );
+const backendOptionsRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
+  (entry) => entry.id === "blocked-verifier-backend-options-matrix",
+);
+assert(
+  backendOptionsRef?.artifactRef === "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
+  "C01 verifier candidate evidence must reference the backend-options matrix packet",
+);
+assert(
+  backendOptionsRef?.command === "npm run zk:c01-verifier-backend-options-check",
+  "C01 verifier candidate evidence must record the backend-options matrix guard",
+);
+includes(
+  backendOptionsRef?.truthBoundary ?? "",
+  "does not select a backend",
+  "C01 verifier candidate backend-options truth boundary",
+);
+assert(
+  backendOptionsEvidence.status === "blocked-backend-options-unselected",
+  "C01 backend-options evidence must remain blocked while candidate backend is unselected",
+);
+assert(
+  backendOptionsEvidence.selectedBackend === null,
+  "C01 backend-options evidence must not select a backend",
+);
+assert(
+  backendOptionsEvidence.backendOptions?.some((entry) => entry.id === "groth16-tag3-solana-v0"),
+  "C01 backend-options evidence must record the Groth16 tag-3 option",
+);
+assert(
+  backendOptionsEvidence.backendOptions?.some((entry) => entry.id === "noir-bb-ultrahonk-adaptation"),
+  "C01 backend-options evidence must record the UltraHonk adaptation option",
+);
 assert(
   localProofFormatEvidence.status === "local-proof-format-observed-not-production",
   "C01 local proof-format evidence must remain non-production",
@@ -226,6 +261,12 @@ assert(
   "C01 verifier candidate evidence must record its canonical guard",
 );
 assert(
+  verifierCandidateEvidence.canonicalCommands?.includes(
+    "npm run zk:c01-verifier-backend-options-check",
+  ),
+  "C01 verifier candidate evidence must record the backend-options guard",
+);
+assert(
   localProofFormatEvidence.canonicalCommands?.includes(
     "npm run zk:c01-local-proof-format-evidence-check",
   ),
@@ -299,7 +340,10 @@ for (const marker of [
 for (const marker of [
   "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
   "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
   "backend, proof-format, production verifying-key, verifier-adapter, positive/negative test",
+  "groth16-tag3-solana-v0",
+  "noir-bb-ultrahonk-adaptation",
   "solana-c01-groth16-verifier-ready",
   "not production proof-format acceptance",
 ]) {
@@ -354,6 +398,11 @@ assert(
   "package.json must expose zk:c01-local-proof-format-evidence-check",
 );
 assert(
+  scripts["zk:c01-verifier-backend-options-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-verifier-backend-options.mjs",
+  "package.json must expose zk:c01-verifier-backend-options-check",
+);
+assert(
   scripts["zk:review-guards-check"]?.includes("npm run zk:c01-production-verifier-backend-candidate-check"),
   "zk:review-guards-check must include the C01 production verifier backend candidate guard",
 );
@@ -362,12 +411,20 @@ assert(
   "zk:review-guards-check must include the C01 local proof-format evidence guard",
 );
 assert(
+  scripts["zk:review-guards-check"]?.includes("npm run zk:c01-verifier-backend-options-check"),
+  "zk:review-guards-check must include the C01 backend-options guard",
+);
+assert(
   scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-production-verifier-backend-candidate-check"),
   "zk:feedback-loop-check must include the C01 production verifier backend candidate guard",
 );
 assert(
   scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-local-proof-format-evidence-check"),
   "zk:feedback-loop-check must include the C01 local proof-format evidence guard",
+);
+assert(
+  scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-verifier-backend-options-check"),
+  "zk:feedback-loop-check must include the C01 backend-options guard",
 );
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run zk:review-guards-check"),

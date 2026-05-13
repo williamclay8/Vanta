@@ -6,6 +6,8 @@ This packet exists so reviewers do not confuse local proof-artifact hardening wi
 
 Current refs-only candidate evidence packet: `ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json`. It is intentionally blocked and exists to name the exact backend, proof-format, production verifying-key, verifier-adapter, positive/negative test, SBF/live-lineage, and audit/reviewer artifacts required before any `solana-c01-groth16-verifier-ready` claim can promote.
 
+Backend Options Evidence packet: `ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json`. It is checked by `npm run zk:c01-verifier-backend-options-check` and records the `groth16-tag3-solana-v0` and `noir-bb-ultrahonk-adaptation` paths as blocked options. This packet does not select a backend, does not satisfy production proof-format evidence, and does not promote local proof or verifier-key registry evidence.
+
 ## Current Truth
 
 - The current Solana tag `3` path is a reserved `TAG_SPEND_WITH_PROOF` preflight, not proof support.
@@ -32,6 +34,8 @@ Tag `5` (`TAG_REGISTER_VERIFIER_KEY`) creates or idempotently verifies the progr
 This source-only verifier-key registry scaffold is useful because tag `3` no longer depends on tests hand-writing verifier-key accounts. It is still not backend selection, not production verifying-key evidence, not verifier-adapter acceptance, not tag-3 proof acceptance, and not on-chain proof verification.
 
 ## Backend Options
+
+The machine-readable options matrix lives in `ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json`; this section is its human review companion.
 
 ### Groth16 Tag-3 Solana Verifier Path
 
@@ -70,6 +74,7 @@ npm run zk:c01-onchain-proof-boundary-check
 npm run zk:c01-verifier-backend-contract-check
 npm run zk:c01-production-verifier-backend-candidate-check
 npm run zk:c01-verifier-backend-decision-check
+npm run zk:c01-verifier-backend-options-check
 npm run zk:c01-verifier-key-registry-check
 npm run private-pool-v2:proof-backend-boundary-check
 npm run private-pool-v2:remote-proof-artifact-boundary-check

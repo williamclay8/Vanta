@@ -64,7 +64,12 @@ for (const marker of [
   "program-owned shared Merkle tree",
   "Do not mark C01 verified-local",
   "npm run zk:c01-production-verifier-backend-candidate-check",
+  "npm run zk:c01-verifier-backend-options-check",
   "npm run private-pool-v2:remote-proof-artifact-boundary-check",
+  "Backend Options Evidence",
+  "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
+  "groth16-tag3-solana-v0",
+  "noir-bb-ultrahonk-adaptation",
 ]) {
   includes(decision, marker, decisionPath);
 }
@@ -106,12 +111,25 @@ assert(
   "package.json must expose zk:c01-verifier-backend-decision-check",
 );
 assert(
+  packageJson.scripts?.["zk:c01-verifier-backend-options-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-verifier-backend-options.mjs",
+  "package.json must expose zk:c01-verifier-backend-options-check",
+);
+assert(
   packageJson.scripts?.["zk:review-guards-check"]?.includes("npm run zk:c01-verifier-backend-decision-check"),
   "zk:review-guards-check must include the C01 verifier backend decision guard",
 );
 assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes("npm run zk:c01-verifier-backend-options-check"),
+  "zk:review-guards-check must include the C01 verifier backend-options guard",
+);
+assert(
   packageJson.scripts?.["zk:feedback-loop-check"]?.includes("npm run zk:c01-verifier-backend-decision-check"),
   "zk:feedback-loop-check must include the C01 verifier backend decision guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes("npm run zk:c01-verifier-backend-options-check"),
+  "zk:feedback-loop-check must include the C01 verifier backend-options guard",
 );
 
 console.log("Vanta ZK C01 verifier backend decision: PASS");

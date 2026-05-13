@@ -43,6 +43,13 @@
       "artifactRef": "ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json",
       "command": "npm run zk:c01-verifier-key-registry-check",
       "truthBoundary": "This records that tag 5 can create or idempotently verify the program-owned verifier-key PDA required by reserved tag 3 preflight. It does not satisfy production verifying-key evidence, backend selection, verifier adapter evidence, or proof acceptance."
+    },
+    {
+      "id": "blocked-verifier-backend-options-matrix",
+      "status": "blocked-options-not-selected",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
+      "command": "npm run zk:c01-verifier-backend-options-check",
+      "truthBoundary": "This records the Groth16 tag-3 Solana verifier path and Noir/bb.js/UltraHonk adaptation path as blocked options. It does not select a backend or satisfy production proof-format, verifying-key, verifier-adapter, test, live-lineage, or audit evidence."
     }
   ],
   "selectedBackend": null,
@@ -126,6 +133,7 @@
     "npm run zk:c01-verifier-backend-contract-check",
     "npm run zk:c01-onchain-proof-boundary-check",
     "npm run zk:c01-verifier-key-registry-check",
+    "npm run zk:c01-verifier-backend-options-check",
     "npm run private-pool-v2:sbf-abi-check",
     "npm run private-pool-v2:verify"
   ],

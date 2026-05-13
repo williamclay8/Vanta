@@ -1,0 +1,129 @@
+{
+  "version": "vanta-private-pool-v2-c01-verifier-backend-options-evidence-0.1",
+  "checkedAt": "2026-05-13T00:00:00.000Z",
+  "status": "blocked-backend-options-unselected",
+  "selectedBackend": null,
+  "selectedBackendStatus": "not-selected",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "purpose": "Machine-readable blocked backend-options matrix for the C01 production verifier decision. This packet records the two plausible verifier paths and their required evidence without selecting either path or promoting local proof artifacts.",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "localProofFormatRef": "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
+  "verifierKeyRegistryRef": "ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json",
+  "currentTargetContract": {
+    "tag": 3,
+    "target": "solana-c01-tag3-groth16-v0",
+    "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+    "proofSystem": "groth16",
+    "proofByteLength": 256,
+    "publicInputLabel": "private-spend-public-input-hash",
+    "verifyingKeyHashKind": "production-verifying-key-hash",
+    "status": "reserved-fail-closed"
+  },
+  "currentLocalObservation": {
+    "proofSystem": "noir-bb",
+    "backend": "barretenberg-ultrahonk",
+    "proofByteLength": 16000,
+    "proofFieldCount": 500,
+    "verifyingKeyHashKind": "local-acir-bytecode-hash-not-production-vk",
+    "status": "local-observation-only"
+  },
+  "backendOptions": [
+    {
+      "id": "groth16-tag3-solana-v0",
+      "status": "blocked",
+      "selectsCurrentTag3Contract": true,
+      "target": "solana-c01-tag3-groth16-v0",
+      "proofSystem": "groth16",
+      "proofByteLength": 256,
+      "publicInputLabel": "private-spend-public-input-hash",
+      "verifyingKeyHashKind": "production-verifying-key-hash",
+      "requires": [
+        "actual-private-spend-groth16-production-proof-format",
+        "production-verifying-key-hash",
+        "tag3-verifier-adapter-or-verifier-cpi",
+        "valid-proof-mutates-nullifier-output-state",
+        "invalid-proof-leaves-account-bytes-unchanged",
+        "rebuilt-redeployed-reinitialized-sbf-lineage",
+        "audit-or-reviewer-acceptance"
+      ],
+      "currentBlockedBy": [
+        "local proof observation is noir-bb / barretenberg-ultrahonk / 16000 bytes",
+        "no production verifying-key hash artifact exists",
+        "tag 3 returns ERR_PROOF_VERIFIER_NOT_WIRED before mutation",
+        "source-only tag 5 registry metadata is not production VK evidence",
+        "no valid-proof mutation or invalid-proof no-mutation tests exist",
+        "no live redeploy/reinit or audit acceptance exists"
+      ],
+      "truthBoundary": "This option preserves the current tag-3 Groth16-shaped contract, but it is blocked until the active actual-private-spend circuit has Groth16 production proof format, production verifying-key hash evidence, verifier adapter, positive/negative mutation tests, live SBF lineage, and audit/reviewer acceptance."
+    },
+    {
+      "id": "noir-bb-ultrahonk-adaptation",
+      "status": "blocked",
+      "selectsCurrentTag3Contract": false,
+      "target": "new-verifier-target-or-production-service-boundary-required",
+      "proofSystem": "noir-bb",
+      "backend": "barretenberg-ultrahonk",
+      "currentLocalProofByteLength": 16000,
+      "publicInputLabel": "private-spend-public-input-hash",
+      "currentVerifyingKeyHashKind": "local-acir-bytecode-hash-not-production-vk",
+      "requires": [
+        "production-ultrahonk-verifier-target-or-service-boundary",
+        "production-verifying-key-evidence-not-local-acir",
+        "new-proof-byte-layout-or-service-contract",
+        "private-spend-public-input-hash-binding-test",
+        "verifier-adapter-or-production-service-acceptance",
+        "valid-proof-mutates-or-production-service-acceptance-evidence",
+        "invalid-proof-rejection-no-mutation-or-service-rejection-evidence",
+        "live-lineage-and-audit-or-reviewer-acceptance"
+      ],
+      "currentBlockedBy": [
+        "current tag 3 ABI is Groth16-shaped with 256 proof bytes",
+        "local ACIR hash is not production verifying-key evidence",
+        "local bb.js/UltraHonk proof artifacts are local no-real-funds evidence",
+        "no production UltraHonk verifier target or service boundary is selected",
+        "no live lineage or audit acceptance exists"
+      ],
+      "truthBoundary": "This option preserves the current Noir/bb.js/UltraHonk local proof system only if Vanta defines a production verifier target or service boundary and replaces local ACIR metadata with production verifying-key evidence. It is not compatible with claiming the current Groth16 tag-3 contract is ready."
+    }
+  ],
+  "intermediateEvidenceOnly": {
+    "localProofFormatObservation": true,
+    "verifierKeyRegistryScaffold": true,
+    "candidateEvidencePacket": true
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "backendSelection": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "forbiddenPromotions": [
+    "solana-c01-groth16-verifier-ready",
+    "production-private",
+    "mainnet-private",
+    "proof-enforced-spend",
+    "on-chain proof verified",
+    "production verifier accepted"
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-verifier-backend-options-check",
+    "npm run zk:c01-production-verifier-backend-candidate-check",
+    "npm run zk:c01-verifier-backend-decision-check",
+    "npm run zk:c01-verifier-backend-contract-check",
+    "npm run zk:c01-local-proof-format-evidence-check",
+    "npm run zk:c01-verifier-key-registry-check",
+    "npm run zk:c01-onchain-proof-boundary-check"
+  ],
+  "truthBoundary": "This is a blocked backend-options matrix only. It is not backend selection, not production proof-format acceptance, not production verifying-key evidence, not verifier-adapter acceptance, not tag-3 proof acceptance, not on-chain proof verification, not SBF/live redeploy or reinit evidence, not audit acceptance, not production-private readiness, and not real-funds readiness."
+}
