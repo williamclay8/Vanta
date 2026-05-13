@@ -125,6 +125,11 @@ for (const phrase of [
 }
 requirePhrase(operatorRunbook, "If You Have 10 Minutes", "docs/operator-runbook.md");
 requirePhrase(readme, "Vanta is not production-ready until it has", "README.md");
+requirePhrase(
+  readme,
+  "actual-private-spend and Send also have dev-only browser/Web Worker proof execution plus worker-side witness generation from typed witness input",
+  "README.md",
+);
 
 if (packageJson.scripts["docs:source-of-truth-check"] !== "node scripts/check-vanta-docs-source-of-truth.mjs") {
   throw new Error("package.json must expose docs:source-of-truth-check.");
