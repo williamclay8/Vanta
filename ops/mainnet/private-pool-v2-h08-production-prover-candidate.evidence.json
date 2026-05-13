@@ -1,0 +1,340 @@
+{
+  "version": "vanta-private-pool-v2-h08-production-prover-candidate-evidence-0.1",
+  "checkedAt": "2026-05-13T00:00:00.000Z",
+  "status": "blocked-no-production-prover-runtime-evidence",
+  "findingId": "VANTA-ZK-2026-05-09-H08",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "realFundsAllowed": false,
+  "h08ProductionProverReady": false,
+  "productionBrowserRuntimeProverReady": false,
+  "productionRemoteProverReady": false,
+  "selectedProverRuntime": null,
+  "selectedProverRuntimeStatus": "not-selected",
+  "secretPolicy": "references-and-metadata-only-no-proof-bytes-no-witness-values-no-service-secrets",
+  "purpose": "Machine-readable blocked feasibility packet for H08 production prover evidence. This packet separates the current local bb.js, fixture, witness-input, and browser-worker progress from the missing production prover runtime selection and acceptance gates.",
+  "sourceReviewRefs": [
+    "VANTA_ZK_REVIEW.md#still-open-2--replace-the-mock-prover-with-bbjs",
+    "VANTA_ZK_REVIEW.findings.json",
+    "SECURITY_LIMITATIONS.md",
+    "README.md"
+  ],
+  "productionRequiredShape": {
+    "target": "private-pool-v2-production-prover-v1",
+    "supportedTargets": [
+      "shield",
+      "claim",
+      "swap-to-shielded",
+      "send",
+      "actual-private-spend"
+    ],
+    "allowedCandidateRuntimes": [
+      "remote-service-production-prover",
+      "browser-worker-production-runtime"
+    ],
+    "selectedRuntime": null,
+    "proofSystem": "selected-production-proof-system",
+    "proofBackend": "remote-service-or-explicitly-accepted-production-browser-runtime",
+    "productionProofFormat": null,
+    "productionVerifyingKeyHash": null,
+    "mustReplaceDefaultLocalProver": true,
+    "mustBindPublicInputLabels": [
+      "shield-public-input-hash",
+      "claim-public-input-hash",
+      "swap-public-input-hash",
+      "send-public-input-hash",
+      "private-spend-public-input-hash"
+    ],
+    "mustRejectLocalBackends": [
+      "local-mock",
+      "local-bb-fixture-artifact",
+      "local-bb-derived-artifact"
+    ],
+    "mustBindExactProofRequestTranscript": true,
+    "witnessPolicy": "witness material must remain client-side or inside the selected production prover boundary and must not appear in operator receipts, packets, logs, or repo evidence",
+    "runtimeEvidenceRequired": [
+      "deployed prover health",
+      "artifact-store refs",
+      "job-log refs",
+      "valid proof roundtrip",
+      "invalid proof rejection",
+      "live route wiring"
+    ],
+    "c01CompatibilityRequirement": "must match the selected C01 verifier backend, production proof format, production verifying-key evidence, and private-spend-public-input-hash binding before proof-enforced spend claims are allowed",
+    "auditRequirement": "external reviewer or audit acceptance required before production-private, mainnet-private, or real-funds readiness claims"
+  },
+  "currentProductionProverArtifact": {
+    "status": "absent",
+    "runtime": null,
+    "artifactRef": null,
+    "proofSystem": null,
+    "proofBackend": null,
+    "productionProofFormatRef": null,
+    "productionVerifyingKeyHash": null,
+    "serviceHealthRef": null,
+    "artifactStoreRef": null,
+    "jobLogRef": null,
+    "validProofRoundtripRef": null,
+    "invalidProofRejectionRef": null,
+    "liveRoutingRef": null,
+    "auditReviewerAcceptanceRef": null,
+    "satisfiesProductionProverEvidence": false
+  },
+  "currentLocalObservations": {
+    "defaultLocalProver": {
+      "status": "still-default-mock-local-mock",
+      "sourceRef": "src/privacy/privatePoolV2LocalProver.ts",
+      "proofSystem": "mock",
+      "proofBackend": "local-mock",
+      "satisfiesProductionProverEvidence": false
+    },
+    "localBbFixtureAdapter": {
+      "status": "opt-in-local-fixture-replay",
+      "sourceRef": "src/privacy/privatePoolV2LocalProver.ts",
+      "guard": "npm run private-pool-v2:local-bb-fixture-prover-check",
+      "supportedTargets": [
+        "shield",
+        "claim",
+        "swap-to-shielded",
+        "actual-private-spend",
+        "send"
+      ],
+      "proofSystem": "noir-bb",
+      "proofBackends": [
+        "local-bb-fixture-artifact",
+        "local-bb-derived-artifact"
+      ],
+      "publicInputLabels": [
+        "shield-public-input-hash",
+        "claim-public-input-hash",
+        "swap-public-input-hash",
+        "private-spend-public-input-hash",
+        "send-public-input-hash"
+      ],
+      "satisfiesProductionProverEvidence": false
+    },
+    "localWitnessInputProvers": {
+      "status": "local-node-derived-artifacts",
+      "guards": [
+        "npm run private-pool-v2:actual-private-spend-witness-prover-check",
+        "npm run private-pool-v2:send-witness-prover-check"
+      ],
+      "supportedTargets": [
+        "actual-private-spend",
+        "send"
+      ],
+      "proofSystem": "noir-bb",
+      "proofBackend": "local-bb-derived-artifact",
+      "publicInputLabels": [
+        "private-spend-public-input-hash",
+        "send-public-input-hash"
+      ],
+      "satisfiesProductionProverEvidence": false
+    },
+    "browserWorkerProofExecution": {
+      "status": "dev-only-browser-worker-local-evidence",
+      "sourceRef": "src/privacy/privatePoolV2BrowserProverWorker.ts",
+      "guards": [
+        "npm run private-pool-v2:browser-worker-prover-check",
+        "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check"
+      ],
+      "supportedTargets": [
+        "send",
+        "actual-private-spend"
+      ],
+      "runtime": "@aztec/bb.js / UltraHonkBackend with threads: 1",
+      "proofSystem": "noir-bb",
+      "proofBackend": "local-bb-derived-artifact",
+      "liveRouting": false,
+      "satisfiesProductionProverEvidence": false
+    },
+    "browserWorkerProofResultAdapter": {
+      "status": "opt-in-dev-only-proof-result-interface",
+      "sourceRef": "src/privacy/privatePoolV2BrowserWorkerProofResultAdapter.ts",
+      "guard": "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
+      "implementsInterface": "VantaPrivatePoolV2Prover",
+      "supportedTargets": [
+        "send",
+        "actual-private-spend"
+      ],
+      "requiresProofBackend": "local-bb-derived-artifact",
+      "replacesDefaultLocalProver": false,
+      "satisfiesProductionProverEvidence": false
+    },
+    "remoteServiceBoundary": {
+      "status": "production-mode-handoff-guard-only",
+      "sourceRef": "src/privacy/privatePoolV2RemoteServices.ts",
+      "currentOnChainVerifierEvidence": "offchain-remote-proof-artifact-only",
+      "requiresProofBackend": "remote-service",
+      "rejectsLocalBackendsInProductionMode": true,
+      "satisfiesProductionProverEvidence": false
+    }
+  },
+  "intermediateEvidenceRefs": [
+    {
+      "id": "local-bb-fixture-proof-result-adapter",
+      "status": "local-evidence-not-production",
+      "artifactRef": "src/privacy/privatePoolV2LocalProver.ts",
+      "command": "npm run private-pool-v2:local-bb-fixture-prover-check",
+      "satisfiesProductionProverEvidence": false,
+      "truthBoundary": "This is exact local fixture and derived-artifact replay for local verifier receipt testing. It does not select or prove a production prover runtime."
+    },
+    {
+      "id": "send-and-actual-private-local-witness-input-provers",
+      "status": "local-evidence-not-production",
+      "artifactRef": "scripts/prove-vanta-private-pool-v2-circuit.mjs",
+      "command": "npm run private-pool-v2:send-witness-prover-check",
+      "satisfiesProductionProverEvidence": false,
+      "truthBoundary": "Local Node witness-input proving is not production runtime evidence, remote-service acceptance, or live route wiring."
+    },
+    {
+      "id": "browser-worker-proof-execution",
+      "status": "dev-only-local-evidence-not-production",
+      "artifactRef": "src/privacy/privatePoolV2BrowserProverWorker.ts",
+      "command": "npm run private-pool-v2:browser-worker-prover-check",
+      "satisfiesProductionProverEvidence": false,
+      "truthBoundary": "The browser-worker guards prove focused local Send and actual-private-spend paths, not production browser-runtime readiness."
+    },
+    {
+      "id": "browser-worker-proof-result-adapter",
+      "status": "dev-only-local-interface-not-production",
+      "artifactRef": "src/privacy/privatePoolV2BrowserWorkerProofResultAdapter.ts",
+      "command": "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
+      "satisfiesProductionProverEvidence": false,
+      "truthBoundary": "The adapter implements VantaPrivatePoolV2Prover only as an opt-in dev bridge and does not replace default mock/local-mock proving."
+    },
+    {
+      "id": "production-services-manifest",
+      "status": "service-topology-ref-not-production-prover-acceptance",
+      "artifactRef": "ops/mainnet/private-pool-v2-services.manifest.json",
+      "command": "npm run private-pool-v2:service-network-check",
+      "satisfiesProductionProverEvidence": false,
+      "truthBoundary": "The service manifest is a topology/check surface, not deployed production prover health, job-log, artifact-store, or proof acceptance evidence."
+    },
+    {
+      "id": "production-smoke-template",
+      "status": "template-not-production-prover-acceptance",
+      "artifactRef": "ops/mainnet/private-pool-v2-production-smoke.template.json",
+      "command": "npm run mainnet:private-pool-v2-production-smoke-check",
+      "satisfiesProductionProverEvidence": false,
+      "truthBoundary": "The smoke template describes required evidence shape and does not prove a selected production prover runtime."
+    }
+  ],
+  "requiredPositiveEvidence": [
+    {
+      "id": "production-prover-runtime-selection",
+      "status": "blocked",
+      "requiredArtifactShape": "decision:<remote-service-production-prover-or-browser-worker-production-runtime-selected-with-rationale>",
+      "currentArtifactRef": null,
+      "truthBoundary": "This packet does not choose whether production proving runs in a browser-worker runtime, a remote service, or a different reviewed boundary."
+    },
+    {
+      "id": "production-proof-format-contract",
+      "status": "blocked",
+      "requiredArtifactShape": "contract:<selected-production-proof-system-backend-public-input-and-proof-format>",
+      "currentArtifactRef": null,
+      "truthBoundary": "Current local noir-bb artifacts and local proof-format observations are not production proof-format acceptance."
+    },
+    {
+      "id": "production-verifying-key-evidence",
+      "status": "blocked",
+      "requiredArtifactShape": "verifying-key:<production-verifying-key-hash-or-selected-backend-equivalent>",
+      "currentArtifactRef": null,
+      "truthBoundary": "Local ACIR bytecode hashes and fixture metadata are not production verifying-key evidence."
+    },
+    {
+      "id": "live-routing-evidence",
+      "status": "blocked",
+      "requiredArtifactShape": "test:<Shield-Claim-Swap-Send-actual-private-spend-use-selected-production-prover-path>",
+      "currentArtifactRef": null,
+      "truthBoundary": "The current browser-worker proof-result adapter is opt-in and dev-only; it does not route live Send or actual-private-spend execution."
+    },
+    {
+      "id": "runtime-reliability-and-performance-evidence",
+      "status": "blocked",
+      "requiredArtifactShape": "evidence:<selected-runtime-performance-timeout-error-and-device-coverage>",
+      "currentArtifactRef": null,
+      "truthBoundary": "Local guards prove focused paths; they are not production browser/device/runtime reliability evidence."
+    },
+    {
+      "id": "operator-no-witness-production-acceptance",
+      "status": "blocked",
+      "requiredArtifactShape": "test:<production-prover-receipts-carry-no-witness-material-and-operator-accepts-only-bound-public-inputs>",
+      "currentArtifactRef": null,
+      "truthBoundary": "Local no-witness artifact checks do not prove the selected production prover boundary keeps witness material out of operator surfaces."
+    },
+    {
+      "id": "c01-verifier-compatibility",
+      "status": "blocked",
+      "requiredArtifactShape": "evidence:<selected-H08-prover-output-matches-selected-C01-verifier-backend>",
+      "currentArtifactRef": null,
+      "truthBoundary": "C01 backend selection and verifier acceptance remain blocked, so H08 cannot claim proof-enforced spend compatibility."
+    },
+    {
+      "id": "deployed-prover-health-and-job-log-evidence",
+      "status": "blocked",
+      "requiredArtifactShape": "evidence:<deployed-prover-health-artifact-store-ref-job-log-ref>",
+      "currentArtifactRef": null,
+      "truthBoundary": "No deployed production prover health, artifact-store, or job-log refs exist for this packet, and this is not deployed production prover evidence."
+    },
+    {
+      "id": "valid-proof-roundtrip-and-invalid-proof-rejection",
+      "status": "blocked",
+      "requiredArtifactShape": "test:<production-valid-proof-roundtrip-and-invalid-proof-rejection>",
+      "currentArtifactRef": null,
+      "truthBoundary": "Local focused guard success is not production valid-proof roundtrip or invalid-proof rejection evidence."
+    },
+    {
+      "id": "sbf-live-lineage",
+      "status": "blocked",
+      "requiredArtifactShape": "lineage:<rebuilt-redeployed-reinitialized-program-and-service-evidence-for-selected-prover-verifier-path>",
+      "currentArtifactRef": null,
+      "truthBoundary": "Fresh local commands are not live redeploy, reinitialization, service, or mainnet evidence."
+    },
+    {
+      "id": "audit-reviewer-acceptance",
+      "status": "blocked",
+      "requiredArtifactShape": "audit-or-review:<selected-production-prover-boundary-accepted>",
+      "currentArtifactRef": null,
+      "truthBoundary": "Repo-local checks are not external audit or reviewer acceptance."
+    }
+  ],
+  "blockedBy": [
+    "no production prover runtime is selected",
+    "default local prover remains mock / local-mock",
+    "local fixture and derived artifacts are local no-real-funds evidence only",
+    "browser-worker proof execution is dev-only and not live route wiring",
+    "remote proof service handoff is guarded but not production acceptance evidence",
+    "C01 production verifier backend and proof-format compatibility are still blocked",
+    "no deployed prover health, artifact-store, job-log, production runtime reliability, SBF/live lineage, or external audit acceptance exists"
+  ],
+  "forbiddenPromotions": [
+    "production prover accepted",
+    "production prover ready",
+    "live private proving",
+    "live Send proof routing",
+    "live actual-private-spend proof routing",
+    "proof-enforced spend",
+    "production-private",
+    "mainnet-private",
+    "real-funds ZK readiness",
+    "real-funds ready",
+    "audited production prover"
+  ],
+  "canonicalCommands": [
+    "npm run zk:h08-production-prover-candidate-check",
+    "npm run private-pool-v2:local-bb-fixture-prover-check",
+    "npm run private-pool-v2:actual-private-spend-witness-prover-check",
+    "npm run private-pool-v2:send-witness-prover-check",
+    "npm run private-pool-v2:browser-worker-prover-check",
+    "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
+    "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
+    "npm run private-pool-v2:proof-backend-boundary-check",
+    "npm run private-pool-v2:local-prover-check",
+    "npm run zk:c01-production-verifier-backend-candidate-check",
+    "npm run private-pool-v2:service-network-check",
+    "npm run mainnet:private-pool-v2-production-smoke-check"
+  ],
+  "truthBoundary": "This is a blocked H08 production prover candidate packet only. It records that the current local bb.js, fixture-artifact, witness-input, browser-worker, proof-result adapter, and remote handoff guards are useful local evidence but do not satisfy production prover runtime selection, production proof-format, production verifying-key, live route wiring, runtime reliability, deployed prover health, artifact-store or job-log evidence, C01 verifier compatibility, SBF/live lineage, audit acceptance, production-private readiness, mainnet-private readiness, or real-funds readiness."
+}
