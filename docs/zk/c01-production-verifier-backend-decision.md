@@ -15,6 +15,14 @@ Current refs-only candidate evidence packet: `ops/mainnet/private-pool-v2-c01-ve
 - Any `solana-c01-groth16-verifier-ready` request or receipt overclaim must fail closed until a real Solana tag-3 Groth16 verifier candidate exists.
 - Root provenance records at `["vanta2root", pool_state, acceptedRoot]` are lineage metadata, not proof that the root transition is correct, and not a program-owned shared Merkle tree.
 
+## Local Proof-Format Observation
+
+Local proof-format observation is now recorded at `ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json` and checked by `npm run zk:c01-local-proof-format-evidence-check`.
+
+The packet records that the active local actual-private-spend proof receipt for `vanta_private_pool_v2_actual_private_spend_entry` is `noir-bb / barretenberg-ultrahonk`, carries one `private-spend-public-input-hash`, uses a 16000-byte local proof, and labels its verifying-key metadata as `local-acir-bytecode-hash-not-production-vk`.
+
+That observation is useful for the backend decision because it makes the mismatch explicit: the current reserved Solana tag `3` target expects a 256-byte Groth16 tag-3 proof and `production-verifying-key-hash` evidence for `solana-c01-tag3-groth16-v0`. This is not backend selection, not production proof-format acceptance, not production verifying-key evidence, not tag-3 proof acceptance, and not on-chain proof verification.
+
 ## Backend Options
 
 ### Groth16 Tag-3 Solana Verifier Path

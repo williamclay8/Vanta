@@ -1,0 +1,82 @@
+{
+  "version": "vanta-private-pool-v2-c01-local-proof-format-evidence-0.1",
+  "checkedAt": "2026-05-13T00:00:00.000Z",
+  "status": "local-proof-format-observed-not-production",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "secretPolicy": "references-and-metadata-only-no-proof-bytes-no-witness-values",
+  "purpose": "Local proof-format observation for the C01 actual-private-spend verifier decision. This records the current local bb.js/UltraHonk proof receipt shape and the remaining tag-3 Groth16/Solana verifier mismatch without selecting a backend or claiming verifier readiness.",
+  "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "proofGenerationCommand": "npm run private-pool-v2:actual-private-spend-prove",
+  "proofReceiptRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.proof.json",
+  "localProofObservation": {
+    "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+    "proofSystem": "noir-bb",
+    "backend": "barretenberg-ultrahonk",
+    "proofBackend": "local-bb-fixture-artifact",
+    "proofByteLength": 16000,
+    "proofFieldCount": 500,
+    "publicInputCount": 1,
+    "publicInputLabels": [
+      "private-spend-public-input-hash"
+    ],
+    "publicInputCommitment": "sha256:6ddff90b0ed71dd1d35400c11b2dce54d70eae73d9179f1442da700ead121aa7",
+    "verified": true,
+    "acirBytecodeHash": "sha256:27e841db5262f2b381cdc9836b0bdb963aa95ef5bf0a09842448412180a9cca2",
+    "verifyingKeyHash": "sha256:27e841db5262f2b381cdc9836b0bdb963aa95ef5bf0a09842448412180a9cca2",
+    "verifyingKeyHashKind": "local-acir-bytecode-hash-not-production-vk",
+    "verifyingKeyId": "local-acir-bytecode:vanta_private_pool_v2_actual_private_spend_entry:sha256:27e841db5262f2b381cdc9836b0bdb963aa95ef5bf0a09842448412180a9cca2",
+    "proofRuntimePackage": "@aztec/bb.js",
+    "proofRuntimeVersion": "^4.1.3",
+    "onChainVerifierEvidence": "offchain-remote-proof-artifact-only",
+    "onChainVerifierTarget": "none"
+  },
+  "reservedTag3FormatComparison": {
+    "target": "solana-c01-tag3-groth16-v0",
+    "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+    "proofSystem": "groth16",
+    "proofByteLength": 256,
+    "publicInputLabel": "private-spend-public-input-hash",
+    "verifyingKeyHashKind": "production-verifying-key-hash",
+    "status": "mismatch-blocked"
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "backendSelection": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "currentCandidatePacketMustRemain": {
+    "selectedBackend": null,
+    "selectedBackendStatus": "not-selected",
+    "allRequiredPositiveEvidenceStatus": "blocked",
+    "allRequiredPositiveEvidenceCurrentArtifactRef": null
+  },
+  "forbiddenPromotions": [
+    "solana-c01-groth16-verifier-ready",
+    "production-private",
+    "mainnet-private",
+    "proof-enforced-spend",
+    "on-chain proof verified",
+    "production verifier accepted"
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-local-proof-format-evidence-check",
+    "npm run private-pool-v2:actual-private-spend-prove",
+    "npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
+    "npm run zk:c01-production-verifier-backend-candidate-check",
+    "npm run zk:c01-verifier-backend-contract-check",
+    "npm run zk:c01-onchain-proof-boundary-check",
+    "npm run zk:c01-verifier-backend-decision-check"
+  ],
+  "truthBoundary": "This is local proof-format observation evidence only. It is not backend selection, not production proof-format acceptance, not production verifying-key evidence, not verifier-adapter acceptance, not tag-3 proof acceptance, not on-chain proof verification, not SBF/live redeploy or reinit evidence, not audit acceptance, not production-private readiness, and not real-funds readiness."
+}

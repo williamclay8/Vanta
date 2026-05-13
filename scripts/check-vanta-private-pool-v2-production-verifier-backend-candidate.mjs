@@ -38,6 +38,9 @@ const c01DecisionPacket = read("docs/zk/c01-production-verifier-backend-decision
 const verifierCandidateEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json"),
 );
+const localProofFormatEvidence = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json"),
+);
 const spendReadme = read("programs/vanta_private_pool_v2_spend/README.md");
 const review = read("VANTA_ZK_REVIEW.md");
 const securityLimitations = read("SECURITY_LIMITATIONS.md");
@@ -124,6 +127,55 @@ assert(
     "local-acir-bytecode-hash-not-production-vk",
   "C01 verifier candidate evidence must not promote local ACIR hashes to production VK evidence",
 );
+const localProofFormatRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
+  (entry) => entry.id === "local-actual-private-spend-proof-format-observation",
+);
+assert(
+  localProofFormatRef?.artifactRef === "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
+  "C01 verifier candidate evidence must reference the local proof-format observation packet",
+);
+assert(
+  localProofFormatRef?.command === "npm run zk:c01-local-proof-format-evidence-check",
+  "C01 verifier candidate evidence must record the local proof-format observation guard",
+);
+includes(
+  localProofFormatRef?.truthBoundary ?? "",
+  "does not satisfy required production proof-format evidence",
+  "C01 verifier candidate intermediate evidence truth boundary",
+);
+assert(
+  localProofFormatEvidence.status === "local-proof-format-observed-not-production",
+  "C01 local proof-format evidence must remain non-production",
+);
+assert(
+  localProofFormatEvidence.localProofObservation?.proofSystem === "noir-bb",
+  "C01 local proof-format evidence must record current local noir-bb proof evidence",
+);
+assert(
+  localProofFormatEvidence.localProofObservation?.backend === "barretenberg-ultrahonk",
+  "C01 local proof-format evidence must record current local UltraHonk backend evidence",
+);
+assert(
+  localProofFormatEvidence.localProofObservation?.proofByteLength === 16000,
+  "C01 local proof-format evidence must record the current local proof byte length",
+);
+assert(
+  localProofFormatEvidence.localProofObservation?.verifyingKeyHashKind ===
+    "local-acir-bytecode-hash-not-production-vk",
+  "C01 local proof-format evidence must keep local ACIR metadata out of production VK evidence",
+);
+assert(
+  localProofFormatEvidence.reservedTag3FormatComparison?.proofSystem === "groth16",
+  "C01 local proof-format evidence must compare the local proof to the reserved Groth16 target",
+);
+assert(
+  localProofFormatEvidence.reservedTag3FormatComparison?.proofByteLength === 256,
+  "C01 local proof-format evidence must preserve the reserved Groth16 proof byte length",
+);
+assert(
+  localProofFormatEvidence.satisfiesRequiredPositiveEvidence?.actualPrivateSpendProductionProofFormat === false,
+  "C01 local proof-format evidence must not satisfy production proof-format evidence",
+);
 const requiredEvidenceIds = new Set(
   (verifierCandidateEvidence.requiredPositiveEvidence ?? []).map((entry) => entry.id),
 );
@@ -172,6 +224,12 @@ assert(
     "npm run zk:c01-production-verifier-backend-candidate-check",
   ),
   "C01 verifier candidate evidence must record its canonical guard",
+);
+assert(
+  localProofFormatEvidence.canonicalCommands?.includes(
+    "npm run zk:c01-local-proof-format-evidence-check",
+  ),
+  "C01 local proof-format evidence must record its canonical guard",
 );
 
 for (const marker of [
@@ -240,8 +298,10 @@ for (const marker of [
 
 for (const marker of [
   "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
   "backend, proof-format, production verifying-key, verifier-adapter, positive/negative test",
   "solana-c01-groth16-verifier-ready",
+  "not production proof-format acceptance",
 ]) {
   includes(c01DecisionPacket, marker, "C01 verifier backend decision packet evidence ref");
 }
@@ -289,12 +349,25 @@ assert(
   "package.json must expose zk:c01-production-verifier-backend-candidate-check",
 );
 assert(
+  scripts["zk:c01-local-proof-format-evidence-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-local-proof-format-evidence.mjs",
+  "package.json must expose zk:c01-local-proof-format-evidence-check",
+);
+assert(
   scripts["zk:review-guards-check"]?.includes("npm run zk:c01-production-verifier-backend-candidate-check"),
   "zk:review-guards-check must include the C01 production verifier backend candidate guard",
 );
 assert(
+  scripts["zk:review-guards-check"]?.includes("npm run zk:c01-local-proof-format-evidence-check"),
+  "zk:review-guards-check must include the C01 local proof-format evidence guard",
+);
+assert(
   scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-production-verifier-backend-candidate-check"),
   "zk:feedback-loop-check must include the C01 production verifier backend candidate guard",
+);
+assert(
+  scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-local-proof-format-evidence-check"),
+  "zk:feedback-loop-check must include the C01 local proof-format evidence guard",
 );
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run zk:review-guards-check"),

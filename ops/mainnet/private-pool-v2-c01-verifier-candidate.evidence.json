@@ -29,6 +29,15 @@
     "onChainVerifierEvidence": "offchain-remote-proof-artifact-only",
     "status": "local-no-real-funds-evidence-only"
   },
+  "intermediateEvidenceRefs": [
+    {
+      "id": "local-actual-private-spend-proof-format-observation",
+      "status": "local-observed-not-production",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
+      "command": "npm run zk:c01-local-proof-format-evidence-check",
+      "truthBoundary": "This records the current local noir-bb / barretenberg-ultrahonk actual-private-spend proof receipt shape and its mismatch with the reserved tag-3 Groth16 format. It does not satisfy required production proof-format evidence."
+    }
+  ],
   "selectedBackend": null,
   "selectedBackendStatus": "not-selected",
   "requiredPositiveEvidence": [
