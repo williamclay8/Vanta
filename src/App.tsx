@@ -44,6 +44,11 @@ const UnshieldPage = lazy(() =>
   import("@/pages/UnshieldPage").then((m) => ({ default: m.UnshieldPage })),
 );
 const PayPage = lazy(() => import("@/pages/PayPage").then((m) => ({ default: m.PayPage })));
+const ReceiptVerificationPage = lazy(() =>
+  import("@/pages/ReceiptVerificationPage").then((m) => ({
+    default: m.ReceiptVerificationPage,
+  })),
+);
 const LaunchPage = lazy(() =>
   import("@/pages/LaunchPage").then((m) => ({ default: m.LaunchPage })),
 );
@@ -91,6 +96,7 @@ function App() {
             <Route path="actual-private-settlement" element={<ActualPrivateSettlementPage />} />
             <Route path="*" element={<NotFoundPage surface="app" />} />
           </Route>
+          <Route path="/receipt/:receiptId" element={<ReceiptVerificationPage />} />
           <Route path="*" element={<NotFoundPage surface="site" />} />
         </Routes>
       </RouteErrorBoundary>

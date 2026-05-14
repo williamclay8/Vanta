@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
+import { PayReceiptPacketCard } from "@/components/PayReceiptPacketCard";
 import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { VANTA_PAY_ASSET_SYMBOLS, type VantaPayAsset } from "@/pay/vantaPayAssets";
 import { VANTA_PAY_MERCHANT_COMMAND_CENTER } from "@/pay/vantaPayMerchantCommandCenter";
@@ -130,7 +131,7 @@ function PaySelect({
 }
 
 export function PayPage() {
-  const receiptPacketRef = useRef<HTMLElement | null>(null);
+  const receiptPacketRef = useRef<HTMLDivElement | null>(null);
   const payRuntime = useMemo(() => createVantaPayRuntime(), []);
   const merchant = useMemo(() => payRuntime.getMerchant(), [payRuntime]);
   const receiptPrivacyContract = useMemo(() => getVantaPayReceiptPrivacyContract(), []);
@@ -145,6 +146,7 @@ export function PayPage() {
   const [phase, setPhase] = useState<PayLifecyclePhase>("draft");
   const [checkoutRecord, setCheckoutRecord] = useState<PayCheckoutRecord | null>(null);
   const [copied, setCopied] = useState(false);
+  const [receiptLinkCopied, setReceiptLinkCopied] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [latestRefund, setLatestRefund] = useState<VantaPayRefund | null>(null);
   const [latestWithdrawal, setLatestWithdrawal] = useState<VantaPayWithdrawal | null>(null);
@@ -155,6 +157,7 @@ export function PayPage() {
       setCheckoutRecord(null);
       setPhase("draft");
       setCopied(false);
+      setReceiptLinkCopied(false);
       setLatestRefund(null);
       setLatestWithdrawal(null);
       setPayActionError(null);
@@ -191,6 +194,7 @@ export function PayPage() {
   const receiptPublicView = createdRecord?.receipt
     ? buildVantaPayReceiptPublicView(createdRecord.receipt)
     : null;
+  const receiptShareHref = receiptPublicView ? `/receipt/${receiptPublicView.receiptId}` : "";
   const requestStatus =
     phase === "settlement_complete"
       ? "Payment record completed"
@@ -201,6 +205,7 @@ export function PayPage() {
   function createCheckoutSession() {
     setHasAttemptedSubmit(true);
     setCopied(false);
+    setReceiptLinkCopied(false);
 
     if (formHasErrors) {
       return null;
@@ -228,6 +233,7 @@ export function PayPage() {
     setLatestRefund(null);
     setLatestWithdrawal(null);
     setPayActionError(null);
+    setReceiptLinkCopied(false);
     return nextRecord;
   }
 
@@ -254,6 +260,7 @@ export function PayPage() {
     setLatestRefund(null);
     setLatestWithdrawal(null);
     setPayActionError(null);
+    setReceiptLinkCopied(false);
   }
 
   async function copyTestLink() {
@@ -267,6 +274,25 @@ export function PayPage() {
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
       setCopied(false);
+    }
+  }
+
+  async function copyReceiptShareLink() {
+    if (!receiptPublicView || !receiptShareHref) {
+      return;
+    }
+
+    const shareLink =
+      typeof window !== "undefined"
+        ? `${window.location.origin}${receiptShareHref}`
+        : `https://vanta.test${receiptShareHref}`;
+
+    try {
+      await navigator.clipboard?.writeText(shareLink);
+      setReceiptLinkCopied(true);
+      window.setTimeout(() => setReceiptLinkCopied(false), 1800);
+    } catch {
+      setReceiptLinkCopied(false);
     }
   }
 
@@ -737,58 +763,16 @@ export function PayPage() {
                 ) : null}
               </section>
 
-              {phase === "settlement_complete" && createdRecord?.receipt ? (
-                <section
-                  ref={receiptPacketRef}
-                  className="pay-record-panel pay-record-panel--receipt-packet review-list"
-                  aria-label="Receipt packet"
-                  tabIndex={-1}
-                >
-                  <div>
-                    <span>Receipt packet</span>
-                    <strong>Receipt packet ready</strong>
-                  </div>
-                  <dl className="pay-record-list">
-                    <div>
-                      <dt>Visible to merchant</dt>
-                      <dd>
-                        Receipt {receiptPublicView?.receiptId}, payment{" "}
-                        {receiptPublicView?.paymentId}, amount {receiptPublicView?.amount}{" "}
-                        {receiptPublicView?.asset}, and status {receiptPublicView?.status}.
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Visible to buyer</dt>
-                      <dd>
-                        Receipt status and payment reference; collected customer email is marked
-                        collected but redacted.
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Kept private</dt>
-                      <dd>
-                        Client token, customer email value, raw private economics, and operator-only
-                        settlement details.
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Verified by</dt>
-                      <dd>{receiptPrivacyContract.verificationSurfaces[0]}</dd>
-                    </div>
-                    <div>
-                      <dt>Proof receipt ID</dt>
-                      <dd>
-                        {receiptPublicView?.privateSettlement.railReceipt.idPrefix ?? "prail"}...redacted
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Claim status</dt>
-                      <dd>
-                        {receiptPrivacyContract.currentTruth}; {payPrivacyClaimSummary}.
-                      </dd>
-                    </div>
-                  </dl>
-                </section>
+              {phase === "settlement_complete" && receiptPublicView ? (
+                <div ref={receiptPacketRef} tabIndex={-1}>
+                  <PayReceiptPacketCard
+                    copied={receiptLinkCopied}
+                    onCopyShareLink={copyReceiptShareLink}
+                    privacyContract={receiptPrivacyContract}
+                    publicView={receiptPublicView}
+                    shareHref={receiptShareHref}
+                  />
+                </div>
               ) : null}
 
               <div className="pay-suite-plain-rows" aria-label="More payment records">

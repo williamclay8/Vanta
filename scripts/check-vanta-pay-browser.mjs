@@ -1,10 +1,73 @@
 import { execFileSync, spawn } from "node:child_process";
-import { rmSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+const repoRoot = path.resolve(import.meta.dirname, "..");
 const port = 4230 + Math.floor(Math.random() * 200);
 const baseUrl = `http://127.0.0.1:${port}`;
+
+function requireSourceMarkers(relativePath, markers) {
+  const absolutePath = path.resolve(repoRoot, relativePath);
+  if (!existsSync(absolutePath)) {
+    throw new Error(`Missing ${relativePath}`);
+  }
+
+  const source = readFileSync(absolutePath, "utf8");
+  const missing = markers.filter((marker) => !source.includes(marker));
+  if (missing.length > 0) {
+    throw new Error(`Missing ${relativePath} marker(s): ${missing.join(", ")}`);
+  }
+}
+
+function forbidSourceMarkers(relativePath, markers) {
+  const absolutePath = path.resolve(repoRoot, relativePath);
+  if (!existsSync(absolutePath)) {
+    throw new Error(`Missing ${relativePath}`);
+  }
+
+  const source = readFileSync(absolutePath, "utf8");
+  const present = markers.filter((marker) => source.includes(marker));
+  if (present.length > 0) {
+    throw new Error(`Forbidden ${relativePath} marker(s): ${present.join(", ")}`);
+  }
+}
+
+function verifyReceiptPacketCardSource() {
+  requireSourceMarkers("src/components/PayReceiptPacketCard.tsx", [
+    "PayReceiptPacketCard",
+    "data-vanta-pay-receipt-packet-card",
+    "data-vanta-pay-receipt-amount",
+    "data-vanta-pay-receipt-verify-link",
+    "data-vanta-pay-receipt-qr",
+    'data-pay-action="copy-receipt-share-link"',
+    "publicView.verification.claimBoundary",
+    "...redacted",
+  ]);
+  requireSourceMarkers("src/pages/PayPage.tsx", [
+    "PayReceiptPacketCard",
+    "receiptPublicView",
+    "receiptPrivacyContract",
+  ]);
+  requireSourceMarkers("src/App.tsx", [
+    "ReceiptVerificationPage",
+    "/receipt/:receiptId",
+  ]);
+  requireSourceMarkers("src/pages/ReceiptVerificationPage.tsx", [
+    "data-vanta-pay-receipt-verify-page",
+    "Receipt verification preview",
+    "receipt-backed-test-settlement-not-production-private",
+    "Production privacy is not enabled",
+    "No production funds moved. Test receipt only.",
+    "npm run pay:verify",
+  ]);
+  forbidSourceMarkers("src/components/PayReceiptPacketCard.tsx", [
+    "customerEmail",
+    "clientToken",
+    "privateRailReceiptId",
+    "auditDisclosureId",
+  ]);
+}
 
 function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
@@ -181,11 +244,25 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "Local test private-rail receipt generated" },
         { kind: "text_visible", text: "Receipt packet" },
         { kind: "text_visible", text: "Receipt packet ready" },
+        { kind: "text_visible", text: "Verify receipt" },
+        { kind: "text_visible", text: "Copy share link" },
+        { kind: "text_visible", text: "receipt-backed test settlement" },
+        { kind: "text_visible", text: "production privacy not enabled" },
         { kind: "text_visible", text: "Visible to merchant" },
         { kind: "text_visible", text: "Visible to buyer" },
         { kind: "text_visible", text: "Kept private" },
         { kind: "text_visible", text: "Verified by" },
         { kind: "text_visible", text: "Proof receipt ID" },
+        { kind: "text_visible", text: "...redacted" },
+        { kind: "text_visible", text: "receipt-backed-test-settlement-not-production-private" },
+        { kind: "selector_visible", selector: "[data-vanta-pay-receipt-packet-card]" },
+        { kind: "selector_visible", selector: "[data-vanta-pay-receipt-amount]" },
+        { kind: "selector_visible", selector: "[data-vanta-pay-receipt-verify-link]" },
+        { kind: "selector_visible", selector: "[data-vanta-pay-receipt-qr]" },
+        {
+          kind: "selector_visible",
+          selector: 'button[data-pay-action="copy-receipt-share-link"]:not(:disabled)',
+        },
         { kind: "text_visible", text: "rcpt_" },
         { kind: "text_visible", text: "prail_" },
         { kind: "text_visible", text: "aud_" },
@@ -269,6 +346,7 @@ vite.stderr.on("data", (chunk) => {
 });
 
 try {
+  verifyReceiptPacketCardSource();
   await waitForVite();
   runBrowserBatchWithRetry();
   console.log("vanta-pay browser check: PASS");

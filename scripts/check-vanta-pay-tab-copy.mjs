@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 const repoRoot = resolve(import.meta.dirname, "..");
 const copySourcePaths = [
   "src/pages/PayPage.tsx",
+  "src/components/PayReceiptPacketCard.tsx",
   "src/pay/vantaPayMerchantCommandCenter.ts",
 ];
 const source = copySourcePaths

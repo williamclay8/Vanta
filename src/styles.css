@@ -5782,6 +5782,78 @@ input {
   color: rgba(236, 255, 252, 0.62);
 }
 
+.pay-receipt-packet-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.pay-receipt-packet-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.pay-receipt-packet-card__actions .button {
+  min-height: 38px;
+  white-space: nowrap;
+}
+
+.pay-receipt-packet-card__boundary {
+  margin: 0;
+  max-width: 760px;
+  color: var(--muted-strong);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.pay-receipt-packet-card__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pay-receipt-packet-card__summary > div,
+.pay-receipt-packet-card__qr {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(246, 248, 245, 0.075);
+  border-radius: 8px;
+  background: rgba(246, 248, 245, 0.035);
+}
+
+.pay-receipt-packet-card__summary span,
+.pay-receipt-packet-card__qr span,
+.pay-receipt-packet-card__qr small {
+  color: var(--muted-strong);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pay-receipt-packet-card__summary strong,
+.pay-receipt-packet-card__qr strong {
+  min-width: 0;
+  color: var(--text);
+  font-family: "Syne", sans-serif;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.pay-receipt-packet-card__qr {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  min-height: 96px;
+  border-color: rgba(119, 242, 212, 0.16);
+  background:
+    linear-gradient(135deg, rgba(119, 242, 212, 0.08), rgba(228, 199, 129, 0.04)),
+    rgba(0, 0, 0, 0.18);
+}
+
 .pay-suite-plain-rows {
   display: grid;
   gap: 0;
@@ -8823,10 +8895,21 @@ input {
   .pay-request-grid,
   .pay-path-steps,
   .pay-record-list,
+  .pay-receipt-packet-card__summary,
   .pay-advanced-settings__grid,
   .pay-mode-control,
   .pay-suite-plain-rows p {
     grid-template-columns: 1fr;
+  }
+
+  .pay-receipt-packet-card__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pay-receipt-packet-card__actions,
+  .pay-receipt-packet-card__actions .button {
+    width: 100%;
   }
 
   .pay-section-mini-header {

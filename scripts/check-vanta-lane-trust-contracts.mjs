@@ -200,8 +200,16 @@ const payPageSource = requireMarkers("src/pages/PayPage.tsx", [
   "receiptPrivacyContract.claimControls.production_privacy_claims_locked",
   "receiptPrivacyContract.claimSummary",
   "payPrivacyClaimSummary",
-  "receiptPrivacyContract.currentTruth",
-  "receiptPrivacyContract.verificationSurfaces",
+  "PayReceiptPacketCard",
+  "receiptPrivacyContract",
+  "receiptPublicView",
+]);
+
+const payReceiptPacketCardSource = requireMarkers("src/components/PayReceiptPacketCard.tsx", [
+  "privacyContract.currentTruth",
+  "privacyContract.claimSummary",
+  "privacyContract.verificationSurfaces",
+  "publicView.verification.claimBoundary",
 ]);
 
 requireMarkers("src/styles.css", [
@@ -215,6 +223,7 @@ checkBannedClaims("src/components/SystemStatusStrip.tsx", systemStatusStripSourc
 checkBannedClaims("src/components/AppLayout.tsx", appLayoutSource);
 checkBannedClaims("src/pages/StrategyPage.tsx", strategyPageSource);
 checkBannedClaims("src/pages/PayPage.tsx", payPageSource);
+checkBannedClaims("src/components/PayReceiptPacketCard.tsx", payReceiptPacketCardSource);
 
 if (failures.length > 0) {
   console.error("Vanta lane trust contracts check: FAIL");

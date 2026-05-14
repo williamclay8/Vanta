@@ -44,6 +44,12 @@ const contractSource = requireMarkers("src/pay/vantaPayReceiptPrivacyContract.ts
 ]);
 
 const payPageSource = requireMarkers("src/pages/PayPage.tsx", [
+  "PayReceiptPacketCard",
+  "receiptPublicView",
+  "receiptPrivacyContract",
+]);
+
+const receiptPacketCardSource = requireMarkers("src/components/PayReceiptPacketCard.tsx", [
   "Receipt packet",
   "Visible to merchant",
   "Visible to buyer",
@@ -52,6 +58,10 @@ const payPageSource = requireMarkers("src/pages/PayPage.tsx", [
   "Receipt packet ready",
   "Proof receipt ID",
   "Test receipt only.",
+  "publicView.verification.claimBoundary",
+  "data-vanta-pay-receipt-packet-card",
+  "data-vanta-pay-receipt-verify-link",
+  'data-pay-action="copy-receipt-share-link"',
 ]);
 
 for (const banned of [
@@ -61,7 +71,12 @@ for (const banned of [
   "Production-ready private checkout",
   "Live mainnet private payment",
 ]) {
-  if (payPageSource.includes(banned) || contractSource.includes(banned) || typesSource.includes(banned)) {
+  if (
+    payPageSource.includes(banned) ||
+    receiptPacketCardSource.includes(banned) ||
+    contractSource.includes(banned) ||
+    typesSource.includes(banned)
+  ) {
     failures.push(`Banned Pay privacy claim found: ${banned}`);
   }
 }
