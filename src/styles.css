@@ -11467,6 +11467,82 @@ input {
   text-wrap: pretty;
 }
 
+.docs-home__flow-diagram {
+  display: grid;
+  gap: 0.65rem;
+  overflow: hidden;
+  border: 1px solid rgba(216, 253, 247, 0.58);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(45, 212, 191, 0.18), transparent 28%),
+    linear-gradient(135deg, #f8fffd 0%, #ffffff 58%, #eefdf8 100%);
+  color: #061412;
+  padding: clamp(0.95rem, 2vw, 1.2rem);
+  box-shadow:
+    0 20px 44px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.docs-home__flow-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 9rem;
+}
+
+.docs-home__flow-node rect {
+  fill: rgba(255, 255, 255, 0.96);
+  stroke: rgba(10, 42, 38, 0.16);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 12px 16px rgba(15, 23, 42, 0.1));
+}
+
+.docs-home__flow-node text {
+  fill: #061412;
+  font-family: "Syne", sans-serif;
+  font-size: 17px;
+  font-weight: 760;
+  letter-spacing: 0;
+}
+
+.docs-home__flow-node .docs-home__flow-node-kicker {
+  fill: rgba(15, 23, 42, 0.58);
+  font-family: "Manrope", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.docs-home__flow-arrow {
+  fill: none;
+  stroke: #0f766e;
+  stroke-linecap: round;
+  stroke-width: 4;
+}
+
+#docs-flow-arrowhead path {
+  fill: #0f766e;
+}
+
+.docs-home__flow-path {
+  fill: none;
+  opacity: 0.34;
+  stroke: #14b8a6;
+  stroke-dasharray: 6 10;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.docs-home__flow-diagram figcaption {
+  margin: 0;
+  color: rgba(6, 20, 18, 0.64);
+  font-size: 0.78rem;
+  font-weight: 720;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
 .docs-home__plain-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -11948,6 +12024,15 @@ input {
   .docs-command-list,
   .docs-truth-table {
     grid-template-columns: 1fr;
+  }
+
+  .docs-home__flow-diagram {
+    overflow-x: auto;
+    scrollbar-gutter: stable;
+  }
+
+  .docs-home__flow-svg {
+    min-width: 760px;
   }
 
   .docs-home__plain-strip article + article {

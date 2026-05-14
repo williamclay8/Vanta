@@ -2,6 +2,78 @@ import { Link } from "react-router-dom";
 import { DocsStatusBadge } from "@/components/DocsStatusBadge";
 import { getDocsPageMeta } from "@/docs/docsContent";
 
+function DocsHomeFlowDiagram() {
+  return (
+    <figure
+      className="docs-home__flow-diagram"
+      data-docs-flow-diagram
+      aria-label="Illustrative flow from public chain activity to Vanta receipts and counterparty review"
+    >
+      <svg className="docs-home__flow-svg" viewBox="0 0 980 190" role="img" aria-labelledby="docs-flow-title docs-flow-desc">
+        <title id="docs-flow-title">Vanta docs flow</title>
+        <desc id="docs-flow-desc">
+          A four-step diagram showing public chain activity, shielding into Vanta, creating a receipt, and counterparty review.
+        </desc>
+        <defs>
+          <marker
+            id="docs-flow-arrowhead"
+            markerHeight="8"
+            markerWidth="8"
+            orient="auto"
+            refX="7"
+            refY="4"
+            viewBox="0 0 8 8"
+          >
+            <path d="M0 0 L8 4 L0 8 Z" />
+          </marker>
+        </defs>
+        <g className="docs-home__flow-node" data-docs-flow-node="start-public" transform="translate(24 34)">
+          <rect width="164" height="120" rx="16" />
+          <text x="24" y="42">Public chain</text>
+          <text className="docs-home__flow-node-kicker" x="24" y="75">Start public</text>
+        </g>
+        <path
+          className="docs-home__flow-arrow"
+          data-docs-flow-arrow="start-to-shield"
+          d="M206 94 H262"
+          markerEnd="url(#docs-flow-arrowhead)"
+        />
+        <g className="docs-home__flow-node" data-docs-flow-node="shield-into-vanta" transform="translate(280 34)">
+          <rect width="164" height="120" rx="16" />
+          <text x="24" y="42">Vanta shield</text>
+          <text className="docs-home__flow-node-kicker" x="24" y="75">Shield into Vanta</text>
+        </g>
+        <path
+          className="docs-home__flow-arrow"
+          data-docs-flow-arrow="shield-to-receipt"
+          d="M462 94 H518"
+          markerEnd="url(#docs-flow-arrowhead)"
+        />
+        <g className="docs-home__flow-node" data-docs-flow-node="create-receipt" transform="translate(536 34)">
+          <rect width="164" height="120" rx="16" />
+          <text x="24" y="42">Trust packet</text>
+          <text className="docs-home__flow-node-kicker" x="24" y="75">Create a receipt</text>
+        </g>
+        <path
+          className="docs-home__flow-arrow"
+          data-docs-flow-arrow="receipt-to-verify"
+          d="M718 94 H774"
+          markerEnd="url(#docs-flow-arrowhead)"
+        />
+        <g className="docs-home__flow-node" data-docs-flow-node="counterparty-verify" transform="translate(792 34)">
+          <rect width="164" height="120" rx="16" />
+          <text x="24" y="42">Counterparty review</text>
+          <text className="docs-home__flow-node-kicker" x="24" y="75">Verify receipt</text>
+        </g>
+        <path className="docs-home__flow-path" d="M42 164 H936" />
+      </svg>
+      <figcaption>
+        Illustrative docs flow only; not production-private proof.
+      </figcaption>
+    </figure>
+  );
+}
+
 export function DocsHomePage() {
   const portalPage = getDocsPageMeta("portal");
   const payPage = getDocsPageMeta("pay");
@@ -31,6 +103,8 @@ export function DocsHomePage() {
           </p>
         </div>
       </section>
+
+      <DocsHomeFlowDiagram />
 
       <section className="docs-home__plain-strip" data-docs-plain-strip>
         <article>

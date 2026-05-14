@@ -1,10 +1,12 @@
 import { execFileSync, spawn } from "node:child_process";
-import { rmSync } from "node:fs";
+import { readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import assert from "node:assert/strict";
 
 const port = 5530 + Math.floor(Math.random() * 200);
 const baseUrl = `http://127.0.0.1:${port}`;
+const repoRoot = path.resolve(import.meta.dirname, "..");
 const expectedPrimaryNavSections = [
   "portal",
   "pay",
@@ -15,6 +17,42 @@ const expectedPrimaryNavSections = [
 
 function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
+}
+
+function assertDocsHomeFlowDiagramSource() {
+  const docsHomeSource = readFileSync(path.join(repoRoot, "src/pages/DocsHomePage.tsx"), "utf8");
+  const stylesSource = readFileSync(path.join(repoRoot, "src/styles.css"), "utf8");
+
+  for (const requiredSnippet of [
+    "data-docs-flow-diagram",
+    'data-docs-flow-node="start-public"',
+    'data-docs-flow-node="shield-into-vanta"',
+    'data-docs-flow-node="create-receipt"',
+    'data-docs-flow-node="counterparty-verify"',
+    'data-docs-flow-arrow="start-to-shield"',
+    'data-docs-flow-arrow="shield-to-receipt"',
+    'data-docs-flow-arrow="receipt-to-verify"',
+    "Public chain",
+    "Trust packet",
+    "Counterparty review",
+  ]) {
+    assert.ok(
+      docsHomeSource.includes(requiredSnippet),
+      `Docs home source must include inline flow diagram snippet: ${requiredSnippet}`,
+    );
+  }
+
+  for (const requiredSnippet of [
+    ".docs-home__flow-diagram",
+    ".docs-home__flow-node",
+    ".docs-home__flow-arrow",
+    ".docs-home__flow-path",
+  ]) {
+    assert.ok(
+      stylesSource.includes(requiredSnippet),
+      `Docs CSS must include inline flow diagram style snippet: ${requiredSnippet}`,
+    );
+  }
 }
 
 async function waitForVite() {
@@ -50,12 +88,23 @@ function runBrowserBatch() {
         { kind: "selector_visible", selector: ".docs-home__hero" },
         { kind: "selector_visible", selector: ".docs-home__hero-note" },
         { kind: "selector_visible", selector: "[data-docs-plain-strip]" },
+        { kind: "selector_visible", selector: "[data-docs-flow-diagram]" },
+        { kind: "selector_visible", selector: '[data-docs-flow-node="start-public"]' },
+        { kind: "selector_visible", selector: '[data-docs-flow-node="shield-into-vanta"]' },
+        { kind: "selector_visible", selector: '[data-docs-flow-node="create-receipt"]' },
+        { kind: "selector_visible", selector: '[data-docs-flow-node="counterparty-verify"]' },
+        { kind: "selector_visible", selector: '[data-docs-flow-arrow="start-to-shield"]' },
+        { kind: "selector_visible", selector: '[data-docs-flow-arrow="shield-to-receipt"]' },
+        { kind: "selector_visible", selector: '[data-docs-flow-arrow="receipt-to-verify"]' },
         { kind: "selector_visible", selector: ".docs-path-card" },
         { kind: "text_visible", text: "Vanta makes Solana activity less public." },
         { kind: "text_visible", text: "Start public" },
         { kind: "text_visible", text: "Shield into Vanta" },
-        { kind: "text_visible", text: "Use private actions" },
-        { kind: "text_visible", text: "Return when needed" },
+        { kind: "text_visible", text: "Create a receipt" },
+        { kind: "text_visible", text: "Let the counterparty verify" },
+        { kind: "text_visible", text: "Public chain" },
+        { kind: "text_visible", text: "Trust packet" },
+        { kind: "text_visible", text: "Counterparty review" },
         { kind: "text_visible", text: "Who it helps" },
         { kind: "text_visible", text: "The same privacy idea serves users and merchants." },
         { kind: "text_visible", text: "Vanta Portal" },
@@ -223,6 +272,7 @@ vite.stderr.on("data", (chunk) => {
 });
 
 try {
+  assertDocsHomeFlowDiagramSource();
   await waitForVite();
   runBrowserBatchWithRetry();
   console.log("vanta docs browser check: PASS");
