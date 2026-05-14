@@ -129,7 +129,7 @@ requireMarkers(
     "tagRegisterProvenancedRoot: 4",
     "spendWithProofAccountCount: 8",
     "tagRegisterVaultAsset: 7",
-    "unshieldAccountCount: 10",
+    "unshieldAccountCount: 11",
     "unshieldVaultAssetSeed: \"vanta2asset\"",
   ],
   "SBF ABI status check",

@@ -59,7 +59,7 @@ const requiredPhrases = [
   "not production proof-format acceptance",
   "npm run zk:c01-local-proof-format-evidence-check",
   "npm run zk:c01-production-verifier-backend-candidate-check",
-  "reserved source-only `TAG_UNSHIELD = 6` ABI now validates root/root-record/nullifier/vault-authority/vault-asset/token-account preflight",
+  "reserved source-only `TAG_UNSHIELD = 6` ABI now validates root/root-record/verifier-key/nullifier/vault-authority/vault-asset/token-account preflight",
   "source-only `TAG_REGISTER_VAULT_ASSET = 7` can create a disabled custody-registry record with `releaseEnabled = 0`",
   "tag `6` still fails closed before nullifier consume, proof verification, token/system CPI, custody transfer, account mutation, or fund release",
   "transition-field drift",

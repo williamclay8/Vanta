@@ -172,7 +172,7 @@ const packets = {
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Unshield currently releases through an operator-keypair public exit. The local TAG_UNSHIELD source ABI preflights root, root-record, nullifier, vault-authority, vault-asset registry, and token-account shape, then fails closed before proof verification, token CPI, custody transfer, or fund release. This is not a production-private exit or custody claim until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
+        "Unshield currently releases through an operator-keypair public exit. The local TAG_UNSHIELD source ABI preflights root, root-record, verifier-key, nullifier, vault-authority, vault-asset registry, and token-account shape, then fails closed before proof verification, token CPI, custody transfer, or fund release. This is not a production-private exit or custody claim until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
     },
     custodyBoundary: {
       productionCustodyReady: false,
@@ -181,6 +181,7 @@ const packets = {
       sourceOnlyVaultAssetRegistryReady: true,
       sourceOnlyVaultTokenAccountPreflightReady: true,
       sourceOnlyRootPreflightReady: true,
+      sourceOnlyVerifierKeyPreflightReady: true,
       onchainUnshieldInstructionReady: false,
       tagUnshieldVaultAssetRegistryReleaseEnabled: false,
       blockerIds: [
@@ -350,6 +351,7 @@ if (checkMode) {
     assert.equal(packet.custodyBoundary?.sourceOnlyVaultAssetRegistryReady, true);
     assert.equal(packet.custodyBoundary?.sourceOnlyVaultTokenAccountPreflightReady, true);
     assert.equal(packet.custodyBoundary?.sourceOnlyRootPreflightReady, true);
+    assert.equal(packet.custodyBoundary?.sourceOnlyVerifierKeyPreflightReady, true);
     assert.equal(packet.custodyBoundary?.onchainUnshieldInstructionReady, false);
     assert.equal(packet.custodyBoundary?.tagUnshieldVaultAssetRegistryReleaseEnabled, false);
     assert.equal(
@@ -376,7 +378,7 @@ if (checkMode) {
     );
     assert.ok(
       packet.claimBoundary.safeClaim.includes(
-        "preflights root, root-record, nullifier, vault-authority, vault-asset registry, and token-account shape",
+        "preflights root, root-record, verifier-key, nullifier, vault-authority, vault-asset registry, and token-account shape",
       ),
       "Unshield packet must name the source-only TAG_UNSHIELD preflight boundary.",
     );

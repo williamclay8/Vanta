@@ -1530,6 +1530,7 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new(payload.destination_token_account, false),
             AccountMeta::new_readonly(payload.mint, false),
             AccountMeta::new_readonly(payload.token_program, false),
+            AccountMeta::new_readonly(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
         ]
     }
 
@@ -1609,6 +1610,7 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new(payload.destination_token_account, false),
             AccountMeta::new_readonly(payload.mint, false),
             AccountMeta::new_readonly(payload.token_program, false),
+            AccountMeta::new_readonly(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
         ]
     }
 
@@ -1624,6 +1626,7 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new(payload.destination_token_account, false),
             AccountMeta::new_readonly(payload.mint, false),
             AccountMeta::new_readonly(payload.token_program, false),
+            AccountMeta::new_readonly(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
         ]
     }
 
@@ -1639,6 +1642,7 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new(payload.destination_token_account, false),
             AccountMeta::new_readonly(payload.mint, false),
             AccountMeta::new_readonly(payload.token_program, false),
+            AccountMeta::new_readonly(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
         ]
     }
 
@@ -1657,6 +1661,7 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new(payload.destination_token_account, false),
             AccountMeta::new_readonly(payload.mint, false),
             AccountMeta::new_readonly(payload.token_program, false),
+            AccountMeta::new_readonly(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
         ]
     }
 
@@ -1924,6 +1929,7 @@ impl VantaPrivatePoolV2Spend {
             payload.mint,
             payload.exit_destination_pubkey(),
         );
+        self.ensure_verifier_key_account(&payload.verifier_key_hash);
     }
 
     fn ensure_marker_placeholder(&mut self, nullifier: &[u8; HASH_LEN]) {
@@ -2438,6 +2444,7 @@ struct UnshieldPayload {
     accepted_root: [u8; HASH_LEN],
     exit_destination: [u8; HASH_LEN],
     exit_asset_id: [u8; HASH_LEN],
+    verifier_key_hash: [u8; HASH_LEN],
     mint: Pubkey,
     vault_token_account: Pubkey,
     destination_token_account: Pubkey,
@@ -2511,6 +2518,7 @@ fn unshield_payload_with_nullifier(
     let exit_destination = make_hash(seed, 62);
     let exit_asset_id = make_hash(seed, 63);
     let public_input_hash = make_hash(seed, 64);
+    let verifier_key_hash = make_hash(seed, 67);
     UnshieldPayload {
         data: unshield_data(
             nullifier,
@@ -2518,11 +2526,13 @@ fn unshield_payload_with_nullifier(
             exit_destination,
             exit_asset_id,
             public_input_hash,
+            verifier_key_hash,
         ),
         nullifier,
         accepted_root,
         exit_destination,
         exit_asset_id,
+        verifier_key_hash,
         mint: pubkey_from_hash(make_hash(seed, 65)),
         vault_token_account: pubkey_from_hash(make_hash(seed, 66)),
         destination_token_account: pubkey_from_hash(make_hash(seed, 68)),
@@ -2574,9 +2584,10 @@ fn unshield_data(
     exit_destination: [u8; HASH_LEN],
     exit_asset_id: [u8; HASH_LEN],
     public_input_hash: [u8; HASH_LEN],
+    verifier_key_hash: [u8; HASH_LEN],
 ) -> Vec<u8> {
     let mut data =
-        Vec::with_capacity(1 + HASH_LEN * 5 + EXIT_AMOUNT_LEN + RESERVED_GROTH16_PROOF_LEN);
+        Vec::with_capacity(1 + HASH_LEN * 6 + EXIT_AMOUNT_LEN + RESERVED_GROTH16_PROOF_LEN);
     data.push(TAG_UNSHIELD);
     data.extend_from_slice(&nullifier);
     data.extend_from_slice(&accepted_root);
@@ -2584,6 +2595,7 @@ fn unshield_data(
     data.extend_from_slice(&exit_asset_id);
     data.extend_from_slice(&seeded_exit_amount(&exit_asset_id));
     data.extend_from_slice(&public_input_hash);
+    data.extend_from_slice(&verifier_key_hash);
     data.extend_from_slice(&[6; RESERVED_GROTH16_PROOF_LEN]);
     data
 }

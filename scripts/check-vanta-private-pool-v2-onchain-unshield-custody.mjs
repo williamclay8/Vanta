@@ -25,7 +25,7 @@ const status = createVantaUnshieldMainnetProductionStatus();
 const custody = status.onchainUnshieldCustody;
 
 assert.ok(custody, "Unshield production status must expose onchainUnshieldCustody.");
-assert.equal(custody.version, "vanta-onchain-unshield-custody-status-0.3");
+assert.equal(custody.version, "vanta-onchain-unshield-custody-status-0.4");
 assert.equal(custody.status, "blocked");
 assert.equal(custody.productionCustodyReady, false);
 assert.equal(custody.programOwnedVaultReady, false);
@@ -34,8 +34,12 @@ assert.equal(custody.sourceOnlyVaultAssetRegistryReady, true);
 assert.equal(custody.sourceOnlyVaultTokenAccountPreflightReady, true);
 assert.equal(custody.sourceOnlyRootPreflightReady, true);
 assert.equal(custody.sourceOnlyNullifierMarkerPreflightReady, true);
+assert.equal(custody.sourceOnlyVerifierKeyPreflightReady, true);
 assert.equal(custody.onchainUnshieldInstructionReady, false);
-assert.equal(custody.onchainUnshieldInstructionStatus, "reserved-fail-closed-vault-asset-preflight-source-only");
+assert.equal(
+  custody.onchainUnshieldInstructionStatus,
+  "reserved-fail-closed-vault-asset-and-verifier-key-preflight-source-only",
+);
 assert.equal(custody.tagUnshieldVaultAssetRegistryReleaseEnabled, false);
 assert.equal(custody.tokenCpiReleaseReady, false);
 assert.equal(custody.onchainProofVerifierReady, false);
@@ -62,6 +66,7 @@ for (const marker of [
   "const VAULT_ASSET_RELEASE_ENABLED_OFFSET",
   "const SPL_TOKEN_PROGRAM_ID: Pubkey",
   "const UNSHIELD_PAYLOAD_LEN",
+  "const UNSHIELD_VERIFIER_KEY_HASH_OFFSET",
   "const ERR_UNSHIELD_RELEASE_NOT_WIRED: u32 = 15;",
   "const ERR_VAULT_AUTHORITY_MISMATCH: u32 = 16;",
   "const ERR_ROOT_RECORD_MISMATCH: u32 = 18;",
@@ -75,12 +80,13 @@ for (const marker of [
   "fn process_unshield",
   "fn process_register_vault_asset",
   "require_root_record(",
+  "require_verifier_key_hash(",
   "require_vault_authority(",
   "require_vault_asset_record(",
   "require_spl_release_accounts(",
   "asset_data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] != 0",
   "data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] = 0;",
-  "proof-verified unshield release ABI passed root/root-record/nullifier/vault-asset/token-account preflight; release not wired",
+  "proof-verified unshield release ABI passed root/root-record/verifier-key/nullifier/vault-asset/token-account preflight; release not wired",
 ]) {
   assert.ok(programSource.includes(marker), `Reserved TAG_UNSHIELD fail-closed source marker missing: ${marker}`);
 }
@@ -92,6 +98,9 @@ for (const marker of [
   "fuzz_assert_eq!(asset_data.len(), VAULT_ASSET_ACCOUNT_LEN);",
   "fuzz_assert_eq!(asset_data[VAULT_ASSET_RELEASE_ENABLED_OFFSET], 0);",
   "corrupt_vault_asset_release_enabled",
+  "verifier_key_hash: [u8; HASH_LEN]",
+  "self.ensure_verifier_key_account(&payload.verifier_key_hash)",
+  "self.verifier_key_pubkey(&payload.verifier_key_hash)",
   "token_program: SPL_TOKEN_PROGRAM_ID",
   "Some(ERR_VAULT_ASSET_MISMATCH)",
 ]) {
@@ -110,14 +119,16 @@ for (const marker of [
   "`vault_asset` read-only program-owned PDA derived from `[\"vanta2asset\", pool_state, exitAssetId]`",
   "`vault_token_account` writable SPL token account matching the registered mint and vault authority",
   "`destination_token_account` writable SPL token account matching the registered mint and `exitDestination` owner",
-  "Instruction data is exactly 425 bytes",
+  "Instruction data is exactly 457 bytes",
   "Register-vault-asset instruction data is exactly 130 bytes",
   "acceptedRoot:32",
+  "verifierKeyHash:32",
   "preflights the deterministic root-record PDA",
+  "preflights the deterministic verifier-key PDA",
   "preflights the deterministic vault-asset registry PDA",
   "preflights SPL mint/token-account ownership and mint shape without invoking the token program",
   "rejects token-program ids that are not the canonical SPL Token program",
-  "returns custom error `15` after preflight and before mutating accounts",
+  "returns custom error `15` after root/root-record/verifier-key/nullifier/vault-asset/token-account preflight and before mutating accounts",
   "The registry record stores `releaseEnabled = 0`; tag `6` requires that disabled value today",
   "`18`: supplied root record PDA or account content does not match the expected pool/root provenance record",
   "`16`: supplied Unshield vault authority PDA does not match the expected pool/asset vault authority",
@@ -171,12 +182,13 @@ for (const marker of [
   "program-owned-vault-pda-not-deployed",
   "tag-unshield-reserved-fail-closed",
   "tag-unshield-token-cpi-release-not-wired",
-  "reserved-fail-closed-vault-asset-preflight-source-only",
+  "reserved-fail-closed-vault-asset-and-verifier-key-preflight-source-only",
   "sourceOnlyVaultAuthorityPreflightReady",
   "sourceOnlyVaultAssetRegistryReady",
   "sourceOnlyVaultTokenAccountPreflightReady",
   "sourceOnlyRootPreflightReady",
   "sourceOnlyNullifierMarkerPreflightReady",
+  "sourceOnlyVerifierKeyPreflightReady",
   "tagUnshieldVaultAssetRegistryReleaseEnabled",
   "operator-vault-keypair-env-release-still-active",
 ]) {

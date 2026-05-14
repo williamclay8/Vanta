@@ -216,11 +216,12 @@ Unshield preflight accounts:
 8. `destination_token_account` writable SPL token account matching the registered mint and `exitDestination` owner
 9. `mint` read-only SPL mint account owned by the registered token program
 10. `token_program` read-only token program account matching the registered vault asset
+11. `verifier_key` read-only program-owned PDA derived from `["vanta2vkey", pool_state, verifierKeyHash]`
 
-Instruction data is exactly 425 bytes:
+Instruction data is exactly 457 bytes:
 
 ```text
-[6, nullifier:32, acceptedRoot:32, exitDestination:32, exitAssetId:32, exitAmountLeU64:8, publicInputHash:32, groth16Proof:256]
+[6, nullifier:32, acceptedRoot:32, exitDestination:32, exitAssetId:32, exitAmountLeU64:8, publicInputHash:32, verifierKeyHash:32, groth16Proof:256]
 ```
 
 Behavior today:
@@ -229,12 +230,13 @@ Behavior today:
 - verifies the supplied `root_history` account is initialized and matches the pubkey stored in `pool_state`
 - rejects unshield preflights whose `acceptedRoot` has not been registered in `root_history`
 - preflights the deterministic root-record PDA
+- preflights the deterministic verifier-key PDA and source-only verifier-key registry record
 - preflights the deterministic nullifier marker PDA without creating or mutating it
 - preflights the deterministic vault-authority PDA
 - preflights the deterministic vault-asset registry PDA
 - preflights SPL mint/token-account ownership and mint shape without invoking the token program
 - The registry record stores `releaseEnabled = 0`; tag `6` requires that disabled value today
-- returns custom error `15` after preflight and before mutating accounts
+- returns custom error `15` after root/root-record/verifier-key/nullifier/vault-asset/token-account preflight and before mutating accounts
 - does not perform token CPIs, PDA-signed release, custody transfer, nullifier consume, or proof verification
 - must not be used as program-owned vault or proof-verified release evidence until the actual verifier, token CPI, SBF rebuild, redeploy/reinit, and live/audit evidence exist
 

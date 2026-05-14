@@ -30,7 +30,7 @@ rules:
   no_production_private_claims_without_positive_proof_and_live_receipts: true
 
 lumi:
-  local: "Tracker, N1/N2/N3/N5, R6A, R8A, R9A/R9B/R9C, R10A/R10B, R11A, R12-R16, and R19 local/source-level receipts exist; use git status for current dirt."
+  local: "Tracker, N1/N2/N3/N5, R4A, R6A, R8A, R9A/R9B/R9C, R10A/R10B, R11A, R12-R16, and R19 local/source-level receipts exist; use git status for current dirt."
   committed: "R6A/R9B base commit is 51809b9 (Add direct-key and proof-bound exit scaffolds); R9C is recorded in the current tracker state. Use git log for the exact current head."
   pushed: "codex/vanta-zk-review-hardening is ahead of origin; latest audit tracker commits are not pushed. Use git status for the exact count."
   deployed_live: "latest circuit/tracker/CI/memo-quarantine/vault-KDF/service-entrypoint/role-service-control/direct-key/discovery-binding/proof-bound-destination slices are not deployed/live; live-read probes are evidence about deployed public surfaces only, not deployment of the current branch head."
@@ -293,7 +293,7 @@ architecture_blocker_map:
     completion_requires: "A real on-chain verifier, verifying-key hash enforcement, valid-proof acceptance, invalid-proof rejection, and no-mutation tests."
   - id: A1-TAG6-UNSHIELD-RELEASE-NOT-WIRED
     status: blocked-architecture-audit-deploy
-    current_truth: "TAG_UNSHIELD = 6 preflights root/root-record/nullifier/vault/token-account shape and still returns ERR_UNSHIELD_RELEASE_NOT_WIRED / custom error 15 before release."
+    current_truth: "TAG_UNSHIELD = 6 preflights root/root-record/verifier-key/nullifier/vault-asset/token-account shape and still returns ERR_UNSHIELD_RELEASE_NOT_WIRED / custom error 15 before release."
     guard: "npm run private-pool-v2:onchain-unshield-custody-check"
     completion_requires: "Proof-verified TAG_UNSHIELD release with nullifier consume, token/system CPI, invalid-proof no-release tests, and program-owned custody."
   - id: A2-OPERATOR-KEYPAIR-CUSTODY
@@ -351,6 +351,23 @@ audit_remaining_work_backlog:
     tracker_ref: "A2-OPERATOR-KEYPAIR-CUSTODY"
     status: blocked-architecture-audit-deploy
     guard: "npm run private-pool-v2:onchain-unshield-custody-check"
+  - id: R4A-TAG6-VERIFIER-KEY-PREFLIGHT
+    source_priority: blocker
+    source_item: "Bind reserved TAG_UNSHIELD preflight to a registered verifier-key hash before any future release path."
+    tracker_ref: "A1-TAG6-UNSHIELD-RELEASE-NOT-WIRED"
+    status: local-implemented-fail-closed
+    guard: "npm run private-pool-v2:onchain-unshield-custody-check"
+    evidence:
+      - "programs/vanta_private_pool_v2_spend/src/lib.rs extends TAG_UNSHIELD to a 457-byte reserved fail-closed payload carrying verifierKeyHash:32 before groth16Proof:256."
+      - "TAG_UNSHIELD now requires a read-only verifier-key PDA derived from [\"vanta2vkey\", pool_state, verifierKeyHash] and calls require_verifier_key_hash before root/root-record/verifier-key/nullifier/vault-asset/token-account preflight."
+      - "The release path still returns ERR_UNSHIELD_RELEASE_NOT_WIRED / custom error 15 before proof verification, nullifier consume, token/system CPI, custody transfer, account mutation, or fund release."
+      - "The custody guard and SBF ABI status surfaces require unshieldAccountCount: 11, unshieldInstructionLen: 457, sourceOnlyVerifierKeyPreflightReady: true, and productionCustodyReady: false."
+      - "This is source-level verifier-key preflight hardening only; it is not a production verifying key, not on-chain proof verification, not proof-verified Unshield release, not program-owned custody, not deployed/live lineage evidence, not audit acceptance, and not production privacy."
+    verify:
+      - "cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml"
+      - "npm run private-pool-v2:onchain-unshield-custody-check"
+      - "npm run private-pool-v2:sbf-abi-check"
+      - "npm run private-pool-v2:crucible-check"
   - id: R5-PROGRAM-OWNED-SHARED-TREE
     source_priority: blocker
     source_item: "Make accepted roots come from program-owned shared-tree state, not operator-fed root lists."
@@ -668,7 +685,8 @@ audit_completion_checklist:
     - "R9 production recipient discovery remains pending even though R9C local proof-owner public-key exchange, R9B local direct viewing-key exchange, and R9A local ciphertext body-hash handoff binding are implemented."
     - "R10 broader production service separation remains partial/pending live controls even though R10A local stub replacement and R10B local/source-level production-control evidence are implemented."
     - "R16 proof-verified claim gating is locally implemented fail-closed but remains blocked on real tag-3 valid-proof success and no-mutation evidence."
+    - "R4A TAG_UNSHIELD verifier-key preflight is locally implemented fail-closed but remains blocked on real proof verification, nullifier consume, token/system CPI, program-owned custody, deployed/live lineage, and audit acceptance."
 
 next_safe_slices:
-  - "No remaining small local-only audit quick-fix is open after R6A/R9B/R9C/R10B/R16; remaining work is architecture-blocked, approval-gated, live/CI-gated, or production-service-gated."
+  - "No remaining small local-only audit quick-fix is open after R4A/R6A/R9B/R9C/R10B/R16; remaining work is architecture-blocked, approval-gated, live/CI-gated, or production-service-gated unless a fresh source-only preflight seam is identified."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."

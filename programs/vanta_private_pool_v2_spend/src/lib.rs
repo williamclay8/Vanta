@@ -72,7 +72,8 @@ const UNSHIELD_EXIT_DESTINATION_OFFSET: usize = HASH_LEN * 2;
 const UNSHIELD_EXIT_ASSET_ID_OFFSET: usize = HASH_LEN * 3;
 const UNSHIELD_EXIT_AMOUNT_OFFSET: usize = HASH_LEN * 4;
 const UNSHIELD_PUBLIC_INPUT_HASH_OFFSET: usize = UNSHIELD_EXIT_AMOUNT_OFFSET + EXIT_AMOUNT_LEN;
-const UNSHIELD_PROOF_OFFSET: usize = UNSHIELD_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN;
+const UNSHIELD_VERIFIER_KEY_HASH_OFFSET: usize = UNSHIELD_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN;
+const UNSHIELD_PROOF_OFFSET: usize = UNSHIELD_VERIFIER_KEY_HASH_OFFSET + HASH_LEN;
 const UNSHIELD_PAYLOAD_LEN: usize = 1 + UNSHIELD_PROOF_OFFSET + RESERVED_GROTH16_PROOF_LEN;
 const REGISTER_ROOT_PAYLOAD_LEN: usize = 1 + HASH_LEN;
 const OUTPUT_RECORD_PDA_LEN: usize = HEADER_LEN + 8 + HASH_LEN * 4;
@@ -625,7 +626,9 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
     let exit_destination = &rest[UNSHIELD_EXIT_DESTINATION_OFFSET..UNSHIELD_EXIT_ASSET_ID_OFFSET];
     let exit_asset_id = &rest[UNSHIELD_EXIT_ASSET_ID_OFFSET..UNSHIELD_EXIT_AMOUNT_OFFSET];
     let exit_amount = &rest[UNSHIELD_EXIT_AMOUNT_OFFSET..UNSHIELD_PUBLIC_INPUT_HASH_OFFSET];
-    let public_input_hash = &rest[UNSHIELD_PUBLIC_INPUT_HASH_OFFSET..UNSHIELD_PROOF_OFFSET];
+    let public_input_hash =
+        &rest[UNSHIELD_PUBLIC_INPUT_HASH_OFFSET..UNSHIELD_VERIFIER_KEY_HASH_OFFSET];
+    let verifier_key_hash = &rest[UNSHIELD_VERIFIER_KEY_HASH_OFFSET..UNSHIELD_PROOF_OFFSET];
     let proof = &rest[UNSHIELD_PROOF_OFFSET..UNSHIELD_PROOF_OFFSET + RESERVED_GROTH16_PROOF_LEN];
 
     if nullifier.iter().all(|byte| *byte == 0)
@@ -634,6 +637,7 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
         || exit_asset_id.iter().all(|byte| *byte == 0)
         || exit_amount.iter().all(|byte| *byte == 0)
         || public_input_hash.iter().all(|byte| *byte == 0)
+        || verifier_key_hash.iter().all(|byte| *byte == 0)
         || proof.iter().all(|byte| *byte == 0)
     {
         return Err(ProgramError::InvalidInstructionData);
@@ -650,6 +654,7 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
     let destination_token_account = next_account_info(&mut account_iter)?;
     let mint = next_account_info(&mut account_iter)?;
     let token_program = next_account_info(&mut account_iter)?;
+    let verifier_key = next_account_info(&mut account_iter)?;
 
     require_program_account(program_id, pool_state)?;
     require_readonly_program_account(program_id, root_history)?;
@@ -664,6 +669,7 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
         return Err(ProgramError::Custom(ERR_UNKNOWN_ACCEPTED_ROOT));
     }
     require_root_record(program_id, pool_state, root_record, accepted_root)?;
+    require_verifier_key_hash(program_id, pool_state, verifier_key, verifier_key_hash)?;
 
     require_nullifier_marker_available(program_id, pool_state, nullifier_marker, nullifier)?;
     require_vault_authority(program_id, pool_state, vault_authority, exit_asset_id)?;
@@ -687,7 +693,7 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
         exit_destination,
     )?;
 
-    msg!("vanta_private_pool_v2_spend: proof-verified unshield release ABI passed root/root-record/nullifier/vault-asset/token-account preflight; release not wired");
+    msg!("vanta_private_pool_v2_spend: proof-verified unshield release ABI passed root/root-record/verifier-key/nullifier/vault-asset/token-account preflight; release not wired");
     Err(ProgramError::Custom(ERR_UNSHIELD_RELEASE_NOT_WIRED))
 }
 
@@ -4118,6 +4124,7 @@ mod tests {
         let output_queue = Pubkey::new_unique();
         let root_history = Pubkey::new_unique();
         let root_record = root_record_pubkey(&program_id, &pool_state, &[4; HASH_LEN]);
+        let verifier_key = verifier_key_pubkey(&program_id, &pool_state, &[6; HASH_LEN]);
         let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &[1; HASH_LEN]);
         let vault_authority = vault_authority_pubkey(&program_id, &pool_state, &[3; HASH_LEN]);
         let vault_asset = vault_asset_pubkey(&program_id, &pool_state, &[3; HASH_LEN]);
@@ -4132,6 +4139,7 @@ mod tests {
         let mut output_lamports = 1_000_000;
         let mut root_lamports = 1_000_000;
         let mut root_record_lamports = 1_000_000;
+        let mut verifier_key_lamports = 1_000_000;
         let mut marker_lamports = 1_000_000;
         let mut vault_authority_lamports = 0;
         let mut vault_asset_lamports = 1_000_000;
@@ -4146,6 +4154,7 @@ mod tests {
         let mut output_data = vec![0; HEADER_LEN];
         let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
         let mut root_record_data = vec![0; ROOT_RECORD_ACCOUNT_LEN];
+        let mut verifier_key_data = vec![0; VERIFIER_KEY_ACCOUNT_LEN];
         let mut marker_data = vec![0; NULLIFIER_MARKER_LEN];
         let mut vault_authority_data = [];
         let mut vault_asset_data = vec![0; VAULT_ASSET_ACCOUNT_LEN];
@@ -4267,11 +4276,13 @@ mod tests {
             &token_program,
         )
         .unwrap();
+        write_verifier_key_account(&mut verifier_key_data, &pool_state, &[6; HASH_LEN]).unwrap();
 
         let before = (
             pool_data.clone(),
             root_data.clone(),
             root_record_data.clone(),
+            verifier_key_data.clone(),
             marker_data.clone(),
             vault_asset_data.clone(),
             vault_token_data.clone(),
@@ -4359,6 +4370,14 @@ mod tests {
                 &mut token_program_lamports,
                 &mut token_program_data,
             );
+            let verifier = account_info(
+                &verifier_key,
+                &program_id,
+                false,
+                false,
+                &mut verifier_key_lamports,
+                &mut verifier_key_data,
+            );
             let accounts = vec![
                 pool,
                 roots,
@@ -4370,6 +4389,7 @@ mod tests {
                 destination_token,
                 mint_info,
                 token_program_info,
+                verifier,
             ];
 
             assert_eq!(
@@ -4384,6 +4404,7 @@ mod tests {
                 pool_data,
                 root_data,
                 root_record_data,
+                verifier_key_data,
                 marker_data,
                 vault_asset_data,
                 vault_token_data,
@@ -4443,6 +4464,10 @@ mod tests {
             ),
             (
                 1 + UNSHIELD_PUBLIC_INPUT_HASH_OFFSET,
+                1 + UNSHIELD_VERIFIER_KEY_HASH_OFFSET,
+            ),
+            (
+                1 + UNSHIELD_VERIFIER_KEY_HASH_OFFSET,
                 1 + UNSHIELD_PROOF_OFFSET,
             ),
             (1 + UNSHIELD_PROOF_OFFSET, UNSHIELD_PAYLOAD_LEN),
@@ -4464,6 +4489,7 @@ mod tests {
         let output_queue = Pubkey::new_unique();
         let root_history = Pubkey::new_unique();
         let root_record = root_record_pubkey(&program_id, &pool_state, &[4; HASH_LEN]);
+        let verifier_key = verifier_key_pubkey(&program_id, &pool_state, &[6; HASH_LEN]);
         let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &[1; HASH_LEN]);
         let wrong_nullifier_marker = Pubkey::new_unique();
         let vault_authority = vault_authority_pubkey(&program_id, &pool_state, &[3; HASH_LEN]);
@@ -4480,6 +4506,7 @@ mod tests {
         let mut output_lamports = 1_000_000;
         let mut root_lamports = 1_000_000;
         let mut root_record_lamports = 1_000_000;
+        let mut verifier_key_lamports = 1_000_000;
         let mut marker_lamports = 1_000_000;
         let mut wrong_marker_lamports = 1_000_000;
         let mut consumed_marker_lamports = 1_000_000;
@@ -4499,6 +4526,7 @@ mod tests {
         let mut output_data = vec![0; HEADER_LEN];
         let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
         let mut root_record_data = vec![0; ROOT_RECORD_ACCOUNT_LEN];
+        let mut verifier_key_data = vec![0; VERIFIER_KEY_ACCOUNT_LEN];
         let mut marker_data = vec![0; NULLIFIER_MARKER_LEN];
         let mut wrong_marker_data = vec![0; NULLIFIER_MARKER_LEN];
         let mut consumed_marker_data = vec![0; NULLIFIER_MARKER_LEN];
@@ -4625,11 +4653,13 @@ mod tests {
             &token_program,
         )
         .unwrap();
+        write_verifier_key_account(&mut verifier_key_data, &pool_state, &[6; HASH_LEN]).unwrap();
 
         let before = (
             pool_data.clone(),
             root_data.clone(),
             root_record_data.clone(),
+            verifier_key_data.clone(),
             marker_data.clone(),
             wrong_marker_data.clone(),
             vault_asset_data.clone(),
@@ -4720,6 +4750,14 @@ mod tests {
                 &mut token_program_lamports,
                 &mut token_program_data,
             );
+            let verifier = account_info(
+                &verifier_key,
+                &program_id,
+                false,
+                false,
+                &mut verifier_key_lamports,
+                &mut verifier_key_data,
+            );
             let accounts = vec![
                 pool,
                 roots,
@@ -4731,6 +4769,7 @@ mod tests {
                 destination_token,
                 mint_info,
                 token_program_info,
+                verifier,
             ];
 
             assert_eq!(
@@ -4824,6 +4863,14 @@ mod tests {
                 &mut token_program_lamports,
                 &mut token_program_data,
             );
+            let verifier = account_info(
+                &verifier_key,
+                &program_id,
+                false,
+                false,
+                &mut verifier_key_lamports,
+                &mut verifier_key_data,
+            );
             let accounts = vec![
                 pool,
                 roots,
@@ -4835,6 +4882,7 @@ mod tests {
                 destination_token,
                 mint_info,
                 token_program_info,
+                verifier,
             ];
 
             assert_eq!(
@@ -4933,6 +4981,14 @@ mod tests {
                 &mut token_program_lamports,
                 &mut token_program_data,
             );
+            let verifier = account_info(
+                &verifier_key,
+                &program_id,
+                false,
+                false,
+                &mut verifier_key_lamports,
+                &mut verifier_key_data,
+            );
             let accounts = vec![
                 pool,
                 roots,
@@ -4944,6 +5000,7 @@ mod tests {
                 destination_token,
                 mint_info,
                 token_program_info,
+                verifier,
             ];
 
             assert_eq!(
@@ -5034,6 +5091,14 @@ mod tests {
                 &mut token_program_lamports,
                 &mut token_program_data,
             );
+            let verifier = account_info(
+                &verifier_key,
+                &program_id,
+                false,
+                false,
+                &mut verifier_key_lamports,
+                &mut verifier_key_data,
+            );
             let accounts = vec![
                 pool,
                 roots,
@@ -5045,6 +5110,7 @@ mod tests {
                 destination_token,
                 mint_info,
                 token_program_info,
+                verifier,
             ];
 
             assert_eq!(
@@ -5134,6 +5200,14 @@ mod tests {
                 &mut token_program_lamports,
                 &mut token_program_data,
             );
+            let verifier = account_info(
+                &verifier_key,
+                &program_id,
+                false,
+                false,
+                &mut verifier_key_lamports,
+                &mut verifier_key_data,
+            );
             let accounts = vec![
                 pool,
                 roots,
@@ -5145,6 +5219,7 @@ mod tests {
                 destination_token,
                 mint_info,
                 token_program_info,
+                verifier,
             ];
 
             assert_eq!(
@@ -5234,6 +5309,14 @@ mod tests {
                 &mut token_program_lamports,
                 &mut token_program_data,
             );
+            let verifier = account_info(
+                &verifier_key,
+                &program_id,
+                false,
+                false,
+                &mut verifier_key_lamports,
+                &mut verifier_key_data,
+            );
             let accounts = vec![
                 pool,
                 roots,
@@ -5245,6 +5328,7 @@ mod tests {
                 destination_token,
                 mint_info,
                 token_program_info,
+                verifier,
             ];
 
             assert_eq!(
@@ -5334,6 +5418,14 @@ mod tests {
                 &mut token_program_lamports,
                 &mut token_program_data,
             );
+            let verifier = account_info(
+                &verifier_key,
+                &program_id,
+                false,
+                false,
+                &mut verifier_key_lamports,
+                &mut verifier_key_data,
+            );
             let accounts = vec![
                 pool,
                 roots,
@@ -5345,6 +5437,7 @@ mod tests {
                 destination_token,
                 mint_info,
                 token_program_info,
+                verifier,
             ];
 
             assert_eq!(
@@ -5359,6 +5452,7 @@ mod tests {
                 pool_data,
                 root_data,
                 root_record_data,
+                verifier_key_data,
                 marker_data,
                 wrong_marker_data,
                 vault_asset_data,
@@ -6526,7 +6620,8 @@ mod tests {
         data.extend_from_slice(&[3; HASH_LEN]);
         data.extend_from_slice(&[4; EXIT_AMOUNT_LEN]);
         data.extend_from_slice(&[5; HASH_LEN]);
-        data.extend_from_slice(&[6; RESERVED_GROTH16_PROOF_LEN]);
+        data.extend_from_slice(&[6; HASH_LEN]);
+        data.extend_from_slice(&[7; RESERVED_GROTH16_PROOF_LEN]);
         data
     }
 

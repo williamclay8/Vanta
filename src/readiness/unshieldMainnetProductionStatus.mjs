@@ -78,7 +78,7 @@ function createUnshieldRuntimeProductionControlsStatus() {
 
 function createOnchainUnshieldCustodyStatus() {
   return {
-    version: "vanta-onchain-unshield-custody-status-0.3",
+    version: "vanta-onchain-unshield-custody-status-0.4",
     status: "blocked",
     custodyModel: "operator-keypair-in-env",
     currentReleaseModel: "operator-keypair-public-exit",
@@ -90,8 +90,10 @@ function createOnchainUnshieldCustodyStatus() {
     sourceOnlyVaultTokenAccountPreflightReady: true,
     sourceOnlyRootPreflightReady: true,
     sourceOnlyNullifierMarkerPreflightReady: true,
+    sourceOnlyVerifierKeyPreflightReady: true,
     onchainUnshieldInstructionReady: false,
-    onchainUnshieldInstructionStatus: "reserved-fail-closed-vault-asset-preflight-source-only",
+    onchainUnshieldInstructionStatus:
+      "reserved-fail-closed-vault-asset-and-verifier-key-preflight-source-only",
     tagUnshieldReleaseReady: false,
     tagUnshieldVaultAssetRegistryReleaseEnabled: false,
     tokenCpiReleaseReady: false,
@@ -118,7 +120,7 @@ function createOnchainUnshieldCustodyStatus() {
       "Remove operator vault-keypair release authority from the production Unshield path.",
     ],
     truth:
-      "Current Unshield release remains an operator-keypair public exit: the operator signs SPL/SOL transfers from the configured vault owner. The local TAG_UNSHIELD source ABI is reserved fail-closed with source-only root/root-record/nullifier/vault-authority/vault-asset/token-account preflight and cannot release funds. The source-level vault-asset registry scaffold keeps releaseEnabled false and is not production custody.",
+      "Current Unshield release remains an operator-keypair public exit: the operator signs SPL/SOL transfers from the configured vault owner. The local TAG_UNSHIELD source ABI is reserved fail-closed with source-only root/root-record/verifier-key/nullifier/vault-authority/vault-asset/token-account preflight and cannot release funds. The source-level vault-asset registry scaffold keeps releaseEnabled false and is not production custody.",
   };
 }
 

@@ -18,6 +18,7 @@ export type UnshieldTrustContract = {
     sourceOnlyVaultAssetRegistryReady: true;
     sourceOnlyVaultTokenAccountPreflightReady: true;
     sourceOnlyRootPreflightReady: true;
+    sourceOnlyVerifierKeyPreflightReady: true;
     onchainUnshieldInstructionReady: false;
     tagUnshieldVaultAssetRegistryReleaseEnabled: false;
     blockerIds: readonly [
@@ -49,6 +50,7 @@ export function getUnshieldTrustContract(): UnshieldTrustContract {
       sourceOnlyVaultAssetRegistryReady: true,
       sourceOnlyVaultTokenAccountPreflightReady: true,
       sourceOnlyRootPreflightReady: true,
+      sourceOnlyVerifierKeyPreflightReady: true,
       onchainUnshieldInstructionReady: false,
       tagUnshieldVaultAssetRegistryReleaseEnabled: false,
       blockerIds: [
@@ -59,7 +61,7 @@ export function getUnshieldTrustContract(): UnshieldTrustContract {
       guardCommand: "npm run private-pool-v2:onchain-unshield-custody-check",
     },
     visibleStatusCopy:
-      "Unshield currently uses an operator-keypair public exit. The local TAG_UNSHIELD source ABI now preflights root, root-record, nullifier, vault-authority, vault-asset registry, and token-account shape but remains fail-closed and cannot release funds; production custody is not enabled until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
+      "Unshield currently uses an operator-keypair public exit. The local TAG_UNSHIELD source ABI now preflights root, root-record, verifier-key, nullifier, vault-authority, vault-asset registry, and token-account shape but remains fail-closed and cannot release funds; production custody is not enabled until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
     verificationSurfaces: [
       "npm run private-core:check",
       "npm run private-core:verify",

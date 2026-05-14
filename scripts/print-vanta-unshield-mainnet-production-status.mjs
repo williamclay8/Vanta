@@ -22,9 +22,10 @@ if (checkMode) {
   assert.equal(status.onchainUnshieldCustody.currentReleaseModel, "operator-keypair-public-exit");
   assert.equal(status.onchainUnshieldCustody.sourceOnlyVaultAuthorityPreflightReady, true);
   assert.equal(status.onchainUnshieldCustody.sourceOnlyRootPreflightReady, true);
+  assert.equal(status.onchainUnshieldCustody.sourceOnlyVerifierKeyPreflightReady, true);
   assert.equal(
     status.onchainUnshieldCustody.onchainUnshieldInstructionStatus,
-    "reserved-fail-closed-vault-asset-preflight-source-only",
+    "reserved-fail-closed-vault-asset-and-verifier-key-preflight-source-only",
   );
   assert.equal(status.onchainUnshieldCustody.sourceOnlyVaultAssetRegistryReady, true);
   assert.equal(status.onchainUnshieldCustody.sourceOnlyVaultTokenAccountPreflightReady, true);

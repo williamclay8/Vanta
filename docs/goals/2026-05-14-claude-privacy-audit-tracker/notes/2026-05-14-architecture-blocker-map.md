@@ -35,7 +35,7 @@ Status: `blocked-architecture-audit-deploy`
 Current truth:
 
 - `TAG_UNSHIELD = 6` is reserved.
-- The source preflights root/root-record/nullifier/vault-authority/vault-asset/token-account shape.
+- The source preflights root/root-record/verifier-key/nullifier/vault-authority/vault-asset/token-account shape.
 - It still returns `ERR_UNSHIELD_RELEASE_NOT_WIRED` / custom error `15` before proof verification, nullifier consume, token/system CPI, account mutation, or fund release.
 
 Guard:

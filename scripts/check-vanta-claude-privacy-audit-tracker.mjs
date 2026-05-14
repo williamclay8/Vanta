@@ -24,6 +24,10 @@ const architectureBlockerNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-architecture-blocker-map.md",
 );
+const r4aTag6VerifierKeyPreflightNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r4a-tag6-verifier-key-preflight.md",
+);
 const n5CiGateNotePath = resolve(trackerRoot, "notes/2026-05-14-n5-ci-gate.md");
 const r8aProverRelayPrivacyTradeoffNotePath = resolve(
   trackerRoot,
@@ -113,6 +117,7 @@ for (const path of [
   n2Ppv2SwapInputPreimageNotePath,
   n2PrivateCoreProofOwnerNotePath,
   architectureBlockerNotePath,
+  r4aTag6VerifierKeyPreflightNotePath,
   n5CiGateNotePath,
   r8aProverRelayPrivacyTradeoffNotePath,
   r9aCiphertextBodyHashDiscoveryBindingNotePath,
@@ -145,6 +150,7 @@ const n2ImplementationPathNote = read(n2ImplementationPathNotePath);
 const n2Ppv2SwapInputPreimageNote = read(n2Ppv2SwapInputPreimageNotePath);
 const n2PrivateCoreProofOwnerNote = read(n2PrivateCoreProofOwnerNotePath);
 const architectureBlockerNote = read(architectureBlockerNotePath);
+const r4aTag6VerifierKeyPreflightNote = read(r4aTag6VerifierKeyPreflightNotePath);
 const n5CiGateNote = read(n5CiGateNotePath);
 const r8aProverRelayPrivacyTradeoffNote = read(r8aProverRelayPrivacyTradeoffNotePath);
 const r9aCiphertextBodyHashDiscoveryBindingNote = read(
@@ -295,6 +301,7 @@ for (const phrase of [
   "ERR_PROOF_VERIFIER_NOT_WIRED / custom error 14",
   "A1-TAG6-UNSHIELD-RELEASE-NOT-WIRED",
   "ERR_UNSHIELD_RELEASE_NOT_WIRED / custom error 15",
+  "root/root-record/verifier-key/nullifier/vault-asset/token-account shape",
   "A2-OPERATOR-KEYPAIR-CUSTODY",
   "loadKeypairFromEnv(vaultSignerSecretKeyEnvName)",
   "A2-SELF-WALLET-EXIT-ONLY",
@@ -302,7 +309,11 @@ for (const phrase of [
   "partial-local-contract-implemented-blocked-on-proof-bound-release",
   "proofBoundDestinationCommitment",
   "R6A-PROOF-BOUND-DESTINATION-CONTRACT",
+  "R4A-TAG6-VERIFIER-KEY-PREFLIGHT",
+  "unshieldInstructionLen: 457",
+  "sourceOnlyVerifierKeyPreflightReady: true",
   "status: local-implemented-fail-closed",
+  "root/root-record/verifier-key/nullifier/vault-asset/token-account preflight",
   "proof-bound-destination-commitment",
   "A3-ROOTS-NOT-PROGRAM-OWNED-SHARED-TREE",
   "not proof that the root transition is correct",
@@ -375,12 +386,30 @@ for (const phrase of [
   "Use git log for the exact current head.",
   "Use git status for the exact count.",
   "not deployment of the current branch head",
-  "No remaining small local-only audit quick-fix is open after R6A/R9B/R9C",
+  "No remaining small local-only audit quick-fix is open after R4A/R6A/R9B/R9C/R10B/R16",
   ".github/workflows/privacy-audit.yml",
   "Vanta Privacy Audit Gates / Privacy audit gates",
   "Hosted GitHub Actions run must execute and pass before N5 is CI-verified.",
 ]) {
   assert.ok(state.includes(phrase), `state.yaml missing ${phrase}`);
+}
+
+for (const phrase of [
+  "R4A TAG_UNSHIELD verifier-key preflight",
+  "457-byte",
+  "verifierKeyHash",
+  "sourceOnlyVerifierKeyPreflightReady: true",
+  "ERR_UNSHIELD_RELEASE_NOT_WIRED",
+  "not proof verification",
+  "not program-owned custody",
+  "npm run private-pool-v2:onchain-unshield-custody-check",
+  "npm run private-pool-v2:sbf-abi-check",
+  "npm run private-pool-v2:crucible-check",
+]) {
+  assert.ok(
+    r4aTag6VerifierKeyPreflightNote.includes(phrase),
+    `R4A TAG_UNSHIELD verifier-key preflight note missing ${phrase}`,
+  );
 }
 
 for (const phrase of [

@@ -24,7 +24,8 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 | N4 stale/live SBF lineage | N4 tracker row | Blocked | Requires deploy/live approval and receipts |
 | N5 frontend operator-env CI gate | N5 tracker row, `.github/workflows/privacy-audit.yml`, N5 CI note | Local implemented, pending CI run | Hosted GitHub Actions must run green |
 | On-chain tag-3 verifier | A1 / R1 | Blocked | `ERR_PROOF_VERIFIER_NOT_WIRED` remains expected |
-| On-chain tag-6 release | A1/A2 / R4 | Blocked | `ERR_UNSHIELD_RELEASE_NOT_WIRED` remains expected |
+| On-chain tag-6 release | A1/A2 / R4 | Blocked | `ERR_UNSHIELD_RELEASE_NOT_WIRED` remains expected; R4A adds local verifier-key preflight only |
+| TAG_UNSHIELD verifier-key preflight | R4A | Local implemented, fail-closed | `npm run private-pool-v2:onchain-unshield-custody-check`; `npm run private-pool-v2:sbf-abi-check`; `npm run private-pool-v2:crucible-check` |
 | Program-owned PDA vault | A2 / R4 | Blocked | Current release model is operator-keypair public exit |
 | Program-owned shared tree | A3 / R5 | Blocked | Root provenance is not proof of transition correctness |
 | Fresh-address exit privacy | A2 self-wallet blocker / R6 | Partial local contract implemented, blocked on proof-bound release | Clay approved proof-bound fresh-address exit; local Unshield proof/protocol/plan surfaces now require `proofBoundDestinationCommitment`, but current operator still rejects `destinationOwner !== requester` until proof-bound TAG_UNSHIELD release and program-owned custody exist |
