@@ -25,6 +25,10 @@ const architectureBlockerNotePath = resolve(
   "notes/2026-05-14-architecture-blocker-map.md",
 );
 const n5CiGateNotePath = resolve(trackerRoot, "notes/2026-05-14-n5-ci-gate.md");
+const r8aProverRelayPrivacyTradeoffNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r8a-prover-relay-privacy-tradeoff.md",
+);
 const r15aOperatorKeypairEnvLockdownNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r15a-operator-keypair-env-lockdown.md",
@@ -50,6 +54,7 @@ for (const path of [
   n2PrivateCoreProofOwnerNotePath,
   architectureBlockerNotePath,
   n5CiGateNotePath,
+  r8aProverRelayPrivacyTradeoffNotePath,
   r15aOperatorKeypairEnvLockdownNotePath,
   completionAuditNotePath,
   privacyAuditWorkflowPath,
@@ -66,9 +71,11 @@ const n2Ppv2SwapInputPreimageNote = read(n2Ppv2SwapInputPreimageNotePath);
 const n2PrivateCoreProofOwnerNote = read(n2PrivateCoreProofOwnerNotePath);
 const architectureBlockerNote = read(architectureBlockerNotePath);
 const n5CiGateNote = read(n5CiGateNotePath);
+const r8aProverRelayPrivacyTradeoffNote = read(r8aProverRelayPrivacyTradeoffNotePath);
 const r15aOperatorKeypairEnvLockdownNote = read(r15aOperatorKeypairEnvLockdownNotePath);
 const completionAuditNote = read(completionAuditNotePath);
 const privacyAuditWorkflow = read(privacyAuditWorkflowPath);
+const proverRelayTradeoffs = read(resolve(repoRoot, "docs/zk/prover-relay-privacy-tradeoffs.md"));
 const packageJson = JSON.parse(read(packagePath));
 
 for (const phrase of [
@@ -139,6 +146,7 @@ for (const phrase of [
   "R12-LEGACY-V1-MEMO-QUARANTINE",
   "R7A-DEPLOYED-BYTECODE-HASH-SOURCE-MATCH",
   "R8A-PROVER-RELAY-PRIVACY-TRADEOFF",
+  "docs/zk/prover-relay-privacy-tradeoffs.md documents opt-in remote prover/prover relay trade-offs",
   "R9A-CIPHERTEXT-BODY-HASH-DISCOVERY-BINDING",
   "R10A-SERVICE-STUB-REPLACEMENT",
   "R11A-LIVE-ANONYMITY-SET-PROBE",
@@ -271,6 +279,38 @@ for (const phrase of [
 }
 
 for (const phrase of [
+  "R8A Prover Relay Privacy Trade-Off - 2026-05-14",
+  "Local implemented.",
+  "opt-in remote prover and prover-relay privacy trade-offs",
+  "Remote proving must be explicit opt-in.",
+  "Remote provers can receive privacy-sensitive proof inputs and metadata.",
+  "Browser-worker proving remains dev-only evidence",
+  "Relay separation alone is not anonymity.",
+  "`selectedProverRuntime` is `null`",
+  "npm run zk:h08-production-prover-runtime-options-check",
+  "not a selected production prover runtime",
+]) {
+  assert.ok(
+    r8aProverRelayPrivacyTradeoffNote.includes(phrase),
+    `R8A prover relay privacy trade-off note missing ${phrase}`,
+  );
+}
+
+for (const phrase of [
+  "Prover Relay Privacy Trade-Offs",
+  "Vanta production privacy is not enabled.",
+  "A remote prover or prover relay must be explicit opt-in.",
+  "The product must not silently move witness generation or proof construction from the user's device to a remote service.",
+  "A remote prover can receive sensitive proof inputs needed to construct the proof",
+  "Browser-worker proving can keep witness material on the user's device, but the current implementation is dev-only evidence.",
+  "Separation alone is not anonymity",
+  "users can choose local proving vs remote proving with clear trade-off copy",
+  "not production-private proof infrastructure",
+]) {
+  assert.ok(proverRelayTradeoffs.includes(phrase), `prover relay trade-off doc missing ${phrase}`);
+}
+
+for (const phrase of [
   "R15A Operator Keypair Env Lockdown Guard - 2026-05-14",
   "Local implemented.",
   "VANTA_PAY_SECRET_KEY",
@@ -297,6 +337,7 @@ for (const phrase of [
   "PPv2 Send/Claim/Swap/actual-private-spend and Private Core Send/Swap have local binding guards",
   "Deployed bytecode/source hash match",
   "Prover-relay privacy trade-off docs",
+  "docs/zk/prover-relay-privacy-tradeoffs.md",
   "Ciphertext body-hash discovery binding",
   "Service stub replacement",
   "Live anonymity-set probe",

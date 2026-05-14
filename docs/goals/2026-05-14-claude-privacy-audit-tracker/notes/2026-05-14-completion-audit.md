@@ -30,7 +30,7 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 | Fresh-address exit privacy | A2 self-wallet blocker / R6 | Blocked | Current operator rejects `destinationOwner !== requester` |
 | Deployed bytecode/source hash match | R7A | Blocked / approval-gated | Requires deployment/live bytecode receipt after approval |
 | Real browser prover in live paths | A4 / R8 | Blocked | C01 verifier compatibility and production runtime evidence absent |
-| Prover-relay privacy trade-off docs | R8A | Pending documentation | Needs opt-in remote-prover privacy caveat before user-facing fallback |
+| Prover-relay privacy trade-off docs | R8A | Local implemented | `docs/zk/prover-relay-privacy-tradeoffs.md` is enforced by `npm run zk:h08-production-prover-runtime-options-check` |
 | Recipient discovery/indexer | A5 / R9 | Pending design | Requires viewing-key exchange or view-tag/indexer design |
 | Ciphertext body-hash discovery binding | R9A | Pending design | Proof-bound body-hash fields must feed the discovery/indexer path |
 | Service separation | A5 / R10 | Pending design | Requires prover/relayer/verifier/indexer/operator separation |

@@ -368,8 +368,11 @@ audit_remaining_work_backlog:
     source_priority: high
     source_item: "Document opt-in prover-relay privacy trade-offs before offering remote proof fallback as user-facing production evidence."
     tracker_ref: "A4"
-    status: pending-documentation
+    status: local-implemented
     guard: "npm run zk:h08-production-prover-runtime-options-check"
+    evidence:
+      - "docs/zk/prover-relay-privacy-tradeoffs.md documents opt-in remote prover/prover relay trade-offs, browser-worker limits, relay separation limits, and product copy rules."
+      - "scripts/check-vanta-private-pool-v2-h08-production-prover-runtime-options.mjs now requires the trade-off doc while keeping selectedProverRuntime null and production prover readiness false."
   - id: R9-RECIPIENT-DISCOVERY
     source_priority: high
     source_item: "Build production recipient discovery via viewing-key exchange or view-tag/indexer protocol."
@@ -491,7 +494,7 @@ audit_completion_checklist:
     - "N4 requires deploy/live approval and receipts."
     - "N5 requires hosted GitHub Actions green evidence."
     - "Architecture blockers A1-A6 remain incomplete or approval-gated."
-    - "R8A/R9A/R10A/R11A/R12/R13A/R14/R19/R20/R21 remain pending, blocked, or approval-gated."
+    - "R9A/R10A/R11A/R12/R13A/R14/R19/R20/R21 remain pending, blocked, or approval-gated."
 
 next_safe_slices:
   - "Add focused tracker/guards or implementation for R11A, R12, R13A, R14, and R19."

@@ -54,6 +54,7 @@ const review = read("VANTA_ZK_REVIEW.md");
 const browserWorkerAdapter = read("src/privacy/privatePoolV2BrowserWorkerProofResultAdapter.ts");
 const localProver = read("src/privacy/privatePoolV2LocalProver.ts");
 const remoteServices = read("src/privacy/privatePoolV2RemoteServices.ts");
+const proverRelayTradeoffs = read("docs/zk/prover-relay-privacy-tradeoffs.md");
 
 assert(
   scripts["zk:h08-production-prover-runtime-options-check"] ===
@@ -359,6 +360,25 @@ for (const marker of [
   "C01 verifier compatibility",
 ]) {
   includes(review, marker, "VANTA_ZK_REVIEW H08 status");
+}
+
+for (const marker of [
+  "Prover Relay Privacy Trade-Offs",
+  "Vanta production privacy is not enabled.",
+  "`selectedProverRuntime` is `null`.",
+  "A remote prover or prover relay must be explicit opt-in.",
+  "The product must not silently move witness generation or proof construction from the user's device to a remote service.",
+  "A remote prover can receive sensitive proof inputs needed to construct the proof",
+  "note secrets",
+  "ownership witnesses",
+  "amount or asset witnesses",
+  "blinding material",
+  "Browser-worker proving can keep witness material on the user's device, but the current implementation is dev-only evidence.",
+  "Separation alone is not anonymity",
+  "users can choose local proving vs remote proving with clear trade-off copy",
+  "not production-private proof infrastructure",
+]) {
+  includes(proverRelayTradeoffs, marker, "prover relay privacy trade-off doc");
 }
 
 console.log("private-pool-v2 H08 production prover runtime options: PASS");
