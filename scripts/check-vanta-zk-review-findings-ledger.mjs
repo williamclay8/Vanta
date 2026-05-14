@@ -1877,6 +1877,10 @@ assert(
   "H08 verification commands must include the actual-private-spend browser worker prover guard",
 );
 assert(
+  h08.verification.commands.includes("npm run private-pool-v2:shield-browser-worker-prover-check"),
+  "H08 verification commands must include the Shield browser worker prover guard",
+);
+assert(
   h08.verification.commands.includes("npm run zk:h08-production-prover-candidate-check"),
   "H08 verification commands must include the production prover candidate guard",
 );
@@ -1924,6 +1928,10 @@ assert(
   h08.codexRemediation.commits.some((commitRef) => commitRef.includes("6e4f478")),
   "H08 must record the production prover runtime-options packet commit",
 );
+assert(
+  h08.codexRemediation.commits.some((commitRef) => commitRef.includes("96b7008")),
+  "H08 must record the Shield browser worker prover commit",
+);
 assert(h08Text.includes("send-public-input-hash"), "H08 must record Send public-input hash binding");
 assert(
   h08Text.includes("private-spend-public-input-hash"),
@@ -1938,6 +1946,14 @@ assert(
 );
 assert(h08Text.includes("local-bb-derived-artifact"), "H08 must record the derived artifact backend");
 assert(h08Text.includes("browser/Web Worker proof-execution"), "H08 must record the browser worker proof-execution boundary");
+assert(
+  h08Text.includes("dev-only Shield browser/Web Worker proof execution"),
+  "H08 must record the Shield browser worker proof-execution boundary",
+);
+assert(
+  h08Text.includes("typed Shield witness input"),
+  "H08 must record the typed Shield witness-input boundary",
+);
 assert(
   h08Text.includes("browser-worker proof-result adapter"),
   "H08 must record the browser-worker proof-result adapter boundary",
@@ -1957,6 +1973,15 @@ assert(
 assert(
   h08Text.includes("worker-side witness generation"),
   "H08 must record the worker-side witness-generation boundary",
+);
+assert(
+  h08Text.includes("does not replace the default mock / local-mock prover"),
+  "H08 must record that Shield browser-worker parity does not replace the default mock/local-mock prover",
+);
+assert(h08Text.includes("not live Shield routing"), "H08 must preserve the live Shield routing boundary");
+assert(
+  h08Text.includes("not a production browser runtime prover"),
+  "H08 must preserve the browser runtime production boundary",
 );
 assert(
   !h08Text.includes("does not generate witnesses in the browser"),
@@ -2079,6 +2104,74 @@ for (const phrase of [
   assert(
     browserWorkerAdapterLoopText.includes(phrase),
     `${browserWorkerAdapterLoopId} must record ${phrase}`,
+  );
+}
+
+const shieldBrowserWorkerLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-14-H08-SHIELD-BROWSER-WORKER-PROVER";
+assert(
+  activeFeedbackLoopIds.has(shieldBrowserWorkerLoopId),
+  `${shieldBrowserWorkerLoopId} active feedback loop is missing`,
+);
+const shieldBrowserWorkerLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === shieldBrowserWorkerLoopId,
+);
+const shieldBrowserWorkerLoopText = JSON.stringify(shieldBrowserWorkerLoop);
+for (const command of [
+  "npm run private-pool-v2:shield-browser-worker-prover-check",
+  "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
+  "npm run private-pool-v2:proof-backend-boundary-check",
+  "npm run private-pool-v2:local-prover-check",
+  "npm run zk:h08-production-prover-candidate-check",
+  "npm run zk:h08-production-prover-runtime-options-check",
+  "npm run docs:source-of-truth-check",
+  "npm run security:limitations-check",
+  "npm run zk:feedback-loop-check",
+  "npm run zk:review-guards-check",
+  "npm run build",
+]) {
+  assert(
+    shieldBrowserWorkerLoop?.localVerification?.includes(command),
+    `${shieldBrowserWorkerLoopId} must record ${command}`,
+  );
+}
+for (const file of [
+  "src/privacy/privatePoolV2ShieldCircuitFixture.ts",
+  "src/privacy/privatePoolV2BrowserProverProtocol.ts",
+  "src/privacy/privatePoolV2BrowserProverWorker.ts",
+  "src/privacy/privatePoolV2BrowserProverClient.ts",
+  "src/privacy/privatePoolV2BrowserWorkerProofResultAdapter.ts",
+  "scripts/check-vanta-private-pool-v2-shield-browser-worker-prover.mjs",
+  "ops/mainnet/private-pool-v2-h08-production-prover-candidate.evidence.json",
+  "ops/mainnet/private-pool-v2-h08-production-prover-runtime-options.evidence.json",
+  "README.md",
+  "SECURITY_LIMITATIONS.md",
+]) {
+  assert(
+    shieldBrowserWorkerLoop?.changedFiles?.includes(file),
+    `${shieldBrowserWorkerLoopId} must record changed file ${file}`,
+  );
+}
+for (const phrase of [
+  "dev-only Shield browser/Web Worker proof execution",
+  "worker-side witness generation",
+  "typed Shield witness input",
+  "shield-public-input-hash",
+  "local-bb-derived-artifact",
+  "does not replace the default mock / local-mock prover",
+  "not live Shield routing",
+  "not a production browser runtime prover",
+  "not a production remote proof service",
+  "not on-chain proof verification",
+  "not production verifying-key evidence",
+  "not audit acceptance",
+  "not live deployment evidence",
+  "not real-funds readiness",
+  "96b7008",
+]) {
+  assert(
+    shieldBrowserWorkerLoopText.includes(phrase),
+    `${shieldBrowserWorkerLoopId} must record ${phrase}`,
   );
 }
 
