@@ -1692,6 +1692,12 @@ assert(
   ),
   "C01 must record the Unshield vault-asset harness sync commit",
 );
+assert(
+  c01.codexRemediation.commits.some((commitRef) =>
+    commitRef.includes("Guard tag3 duplicate nullifier preflight")
+  ),
+  "C01 must record the tag-3 duplicate-nullifier preflight commit",
+);
 assert(c01Text.includes("TAG_UNSHIELD = 6"), "C01 must record the source-only TAG_UNSHIELD preflight truth");
 assert(c01Text.includes("TAG_REGISTER_VAULT_ASSET = 7"), "C01 must record the source-only TAG_REGISTER_VAULT_ASSET truth");
 assert(c01Text.includes("TAG_REGISTER_PROVENANCED_ROOT = 4"), "C01 must record the source-only TAG_REGISTER_PROVENANCED_ROOT truth");
@@ -1786,6 +1792,14 @@ assert(c01Text.includes("output-capacity preflight"), "C01 must preserve the tag
 assert(c01Text.includes("exact vault-asset account length"), "C01 must record the vault-asset account-length harness sync");
 assert(c01Text.includes("canonical SPL token-program"), "C01 must record canonical SPL token-program harness coverage");
 assert(c01Text.includes("corrupted releaseEnabled = 1 rejection"), "C01 must record releaseEnabled corruption rejection");
+assert(
+  c01Text.includes("reserved tag-3 duplicate-nullifier preflight"),
+  "C01 must record the tag-3 duplicate-nullifier truth boundary",
+);
+assert(
+  c01Text.includes("proof_carrying_spend_rejects_duplicate_nullifier_before_fail_closed_verifier"),
+  "C01 must record the focused tag-3 duplicate-nullifier Rust test",
+);
 assert(
   c01Text.includes("blocked verifier adapter acceptance-test candidate"),
   "C01 must record the blocked verifier adapter acceptance-test candidate",
@@ -2286,6 +2300,61 @@ for (const phrase of [
   assert(
     c01Tag3OutputCapacityLoopText.includes(phrase),
     `${c01Tag3OutputCapacityLoopId} must record ${phrase}`,
+  );
+}
+
+const c01Tag3DuplicateNullifierLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-14-C01-TAG3-DUPLICATE-NULLIFIER";
+assert(
+  activeFeedbackLoopIds.has(c01Tag3DuplicateNullifierLoopId),
+  `${c01Tag3DuplicateNullifierLoopId} active feedback loop is missing`,
+);
+const c01Tag3DuplicateNullifierLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === c01Tag3DuplicateNullifierLoopId,
+);
+const c01Tag3DuplicateNullifierLoopText = JSON.stringify(c01Tag3DuplicateNullifierLoop);
+for (const command of [
+  "cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml proof_carrying_spend_rejects_duplicate_nullifier_before_fail_closed_verifier -- --nocapture",
+  "cargo fmt --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml --check",
+  "cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
+  "cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
+  "cargo check --manifest-path fuzz/vanta_private_pool_v2_spend/Cargo.toml --features invariant_test",
+  "npm run zk:c01-onchain-proof-boundary-check",
+  "npm run private-pool-v2:contract-check",
+  "npm run private-pool-v2:sbf-abi-check",
+  "npm run private-pool-v2:crucible-check",
+  "npm run zk:review-guards-check",
+  "npm run private-pool-v2:verify",
+  "npm run build",
+  "git diff --check",
+]) {
+  assert(
+    c01Tag3DuplicateNullifierLoop?.localVerification?.includes(command),
+    `${c01Tag3DuplicateNullifierLoopId} must record ${command}`,
+  );
+}
+for (const file of [
+  "programs/vanta_private_pool_v2_spend/src/lib.rs",
+  "scripts/check-vanta-zk-c01-onchain-proof-boundary.mjs",
+  "scripts/check-vanta-private-pool-v2-contract.mjs",
+]) {
+  assert(
+    c01Tag3DuplicateNullifierLoop?.changedFiles?.includes(file),
+    `${c01Tag3DuplicateNullifierLoopId} must record changed file ${file}`,
+  );
+}
+for (const phrase of [
+  "proof_carrying_spend_rejects_duplicate_nullifier_before_fail_closed_verifier",
+  "ERR_DUPLICATE_NULLIFIER",
+  "before the reserved proof-verifier-not-wired boundary",
+  "bytes, and lamports",
+  "851d956",
+  "not tag-3 proof acceptance",
+  "not on-chain proof verification",
+]) {
+  assert(
+    c01Tag3DuplicateNullifierLoopText.includes(phrase),
+    `${c01Tag3DuplicateNullifierLoopId} must record ${phrase}`,
   );
 }
 
