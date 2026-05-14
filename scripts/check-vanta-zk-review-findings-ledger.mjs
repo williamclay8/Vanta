@@ -1596,6 +1596,12 @@ assert(
   ),
   "C01 must record the production verifying-key candidate packet commit",
 );
+assert(
+  c01.codexRemediation.commits.some((commitRef) =>
+    commitRef.includes("Guard proof spend output capacity")
+  ),
+  "C01 must record the tag-3 output-capacity commit",
+);
 assert(c01Text.includes("TAG_UNSHIELD = 6"), "C01 must record the source-only TAG_UNSHIELD preflight truth");
 assert(c01Text.includes("TAG_REGISTER_VAULT_ASSET = 7"), "C01 must record the source-only TAG_REGISTER_VAULT_ASSET truth");
 assert(c01Text.includes("TAG_REGISTER_PROVENANCED_ROOT = 4"), "C01 must record the source-only TAG_REGISTER_PROVENANCED_ROOT truth");
@@ -1684,6 +1690,9 @@ assert(
   c01Text.includes("blocked-no-verifier-adapter-acceptance-tests"),
   "C01 must record the blocked verifier adapter acceptance-test candidate status",
 );
+assert(c01Text.includes("full output-counter rejection"), "C01 must record the tag-3 full output-counter rejection");
+assert(c01Text.includes("custom error 3"), "C01 must record the tag-3 output capacity error code");
+assert(c01Text.includes("output-capacity preflight"), "C01 must preserve the tag-3 output-capacity truth boundary");
 assert(
   c01Text.includes("blocked verifier adapter acceptance-test candidate"),
   "C01 must record the blocked verifier adapter acceptance-test candidate",
@@ -2126,6 +2135,64 @@ for (const phrase of [
   assert(
     c01VerifierReadinessBoundaryLoopText.includes(phrase),
     `${c01VerifierReadinessBoundaryLoopId} must record ${phrase}`,
+  );
+}
+
+const c01Tag3OutputCapacityLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-14-C01-TAG3-OUTPUT-CAPACITY";
+assert(
+  activeFeedbackLoopIds.has(c01Tag3OutputCapacityLoopId),
+  `${c01Tag3OutputCapacityLoopId} active feedback loop is missing`,
+);
+const c01Tag3OutputCapacityLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === c01Tag3OutputCapacityLoopId,
+);
+const c01Tag3OutputCapacityLoopText = JSON.stringify(c01Tag3OutputCapacityLoop);
+for (const command of [
+  "cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml proof_carrying_spend_preflights_accounts_before_fail_closed_verifier -- --nocapture",
+  "cargo fmt --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml --check",
+  "cargo check --manifest-path fuzz/vanta_private_pool_v2_spend/Cargo.toml --features invariant_test",
+  "cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
+  "npm run zk:c01-onchain-proof-boundary-check",
+  "npm run private-pool-v2:contract-check",
+  "npm run private-pool-v2:root-provenance-check",
+  "npm run zk:c01-verifier-key-registry-check",
+  "npm run private-pool-v2:sbf-abi-check",
+  "npm run private-pool-v2:crucible-check",
+  "npm run private-pool-v2:solana-spend-transaction-builder-check",
+  "npm run private-pool-v2:solana-spend-transaction-check",
+  "npm run build",
+  "git diff --check",
+]) {
+  assert(
+    c01Tag3OutputCapacityLoop?.localVerification?.includes(command),
+    `${c01Tag3OutputCapacityLoopId} must record ${command}`,
+  );
+}
+for (const file of [
+  "programs/vanta_private_pool_v2_spend/src/lib.rs",
+  "fuzz/vanta_private_pool_v2_spend/src/main.rs",
+  "programs/vanta_private_pool_v2_spend/README.md",
+  "scripts/check-vanta-zk-c01-onchain-proof-boundary.mjs",
+  "scripts/check-vanta-private-pool-v2-contract.mjs",
+]) {
+  assert(
+    c01Tag3OutputCapacityLoop?.changedFiles?.includes(file),
+    `${c01Tag3OutputCapacityLoopId} must record changed file ${file}`,
+  );
+}
+for (const phrase of [
+  "full output counter",
+  "ERR_OUTPUT_QUEUE_FULL",
+  "custom error 3",
+  "before output-record PDA preflight",
+  "without mutating",
+  "not tag-3 proof acceptance",
+  "7524a9c",
+]) {
+  assert(
+    c01Tag3OutputCapacityLoopText.includes(phrase),
+    `${c01Tag3OutputCapacityLoopId} must record ${phrase}`,
   );
 }
 
