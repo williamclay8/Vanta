@@ -7,19 +7,21 @@ const trackerRoot = resolve(repoRoot, "docs/goals/2026-05-14-claude-privacy-audi
 const goalPath = resolve(trackerRoot, "goal.md");
 const statePath = resolve(trackerRoot, "state.yaml");
 const notePath = resolve(trackerRoot, "notes/2026-05-14-intake.md");
+const n2BlockerNotePath = resolve(trackerRoot, "notes/2026-05-14-n2-design-blockers.md");
 const packagePath = resolve(repoRoot, "package.json");
 
 function read(path) {
   return readFileSync(path, "utf8");
 }
 
-for (const path of [goalPath, statePath, notePath]) {
+for (const path of [goalPath, statePath, notePath, n2BlockerNotePath]) {
   assert.ok(existsSync(path), `Missing Claude privacy audit tracker artifact: ${path}`);
 }
 
 const goal = read(goalPath);
 const state = read(statePath);
 const note = read(notePath);
+const n2BlockerNote = read(n2BlockerNotePath);
 const packageJson = JSON.parse(read(packagePath));
 
 for (const phrase of [
@@ -36,6 +38,14 @@ for (const label of ["N1", "N2", "N3", "N4", "N5"]) {
   assert.ok(note.includes(`| ${label} |`), `intake note missing table row for ${label}`);
 }
 
+const n2SectionMatch = state.match(/  - id: N2\n[\s\S]*?\n  - id: N3\n/);
+assert.ok(n2SectionMatch, "state.yaml missing bounded N2 section");
+const n2Section = n2SectionMatch[0];
+assert.ok(
+  n2Section.includes("status: partial-local-implemented"),
+  "N2 must remain partial until the remaining design blockers are implemented or superseded.",
+);
+
 for (const phrase of [
   "output_commitment is unconstrained",
   "Owner secret/input commitment binding",
@@ -47,8 +57,33 @@ for (const phrase of [
   "minimum_distinct_commitments: 1024",
   "privacy_claim_allowed: false",
   "anonymity_claim_allowed: false",
+  "completion_guard",
+  "status_must_remain: \"partial-local-implemented\"",
+  "N2 is not complete while Private Pool v2 Swap-to-shielded lacks a documented canonical input commitment preimage",
+  "N2 is not complete while Private Core Send/Swap use x25519-secret-prechecked-off-circuit owner authorization",
+  "a nonzero sender_secret_key assertion is not sender authorization",
+  "Do not mark N2 complete based only on owner_secret -> owner_commitment binding in Swap-to-shielded.",
+  "Do not mark N2 complete based only on keeping Private Core sender_secret_key live/nonzero.",
+  "remaining_design_blockers",
+  "N2-PPV2-SWAP-INPUT-PREIMAGE",
+  "N2-PRIVATE-CORE-SENDER-AUTH",
+  "blocked-architecture-decision",
+  "x25519-secret-prechecked-off-circuit",
 ]) {
   assert.ok(state.includes(phrase), `state.yaml missing ${phrase}`);
+}
+
+for (const phrase of [
+  "N2-PPV2-SWAP-INPUT-PREIMAGE",
+  "N2-PRIVATE-CORE-SENDER-AUTH",
+  "blocked-architecture-decision",
+  "not a safe one-line Noir assertion",
+  "invalid-input-commitment-preimage",
+  "invalid-owner-auth fixtures",
+  "x25519-secret-prechecked-off-circuit",
+  "Do not mark N2 `local-implemented`",
+]) {
+  assert.ok(n2BlockerNote.includes(phrase), `N2 blocker note missing ${phrase}`);
 }
 
 for (const phrase of [

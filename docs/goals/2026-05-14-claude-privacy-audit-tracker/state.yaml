@@ -27,10 +27,10 @@ rules:
   no_production_private_claims_without_positive_proof_and_live_receipts: true
 
 lumi:
-  local: "N1/N3 implementation receipt exists in the repository tracker; use git status for current dirt."
-  committed: "implementation commits record the tracker, N3 truth fixes, N1 Shield output-commitment preimage binding, and N2 PPv2 Send owner/input binding; use git refs for exact head."
+  local: "N1/N3/N2 partial implementation receipts exist in the repository tracker; use git status for current dirt."
+  committed: "implementation commits record the tracker, N3 truth fixes, N1 Shield output-commitment preimage binding, and N2 PPv2 Send/Claim/Swap-owner/actual-private-spend slices; use git refs for exact head."
   pushed: "codex/vanta-zk-review-hardening is the publishing branch; check git refs for the exact pushed head."
-  deployed_live: "not-live-verified for this tracker slice unless a later public website receipt says otherwise"
+  deployed_live: "latest circuit/tracker slices are not-live-verified unless a later public website receipt says otherwise"
 
 audit_findings:
   - id: N1
@@ -81,6 +81,31 @@ audit_findings:
     remaining:
       - "Private Pool v2 Swap-to-shielded explicit input-preimage design."
       - "Private Core Send/Swap sender authorization key-model decision."
+    completion_guard:
+      status_must_remain: "partial-local-implemented"
+      hard_blockers:
+        - "N2 is not complete while Private Pool v2 Swap-to-shielded lacks a documented canonical input commitment preimage, in-circuit recomputation, and invalid-input-commitment-preimage fixture."
+        - "N2 is not complete while Private Core Send/Swap use x25519-secret-prechecked-off-circuit owner authorization; a nonzero sender_secret_key assertion is not sender authorization."
+      forbidden_completion_claim:
+        - "Do not mark N2 complete based only on owner_secret -> owner_commitment binding in Swap-to-shielded."
+        - "Do not mark N2 complete based only on keeping Private Core sender_secret_key live/nonzero."
+    remaining_design_blockers:
+      - id: N2-PPV2-SWAP-INPUT-PREIMAGE
+        status: blocked-architecture-decision
+        evidence_refs:
+          - "zk/noir/vanta_private_pool_v2_swap_to_shielded_entry/src/main.nr exposes opaque settlement_commitment, route_commitment, and economics_commitment but no raw input asset/amount/economics preimage."
+          - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-n2-design-blockers.md"
+        decision_required: "Choose the canonical raw input/economic preimage for swap-to-shielded input_commitment before adding an in-circuit assertion."
+        not_safe_to_complete_without: "A fixture that makes a forged swap input preimage fail and a documented ABI update for the prover/browser/operator witness paths."
+      - id: N2-PRIVATE-CORE-SENDER-AUTH
+        status: blocked-architecture-decision
+        evidence_refs:
+          - "zk/noir/vanta_private_core_single_note_send/src/main.nr keeps sender_secret_key live/nonzero with owner authorization prechecked off-circuit."
+          - "zk/noir/vanta_private_core_single_note_swap/src/main.nr keeps sender_secret_key live/nonzero with owner authorization prechecked off-circuit."
+          - "src/zk/vantaPrivateCoreSendProof.ts and src/zk/vantaPrivateCoreSwapProof.ts label the current model x25519-secret-prechecked-off-circuit."
+          - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-n2-design-blockers.md"
+        decision_required: "Choose whether Private Core keeps X25519 owner-public-key notes with off-circuit precheck, adds a separate Poseidon proof-owner key, or migrates note ownership to an in-circuit-friendly key model."
+        not_safe_to_complete_without: "A key-model decision, updated proof metadata, invalid-owner-auth fixtures for Send and Swap, and updated private-core verification commands."
     verify:
       - "npm run zk:circuit-soundness-lint"
       - "npm run private-pool-v2:send-circuit-check"
@@ -202,6 +227,6 @@ architecture_backlog:
       - "npm run private-pool-v2:production-privacy-reviewer-packet-check"
 
 next_safe_slices:
-  - "Finish N3 verification and local browser/source checks."
-  - "Split N2 into PPv2 owner/input binding and Private Core send/swap owner-auth binding."
+  - "Resolve N2-PPV2-SWAP-INPUT-PREIMAGE before claiming Swap-to-shielded input commitment binding is complete."
+  - "Resolve N2-PRIVATE-CORE-SENDER-AUTH before claiming Private Core Send/Swap owner authorization is in-circuit."
   - "Add explicit blocker-map guard for tag 3 error 14, tag 6 error 15, operator-keypair custody, self-wallet exit, and list-based roots."
