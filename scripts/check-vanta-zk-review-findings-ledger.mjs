@@ -775,6 +775,42 @@ assert(
 );
 assert(copyClarityFollowUpLoopText.includes("f3d5135"), `${copyClarityFollowUpLoopId} must pin the implementation commit`);
 
+const landingActionHierarchyLoopId = "VANTA-ZK-FEEDBACK-2026-05-14-LANDING-ACTION-HIERARCHY";
+assert(
+  activeFeedbackLoopIds.has(landingActionHierarchyLoopId),
+  `${landingActionHierarchyLoopId} active feedback loop is missing`,
+);
+const landingActionHierarchyLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === landingActionHierarchyLoopId,
+);
+const landingActionHierarchyLoopText = JSON.stringify(landingActionHierarchyLoop);
+for (const command of [
+  "npm run landing:browser-check",
+  "npm run product-ui:browser-check",
+  "npm run build",
+  "git diff --check",
+]) {
+  assert(
+    landingActionHierarchyLoop?.localVerification?.includes(command),
+    `${landingActionHierarchyLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "Shield, Send, Swap, and Unshield",
+  "Preview surfaces",
+  "Pay and Strategy",
+  "local receipt-backed",
+  "not live-enabled",
+  "does not remove Pay or Strategy routes",
+  "not-live-verified",
+  "496b782",
+]) {
+  assert(
+    landingActionHierarchyLoopText.includes(phrase),
+    `${landingActionHierarchyLoopId} must record ${phrase}`,
+  );
+}
+
 const payProgressiveDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PAY-PROGRESSIVE-DISCLOSURE";
 assert(
   activeFeedbackLoopIds.has(payProgressiveDisclosureLoopId),

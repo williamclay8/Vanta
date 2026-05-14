@@ -2528,6 +2528,8 @@ What's weak:
 
 **One concrete edit:** add a `landing-minimal__live-strip` between the hero and "What it does" — a single horizontal row showing real Solana mainnet block height (via `getBlockHeight` polled every 2s), the current slot's confirmation latency, and a small mint-colored dot that pulses each time the slot increments. Cost: 30 lines of code, one effect, one fetch loop. Effect: the page goes from "marketing site" to "this is plugged into something." This single change moves more conversion than any copy edit.
 
+**Codex status, 2026-05-14 Landing action hierarchy slice:** commit `496b782` locally aligns the public landing-page action hierarchy with the already-guarded app navigation split. `src/pages/HomePage.tsx` now keeps Shield, Send, Swap, and Unshield as the primary wallet lanes, while Pay and Strategy move into a separate `Preview surfaces` group. The new Pay copy says payment requests create local receipt-backed records for merchant review; the Strategy copy says private-rail execution planning is a preview before live routing is enabled. `scripts/check-vanta-landing-browser.mjs` now fails if Pay or Strategy return to the primary wallet action list or if the preview cards lose their truthful preview copy, and the focused landing/browser checks passed with `npm run landing:browser-check`, `npm run product-ui:browser-check`, `npm run build`, and `git diff --check`. This is landing hierarchy and product-truth hardening only; it is not the live-strip recommendation, not a hero visualization, not removal of Pay or Strategy routes, not production-private wallet-lane readiness, not Pay/Strategy live production routing, not pushed, and not live-deployed.
+
 ### `/app/dashboard` — App dashboard
 
 **File:** `src/pages/AppDashboardPage.tsx`

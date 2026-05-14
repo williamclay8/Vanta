@@ -811,6 +811,31 @@
       "truthBoundary": "This is product copy and guard hardening only. It does not make Vanta production-private, does not prove lane privacy, does not add a public depth oracle, does not add browser witness generation, does not choose a C01 verifier backend, and does not provide pushed or live deployment evidence."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-14-LANDING-ACTION-HIERARCHY",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#cc5-the-home-page-sells-the-idea-the-app-sells-the-limitation",
+        "VANTA_ZK_REVIEW.md#--home",
+        "src/pages/HomePage.tsx",
+        "src/styles.css",
+        "scripts/check-vanta-landing-browser.mjs"
+      ],
+      "summary": "The landing action hierarchy feedback now has a guarded local slice: Home keeps Shield, Send, Swap, and Unshield as the primary wallet lanes, while Pay and Strategy move into a clearly labeled Preview surfaces group with copy that says payment records are local receipt-backed and Strategy routing is not live-enabled. The landing browser guard now fails if Pay or Strategy return to the primary wallet action list or if the preview cards lose their beta-truthful copy.",
+      "localVerification": [
+        "npm run landing:browser-check",
+        "npm run product-ui:browser-check",
+        "npm run build",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the landing action hierarchy across focused landing browser, product UI browser, production build, and diff whitespace checks",
+        "committed": "496b782 (Align landing action hierarchy)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is public landing hierarchy and guard hardening only. It does not remove Pay or Strategy routes, does not make wallet lanes production-private, does not make Pay or Strategy live production routes, does not choose a C01 verifier backend, and does not provide pushed or live deployment evidence."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-PAY-PROGRESSIVE-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
