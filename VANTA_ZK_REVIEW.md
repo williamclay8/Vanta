@@ -411,6 +411,8 @@ Two real options:
 
 Recommend Groth16 + Light for v1. Move to Honk later if circuits get bigger.
 
+Current C01 correction: Groth16 + Light is now a blocked option, not a selected backend. The guarded decision packet is `docs/zk/c01-production-verifier-backend-decision.md`; it keeps `selectedBackend: null` while `ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json`, `ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json`, and `ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json` remain blocked. The current local proof metadata is still `local-acir-bytecode-hash-not-production-vk`, so it is not production proof-format evidence and not production verifying-key evidence.
+
 The verifying key is a build artifact. Commit it to the repo, include its hash in the program, and have a script that fails CI if the verifying key's circuit hash drifts from the Noir build artifact in `zk/noir/vanta_private_pool_v2_shield_entry/target/*.json`.
 
 ### W7. Replace the local prover

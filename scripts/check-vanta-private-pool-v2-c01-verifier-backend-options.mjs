@@ -270,6 +270,7 @@ includes(ultrahonk.truthBoundary ?? "", "not compatible", "UltraHonk option trut
 
 for (const [field, expected] of [
   ["localProofFormatObservation", true],
+  ["groth16ProofFormatCandidate", true],
   ["verifierKeyRegistryScaffold", true],
   ["productionVerifyingKeyCandidate", true],
   ["verifierAdapterTestCandidate", true],

@@ -139,6 +139,51 @@ assert(
     "local-acir-bytecode-hash-not-production-vk",
   "C01 verifier candidate evidence must not promote local ACIR hashes to production VK evidence",
 );
+const proofFormatReadinessBoundary =
+  verifierCandidateEvidence.proofFormatVsProductionReadinessBoundary ?? {};
+assert(
+  proofFormatReadinessBoundary.localProofFormatEvidence?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
+  "C01 verifier candidate evidence must name the local proof-format observation in the readiness boundary",
+);
+assert(
+  proofFormatReadinessBoundary.localProofFormatEvidence?.satisfiesProductionVerifierReadiness === false,
+  "C01 local proof-format observation must not satisfy production verifier readiness",
+);
+assert(
+  proofFormatReadinessBoundary.localProofFormatEvidence?.satisfiesProductionProofFormatEvidence === false,
+  "C01 local proof-format observation must not satisfy production proof-format evidence",
+);
+assert(
+  proofFormatReadinessBoundary.localProofFormatEvidence?.satisfiesProductionVerifyingKeyEvidence === false,
+  "C01 local proof-format observation must not satisfy production verifying-key evidence",
+);
+assert(
+  proofFormatReadinessBoundary.productionVerifierReadiness?.selectedBackend === null,
+  "C01 production verifier readiness boundary must keep selectedBackend null",
+);
+assert(
+  proofFormatReadinessBoundary.productionVerifierReadiness?.selectedBackendStatus === "not-selected",
+  "C01 production verifier readiness boundary must keep backend status not-selected",
+);
+assert(
+  proofFormatReadinessBoundary.productionVerifierReadiness?.c01VerifierReady === false,
+  "C01 production verifier readiness boundary must keep c01VerifierReady false",
+);
+assert(
+  proofFormatReadinessBoundary.productionVerifierReadiness?.solanaC01Groth16VerifierReady === false,
+  "C01 production verifier readiness boundary must keep Solana Groth16 verifier readiness false",
+);
+assert(
+  proofFormatReadinessBoundary.productionVerifierReadiness?.requiredPositiveEvidenceStatus ===
+    "blocked-with-null-artifact-refs",
+  "C01 production verifier readiness boundary must keep positive evidence blocked with null refs",
+);
+includes(
+  proofFormatReadinessBoundary.truthBoundary ?? "",
+  "local proof-format observation is not production verifier readiness",
+  "C01 proof-format versus verifier-readiness truth boundary",
+);
 const localProofFormatRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
   (entry) => entry.id === "local-actual-private-spend-proof-format-observation",
 );

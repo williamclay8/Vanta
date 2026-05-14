@@ -117,6 +117,7 @@
   ],
   "intermediateEvidenceOnly": {
     "localProofFormatObservation": true,
+    "groth16ProofFormatCandidate": true,
     "verifierKeyRegistryScaffold": true,
     "productionVerifyingKeyCandidate": true,
     "verifierAdapterTestCandidate": true,

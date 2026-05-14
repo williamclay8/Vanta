@@ -31,6 +31,14 @@ function rejects(source, marker, label) {
   assert(!source.includes(marker), `${label} still contains stale marker: ${marker}`);
 }
 
+function sectionBetween(source, startMarker, endMarker, label) {
+  const start = source.indexOf(startMarker);
+  assert(start >= 0, `${label} missing start marker: ${startMarker}`);
+  const end = source.indexOf(endMarker, start + startMarker.length);
+  assert(end > start, `${label} missing end marker: ${endMarker}`);
+  return source.slice(start, end);
+}
+
 const decisionPath = "docs/zk/c01-production-verifier-backend-decision.md";
 const reviewPath = "VANTA_ZK_REVIEW.md";
 const runbookPath = "docs/operator-runbook.md";
@@ -106,6 +114,25 @@ for (const marker of [
   includes(review, marker, reviewPath);
 }
 rejects(review, "only exposes `TAG_INIT` and `TAG_SPEND`", reviewPath);
+
+const w6ReviewSection = sectionBetween(
+  review,
+  "### W6. The proof verifier on Solana",
+  "### W7. Replace the local prover",
+  "VANTA_ZK_REVIEW W6 section",
+);
+for (const marker of [
+  "Groth16 + Light is now a blocked option, not a selected backend",
+  "docs/zk/c01-production-verifier-backend-decision.md",
+  "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+  "selectedBackend: null",
+  "local-acir-bytecode-hash-not-production-vk",
+  "not production proof-format evidence",
+]) {
+  includes(w6ReviewSection, marker, "VANTA_ZK_REVIEW W6 C01 decision pointer");
+}
 
 for (const source of [runbook, audit]) {
   includes(source, decisionPath, "C01 verifier backend handoff docs");

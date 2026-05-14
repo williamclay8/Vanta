@@ -29,6 +29,27 @@
     "onChainVerifierEvidence": "offchain-remote-proof-artifact-only",
     "status": "local-no-real-funds-evidence-only"
   },
+  "proofFormatVsProductionReadinessBoundary": {
+    "localProofFormatEvidence": {
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
+      "command": "npm run zk:c01-local-proof-format-evidence-check",
+      "proofSystem": "noir-bb",
+      "backend": "barretenberg-ultrahonk",
+      "proofByteLength": 16000,
+      "verifyingKeyHashKind": "local-acir-bytecode-hash-not-production-vk",
+      "satisfiesProductionVerifierReadiness": false,
+      "satisfiesProductionProofFormatEvidence": false,
+      "satisfiesProductionVerifyingKeyEvidence": false
+    },
+    "productionVerifierReadiness": {
+      "selectedBackend": null,
+      "selectedBackendStatus": "not-selected",
+      "c01VerifierReady": false,
+      "solanaC01Groth16VerifierReady": false,
+      "requiredPositiveEvidenceStatus": "blocked-with-null-artifact-refs"
+    },
+    "truthBoundary": "The local proof-format observation is not production verifier readiness. It records the current local Noir/bb.js UltraHonk receipt shape and its mismatch with the reserved tag-3 Groth16 target, while production verifier readiness remains blocked until backend selection, production proof-format evidence, production verifying-key evidence, verifier adapter acceptance, positive/negative tests, SBF/live lineage, and audit/reviewer acceptance exist."
+  },
   "intermediateEvidenceRefs": [
     {
       "id": "local-actual-private-spend-proof-format-observation",

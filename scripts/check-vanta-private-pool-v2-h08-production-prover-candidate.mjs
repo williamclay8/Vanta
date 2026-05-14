@@ -53,6 +53,12 @@ const packageJson = JSON.parse(read("package.json"));
 const scripts = packageJson.scripts ?? {};
 const packetText = read(packetPath);
 const packet = JSON.parse(packetText);
+const c01VerifierCandidate = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json"),
+);
+const c01BackendOptions = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json"),
+);
 const review = read("VANTA_ZK_REVIEW.md");
 const readme = read("README.md");
 const securityLimitations = read("SECURITY_LIMITATIONS.md");
@@ -119,6 +125,7 @@ assertAllowedKeys(packet, "H08 production prover packet", [
   "purpose",
   "sourceReviewRefs",
   "productionRequiredShape",
+  "c01VerifierCompatibilityRefs",
   "currentProductionProverArtifact",
   "currentLocalObservations",
   "intermediateEvidenceRefs",
@@ -224,6 +231,60 @@ for (const evidence of [
 ]) {
   assert(requiredShape.runtimeEvidenceRequired?.includes(evidence), `runtime evidence missing ${evidence}`);
 }
+
+const c01Refs = packet.c01VerifierCompatibilityRefs ?? {};
+assertAllowedKeys(c01Refs, "C01 verifier compatibility refs", [
+  "status",
+  "decisionPacketRef",
+  "backendOptionsRef",
+  "verifierCandidateRef",
+  "selectedBackend",
+  "selectedBackendStatus",
+  "c01VerifierReady",
+  "solanaC01Groth16VerifierReady",
+  "requiredBeforeH08Production",
+  "truthBoundary",
+]);
+assert(c01Refs.status === "blocked-c01-backend-unselected", "H08 C01 refs status must stay blocked");
+assert(
+  c01Refs.decisionPacketRef === "docs/zk/c01-production-verifier-backend-decision.md",
+  "H08 C01 refs must point at the decision packet",
+);
+assert(
+  c01Refs.backendOptionsRef === "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
+  "H08 C01 refs must point at backend options",
+);
+assert(
+  c01Refs.verifierCandidateRef === "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "H08 C01 refs must point at the verifier candidate packet",
+);
+assert(c01Refs.selectedBackend === null, "H08 C01 refs must keep selectedBackend null");
+assert(c01Refs.selectedBackendStatus === "not-selected", "H08 C01 refs backend status must be not-selected");
+assert(c01Refs.c01VerifierReady === false, "H08 C01 refs must keep c01VerifierReady false");
+assert(
+  c01Refs.solanaC01Groth16VerifierReady === false,
+  "H08 C01 refs must keep Solana C01 Groth16 readiness false",
+);
+includes(
+  c01Refs.requiredBeforeH08Production,
+  "production proof format",
+  "H08 C01 compatibility required evidence",
+);
+includes(
+  c01Refs.truthBoundary,
+  "H08 cannot claim production prover compatibility while C01 selectedBackend is null",
+  "H08 C01 compatibility truth boundary",
+);
+assert(c01VerifierCandidate.selectedBackend === null, "C01 verifier candidate must keep selectedBackend null");
+assert(
+  c01VerifierCandidate.selectedBackendStatus === "not-selected",
+  "C01 verifier candidate must keep backend status not-selected",
+);
+assert(c01BackendOptions.selectedBackend === null, "C01 backend options must keep selectedBackend null");
+assert(
+  c01BackendOptions.selectedBackendStatus === "not-selected",
+  "C01 backend options must keep backend status not-selected",
+);
 
 const currentProductionArtifact = packet.currentProductionProverArtifact ?? {};
 assertAllowedKeys(currentProductionArtifact, "current production prover artifact", [
@@ -411,6 +472,8 @@ for (const command of [
   "npm run zk:h08-production-prover-candidate-check",
   "npm run private-pool-v2:local-bb-fixture-prover-check",
   "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
+  "npm run zk:c01-verifier-backend-decision-check",
+  "npm run zk:c01-verifier-backend-options-check",
   "npm run zk:c01-production-verifier-backend-candidate-check",
   "npm run private-pool-v2:service-network-check",
   "npm run mainnet:private-pool-v2-production-smoke-check",
