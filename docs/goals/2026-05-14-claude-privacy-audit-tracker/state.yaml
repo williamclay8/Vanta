@@ -57,7 +57,7 @@ audit_findings:
   - id: N2
     severity: critical
     title: "Owner secret/input commitment binding missing across spend lanes"
-    status: open
+    status: partial-local-implemented
     lane: circuits
     files:
       - "zk/noir/vanta_private_pool_v2_send_entry/src/main.nr"
@@ -67,9 +67,23 @@ audit_findings:
       - "zk/noir/vanta_private_core_single_note_send/src/main.nr"
       - "zk/noir/vanta_private_core_single_note_swap/src/main.nr"
     required_fix: "Constrain owner_secret/proof-owner fields to owner_commitment and input commitment preimages using the existing owner-key/canonical-note pattern; keep Private Core Unshield marked already-bound."
+    delivered:
+      - "Private Pool v2 Send now recomputes owner_commitment from owner_secret and input_commitment from owner_commitment, asset_id_commitment, input_amount, input_blinding, and input_derivation_tag."
+      - "Send circuit check now includes invalid-owner-secret-binding and invalid-input-commitment-preimage fixtures."
+      - "Send witness-input, browser-worker, proof-artifact, operator-no-witness, public-input-hash, and send-prove paths were updated and verified for the new witness ABI."
+    remaining:
+      - "Private Pool v2 Claim owner/input binding."
+      - "Private Pool v2 Swap-to-shielded owner binding and explicit input-preimage design."
+      - "Actual-private-spend owner/input binding design decision."
+      - "Private Core Send/Swap sender authorization key-model decision."
     verify:
       - "npm run zk:circuit-soundness-lint"
       - "npm run private-pool-v2:send-circuit-check"
+      - "npm run private-pool-v2:send-witness-prover-check"
+      - "npm run private-pool-v2:browser-worker-prover-check"
+      - "npm run private-pool-v2:send-proof-artifact-consistency-check"
+      - "npm run private-pool-v2:send-operator-no-witness-check"
+      - "npm run private-pool-v2:send-prove"
       - "npm run private-pool-v2:claim-circuit-check"
       - "npm run private-pool-v2:swap-to-shielded-circuit-check"
       - "npm run private-pool-v2:actual-private-spend-circuit-check"

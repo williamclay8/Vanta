@@ -93,7 +93,9 @@ function toWitnessJson(witness, memoCiphertextBodyHashes) {
     economics_blinding: witness.economics_blinding.toString(10),
     economics_commitment: witness.economics_commitment.toString(10),
     input_amount: witness.input_amount.toString(10),
+    input_blinding: witness.input_blinding.toString(10),
     input_commitment: witness.input_commitment.toString(10),
+    input_derivation_tag: witness.input_derivation_tag.toString(10),
     input_leaf_index: witness.input_leaf_index.toString(10),
     input_root: witness.input_root.toString(10),
     membership_path: witness.membership_path.map((entry) => entry.toString(10)),
@@ -190,7 +192,9 @@ try {
     },
     {
       computeVantaPrivatePoolV2SendEconomicsCommitment,
+      computeVantaPrivatePoolV2SendInputCommitment,
       computeVantaPrivatePoolV2SendNullifier,
+      computeVantaPrivatePoolV2SendOwnerCommitment,
       createVantaPrivatePoolV2SendCircuitFixture,
       createVantaPrivatePoolV2SendCircuitFixtureFromWitnessInput,
     },
@@ -209,8 +213,19 @@ try {
     changeMemoCiphertextBodyHash: `sha256:${"44".repeat(32)}`,
     recipientMemoCiphertextBodyHash: `sha256:${"33".repeat(32)}`,
   };
-  const witnessBase = {
+  const ownerSecret = 3333n;
+  const ownerCommitment = computeVantaPrivatePoolV2SendOwnerCommitment({
+    owner_secret: ownerSecret,
+  });
+  const inputCommitmentPreimage = {
     asset_id_commitment: 5505n,
+    input_amount: 7000n,
+    input_blinding: 8808n,
+    input_derivation_tag: 8809n,
+    owner_commitment: ownerCommitment,
+  };
+  const witnessBase = {
+    asset_id_commitment: inputCommitmentPreimage.asset_id_commitment,
     change_amount: 2700n,
     change_leaf_index: 44n,
     change_memo_ciphertext_body_hash_field: BigInt(
@@ -221,13 +236,17 @@ try {
     ),
     change_output_commitment: 9702n,
     economics_blinding: 2222n,
-    input_amount: 7000n,
-    input_commitment: 9404n,
+    input_amount: inputCommitmentPreimage.input_amount,
+    input_blinding: inputCommitmentPreimage.input_blinding,
+    input_commitment: computeVantaPrivatePoolV2SendInputCommitment(
+      inputCommitmentPreimage,
+    ),
+    input_derivation_tag: inputCommitmentPreimage.input_derivation_tag,
     input_leaf_index: 42n,
     membership_path: [],
     membership_path_direction_bits: [],
-    owner_commitment: 4444n,
-    owner_secret: 3333n,
+    owner_commitment: ownerCommitment,
+    owner_secret: ownerSecret,
     recipient_amount: 4300n,
     recipient_leaf_index: 43n,
     recipient_memo_ciphertext_body_hash_field: BigInt(
@@ -366,7 +385,15 @@ try {
         ...witnessJson,
         owner_secret: (BigInt(witnessJson.owner_secret) + 1n).toString(10),
       }),
-    "nullifier",
+    "owner_commitment",
+  );
+  expectThrow(
+    () =>
+      createVantaPrivatePoolV2SendCircuitFixtureFromWitnessInput({
+        ...witnessJson,
+        input_blinding: (BigInt(witnessJson.input_blinding) + 1n).toString(10),
+      }),
+    "input_commitment",
   );
   expectThrow(
     () =>

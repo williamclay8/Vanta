@@ -1,4 +1,4 @@
-import { poseidon1, poseidon2, poseidon4, poseidon12 } from "poseidon-lite";
+import { poseidon1, poseidon2, poseidon4, poseidon5, poseidon12 } from "poseidon-lite";
 import {
   buildVantaPrivatePoolV2SparseMerkleTree,
   directionBitsForLeafIndex,
@@ -22,7 +22,9 @@ export type VantaPrivatePoolV2SendCircuitWitness = {
   economics_blinding: bigint;
   economics_commitment: bigint;
   input_amount: bigint;
+  input_blinding: bigint;
   input_commitment: bigint;
+  input_derivation_tag: bigint;
   input_leaf_index: bigint;
   input_root: bigint;
   membership_path: readonly bigint[];
@@ -68,7 +70,9 @@ export type VantaPrivatePoolV2SendCircuitWitnessInput = {
   economics_blinding: bigint | string;
   economics_commitment: bigint | string;
   input_amount: bigint | string;
+  input_blinding: bigint | string;
   input_commitment: bigint | string;
+  input_derivation_tag: bigint | string;
   input_leaf_index: bigint | string;
   input_root: bigint | string;
   membership_path: readonly (bigint | string)[];
@@ -100,7 +104,9 @@ export type VantaPrivatePoolV2SendCircuitNoirInputs = {
   economics_blinding: string;
   economics_commitment: string;
   input_amount: string;
+  input_blinding: string;
   input_commitment: string;
+  input_derivation_tag: string;
   input_leaf_index: string;
   input_root: string;
   membership_path: string[];
@@ -128,8 +134,10 @@ export type VantaPrivatePoolV2SendCircuitFixtureMode =
   | "invalid-amount-conservation"
   | "invalid-amount-range"
   | "invalid-binding"
+  | "invalid-input-commitment-preimage"
   | "invalid-memo-ciphertext-hash"
   | "invalid-nullifier"
+  | "invalid-owner-secret-binding"
   | "invalid-output-root";
 
 const DEFAULT_WITNESS_ECONOMICS = {
@@ -137,6 +145,18 @@ const DEFAULT_WITNESS_ECONOMICS = {
   economics_blinding: 1203n,
   input_amount: 5000n,
   recipient_amount: 3750n,
+};
+
+const DEFAULT_OWNER_SECRET = 404n;
+const DEFAULT_OWNER_COMMITMENT = computeVantaPrivatePoolV2SendOwnerCommitment({
+  owner_secret: DEFAULT_OWNER_SECRET,
+});
+const DEFAULT_INPUT_COMMITMENT_PREIMAGE = {
+  asset_id_commitment: 707n,
+  input_amount: DEFAULT_WITNESS_ECONOMICS.input_amount,
+  input_blinding: 808n,
+  input_derivation_tag: 809n,
+  owner_commitment: DEFAULT_OWNER_COMMITMENT,
 };
 
 const DEFAULT_RECIPIENT_MEMO_CIPHERTEXT_BODY_HASH_HEX = "11".repeat(32);
@@ -168,7 +188,7 @@ const DEFAULT_MEMO_CIPHERTEXT_BODY_HASHES = {
 } satisfies Required<VantaPrivatePoolV2SendCircuitFixtureMemoBodyHashes>;
 
 const DEFAULT_WITNESS_BASE = {
-  asset_id_commitment: 707n,
+  asset_id_commitment: DEFAULT_INPUT_COMMITMENT_PREIMAGE.asset_id_commitment,
   change_leaf_index: 7n,
   change_amount: DEFAULT_WITNESS_ECONOMICS.change_amount,
   change_output_commitment: 1001n,
@@ -177,12 +197,16 @@ const DEFAULT_WITNESS_BASE = {
     DEFAULT_WITNESS_ECONOMICS,
   ),
   input_amount: DEFAULT_WITNESS_ECONOMICS.input_amount,
-  input_commitment: 303n,
+  input_blinding: DEFAULT_INPUT_COMMITMENT_PREIMAGE.input_blinding,
+  input_commitment: computeVantaPrivatePoolV2SendInputCommitment(
+    DEFAULT_INPUT_COMMITMENT_PREIMAGE,
+  ),
+  input_derivation_tag: DEFAULT_INPUT_COMMITMENT_PREIMAGE.input_derivation_tag,
   input_leaf_index: 5n,
   membership_path: [] as readonly bigint[],
   membership_path_direction_bits: [] as readonly bigint[],
-  owner_commitment: 606n,
-  owner_secret: 404n,
+  owner_commitment: DEFAULT_OWNER_COMMITMENT,
+  owner_secret: DEFAULT_OWNER_SECRET,
   change_memo_ciphertext_body_hash_field: memoCiphertextBodyHashFieldFromHex(
     DEFAULT_CHANGE_MEMO_CIPHERTEXT_BODY_HASH_HEX,
   ),
@@ -242,7 +266,9 @@ const SEND_WITNESS_FIELDS = [
   "economics_blinding",
   "economics_commitment",
   "input_amount",
+  "input_blinding",
   "input_commitment",
+  "input_derivation_tag",
   "input_leaf_index",
   "input_root",
   "membership_path",
@@ -359,6 +385,31 @@ export function computeVantaPrivatePoolV2SendNullifier(
   witness: Pick<VantaPrivatePoolV2SendCircuitWitness, "input_commitment" | "owner_secret">,
 ) {
   return poseidon2([witness.input_commitment, witness.owner_secret]);
+}
+
+export function computeVantaPrivatePoolV2SendOwnerCommitment(
+  witness: Pick<VantaPrivatePoolV2SendCircuitWitness, "owner_secret">,
+) {
+  return poseidon1([witness.owner_secret]);
+}
+
+export function computeVantaPrivatePoolV2SendInputCommitment(
+  witness: Pick<
+    VantaPrivatePoolV2SendCircuitWitness,
+    | "asset_id_commitment"
+    | "input_amount"
+    | "input_blinding"
+    | "input_derivation_tag"
+    | "owner_commitment"
+  >,
+) {
+  return poseidon5([
+    witness.owner_commitment,
+    witness.asset_id_commitment,
+    witness.input_amount,
+    witness.input_blinding,
+    witness.input_derivation_tag,
+  ]);
 }
 
 export function computeVantaPrivatePoolV2SendEconomicsCommitment(
@@ -514,7 +565,12 @@ export function normalizeVantaPrivatePoolV2SendCircuitWitnessInput(input: unknow
       "economics_commitment",
     ),
     input_amount: normalizeWitnessAmount(input.input_amount, "input_amount"),
+    input_blinding: normalizeWitnessField(input.input_blinding, "input_blinding"),
     input_commitment: normalizeWitnessField(input.input_commitment, "input_commitment"),
+    input_derivation_tag: normalizeWitnessField(
+      input.input_derivation_tag,
+      "input_derivation_tag",
+    ),
     input_leaf_index: normalizeWitnessField(input.input_leaf_index, "input_leaf_index"),
     input_root: normalizeWitnessField(input.input_root, "input_root"),
     membership_path: normalizeWitnessFieldArray(input.membership_path, "membership_path"),
@@ -582,6 +638,14 @@ export function normalizeVantaPrivatePoolV2SendCircuitWitnessInput(input: unknow
 
   if (computeVantaPrivatePoolV2SendInputRoot(witness) !== witness.input_root) {
     throw new Error("Send witness input_root must match the Merkle path.");
+  }
+
+  if (computeVantaPrivatePoolV2SendOwnerCommitment(witness) !== witness.owner_commitment) {
+    throw new Error("Send witness owner_commitment must match the owner secret.");
+  }
+
+  if (computeVantaPrivatePoolV2SendInputCommitment(witness) !== witness.input_commitment) {
+    throw new Error("Send witness input_commitment must match the input note preimage.");
   }
 
   if (computeVantaPrivatePoolV2SendNullifier(witness) !== witness.nullifier) {
@@ -700,10 +764,20 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
             recipient_memo_ciphertext_body_hash_field:
               witness.recipient_memo_ciphertext_body_hash_field + 1n,
           }
+      : mode === "invalid-input-commitment-preimage"
+        ? {
+            ...witness,
+            input_blinding: witness.input_blinding + 1n,
+          }
       : mode === "invalid-nullifier"
         ? {
             ...witness,
             nullifier: witness.nullifier + 1n,
+          }
+      : mode === "invalid-owner-secret-binding"
+        ? {
+            ...witness,
+            owner_secret: witness.owner_secret + 1n,
           }
       : mode === "invalid-output-root"
         ? {
@@ -786,7 +860,9 @@ export function createVantaPrivatePoolV2SendCircuitNoirInputs(
     economics_blinding: toCircuitString(witness.economics_blinding),
     economics_commitment: toCircuitString(witness.economics_commitment),
     input_amount: toCircuitString(witness.input_amount),
+    input_blinding: toCircuitString(witness.input_blinding),
     input_commitment: toCircuitString(witness.input_commitment),
+    input_derivation_tag: toCircuitString(witness.input_derivation_tag),
     input_leaf_index: toCircuitString(witness.input_leaf_index),
     input_root: toCircuitString(witness.input_root),
     membership_path: witness.membership_path.map(toCircuitString),
@@ -861,6 +937,7 @@ function createInvalidAmountRangeWitness(
     economics_commitment: computeVantaPrivatePoolV2SendEconomicsCommitment(
       rangeOverflowWitness,
     ),
+    input_commitment: computeVantaPrivatePoolV2SendInputCommitment(rangeOverflowWitness),
   };
 }
 
@@ -967,6 +1044,8 @@ export function serializeVantaPrivatePoolV2SendCircuitFixtureToToml(
     `change_amount = "${witness.change_amount.toString(10)}"`,
     `economics_blinding = "${witness.economics_blinding.toString(10)}"`,
     `owner_secret = "${witness.owner_secret.toString(10)}"`,
+    `input_blinding = "${witness.input_blinding.toString(10)}"`,
+    `input_derivation_tag = "${witness.input_derivation_tag.toString(10)}"`,
     "",
   ].join("\n");
 }
