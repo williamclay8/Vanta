@@ -33,6 +33,7 @@ export function createVantaSendMainnetProductionStatus() {
   const privateCoreSendNoWitnessBoundaryCovered = true;
   const privateCoreSendProofArtifactCovered = true;
   const localViewTagBodyHashHandoffCovered = true;
+  const localVerifierMirroredDiscoveryHandoffCovered = true;
   const deployedMemoIndexerHandoffCovered = false;
   const freshV2OnlyClaimScoped = true;
   const legacyV1SendHistoryMigrated = false;
@@ -91,6 +92,7 @@ export function createVantaSendMainnetProductionStatus() {
     privateCoreSendNoWitnessBoundaryCovered,
     privateCoreSendProofArtifactCovered,
     localViewTagBodyHashHandoffCovered,
+    localVerifierMirroredDiscoveryHandoffCovered,
     deployedMemoIndexerHandoffCovered,
     legacyV1SendHistoryMigrationScoped,
     sendDiscoveryHandoff: {
@@ -116,6 +118,7 @@ export function createVantaSendMainnetProductionStatus() {
       localIndexerEndpoint: "/v1/send-discovery-packets",
       localStatusEndpoint: "/v1/send-discovery/status",
       localViewTagBodyHashHandoffCovered,
+      localVerifierMirroredDiscoveryHandoffCovered,
       productionReady: false,
       version: "vanta-private-pool-v2-send-discovery-packet-0.1",
     },
@@ -148,6 +151,7 @@ export function createVantaSendMainnetProductionStatus() {
       sendDiscoveryMigrationPolicy: "npm run send:discovery-migration-policy-check",
       sendLegacyHistoryScope: "npm run send:discovery-migration-policy-check",
       sendDiscoveryIndexerHandoff: "npm run send:discovery-indexer-handoff-check",
+      sendDiscoveryVerifierHandoff: "npm run private-pool-v2:service-network-check",
       sendLiveEvidenceContract: "npm run mainnet:send-live-evidence-contract-check",
       privatePoolV2SendProofRequest: "npm run private-pool-v2:send-proof-request-check",
       privatePoolV2SendCircuit: "npm run private-pool-v2:send-circuit-check",
@@ -170,7 +174,7 @@ export function createVantaSendMainnetProductionStatus() {
       "Record reviewed live mainnet shared-cohort deposit evidence.",
       "Record reviewed live relayer-submitted private Send settlement evidence for the active approval window.",
       "Record live nullifier replay rejection evidence against the production store after the Send settlement.",
-      "Deploy memo/indexer handoff proving opaque memo bodies match proof-bound sha256: body hashes and encrypted view-tag packets match the same proof-bound hashes before claiming production recipient discovery.",
+      "Deploy the verifier-mirrored memo/indexer handoff proving opaque memo bodies match proof-bound sha256: body hashes and encrypted view-tag packets match the same proof-bound hashes before claiming production recipient discovery.",
       "Keep production Send privacy claims scoped to fresh v2 AEAD sends unless legacy v1 plaintext Send history is migrated or segregated with reviewed evidence.",
       "Record an independent public-transcript review packet proving source wallet, recipient/merchant address, raw amount, input commitment, input leaf index, deposit signature, plaintext memo, and same-fee-payer linkage are absent.",
       "Record independent reviewer or audit acceptance for the circuit boundary, relayer separation, and anonymity-set measurement.",
@@ -178,6 +182,6 @@ export function createVantaSendMainnetProductionStatus() {
     safety:
       "No auth tokens, database URLs, wallet keys, signed transactions, seed phrases, or raw private inputs are printed.",
     truth:
-      "Send has local safe-send, canonical ledger gating, a repo-checked no-witness proof-artifact Private Core Send operator boundary, hidden-economics Private Pool v2 request coverage, local recipient/change memo ciphertext body-hash binding in the Private Pool v2 Send proof-request/circuit public-input hash, local encrypted view-tag/body-hash indexer handoff coverage, explicit fresh-v2-only production claim scope for Send history, actual-private membership circuit coverage, and no-funds operator smoke coverage. Browser Send execution is fail-closed until a local proof artifact is available, and this Private Core lane is not the production actual-private settlement lane. Send must not be called mainnet-production-private until recipient discovery/view tags are deployed, deployed memo/indexer handoff proving opaque memo bodies match proof-bound sha256: body hashes also proves encrypted view-tag packets match the same proof-bound hashes, legacy v1 plaintext Send history remains excluded from production privacy claims unless migrated or segregated with reviewed evidence, live reviewed settlement evidence, exact active real-funds approval, audited/shared anonymity-set evidence, relayer separation review, production replay evidence, transcript review, idempotent verifier/indexer commit recovery, and deployed raw-term-safe production operator surfaces are all present.",
+      "Send has local safe-send, canonical ledger gating, a repo-checked no-witness proof-artifact Private Core Send operator boundary, hidden-economics Private Pool v2 request coverage, local recipient/change memo ciphertext body-hash binding in the Private Pool v2 Send proof-request/circuit public-input hash, local encrypted view-tag/body-hash indexer handoff coverage, local verifier-mirrored discovery handoff coverage in the role-service network, explicit fresh-v2-only production claim scope for Send history, actual-private membership circuit coverage, and no-funds operator smoke coverage. Browser Send execution is fail-closed until a local proof artifact is available, and this Private Core lane is not the production actual-private settlement lane. Send must not be called mainnet-production-private until recipient discovery/view tags are deployed, deployed memo/indexer handoff proving opaque memo bodies match proof-bound sha256: body hashes also proves encrypted view-tag packets match the same proof-bound hashes, legacy v1 plaintext Send history remains excluded from production privacy claims unless migrated or segregated with reviewed evidence, live reviewed settlement evidence, exact active real-funds approval, audited/shared anonymity-set evidence, relayer separation review, production replay evidence, transcript review, idempotent verifier/indexer commit recovery, and deployed raw-term-safe production operator surfaces are all present.",
   };
 }

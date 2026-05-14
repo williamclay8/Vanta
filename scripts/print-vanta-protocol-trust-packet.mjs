@@ -69,7 +69,7 @@ const packets = {
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Send has a canonical ledger gate, repo-checked no-witness proof-artifact operator boundary, v2 viewing-key AEAD action memos in the live pages, local dual-AEAD recipient/change memo scaffolding, local Private Pool v2 proof-request/circuit binding for recipient/change memo ciphertext body hashes, and fresh-v2-only production claim scope for Send history, but recipient discovery is still incomplete, browser Send execution is blocked until a local proof artifact is available, and the lane is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
+        "Send has a canonical ledger gate, repo-checked no-witness proof-artifact operator boundary, v2 viewing-key AEAD action memos in the live pages, local dual-AEAD recipient/change memo scaffolding, local Private Pool v2 proof-request/circuit binding for recipient/change memo ciphertext body hashes, local verifier-mirrored discovery handoff coverage, and fresh-v2-only production claim scope for Send history, but recipient discovery is still incomplete, browser Send execution is blocked until a local proof artifact is available, and the lane is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
     },
     honestyNote:
       "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in SECURITY_LIMITATIONS.md.",
@@ -91,6 +91,7 @@ const packets = {
       localIndexerEndpoint: "/v1/send-discovery-packets",
       localStatusEndpoint: "/v1/send-discovery/status",
       localViewTagBodyHashHandoff: true,
+      localVerifierMirroredDiscoveryHandoff: true,
       productionReady: false,
       version: "vanta-private-pool-v2-send-discovery-packet-0.1",
     },
@@ -291,7 +292,12 @@ if (checkMode) {
     );
     assert.equal(packet.sendDiscoveryHandoff?.productionReady, false);
     assert.equal(packet.sendDiscoveryHandoff?.localViewTagBodyHashHandoff, true);
+    assert.equal(packet.sendDiscoveryHandoff?.localVerifierMirroredDiscoveryHandoff, true);
     assert.equal(packet.sendDiscoveryHandoff?.deployedMemoIndexerHandoff, false);
+    assert.ok(
+      packet.claimBoundary?.safeClaim.includes("local verifier-mirrored discovery handoff coverage"),
+      "Send packet safe claim must mention local verifier-mirrored discovery handoff coverage.",
+    );
     assert.ok(
       packet.sendDiscoveryHandoff?.blockerIds?.includes(
         "send-memo-indexer-body-hash-handoff-not-deployed",

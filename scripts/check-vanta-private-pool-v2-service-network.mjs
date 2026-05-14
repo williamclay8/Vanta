@@ -2,11 +2,13 @@ import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { poseidon2 } from "poseidon-lite";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const packageJson = JSON.parse(readFileSync(resolve(repoRoot, "package.json"), "utf8"));
 const basePort = 12_000 + Math.floor(Math.random() * 1_000);
 const authToken = "vanta-private-pool-v2-service-network-test-token";
+const serviceVersion = "vanta-private-pool-v2-service-network-0.1";
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-pool-v2-service-network-"));
 const indexerStorePath = join(tempRoot, "indexer-state.json");
 const proverStorePath = join(tempRoot, "prover-state.json");
@@ -176,6 +178,16 @@ function serviceNetworkCurrentRoot(treeId, records) {
 
 function serviceNetworkAppendRoot(records, record) {
   return serviceNetworkCurrentRoot(record.treeId, [...records, { ...record, merkleRoot: "" }]);
+}
+
+function memoCiphertextBodyHashField(value) {
+  const match = /^sha256:([0-9a-f]{64})$/.exec(value);
+  assert(match, `Expected memo ciphertext body hash ${value} to be sha256:<64 lowercase hex>.`);
+  const digestHex = match[1];
+  return poseidon2([
+    BigInt(`0x${digestHex.slice(0, 32)}`),
+    BigInt(`0x${digestHex.slice(32)}`),
+  ]).toString(10);
 }
 
 for (const service of services) {
@@ -511,10 +523,13 @@ try {
     [...restoredCommitments.parsed.commitments, { ...sendRecipientCommitment, merkleRoot: sendRecipientRoot }],
     sendChangeCommitment,
   );
+  const recipientMemoCiphertextBodyHash = `sha256:${"11".repeat(32)}`;
+  const changeMemoCiphertextBodyHash = `sha256:${"22".repeat(32)}`;
+  const sendPublicInputHash = "field:service-network-send-public-input-hash";
   const privateSendRequest = {
     amountBaseUnits: "1",
     assetId: "hidden:economic-terms",
-    circuitPublicInputs: ["send-public-input-hash:field:service-network-send-public-input-hash"],
+    circuitPublicInputs: [`send-public-input-hash:${sendPublicInputHash}`],
     intent: "private-send",
     publicInputs: [
       "vanta-private-pool-v2-send-proof-request-0.1:version",
@@ -527,8 +542,12 @@ try {
       "change-output-commitment:field:service-network-send-change-output",
       "change-leaf-index:2",
       `change-output-root:${sendChangeRoot}`,
-      "recipient-memo-ciphertext-body-hash-field:111",
-      "change-memo-ciphertext-body-hash-field:222",
+      `recipient-memo-ciphertext-body-hash-field:${memoCiphertextBodyHashField(
+        recipientMemoCiphertextBodyHash,
+      )}`,
+      `change-memo-ciphertext-body-hash-field:${memoCiphertextBodyHashField(
+        changeMemoCiphertextBodyHash,
+      )}`,
       "asset-id-commitment:field:service-network-send-asset",
       "economics-commitment:field:service-network-send-economics",
       "owner-commitment:field:service-network-send-owner",
@@ -541,6 +560,112 @@ try {
     method: "POST",
   });
   assert(privateSendProof.ok, privateSendProof.text || "Expected private-send proof response.");
+  const privateSendReceiptId = hashHex(
+    serviceVersion,
+    "receipt",
+    "private-send:field:service-network-send-nullifier",
+    privateSendProof.parsed.publicInputCommitment,
+  );
+  const privateSendDiscoveryPackets = [
+    {
+      audience: "recipient",
+      encryptedViewTag: "vtag:1111222233334444",
+      memoCiphertextBodyHash: recipientMemoCiphertextBodyHash,
+      memoCiphertextRef: "solana:memo:service-network-private-send-recipient:0",
+      outputCommitment: "field:service-network-send-recipient-output",
+      outputLeafIndex: 1,
+      outputRoot: sendRecipientRoot,
+      productionReady: false,
+      proofBoundMemoCiphertextBodyHash: recipientMemoCiphertextBodyHash,
+      proofReceiptId: privateSendReceiptId,
+      proofReceiptPublicInputCommitment: privateSendProof.parsed.publicInputCommitment,
+      recordedAtSlot: "1000000",
+      sendPublicInputHash,
+      treeId: sendInputCommitment.treeId,
+      version: "vanta-private-pool-v2-send-discovery-packet-0.1",
+    },
+    {
+      audience: "change",
+      encryptedViewTag: "vtag:5555666677778888",
+      memoCiphertextBodyHash: changeMemoCiphertextBodyHash,
+      memoCiphertextRef: "solana:memo:service-network-private-send-change:1",
+      outputCommitment: "field:service-network-send-change-output",
+      outputLeafIndex: 2,
+      outputRoot: sendChangeRoot,
+      productionReady: false,
+      proofBoundMemoCiphertextBodyHash: changeMemoCiphertextBodyHash,
+      proofReceiptId: privateSendReceiptId,
+      proofReceiptPublicInputCommitment: privateSendProof.parsed.publicInputCommitment,
+      recordedAtSlot: "1000000",
+      sendPublicInputHash,
+      treeId: sendInputCommitment.treeId,
+      version: "vanta-private-pool-v2-send-discovery-packet-0.1",
+    },
+  ];
+  for (const [label, sendDiscoveryPackets] of [
+    [
+      "mismatched recipient memo body hash",
+      [
+        {
+          ...privateSendDiscoveryPackets[0],
+          memoCiphertextBodyHash: `sha256:${"33".repeat(32)}`,
+          proofBoundMemoCiphertextBodyHash: `sha256:${"33".repeat(32)}`,
+        },
+        privateSendDiscoveryPackets[1],
+      ],
+    ],
+    [
+      "mismatched recipient output commitment",
+      [
+        {
+          ...privateSendDiscoveryPackets[0],
+          outputCommitment: "field:wrong-service-network-send-recipient-output",
+        },
+        privateSendDiscoveryPackets[1],
+      ],
+    ],
+    [
+      "mismatched change leaf index",
+      [
+        privateSendDiscoveryPackets[0],
+        {
+          ...privateSendDiscoveryPackets[1],
+          outputLeafIndex: 99,
+        },
+      ],
+    ],
+  ]) {
+    const rejectedDiscoveryReceipt = await requestJson(
+      serviceUrls.get("verifier"),
+      "/v1/proofs/accept",
+      {
+        body: JSON.stringify({
+          proof: privateSendProof.parsed,
+          request: privateSendRequest,
+          sendDiscoveryPackets,
+        }),
+        headers: { Authorization: `Bearer ${authToken}` },
+        method: "POST",
+      },
+    );
+    assert(!rejectedDiscoveryReceipt.ok, `Expected ${label} to reject before receipt acceptance.`);
+    const postRejectCommitments = await requestJson(
+      serviceUrls.get("indexer"),
+      "/v1/commitments?treeId=vanta-service-network-test-tree",
+      { headers: { Authorization: `Bearer ${authToken}` } },
+    );
+    assert(
+      postRejectCommitments.parsed?.commitments?.length === 1,
+      `Expected ${label} not to append Send output commitments.`,
+    );
+    const postRejectDiscovery = await requestJson(serviceUrls.get("indexer"), "/v1/send-discovery/status", {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    assert(
+      postRejectDiscovery.parsed?.sendDiscovery?.localPacketCount === 0,
+      `Expected ${label} not to mirror Send discovery packets.`,
+    );
+  }
   for (const [label, malformedRequest] of [
     [
       "malformed recipient memo hash field",
@@ -590,7 +715,11 @@ try {
     assert(!malformedPrivateSendReceipt.ok, `Expected service network to reject ${label}.`);
   }
   const privateSendReceipt = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
-    body: JSON.stringify({ proof: privateSendProof.parsed, request: privateSendRequest }),
+    body: JSON.stringify({
+      proof: privateSendProof.parsed,
+      request: privateSendRequest,
+      sendDiscoveryPackets: privateSendDiscoveryPackets,
+    }),
     headers: { Authorization: `Bearer ${authToken}` },
     method: "POST",
   });
@@ -599,6 +728,11 @@ try {
   assert(
     privateSendReceipt.parsed?.replayKey === "private-send:field:service-network-send-nullifier",
     "Expected private-send receipt to replay-key by nullifier.",
+  );
+  assert(
+    privateSendReceipt.parsed?.sendDiscoveryMirroring?.packetCount === 2 &&
+      privateSendReceipt.parsed?.sendDiscoveryMirroring?.productionReady === false,
+    "Expected private-send verifier acceptance to report local Send discovery mirroring without production readiness.",
   );
   const privateSendNullifier = await requestJson(
     serviceUrls.get("indexer"),
@@ -635,6 +769,45 @@ try {
   assert(
     privateSendCommitments.parsed.commitments[2]?.merkleRoot === sendChangeRoot,
     "Expected private-send change output root to match the canonical service-network indexer root.",
+  );
+  const mirroredSendDiscoveryPackets = await requestJson(
+    serviceUrls.get("indexer"),
+    `/v1/send-discovery-packets?fromSlot=999999`,
+    { headers: { Authorization: `Bearer ${authToken}` } },
+  );
+  assert(
+    mirroredSendDiscoveryPackets.parsed?.packets?.length === 2,
+    "Expected private-send verifier acceptance to mirror recipient and change discovery packets.",
+  );
+  assert(
+    mirroredSendDiscoveryPackets.parsed.packets.every(
+      (packet) =>
+        packet.proofReceiptId === privateSendReceipt.parsed.receiptId &&
+        packet.proofReceiptPublicInputCommitment === privateSendProof.parsed.publicInputCommitment &&
+        packet.claimBoundary === "local encrypted-view-tag index only; not production recipient discovery" &&
+        packet.productionReady === false,
+    ),
+    "Expected mirrored Send discovery packets to stay proof-receipt-bound and beta-truthful.",
+  );
+  assert(
+    mirroredSendDiscoveryPackets.parsed.packets.some(
+      (packet) =>
+        packet.audience === "recipient" &&
+        packet.memoCiphertextBodyHash === recipientMemoCiphertextBodyHash &&
+        packet.outputCommitment === "field:service-network-send-recipient-output" &&
+        packet.outputLeafIndex === 1,
+    ),
+    "Expected mirrored recipient discovery packet to match proof-bound recipient output.",
+  );
+  assert(
+    mirroredSendDiscoveryPackets.parsed.packets.some(
+      (packet) =>
+        packet.audience === "change" &&
+        packet.memoCiphertextBodyHash === changeMemoCiphertextBodyHash &&
+        packet.outputCommitment === "field:service-network-send-change-output" &&
+        packet.outputLeafIndex === 2,
+    ),
+    "Expected mirrored change discovery packet to match proof-bound change output.",
   );
   const privateSendReplay = await requestJson(serviceUrls.get("verifier"), "/v1/proofs/accept", {
     body: JSON.stringify({ proof: privateSendProof.parsed, request: privateSendRequest }),

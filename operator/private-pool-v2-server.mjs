@@ -2618,6 +2618,7 @@ async function statusPayload() {
         version: "vanta-send-history-privacy-scope-0.1",
       },
       localRoleServiceEndpointImplemented: true,
+      localVerifierMirroredDiscoveryHandoff: true,
       productionReady: false,
       statusEndpoint: "/v1/send-discovery/status",
       version: "vanta-private-pool-v2-send-discovery-packet-0.1",

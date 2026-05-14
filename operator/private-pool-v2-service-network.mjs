@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "
 import { dirname, resolve } from "node:path";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
+import { poseidon2 } from "poseidon-lite";
 import { createVantaPrivatePoolV2SolanaRelayerSubmitterFromEnv } from "../src/privacy/privatePoolV2SolanaRelayerSubmission.mjs";
 import { createPrivatePoolV2RoleSnapshotStore } from "../src/storage/vantaPrivatePoolV2RoleSnapshotStore.mjs";
 
@@ -1123,6 +1124,7 @@ function requirePublicInput(request, prefix) {
 
 const BN254_SCALAR_FIELD =
   21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+const memoCiphertextBodyHashPattern = /^sha256:([0-9a-f]{64})$/u;
 
 function requirePublicInputField(request, prefix) {
   const value = requirePublicInput(request, prefix);
@@ -1135,6 +1137,22 @@ function requirePublicInputField(request, prefix) {
   }
 
   return value;
+}
+
+function deriveMemoCiphertextBodyHashField(value, label) {
+  const match = memoCiphertextBodyHashPattern.exec(String(value));
+  if (!match) {
+    throw new Error(`Send discovery ${label} must be sha256:<64 lowercase hex>.`);
+  }
+
+  const digestHex = match[1] ?? "";
+  if (digestHex === "0".repeat(64)) {
+    throw new Error(`Send discovery ${label} must not be the reserved zero hash.`);
+  }
+
+  const hi = BigInt(`0x${digestHex.slice(0, 32)}`);
+  const lo = BigInt(`0x${digestHex.slice(32)}`);
+  return poseidon2([hi, lo]).toString(10);
 }
 
 function replayKeyFor(request) {
@@ -1250,7 +1268,124 @@ function readActualPrivateSpendOutputCommitments(request) {
   return commitments;
 }
 
-async function postIndexerJson(path, body) {
+function expectedSendPublicInputHash({ proof, request }) {
+  const fromCircuit = request?.circuitPublicInputs
+    ?.find((input) => String(input).startsWith("send-public-input-hash:"))
+    ?.slice("send-public-input-hash:".length);
+  const fromPublicInputs = readPublicInput(request, "send-public-input-hash:");
+  return fromCircuit ?? fromPublicInputs ?? proof?.publicInputCommitment;
+}
+
+async function validateProofBoundSendDiscoveryPackets({ packets, proof, receiptId, request }) {
+  if (packets === undefined || packets === null) {
+    return [];
+  }
+  if (!isStatefulPrivateSendRequest(request)) {
+    throw new Error("Send discovery packets can only be mirrored for stateful private-send proof requests.");
+  }
+  if (!Array.isArray(packets)) {
+    throw new Error("Send discovery packets must be an array.");
+  }
+
+  const inputCommitment = requirePublicInput(request, "input-commitment:");
+  const inputLeaf = await getIndexerJson(`/v1/commitments/${encodeURIComponent(inputCommitment)}`);
+  const treeId = inputLeaf?.leaf?.treeId;
+  if (!treeId) {
+    throw new Error("Send discovery packet validation requires the input commitment tree id.");
+  }
+
+  const expectedByAudience = new Map([
+    [
+      "recipient",
+      {
+        memoCiphertextBodyHashField: requirePublicInputField(
+          request,
+          "recipient-memo-ciphertext-body-hash-field:",
+        ),
+        outputCommitment: requirePublicInput(request, "recipient-output-commitment:"),
+        outputLeafIndex: Number(requirePublicInput(request, "recipient-leaf-index:")),
+        outputRoot: requirePublicInput(request, "recipient-output-root:"),
+      },
+    ],
+  ]);
+  const changeOutputCommitment = readPublicInput(request, "change-output-commitment:");
+  if (changeOutputCommitment && changeOutputCommitment !== "0") {
+    expectedByAudience.set("change", {
+      memoCiphertextBodyHashField: requirePublicInputField(
+        request,
+        "change-memo-ciphertext-body-hash-field:",
+      ),
+      outputCommitment: changeOutputCommitment,
+      outputLeafIndex: Number(requirePublicInput(request, "change-leaf-index:")),
+      outputRoot: requirePublicInput(request, "change-output-root:"),
+    });
+  }
+
+  if (packets.length !== expectedByAudience.size) {
+    throw new Error(
+      `Send discovery packet mirroring requires exactly ${expectedByAudience.size} proof-bound packet(s).`,
+    );
+  }
+
+  const normalizedPackets = packets.map((packet) => normalizeSendDiscoveryPacket(packet));
+  const seenAudiences = new Set();
+  const sendPublicInputHash = expectedSendPublicInputHash({ proof, request });
+
+  for (const packet of normalizedPackets) {
+    if (seenAudiences.has(packet.audience)) {
+      throw new Error(`Duplicate Send discovery packet audience ${packet.audience}.`);
+    }
+    seenAudiences.add(packet.audience);
+
+    const expected = expectedByAudience.get(packet.audience);
+    if (!expected) {
+      throw new Error(`Unexpected Send discovery packet audience ${packet.audience}.`);
+    }
+    if (packet.proofReceiptId !== receiptId) {
+      throw new Error("Send discovery packet proofReceiptId must match the verifier receipt.");
+    }
+    if (packet.proofReceiptPublicInputCommitment !== proof?.publicInputCommitment) {
+      throw new Error(
+        "Send discovery packet proofReceiptPublicInputCommitment must match the accepted proof.",
+      );
+    }
+    if (packet.sendPublicInputHash !== sendPublicInputHash) {
+      throw new Error("Send discovery packet sendPublicInputHash must match the proof-bound Send hash.");
+    }
+    if (packet.treeId !== treeId) {
+      throw new Error("Send discovery packet treeId must match the input commitment tree.");
+    }
+    if (packet.outputCommitment !== expected.outputCommitment) {
+      throw new Error("Send discovery packet outputCommitment must match the proof-bound output.");
+    }
+    if (packet.outputLeafIndex !== expected.outputLeafIndex) {
+      throw new Error("Send discovery packet outputLeafIndex must match the proof-bound output.");
+    }
+    if (packet.outputRoot !== expected.outputRoot) {
+      throw new Error("Send discovery packet outputRoot must match the proof-bound output.");
+    }
+    if (
+      deriveMemoCiphertextBodyHashField(
+        packet.memoCiphertextBodyHash,
+        `${packet.audience} memoCiphertextBodyHash`,
+      ) !== expected.memoCiphertextBodyHashField
+    ) {
+      throw new Error(
+        "Send discovery packet memoCiphertextBodyHash must match the proof-bound memo body hash field.",
+      );
+    }
+  }
+
+  for (const audience of expectedByAudience.keys()) {
+    if (!seenAudiences.has(audience)) {
+      throw new Error(`Missing Send discovery packet audience ${audience}.`);
+    }
+  }
+
+  return normalizedPackets;
+}
+
+async function requestIndexerJson(method, path, body) {
   const baseUrl = process.env.VANTA_PRIVATE_POOL_V2_INDEXER_URL?.replace(/\/+$/, "");
   if (!baseUrl) {
     throw new Error("Private Pool v2 stateful verifier acceptance requires VANTA_PRIVATE_POOL_V2_INDEXER_URL.");
@@ -1258,12 +1393,12 @@ async function postIndexerJson(path, body) {
 
   const authToken = process.env.VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN;
   const response = await fetch(`${baseUrl}${path}`, {
-    body: JSON.stringify(normalizeForJson(body)),
+    ...(body === undefined ? {} : { body: JSON.stringify(normalizeForJson(body)) }),
     headers: {
-      "Content-Type": "application/json",
+      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
       ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
     },
-    method: "POST",
+    method,
   });
   const text = await response.text();
 
@@ -1274,7 +1409,15 @@ async function postIndexerJson(path, body) {
   return text ? JSON.parse(text) : null;
 }
 
-async function mirrorAcceptedProofToIndexer(request) {
+async function getIndexerJson(path) {
+  return await requestIndexerJson("GET", path);
+}
+
+async function postIndexerJson(path, body) {
+  return await requestIndexerJson("POST", path, body);
+}
+
+async function mirrorAcceptedProofToIndexer(request, { sendDiscoveryPackets = [] } = {}) {
   if (request?.intent === "shield") {
     return await postIndexerJson("/v1/commitments", {
       assetId: requirePublicInput(request, "target-asset:"),
@@ -1289,7 +1432,7 @@ async function mirrorAcceptedProofToIndexer(request) {
   }
 
   if (isStatefulPrivateSendRequest(request)) {
-    return await postIndexerJson("/v1/private-sends", {
+    const transition = await postIndexerJson("/v1/private-sends", {
       changeLeafIndex: Number(requirePublicInput(request, "change-leaf-index:")),
       changeOutputCommitment: requirePublicInput(request, "change-output-commitment:"),
       changeOutputRoot: requirePublicInput(request, "change-output-root:"),
@@ -1301,6 +1444,15 @@ async function mirrorAcceptedProofToIndexer(request) {
       recipientOutputRoot: requirePublicInput(request, "recipient-output-root:"),
       spentAtSlot: 1_000_000n,
     });
+    const mirroredSendDiscoveryPackets = [];
+    for (const packet of sendDiscoveryPackets) {
+      const mirrored = await postIndexerJson("/v1/send-discovery-packets", packet);
+      mirroredSendDiscoveryPackets.push(mirrored?.packet ?? mirrored);
+    }
+    return {
+      sendDiscoveryPackets: mirroredSendDiscoveryPackets,
+      transition,
+    };
   }
 
   if (isActualPrivateSpendRequest(request)) {
@@ -1635,16 +1787,32 @@ async function createServiceHandlers(role, {
       if (!proofMatches({ proof, request: requestBody })) {
         throw new Error("Private Pool v2 proof verification failed.");
       }
-      await mirrorAcceptedProofToIndexer(requestBody);
+      const receiptId = hashHex(serviceVersion, "receipt", replayKey, proof.publicInputCommitment);
+      const sendDiscoveryPackets = await validateProofBoundSendDiscoveryPackets({
+        packets: body.sendDiscoveryPackets,
+        proof,
+        receiptId,
+        request: requestBody,
+      });
+      await mirrorAcceptedProofToIndexer(requestBody, { sendDiscoveryPackets });
       const receipt = {
         assetId: String(requestBody.assetId),
         intent: requestBody.intent,
         proofSystem: proof.proofSystem,
         proofBackend: proof.proofBackend,
         publicInputCommitment: proof.publicInputCommitment,
-        receiptId: hashHex(serviceVersion, "receipt", replayKey, proof.publicInputCommitment),
+        receiptId,
         recordedAtSlot: 1_000_000n,
         replayKey,
+        ...(sendDiscoveryPackets.length > 0
+          ? {
+              sendDiscoveryMirroring: {
+                claimBoundary: sendDiscoveryClaimBoundary,
+                packetCount: sendDiscoveryPackets.length,
+                productionReady: false,
+              },
+            }
+          : {}),
       };
       await verifierState.put(receipt);
       sendJson(response, 200, receipt);

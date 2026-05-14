@@ -41,10 +41,12 @@ assert.equal(status.boundedApprovalActive, false);
 assert.equal(status.privateCoreSendNoWitnessBoundaryCovered, true);
 assert.equal(status.privateCoreSendProofArtifactCovered, true);
 assert.equal(status.localViewTagBodyHashHandoffCovered, true);
+assert.equal(status.localVerifierMirroredDiscoveryHandoffCovered, true);
 assert.equal(status.deployedMemoIndexerHandoffCovered, false);
 assert.equal(status.legacyV1SendHistoryMigrationScoped, true);
 assert.equal(status.sendDiscoveryHandoff.productionReady, false);
 assert.equal(status.sendDiscoveryHandoff.localViewTagBodyHashHandoffCovered, true);
+assert.equal(status.sendDiscoveryHandoff.localVerifierMirroredDiscoveryHandoffCovered, true);
 assert.equal(status.sendDiscoveryHandoff.deployedMemoIndexerHandoffCovered, false);
 assert.equal(status.sendDiscoveryHandoff.freshV2OnlyClaimScoped, true);
 assert.equal(status.sendDiscoveryHandoff.legacyV1SendHistoryMigrationScoped, true);
@@ -84,6 +86,7 @@ for (const [key, command] of Object.entries({
   sendOperatorRedaction: "npm run private-core:send-operator-redaction-check",
   sendProductionPrivacyClaimGate: "npm run send:production-privacy-claim-gate",
   sendDiscoveryIndexerHandoff: "npm run send:discovery-indexer-handoff-check",
+  sendDiscoveryVerifierHandoff: "npm run private-pool-v2:service-network-check",
   sendLegacyHistoryScope: "npm run send:discovery-migration-policy-check",
   sendProofArtifactConsistency: "npm run private-core:send-proof-artifact-consistency-check",
   privatePoolV2SendCircuit: "npm run private-pool-v2:send-circuit-check",
@@ -100,7 +103,7 @@ for (const [key, command] of Object.entries({
 }
 
 for (const phrase of [
-  "Deploy memo/indexer handoff proving opaque memo bodies match proof-bound sha256: body hashes",
+  "Deploy the verifier-mirrored memo/indexer handoff proving opaque memo bodies match proof-bound sha256: body hashes",
   "Keep production Send privacy claims scoped to fresh v2 AEAD sends",
 ]) {
   assert.ok(
@@ -113,6 +116,7 @@ for (const phrase of [
 for (const phrase of [
   "deployed memo/indexer handoff proving opaque memo bodies match proof-bound sha256: body hashes",
   "explicit fresh-v2-only production claim scope",
+  "local verifier-mirrored discovery handoff coverage",
   "legacy v1 plaintext Send history remains excluded from production privacy claims",
 ]) {
   assert.ok(status.truth.includes(phrase), `Send status truth missing phrase: ${phrase}`);

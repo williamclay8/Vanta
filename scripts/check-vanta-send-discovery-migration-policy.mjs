@@ -53,6 +53,11 @@ assert.equal(
   "Send status must expose the local encrypted view-tag/body-hash handoff coverage.",
 );
 assert.equal(
+  status.sendDiscoveryHandoff?.localVerifierMirroredDiscoveryHandoffCovered,
+  true,
+  "Send status must expose the local verifier-mirrored discovery handoff coverage.",
+);
+assert.equal(
   status.sendDiscoveryHandoff?.deployedMemoIndexerHandoffCovered,
   false,
   "Send status must keep deployed memo/indexer handoff blocked.",
@@ -92,6 +97,11 @@ assert.equal(
   trustPacket.sendDiscoveryHandoff?.productionReady,
   false,
   "Send trust packet must keep discovery handoff productionReady false.",
+);
+assert.equal(
+  trustPacket.sendDiscoveryHandoff?.localVerifierMirroredDiscoveryHandoff,
+  true,
+  "Send trust packet must expose the local verifier-mirrored discovery handoff coverage.",
 );
 assert.equal(
   trustPacket.legacyHistoryScope?.freshV2OnlyClaimScoped,
