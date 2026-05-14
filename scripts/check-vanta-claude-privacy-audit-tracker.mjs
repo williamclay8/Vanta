@@ -37,6 +37,14 @@ const r9RecipientDiscoveryDecisionBlockerNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r9-recipient-discovery-decision-blocker.md",
 );
+const r9RecipientDiscoveryApprovedPathNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r9-recipient-discovery-approved-path.md",
+);
+const r6FreshAddressExitApprovedPathNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r6-fresh-address-exit-approved-path.md",
+);
 const r10aServiceEntrypointsNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r10a-service-entrypoints.md",
@@ -89,6 +97,8 @@ for (const path of [
   r8aProverRelayPrivacyTradeoffNotePath,
   r9aCiphertextBodyHashDiscoveryBindingNotePath,
   r9RecipientDiscoveryDecisionBlockerNotePath,
+  r9RecipientDiscoveryApprovedPathNotePath,
+  r6FreshAddressExitApprovedPathNotePath,
   r10aServiceEntrypointsNotePath,
   r11aLiveAnonymitySetProbeNotePath,
   r12LegacyV1MemoQuarantineNotePath,
@@ -118,6 +128,8 @@ const r9aCiphertextBodyHashDiscoveryBindingNote = read(
 const r9RecipientDiscoveryDecisionBlockerNote = read(
   r9RecipientDiscoveryDecisionBlockerNotePath,
 );
+const r9RecipientDiscoveryApprovedPathNote = read(r9RecipientDiscoveryApprovedPathNotePath);
+const r6FreshAddressExitApprovedPathNote = read(r6FreshAddressExitApprovedPathNotePath);
 const r10aServiceEntrypointsNote = read(r10aServiceEntrypointsNotePath);
 const r11aLiveAnonymitySetProbeNote = read(r11aLiveAnonymitySetProbeNotePath);
 const r12LegacyV1MemoQuarantineNote = read(r12LegacyV1MemoQuarantineNotePath);
@@ -176,12 +188,33 @@ const r9SectionMatch = state.match(/  - id: R9-RECIPIENT-DISCOVERY\n[\s\S]*?\n  
 assert.ok(r9SectionMatch, "state.yaml missing bounded R9 recipient discovery backlog row");
 const r9Section = r9SectionMatch[0];
 assert.ok(
-  r9Section.includes("status: blocked-product-protocol-design"),
-  "R9 production recipient discovery must be an explicit product/protocol design blocker.",
+  r9Section.includes("status: approved-design-pending-implementation"),
+  "R9 production recipient discovery must record Clay's approved design path.",
 );
 assert.ok(
-  r9Section.includes("decision_required:"),
-  "R9 production recipient discovery must record the owner decision required.",
+  r9Section.includes("approved_decision:"),
+  "R9 production recipient discovery must preserve the approved owner decision.",
+);
+assert.ok(
+  r9Section.includes("selected_model: \"hybrid discovery\""),
+  "R9 production recipient discovery must record hybrid discovery as the selected model.",
+);
+const a2FreshExitSectionMatch = state.match(
+  /  - id: A2-SELF-WALLET-EXIT-ONLY\n[\s\S]*?\n  - id: A3-ROOTS-NOT-PROGRAM-OWNED-SHARED-TREE\n/,
+);
+assert.ok(a2FreshExitSectionMatch, "state.yaml missing bounded A2 self-wallet exit row");
+const a2FreshExitSection = a2FreshExitSectionMatch[0];
+assert.ok(
+  a2FreshExitSection.includes("status: approved-design-blocked-on-proof-bound-release"),
+  "A2 fresh-address exit must record Clay's approved proof-bound design path.",
+);
+assert.ok(
+  a2FreshExitSection.includes("approved_direction:"),
+  "A2 fresh-address exit must preserve the approved owner direction.",
+);
+assert.ok(
+  a2FreshExitSection.includes("destinationOwner != requester only when the destination is proof-bound"),
+  "A2 fresh-address exit must stay limited to proof-bound destination release.",
 );
 
 for (const phrase of [
@@ -238,8 +271,8 @@ for (const phrase of [
   "send-memo-indexer-body-hash-handoff-not-deployed",
   "not production recipient discovery",
   "R9-RECIPIENT-DISCOVERY",
-  "status: blocked-product-protocol-design",
-  "production recipient discovery requires an owner product/protocol decision",
+  "status: approved-design-pending-implementation",
+  "Clay approved hybrid discovery on 2026-05-14",
   "R10A-SERVICE-STUB-REPLACEMENT",
   "partial-local-implemented-pending-production-controls",
   "operator/private-pool-v2-service-network.mjs exposes role-specific service start functions for indexer, prover, relayer, and verifier.",
@@ -584,6 +617,8 @@ for (const phrase of [
   "destinationOwner !== requester",
   "A program-owned shared tree is not deployed.",
   "Recipient discovery is not production deployed.",
+  "Clay approved hybrid discovery on 2026-05-14.",
+  "Clay approved the proof-bound fresh-address exit direction on 2026-05-14.",
   "legacy v1 plaintext memo history",
   "npm run private-pool-v2:live-anonymity-set-probe-check",
 ]) {
@@ -601,8 +636,10 @@ for (const phrase of [
   "Prover-relay privacy trade-off docs",
   "docs/zk/prover-relay-privacy-tradeoffs.md",
   "Recipient discovery/indexer",
-  "Blocked product/protocol design",
-  "Requires owner decision between direct viewing-key exchange, indexed encrypted view tags, or a hybrid",
+  "Approved hybrid design, pending implementation",
+  "Clay approved hybrid discovery; implementation still needs direct viewing-key exchange, indexed encrypted view tags, deployed service behavior, and UX",
+  "Fresh-address exit privacy",
+  "Approved design, blocked on proof-bound release",
   "Ciphertext body-hash discovery binding",
   "Local implemented, local-only",
   "proof-bound body-hash fields feed the local verifier-mirrored Send discovery handoff",
@@ -685,6 +722,39 @@ for (const phrase of [
   assert.ok(
     r9RecipientDiscoveryDecisionBlockerNote.includes(phrase),
     `R9 recipient discovery decision-blocker note missing ${phrase}`,
+  );
+}
+
+for (const phrase of [
+  "R9 Recipient Discovery Approved Path - 2026-05-14",
+  "Approved owner decision.",
+  "Clay approved hybrid discovery on 2026-05-14.",
+  "direct viewing-key exchange first for merchant/OTC/treasury design partners",
+  "indexed encrypted view tags after service/indexer privacy review",
+  "send-memo-indexer-body-hash-handoff-not-deployed",
+  "not production recipient discovery",
+  "not production privacy",
+]) {
+  assert.ok(
+    r9RecipientDiscoveryApprovedPathNote.includes(phrase),
+    `R9 recipient discovery approved-path note missing ${phrase}`,
+  );
+}
+
+for (const phrase of [
+  "R6 Fresh-Address Exit Approved Path - 2026-05-14",
+  "Approved owner decision.",
+  "Clay approved proof-bound fresh-address exit on 2026-05-14.",
+  "destinationOwner != requester only when the destination is proof-bound",
+  "program-owned vault PDA",
+  "TAG_UNSHIELD",
+  "ERR_UNSHIELD_RELEASE_NOT_WIRED",
+  "not fresh-address exit privacy",
+  "not production privacy",
+]) {
+  assert.ok(
+    r6FreshAddressExitApprovedPathNote.includes(phrase),
+    `R6 fresh-address exit approved-path note missing ${phrase}`,
   );
 }
 

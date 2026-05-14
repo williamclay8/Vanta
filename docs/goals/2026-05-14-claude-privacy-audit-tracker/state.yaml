@@ -299,9 +299,14 @@ architecture_blocker_map:
     guard: "npm run private-pool-v2:onchain-unshield-custody-check"
     completion_requires: "Program-owned vault PDA custody, removal of operator vault-signer release from the production path, and reviewed migration/runbook evidence."
   - id: A2-SELF-WALLET-EXIT-ONLY
-    status: blocked-product-protocol-design
-    current_truth: "The current Unshield operator rejects destinationOwner !== requester, so fresh-address exit privacy is not available."
+    status: approved-design-blocked-on-proof-bound-release
+    current_truth: "The current Unshield operator rejects destinationOwner !== requester, so fresh-address exit privacy is not available. Clay approved the proof-bound fresh-address exit direction on 2026-05-14, but implementation is still blocked on proof-bound TAG_UNSHIELD release and program-owned custody."
     guard: "npm run unshield:public-exit-surface-check"
+    approved_direction:
+      approved_by: "Clay"
+      approved_on: "2026-05-14"
+      direction: "Allow destinationOwner != requester only when the destination is proof-bound."
+      required_guardrail: "Do not allow fresh-address exit from the operator-keypair public-exit path without proof-bound destination authorization."
     completion_requires: "Proof-bound exit destination, fresh-address UX, operator checks that allow destinationOwner != requester only when proof-bound, and updated product copy."
   - id: A3-ROOTS-NOT-PROGRAM-OWNED-SHARED-TREE
     status: blocked-architecture
@@ -348,8 +353,17 @@ audit_remaining_work_backlog:
     source_priority: blocker
     source_item: "Allow destinationOwner != requester on Unshield by binding the exit destination in proof."
     tracker_ref: "A2-SELF-WALLET-EXIT-ONLY"
-    status: blocked-product-protocol-design
+    status: approved-design-blocked-on-proof-bound-release
     guard: "npm run unshield:public-exit-surface-check"
+    approved_direction:
+      approved_by: "Clay"
+      approved_on: "2026-05-14"
+      direction: "Proof-bound fresh-address exit: destinationOwner != requester only when the destination is proof-bound."
+      note: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-r6-fresh-address-exit-approved-path.md"
+    evidence:
+      - "Clay approved proof-bound fresh-address exit on 2026-05-14."
+      - "Implementation remains blocked until TAG_UNSHIELD can verify a destination-bound proof and release from program-owned custody."
+      - "The current operator-keypair public-exit path must keep rejecting destinationOwner != requester."
   - id: R7-SBF-REDEPLOY-LIVE-LINEAGE
     source_priority: blocker
     source_item: "Rebuild and redeploy the current SBF ABI before citing live replay/nullifier evidence."
@@ -381,18 +395,20 @@ audit_remaining_work_backlog:
     source_priority: high
     source_item: "Build production recipient discovery via viewing-key exchange or view-tag/indexer protocol."
     tracker_ref: "A5"
-    status: blocked-product-protocol-design
+    status: approved-design-pending-implementation
     guard: "npm run private-pool-v2:send-discovery-indexer-handoff-check"
-    decision_required:
-      question: "Should production recipient discovery use direct viewing-key exchange, indexed encrypted view tags, or a hybrid model?"
-      options:
-        - "direct viewing-key exchange"
-        - "indexed encrypted view tags"
-        - "hybrid discovery"
-      recommendation: "Hybrid discovery, with direct viewing-key exchange first for merchant/OTC/treasury design partners and indexed encrypted view tags only after service/indexer privacy review."
+    approved_decision:
+      approved_by: "Clay"
+      approved_on: "2026-05-14"
+      selected_model: "hybrid discovery"
+      first_phase: "direct viewing-key exchange first for merchant/OTC/treasury design partners"
+      second_phase: "indexed encrypted view tags after service/indexer privacy review"
+      note: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-r9-recipient-discovery-approved-path.md"
     evidence:
-      - "R9A local ciphertext body-hash handoff binding is implemented, but production recipient discovery requires an owner product/protocol decision."
+      - "Clay approved hybrid discovery on 2026-05-14."
+      - "R9A local ciphertext body-hash handoff binding is implemented, but production recipient discovery still requires implementation of the approved hybrid model."
       - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-r9-recipient-discovery-decision-blocker.md records direct viewing-key exchange, indexed encrypted view tags, and hybrid discovery as the viable choices."
+      - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-r9-recipient-discovery-approved-path.md records the approved hybrid path."
       - "The current blocker send-memo-indexer-body-hash-handoff-not-deployed remains until a deployed discovery service and external-recipient discovery UX exist."
   - id: R9A-CIPHERTEXT-BODY-HASH-DISCOVERY-BINDING
     source_priority: high

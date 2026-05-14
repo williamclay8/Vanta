@@ -27,11 +27,11 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 | On-chain tag-6 release | A1/A2 / R4 | Blocked | `ERR_UNSHIELD_RELEASE_NOT_WIRED` remains expected |
 | Program-owned PDA vault | A2 / R4 | Blocked | Current release model is operator-keypair public exit |
 | Program-owned shared tree | A3 / R5 | Blocked | Root provenance is not proof of transition correctness |
-| Fresh-address exit privacy | A2 self-wallet blocker / R6 | Blocked | Current operator rejects `destinationOwner !== requester` |
+| Fresh-address exit privacy | A2 self-wallet blocker / R6 | Approved design, blocked on proof-bound release | Clay approved proof-bound fresh-address exit; current operator still rejects `destinationOwner !== requester` until proof-bound TAG_UNSHIELD release and program-owned custody exist |
 | Deployed bytecode/source hash match | R7A | Blocked / approval-gated | Requires deployment/live bytecode receipt after approval |
 | Real browser prover in live paths | A4 / R8 | Blocked | C01 verifier compatibility and production runtime evidence absent |
 | Prover-relay privacy trade-off docs | R8A | Local implemented | `docs/zk/prover-relay-privacy-tradeoffs.md` is enforced by `npm run zk:h08-production-prover-runtime-options-check` |
-| Recipient discovery/indexer | A5 / R9 | Blocked product/protocol design | Requires owner decision between direct viewing-key exchange, indexed encrypted view tags, or a hybrid |
+| Recipient discovery/indexer | A5 / R9 | Approved hybrid design, pending implementation | Clay approved hybrid discovery; implementation still needs direct viewing-key exchange, indexed encrypted view tags, deployed service behavior, and UX |
 | Ciphertext body-hash discovery binding | R9A | Local implemented, local-only | proof-bound body-hash fields feed the local verifier-mirrored Send discovery handoff |
 | Service separation | A5 / R10 | Partial local implemented, pending production controls | Local role services are separated and guarded; production controls/live receipts remain absent |
 | Service stub replacement | R10A | Local implemented | Role-specific entrypoints are enforced by `npm run private-pool-v2:service-network-check` |
@@ -52,7 +52,7 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 
 Goal is not complete.
 
-The audit is now tracked and N1, N2, N3, N5, R8A, R9A, R10A, R11A, R12, R13A, R14, R15/R15A, and R19 source-level/local gates have implementation evidence, but the remaining blockers include deploy/live approval gates, hosted CI evidence, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
+The audit is now tracked and N1, N2, N3, N5, R8A, R9A, R10A, R11A, R12, R13A, R14, R15/R15A, and R19 source-level/local gates have implementation evidence. Clay has also approved the R9 hybrid recipient-discovery direction and R6 proof-bound fresh-address exit direction. The remaining blockers include deploy/live approval gates, hosted CI evidence, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
 
 ## Current Lumi Snapshot
 

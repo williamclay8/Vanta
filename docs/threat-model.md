@@ -37,9 +37,9 @@ Review artifacts and receipts are also security-sensitive when they imply livene
 - `TAG_SPEND_WITH_PROOF = 3` currently reaches `ERR_PROOF_VERIFIER_NOT_WIRED` instead of successful on-chain proof verification.
 - `TAG_UNSHIELD = 6` currently reaches `ERR_UNSHIELD_RELEASE_NOT_WIRED` instead of proof-verified SPL or SOL release.
 - The current Unshield path remains an operator-keypair public exit. `loadKeypairFromEnv(vaultSignerSecretKeyEnvName)` is the known A2 custody exception until a program-owned PDA vault replaces it.
-- Fresh-address exit privacy is not present. The current operator path rejects `destinationOwner !== requester`, so exit-to-fresh-wallet cannot be claimed.
+- Fresh-address exit privacy is not present. The current operator path rejects `destinationOwner !== requester`, so exit-to-fresh-wallet cannot be claimed. Clay approved the proof-bound fresh-address exit direction on 2026-05-14.
 - A program-owned shared tree is not deployed. Operator-fed or provenance-checked roots are not proof that the root transition is correct.
-- Recipient discovery is not production deployed. Viewing-key AEAD and ciphertext body-hash fields are useful building blocks, but they do not by themselves solve recipient-grade discovery.
+- Recipient discovery is not production deployed. Viewing-key AEAD and ciphertext body-hash fields are useful building blocks, but they do not by themselves solve recipient-grade discovery. Clay approved hybrid discovery on 2026-05-14.
 - Service separation is incomplete. Prover, relayer, verifier, indexer, and operator services must have distinct identities, logs, queues, auth, storage, and failure domains before separation can be treated as a privacy boundary.
 - Browser-worker proving remains dev-only evidence. Remote proving must not silently receive witnesses or proof material; it is not production-private proof infrastructure.
 - Legacy v1 plaintext memo history is quarantined as parse-compatible history only. It is excluded from production privacy, anonymity, proof-verified, and mainnet-private claims unless migrated or segregated with reviewed evidence.

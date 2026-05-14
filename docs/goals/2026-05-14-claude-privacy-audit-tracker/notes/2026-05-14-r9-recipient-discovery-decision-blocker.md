@@ -4,6 +4,10 @@
 
 Blocked product/protocol design.
 
+Superseded by the approved path note after Clay approved hybrid discovery on 2026-05-14:
+
+- `docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-r9-recipient-discovery-approved-path.md`
+
 ## What This Clarifies
 
 R9 is not an unscoped TODO. production recipient discovery requires an owner product/protocol decision before implementation should proceed.
@@ -38,7 +42,7 @@ Choose one production discovery model before implementing R9:
 
 The current Vanta Distribution Ethos points toward hybrid discovery, with direct viewing-key exchange first for merchant/OTC/treasury design partners and indexed encrypted view tags only after the service/indexer privacy boundary is reviewed.
 
-Do not treat this recommendation as an implemented protocol choice. It is a product/protocol decision packet for Clay and future implementation agents.
+Clay approved this recommendation as the product/protocol direction on 2026-05-14. Do not treat the approval as implemented protocol behavior.
 
 ## Remaining Production Requirements
 

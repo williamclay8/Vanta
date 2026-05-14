@@ -73,13 +73,14 @@ Completion evidence required:
 
 ## A2-SELF-WALLET-EXIT-ONLY
 
-Status: `blocked-product-protocol-design`
+Status: `approved-design-blocked-on-proof-bound-release`
 
 Current truth:
 
 - The Unshield operator rejects `destinationOwner !== requester`.
 - Fresh-address exit privacy is not available.
 - The current product copy must keep the self-wallet exit limitation visible.
+- Clay approved proof-bound fresh-address exit on 2026-05-14.
 
 Guard:
 
