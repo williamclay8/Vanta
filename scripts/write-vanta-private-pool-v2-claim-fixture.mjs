@@ -22,10 +22,12 @@ if (
   fixtureMode !== "forged-input-membership" &&
   fixtureMode !== "invalid-binding" &&
   fixtureMode !== "invalid-nullifier" &&
+  fixtureMode !== "invalid-owner-secret-binding" &&
+  fixtureMode !== "invalid-input-commitment-preimage" &&
   fixtureMode !== "invalid-amount-range"
 ) {
   console.error(
-    'Expected fixture mode "valid", "forged-input-membership", "invalid-binding", "invalid-nullifier", or "invalid-amount-range".',
+    'Expected fixture mode "valid", "forged-input-membership", "invalid-binding", "invalid-nullifier", "invalid-owner-secret-binding", "invalid-input-commitment-preimage", or "invalid-amount-range".',
   );
   process.exit(1);
 }

@@ -143,6 +143,18 @@ for (const file of noirFiles) {
     if (/\brelayer_fee\s*:\s*Field\b/u.test(mainSignature)) {
       failures.push(`${file}: claim relayer fee in main ABI must be u128, not raw Field`);
     }
+    for (const requiredPhrase of [
+      "fn compute_owner_commitment",
+      "fn compute_input_commitment",
+      "input_blinding: Field",
+      "input_derivation_tag: Field",
+      "assert(computed_owner_commitment == owner_commitment)",
+      "assert(computed_input_commitment == input_commitment)",
+    ]) {
+      if (!source.includes(requiredPhrase)) {
+        failures.push(`${file}: Claim owner/input commitment must be bound to owner and input preimages (${requiredPhrase})`);
+      }
+    }
   }
 
   if (file === "zk/noir/vanta_private_pool_v2_send_entry/src/main.nr") {

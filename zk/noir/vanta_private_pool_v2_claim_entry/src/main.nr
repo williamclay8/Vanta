@@ -6,6 +6,26 @@ fn compute_nullifier(input_commitment: Field, owner_secret: Field) -> Field {
     bn254::hash_2([input_commitment, owner_secret])
 }
 
+fn compute_owner_commitment(owner_secret: Field) -> Field {
+    bn254::hash_1([owner_secret])
+}
+
+fn compute_input_commitment(
+    owner_commitment: Field,
+    asset_id: Field,
+    amount: u128,
+    input_blinding: Field,
+    input_derivation_tag: Field,
+) -> Field {
+    bn254::hash_5([
+        owner_commitment,
+        asset_id,
+        amount as Field,
+        input_blinding,
+        input_derivation_tag,
+    ])
+}
+
 fn hash_merkle_leaf(commitment: Field) -> Field {
     bn254::hash_1([commitment])
 }
@@ -115,7 +135,21 @@ fn main(
     relayer_fee: u128,
     quote_expires_at_slot: Field,
     owner_secret: Field,
+    input_blinding: Field,
+    input_derivation_tag: Field,
 ) {
+    let computed_owner_commitment = compute_owner_commitment(owner_secret);
+    assert(computed_owner_commitment == owner_commitment);
+
+    let computed_input_commitment = compute_input_commitment(
+        owner_commitment,
+        asset_id,
+        amount,
+        input_blinding,
+        input_derivation_tag,
+    );
+    assert(computed_input_commitment == input_commitment);
+
     let computed_input_root = compute_root(
         input_commitment,
         membership_path,
