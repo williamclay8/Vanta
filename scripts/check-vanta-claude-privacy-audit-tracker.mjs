@@ -17,6 +17,10 @@ const architectureBlockerNotePath = resolve(
   "notes/2026-05-14-architecture-blocker-map.md",
 );
 const n5CiGateNotePath = resolve(trackerRoot, "notes/2026-05-14-n5-ci-gate.md");
+const completionAuditNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-completion-audit.md",
+);
 const packagePath = resolve(repoRoot, "package.json");
 const privacyAuditWorkflowPath = resolve(repoRoot, ".github/workflows/privacy-audit.yml");
 
@@ -32,6 +36,7 @@ for (const path of [
   n2ImplementationPathNotePath,
   architectureBlockerNotePath,
   n5CiGateNotePath,
+  completionAuditNotePath,
   privacyAuditWorkflowPath,
 ]) {
   assert.ok(existsSync(path), `Missing Claude privacy audit tracker artifact: ${path}`);
@@ -44,6 +49,7 @@ const n2BlockerNote = read(n2BlockerNotePath);
 const n2ImplementationPathNote = read(n2ImplementationPathNotePath);
 const architectureBlockerNote = read(architectureBlockerNotePath);
 const n5CiGateNote = read(n5CiGateNotePath);
+const completionAuditNote = read(completionAuditNotePath);
 const privacyAuditWorkflow = read(privacyAuditWorkflowPath);
 const packageJson = JSON.parse(read(packagePath));
 
@@ -89,12 +95,14 @@ for (const phrase of [
   "Do not mark N2 complete based only on keeping Private Core sender_secret_key live/nonzero.",
   "remaining_design_blockers",
   "N2-PPV2-SWAP-INPUT-PREIMAGE",
+  "approved-pending-implementation",
+  "decision_approved_by: \"Clay\"",
+  "approval_answer: \"yes\"",
   "input_commitment = poseidon5(owner_commitment, input_asset_id_commitment, input_amount, input_blinding, input_derivation_tag)",
   "N2-PRIVATE-CORE-SENDER-AUTH",
   "provingOwnerKeyMode = poseidon-proof-owner-key-v0",
   "prefer distinct proving-owner fields",
   "approval_question",
-  "blocked-architecture-decision",
   "x25519-secret-prechecked-off-circuit",
   "architecture_blocker_map",
   "A1-TAG3-PROOF-VERIFIER-NOT-WIRED",
@@ -107,6 +115,13 @@ for (const phrase of [
   "destinationOwner !== requester",
   "A3-ROOTS-NOT-PROGRAM-OWNED-SHARED-TREE",
   "not proof that the root transition is correct",
+  "audit_remaining_work_backlog",
+  "R12-LEGACY-V1-MEMO-QUARANTINE",
+  "R14-ARGON2ID-VAULT-KDF",
+  "R15-OPERATOR-KEYPAIR-ENV-LOCKDOWN",
+  "R19-THREAT-MODEL",
+  "audit_completion_checklist",
+  "active-not-complete",
   ".github/workflows/privacy-audit.yml",
   "Vanta Privacy Audit Gates / Privacy audit gates",
   "Hosted GitHub Actions run must execute and pass before N5 is CI-verified.",
@@ -117,7 +132,8 @@ for (const phrase of [
 for (const phrase of [
   "N2-PPV2-SWAP-INPUT-PREIMAGE",
   "N2-PRIVATE-CORE-SENDER-AUTH",
-  "blocked-architecture-decision",
+  "approved-pending-implementation",
+  "Clay approved this path on 2026-05-14",
   "not a safe one-line Noir assertion",
   "invalid-input-commitment-preimage",
   "invalid-owner-auth fixtures",
@@ -182,6 +198,22 @@ for (const phrase of [
   "GitHub Actions runs this workflow",
 ]) {
   assert.ok(n5CiGateNote.includes(phrase), `N5 CI gate note missing ${phrase}`);
+}
+
+for (const phrase of [
+  "Prompt-To-Artifact Checklist",
+  "Goal is not complete.",
+  "N2 owner/input binding across lanes",
+  "Clay approved both owner decisions on 2026-05-14",
+  "Legacy v1 plaintext memo quarantine",
+  "Argon2id vault KDF migration",
+  "Operator keypair env lockdown",
+  "Positive proof-verified claim gate",
+  "Threat model",
+  "branch is ahead of origin",
+  "latest tracker/circuit/CI slices are not deployed or live-verified",
+]) {
+  assert.ok(completionAuditNote.includes(phrase), `completion audit note missing ${phrase}`);
 }
 
 for (const phrase of [

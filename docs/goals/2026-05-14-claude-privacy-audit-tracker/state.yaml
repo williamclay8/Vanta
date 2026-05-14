@@ -91,7 +91,9 @@ audit_findings:
         - "Do not mark N2 complete based only on keeping Private Core sender_secret_key live/nonzero."
     remaining_design_blockers:
       - id: N2-PPV2-SWAP-INPUT-PREIMAGE
-        status: blocked-architecture-decision
+        status: approved-pending-implementation
+        decision_approved_by: "Clay"
+        decision_approved_on: "2026-05-14"
         evidence_refs:
           - "zk/noir/vanta_private_pool_v2_swap_to_shielded_entry/src/main.nr exposes opaque settlement_commitment, route_commitment, and economics_commitment but no raw input asset/amount/economics preimage."
           - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-n2-design-blockers.md"
@@ -99,9 +101,12 @@ audit_findings:
         decision_required: "Choose the canonical raw input/economic preimage for swap-to-shielded input_commitment before adding an in-circuit assertion."
         proposed_path: "Use the PPv2 Send/Claim-style consumed-note preimage: input_commitment = poseidon5(owner_commitment, input_asset_id_commitment, input_amount, input_blinding, input_derivation_tag), while keeping settlement/route/economics commitments separate."
         approval_question: "Should Swap-to-shielded consume the same owner/asset/amount/blinding/derivation note preimage convention as PPv2 Send/Claim?"
+        approval_answer: "yes"
         not_safe_to_complete_without: "A fixture that makes a forged swap input preimage fail and a documented ABI update for the prover/browser/operator witness paths."
       - id: N2-PRIVATE-CORE-SENDER-AUTH
-        status: blocked-architecture-decision
+        status: approved-pending-implementation
+        decision_approved_by: "Clay"
+        decision_approved_on: "2026-05-14"
         evidence_refs:
           - "zk/noir/vanta_private_core_single_note_send/src/main.nr keeps sender_secret_key live/nonzero with owner authorization prechecked off-circuit."
           - "zk/noir/vanta_private_core_single_note_swap/src/main.nr keeps sender_secret_key live/nonzero with owner authorization prechecked off-circuit."
@@ -111,6 +116,7 @@ audit_findings:
         decision_required: "Choose whether Private Core keeps X25519 owner-public-key notes with off-circuit precheck, adds a separate Poseidon proof-owner key, or migrates note ownership to an in-circuit-friendly key model."
         proposed_path: "Extend the existing Private Core Unshield hybrid proof-owner model explicitly: keep source-layer X25519 compatibility, add provingOwnerKeyMode = poseidon-proof-owner-key-v0, prefer distinct proving-owner fields, and bind Send/Swap Noir notes to a Poseidon proof-owner key derived from sender_secret_key limbs."
         approval_question: "Should Private Core Send/Swap adopt an explicit Unshield-style hybrid proof-owner convention for in-circuit authorization?"
+        approval_answer: "yes"
         not_safe_to_complete_without: "A key-model decision, updated proof metadata, invalid-owner-auth fixtures for Send and Swap, and updated private-core verification commands."
     verify:
       - "npm run zk:circuit-soundness-lint"
@@ -268,7 +274,134 @@ architecture_blocker_map:
     guard: "npm run private-pool-v2:root-provenance-check"
     completion_requires: "Program-owned shared tree state or equivalent verified root transition mechanism plus positive append/invalid-transition tests."
 
+audit_remaining_work_backlog:
+  - id: R1-ONCHAIN-VERIFIER
+    source_priority: blocker
+    source_item: "Embed a real Groth16/UltraHonk verifier on chain and replace ERR_PROOF_VERIFIER_NOT_WIRED with proof verification."
+    tracker_ref: "A1-TAG3-PROOF-VERIFIER-NOT-WIRED"
+    status: blocked-architecture-audit-deploy
+    guard: "npm run zk:c01-onchain-proof-boundary-check"
+  - id: R2-SHIELD-OUTPUT-COMMITMENT
+    source_priority: blocker
+    source_item: "Bind Shield output_commitment to owner_pubkey + amount + asset + blinding + derivation_tag."
+    tracker_ref: "N1"
+    status: local-implemented
+    guard: "npm run private-pool-v2:shield-circuit-check"
+  - id: R3-OWNER-INPUT-BINDING
+    source_priority: blocker
+    source_item: "Constrain owner_secret to owner_commitment/input_commitment in Send/Swap/Claim/Spend."
+    tracker_ref: "N2"
+    status: partial-local-implemented
+    guard: "npm run privacy-audit:tracker-check"
+  - id: R4-PDA-VAULT-UNSHIELD
+    source_priority: blocker
+    source_item: "Replace operator-keypair vault custody with program-owned PDA vault and wire proof-verified TAG_UNSHIELD release."
+    tracker_ref: "A2-OPERATOR-KEYPAIR-CUSTODY"
+    status: blocked-architecture-audit-deploy
+    guard: "npm run private-pool-v2:onchain-unshield-custody-check"
+  - id: R5-PROGRAM-OWNED-SHARED-TREE
+    source_priority: blocker
+    source_item: "Make accepted roots come from program-owned shared-tree state, not operator-fed root lists."
+    tracker_ref: "A3-ROOTS-NOT-PROGRAM-OWNED-SHARED-TREE"
+    status: blocked-architecture
+    guard: "npm run private-pool-v2:root-provenance-check"
+  - id: R6-FRESH-ADDRESS-EXIT
+    source_priority: blocker
+    source_item: "Allow destinationOwner != requester on Unshield by binding the exit destination in proof."
+    tracker_ref: "A2-SELF-WALLET-EXIT-ONLY"
+    status: blocked-product-protocol-design
+    guard: "npm run unshield:public-exit-surface-check"
+  - id: R7-SBF-REDEPLOY-LIVE-LINEAGE
+    source_priority: blocker
+    source_item: "Rebuild and redeploy the current SBF ABI before citing live replay/nullifier evidence."
+    tracker_ref: "N4"
+    status: blocked-approval-gated
+    guard: "npm run private-pool-v2:sbf-abi-check"
+  - id: R8-REAL-BROWSER-PROVER-LIVE-PATH
+    source_priority: high
+    source_item: "Wire a real browser prover into live Shield/Send/Swap/Claim execution paths."
+    tracker_ref: "A4"
+    status: blocked-on-c01-verifier-compatibility
+    guard: "npm run zk:h08-production-prover-runtime-options-check"
+  - id: R9-RECIPIENT-DISCOVERY
+    source_priority: high
+    source_item: "Build production recipient discovery via viewing-key exchange or view-tag/indexer protocol."
+    tracker_ref: "A5"
+    status: pending-design
+    guard: "npm run private-pool-v2:send-discovery-indexer-handoff-check"
+  - id: R10-SERVICE-SEPARATION
+    source_priority: high
+    source_item: "Separate prover, relayer, verifier, indexer, and operator services with non-overlapping trust boundaries."
+    tracker_ref: "A5"
+    status: pending-design
+    guard: "npm run private-pool-v2:service-network-check"
+  - id: R11-ANONYMITY-SET-VOLUME
+    source_priority: high
+    source_item: "Populate a real shared anonymity set before using anonymity wording."
+    tracker_ref: "A6"
+    status: blocked-volume-and-external-audit
+    guard: "npm run private-pool-v2:anonymity-set-readiness-check"
+  - id: R12-LEGACY-V1-MEMO-QUARANTINE
+    source_priority: high
+    source_item: "Migrate or quarantine legacy v1 plaintext memo chain history and exclude it from privacy claims."
+    tracker_ref: "memo-history"
+    status: pending-design
+    guard: "npm run actions:memo-encryption-check"
+  - id: R13-META-DESCRIPTION-TRUTH
+    source_priority: medium
+    source_item: "Fix crawler-visible meta description overclaim."
+    tracker_ref: "N3"
+    status: local-implemented
+    guard: "npm run truth:privacy-claim-gate"
+  - id: R14-ARGON2ID-VAULT-KDF
+    source_priority: medium
+    source_item: "Migrate private vault password-derived material from PBKDF2 quick-fix to Argon2id."
+    tracker_ref: "private-vault-kdf"
+    status: pending-implementation
+    guard: "npm run private-vault:crypto-check"
+  - id: R15-OPERATOR-KEYPAIR-ENV-LOCKDOWN
+    source_priority: medium
+    source_item: "Lock down liquidityKeypair-style env loading across pay-server, swap-auth, rebalance, and operator paths."
+    tracker_ref: "operator-env-keypair-lockdown"
+    status: pending-audit
+    guard: "npm run privacy-audit:tracker-check"
+  - id: R16-POSITIVE-PROOF-VERIFIED-CLAIM-GATE
+    source_priority: medium
+    source_item: "Add a positive truth gate that tag 3 returns success on a real proof before proof-verified claims are allowed."
+    tracker_ref: "A1-TAG3-PROOF-VERIFIER-NOT-WIRED"
+    status: blocked-on-onchain-verifier
+    guard: "npm run zk:c01-onchain-proof-boundary-check"
+  - id: R17-FRONTEND-OPERATOR-ENV-CI
+    source_priority: medium
+    source_item: "Ensure production build pipeline runs frontend operator-env exposure check green pre-deploy."
+    tracker_ref: "N5"
+    status: local-implemented-pending-ci-run
+    guard: "npm run frontend:operator-env-exposure-check"
+  - id: R18-ONCHAIN-MERKLE-MIRROR
+    source_priority: low
+    source_item: "Replace browser localStorage AppendOnlyShieldedState hash chain with on-chain Merkle mirror once the program owns the tree."
+    tracker_ref: "A3"
+    status: blocked-on-program-owned-tree
+    guard: "npm run zk:local-shielded-state-diagnostics-check"
+  - id: R19-THREAT-MODEL
+    source_priority: low
+    source_item: "Document users, merchants, relayers, operators, counterparties, and trust boundaries before mainnet."
+    tracker_ref: "docs/threat-model.md"
+    status: pending-implementation
+    guard: "npm run docs:source-of-truth-check"
+
+audit_completion_checklist:
+  path: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-completion-audit.md"
+  status: active-not-complete
+  current_blockers:
+    - "N2 design decisions are approved but not implemented."
+    - "N4 requires deploy/live approval and receipts."
+    - "N5 requires hosted GitHub Actions green evidence."
+    - "Architecture blockers A1-A6 remain incomplete or approval-gated."
+    - "R12/R14/R15/R19 remain pending design, audit, or implementation."
+
 next_safe_slices:
-  - "Resolve N2-PPV2-SWAP-INPUT-PREIMAGE before claiming Swap-to-shielded input commitment binding is complete."
-  - "Resolve N2-PRIVATE-CORE-SENDER-AUTH before claiming Private Core Send/Swap owner authorization is in-circuit."
+  - "Implement approved N2-PPV2-SWAP-INPUT-PREIMAGE with red-first invalid-input-commitment-preimage coverage."
+  - "Implement approved N2-PRIVATE-CORE-SENDER-AUTH with explicit Poseidon proof-owner metadata and invalid-owner-auth coverage."
+  - "Add focused tracker/guards or implementation for R12, R14, R15, and R19."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."

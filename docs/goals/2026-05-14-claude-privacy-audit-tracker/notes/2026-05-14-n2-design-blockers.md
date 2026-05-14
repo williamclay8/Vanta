@@ -8,7 +8,9 @@ N2 is partially implemented locally: Private Pool v2 Send, Claim, Swap owner bin
 
 ## N2-PPV2-SWAP-INPUT-PREIMAGE
 
-Status: `blocked-architecture-decision`
+Status: `approved-pending-implementation`
+
+Decision: Clay approved this path on 2026-05-14.
 
 Current evidence:
 
@@ -29,7 +31,9 @@ Completion evidence required:
 
 ## N2-PRIVATE-CORE-SENDER-AUTH
 
-Status: `blocked-architecture-decision`
+Status: `approved-pending-implementation`
+
+Decision: Clay approved this path on 2026-05-14.
 
 Current evidence:
 
