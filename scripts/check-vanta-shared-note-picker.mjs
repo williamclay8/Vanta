@@ -14,6 +14,7 @@ assert.ok(existsSync(componentPath), "Shared NotePicker component must exist.");
 const componentSource = readFileSync(componentPath, "utf8");
 const sendPageSource = readRepoFile("src/pages/SendPage.tsx");
 const swapPageSource = readRepoFile("src/pages/SwapPage.tsx");
+const swapAdvancedPanelSource = readRepoFile("src/components/SwapAdvancedPanel.tsx");
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
 const stylesSource = readRepoFile("src/styles.css");
 const packageJson = JSON.parse(readRepoFile("package.json"));
@@ -47,8 +48,8 @@ for (const [pageName, pageSource, requiredPhrases] of [
     ],
   ],
   [
-    "SwapPage",
-    swapPageSource,
+    "SwapAdvancedPanel",
+    swapAdvancedPanelSource,
     [
       "import { NotePicker",
       "<NotePicker",
@@ -76,9 +77,16 @@ for (const [pageName, pageSource, requiredPhrases] of [
   }
 }
 
+for (const marker of [
+  "import { SwapAdvancedPanel",
+  "<SwapAdvancedPanel",
+]) {
+  assert.ok(swapPageSource.includes(marker), `SwapPage missing SwapAdvancedPanel NotePicker adoption marker: ${marker}`);
+}
+
 for (const [pageName, pageSource, panelClass] of [
   ["SendPage", sendPageSource, "send-advanced-panel"],
-  ["SwapPage", swapPageSource, "swap-advanced-panel"],
+  ["SwapAdvancedPanel", swapAdvancedPanelSource, "swap-advanced-panel"],
   ["UnshieldPage", unshieldPageSource, "unshield-advanced-panel"],
 ]) {
   const panelIndex = pageSource.indexOf(panelClass);

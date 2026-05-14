@@ -3,6 +3,10 @@ import { resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const swapPageSource = readFileSync(resolve(repoRoot, "src/pages/SwapPage.tsx"), "utf8");
+const swapAdvancedPanelSource = readFileSync(
+  resolve(repoRoot, "src/components/SwapAdvancedPanel.tsx"),
+  "utf8",
+);
 const shieldStateSource = readFileSync(resolve(repoRoot, "src/solana/vantaShieldState.ts"), "utf8");
 const operatorShieldStateSource = readFileSync(resolve(repoRoot, "operator/vanta-onchain-state.mjs"), "utf8");
 const capabilitySource = readFileSync(
@@ -51,11 +55,8 @@ const requiredMarkers = [
   "<QuoteCountdownBar",
   "quoteProgressPercent",
   "Quote refreshes in",
-  "Advanced swap settings",
-  "Max slippage",
-  "Note selection",
-  "NotePicker",
-  "Venue routing",
+  "SwapAdvancedPanel",
+  "<SwapAdvancedPanel",
   "selectedSourceAsset",
   "sourcePairCapability",
   "exactSpendableNote",
@@ -82,6 +83,19 @@ for (const marker of forbiddenMarkers) {
 for (const marker of requiredMarkers) {
   if (!swapPageSource.includes(marker)) {
     failures.push(`Swap page missing shield-first marker: ${marker}`);
+  }
+}
+
+for (const marker of [
+  "Advanced swap settings",
+  "Max slippage",
+  "Note selection",
+  "NotePicker",
+  "Venue routing",
+  "data-vanta-swap-advanced-panel",
+]) {
+  if (!swapAdvancedPanelSource.includes(marker)) {
+    failures.push(`SwapAdvancedPanel missing shield-first marker: ${marker}`);
   }
 }
 

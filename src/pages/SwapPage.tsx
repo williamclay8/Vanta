@@ -62,13 +62,14 @@ import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
 import { AssetPickerGrid, type AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { QuoteCountdownBar, type QuoteCountdownBarTone } from "@/components/QuoteCountdownBar";
+import { SwapAdvancedPanel } from "@/components/SwapAdvancedPanel";
 import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import {
   PrivacySummary,
   type PrivacySummaryItem,
 } from "@/components/PrivacySummary";
-import { NotePicker, type NotePickerOption } from "@/components/NotePicker";
+import type { NotePickerOption } from "@/components/NotePicker";
 
 type PendingSpentMarker = {
   asset: ShieldedSwapAssetKey;
@@ -513,6 +514,29 @@ export function SwapPage() {
         primaryLabel: formatAssetAmount(note.amount, selectedSourceAsset),
         secondaryLabel: formatShortSwapId(note.noteId),
       })),
+    [selectedSourceAsset, spendableNotes],
+  );
+  const handleSelectSwapNote = useCallback(
+    (nextNoteId: string | null) => {
+      if (!nextNoteId) {
+        setSelectedSwapNoteId(null);
+        return;
+      }
+
+      const nextNote = spendableNotes.find((note) => note.noteId === nextNoteId);
+
+      if (!nextNote) {
+        setSelectedSwapNoteId(null);
+        return;
+      }
+
+      setSelectedSwapNoteId(nextNote.noteId);
+      setAmount(formatExactSwapInputAmount(nextNote.amount, selectedSourceAsset));
+      setStatus("idle");
+      setFlowError(null);
+      setQuote(null);
+      setQuoteError(null);
+    },
     [selectedSourceAsset, spendableNotes],
   );
   const maxAvailableAmount = maxSwappableNote?.amount ?? 0;
@@ -1832,55 +1856,16 @@ export function SwapPage() {
                 note="Production Swap privacy remains claim-locked until private route adapters, verifier-backed settlement, audit evidence, and operator gates pass."
               />
 
-              <details className="send-advanced-panel swap-advanced-panel">
-                <summary>Advanced swap settings</summary>
-                <div className="send-advanced-panel__grid">
-                  <div className="send-advanced-panel__field">
-                    <span>Max slippage</span>
-                    <strong>{formatSwapSlippage(quoteSlippageBps)}</strong>
-                    <small>Displayed from the current route adapter when the quote exposes it.</small>
-                  </div>
-                  <div className="send-advanced-panel__field">
-                    <span>Note selection</span>
-                    <strong>{selectedSwapNoteLabel}</strong>
-                    <NotePicker
-                      ariaLabel="Swap note selection"
-                      automaticLabel="Automatic exact-note match"
-                      emptyCopy={`start with Shield to create a spendable shielded ${selectedSourceAsset} note.`}
-                      emptyOptionLabel={`No spendable shielded ${selectedSourceAsset} notes`}
-                      helperText="Swap execution still requires an exact shielded source note."
-                      onSelectNote={(nextNoteId) => {
-                        if (!nextNoteId) {
-                          setSelectedSwapNoteId(null);
-                          return;
-                        }
-
-                        const nextNote = spendableNotes.find((note) => note.noteId === nextNoteId);
-
-                        if (!nextNote) {
-                          setSelectedSwapNoteId(null);
-                          return;
-                        }
-
-                        setSelectedSwapNoteId(nextNote.noteId);
-                        setAmount(formatExactSwapInputAmount(nextNote.amount, selectedSourceAsset));
-                        setStatus("idle");
-                        setFlowError(null);
-                        setQuote(null);
-                        setQuoteError(null);
-                      }}
-                      options={swapNotePickerOptions}
-                      selectedNoteId={selectedSwapNoteId}
-                    />
-                    <small>Swap execution still requires an exact shielded source note.</small>
-                  </div>
-                  <div className="send-advanced-panel__field">
-                    <span>Venue routing</span>
-                    <strong>{quoteVenueLabel}</strong>
-                    <small>{routeTruthLabel}</small>
-                  </div>
-                </div>
-              </details>
+              <SwapAdvancedPanel
+                maxSlippageLabel={formatSwapSlippage(quoteSlippageBps)}
+                notePickerOptions={swapNotePickerOptions}
+                noteSelectionLabel={selectedSwapNoteLabel}
+                onSelectNote={handleSelectSwapNote}
+                routeTruthLabel={routeTruthLabel}
+                selectedNoteId={selectedSwapNoteId}
+                sourceAssetLabel={selectedSourceAsset}
+                venueLabel={quoteVenueLabel}
+              />
 
               <div className="shield-form__actions">
                 <button

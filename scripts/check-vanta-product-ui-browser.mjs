@@ -182,7 +182,7 @@ function runBrowserBatch() {
       checks: [
         { kind: "url_contains", text: "/app/swap" },
         { kind: "selector_visible", selector: ".privacy-summary" },
-        { kind: "selector_visible", selector: ".swap-advanced-panel" },
+        { kind: "selector_visible", selector: "[data-vanta-swap-advanced-panel]" },
         { kind: "selector_visible", selector: "[data-vanta-quote-countdown-bar]" },
         { kind: "text_visible", text: "Swap" },
         { kind: "text_visible", text: "Privacy summary" },
@@ -659,8 +659,8 @@ function assertSwapAdvancedDisclosure() {
       "--json",
       "eval",
       `(() => {
-        const panel = document.querySelector(".swap-advanced-panel");
-        const noteSelect = document.querySelector(".swap-advanced-panel select");
+        const panel = document.querySelector("[data-vanta-swap-advanced-panel]");
+        const noteSelect = document.querySelector("[data-vanta-swap-advanced-panel] select");
 
         return {
           ok: panel instanceof HTMLDetailsElement && !panel.open && noteSelect instanceof HTMLSelectElement,
@@ -685,7 +685,7 @@ function assertSwapAdvancedDisclosure() {
       "--session",
       browserSession,
       "eval",
-      `document.querySelector(".swap-advanced-panel summary")?.click()`,
+      `document.querySelector("[data-vanta-swap-advanced-panel] summary")?.click()`,
     ],
     { stdio: "ignore" },
   );
@@ -698,7 +698,7 @@ function assertSwapAdvancedDisclosure() {
       "--json",
       "eval",
       `(() => {
-        const panel = document.querySelector(".swap-advanced-panel");
+        const panel = document.querySelector("[data-vanta-swap-advanced-panel]");
         const panelText = panel?.textContent ?? "";
 
         return {
