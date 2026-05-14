@@ -8,13 +8,23 @@ const goalPath = resolve(trackerRoot, "goal.md");
 const statePath = resolve(trackerRoot, "state.yaml");
 const notePath = resolve(trackerRoot, "notes/2026-05-14-intake.md");
 const n2BlockerNotePath = resolve(trackerRoot, "notes/2026-05-14-n2-design-blockers.md");
+const architectureBlockerNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-architecture-blocker-map.md",
+);
 const packagePath = resolve(repoRoot, "package.json");
 
 function read(path) {
   return readFileSync(path, "utf8");
 }
 
-for (const path of [goalPath, statePath, notePath, n2BlockerNotePath]) {
+for (const path of [
+  goalPath,
+  statePath,
+  notePath,
+  n2BlockerNotePath,
+  architectureBlockerNotePath,
+]) {
   assert.ok(existsSync(path), `Missing Claude privacy audit tracker artifact: ${path}`);
 }
 
@@ -22,6 +32,7 @@ const goal = read(goalPath);
 const state = read(statePath);
 const note = read(notePath);
 const n2BlockerNote = read(n2BlockerNotePath);
+const architectureBlockerNote = read(architectureBlockerNotePath);
 const packageJson = JSON.parse(read(packagePath));
 
 for (const phrase of [
@@ -69,6 +80,17 @@ for (const phrase of [
   "N2-PRIVATE-CORE-SENDER-AUTH",
   "blocked-architecture-decision",
   "x25519-secret-prechecked-off-circuit",
+  "architecture_blocker_map",
+  "A1-TAG3-PROOF-VERIFIER-NOT-WIRED",
+  "ERR_PROOF_VERIFIER_NOT_WIRED / custom error 14",
+  "A1-TAG6-UNSHIELD-RELEASE-NOT-WIRED",
+  "ERR_UNSHIELD_RELEASE_NOT_WIRED / custom error 15",
+  "A2-OPERATOR-KEYPAIR-CUSTODY",
+  "loadKeypairFromEnv(vaultSignerSecretKeyEnvName)",
+  "A2-SELF-WALLET-EXIT-ONLY",
+  "destinationOwner !== requester",
+  "A3-ROOTS-NOT-PROGRAM-OWNED-SHARED-TREE",
+  "not proof that the root transition is correct",
 ]) {
   assert.ok(state.includes(phrase), `state.yaml missing ${phrase}`);
 }
@@ -84,6 +106,33 @@ for (const phrase of [
   "Do not mark N2 `local-implemented`",
 ]) {
   assert.ok(n2BlockerNote.includes(phrase), `N2 blocker note missing ${phrase}`);
+}
+
+for (const phrase of [
+  "A1-TAG3-PROOF-VERIFIER-NOT-WIRED",
+  "TAG_SPEND_WITH_PROOF = 3",
+  "ERR_PROOF_VERIFIER_NOT_WIRED",
+  "custom error `14`",
+  "A1-TAG6-UNSHIELD-RELEASE-NOT-WIRED",
+  "TAG_UNSHIELD = 6",
+  "ERR_UNSHIELD_RELEASE_NOT_WIRED",
+  "custom error `15`",
+  "A2-OPERATOR-KEYPAIR-CUSTODY",
+  "loadKeypairFromEnv(vaultSignerSecretKeyEnvName)",
+  "operator-keypair-public-exit",
+  "A2-SELF-WALLET-EXIT-ONLY",
+  "destinationOwner !== requester",
+  "A3-ROOTS-NOT-PROGRAM-OWNED-SHARED-TREE",
+  "not proof that the root transition is correct",
+  "npm run zk:c01-onchain-proof-boundary-check",
+  "npm run private-pool-v2:onchain-unshield-custody-check",
+  "npm run unshield:public-exit-surface-check",
+  "npm run private-pool-v2:root-provenance-check",
+]) {
+  assert.ok(
+    architectureBlockerNote.includes(phrase),
+    `architecture blocker note missing ${phrase}`,
+  );
 }
 
 for (const phrase of [

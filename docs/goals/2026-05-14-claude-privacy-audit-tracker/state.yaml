@@ -226,7 +226,34 @@ architecture_backlog:
       - "npm run private-pool-v2:anonymity-set-readiness-check"
       - "npm run private-pool-v2:production-privacy-reviewer-packet-check"
 
+architecture_blocker_map:
+  - id: A1-TAG3-PROOF-VERIFIER-NOT-WIRED
+    status: blocked-architecture-audit-deploy
+    current_truth: "TAG_SPEND_WITH_PROOF = 3 preflights accounts and still returns ERR_PROOF_VERIFIER_NOT_WIRED / custom error 14 before proof verification or mutation."
+    guard: "npm run zk:c01-onchain-proof-boundary-check"
+    completion_requires: "A real on-chain verifier, verifying-key hash enforcement, valid-proof acceptance, invalid-proof rejection, and no-mutation tests."
+  - id: A1-TAG6-UNSHIELD-RELEASE-NOT-WIRED
+    status: blocked-architecture-audit-deploy
+    current_truth: "TAG_UNSHIELD = 6 preflights root/root-record/nullifier/vault/token-account shape and still returns ERR_UNSHIELD_RELEASE_NOT_WIRED / custom error 15 before release."
+    guard: "npm run private-pool-v2:onchain-unshield-custody-check"
+    completion_requires: "Proof-verified TAG_UNSHIELD release with nullifier consume, token/system CPI, invalid-proof no-release tests, and program-owned custody."
+  - id: A2-OPERATOR-KEYPAIR-CUSTODY
+    status: blocked-architecture-audit-deploy
+    current_truth: "Unshield still loads the vault signer with loadKeypairFromEnv(vaultSignerSecretKeyEnvName) and signs operator-keypair public exits."
+    guard: "npm run private-pool-v2:onchain-unshield-custody-check"
+    completion_requires: "Program-owned vault PDA custody, removal of operator vault-signer release from the production path, and reviewed migration/runbook evidence."
+  - id: A2-SELF-WALLET-EXIT-ONLY
+    status: blocked-product-protocol-design
+    current_truth: "The current Unshield operator rejects destinationOwner !== requester, so fresh-address exit privacy is not available."
+    guard: "npm run unshield:public-exit-surface-check"
+    completion_requires: "Proof-bound exit destination, fresh-address UX, operator checks that allow destinationOwner != requester only when proof-bound, and updated product copy."
+  - id: A3-ROOTS-NOT-PROGRAM-OWNED-SHARED-TREE
+    status: blocked-architecture
+    current_truth: "Root provenance records exist, but root registration is still not proof that the root transition is correct and is not a program-owned shared Merkle tree."
+    guard: "npm run private-pool-v2:root-provenance-check"
+    completion_requires: "Program-owned shared tree state or equivalent verified root transition mechanism plus positive append/invalid-transition tests."
+
 next_safe_slices:
   - "Resolve N2-PPV2-SWAP-INPUT-PREIMAGE before claiming Swap-to-shielded input commitment binding is complete."
   - "Resolve N2-PRIVATE-CORE-SENDER-AUTH before claiming Private Core Send/Swap owner authorization is in-circuit."
-  - "Add explicit blocker-map guard for tag 3 error 14, tag 6 error 15, operator-keypair custody, self-wallet exit, and list-based roots."
+  - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."
