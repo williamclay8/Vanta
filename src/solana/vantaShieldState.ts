@@ -37,6 +37,8 @@ export const VANTA_SOL_UNSHIELD_MEMO_PREFIX_V2 = "vanta:sol-unshield-note:v2:";
 export const VANTA_SPENT_MARKER_MEMO_PREFIX_V2 = "vanta:spent-marker:v2:";
 export const VANTA_SEND_HISTORY_PRIVACY_SCOPE_VERSION =
   "vanta-send-history-privacy-scope-0.1";
+export const VANTA_LEGACY_V1_MEMO_QUARANTINE_POLICY_VERSION =
+  "vanta-legacy-v1-memo-quarantine-0.1";
 export const VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE =
   "vanta-native-sol-same-transaction-deposit";
 export const VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE =
@@ -806,6 +808,30 @@ export function getVantaSendHistoryPrivacyScopePolicy() {
     productionReady: false,
     scopeBoundary:
       "production Send privacy claims are scoped to fresh v2 AEAD sends unless legacy v1 plaintext history is migrated or segregated with reviewed evidence",
+  } as const;
+}
+
+export function getVantaLegacyV1MemoQuarantinePolicy() {
+  return {
+    version: VANTA_LEGACY_V1_MEMO_QUARANTINE_POLICY_VERSION,
+    status: "legacy-v1-plaintext-memos-quarantined-parse-compatible-history",
+    appliesToPrefixes: [
+      VANTA_SHIELD_MEMO_PREFIX,
+      VANTA_SEND_MEMO_PREFIX,
+      VANTA_UNSHIELD_MEMO_PREFIX,
+      VANTA_SWAP_MEMO_PREFIX,
+      VANTA_SOL_UNSHIELD_MEMO_PREFIX,
+      VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX,
+      VANTA_SPENT_MARKER_MEMO_PREFIX,
+    ],
+    freshV2EncryptedRequiredForNewMemos: true,
+    freshV2ViewingKeyAeadRequiredForNewActionMemos: true,
+    legacyV1ParseCompatible: true,
+    migrated: false,
+    productionPrivacyClaimsEligible: false,
+    privacyClaimsExcluded: true,
+    quarantineBoundary:
+      "legacy v1 plaintext memo chain history is parse-compatible history only and is excluded from production privacy, anonymity, proof-verified, and mainnet-private claims unless migrated or segregated with reviewed evidence",
   } as const;
 }
 

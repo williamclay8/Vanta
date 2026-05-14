@@ -42,6 +42,7 @@ Review artifacts and receipts are also security-sensitive when they imply livene
 - Recipient discovery is not production deployed. Viewing-key AEAD and ciphertext body-hash fields are useful building blocks, but they do not by themselves solve recipient-grade discovery.
 - Service separation is incomplete. Prover, relayer, verifier, indexer, and operator services must have distinct identities, logs, queues, auth, storage, and failure domains before separation can be treated as a privacy boundary.
 - Browser-worker proving remains dev-only evidence. Remote proving must not silently receive witnesses or proof material; it is not production-private proof infrastructure.
+- Legacy v1 plaintext memo history is quarantined as parse-compatible history only. It is excluded from production privacy, anonymity, proof-verified, and mainnet-private claims unless migrated or segregated with reviewed evidence.
 - Public docs, manifests, and website copy are claim surfaces. The meta description, `.well-known/vanta-audit.json`, docs pages, receipts, and product pages must stay aligned with the negative gates.
 
 ## Adversaries And Failure Modes

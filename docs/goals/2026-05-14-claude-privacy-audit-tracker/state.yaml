@@ -417,8 +417,13 @@ audit_remaining_work_backlog:
     source_priority: high
     source_item: "Migrate or quarantine legacy v1 plaintext memo chain history and exclude it from privacy claims."
     tracker_ref: "memo-history"
-    status: pending-design
-    guard: "npm run actions:memo-encryption-check"
+    status: local-implemented
+    guard: "npm run actions:legacy-v1-memo-quarantine-check"
+    evidence:
+      - "src/solana/vantaShieldState.ts exports getVantaLegacyV1MemoQuarantinePolicy() covering Shield, Send, Unshield, Swap, SOL Unshield, Native SOL Shield, and spent-marker v1 prefixes."
+      - "scripts/check-vanta-legacy-v1-memo-quarantine.mjs asserts fresh builders use v2 AEAD paths, legacy v1 parsers remain compatible, and legacy v1 plaintext memo history is excluded from production privacy claims."
+      - "actions:memo-encryption-check, truth:privacy-claim-gate, and zk:feedback-loop-check now include the dedicated legacy v1 memo quarantine guard."
+      - "docs/threat-model.md records legacy v1 plaintext memo history as parse-compatible history only, excluded from production privacy, anonymity, proof-verified, and mainnet-private claims unless migrated or segregated with reviewed evidence."
   - id: R13-META-DESCRIPTION-TRUTH
     source_priority: medium
     source_item: "Fix crawler-visible meta description overclaim."
@@ -506,8 +511,8 @@ audit_completion_checklist:
     - "N4 requires deploy/live approval and receipts."
     - "N5 requires hosted GitHub Actions green evidence."
     - "Architecture blockers A1-A6 remain incomplete or approval-gated."
-    - "R9A/R10A/R12/R14/R20/R21 remain pending, blocked, or approval-gated."
+    - "R9A/R10A/R14/R20/R21 remain pending, blocked, or approval-gated."
 
 next_safe_slices:
-  - "Add focused tracker/guards or implementation for R12 and R14."
+  - "Add focused tracker/guards or implementation for R14."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."

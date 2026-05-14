@@ -37,7 +37,7 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 | Service stub replacement | R10A | Pending implementation | Prover/relayer/verifier/indexer stubs must become real separated services |
 | Anonymity-set volume | A6 / R11 | Blocked | Live distinct commitments remain below threshold |
 | Live anonymity-set probe | R11A | Local implemented, live-read verified | `npm run private-pool-v2:live-anonymity-set-probe-check` observed live depth `2 / 1024` and fail-closed claim flags |
-| Legacy v1 plaintext memo quarantine | R12 | Pending design | Must quarantine or migrate before privacy claims |
+| Legacy v1 plaintext memo quarantine | R12 | Local implemented | `npm run actions:legacy-v1-memo-quarantine-check` |
 | Live meta-description scrape | R13A | Local implemented, live-read verified | `npm run public:live-meta-description-check` observed the beta-safe crawler description on `https://vantaprivacy.xyz` |
 | Argon2id vault KDF migration | R14 | Pending implementation | PBKDF2 v2 remains current quick-fix |
 | Operator keypair env lockdown | R15 | Local implemented with A2 exception | Pay, Swap auth, Jupiter local-only signer policy, and rebalance-related operator files are guarded; Unshield vault signer remains tracked under A2 |
@@ -52,11 +52,11 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 
 Goal is not complete.
 
-The audit is now tracked and N1, N2, N3, and N5 source-level/local gates have implementation evidence, but the remaining blockers include deploy/live approval gates, hosted CI evidence, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
+The audit is now tracked and N1, N2, N3, N5, R8A, R11A, R12, R13A, R15/R15A, and R19 source-level/local gates have implementation evidence, but the remaining blockers include deploy/live approval gates, hosted CI evidence, Argon2id migration work, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
 
 ## Current Lumi Snapshot
 
-- Local: tracker and implementation-path artifacts exist.
-- Committed: app branch has local commits through the live meta-description scrape slice; the current threat-model slice is local pending commit.
+- Local: tracker, implementation-path, threat-model, and legacy-v1 memo quarantine artifacts exist.
+- Committed: app branch has local commits through `2d7d8a0` (`Add Vanta threat model`); the current legacy-v1 memo quarantine slice is local pending commit.
 - Pushed: branch is ahead of origin and the latest tracker commits are not pushed.
-- Deployed/live: latest tracker/docs/circuit/CI slices are not deployed; live-read checks are read-only evidence, not deployment evidence for the current branch.
+- Deployed/live: latest tracker/docs/circuit/CI/memo-quarantine slices are not deployed; live-read checks are read-only evidence, not deployment evidence for the current branch.

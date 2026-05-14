@@ -33,6 +33,10 @@ const r11aLiveAnonymitySetProbeNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r11a-live-anonymity-set-probe.md",
 );
+const r12LegacyV1MemoQuarantineNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r12-legacy-v1-memo-quarantine.md",
+);
 const r13aLiveMetaDescriptionScrapeNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r13a-live-meta-description-scrape.md",
@@ -68,6 +72,7 @@ for (const path of [
   n5CiGateNotePath,
   r8aProverRelayPrivacyTradeoffNotePath,
   r11aLiveAnonymitySetProbeNotePath,
+  r12LegacyV1MemoQuarantineNotePath,
   r13aLiveMetaDescriptionScrapeNotePath,
   r15aOperatorKeypairEnvLockdownNotePath,
   r19ThreatModelNotePath,
@@ -88,6 +93,7 @@ const architectureBlockerNote = read(architectureBlockerNotePath);
 const n5CiGateNote = read(n5CiGateNotePath);
 const r8aProverRelayPrivacyTradeoffNote = read(r8aProverRelayPrivacyTradeoffNotePath);
 const r11aLiveAnonymitySetProbeNote = read(r11aLiveAnonymitySetProbeNotePath);
+const r12LegacyV1MemoQuarantineNote = read(r12LegacyV1MemoQuarantineNotePath);
 const r13aLiveMetaDescriptionScrapeNote = read(r13aLiveMetaDescriptionScrapeNotePath);
 const r15aOperatorKeypairEnvLockdownNote = read(r15aOperatorKeypairEnvLockdownNotePath);
 const r19ThreatModelNote = read(r19ThreatModelNotePath);
@@ -95,6 +101,7 @@ const completionAuditNote = read(completionAuditNotePath);
 const privacyAuditWorkflow = read(privacyAuditWorkflowPath);
 const proverRelayTradeoffs = read(resolve(repoRoot, "docs/zk/prover-relay-privacy-tradeoffs.md"));
 const threatModel = read(resolve(repoRoot, "docs/threat-model.md"));
+const shieldState = read(resolve(repoRoot, "src/solana/vantaShieldState.ts"));
 const packageJson = JSON.parse(read(packagePath));
 
 for (const phrase of [
@@ -176,6 +183,9 @@ for (const phrase of [
   "npm run public:live-meta-description-check",
   "scripts/check-vanta-live-meta-description.mjs fetches https://vantaprivacy.xyz by default",
   "R14-ARGON2ID-VAULT-KDF",
+  "R12-LEGACY-V1-MEMO-QUARANTINE",
+  "npm run actions:legacy-v1-memo-quarantine-check",
+  "getVantaLegacyV1MemoQuarantinePolicy() covering Shield, Send, Unshield, Swap, SOL Unshield, Native SOL Shield, and spent-marker v1 prefixes",
   "R15-OPERATOR-KEYPAIR-ENV-LOCKDOWN",
   "R15A-OPERATOR-KEYPAIR-ENV-LOCKDOWN-GUARD",
   "local-implemented-with-a2-exception",
@@ -356,6 +366,40 @@ for (const phrase of [
 }
 
 for (const phrase of [
+  "R12 Legacy V1 Memo Quarantine - 2026-05-14",
+  "Status: local implemented.",
+  "getVantaLegacyV1MemoQuarantinePolicy()",
+  "npm run actions:legacy-v1-memo-quarantine-check",
+  "actions:memo-encryption-check",
+  "truth:privacy-claim-gate",
+  "zk:feedback-loop-check",
+  "Legacy v1 plaintext memo chain history remains parse-compatible history only.",
+  "not eligible for production privacy claims",
+  "excluded from production privacy, anonymity, proof-verified, and mainnet-private claims",
+  "not memo migration",
+  "not recipient discovery deployment",
+]) {
+  assert.ok(
+    r12LegacyV1MemoQuarantineNote.includes(phrase),
+    `R12 legacy v1 memo quarantine note missing ${phrase}`,
+  );
+}
+
+for (const phrase of [
+  "VANTA_LEGACY_V1_MEMO_QUARANTINE_POLICY_VERSION",
+  "vanta-legacy-v1-memo-quarantine-0.1",
+  "getVantaLegacyV1MemoQuarantinePolicy",
+  "legacy-v1-plaintext-memos-quarantined-parse-compatible-history",
+  "freshV2EncryptedRequiredForNewMemos: true",
+  "freshV2ViewingKeyAeadRequiredForNewActionMemos: true",
+  "legacyV1ParseCompatible: true",
+  "productionPrivacyClaimsEligible: false",
+  "privacyClaimsExcluded: true",
+]) {
+  assert.ok(shieldState.includes(phrase), `vantaShieldState legacy v1 policy missing ${phrase}`);
+}
+
+for (const phrase of [
   "R13A Live Meta-Description Scrape - 2026-05-14",
   "Local implemented, live-read verified.",
   "scrapes the live crawler-visible meta description",
@@ -450,6 +494,7 @@ for (const phrase of [
   "Live meta-description scrape",
   "npm run public:live-meta-description-check",
   "Legacy v1 plaintext memo quarantine",
+  "npm run actions:legacy-v1-memo-quarantine-check",
   "Argon2id vault KDF migration",
   "Operator keypair env lockdown",
   "Local implemented with A2 exception",
@@ -462,7 +507,7 @@ for (const phrase of [
   "Mainnet on-chain replay test",
   "Deposit-send-fresh-exit privacy test",
   "branch is ahead of origin",
-  "latest tracker/docs/circuit/CI slices are not deployed",
+  "latest tracker/docs/circuit/CI/memo-quarantine slices are not deployed",
 ]) {
   assert.ok(completionAuditNote.includes(phrase), `completion audit note missing ${phrase}`);
 }
@@ -531,6 +576,11 @@ assert.equal(
   packageJson.scripts["operator:keypair-env-lockdown-check"],
   "node scripts/check-vanta-operator-keypair-env-lockdown.mjs",
   "package.json must expose operator:keypair-env-lockdown-check.",
+);
+assert.equal(
+  packageJson.scripts["actions:legacy-v1-memo-quarantine-check"],
+  "node scripts/check-vanta-legacy-v1-memo-quarantine.mjs",
+  "package.json must expose actions:legacy-v1-memo-quarantine-check.",
 );
 assert.equal(
   packageJson.scripts["private-pool-v2:live-anonymity-set-probe-check"],

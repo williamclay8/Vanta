@@ -242,6 +242,7 @@ try {
     createPreparedUnshieldMemo,
     parseSendChangeDiscoveryMemo,
     createSpentMarkerInstruction,
+    getVantaLegacyV1MemoQuarantinePolicy,
     getVantaSendHistoryPrivacyScopePolicy,
     parseSendMemo,
     parseSendRecipientDiscoveryMemo,
@@ -328,6 +329,21 @@ try {
       sendHistoryScopePolicy.legacyV1ParseCompatible === true &&
       sendHistoryScopePolicy.migrationStatus === "not-migrated",
     "Send history privacy scope policy must preserve fresh-v2-only claims while keeping legacy v1 read compatibility truthful.",
+  );
+  const legacyV1MemoQuarantinePolicy = getVantaLegacyV1MemoQuarantinePolicy();
+  assert(
+    legacyV1MemoQuarantinePolicy.status ===
+      "legacy-v1-plaintext-memos-quarantined-parse-compatible-history" &&
+      legacyV1MemoQuarantinePolicy.legacyV1ParseCompatible === true &&
+      legacyV1MemoQuarantinePolicy.migrated === false &&
+      legacyV1MemoQuarantinePolicy.productionPrivacyClaimsEligible === false &&
+      legacyV1MemoQuarantinePolicy.privacyClaimsExcluded === true &&
+      legacyV1MemoQuarantinePolicy.appliesToPrefixes.includes(VANTA_SEND_MEMO_PREFIX_V1) &&
+      legacyV1MemoQuarantinePolicy.appliesToPrefixes.includes(VANTA_SWAP_MEMO_PREFIX_V1) &&
+      legacyV1MemoQuarantinePolicy.appliesToPrefixes.includes(VANTA_UNSHIELD_MEMO_PREFIX_V1) &&
+      legacyV1MemoQuarantinePolicy.appliesToPrefixes.includes(VANTA_SOL_UNSHIELD_MEMO_PREFIX_V1) &&
+      legacyV1MemoQuarantinePolicy.appliesToPrefixes.includes(VANTA_SPENT_MARKER_MEMO_PREFIX_V1),
+    "Legacy v1 memo quarantine policy must exclude plaintext memo history from production privacy claims while preserving parse compatibility.",
   );
   const dualSend = createPreparedSendDualAeadMemo(sendPayload, {
     changeViewingPublicKey: senderViewingKey.publicKey,
