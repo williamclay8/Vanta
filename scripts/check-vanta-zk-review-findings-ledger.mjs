@@ -264,14 +264,7 @@ for (const loop of ledger.activeFeedbackLoops) {
   for (const key of ["local", "committed", "pushed", "deployedLive"]) {
     assert(typeof lumi[key] === "string" && lumi[key].length > 0, `${loop.id} missing lumiHygiene.${key}`);
   }
-  if (loop.id === "VANTA-ZK-FEEDBACK-2026-05-14-UNSHIELD-CUSTODY-REGISTRY") {
-    assert(
-      lumi.committed === "not-committed-local",
-      `${loop.id} must truthfully report that this in-progress worker-lane update is not committed yet`,
-    );
-  } else {
-    assertPinnedCommittedText(lumi.committed, `${loop.id} lumiHygiene.committed`);
-  }
+  assertPinnedCommittedText(lumi.committed, `${loop.id} lumiHygiene.committed`);
 
   for (const command of loop.localVerification) {
     if (!command.startsWith("npm run ")) {
@@ -514,10 +507,13 @@ const unshieldCustodyRegistryLoop = ledger.activeFeedbackLoops.find(
 const unshieldCustodyRegistryLoopText = JSON.stringify(unshieldCustodyRegistryLoop);
 for (const command of [
   "npm run private-pool-v2:onchain-unshield-custody-check",
+  "npm run private-pool-v2:sbf-abi-check",
+  "npm run private-pool-v2:verify",
   "npm run lanes:trust-contract-check",
   "npm run unshield:trust-packet-check",
   "npm run mainnet:unshield-production-check",
   "npm run mainnet:unshield-production-status-check",
+  "npm run zk:feedback-loop-check",
   "npm run zk:review-findings-ledger-check",
 ]) {
   assert(
@@ -527,8 +523,10 @@ for (const command of [
 }
 for (const phrase of [
   "TAG_REGISTER_VAULT_ASSET = 7",
+  "canonical SPL token program",
   "vanta2asset",
   "releaseEnabled = 0",
+  "460a62d",
   "TAG_UNSHIELD = 6",
   "custom error 15",
   "program-owned-vault-pda-not-deployed",

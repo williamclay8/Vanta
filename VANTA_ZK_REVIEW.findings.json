@@ -1764,18 +1764,21 @@
         "SECURITY_LIMITATIONS.md",
         "docs/mainnet-shield-setup.md"
       ],
-      "summary": "Unshield custody-registry truth surfaces now recognize the in-progress source-level TAG_REGISTER_VAULT_ASSET = 7 scaffold. The registry records SPL mint, vault token account, token program, vault authority, and exit asset id under the vanta2asset PDA seed with releaseEnabled = 0. Reserved TAG_UNSHIELD = 6 can preflight that registry plus root/root-record/nullifier/vault-authority and SPL token-account shape, then remains fail-closed with custom error 15 before proof verification, nullifier consume, token/system CPI, custody transfer, account mutation, or fund release.",
+      "summary": "Unshield custody-registry truth surfaces now recognize the in-progress source-level TAG_REGISTER_VAULT_ASSET = 7 scaffold. The registry records SPL mint, vault token account, canonical SPL token program, vault authority, and exit asset id under the vanta2asset PDA seed with releaseEnabled = 0. Reserved TAG_UNSHIELD = 6 can preflight that registry plus root/root-record/nullifier/vault-authority and SPL token-account shape, then remains fail-closed with custom error 15 before proof verification, nullifier consume, token/system CPI, custody transfer, account mutation, or fund release. The implementation checkpoint is pinned to 460a62d.",
       "localVerification": [
         "npm run private-pool-v2:onchain-unshield-custody-check",
+        "npm run private-pool-v2:sbf-abi-check",
+        "npm run private-pool-v2:verify",
         "npm run lanes:trust-contract-check",
         "npm run unshield:trust-packet-check",
         "npm run mainnet:unshield-production-check",
         "npm run mainnet:unshield-production-status-check",
+        "npm run zk:feedback-loop-check",
         "npm run zk:review-findings-ledger-check"
       ],
       "lumiHygiene": {
         "local": "local docs/status/guard updates for the source-level Unshield custody-registry scaffold",
-        "committed": "not-committed-local",
+        "committed": "460a62d Add Unshield custody registry scaffold",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
