@@ -12,6 +12,7 @@ function read(path) {
 
 const packageJson = JSON.parse(read("package.json"));
 const programSource = read("programs/vanta_private_pool_v2_spend/src/lib.rs");
+const crucibleHarnessSource = read("fuzz/vanta_private_pool_v2_spend/src/main.rs");
 const programReadme = read("programs/vanta_private_pool_v2_spend/README.md");
 const unshieldOperatorSource = read("operator/unshield-server.mjs");
 const userVaultOwnerSource = read("src/solana/userVaultOwner.ts");
@@ -82,6 +83,22 @@ for (const marker of [
   "proof-verified unshield release ABI passed root/root-record/nullifier/vault-asset/token-account preflight; release not wired",
 ]) {
   assert.ok(programSource.includes(marker), `Reserved TAG_UNSHIELD fail-closed source marker missing: ${marker}`);
+}
+
+for (const marker of [
+  "const VAULT_ASSET_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 6 + 2;",
+  "const VAULT_ASSET_RELEASE_ENABLED_OFFSET: usize = VAULT_ASSET_KIND_OFFSET + 1;",
+  "solana_pubkey::pubkey!(\"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA\");",
+  "fuzz_assert_eq!(asset_data.len(), VAULT_ASSET_ACCOUNT_LEN);",
+  "fuzz_assert_eq!(asset_data[VAULT_ASSET_RELEASE_ENABLED_OFFSET], 0);",
+  "corrupt_vault_asset_release_enabled",
+  "token_program: SPL_TOKEN_PROGRAM_ID",
+  "Some(ERR_VAULT_ASSET_MISMATCH)",
+]) {
+  assert.ok(
+    crucibleHarnessSource.includes(marker),
+    `Crucible Unshield vault-asset release-disabled invariant missing: ${marker}`,
+  );
 }
 
 for (const marker of [

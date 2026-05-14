@@ -1,5 +1,7 @@
-use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
-use crucible_fuzzer::anchor_lang::system_program;
+use anchor_lang::solana_program::{
+    instruction::{AccountMeta, Instruction},
+    system_program,
+};
 use crucible_fuzzer::*;
 use crucible_test_context::TxOutcome;
 use solana_keypair::Keypair;
@@ -69,7 +71,7 @@ const ROOT_RECORD_TRANSITION_KIND_OFFSET: usize = ROOT_RECORD_LEAF_COUNT_OFFSET 
 const VERIFIER_KEY_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 2;
 const VERIFIER_KEY_POOL_OFFSET: usize = HEADER_LEN;
 const VERIFIER_KEY_HASH_OFFSET: usize = HEADER_LEN + HASH_LEN;
-const VAULT_ASSET_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 6 + 1;
+const VAULT_ASSET_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 6 + 2;
 const VAULT_ASSET_POOL_OFFSET: usize = HEADER_LEN;
 const VAULT_ASSET_EXIT_ASSET_ID_OFFSET: usize = VAULT_ASSET_POOL_OFFSET + HASH_LEN;
 const VAULT_ASSET_MINT_OFFSET: usize = VAULT_ASSET_EXIT_ASSET_ID_OFFSET + HASH_LEN;
@@ -77,7 +79,10 @@ const VAULT_ASSET_VAULT_AUTHORITY_OFFSET: usize = VAULT_ASSET_MINT_OFFSET + HASH
 const VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET: usize = VAULT_ASSET_VAULT_AUTHORITY_OFFSET + HASH_LEN;
 const VAULT_ASSET_TOKEN_PROGRAM_OFFSET: usize = VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET + HASH_LEN;
 const VAULT_ASSET_KIND_OFFSET: usize = VAULT_ASSET_TOKEN_PROGRAM_OFFSET + HASH_LEN;
+const VAULT_ASSET_RELEASE_ENABLED_OFFSET: usize = VAULT_ASSET_KIND_OFFSET + 1;
 const VAULT_ASSET_KIND_SPL: u8 = 1;
+const SPL_TOKEN_PROGRAM_ID: Pubkey =
+    solana_pubkey::pubkey!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 const TOKEN_ACCOUNT_LEN: usize = 165;
 const TOKEN_ACCOUNT_MINT_OFFSET: usize = 0;
 const TOKEN_ACCOUNT_OWNER_OFFSET: usize = 32;
@@ -716,7 +721,9 @@ impl VantaPrivatePoolV2Spend {
                 self.snapshot_account_metas(&accounts),
                 "spend-with-proof full output counter preflight mutated account bytes or lamports"
             );
-            self.ctx.write_account(&self.pool_state, pool_before).unwrap();
+            self.ctx
+                .write_account(&self.pool_state, pool_before)
+                .unwrap();
             self.ctx
                 .write_account(&self.output_queue, output_before)
                 .unwrap();
@@ -809,7 +816,7 @@ impl VantaPrivatePoolV2Spend {
             return;
         }
 
-        let mode = selector % 15;
+        let mode = selector % 16;
         let accepted_root = match mode {
             1 => make_hash(seed, 44),
             7 => {
@@ -819,7 +826,7 @@ impl VantaPrivatePoolV2Spend {
                 };
                 root
             }
-            0 | 2 | 3 | 4 | 5 | 6 | 8 | 9 | 10 | 11 | 12 | 13 => {
+            0 | 2 | 3 | 4 | 5 | 6 | 8 | 9 | 10 | 11 | 12 | 13 | 14 => {
                 self.ensure_provenanced_root(seed.wrapping_add(606));
                 let Some(record) = self.root_records.last().cloned() else {
                     return;
@@ -841,7 +848,7 @@ impl VantaPrivatePoolV2Spend {
         }
 
         self.ensure_unshield_placeholders(&payload);
-        if matches!(mode, 0 | 2 | 3 | 4 | 5 | 6) {
+        if matches!(mode, 0 | 2 | 3 | 4 | 5 | 6 | 14) {
             self.register_vault_asset_for_payload(&payload);
             self.ensure_valid_release_accounts(&payload);
         }
@@ -867,6 +874,9 @@ impl VantaPrivatePoolV2Spend {
         if mode == 13 {
             self.register_vault_asset_for_payload(&payload);
             self.ensure_wrong_token_program_accounts(&payload);
+        }
+        if mode == 14 {
+            self.corrupt_vault_asset_release_enabled(&payload.exit_asset_id);
         }
         let (data, accounts, expected_code, forbidden_code) = match mode {
             0 => (
@@ -962,6 +972,12 @@ impl VantaPrivatePoolV2Spend {
                 payload.data.clone(),
                 self.unshield_accounts_for_payload(&payload),
                 Some(ERR_TOKEN_PROGRAM_MISMATCH),
+                None,
+            ),
+            14 => (
+                payload.data.clone(),
+                self.unshield_accounts_for_payload(&payload),
+                Some(ERR_VAULT_ASSET_MISMATCH),
                 None,
             ),
             _ => (
@@ -1406,7 +1422,7 @@ impl VantaPrivatePoolV2Spend {
             mint: payload.mint,
             vault_authority: self.vault_authority_pubkey(&payload.exit_asset_id),
             vault_token_account: payload.vault_token_account,
-            token_program: payload.token_program,
+            token_program: SPL_TOKEN_PROGRAM_ID,
             asset_kind: VAULT_ASSET_KIND_SPL,
         }
     }
@@ -1421,7 +1437,7 @@ impl VantaPrivatePoolV2Spend {
             mint: pubkey_from_hash(make_hash(seed, 65)),
             vault_authority: self.vault_authority_pubkey(&exit_asset_id),
             vault_token_account: pubkey_from_hash(make_hash(seed, 66)),
-            token_program: pubkey_from_hash(make_hash(seed, 67)),
+            token_program: SPL_TOKEN_PROGRAM_ID,
             asset_kind: VAULT_ASSET_KIND_SPL,
         }
     }
@@ -2074,6 +2090,14 @@ impl VantaPrivatePoolV2Spend {
         );
     }
 
+    fn corrupt_vault_asset_release_enabled(&mut self, exit_asset_id: &[u8; HASH_LEN]) {
+        let vault_asset = self.vault_asset_pubkey(exit_asset_id);
+        let mut account = self.ctx.read_account(&vault_asset).unwrap();
+        fuzz_assert_eq!(account.data.len(), VAULT_ASSET_ACCOUNT_LEN);
+        account.data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] = 1;
+        self.ctx.write_account(&vault_asset, account).unwrap();
+    }
+
     fn ensure_token_program_account(&mut self, token_program: Pubkey) {
         if self.ctx.get_account(&token_program).is_ok() {
             return;
@@ -2288,7 +2312,7 @@ impl VantaPrivatePoolV2Spend {
 
     fn assert_vault_asset_account(&self, record: &VaultAssetRecord) {
         let asset_data = self.account_data(self.vault_asset_pubkey(&record.exit_asset_id));
-        fuzz_assert!(asset_data.len() >= VAULT_ASSET_ACCOUNT_LEN);
+        fuzz_assert_eq!(asset_data.len(), VAULT_ASSET_ACCOUNT_LEN);
         fuzz_assert_eq!(&asset_data[..8], VAULT_ASSET_MAGIC);
         fuzz_assert_eq!(asset_data[8], VERSION);
         fuzz_assert_eq!(read_u32(&asset_data, COUNT_OFFSET), 1);
@@ -2321,6 +2345,7 @@ impl VantaPrivatePoolV2Spend {
             record.token_program.as_ref()
         );
         fuzz_assert_eq!(asset_data[VAULT_ASSET_KIND_OFFSET], record.asset_kind);
+        fuzz_assert_eq!(asset_data[VAULT_ASSET_RELEASE_ENABLED_OFFSET], 0);
     }
 
     fn nullifier_marker_pubkey(&self, nullifier: &[u8; HASH_LEN]) -> Pubkey {
@@ -2501,7 +2526,7 @@ fn unshield_payload_with_nullifier(
         mint: pubkey_from_hash(make_hash(seed, 65)),
         vault_token_account: pubkey_from_hash(make_hash(seed, 66)),
         destination_token_account: pubkey_from_hash(make_hash(seed, 68)),
-        token_program: pubkey_from_hash(make_hash(seed, 67)),
+        token_program: SPL_TOKEN_PROGRAM_ID,
     }
 }
 

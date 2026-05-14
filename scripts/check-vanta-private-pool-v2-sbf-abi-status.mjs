@@ -33,7 +33,7 @@ const expectedSourceMarkers = [
   "const VAULT_ASSET_MAGIC",
   "const VAULT_ASSET_SEED",
   "const ROOT_RECORD_ACCOUNT_LEN",
-  "const VAULT_ASSET_ACCOUNT_LEN",
+  "const VAULT_ASSET_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 6 + 2;",
   "const VAULT_ASSET_RELEASE_ENABLED_OFFSET",
   "const SPL_TOKEN_PROGRAM_ID: Pubkey",
   "const POOL_STATE_LEN: usize = 184;",
