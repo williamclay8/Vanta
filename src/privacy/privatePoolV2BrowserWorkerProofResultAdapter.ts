@@ -6,6 +6,7 @@ import {
 } from "./privatePoolV2BrowserProverClient";
 import type {
   VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
+  VantaPrivatePoolV2BrowserWorkerClaimProverPayload,
   VantaPrivatePoolV2BrowserWorkerSendProverPayload,
   VantaPrivatePoolV2BrowserWorkerShieldProverPayload,
 } from "./privatePoolV2BrowserProverProtocol";
@@ -15,6 +16,7 @@ import {
 } from "./privatePoolV2LocalProver";
 import type {
   VantaPrivatePoolV2ActualPrivateSpendProofArtifact,
+  VantaPrivatePoolV2ClaimProofArtifact,
   VantaPrivatePoolV2ProofRequest,
   VantaPrivatePoolV2ProofResult,
   VantaPrivatePoolV2Prover,
@@ -28,17 +30,20 @@ export const VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROOF_RESULT_ADAPTER_SCHEME =
 
 export type VantaPrivatePoolV2BrowserWorkerProofResultAdapterTarget =
   | "actual-private-spend"
+  | "claim"
   | "send"
   | "shield";
 
 type VantaPrivatePoolV2BrowserWorkerProofResultAdapterPayloadByTarget = {
   "actual-private-spend": VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload;
+  claim: VantaPrivatePoolV2BrowserWorkerClaimProverPayload;
   send: VantaPrivatePoolV2BrowserWorkerSendProverPayload;
   shield: VantaPrivatePoolV2BrowserWorkerShieldProverPayload;
 };
 
 type VantaPrivatePoolV2BrowserWorkerProofResultAdapterArtifactByTarget = {
   "actual-private-spend": VantaPrivatePoolV2ActualPrivateSpendProofArtifact;
+  claim: VantaPrivatePoolV2ClaimProofArtifact;
   send: VantaPrivatePoolV2SendProofArtifact;
   shield: VantaPrivatePoolV2ShieldProofArtifact;
 };
@@ -69,6 +74,12 @@ const TARGET_CONFIGS = {
     displayName: "Actual-private-spend",
     publicInputLabel: "private-spend-public-input-hash",
     target: "actual-private-spend",
+  },
+  claim: {
+    circuit: "vanta_private_pool_v2_claim_entry",
+    displayName: "Claim",
+    publicInputLabel: "claim-public-input-hash",
+    target: "claim",
   },
   send: {
     circuit: "vanta_private_pool_v2_send_entry",
@@ -161,6 +172,7 @@ function assertPayloadMatchesTarget({
   config: VantaPrivatePoolV2BrowserWorkerProofResultAdapterTargetConfig;
   payload:
     | VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload
+    | VantaPrivatePoolV2BrowserWorkerClaimProverPayload
     | VantaPrivatePoolV2BrowserWorkerSendProverPayload
     | VantaPrivatePoolV2BrowserWorkerShieldProverPayload;
 }) {
@@ -180,6 +192,7 @@ function assertPayloadPublicInputHash({
   expected: string;
   payload:
     | VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload
+    | VantaPrivatePoolV2BrowserWorkerClaimProverPayload
     | VantaPrivatePoolV2BrowserWorkerSendProverPayload
     | VantaPrivatePoolV2BrowserWorkerShieldProverPayload;
 }) {
@@ -200,6 +213,7 @@ function assertDerivedArtifact({
 }: {
   artifact:
     | VantaPrivatePoolV2ActualPrivateSpendProofArtifact
+    | VantaPrivatePoolV2ClaimProofArtifact
     | VantaPrivatePoolV2SendProofArtifact
     | VantaPrivatePoolV2ShieldProofArtifact;
   config: VantaPrivatePoolV2BrowserWorkerProofResultAdapterTargetConfig;
@@ -307,7 +321,7 @@ export class VantaPrivatePoolV2BrowserWorkerProofResultAdapter<
       blockers: [],
       ready: true,
       warnings: [
-        "Private Pool v2 browser-worker proof-result adapter is dev-only browser/Web Worker proof execution and local no-real-funds evidence. The default local prover remains mock / local-mock; this is not live Shield routing, not live Send routing, not routed live actual-private-spend execution, not a production browser runtime prover, not a production remote proof service, not on-chain proof verification, not production verifying-key evidence, not audit acceptance, not live deployment evidence, and not real-funds readiness.",
+        "Private Pool v2 browser-worker proof-result adapter is dev-only browser/Web Worker proof execution and local no-real-funds evidence. The default local prover remains mock / local-mock; this is not live Shield routing, not live Claim routing, not live Send routing, not routed live actual-private-spend execution, not a production browser runtime prover, not a production remote proof service, not on-chain proof verification, not production verifying-key evidence, not audit acceptance, not live deployment evidence, and not real-funds readiness.",
       ],
     };
   }
@@ -334,6 +348,7 @@ export class VantaPrivatePoolV2BrowserWorkerProofResultAdapter<
     expectedPublicInputHashValue: string,
   ): Promise<
     | VantaPrivatePoolV2ActualPrivateSpendProofArtifact
+    | VantaPrivatePoolV2ClaimProofArtifact
     | VantaPrivatePoolV2SendProofArtifact
     | VantaPrivatePoolV2ShieldProofArtifact
   > {
@@ -342,6 +357,13 @@ export class VantaPrivatePoolV2BrowserWorkerProofResultAdapter<
         ...this.#payload,
         expectedPublicInputHash: expectedPublicInputHashValue,
       } as VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload);
+    }
+
+    if (config.target === "claim") {
+      return this.#client.proveClaim({
+        ...this.#payload,
+        expectedPublicInputHash: expectedPublicInputHashValue,
+      } as VantaPrivatePoolV2BrowserWorkerClaimProverPayload);
     }
 
     if (config.target === "send") {

@@ -2,6 +2,7 @@ import { poseidon1, poseidon2, poseidon3, poseidon4, poseidon11 } from "poseidon
 import {
   buildVantaPrivatePoolV2SparseMerkleTree,
   directionBitsForLeafIndex,
+  VANTA_PRIVATE_POOL_V2_CIRCUIT_MERKLE_DEPTH,
 } from "./privatePoolV2MerkleFixtureHelpers";
 import { createVantaPrivatePoolV2ClaimProofRequest } from "./privatePoolV2ProofRequests";
 import type {
@@ -39,12 +40,74 @@ export type VantaPrivatePoolV2ClaimCircuitFixture = {
   witness: VantaPrivatePoolV2ClaimCircuitWitness;
 };
 
+export type VantaPrivatePoolV2ClaimCircuitWitnessInput = {
+  amount: bigint | string;
+  asset_id: bigint | string;
+  destination: bigint | string;
+  input_commitment: bigint | string;
+  input_root: bigint | string;
+  leaf_index: bigint | string;
+  membership_path: readonly (bigint | string)[];
+  membership_path_direction_bits: readonly (bigint | string)[];
+  nullifier: bigint | string;
+  owner_commitment: bigint | string;
+  owner_secret: bigint | string;
+  quote_expires_at_slot: bigint | string;
+  relayer_fee: bigint | string;
+  relayer_id: bigint | string;
+  request_version: bigint | string;
+  tree_id: bigint | string;
+};
+
+export type VantaPrivatePoolV2ClaimCircuitNoirInputs = {
+  amount: string;
+  asset_id: string;
+  claim_public_input_hash: string;
+  destination: string;
+  input_commitment: string;
+  input_root: string;
+  leaf_index: string;
+  membership_path: string[];
+  membership_path_direction_bits: string[];
+  nullifier: string;
+  owner_commitment: string;
+  owner_secret: string;
+  quote_expires_at_slot: string;
+  relayer_fee: string;
+  relayer_id: string;
+  request_version: string;
+  tree_id: string;
+};
+
 export type VantaPrivatePoolV2ClaimCircuitFixtureMode =
   | "valid"
   | "forged-input-membership"
   | "invalid-binding"
   | "invalid-nullifier"
   | "invalid-amount-range";
+
+const CLAIM_WITNESS_FIELDS = [
+  "amount",
+  "asset_id",
+  "destination",
+  "input_commitment",
+  "input_root",
+  "leaf_index",
+  "membership_path",
+  "membership_path_direction_bits",
+  "nullifier",
+  "owner_commitment",
+  "owner_secret",
+  "quote_expires_at_slot",
+  "relayer_fee",
+  "relayer_id",
+  "request_version",
+  "tree_id",
+] as const;
+
+const BN254_SCALAR_FIELD =
+  21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+const U128_MAX = (1n << 128n) - 1n;
 
 const DEFAULT_WITNESS_BASE = {
   amount: 1_000_000n,
@@ -88,6 +151,77 @@ const DEFAULT_WITNESS = {
 
 function toCircuitString(value: bigint) {
   return value.toString(10);
+}
+
+function assertRecord(value: unknown, label: string): asserts value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${label} must be an object.`);
+  }
+}
+
+function normalizeWitnessField(value: unknown, label: string) {
+  const parsed =
+    typeof value === "bigint"
+      ? value
+      : typeof value === "string" && (value === "0" || /^[1-9][0-9]*$/u.test(value))
+        ? BigInt(value)
+        : null;
+
+  if (parsed === null) {
+    throw new Error(`${label} must be a canonical decimal BN254 field string.`);
+  }
+
+  if (parsed < 0n || parsed >= BN254_SCALAR_FIELD) {
+    throw new Error(`${label} must fit in BN254.`);
+  }
+
+  return parsed;
+}
+
+function normalizeU128WitnessField(value: unknown, label: string) {
+  const parsed = normalizeWitnessField(value, label);
+  if (parsed > U128_MAX) {
+    throw new Error(`${label} must fit in u128.`);
+  }
+
+  return parsed;
+}
+
+function normalizeWitnessFieldArray(value: unknown, label: string) {
+  if (!Array.isArray(value)) {
+    throw new Error(`${label} must be an array.`);
+  }
+
+  if (value.length !== VANTA_PRIVATE_POOL_V2_CIRCUIT_MERKLE_DEPTH) {
+    throw new Error(
+      `${label} must contain ${VANTA_PRIVATE_POOL_V2_CIRCUIT_MERKLE_DEPTH} fields.`,
+    );
+  }
+
+  return value.map((entry, index) => normalizeWitnessField(entry, `${label}[${index}]`));
+}
+
+function assertNoUnexpectedWitnessFields(input: Record<string, unknown>) {
+  const allowed = new Set<string>(CLAIM_WITNESS_FIELDS);
+
+  for (const key of Object.keys(input)) {
+    if (!allowed.has(key)) {
+      throw new Error(`Claim witness input contains unexpected field ${key}.`);
+    }
+  }
+
+  for (const key of allowed) {
+    if (!(key in input)) {
+      throw new Error(`Claim witness input is missing ${key}.`);
+    }
+  }
+}
+
+function leafIndexFromDirectionBits(directionBits: readonly bigint[]) {
+  return directionBits.reduce(
+    (leafIndex, bit, index) => leafIndex + (bit << BigInt(index)),
+    0n,
+  );
 }
 
 function toCommitment(witness: VantaPrivatePoolV2ClaimCircuitWitness): VantaPrivatePoolV2Commitment {
@@ -195,6 +329,60 @@ export function computeVantaPrivatePoolV2ClaimPublicInputHash(
   ]);
 }
 
+export function normalizeVantaPrivatePoolV2ClaimCircuitWitnessInput(
+  input: unknown,
+): VantaPrivatePoolV2ClaimCircuitWitness {
+  assertRecord(input, "Claim witness input");
+  assertNoUnexpectedWitnessFields(input);
+
+  const witness: VantaPrivatePoolV2ClaimCircuitWitness = {
+    amount: normalizeU128WitnessField(input.amount, "amount"),
+    asset_id: normalizeWitnessField(input.asset_id, "asset_id"),
+    destination: normalizeWitnessField(input.destination, "destination"),
+    input_commitment: normalizeWitnessField(input.input_commitment, "input_commitment"),
+    input_root: normalizeWitnessField(input.input_root, "input_root"),
+    leaf_index: normalizeWitnessField(input.leaf_index, "leaf_index"),
+    membership_path: normalizeWitnessFieldArray(input.membership_path, "membership_path"),
+    membership_path_direction_bits: normalizeWitnessFieldArray(
+      input.membership_path_direction_bits,
+      "membership_path_direction_bits",
+    ),
+    nullifier: normalizeWitnessField(input.nullifier, "nullifier"),
+    owner_commitment: normalizeWitnessField(input.owner_commitment, "owner_commitment"),
+    owner_secret: normalizeWitnessField(input.owner_secret, "owner_secret"),
+    quote_expires_at_slot: normalizeWitnessField(
+      input.quote_expires_at_slot,
+      "quote_expires_at_slot",
+    ),
+    relayer_fee: normalizeU128WitnessField(input.relayer_fee, "relayer_fee"),
+    relayer_id: normalizeWitnessField(input.relayer_id, "relayer_id"),
+    request_version: normalizeWitnessField(input.request_version, "request_version"),
+    tree_id: normalizeWitnessField(input.tree_id, "tree_id"),
+  };
+
+  for (const [index, bit] of witness.membership_path_direction_bits.entries()) {
+    if (bit !== 0n && bit !== 1n) {
+      throw new Error(`membership_path_direction_bits[${index}] must be 0 or 1.`);
+    }
+  }
+
+  if (
+    witness.leaf_index !== leafIndexFromDirectionBits(witness.membership_path_direction_bits)
+  ) {
+    throw new Error("Claim witness leaf_index must match direction bits.");
+  }
+
+  if (witness.input_root !== computeVantaPrivatePoolV2ClaimInputRoot(witness)) {
+    throw new Error("Claim witness input_root must match the input membership path.");
+  }
+
+  if (witness.nullifier !== computeVantaPrivatePoolV2ClaimNullifier(witness)) {
+    throw new Error("Claim witness nullifier must match the input commitment and owner secret.");
+  }
+
+  return witness;
+}
+
 export function createVantaPrivatePoolV2ClaimCircuitFixture({
   mode = "valid",
   witness = DEFAULT_WITNESS,
@@ -231,6 +419,38 @@ export function createVantaPrivatePoolV2ClaimCircuitFixture({
     claimPublicInputHash: mode === "invalid-binding" ? validPublicHash + 1n : validPublicHash,
     proofRequest,
     witness: circuitWitness,
+  };
+}
+
+export function createVantaPrivatePoolV2ClaimCircuitFixtureFromWitnessInput(input: unknown) {
+  return createVantaPrivatePoolV2ClaimCircuitFixture({
+    witness: normalizeVantaPrivatePoolV2ClaimCircuitWitnessInput(input),
+  });
+}
+
+export function createVantaPrivatePoolV2ClaimCircuitNoirInputs(
+  fixture: VantaPrivatePoolV2ClaimCircuitFixture,
+): VantaPrivatePoolV2ClaimCircuitNoirInputs {
+  const { witness } = fixture;
+
+  return {
+    amount: toCircuitString(witness.amount),
+    asset_id: toCircuitString(witness.asset_id),
+    claim_public_input_hash: toCircuitString(fixture.claimPublicInputHash),
+    destination: toCircuitString(witness.destination),
+    input_commitment: toCircuitString(witness.input_commitment),
+    input_root: toCircuitString(witness.input_root),
+    leaf_index: toCircuitString(witness.leaf_index),
+    membership_path: witness.membership_path.map(toCircuitString),
+    membership_path_direction_bits: witness.membership_path_direction_bits.map(toCircuitString),
+    nullifier: toCircuitString(witness.nullifier),
+    owner_commitment: toCircuitString(witness.owner_commitment),
+    owner_secret: toCircuitString(witness.owner_secret),
+    quote_expires_at_slot: toCircuitString(witness.quote_expires_at_slot),
+    relayer_fee: toCircuitString(witness.relayer_fee),
+    relayer_id: toCircuitString(witness.relayer_id),
+    request_version: toCircuitString(witness.request_version),
+    tree_id: toCircuitString(witness.tree_id),
   };
 }
 

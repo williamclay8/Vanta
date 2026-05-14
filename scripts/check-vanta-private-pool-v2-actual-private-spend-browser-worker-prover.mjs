@@ -36,6 +36,7 @@ const sourceFiles = [
   "privatePoolV2Types.ts",
   "privatePoolV2ProofRequests.ts",
   "privatePoolV2MerkleFixtureHelpers.ts",
+  "privatePoolV2ClaimCircuitFixture.ts",
   "privatePoolV2SendCircuitFixture.ts",
   "privatePoolV2ActualPrivateSpendCircuitFixture.ts",
   "privatePoolV2ShieldCircuitFixture.ts",

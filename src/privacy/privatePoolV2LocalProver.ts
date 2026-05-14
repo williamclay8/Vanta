@@ -161,7 +161,10 @@ const LOCAL_BB_FIXTURE_TARGET_CONFIGS = {
     versionPrefix: "vanta-private-pool-v2-actual-private-spend-proof-request-0.1:version",
   },
   claim: {
-    allowedProofBackends: [VANTA_PRIVATE_POOL_V2_LOCAL_BB_FIXTURE_PROOF_BACKEND],
+    allowedProofBackends: [
+      VANTA_PRIVATE_POOL_V2_LOCAL_BB_FIXTURE_PROOF_BACKEND,
+      VANTA_PRIVATE_POOL_V2_LOCAL_BB_DERIVED_PROOF_BACKEND,
+    ],
     circuit: "vanta_private_pool_v2_claim_entry",
     displayName: "Claim",
     intent: "claim",

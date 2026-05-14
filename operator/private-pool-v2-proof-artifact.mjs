@@ -34,6 +34,7 @@ const proofArtifactCircuitProfiles = {
     circuitDir: claimCircuitDir,
     circuitName: claimCircuitName,
     label: "Private Pool v2 Claim",
+    localProofBackends: ["local-bb-fixture-artifact", "local-bb-derived-artifact"],
     publicInputLabels: ["claim-public-input-hash"],
     verifiedPublicInputKey: "claimPublicInputHash",
   },

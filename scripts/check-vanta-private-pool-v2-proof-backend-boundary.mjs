@@ -66,6 +66,9 @@ const actualPrivateSpendBrowserWorkerProverCheck = read(
 const shieldBrowserWorkerProverCheck = read(
   "scripts/check-vanta-private-pool-v2-shield-browser-worker-prover.mjs",
 );
+const claimBrowserWorkerProverCheck = read(
+  "scripts/check-vanta-private-pool-v2-claim-browser-worker-prover.mjs",
+);
 const browserWorkerProofResultAdapter = read(
   "src/privacy/privatePoolV2BrowserWorkerProofResultAdapter.ts",
 );
@@ -836,10 +839,40 @@ includes(
   "rejected the Shield witness input",
   "Shield browser worker check sanitized witness-input error",
 );
+includes(
+  claimBrowserWorkerProverCheck,
+  "proveVantaPrivatePoolV2ClaimInBrowserWorker",
+  "Claim browser worker check exported prover",
+);
+includes(
+  claimBrowserWorkerProverCheck,
+  "createVantaPrivatePoolV2ClaimCircuitFixture",
+  "Claim browser worker check fixture source",
+);
+includes(
+  claimBrowserWorkerProverCheck,
+  "claim-public-input-hash",
+  "Claim browser worker check public input label",
+);
+includes(
+  claimBrowserWorkerProverCheck,
+  "assertVantaPrivatePoolV2ProofArtifactHasNoWitnessMaterial",
+  "Claim browser worker check no-witness artifact guard",
+);
+includes(
+  claimBrowserWorkerProverCheck,
+  "Claim structured clone boom",
+  "Claim browser worker check postMessage cleanup guard",
+);
+includes(
+  claimBrowserWorkerProverCheck,
+  "rejected the Claim witness input",
+  "Claim browser worker check sanitized witness-input error",
+);
 
 assert(
   scripts["private-pool-v2:proof-backend-boundary-check"] ===
-    "node scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs && npm run private-pool-v2:browser-worker-prover-check && npm run private-pool-v2:actual-private-spend-browser-worker-prover-check && npm run private-pool-v2:shield-browser-worker-prover-check && npm run private-pool-v2:browser-worker-proof-result-adapter-check",
+    "node scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs && npm run private-pool-v2:browser-worker-prover-check && npm run private-pool-v2:actual-private-spend-browser-worker-prover-check && npm run private-pool-v2:shield-browser-worker-prover-check && npm run private-pool-v2:claim-browser-worker-prover-check && npm run private-pool-v2:browser-worker-proof-result-adapter-check",
   "package.json must expose private-pool-v2:proof-backend-boundary-check",
 );
 assert(
@@ -873,6 +906,11 @@ assert(
   "package.json must expose private-pool-v2:shield-browser-worker-prover-check",
 );
 assert(
+  scripts["private-pool-v2:claim-browser-worker-prover-check"] ===
+    "node scripts/check-vanta-private-pool-v2-claim-browser-worker-prover.mjs",
+  "package.json must expose private-pool-v2:claim-browser-worker-prover-check",
+);
+assert(
   scripts["private-pool-v2:browser-worker-proof-result-adapter-check"] ===
     "node scripts/check-vanta-private-pool-v2-browser-worker-proof-result-adapter.mjs",
   "package.json must expose private-pool-v2:browser-worker-proof-result-adapter-check",
@@ -891,6 +929,16 @@ includes(
   browserWorkerProofResultAdapter,
   "local-bb-derived-artifact",
   "browser-worker proof-result adapter derived artifact boundary",
+);
+includes(
+  browserWorkerProofResultAdapter,
+  "proveClaim",
+  "browser-worker proof-result adapter Claim delegation",
+);
+includes(
+  browserWorkerProofResultAdapter,
+  "claim-public-input-hash",
+  "browser-worker proof-result adapter Claim public input label",
 );
 includes(
   browserWorkerProofResultAdapter,
@@ -947,6 +995,12 @@ assert(
     "npm run private-pool-v2:shield-browser-worker-prover-check",
   ),
   "package.json private-pool-v2:local-prover-check must include private-pool-v2:shield-browser-worker-prover-check",
+);
+assert(
+  scripts["private-pool-v2:local-prover-check"]?.includes(
+    "npm run private-pool-v2:claim-browser-worker-prover-check",
+  ),
+  "package.json private-pool-v2:local-prover-check must include private-pool-v2:claim-browser-worker-prover-check",
 );
 assert(
   scripts["private-pool-v2:local-prover-check"]?.includes(
@@ -1040,6 +1094,13 @@ assert(
       "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
     ),
   "private-pool-v2:verify must reach the actual-private-spend browser worker prover guard through proof-backend-boundary-check",
+);
+assert(
+  scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:proof-backend-boundary-check") &&
+    scripts["private-pool-v2:proof-backend-boundary-check"]?.includes(
+      "npm run private-pool-v2:claim-browser-worker-prover-check",
+    ),
+  "private-pool-v2:verify must reach the Claim browser worker prover guard through proof-backend-boundary-check",
 );
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:proof-backend-boundary-check") &&

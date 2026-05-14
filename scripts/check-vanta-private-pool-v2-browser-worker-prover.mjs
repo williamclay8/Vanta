@@ -23,6 +23,7 @@ const sourceFiles = [
   "privatePoolV2ProofRequests.ts",
   "privatePoolV2MerkleFixtureHelpers.ts",
   "privatePoolV2ActualPrivateSpendCircuitFixture.ts",
+  "privatePoolV2ClaimCircuitFixture.ts",
   "privatePoolV2SendCircuitFixture.ts",
   "privatePoolV2ShieldCircuitFixture.ts",
   "privatePoolV2BrowserProverProtocol.ts",
