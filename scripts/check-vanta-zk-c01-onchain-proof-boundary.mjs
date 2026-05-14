@@ -82,7 +82,9 @@ for (const marker of [
   "require_root_record(program_id, pool_state, root_record, accepted_root)?;",
   "ensure_nullifier_marker(",
   "proof_carrying_spend_preflights_accounts_before_fail_closed_verifier",
+  "proof_carrying_spend_rejects_duplicate_nullifier_before_fail_closed_verifier",
   "Err(ProgramError::Custom(ERR_OUTPUT_QUEUE_FULL))",
+  "Err(ProgramError::Custom(ERR_DUPLICATE_NULLIFIER))",
 ]) {
   includes(program, marker, programPath);
 }

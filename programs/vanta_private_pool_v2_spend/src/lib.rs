@@ -3335,6 +3335,279 @@ mod tests {
     }
 
     #[test]
+    fn proof_carrying_spend_rejects_duplicate_nullifier_before_fail_closed_verifier() {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let nullifier_set = Pubkey::new_unique();
+        let output_queue = Pubkey::new_unique();
+        let root_history = Pubkey::new_unique();
+        let root_record = root_record_pubkey(&program_id, &pool_state, &[4; HASH_LEN]);
+        let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &[1; HASH_LEN]);
+        let output_record = output_record_pubkey(&program_id, &pool_state, &[5; HASH_LEN]);
+        let verifier_key = verifier_key_pubkey(&program_id, &pool_state, &[6; HASH_LEN]);
+        let system_program_id = system_program::ID;
+        let authority = Pubkey::new_unique();
+        let mut pool_lamports = 1_000_000;
+        let mut nullifier_lamports = 1_000_000;
+        let mut output_lamports = 1_000_000;
+        let mut root_lamports = 1_000_000;
+        let mut root_record_lamports = 1_000_000;
+        let mut marker_lamports = 1_000_000;
+        let mut record_lamports = 1_000_000;
+        let mut verifier_lamports = 1_000_000;
+        let mut authority_lamports = 1_000_000;
+        let mut system_lamports = 1_000_000;
+        let mut pool_data = vec![0; POOL_STATE_LEN];
+        let mut nullifier_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut output_data = vec![0; HEADER_LEN];
+        let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut root_record_data = vec![0; ROOT_RECORD_ACCOUNT_LEN];
+        let mut marker_data = vec![0; NULLIFIER_MARKER_LEN];
+        let mut record_data = vec![0; OUTPUT_RECORD_PDA_LEN];
+        let mut verifier_data = vec![0; VERIFIER_KEY_ACCOUNT_LEN];
+        let mut signer_data = [];
+        let mut system_data = [];
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                true,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let nullifier = account_info(
+                &nullifier_set,
+                &program_id,
+                true,
+                false,
+                &mut nullifier_lamports,
+                &mut nullifier_data,
+            );
+            let output = account_info(
+                &output_queue,
+                &program_id,
+                true,
+                false,
+                &mut output_lamports,
+                &mut output_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let accounts = vec![pool, nullifier, output, roots, authority_info];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &[TAG_INIT]),
+                Ok(())
+            );
+        }
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                true,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, roots, root, authority_info, system_info];
+
+            assert_eq!(
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_provenanced_root_instruction()
+                ),
+                Ok(())
+            );
+        }
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            write_nullifier_marker(&mut marker_data, &pool, &[1; HASH_LEN]).unwrap();
+        }
+        write_verifier_key_account(&mut verifier_data, &pool_state, &[6; HASH_LEN]).unwrap();
+
+        let before_duplicate_data = (
+            pool_data.clone(),
+            nullifier_data.clone(),
+            output_data.clone(),
+            root_data.clone(),
+            root_record_data.clone(),
+            marker_data.clone(),
+            record_data.clone(),
+            verifier_data.clone(),
+        );
+        let before_duplicate_lamports = (
+            pool_lamports,
+            nullifier_lamports,
+            output_lamports,
+            root_lamports,
+            root_record_lamports,
+            marker_lamports,
+            record_lamports,
+            verifier_lamports,
+        );
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let nullifier = account_info(
+                &nullifier_set,
+                &program_id,
+                false,
+                false,
+                &mut nullifier_lamports,
+                &mut nullifier_data,
+            );
+            let output = account_info(
+                &output_queue,
+                &program_id,
+                false,
+                false,
+                &mut output_lamports,
+                &mut output_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                false,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                false,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
+            let marker = account_info(
+                &nullifier_marker,
+                &program_id,
+                true,
+                false,
+                &mut marker_lamports,
+                &mut marker_data,
+            );
+            let record = account_info(
+                &output_record,
+                &program_id,
+                true,
+                false,
+                &mut record_lamports,
+                &mut record_data,
+            );
+            let verifier = account_info(
+                &verifier_key,
+                &program_id,
+                false,
+                false,
+                &mut verifier_lamports,
+                &mut verifier_data,
+            );
+            let accounts = vec![
+                pool, nullifier, output, roots, root, marker, record, verifier,
+            ];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &spend_with_proof_instruction()),
+                Err(ProgramError::Custom(ERR_DUPLICATE_NULLIFIER))
+            );
+        }
+
+        assert_eq!(
+            before_duplicate_data,
+            (
+                pool_data,
+                nullifier_data,
+                output_data,
+                root_data,
+                root_record_data,
+                marker_data,
+                record_data,
+                verifier_data,
+            )
+        );
+        assert_eq!(
+            before_duplicate_lamports,
+            (
+                pool_lamports,
+                nullifier_lamports,
+                output_lamports,
+                root_lamports,
+                root_record_lamports,
+                marker_lamports,
+                record_lamports,
+                verifier_lamports,
+            )
+        );
+    }
+
+    #[test]
     fn proof_carrying_spend_requires_accounts_and_registered_root() {
         let program_id = Pubkey::new_unique();
 
