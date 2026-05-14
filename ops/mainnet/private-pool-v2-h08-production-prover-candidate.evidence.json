@@ -17,6 +17,7 @@
   "sourceReviewRefs": [
     "VANTA_ZK_REVIEW.md#still-open-2--replace-the-mock-prover-with-bbjs",
     "VANTA_ZK_REVIEW.findings.json",
+    "ops/mainnet/private-pool-v2-h08-production-prover-runtime-options.evidence.json",
     "SECURITY_LIMITATIONS.md",
     "README.md"
   ],
@@ -217,6 +218,14 @@
       "truthBoundary": "The adapter implements VantaPrivatePoolV2Prover only as an opt-in dev bridge and does not replace default mock/local-mock proving."
     },
     {
+      "id": "blocked-production-prover-runtime-options-matrix",
+      "status": "blocked-runtime-options-unselected",
+      "artifactRef": "ops/mainnet/private-pool-v2-h08-production-prover-runtime-options.evidence.json",
+      "command": "npm run zk:h08-production-prover-runtime-options-check",
+      "satisfiesProductionProverEvidence": false,
+      "truthBoundary": "This options matrix compares the remote-service and browser-worker production runtime candidates without selecting either runtime and is not production prover evidence."
+    },
+    {
       "id": "production-services-manifest",
       "status": "service-topology-ref-not-production-prover-acceptance",
       "artifactRef": "ops/mainnet/private-pool-v2-services.manifest.json",
@@ -336,6 +345,7 @@
   ],
   "canonicalCommands": [
     "npm run zk:h08-production-prover-candidate-check",
+    "npm run zk:h08-production-prover-runtime-options-check",
     "npm run private-pool-v2:local-bb-fixture-prover-check",
     "npm run private-pool-v2:actual-private-spend-witness-prover-check",
     "npm run private-pool-v2:send-witness-prover-check",

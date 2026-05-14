@@ -413,6 +413,7 @@ for (const id of [
   "send-and-actual-private-local-witness-input-provers",
   "browser-worker-proof-execution",
   "browser-worker-proof-result-adapter",
+  "blocked-production-prover-runtime-options-matrix",
   "production-services-manifest",
   "production-smoke-template",
 ]) {
@@ -470,6 +471,7 @@ for (const phrase of [
 assertStringArray(packet.canonicalCommands, "canonicalCommands");
 for (const command of [
   "npm run zk:h08-production-prover-candidate-check",
+  "npm run zk:h08-production-prover-runtime-options-check",
   "npm run private-pool-v2:local-bb-fixture-prover-check",
   "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
   "npm run zk:c01-verifier-backend-decision-check",

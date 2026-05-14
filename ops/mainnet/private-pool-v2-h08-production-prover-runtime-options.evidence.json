@@ -1,0 +1,188 @@
+{
+  "version": "vanta-private-pool-v2-h08-production-prover-runtime-options-evidence-0.1",
+  "checkedAt": "2026-05-14T00:00:00.000Z",
+  "status": "blocked-runtime-options-unselected",
+  "findingId": "VANTA-ZK-2026-05-09-H08",
+  "productionReady": false,
+  "mainnetReady": false,
+  "privacyClaimAllowed": false,
+  "realFundsAllowed": false,
+  "h08ProductionProverReady": false,
+  "productionBrowserRuntimeProverReady": false,
+  "productionRemoteProverReady": false,
+  "selectedProverRuntime": null,
+  "selectedProverRuntimeStatus": "not-selected",
+  "secretPolicy": "references-and-metadata-only-no-proof-bytes-no-witness-values-no-service-secrets",
+  "purpose": "Blocked options packet for choosing an H08 production prover runtime. It compares the remote-service and browser-worker candidates without selecting either path, and it records why local proof-artifact evidence remains intermediate only.",
+  "candidatePacketRef": "ops/mainnet/private-pool-v2-h08-production-prover-candidate.evidence.json",
+  "c01VerifierCompatibilityRefs": {
+    "status": "blocked-c01-backend-unselected",
+    "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+    "backendOptionsRef": "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
+    "verifierCandidateRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+    "selectedBackend": null,
+    "selectedBackendStatus": "not-selected",
+    "c01VerifierReady": false,
+    "solanaC01Groth16VerifierReady": false,
+    "truthBoundary": "H08 runtime selection cannot be production-compatible while C01 selectedBackend is null. This packet is not C01 verifier compatibility evidence."
+  },
+  "runtimeOptions": [
+    {
+      "id": "remote-service-production-prover",
+      "status": "blocked",
+      "selectsProductionRuntime": false,
+      "runtimeBoundary": "Server-side prover service with an explicit production proof request, artifact, health, and operator-acceptance contract.",
+      "supportedTargetsRequired": [
+        "shield",
+        "claim",
+        "swap-to-shielded",
+        "send",
+        "actual-private-spend"
+      ],
+      "currentCoverage": [],
+      "proofBackendContract": "remote-service",
+      "requires": [
+        "deployed prover health",
+        "artifact-store refs",
+        "job-log refs",
+        "exact proof-request transcript binding",
+        "no-witness operator acceptance",
+        "valid proof roundtrip",
+        "invalid proof rejection",
+        "C01 verifier compatibility",
+        "audit-or-reviewer acceptance"
+      ],
+      "currentBlockedBy": [
+        "no deployed prover health evidence exists",
+        "no artifact-store refs exist",
+        "no job-log refs exist",
+        "production proof-format contract is absent",
+        "C01 verifier compatibility is absent",
+        "audit-or-reviewer acceptance is absent"
+      ],
+      "truthBoundary": "The remote service option is not production prover readiness until the deployed service, proof-format, C01 verifier compatibility, and acceptance evidence exist."
+    },
+    {
+      "id": "browser-worker-production-runtime",
+      "status": "blocked",
+      "selectsProductionRuntime": false,
+      "runtimeBoundary": "Client-side browser worker runtime that would need explicit product, security, distribution, timeout, and verifier-compatibility acceptance before production use.",
+      "supportedTargetsRequired": [
+        "shield",
+        "claim",
+        "swap-to-shielded",
+        "send",
+        "actual-private-spend"
+      ],
+      "currentCoverage": [
+        "send",
+        "actual-private-spend"
+      ],
+      "proofBackendContract": "explicitly-accepted-production-browser-runtime",
+      "requires": [
+        "production browser runtime contract",
+        "compiled circuit distribution policy",
+        "device and timeout coverage",
+        "route wiring",
+        "no-witness operator acceptance",
+        "C01 verifier compatibility",
+        "audit-or-reviewer acceptance"
+      ],
+      "currentBlockedBy": [
+        "current browser-worker evidence is dev-only",
+        "no production browser runtime contract exists",
+        "shield, claim, and swap-to-shielded coverage is absent",
+        "live route wiring is absent",
+        "C01 verifier compatibility is absent",
+        "audit-or-reviewer acceptance is absent"
+      ],
+      "truthBoundary": "The browser-worker option is not production prover readiness; current evidence is dev-only Send and actual-private-spend execution without production route wiring."
+    }
+  ],
+  "currentLocalEvidenceRefs": [
+    {
+      "id": "default-local-mock-prover",
+      "status": "current-default-not-production",
+      "artifactRef": "src/privacy/privatePoolV2LocalProver.ts",
+      "command": "npm run private-pool-v2:local-prover-check",
+      "satisfiesProductionProverEvidence": false,
+      "truthBoundary": "Default mock/local-mock proving is not production prover evidence."
+    },
+    {
+      "id": "local-bb-fixture-adapter",
+      "status": "local-fixture-replay-not-production",
+      "artifactRef": "src/privacy/privatePoolV2LocalProver.ts",
+      "command": "npm run private-pool-v2:local-bb-fixture-prover-check",
+      "satisfiesProductionProverEvidence": false,
+      "truthBoundary": "Local bb.js fixture and derived-artifact replay is not production prover evidence."
+    },
+    {
+      "id": "browser-worker-proof-execution",
+      "status": "dev-only-local-execution-not-production",
+      "artifactRef": "src/privacy/privatePoolV2BrowserProverWorker.ts",
+      "command": "npm run private-pool-v2:browser-worker-prover-check",
+      "satisfiesProductionProverEvidence": false,
+      "truthBoundary": "Browser-worker Send and actual-private-spend execution is dev-only local evidence and not production prover evidence."
+    },
+    {
+      "id": "browser-worker-proof-result-adapter",
+      "status": "dev-only-interface-not-production",
+      "artifactRef": "src/privacy/privatePoolV2BrowserWorkerProofResultAdapter.ts",
+      "command": "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
+      "satisfiesProductionProverEvidence": false,
+      "truthBoundary": "The browser-worker proof-result adapter is opt-in dev-only evidence and not production prover readiness."
+    },
+    {
+      "id": "remote-service-handoff-guard",
+      "status": "handoff-boundary-not-production",
+      "artifactRef": "src/privacy/privatePoolV2RemoteServices.ts",
+      "command": "npm run private-pool-v2:proof-backend-boundary-check",
+      "satisfiesProductionProverEvidence": false,
+      "truthBoundary": "The remote-service handoff guard is not production prover acceptance, service health, or live route evidence."
+    }
+  ],
+  "intermediateEvidenceOnly": {
+    "localBbFixtureAdapter": true,
+    "browserWorkerProofExecution": true,
+    "browserWorkerProofResultAdapter": true,
+    "remoteServiceHandoffGuard": true,
+    "h08ProductionProverCandidate": true
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "productionProverRuntimeSelection": false,
+    "productionProofFormatContract": false,
+    "productionVerifyingKeyEvidence": false,
+    "liveRouteWiring": false,
+    "operatorNoWitnessProductionAcceptance": false,
+    "c01VerifierCompatibility": false,
+    "auditReviewerAcceptance": false
+  },
+  "blockedBy": [
+    "selected-prover-runtime-null",
+    "c01-selected-backend-null",
+    "production-proof-format-absent",
+    "production-verifying-key-evidence-absent",
+    "live-route-wiring-absent",
+    "deployed-prover-health-absent",
+    "audit-reviewer-acceptance-absent"
+  ],
+  "forbiddenPromotions": [
+    "production prover selected",
+    "browser worker production ready",
+    "remote prover production ready",
+    "production-private",
+    "mainnet-private",
+    "real-funds-ready"
+  ],
+  "canonicalCommands": [
+    "npm run zk:h08-production-prover-runtime-options-check",
+    "npm run zk:h08-production-prover-candidate-check",
+    "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
+    "npm run private-pool-v2:browser-worker-prover-check",
+    "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
+    "npm run private-pool-v2:proof-backend-boundary-check",
+    "npm run zk:c01-verifier-backend-decision-check",
+    "npm run zk:c01-verifier-backend-options-check"
+  ],
+  "truthBoundary": "This packet is not production prover runtime selection, not production proof-format evidence, not production verifying-key evidence, not live route wiring, and not C01 verifier compatibility. It only records that neither remote-service-production-prover nor browser-worker-production-runtime has been selected for H08."
+}
