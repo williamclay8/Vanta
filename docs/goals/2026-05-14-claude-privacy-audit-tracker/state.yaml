@@ -383,8 +383,15 @@ audit_remaining_work_backlog:
     source_priority: high
     source_item: "Wire locally proof-bound ciphertext body-hash fields into the recipient discovery/indexer design."
     tracker_ref: "A5"
-    status: pending-design
+    status: local-implemented-local-only
     guard: "npm run private-pool-v2:send-discovery-indexer-handoff-check"
+    evidence:
+      - "src/solana/vantaShieldState.ts builds local Send discovery handoff packets with encrypted view tags and memoCiphertextBodyHash for recipient/change outputs."
+      - "src/privacy/privatePoolV2ProofRequests.ts binds recipient/change memo ciphertext body hashes into Send proof public-input fields."
+      - "proof-bound ciphertext body-hash fields feed the local Send discovery/indexer handoff through the verifier-mirrored discovery packet path."
+      - "operator/private-pool-v2-service-network.mjs validates proofBoundMemoCiphertextBodyHash == memoCiphertextBodyHash and mirrors packets only after checking the accepted proof request, receipt id, public-input commitment, Send public-input hash, tree id, output commitment/root/leaf, and body-hash field."
+      - "scripts/check-vanta-private-pool-v2-send-discovery-indexer-handoff.mjs guards local verifier-mirrored discovery handoff behavior while keeping productionReady false and blocker send-memo-indexer-body-hash-handoff-not-deployed."
+      - "This is not production recipient discovery; R9 remains pending for deployed viewing-key exchange or view-tag/indexer design."
   - id: R10-SERVICE-SEPARATION
     source_priority: high
     source_item: "Separate prover, relayer, verifier, indexer, and operator services with non-overlapping trust boundaries."
@@ -524,9 +531,10 @@ audit_completion_checklist:
     - "N4 requires deploy/live approval and receipts."
     - "N5 requires hosted GitHub Actions green evidence."
     - "Architecture blockers A1-A6 remain incomplete or approval-gated."
-    - "R9A/R20/R21 remain pending, blocked, or approval-gated."
+    - "R20/R21 remain blocked or approval-gated."
+    - "R9 production recipient discovery remains pending even though R9A local ciphertext body-hash handoff binding is implemented."
     - "R10 broader production service separation remains partial/pending production controls even though R10A local stub replacement is implemented."
 
 next_safe_slices:
-  - "R9A is the next local design/guard slice if it can be narrowed without claiming production recipient discovery."
+  - "No remaining small local-only audit quick-fix is open; remaining work is architecture-blocked, approval-gated, live/CI-gated, or production-design-gated."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."

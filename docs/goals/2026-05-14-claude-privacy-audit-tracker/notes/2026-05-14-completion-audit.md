@@ -31,8 +31,8 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 | Deployed bytecode/source hash match | R7A | Blocked / approval-gated | Requires deployment/live bytecode receipt after approval |
 | Real browser prover in live paths | A4 / R8 | Blocked | C01 verifier compatibility and production runtime evidence absent |
 | Prover-relay privacy trade-off docs | R8A | Local implemented | `docs/zk/prover-relay-privacy-tradeoffs.md` is enforced by `npm run zk:h08-production-prover-runtime-options-check` |
-| Recipient discovery/indexer | A5 / R9 | Pending design | Requires viewing-key exchange or view-tag/indexer design |
-| Ciphertext body-hash discovery binding | R9A | Pending design | Proof-bound body-hash fields must feed the discovery/indexer path |
+| Recipient discovery/indexer | A5 / R9 | Pending design | Requires production viewing-key exchange or view-tag/indexer design |
+| Ciphertext body-hash discovery binding | R9A | Local implemented, local-only | proof-bound body-hash fields feed the local verifier-mirrored Send discovery handoff |
 | Service separation | A5 / R10 | Partial local implemented, pending production controls | Local role services are separated and guarded; production controls/live receipts remain absent |
 | Service stub replacement | R10A | Local implemented | Role-specific entrypoints are enforced by `npm run private-pool-v2:service-network-check` |
 | Anonymity-set volume | A6 / R11 | Blocked | Live distinct commitments remain below threshold |
@@ -52,11 +52,11 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 
 Goal is not complete.
 
-The audit is now tracked and N1, N2, N3, N5, R8A, R10A, R11A, R12, R13A, R14, R15/R15A, and R19 source-level/local gates have implementation evidence, but the remaining blockers include deploy/live approval gates, hosted CI evidence, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
+The audit is now tracked and N1, N2, N3, N5, R8A, R9A, R10A, R11A, R12, R13A, R14, R15/R15A, and R19 source-level/local gates have implementation evidence, but the remaining blockers include deploy/live approval gates, hosted CI evidence, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
 
 ## Current Lumi Snapshot
 
-- Local: tracker, implementation-path, threat-model, legacy-v1 memo quarantine, Argon2id vault KDF, and R10A service-entrypoint artifacts exist.
-- Committed: app branch includes the local R10A commit titled `Replace Private Pool role service stubs`; use `git log` for the current post-amend hash.
+- Local: tracker, implementation-path, threat-model, legacy-v1 memo quarantine, Argon2id vault KDF, R9A ciphertext body-hash discovery-binding, and R10A service-entrypoint artifacts exist.
+- Committed: app branch includes the local R9A commit titled `Record Send discovery body hash binding`; use `git log` for the current post-amend hash.
 - Pushed: branch is ahead of origin and the latest tracker commits are not pushed.
-- Deployed/live: latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint slices are not deployed; live-read checks are read-only evidence, not deployment evidence for the current branch.
+- Deployed/live: latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint/discovery-binding slices are not deployed; live-read checks are read-only evidence, not deployment evidence for the current branch.

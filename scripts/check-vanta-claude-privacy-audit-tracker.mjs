@@ -29,6 +29,10 @@ const r8aProverRelayPrivacyTradeoffNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r8a-prover-relay-privacy-tradeoff.md",
 );
+const r9aCiphertextBodyHashDiscoveryBindingNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r9a-ciphertext-body-hash-discovery-binding.md",
+);
 const r10aServiceEntrypointsNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r10a-service-entrypoints.md",
@@ -79,6 +83,7 @@ for (const path of [
   architectureBlockerNotePath,
   n5CiGateNotePath,
   r8aProverRelayPrivacyTradeoffNotePath,
+  r9aCiphertextBodyHashDiscoveryBindingNotePath,
   r10aServiceEntrypointsNotePath,
   r11aLiveAnonymitySetProbeNotePath,
   r12LegacyV1MemoQuarantineNotePath,
@@ -102,6 +107,9 @@ const n2PrivateCoreProofOwnerNote = read(n2PrivateCoreProofOwnerNotePath);
 const architectureBlockerNote = read(architectureBlockerNotePath);
 const n5CiGateNote = read(n5CiGateNotePath);
 const r8aProverRelayPrivacyTradeoffNote = read(r8aProverRelayPrivacyTradeoffNotePath);
+const r9aCiphertextBodyHashDiscoveryBindingNote = read(
+  r9aCiphertextBodyHashDiscoveryBindingNotePath,
+);
 const r10aServiceEntrypointsNote = read(r10aServiceEntrypointsNotePath);
 const r11aLiveAnonymitySetProbeNote = read(r11aLiveAnonymitySetProbeNotePath);
 const r12LegacyV1MemoQuarantineNote = read(r12LegacyV1MemoQuarantineNotePath);
@@ -194,6 +202,11 @@ for (const phrase of [
   "R8A-PROVER-RELAY-PRIVACY-TRADEOFF",
   "docs/zk/prover-relay-privacy-tradeoffs.md documents opt-in remote prover/prover relay trade-offs",
   "R9A-CIPHERTEXT-BODY-HASH-DISCOVERY-BINDING",
+  "status: local-implemented-local-only",
+  "local verifier-mirrored discovery handoff",
+  "proof-bound ciphertext body-hash fields feed the local Send discovery/indexer handoff",
+  "send-memo-indexer-body-hash-handoff-not-deployed",
+  "not production recipient discovery",
   "R10A-SERVICE-STUB-REPLACEMENT",
   "partial-local-implemented-pending-production-controls",
   "operator/private-pool-v2-service-network.mjs exposes role-specific service start functions for indexer, prover, relayer, and verifier.",
@@ -555,6 +568,8 @@ for (const phrase of [
   "Prover-relay privacy trade-off docs",
   "docs/zk/prover-relay-privacy-tradeoffs.md",
   "Ciphertext body-hash discovery binding",
+  "Local implemented, local-only",
+  "proof-bound body-hash fields feed the local verifier-mirrored Send discovery handoff",
   "Service stub replacement",
   "Role-specific entrypoints are enforced by `npm run private-pool-v2:service-network-check`",
   "Live anonymity-set probe",
@@ -576,7 +591,7 @@ for (const phrase of [
   "Mainnet on-chain replay test",
   "Deposit-send-fresh-exit privacy test",
   "branch is ahead of origin",
-  "latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint slices are not deployed",
+  "latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint/discovery-binding slices are not deployed",
 ]) {
   assert.ok(completionAuditNote.includes(phrase), `completion audit note missing ${phrase}`);
 }
@@ -598,6 +613,25 @@ for (const phrase of [
   "not production service separation",
 ]) {
   assert.ok(r10aServiceEntrypointsNote.includes(phrase), `R10A note missing ${phrase}`);
+}
+
+for (const phrase of [
+  "R9A Ciphertext Body-Hash Discovery Binding - 2026-05-14",
+  "Local implemented, local-only.",
+  "proof-bound ciphertext body-hash fields",
+  "local verifier-mirrored discovery handoff",
+  "memoCiphertextBodyHash",
+  "proofBoundMemoCiphertextBodyHash",
+  "send-memo-indexer-body-hash-handoff-not-deployed",
+  "productionReady: false",
+  "npm run private-pool-v2:send-discovery-indexer-handoff-check",
+  "npm run private-pool-v2:service-network-check",
+  "not production recipient discovery",
+]) {
+  assert.ok(
+    r9aCiphertextBodyHashDiscoveryBindingNote.includes(phrase),
+    `R9A note missing ${phrase}`,
+  );
 }
 
 for (const phrase of [
