@@ -30,19 +30,21 @@ function git(args) {
   });
 }
 
-function findCommitHash(value) {
-  return /\b([0-9a-f]{7,40})\b/u.exec(String(value))?.[1] ?? null;
+function findCommitHashes(value) {
+  return [...String(value).matchAll(/\b([0-9a-f]{7,40})\b/gu)].map((match) => match[1]);
 }
 
 function assertKnownAncestorCommit(value, label) {
-  const hash = findCommitHash(value);
-  assert(hash, `${label} must include a concrete git commit hash`);
+  const hashes = findCommitHashes(value);
+  assert(hashes.length > 0, `${label} must include a concrete git commit hash`);
 
-  const revParse = git(["rev-parse", "--verify", `${hash}^{commit}`]);
-  assert(revParse.status === 0, `${label} references unknown commit ${hash}`);
+  for (const hash of hashes) {
+    const revParse = git(["rev-parse", "--verify", `${hash}^{commit}`]);
+    assert(revParse.status === 0, `${label} references unknown commit ${hash}`);
 
-  const mergeBase = git(["merge-base", "--is-ancestor", hash, "HEAD"]);
-  assert(mergeBase.status === 0, `${label} commit ${hash} is not an ancestor of HEAD`);
+    const mergeBase = git(["merge-base", "--is-ancestor", hash, "HEAD"]);
+    assert(mergeBase.status === 0, `${label} commit ${hash} is not an ancestor of HEAD`);
+  }
 }
 
 function assertPinnedCommittedText(value, label) {
@@ -53,6 +55,10 @@ function assertPinnedCommittedText(value, label) {
   );
   assert(
     !/\bcurrent\b.*\b(?:feedback-loop )?(?:patch|commit)\b/iu.test(value),
+    `${label} must pin a commit instead of saying "${value}"`,
+  );
+  assert(
+    !/\b(?:this|current)\s+(?:ledger|feedback-loop|guard\/doc|guard|record|patch|commit)(?:\s+commit)?\b/iu.test(value),
     `${label} must pin a commit instead of saying "${value}"`,
   );
   assertKnownAncestorCommit(value, label);
@@ -1455,6 +1461,8 @@ for (const phrase of [
   "not an in-circuit X25519 ownership proof",
   "not no-witness production owner authorization",
   "not on-chain release enforcement",
+  "572c46e",
+  "b646797",
 ]) {
   assert(
     unshieldProofOwnerLimbCommentText.includes(phrase),
@@ -2046,6 +2054,7 @@ for (const phrase of [
   "C01 verifier compatibility",
   "not production prover runtime selection",
   "6e4f478",
+  "f379c50",
 ]) {
   assert(
     h08ProductionProverRuntimeOptionsLoopText.includes(phrase),
@@ -2112,6 +2121,7 @@ for (const phrase of [
   "not production verifying-key evidence",
   "not H08 production prover runtime selection",
   "f0aa8a5",
+  "95aabd7",
 ]) {
   assert(
     c01VerifierReadinessBoundaryLoopText.includes(phrase),

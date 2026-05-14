@@ -536,7 +536,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the H08 runtime-options matrix, H08 candidate cross-link, C01 coupling refs, browser-worker proof-result adapter, proof-backend boundary, review guards, build, and diff whitespace check",
-        "committed": "6e4f478 (Add H08 prover runtime options); feedback-loop record committed in this ledger commit",
+        "committed": "6e4f478 (Add H08 prover runtime options); f379c50 (Record H08 prover runtime options loop)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -591,7 +591,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the C01 verifier readiness boundary, backend-options intermediate-only marker, W6 blocked-backend pointer, H08 C01 compatibility refs, C01 candidate/options/decision/H08 focused guards, C01 Groth16/prod-VK/adapter sibling guards, review guards, feedback-loop guard, build, JSON parsing, and diff whitespace check",
-        "committed": "f0aa8a5 (Harden C01 verifier readiness evidence); feedback-loop record committed in this ledger commit",
+        "committed": "f0aa8a5 (Harden C01 verifier readiness evidence); 95aabd7 (Record C01 verifier readiness feedback loop)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -1411,7 +1411,7 @@
       ],
       "lumiHygiene": {
         "local": "verified locally for the Unshield proof-owner low-limb comment guard, Private Core check, findings ledger, review guards, and diff whitespace check",
-        "committed": "572c46e (Bind Unshield proof owner key); guard/doc record committed in this feedback-loop commit",
+        "committed": "572c46e (Bind Unshield proof owner key); b646797 (Guard Unshield proof owner limb comment)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
