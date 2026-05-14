@@ -903,6 +903,49 @@ for (const phrase of [
   );
 }
 
+const landingIconographyCardsLoopId = "VANTA-ZK-FEEDBACK-2026-05-14-LANDING-ICONOGRAPHY-INSIDE-APP-CARDS";
+assert(
+  activeFeedbackLoopIds.has(landingIconographyCardsLoopId),
+  `${landingIconographyCardsLoopId} active feedback loop is missing`,
+);
+const landingIconographyCardsLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === landingIconographyCardsLoopId,
+);
+const landingIconographyCardsLoopText = JSON.stringify(landingIconographyCardsLoop);
+for (const command of [
+  "npm run landing:browser-check",
+  "npm run product-ui:browser-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run build",
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:feedback-loop-check",
+  "git diff --check",
+]) {
+  assert(
+    landingIconographyCardsLoop?.localVerification?.includes(command),
+    `${landingIconographyCardsLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "What it does",
+  "Inside the app",
+  "Shield",
+  "Use current lanes",
+  "Accept payments",
+  "Exit on your terms",
+  "hover-responsive cards",
+  "status pills",
+  "Preview",
+  "not production-private",
+  "not-live-verified",
+  "9e45f66",
+]) {
+  assert(
+    landingIconographyCardsLoopText.includes(phrase),
+    `${landingIconographyCardsLoopId} must record ${phrase}`,
+  );
+}
+
 const payProgressiveDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PAY-PROGRESSIVE-DISCLOSURE";
 assert(
   activeFeedbackLoopIds.has(payProgressiveDisclosureLoopId),

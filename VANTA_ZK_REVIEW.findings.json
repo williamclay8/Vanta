@@ -1111,6 +1111,35 @@
       "truthBoundary": "This is public Solana chain-liveness UI only. It is not TVL, not user-count or adoption evidence, not a live depth oracle, not live anonymity, not production-private settlement, not pushed, and not deployed/live."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-14-LANDING-ICONOGRAPHY-INSIDE-APP-CARDS",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#cc4-density-without-rhythm",
+        "VANTA_ZK_REVIEW.md#cc5-the-home-page-sells-the-idea-the-app-sells-the-limitation",
+        "VANTA_ZK_REVIEW.md#--home",
+        "src/pages/HomePage.tsx",
+        "src/styles.css",
+        "scripts/check-vanta-landing-browser.mjs"
+      ],
+      "summary": "The landing iconography and Inside the app affordance feedback now has a guarded local slice: the What it does cards expose small beta-safe action glyphs for Shield assets, Use current lanes, Accept payments, and Exit on your terms, and the Inside the app links are hover-responsive cards with action outcomes, beta-safe status pills, and arrow affordances while preserving the Shield/Send/Swap/Unshield primary wallet hierarchy and Pay/Strategy Preview surfaces hierarchy.",
+      "localVerification": [
+        "npm run landing:browser-check",
+        "npm run product-ui:browser-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run build",
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:feedback-loop-check",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for landing iconography and Inside the app card affordances across landing browser, product UI browser, privacy-claim, build, review-ledger, feedback-loop, and diff checks",
+        "committed": "9e45f66 (Add landing iconography and app cards)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is public landing presentation and guard hardening only. It is not a hero visualization, not social proof, not TVL or user-count evidence, not route/proof/settlement behavior, not production-private wallet-lane readiness, not Pay or Strategy live production routing, not pushed, and not deployed/live."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-PAY-PROGRESSIVE-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
