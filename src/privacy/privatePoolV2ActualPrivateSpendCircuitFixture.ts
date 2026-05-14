@@ -1,4 +1,4 @@
-import { poseidon1, poseidon2, poseidon3, poseidon11 } from "poseidon-lite";
+import { poseidon1, poseidon2, poseidon3, poseidon5, poseidon11 } from "poseidon-lite";
 import {
   buildVantaPrivatePoolV2SparseMerkleTree,
   directionBitsForLeafIndex,
@@ -14,7 +14,9 @@ export type VantaPrivatePoolV2ActualPrivateSpendCircuitWitness = {
   accepted_root: bigint;
   asset_cohort: bigint;
   context_hash: bigint;
+  input_blinding: bigint;
   input_commitment: bigint;
+  input_derivation_tag: bigint;
   leaf_index: bigint;
   membership_path: readonly bigint[];
   membership_path_direction_bits: readonly bigint[];
@@ -36,6 +38,7 @@ export type VantaPrivatePoolV2ActualPrivateSpendCircuitFixtureMode =
   | "valid"
   | "invalid-binding"
   | "invalid-direction-bit"
+  | "invalid-input-commitment-preimage"
   | "invalid-leaf-index"
   | "invalid-membership-root"
   | "invalid-nullifier";
@@ -44,7 +47,9 @@ export type VantaPrivatePoolV2ActualPrivateSpendCircuitWitnessInput = {
   accepted_root: bigint | string;
   asset_cohort: bigint | string;
   context_hash: bigint | string;
+  input_blinding: bigint | string;
   input_commitment: bigint | string;
+  input_derivation_tag: bigint | string;
   leaf_index: bigint | string;
   membership_path: readonly (bigint | string)[];
   membership_path_direction_bits: readonly (bigint | string)[];
@@ -60,7 +65,9 @@ export type VantaPrivatePoolV2ActualPrivateSpendCircuitNoirInputs = {
   accepted_root: string;
   asset_cohort: string;
   context_hash: string;
+  input_blinding: string;
   input_commitment: string;
+  input_derivation_tag: string;
   leaf_index: string;
   membership_path: string[];
   membership_path_direction_bits: string[];
@@ -76,7 +83,8 @@ export type VantaPrivatePoolV2ActualPrivateSpendCircuitNoirInputs = {
 const DEFAULT_WITNESS_BASE = {
   asset_cohort: 202n,
   context_hash: 909n,
-  input_commitment: 404n,
+  input_blinding: 404n,
+  input_derivation_tag: 405n,
   leaf_index: 5n,
   membership_path: [] as readonly bigint[],
   membership_path_direction_bits: [] as readonly bigint[],
@@ -87,24 +95,31 @@ const DEFAULT_WITNESS_BASE = {
   request_version: 701n,
 } satisfies Omit<
   VantaPrivatePoolV2ActualPrivateSpendCircuitWitness,
-  "accepted_root" | "nullifier"
+  "accepted_root" | "input_commitment" | "nullifier"
 >;
+
+const DEFAULT_WITH_INPUT_COMMITMENT = {
+  ...DEFAULT_WITNESS_BASE,
+  input_commitment: computeVantaPrivatePoolV2ActualPrivateSpendInputCommitment(
+    DEFAULT_WITNESS_BASE,
+  ),
+};
 
 const DEFAULT_TREE = buildVantaPrivatePoolV2SparseMerkleTree({
   leaves: [
     {
-      leafIndex: DEFAULT_WITNESS_BASE.leaf_index,
-      leafValue: DEFAULT_WITNESS_BASE.input_commitment,
+      leafIndex: DEFAULT_WITH_INPUT_COMMITMENT.leaf_index,
+      leafValue: DEFAULT_WITH_INPUT_COMMITMENT.input_commitment,
     },
   ],
 });
 
 const DEFAULT_WITH_ROOT = {
-  ...DEFAULT_WITNESS_BASE,
+  ...DEFAULT_WITH_INPUT_COMMITMENT,
   accepted_root: DEFAULT_TREE.root,
-  membership_path: DEFAULT_TREE.pathForLeaf(DEFAULT_WITNESS_BASE.leaf_index),
+  membership_path: DEFAULT_TREE.pathForLeaf(DEFAULT_WITH_INPUT_COMMITMENT.leaf_index),
   membership_path_direction_bits: directionBitsForLeafIndex(
-    DEFAULT_WITNESS_BASE.leaf_index,
+    DEFAULT_WITH_INPUT_COMMITMENT.leaf_index,
   ),
 };
 
@@ -120,7 +135,9 @@ const ACTUAL_PRIVATE_SPEND_WITNESS_FIELDS = [
   "accepted_root",
   "asset_cohort",
   "context_hash",
+  "input_blinding",
   "input_commitment",
+  "input_derivation_tag",
   "leaf_index",
   "membership_path",
   "membership_path_direction_bits",
@@ -244,6 +261,21 @@ export function computeVantaPrivatePoolV2ActualPrivateSpendNullifier(
   return poseidon3([witness.input_commitment, witness.note_secret, witness.pool_id]);
 }
 
+export function computeVantaPrivatePoolV2ActualPrivateSpendInputCommitment(
+  witness: Pick<
+    VantaPrivatePoolV2ActualPrivateSpendCircuitWitness,
+    "asset_cohort" | "input_blinding" | "input_derivation_tag" | "note_secret" | "pool_id"
+  >,
+) {
+  return poseidon5([
+    witness.note_secret,
+    witness.pool_id,
+    witness.asset_cohort,
+    witness.input_blinding,
+    witness.input_derivation_tag,
+  ]);
+}
+
 export function computeVantaPrivatePoolV2ActualPrivateSpendPublicInputHash(
   witness: VantaPrivatePoolV2ActualPrivateSpendCircuitWitness,
 ) {
@@ -282,7 +314,12 @@ export function normalizeVantaPrivatePoolV2ActualPrivateSpendCircuitWitnessInput
     accepted_root: normalizeWitnessField(input.accepted_root, "accepted_root"),
     asset_cohort: normalizeWitnessField(input.asset_cohort, "asset_cohort"),
     context_hash: normalizeWitnessField(input.context_hash, "context_hash"),
+    input_blinding: normalizeWitnessField(input.input_blinding, "input_blinding"),
     input_commitment: normalizeWitnessField(input.input_commitment, "input_commitment"),
+    input_derivation_tag: normalizeWitnessField(
+      input.input_derivation_tag,
+      "input_derivation_tag",
+    ),
     leaf_index: normalizeWitnessField(input.leaf_index, "leaf_index"),
     membership_path: normalizeWitnessFieldArray(input.membership_path, "membership_path"),
     membership_path_direction_bits: normalizeWitnessFieldArray(
@@ -318,6 +355,13 @@ export function normalizeVantaPrivatePoolV2ActualPrivateSpendCircuitWitnessInput
     throw new Error("Actual-private-spend witness accepted_root must match the Merkle path.");
   }
 
+  if (
+    witness.input_commitment !==
+    computeVantaPrivatePoolV2ActualPrivateSpendInputCommitment(witness)
+  ) {
+    throw new Error("Actual-private-spend witness input_commitment must match the note preimage.");
+  }
+
   if (witness.nullifier !== computeVantaPrivatePoolV2ActualPrivateSpendNullifier(witness)) {
     throw new Error("Actual-private-spend witness nullifier must match the note secret.");
   }
@@ -349,6 +393,8 @@ export function createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture({
                   index === 0 ? 2n : bit,
                 ),
             }
+          : mode === "invalid-input-commitment-preimage"
+            ? { ...witness, input_blinding: witness.input_blinding + 1n }
           : mode === "invalid-leaf-index"
             ? { ...witness, leaf_index: witness.leaf_index + 1n }
             : witness;
@@ -392,7 +438,9 @@ export function createVantaPrivatePoolV2ActualPrivateSpendCircuitNoirInputs(
     accepted_root: toCircuitString(witness.accepted_root),
     asset_cohort: toCircuitString(witness.asset_cohort),
     context_hash: toCircuitString(witness.context_hash),
+    input_blinding: toCircuitString(witness.input_blinding),
     input_commitment: toCircuitString(witness.input_commitment),
+    input_derivation_tag: toCircuitString(witness.input_derivation_tag),
     leaf_index: toCircuitString(witness.leaf_index),
     membership_path: witness.membership_path.map(toCircuitString),
     membership_path_direction_bits: witness.membership_path_direction_bits.map(toCircuitString),
@@ -424,6 +472,8 @@ export function serializeVantaPrivatePoolV2ActualPrivateSpendCircuitFixtureToTom
     `output_commitment_1 = "${witness.output_commitment_1.toString(10)}"`,
     `context_hash = "${witness.context_hash.toString(10)}"`,
     `note_secret = "${witness.note_secret.toString(10)}"`,
+    `input_blinding = "${witness.input_blinding.toString(10)}"`,
+    `input_derivation_tag = "${witness.input_derivation_tag.toString(10)}"`,
     `membership_path = [${witness.membership_path.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
     `membership_path_direction_bits = [${witness.membership_path_direction_bits.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
     "",

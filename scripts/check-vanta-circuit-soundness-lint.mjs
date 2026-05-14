@@ -183,6 +183,19 @@ for (const file of noirFiles) {
     }
   }
 
+  if (file === "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr") {
+    for (const requiredPhrase of [
+      "fn compute_input_commitment",
+      "input_blinding: Field",
+      "input_derivation_tag: Field",
+      "assert(computed_input_commitment == input_commitment)",
+    ]) {
+      if (!source.includes(requiredPhrase)) {
+        failures.push(`${file}: actual-private-spend input commitment must be bound to the note preimage (${requiredPhrase})`);
+      }
+    }
+  }
+
   const publicInputs = [
     ...source.matchAll(/\b([A-Za-z_][A-Za-z0-9_]*)\s*:\s*pub\s+Field\b/gu),
   ].map((match) => match[1]);

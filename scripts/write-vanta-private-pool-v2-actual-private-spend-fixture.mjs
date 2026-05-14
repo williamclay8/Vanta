@@ -38,12 +38,13 @@ if (
   fixtureMode !== "valid" &&
   fixtureMode !== "invalid-binding" &&
   fixtureMode !== "invalid-direction-bit" &&
+  fixtureMode !== "invalid-input-commitment-preimage" &&
   fixtureMode !== "invalid-leaf-index" &&
   fixtureMode !== "invalid-membership-root" &&
   fixtureMode !== "invalid-nullifier"
 ) {
   console.error(
-    'Expected fixture mode "valid", "invalid-binding", "invalid-direction-bit", "invalid-leaf-index", "invalid-membership-root", or "invalid-nullifier".',
+    'Expected fixture mode "valid", "invalid-binding", "invalid-direction-bit", "invalid-input-commitment-preimage", "invalid-leaf-index", "invalid-membership-root", or "invalid-nullifier".',
   );
   process.exit(1);
 }

@@ -85,7 +85,9 @@ function toWitnessJson(witness) {
     accepted_root: witness.accepted_root.toString(10),
     asset_cohort: witness.asset_cohort.toString(10),
     context_hash: witness.context_hash.toString(10),
+    input_blinding: witness.input_blinding.toString(10),
     input_commitment: witness.input_commitment.toString(10),
+    input_derivation_tag: witness.input_derivation_tag.toString(10),
     leaf_index: witness.leaf_index.toString(10),
     membership_path: witness.membership_path.map((entry) => entry.toString(10)),
     membership_path_direction_bits: witness.membership_path_direction_bits.map((entry) =>
@@ -167,6 +169,7 @@ try {
     },
     {
       computeVantaPrivatePoolV2ActualPrivateSpendNullifier,
+      computeVantaPrivatePoolV2ActualPrivateSpendInputCommitment,
       createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture,
       createVantaPrivatePoolV2ActualPrivateSpendCircuitFixtureFromWitnessInput,
     },
@@ -185,7 +188,8 @@ try {
   const witnessBase = {
     asset_cohort: 1202n,
     context_hash: 1909n,
-    input_commitment: 9404n,
+    input_blinding: 9404n,
+    input_derivation_tag: 9405n,
     leaf_index: 42n,
     note_secret: 3303n,
     output_commitment_0: 91001n,
@@ -193,19 +197,26 @@ try {
     pool_id: 1101n,
     request_version: 1701n,
   };
+  const witnessBaseWithInputCommitment = {
+    ...witnessBase,
+    input_commitment:
+      computeVantaPrivatePoolV2ActualPrivateSpendInputCommitment(witnessBase),
+  };
   const tree = buildVantaPrivatePoolV2SparseMerkleTree({
     leaves: [
       {
-        leafIndex: witnessBase.leaf_index,
-        leafValue: witnessBase.input_commitment,
+        leafIndex: witnessBaseWithInputCommitment.leaf_index,
+        leafValue: witnessBaseWithInputCommitment.input_commitment,
       },
     ],
   });
   const witnessWithRoot = {
-    ...witnessBase,
+    ...witnessBaseWithInputCommitment,
     accepted_root: tree.root,
-    membership_path: tree.pathForLeaf(witnessBase.leaf_index),
-    membership_path_direction_bits: directionBitsForLeafIndex(witnessBase.leaf_index),
+    membership_path: tree.pathForLeaf(witnessBaseWithInputCommitment.leaf_index),
+    membership_path_direction_bits: directionBitsForLeafIndex(
+      witnessBaseWithInputCommitment.leaf_index,
+    ),
   };
   const witness = {
     ...witnessWithRoot,
@@ -254,7 +265,15 @@ try {
         ...witnessJson,
         note_secret: (BigInt(witnessJson.note_secret) + 1n).toString(10),
       }),
-    "nullifier",
+    "input_commitment",
+  );
+  expectThrow(
+    () =>
+      createVantaPrivatePoolV2ActualPrivateSpendCircuitFixtureFromWitnessInput({
+        ...witnessJson,
+        input_blinding: (BigInt(witnessJson.input_blinding) + 1n).toString(10),
+      }),
+    "input_commitment",
   );
   expectThrow(
     () =>

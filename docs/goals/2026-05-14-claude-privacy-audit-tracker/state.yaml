@@ -76,9 +76,10 @@ audit_findings:
       - "Claim browser-worker, proof-artifact, operator-no-witness, proof-request, and TypeScript paths were updated and verified for the new witness ABI."
       - "Private Pool v2 Swap-to-shielded now recomputes owner_commitment from owner_secret."
       - "Swap-to-shielded circuit check now includes invalid-owner-secret-binding while leaving input-commitment preimage design explicitly open."
+      - "Private Pool v2 actual-private-spend now recomputes input_commitment from note_secret, pool_id, asset_cohort, input_blinding, and input_derivation_tag."
+      - "Actual-private-spend circuit check now includes invalid-input-commitment-preimage fixtures and the witness/browser/proof paths carry the new note-preimage fields."
     remaining:
       - "Private Pool v2 Swap-to-shielded explicit input-preimage design."
-      - "Actual-private-spend owner/input binding design decision."
       - "Private Core Send/Swap sender authorization key-model decision."
     verify:
       - "npm run zk:circuit-soundness-lint"
@@ -101,6 +102,11 @@ audit_findings:
       - "npm run private-pool-v2:swap-to-shielded-operator-no-witness-check"
       - "npm run private-pool-v2:swap-to-shielded-prove"
       - "npm run private-pool-v2:actual-private-spend-circuit-check"
+      - "npm run private-pool-v2:actual-private-spend-witness-prover-check"
+      - "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check"
+      - "npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check"
+      - "npm run private-pool-v2:actual-private-spend-operator-no-witness-check"
+      - "npm run private-pool-v2:actual-private-spend-prove"
       - "npm run private-core:send-check"
       - "npm run private-core:swap-check"
 

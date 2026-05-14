@@ -41,6 +41,22 @@ fn compute_nullifier(input_commitment: Field, note_secret: Field, pool_id: Field
     bn254::hash_3([input_commitment, note_secret, pool_id])
 }
 
+fn compute_input_commitment(
+    note_secret: Field,
+    pool_id: Field,
+    asset_cohort: Field,
+    input_blinding: Field,
+    input_derivation_tag: Field,
+) -> Field {
+    bn254::hash_5([
+        note_secret,
+        pool_id,
+        asset_cohort,
+        input_blinding,
+        input_derivation_tag,
+    ])
+}
+
 fn compute_leaf_index_from_direction_bits(
     membership_path_direction_bits: [Field; MERKLE_DEPTH],
 ) -> Field {
@@ -109,9 +125,20 @@ fn main(
     output_commitment_1: Field,
     context_hash: Field,
     note_secret: Field,
+    input_blinding: Field,
+    input_derivation_tag: Field,
     membership_path: [Field; MERKLE_DEPTH],
     membership_path_direction_bits: [Field; MERKLE_DEPTH],
 ) {
+    let computed_input_commitment = compute_input_commitment(
+        note_secret,
+        pool_id,
+        asset_cohort,
+        input_blinding,
+        input_derivation_tag,
+    );
+    assert(computed_input_commitment == input_commitment);
+
     let computed_root = compute_root(
         input_commitment,
         membership_path,
