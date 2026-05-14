@@ -407,8 +407,12 @@ audit_remaining_work_backlog:
     source_priority: high
     source_item: "Add a live anonymity-set probe that fails closed when commitments are below the published threshold."
     tracker_ref: "A6"
-    status: pending-implementation
-    guard: "npm run private-pool-v2:anonymity-set-readiness-check"
+    status: local-implemented-live-read-verified
+    guard: "npm run private-pool-v2:live-anonymity-set-probe-check"
+    evidence:
+      - "scripts/check-vanta-live-anonymity-set-probe.mjs fetches https://vantaprivacy.xyz/.well-known/vanta-audit.json by default."
+      - "The live probe requires public-anonymity-depth, currentDistinctCommitments, minimumDistinctCommitments, and fail-closed false anonymity/privacy/readiness flags while depth is below threshold."
+      - "2026-05-14 local run observed currentDistinctCommitments=2 and minimumDistinctCommitments=1024 with depthBelowThreshold=true."
   - id: R12-LEGACY-V1-MEMO-QUARANTINE
     source_priority: high
     source_item: "Migrate or quarantine legacy v1 plaintext memo chain history and exclude it from privacy claims."
@@ -494,8 +498,8 @@ audit_completion_checklist:
     - "N4 requires deploy/live approval and receipts."
     - "N5 requires hosted GitHub Actions green evidence."
     - "Architecture blockers A1-A6 remain incomplete or approval-gated."
-    - "R9A/R10A/R11A/R12/R13A/R14/R19/R20/R21 remain pending, blocked, or approval-gated."
+    - "R9A/R10A/R12/R13A/R14/R19/R20/R21 remain pending, blocked, or approval-gated."
 
 next_safe_slices:
-  - "Add focused tracker/guards or implementation for R11A, R12, R13A, R14, and R19."
+  - "Add focused tracker/guards or implementation for R12, R13A, R14, and R19."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."

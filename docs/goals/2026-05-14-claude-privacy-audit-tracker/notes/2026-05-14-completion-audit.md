@@ -36,7 +36,7 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 | Service separation | A5 / R10 | Pending design | Requires prover/relayer/verifier/indexer/operator separation |
 | Service stub replacement | R10A | Pending implementation | Prover/relayer/verifier/indexer stubs must become real separated services |
 | Anonymity-set volume | A6 / R11 | Blocked | Live distinct commitments remain below threshold |
-| Live anonymity-set probe | R11A | Pending implementation | Needs live fail-closed threshold probe |
+| Live anonymity-set probe | R11A | Local implemented, live-read verified | `npm run private-pool-v2:live-anonymity-set-probe-check` observed live depth `2 / 1024` and fail-closed claim flags |
 | Legacy v1 plaintext memo quarantine | R12 | Pending design | Must quarantine or migrate before privacy claims |
 | Live meta-description scrape | R13A | Pending implementation | Needs a live crawler-copy scrape gate after deploy approval or public evidence |
 | Argon2id vault KDF migration | R14 | Pending implementation | PBKDF2 v2 remains current quick-fix |

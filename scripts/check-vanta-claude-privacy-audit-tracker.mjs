@@ -29,6 +29,10 @@ const r8aProverRelayPrivacyTradeoffNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r8a-prover-relay-privacy-tradeoff.md",
 );
+const r11aLiveAnonymitySetProbeNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r11a-live-anonymity-set-probe.md",
+);
 const r15aOperatorKeypairEnvLockdownNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r15a-operator-keypair-env-lockdown.md",
@@ -55,6 +59,7 @@ for (const path of [
   architectureBlockerNotePath,
   n5CiGateNotePath,
   r8aProverRelayPrivacyTradeoffNotePath,
+  r11aLiveAnonymitySetProbeNotePath,
   r15aOperatorKeypairEnvLockdownNotePath,
   completionAuditNotePath,
   privacyAuditWorkflowPath,
@@ -72,6 +77,7 @@ const n2PrivateCoreProofOwnerNote = read(n2PrivateCoreProofOwnerNotePath);
 const architectureBlockerNote = read(architectureBlockerNotePath);
 const n5CiGateNote = read(n5CiGateNotePath);
 const r8aProverRelayPrivacyTradeoffNote = read(r8aProverRelayPrivacyTradeoffNotePath);
+const r11aLiveAnonymitySetProbeNote = read(r11aLiveAnonymitySetProbeNotePath);
 const r15aOperatorKeypairEnvLockdownNote = read(r15aOperatorKeypairEnvLockdownNotePath);
 const completionAuditNote = read(completionAuditNotePath);
 const privacyAuditWorkflow = read(privacyAuditWorkflowPath);
@@ -150,6 +156,9 @@ for (const phrase of [
   "R9A-CIPHERTEXT-BODY-HASH-DISCOVERY-BINDING",
   "R10A-SERVICE-STUB-REPLACEMENT",
   "R11A-LIVE-ANONYMITY-SET-PROBE",
+  "status: local-implemented-live-read-verified",
+  "npm run private-pool-v2:live-anonymity-set-probe-check",
+  "scripts/check-vanta-live-anonymity-set-probe.mjs fetches https://vantaprivacy.xyz/.well-known/vanta-audit.json by default.",
   "R13A-LIVE-META-DESCRIPTION-SCRAPE",
   "R14-ARGON2ID-VAULT-KDF",
   "R15-OPERATOR-KEYPAIR-ENV-LOCKDOWN",
@@ -311,6 +320,25 @@ for (const phrase of [
 }
 
 for (const phrase of [
+  "R11A Live Anonymity-Set Probe - 2026-05-14",
+  "Local implemented, live-read verified.",
+  "fails closed if the live manifest allows anonymity/privacy claims while commitment depth is below the published threshold",
+  "https://vantaprivacy.xyz/.well-known/vanta-audit.json",
+  "currentDistinctCommitments: 2",
+  "minimumDistinctCommitments: 1024",
+  "depthBelowThreshold: true",
+  "anonymityClaimAllowed",
+  "privacyClaimAllowed",
+  "npm run private-pool-v2:live-anonymity-set-probe-check",
+  "not anonymity-set growth",
+]) {
+  assert.ok(
+    r11aLiveAnonymitySetProbeNote.includes(phrase),
+    `R11A live anonymity-set probe note missing ${phrase}`,
+  );
+}
+
+for (const phrase of [
   "R15A Operator Keypair Env Lockdown Guard - 2026-05-14",
   "Local implemented.",
   "VANTA_PAY_SECRET_KEY",
@@ -341,6 +369,7 @@ for (const phrase of [
   "Ciphertext body-hash discovery binding",
   "Service stub replacement",
   "Live anonymity-set probe",
+  "Local implemented, live-read verified",
   "Live meta-description scrape",
   "Legacy v1 plaintext memo quarantine",
   "Argon2id vault KDF migration",
@@ -407,6 +436,7 @@ for (const phrase of [
   "npm run truth:privacy-claim-gate",
   "npm run frontend:operator-env-exposure-check",
   "npm run operator:keypair-env-lockdown-check",
+  "npm run private-pool-v2:live-anonymity-set-probe-check",
 ]) {
   assert.ok(state.includes(phrase), `state.yaml missing verification command ${phrase}`);
 }
@@ -420,6 +450,11 @@ assert.equal(
   packageJson.scripts["operator:keypair-env-lockdown-check"],
   "node scripts/check-vanta-operator-keypair-env-lockdown.mjs",
   "package.json must expose operator:keypair-env-lockdown-check.",
+);
+assert.equal(
+  packageJson.scripts["private-pool-v2:live-anonymity-set-probe-check"],
+  "node scripts/check-vanta-live-anonymity-set-probe.mjs",
+  "package.json must expose private-pool-v2:live-anonymity-set-probe-check.",
 );
 assert.ok(
   packageJson.scripts["mainnet:secret-handling-check"]?.includes(

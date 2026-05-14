@@ -396,6 +396,7 @@
     "private-pool-v2:anonymity-set-metrics-json": "node scripts/print-vanta-private-pool-v2-anonymity-set-metrics.mjs --json",
     "private-pool-v2:anonymity-set-metrics-check": "node scripts/check-vanta-private-pool-v2-anonymity-set-metrics.mjs",
     "private-pool-v2:anonymity-set-evidence-check": "node scripts/check-vanta-private-pool-v2-anonymity-set-evidence.mjs",
+    "private-pool-v2:live-anonymity-set-probe-check": "node scripts/check-vanta-live-anonymity-set-probe.mjs",
     "private-pool-v2:public-depth-disclosure-check": "node scripts/check-vanta-private-pool-v2-public-depth-disclosure.mjs",
     "private-pool-v2:relayer-separation-evidence-check": "node scripts/check-vanta-private-pool-v2-relayer-separation-evidence.mjs",
     "private-pool-v2:production-relayer-review-check": "node scripts/check-vanta-private-pool-v2-production-relayer-review.mjs",
