@@ -844,6 +844,57 @@ for (const phrase of [
   );
 }
 
+const recoverySettingsRouteLoopId = "VANTA-ZK-FEEDBACK-2026-05-14-RECOVERY-SETTINGS-ROUTE";
+assert(
+  activeFeedbackLoopIds.has(recoverySettingsRouteLoopId),
+  `${recoverySettingsRouteLoopId} active feedback loop is missing`,
+);
+const recoverySettingsRouteLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === recoverySettingsRouteLoopId,
+);
+const recoverySettingsRouteLoopText = JSON.stringify(recoverySettingsRouteLoop);
+for (const command of [
+  "node scripts/check-vanta-recovery-settings-route.mjs",
+  "npm run recovery:settings-route-check",
+  "npm run recovery:panel-check",
+  "npm run shield:viewing-key-custody-check",
+  "npm run zk:owner-context-record-source-import-check",
+  "npm run zk:owner-context-recovery-evidence-check",
+  "npm run zk:owner-context-legacy-quarantine-policy-check",
+  "npm run app:layout-nav-check",
+  "npm run performance:route-code-split-check",
+  "npx tsc --noEmit --pretty false",
+  "npm run build",
+  "npm run product-ui:browser-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run shield:verify",
+  "git diff --check",
+]) {
+  assert(
+    recoverySettingsRouteLoop?.localVerification?.includes(command),
+    `${recoverySettingsRouteLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "/app/settings/recovery",
+  "Recovery settings",
+  "RecoveryPanelController",
+  "More",
+  "Keys & records",
+  "panel opens by default",
+  "Shield-owned viewing-key controls",
+  "not native SOL recovery extraction",
+  "not automatic migration",
+  "not complete cross-device recovery",
+  "not production-private recovery",
+  "not production privacy",
+]) {
+  assert(
+    recoverySettingsRouteLoopText.includes(phrase),
+    `${recoverySettingsRouteLoopId} must record ${phrase}`,
+  );
+}
+
 const sendProgressiveDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-SEND-PROGRESSIVE-DISCLOSURE";
 assert(
   activeFeedbackLoopIds.has(sendProgressiveDisclosureLoopId),

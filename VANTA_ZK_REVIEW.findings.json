@@ -764,6 +764,46 @@
       "truthBoundary": "This is a Shield UX and guard-hardening slice. It preserves the existing Shield route, wallet, proof, settlement, recovery, viewing-key, and decoy behavior, but it is not the full Shield redesign, not /app/settings/recovery, not a decoy toggle, not a custom route override, not Shield production privacy, not live mainnet private settlement, not pushed, and not live-deployed."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-14-RECOVERY-SETTINGS-ROUTE",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#cross-cutting-components-build-once-use-four-places",
+        "VANTA_ZK_REVIEW.md#shield-page-redesign",
+        "src/components/RecoveryPanelController.tsx",
+        "src/pages/RecoverySettingsPage.tsx",
+        "src/pages/ShieldPage.tsx",
+        "src/App.tsx",
+        "src/components/AppLayout.tsx",
+        "scripts/check-vanta-recovery-settings-route.mjs",
+        "scripts/check-vanta-product-ui-browser.mjs"
+      ],
+      "summary": "The RecoveryPanel route feedback now has a guarded local slice: /app/settings/recovery renders a beta-truthful Recovery settings route, the panel opens by default there, AppLayout exposes Recovery / Keys & records in More, and Shield still renders the same recovery setup surface through RecoveryPanelController with Shield-owned viewing-key controls passed through for memo consistency.",
+      "localVerification": [
+        "node scripts/check-vanta-recovery-settings-route.mjs",
+        "npm run recovery:settings-route-check",
+        "npm run recovery:panel-check",
+        "npm run shield:viewing-key-custody-check",
+        "npm run zk:owner-context-record-source-import-check",
+        "npm run zk:owner-context-recovery-evidence-check",
+        "npm run zk:owner-context-legacy-quarantine-policy-check",
+        "npm run app:layout-nav-check",
+        "npm run performance:route-code-split-check",
+        "npx tsc --noEmit --pretty false",
+        "npm run build",
+        "npm run product-ui:browser-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run shield:verify",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for recovery route/controller extraction, Shield viewing-key custody, owner-context record-source import, recovery evidence, legacy quarantine policy, app nav, route code-splitting, product browser coverage, privacy truth gate, build, aggregate shield:verify, and diff whitespace",
+        "committed": "3f376ba (Add Recovery settings route)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is route surfacing and controller extraction only. It preserves Shield routing, proof, settlement, memo encryption, native SOL recovery, viewing-key crypto, owner-context evidence semantics, and record-source import policy, but it is not native SOL recovery extraction, not automatic migration, not complete cross-device recovery, not production-private recovery, not a new privacy guarantee, not production privacy, not live mainnet private settlement, not pushed, and not live-deployed."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-SEND-PROGRESSIVE-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
