@@ -1,3 +1,9 @@
-import { startVantaPrivatePoolV2RoleService } from "./private-pool-v2-service-network.mjs";
+import {
+  getVantaPrivatePoolV2RoleServiceEntrypoint,
+  startVantaPrivatePoolV2RelayerService,
+} from "./private-pool-v2-service-network.mjs";
 
-await startVantaPrivatePoolV2RoleService("relayer");
+export const vantaPrivatePoolV2RelayerServiceEntrypoint =
+  getVantaPrivatePoolV2RoleServiceEntrypoint("relayer");
+
+await startVantaPrivatePoolV2RelayerService();

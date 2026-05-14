@@ -29,6 +29,10 @@ const r8aProverRelayPrivacyTradeoffNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r8a-prover-relay-privacy-tradeoff.md",
 );
+const r10aServiceEntrypointsNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r10a-service-entrypoints.md",
+);
 const r11aLiveAnonymitySetProbeNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r11a-live-anonymity-set-probe.md",
@@ -75,6 +79,7 @@ for (const path of [
   architectureBlockerNotePath,
   n5CiGateNotePath,
   r8aProverRelayPrivacyTradeoffNotePath,
+  r10aServiceEntrypointsNotePath,
   r11aLiveAnonymitySetProbeNotePath,
   r12LegacyV1MemoQuarantineNotePath,
   r13aLiveMetaDescriptionScrapeNotePath,
@@ -97,6 +102,7 @@ const n2PrivateCoreProofOwnerNote = read(n2PrivateCoreProofOwnerNotePath);
 const architectureBlockerNote = read(architectureBlockerNotePath);
 const n5CiGateNote = read(n5CiGateNotePath);
 const r8aProverRelayPrivacyTradeoffNote = read(r8aProverRelayPrivacyTradeoffNotePath);
+const r10aServiceEntrypointsNote = read(r10aServiceEntrypointsNotePath);
 const r11aLiveAnonymitySetProbeNote = read(r11aLiveAnonymitySetProbeNotePath);
 const r12LegacyV1MemoQuarantineNote = read(r12LegacyV1MemoQuarantineNotePath);
 const r13aLiveMetaDescriptionScrapeNote = read(r13aLiveMetaDescriptionScrapeNotePath);
@@ -109,6 +115,13 @@ const proverRelayTradeoffs = read(resolve(repoRoot, "docs/zk/prover-relay-privac
 const threatModel = read(resolve(repoRoot, "docs/threat-model.md"));
 const shieldState = read(resolve(repoRoot, "src/solana/vantaShieldState.ts"));
 const privateVaultCrypto = read(resolve(repoRoot, "src/privateVault/privateVaultCrypto.ts"));
+const serviceNetworkSource = read(resolve(repoRoot, "operator/private-pool-v2-service-network.mjs"));
+const roleEntrypointSources = [
+  read(resolve(repoRoot, "operator/private-pool-v2-indexer-server.mjs")),
+  read(resolve(repoRoot, "operator/private-pool-v2-prover-server.mjs")),
+  read(resolve(repoRoot, "operator/private-pool-v2-relayer-server.mjs")),
+  read(resolve(repoRoot, "operator/private-pool-v2-verifier-server.mjs")),
+].join("\n");
 const packageJson = JSON.parse(read(packagePath));
 
 for (const phrase of [
@@ -182,6 +195,13 @@ for (const phrase of [
   "docs/zk/prover-relay-privacy-tradeoffs.md documents opt-in remote prover/prover relay trade-offs",
   "R9A-CIPHERTEXT-BODY-HASH-DISCOVERY-BINDING",
   "R10A-SERVICE-STUB-REPLACEMENT",
+  "partial-local-implemented-pending-production-controls",
+  "operator/private-pool-v2-service-network.mjs exposes role-specific service start functions for indexer, prover, relayer, and verifier.",
+  "operator/private-pool-v2-{indexer,prover,relayer,verifier}-server.mjs now export role-specific entrypoint descriptors",
+  "startVantaPrivatePoolV2IndexerService",
+  "startVantaPrivatePoolV2ProverService",
+  "startVantaPrivatePoolV2RelayerService",
+  "startVantaPrivatePoolV2VerifierService",
   "R11A-LIVE-ANONYMITY-SET-PROBE",
   "status: local-implemented-live-read-verified",
   "npm run private-pool-v2:live-anonymity-set-probe-check",
@@ -536,6 +556,7 @@ for (const phrase of [
   "docs/zk/prover-relay-privacy-tradeoffs.md",
   "Ciphertext body-hash discovery binding",
   "Service stub replacement",
+  "Role-specific entrypoints are enforced by `npm run private-pool-v2:service-network-check`",
   "Live anonymity-set probe",
   "Local implemented, live-read verified",
   "Live meta-description scrape",
@@ -555,9 +576,56 @@ for (const phrase of [
   "Mainnet on-chain replay test",
   "Deposit-send-fresh-exit privacy test",
   "branch is ahead of origin",
-  "latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF slices are not deployed",
+  "latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint slices are not deployed",
 ]) {
   assert.ok(completionAuditNote.includes(phrase), `completion audit note missing ${phrase}`);
+}
+
+for (const phrase of [
+  "R10A Service Entrypoints - 2026-05-14",
+  "Local implemented.",
+  "role-explicit service entrypoints",
+  "vantaPrivatePoolV2IndexerServiceEntrypoint",
+  "vantaPrivatePoolV2ProverServiceEntrypoint",
+  "vantaPrivatePoolV2RelayerServiceEntrypoint",
+  "vantaPrivatePoolV2VerifierServiceEntrypoint",
+  "startVantaPrivatePoolV2IndexerService",
+  "startVantaPrivatePoolV2ProverService",
+  "startVantaPrivatePoolV2RelayerService",
+  "startVantaPrivatePoolV2VerifierService",
+  "vantaPrivatePoolV2RoleServiceEntrypoints",
+  "Red-first: `npm run private-pool-v2:service-network-check` failed before implementation",
+  "not production service separation",
+]) {
+  assert.ok(r10aServiceEntrypointsNote.includes(phrase), `R10A note missing ${phrase}`);
+}
+
+for (const phrase of [
+  "vantaPrivatePoolV2RoleServiceEntrypoints",
+  "getVantaPrivatePoolV2RoleServiceEntrypoint",
+  "startVantaPrivatePoolV2IndexerService",
+  "startVantaPrivatePoolV2ProverService",
+  "startVantaPrivatePoolV2RelayerService",
+  "startVantaPrivatePoolV2VerifierService",
+  "not production shared-tree evidence",
+  "not production prover runtime evidence",
+  "not real-funds relayer readiness",
+  "not on-chain proof verification evidence",
+]) {
+  assert.ok(serviceNetworkSource.includes(phrase), `service network source missing ${phrase}`);
+}
+
+for (const phrase of [
+  "vantaPrivatePoolV2IndexerServiceEntrypoint",
+  "vantaPrivatePoolV2ProverServiceEntrypoint",
+  "vantaPrivatePoolV2RelayerServiceEntrypoint",
+  "vantaPrivatePoolV2VerifierServiceEntrypoint",
+  "startVantaPrivatePoolV2IndexerService",
+  "startVantaPrivatePoolV2ProverService",
+  "startVantaPrivatePoolV2RelayerService",
+  "startVantaPrivatePoolV2VerifierService",
+]) {
+  assert.ok(roleEntrypointSources.includes(phrase), `role entrypoint source missing ${phrase}`);
 }
 
 for (const phrase of [

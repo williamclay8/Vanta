@@ -17,38 +17,46 @@ const verifierStorePath = join(tempRoot, "verifier-state.json");
 
 const services = [
   {
+    entrypointExport: "vantaPrivatePoolV2IndexerServiceEntrypoint",
     healthServiceName: "vanta-private-pool-v2-indexer",
     readinessEndpoint: "/v1/roots/latest?treeId=vanta-service-network-test-tree",
     role: "indexer",
     script: "private-pool-v2:indexer",
     startFile: "operator/private-pool-v2-indexer-server.mjs",
+    startFunction: "startVantaPrivatePoolV2IndexerService",
     storeEnv: "VANTA_PRIVATE_POOL_V2_INDEXER_STORE_PATH",
     tokenEnv: "VANTA_PRIVATE_POOL_V2_INDEXER_AUTH_TOKEN",
   },
   {
+    entrypointExport: "vantaPrivatePoolV2ProverServiceEntrypoint",
     healthServiceName: "vanta-private-pool-v2-prover",
     readinessEndpoint: "/v1/proofs/health",
     role: "prover",
     script: "private-pool-v2:prover",
     startFile: "operator/private-pool-v2-prover-server.mjs",
+    startFunction: "startVantaPrivatePoolV2ProverService",
     storeEnv: "VANTA_PRIVATE_POOL_V2_PROVER_STORE_PATH",
     tokenEnv: "VANTA_PRIVATE_POOL_V2_PROVER_AUTH_TOKEN",
   },
   {
+    entrypointExport: "vantaPrivatePoolV2RelayerServiceEntrypoint",
     healthServiceName: "vanta-private-pool-v2-relayer",
     readinessEndpoint: "/v1/claims/quote",
     role: "relayer",
     script: "private-pool-v2:relayer",
     startFile: "operator/private-pool-v2-relayer-server.mjs",
+    startFunction: "startVantaPrivatePoolV2RelayerService",
     storeEnv: "VANTA_PRIVATE_POOL_V2_RELAYER_STORE_PATH",
     tokenEnv: "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN",
   },
   {
+    entrypointExport: "vantaPrivatePoolV2VerifierServiceEntrypoint",
     healthServiceName: "vanta-private-pool-v2-verifier",
     readinessEndpoint: "/v1/proofs/accept",
     role: "verifier",
     script: "private-pool-v2:verifier",
     startFile: "operator/private-pool-v2-verifier-server.mjs",
+    startFunction: "startVantaPrivatePoolV2VerifierService",
     storeEnv: "VANTA_PRIVATE_POOL_V2_VERIFIER_STORE_PATH",
     tokenEnv: "VANTA_PRIVATE_POOL_V2_VERIFIER_AUTH_TOKEN",
   },
@@ -191,6 +199,7 @@ function memoCiphertextBodyHashField(value) {
 }
 
 for (const service of services) {
+  const startFileSource = readFileSync(resolve(repoRoot, service.startFile), "utf8");
   assert(
     existsSync(resolve(repoRoot, service.startFile)),
     `Expected ${service.role} entrypoint ${service.startFile}.`,
@@ -198,6 +207,18 @@ for (const service of services) {
   assert(
     packageJson.scripts?.[service.script] === `node ${service.startFile}`,
     `Expected package script ${service.script} to run ${service.startFile}.`,
+  );
+  assert(
+    startFileSource.includes(service.entrypointExport),
+    `Expected ${service.role} entrypoint to export ${service.entrypointExport}.`,
+  );
+  assert(
+    startFileSource.includes(service.startFunction),
+    `Expected ${service.role} entrypoint to call ${service.startFunction}.`,
+  );
+  assert(
+    !startFileSource.includes("startVantaPrivatePoolV2RoleService"),
+    `Expected ${service.role} entrypoint to avoid generic role-string startup imports or stubs.`,
   );
 }
 

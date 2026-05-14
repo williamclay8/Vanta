@@ -389,14 +389,22 @@ audit_remaining_work_backlog:
     source_priority: high
     source_item: "Separate prover, relayer, verifier, indexer, and operator services with non-overlapping trust boundaries."
     tracker_ref: "A5"
-    status: pending-design
+    status: partial-local-implemented-pending-production-controls
     guard: "npm run private-pool-v2:service-network-check"
+    evidence:
+      - "operator/private-pool-v2-service-network.mjs exposes role-specific service start functions for indexer, prover, relayer, and verifier."
+      - "Local role services have distinct npm scripts, auth token envs, store envs, readiness endpoints, and restart-safe local snapshot stores."
+      - "Broader production service separation remains pending production controls, live deployment receipts, least-privilege secrets, observability, and external review."
   - id: R10A-SERVICE-STUB-REPLACEMENT
     source_priority: high
     source_item: "Replace the prover/relayer/verifier/indexer stub services with real separated service entrypoints."
     tracker_ref: "A5"
-    status: pending-implementation
+    status: local-implemented
     guard: "npm run private-pool-v2:service-network-check"
+    evidence:
+      - "operator/private-pool-v2-{indexer,prover,relayer,verifier}-server.mjs now export role-specific entrypoint descriptors and call role-specific start functions instead of direct generic role-string startup stubs."
+      - "operator/private-pool-v2-service-network.mjs exports vantaPrivatePoolV2RoleServiceEntrypoints plus startVantaPrivatePoolV2IndexerService, startVantaPrivatePoolV2ProverService, startVantaPrivatePoolV2RelayerService, and startVantaPrivatePoolV2VerifierService."
+      - "scripts/check-vanta-private-pool-v2-service-network.mjs rejects reintroducing generic startVantaPrivatePoolV2RoleService startup imports or wrappers in role entrypoints and verifies the role service network end to end."
   - id: R11-ANONYMITY-SET-VOLUME
     source_priority: high
     source_item: "Populate a real shared anonymity set before using anonymity wording."
@@ -516,8 +524,9 @@ audit_completion_checklist:
     - "N4 requires deploy/live approval and receipts."
     - "N5 requires hosted GitHub Actions green evidence."
     - "Architecture blockers A1-A6 remain incomplete or approval-gated."
-    - "R9A/R10A/R20/R21 remain pending, blocked, or approval-gated."
+    - "R9A/R20/R21 remain pending, blocked, or approval-gated."
+    - "R10 broader production service separation remains partial/pending production controls even though R10A local stub replacement is implemented."
 
 next_safe_slices:
-  - "No remaining small local-only audit quick-fix is open; remaining work is design-heavy, architecture-blocked, approval-gated, or live/CI-gated."
+  - "R9A is the next local design/guard slice if it can be narrowed without claiming production recipient discovery."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."

@@ -59,6 +59,49 @@ const roleConfig = {
   },
 };
 
+export const vantaPrivatePoolV2RoleServiceEntrypoints = Object.freeze({
+  indexer: Object.freeze({
+    claimBoundary:
+      "local role service for commitment/nullifier indexing; not production shared-tree evidence",
+    role: "indexer",
+    script: "private-pool-v2:indexer",
+    service: roleConfig.indexer.service,
+    startFile: "operator/private-pool-v2-indexer-server.mjs",
+  }),
+  prover: Object.freeze({
+    claimBoundary:
+      "local role service for deterministic proof artifacts; not production prover runtime evidence",
+    role: "prover",
+    script: "private-pool-v2:prover",
+    service: roleConfig.prover.service,
+    startFile: "operator/private-pool-v2-prover-server.mjs",
+  }),
+  relayer: Object.freeze({
+    claimBoundary:
+      "local role service for deterministic relay submissions; not real-funds relayer readiness",
+    role: "relayer",
+    script: "private-pool-v2:relayer",
+    service: roleConfig.relayer.service,
+    startFile: "operator/private-pool-v2-relayer-server.mjs",
+  }),
+  verifier: Object.freeze({
+    claimBoundary:
+      "local role service for off-chain receipt acceptance; not on-chain proof verification evidence",
+    role: "verifier",
+    script: "private-pool-v2:verifier",
+    service: roleConfig.verifier.service,
+    startFile: "operator/private-pool-v2-verifier-server.mjs",
+  }),
+});
+
+export function getVantaPrivatePoolV2RoleServiceEntrypoint(role) {
+  const entrypoint = vantaPrivatePoolV2RoleServiceEntrypoints[role];
+  if (!entrypoint) {
+    throw new Error(`Unknown Private Pool v2 service entrypoint role ${role}.`);
+  }
+  return entrypoint;
+}
+
 function hashHex(...parts) {
   return `0x${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f"))))}`;
 }
@@ -1880,4 +1923,20 @@ export async function startVantaPrivatePoolV2RoleService(role) {
   process.on("SIGINT", close);
 
   return server;
+}
+
+export async function startVantaPrivatePoolV2IndexerService() {
+  return startVantaPrivatePoolV2RoleService("indexer");
+}
+
+export async function startVantaPrivatePoolV2ProverService() {
+  return startVantaPrivatePoolV2RoleService("prover");
+}
+
+export async function startVantaPrivatePoolV2RelayerService() {
+  return startVantaPrivatePoolV2RoleService("relayer");
+}
+
+export async function startVantaPrivatePoolV2VerifierService() {
+  return startVantaPrivatePoolV2RoleService("verifier");
 }

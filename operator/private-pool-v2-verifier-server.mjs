@@ -1,3 +1,9 @@
-import { startVantaPrivatePoolV2RoleService } from "./private-pool-v2-service-network.mjs";
+import {
+  getVantaPrivatePoolV2RoleServiceEntrypoint,
+  startVantaPrivatePoolV2VerifierService,
+} from "./private-pool-v2-service-network.mjs";
 
-await startVantaPrivatePoolV2RoleService("verifier");
+export const vantaPrivatePoolV2VerifierServiceEntrypoint =
+  getVantaPrivatePoolV2RoleServiceEntrypoint("verifier");
+
+await startVantaPrivatePoolV2VerifierService();
