@@ -3122,6 +3122,11 @@ input {
   gap: 12px;
 }
 
+.swap-recent-swaps__items {
+  display: grid;
+  gap: 10px;
+}
+
 .swap-recent-swaps__header span,
 .swap-recent-swaps__card span {
   display: block;

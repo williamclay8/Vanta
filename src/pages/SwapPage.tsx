@@ -53,8 +53,10 @@ import { useWalletState } from "@/data/context/WalletContext";
 import { requestVantaPrivatePoolV2ProtocolSettlement } from "@/privacy/privatePoolV2ProtocolSettlementClient";
 import {
   createCommittedSwapSettlementTerms,
+  listCanonicalSwapRecords,
   persistCanonicalSwapRecord,
   recordCanonicalSwapFromLiveSwap,
+  type LiveSwapCanonicalRecord,
 } from "@/zk/liveSwapBridge";
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentSafety.mjs";
@@ -121,6 +123,7 @@ type PendingSwapBridge = {
 };
 
 type SwapReceiptSummary = {
+  createdAt?: number;
   inputAsset: ShieldedSwapAssetKey;
   inputAmount: number;
   outputAsset: ShieldedSwapAssetKey;
@@ -129,13 +132,75 @@ type SwapReceiptSummary = {
   quoteExpiresAt: number;
   quoteId: string;
   quoteTimestamp: number;
+  recordId?: string;
   requestId?: string;
+  storageScope?: "browser-local" | "local-session";
   transitionNoteId: string;
   venueFamily: "Aggregator" | "DLMM";
   venueName: string;
   venueNetwork: "Mainnet";
   venuePoolAddress: string;
 };
+
+function parseSwapReceiptAmountDisplay(value: string) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function createSwapReceiptSummaryKey(summary: SwapReceiptSummary) {
+  return summary.recordId ?? `${summary.transitionNoteId}:${summary.outputNoteId}`;
+}
+
+function createSwapReceiptDedupeKey(summary: SwapReceiptSummary) {
+  return `${summary.transitionNoteId}:${summary.outputNoteId}:${summary.quoteId}`;
+}
+
+function swapReceiptSummaryFromCanonicalRecord(
+  record: LiveSwapCanonicalRecord,
+): SwapReceiptSummary {
+  return {
+    createdAt: record.createdAt,
+    inputAsset: record.liveSwap.inputAsset,
+    inputAmount: parseSwapReceiptAmountDisplay(record.liveSwap.inputAmountDisplay),
+    outputAsset: record.liveSwap.outputAsset,
+    outputAmount: parseSwapReceiptAmountDisplay(record.liveSwap.outputAmountDisplay),
+    outputNoteId: record.liveSwap.outputNoteId,
+    quoteExpiresAt: record.liveSwap.quoteExpiresAt,
+    quoteId: record.liveSwap.quoteId,
+    quoteTimestamp: record.liveSwap.quoteTimestamp,
+    recordId: record.recordId,
+    requestId: record.liveSwap.operatorRequestId,
+    storageScope: "browser-local",
+    transitionNoteId: record.liveSwap.transitionNoteId,
+    venueFamily: record.liveSwap.venueFamily,
+    venueName: record.liveSwap.venueName,
+    venueNetwork: record.liveSwap.venueNetwork,
+    venuePoolAddress: record.liveSwap.venuePoolAddress,
+  };
+}
+
+function mergeRecentSwapReceiptSummaries(
+  summaries: readonly SwapReceiptSummary[],
+): SwapReceiptSummary[] {
+  const seen = new Set<string>();
+  return summaries
+    .filter((summary) => {
+      const key = createSwapReceiptDedupeKey(summary);
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    })
+    .sort((left, right) => (right.createdAt ?? 0) - (left.createdAt ?? 0))
+    .slice(0, 5);
+}
+
+function buildRecentSwapReceiptSummaries(): SwapReceiptSummary[] {
+  return mergeRecentSwapReceiptSummaries(
+    listCanonicalSwapRecords().map(swapReceiptSummaryFromCanonicalRecord),
+  );
+}
 
 type ActiveSwapQuote = SwapQuote | SolToShieldedRouteQuote;
 const STALE_EXECUTION_QUOTE_MESSAGE =
@@ -262,7 +327,10 @@ export function SwapPage() {
     null,
   );
   const [lastSwapSummary, setLastSwapSummary] = useState<SwapReceiptSummary | null>(null);
-  const [recentSwapSummary, setRecentSwapSummary] = useState<SwapReceiptSummary | null>(null);
+  const [recentSwapSummaries, setRecentSwapSummaries] = useState<SwapReceiptSummary[]>(
+    () => buildRecentSwapReceiptSummaries(),
+  );
+  const [selectedSwapReceiptKey, setSelectedSwapReceiptKey] = useState<string | null>(null);
   const swapTransaction = useVantaSafeSendTransaction();
   const swapWait = useRealtimeSignatureProgress(swapTransaction.signature ?? undefined, {
     commitment: "confirmed",
@@ -277,7 +345,15 @@ export function SwapPage() {
   }, [status]);
   useEffect(() => {
     if (status === "complete" && lastSwapSummary) {
-      setRecentSwapSummary(lastSwapSummary);
+      const summaryKey = createSwapReceiptSummaryKey(lastSwapSummary);
+      setRecentSwapSummaries((currentSummaries) =>
+        mergeRecentSwapReceiptSummaries([
+          lastSwapSummary,
+          ...buildRecentSwapReceiptSummaries(),
+          ...currentSummaries,
+        ]),
+      );
+      setSelectedSwapReceiptKey(summaryKey);
     }
   }, [lastSwapSummary, status]);
   const spentMarkerWait = useRealtimeSignatureProgress(
@@ -1274,6 +1350,15 @@ export function SwapPage() {
         throw new Error("Committed Swap settlement did not return a swap-to-shielded proof receipt.");
       }
       persistCanonicalSwapRecord(canonicalRecord);
+      const canonicalSummary = swapReceiptSummaryFromCanonicalRecord(canonicalRecord);
+      setRecentSwapSummaries((currentSummaries) =>
+        mergeRecentSwapReceiptSummaries([
+          canonicalSummary,
+          ...buildRecentSwapReceiptSummaries(),
+          ...currentSummaries,
+        ]),
+      );
+      setSelectedSwapReceiptKey(createSwapReceiptSummaryKey(canonicalSummary));
       setSwapBridgeError(null);
     } catch (error) {
       setSwapBridgeError(
@@ -1367,6 +1452,7 @@ export function SwapPage() {
       },
     });
     setLastSwapSummary({
+      createdAt,
       inputAsset: "USDC",
       inputAmount: args.note.amount,
       outputAsset: "SOL",
@@ -1375,6 +1461,7 @@ export function SwapPage() {
       quoteExpiresAt: args.swapQuote.quoteExpiresAt,
       quoteId: args.swapQuote.quoteId,
       quoteTimestamp: args.swapQuote.quoteTimestamp,
+      storageScope: "local-session",
       transitionNoteId: preparedSwap.noteId,
       venueFamily: args.swapQuote.venueFamily,
       venueName: args.swapQuote.venueName,
@@ -1510,6 +1597,7 @@ export function SwapPage() {
       },
     });
     setLastSwapSummary({
+      createdAt,
       inputAsset: "SOL",
       inputAmount: args.note.amount,
       outputAsset: args.swapQuote.outputAsset,
@@ -1518,6 +1606,7 @@ export function SwapPage() {
       quoteExpiresAt: args.swapQuote.quoteExpiresAt,
       quoteId: args.swapQuote.quoteId,
       quoteTimestamp: args.swapQuote.quoteTimestamp,
+      storageScope: "local-session",
       transitionNoteId: preparedSwap.noteId,
       venueFamily: args.swapQuote.venueFamily,
       venueName: args.swapQuote.venueName,
@@ -1722,7 +1811,14 @@ export function SwapPage() {
         : status === "quoting" || Boolean(quote)
           ? 1
           : 0;
-  const swapReceiptSource = recentSwapSummary ?? (status === "complete" ? lastSwapSummary : null);
+  const selectedRecentSwapSummary =
+    recentSwapSummaries.find(
+      (summary) => createSwapReceiptSummaryKey(summary) === selectedSwapReceiptKey,
+    ) ??
+    recentSwapSummaries[0] ??
+    null;
+  const swapReceiptSource =
+    selectedRecentSwapSummary ?? (status === "complete" ? lastSwapSummary : null);
   const swapReceiptDetails: SwapReceiptModalDetails | null = swapReceiptSource
     ? {
         bridgeWarning: swapBridgeError ?? undefined,
@@ -1917,34 +2013,56 @@ export function SwapPage() {
               >
                 <div className="swap-recent-swaps__header">
                   <span>Recent swaps</span>
-                  <strong>Local session history</strong>
+                  <strong>Browser-local history</strong>
                 </div>
-                {recentSwapSummary ? (
-                  <article className="swap-recent-swaps__card" data-vanta-swap-recent-card>
-                    <div>
-                      <span>Latest swap</span>
-                      <strong>
-                        {formatAssetAmount(recentSwapSummary.inputAmount, recentSwapSummary.inputAsset)}
-                        {" -> "}
-                        {formatAssetAmount(recentSwapSummary.outputAmount, recentSwapSummary.outputAsset)}
-                      </strong>
-                      <p>
-                        {recentSwapSummary.venueName} {recentSwapSummary.venueFamily} · Output note{" "}
-                        {formatShortSwapId(recentSwapSummary.outputNoteId)}
-                      </p>
-                    </div>
-                    <button
-                      className="button button-ghost"
-                      type="button"
-                      onClick={() => setSwapReceiptModalOpen(true)}
-                    >
-                      Open receipt
-                    </button>
-                  </article>
+                {recentSwapSummaries.length > 0 ? (
+                  <div
+                    className="swap-recent-swaps__items"
+                    data-vanta-swap-recent-browser-local
+                  >
+                    {recentSwapSummaries.map((summary) => (
+                      <article
+                        className="swap-recent-swaps__card"
+                        data-vanta-swap-recent-card
+                        key={createSwapReceiptSummaryKey(summary)}
+                      >
+                        <div>
+                          <span>
+                            {summary.storageScope === "browser-local"
+                              ? "Stored in this browser"
+                              : "Latest swap"}
+                          </span>
+                          <strong>
+                            {formatAssetAmount(summary.inputAmount, summary.inputAsset)}
+                            {" -> "}
+                            {formatAssetAmount(summary.outputAmount, summary.outputAsset)}
+                          </strong>
+                          <p>
+                            {summary.venueName} {summary.venueFamily} · Output note{" "}
+                            {formatShortSwapId(summary.outputNoteId)}
+                            {summary.createdAt
+                              ? ` · ${formatQuoteTimestamp(summary.createdAt)}`
+                              : ""}
+                          </p>
+                        </div>
+                        <button
+                          className="button button-ghost"
+                          type="button"
+                          onClick={() => {
+                            setSelectedSwapReceiptKey(createSwapReceiptSummaryKey(summary));
+                            setSwapReceiptModalOpen(true);
+                          }}
+                        >
+                          Open receipt
+                        </button>
+                      </article>
+                    ))}
+                  </div>
                 ) : (
                   <p className="swap-recent-swaps__empty" data-vanta-swap-recent-empty>
-                    Completed local swaps will appear here for receipt review. This list is local
-                    to this session and does not prove production-private routing.
+                    Completed swaps with committed receipt evidence will appear here for review.
+                    Stored in this browser only; this history does not prove production-private
+                    routing.
                   </p>
                 )}
               </section>
