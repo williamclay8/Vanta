@@ -61,7 +61,26 @@ function assertPinnedCommittedText(value, label) {
     !/\b(?:this|current)\s+(?:ledger|feedback-loop|guard\/doc|guard|record|patch|commit)(?:\s+commit)?\b/iu.test(value),
     `${label} must pin a commit instead of saying "${value}"`,
   );
+  assert(
+    !/\band earlier\b/iu.test(value) && !/\bearlier local\b/iu.test(value),
+    `${label} must pin exact commit evidence instead of saying "${value}"`,
+  );
   assertKnownAncestorCommit(value, label);
+}
+
+function assertLumiPromotionBoundary(status, lumi, label) {
+  if (status !== "pushed" && status !== "live-verified") {
+    assert(
+      lumi.pushed === "not-pushed",
+      `${label} with status ${status} must keep lumiHygiene.pushed as not-pushed`,
+    );
+  }
+  if (status !== "live-verified") {
+    assert(
+      lumi.deployedLive === "not-live-verified",
+      `${label} with status ${status} must keep lumiHygiene.deployedLive as not-live-verified`,
+    );
+  }
 }
 
 function assertNoSecretValues(source, label) {
@@ -271,6 +290,7 @@ for (const loop of ledger.activeFeedbackLoops) {
     assert(typeof lumi[key] === "string" && lumi[key].length > 0, `${loop.id} missing lumiHygiene.${key}`);
   }
   assertPinnedCommittedText(lumi.committed, `${loop.id} lumiHygiene.committed`);
+  assertLumiPromotionBoundary(loop.status, lumi, loop.id);
 
   for (const command of loop.localVerification) {
     if (!command.startsWith("npm run ")) {
@@ -1967,6 +1987,7 @@ for (const finding of ledger.findings) {
     assert(typeof lumi[key] === "string" && lumi[key].length > 0, `${finding.id} missing lumiHygiene.${key}`);
   }
   assertPinnedCommittedText(lumi.committed, `${finding.id} lumiHygiene.committed`);
+  assertLumiPromotionBoundary(finding.status, lumi, finding.id);
 
   const staleControl = finding.staleControl ?? {};
   assert(Array.isArray(staleControl.watchFiles) && staleControl.watchFiles.length > 0, `${finding.id} missing staleControl.watchFiles`);

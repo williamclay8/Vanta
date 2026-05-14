@@ -3027,7 +3027,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "ancestor commit 572c46e and earlier local feedback-loop commits"
+          "572c46e (local verified feedback-loop baseline)"
         ],
         "summary": "Replaced additive note/tree hashing with Poseidon-backed constraints.",
         "residualRisk": [
@@ -3036,7 +3036,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "572c46e and earlier local feedback-loop commits",
+        "committed": "572c46e (local verified feedback-loop baseline)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -3089,7 +3089,7 @@
       "codexRemediation": {
         "commits": [
           "22479be",
-          "ancestor commit 572c46e and earlier local feedback-loop commits"
+          "572c46e (local verified feedback-loop baseline)"
         ],
         "summary": "Back-ported Merkle membership and path-derived append roots across the local Private Pool v2 fixture lane.",
         "residualRisk": [
@@ -3099,7 +3099,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "572c46e and earlier local feedback-loop commits",
+        "committed": "572c46e (local verified feedback-loop baseline)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -3150,7 +3150,7 @@
       "codexRemediation": {
         "commits": [
           "ea08fed",
-          "ancestor commit 572c46e and earlier local feedback-loop commits"
+          "572c46e (local verified feedback-loop baseline)"
         ],
         "summary": "Migrated active proving lanes and fixtures to depth 20 and added fail-closed linting.",
         "residualRisk": [
@@ -3159,7 +3159,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "572c46e and earlier local feedback-loop commits",
+        "committed": "572c46e (local verified feedback-loop baseline)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -3202,7 +3202,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "ancestor commit 572c46e and earlier local feedback-loop commits"
+          "572c46e (local verified feedback-loop baseline)"
         ],
         "summary": "Replaced bespoke recovery encryption with X25519/HKDF/XChaCha20-Poly1305.",
         "residualRisk": [
@@ -3211,7 +3211,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "572c46e and earlier local feedback-loop commits",
+        "committed": "572c46e (local verified feedback-loop baseline)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -3255,7 +3255,7 @@
       "codexRemediation": {
         "commits": [
           "b970af3",
-          "ancestor commit 572c46e and earlier local feedback-loop commits"
+          "572c46e (local verified feedback-loop baseline)"
         ],
         "summary": "Added v2 PBKDF2 envelope with 600000 iterations and guarded legacy fallback behavior.",
         "residualRisk": [
@@ -3265,7 +3265,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "572c46e and earlier local feedback-loop commits",
+        "committed": "572c46e (local verified feedback-loop baseline)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -3425,7 +3425,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "ancestor commit 572c46e and earlier local feedback-loop commits",
+          "572c46e (local verified feedback-loop baseline)",
           "5a6d1fd (Harden proof backend feedback guards)",
           "25a9d14 (Harden remote proof service boundary)",
           "6b495e7 (Add Send proof artifact no-witness route)",
@@ -3612,7 +3612,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "ancestor commit 572c46e and earlier local feedback-loop commits",
+          "572c46e (local verified feedback-loop baseline)",
           "58e6935 (Harden Private Core context tags)",
           "089b339 (Freeze Private Core single-note lanes)"
         ],
@@ -3675,7 +3675,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "ancestor commit 572c46e and earlier local feedback-loop commits"
+          "572c46e (local verified feedback-loop baseline)"
         ],
         "summary": "Standardized Poseidon Merkle parent hashing across covered Canonical, Private Pool v2, and Private Core lanes.",
         "residualRisk": [
@@ -3684,7 +3684,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "572c46e and earlier local feedback-loop commits",
+        "committed": "572c46e (local verified feedback-loop baseline)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -3730,7 +3730,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "ancestor commit 572c46e and earlier local feedback-loop commits"
+          "572c46e (local verified feedback-loop baseline)"
         ],
         "summary": "Upgraded the durable replay store to a transaction-backed insert-on-conflict reservation contract.",
         "residualRisk": [
@@ -3739,7 +3739,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "572c46e and earlier local feedback-loop commits",
+        "committed": "572c46e (local verified feedback-loop baseline)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -3786,7 +3786,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "ancestor commit 572c46e and earlier local feedback-loop commits"
+          "572c46e (local verified feedback-loop baseline)"
         ],
         "summary": "Moved Shield economics into a private Poseidon commitment and guarded the committed protocol path.",
         "residualRisk": [
@@ -3796,7 +3796,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "572c46e and earlier local feedback-loop commits",
+        "committed": "572c46e (local verified feedback-loop baseline)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -3841,7 +3841,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "ancestor commit 572c46e and earlier local feedback-loop commits"
+          "572c46e (local verified feedback-loop baseline)"
         ],
         "summary": "Removed browser swap route VITE_JUPITER_API_KEY use and added a production-bundle exposure guard.",
         "residualRisk": [
@@ -3850,7 +3850,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "572c46e and earlier local feedback-loop commits",
+        "committed": "572c46e (local verified feedback-loop baseline)",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
