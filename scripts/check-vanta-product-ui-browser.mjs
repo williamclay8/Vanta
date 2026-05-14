@@ -218,7 +218,7 @@ function runBrowserBatch() {
       checks: [
         { kind: "url_contains", text: "/app/unshield" },
         { kind: "selector_visible", selector: ".privacy-summary" },
-        { kind: "selector_visible", selector: ".unshield-advanced-panel" },
+        { kind: "selector_visible", selector: "[data-vanta-unshield-advanced-panel]" },
         { kind: "text_visible", text: "Unshield" },
         { kind: "text_visible", text: "Privacy summary" },
         { kind: "text_visible", text: "Chain sees" },
@@ -799,8 +799,8 @@ function assertUnshieldAdvancedDisclosure() {
       "--json",
       "eval",
       `(() => {
-        const panel = document.querySelector(".unshield-advanced-panel");
-        const noteSelect = document.querySelector(".unshield-advanced-panel select");
+        const panel = document.querySelector("[data-vanta-unshield-advanced-panel]");
+        const noteSelect = document.querySelector("[data-vanta-unshield-advanced-panel] select");
 
         return {
           ok: panel instanceof HTMLDetailsElement && !panel.open && noteSelect instanceof HTMLSelectElement,
@@ -825,7 +825,7 @@ function assertUnshieldAdvancedDisclosure() {
       "--session",
       browserSession,
       "eval",
-      `document.querySelector(".unshield-advanced-panel summary")?.click()`,
+      `document.querySelector("[data-vanta-unshield-advanced-panel] summary")?.click()`,
     ],
     { stdio: "ignore" },
   );
@@ -838,7 +838,7 @@ function assertUnshieldAdvancedDisclosure() {
       "--json",
       "eval",
       `(() => {
-        const panel = document.querySelector(".unshield-advanced-panel");
+        const panel = document.querySelector("[data-vanta-unshield-advanced-panel]");
         const panelText = panel?.textContent ?? "";
 
         return {

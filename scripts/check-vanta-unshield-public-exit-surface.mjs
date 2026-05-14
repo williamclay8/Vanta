@@ -11,6 +11,7 @@ function readRepoFile(path) {
 const packageJson = JSON.parse(readRepoFile("package.json"));
 const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
+const unshieldAdvancedPanelSource = readRepoFile("src/components/UnshieldAdvancedPanel.tsx");
 const stylesSource = readRepoFile("src/styles.css");
 const unshieldAuthSource = readRepoFile("src/solana/unshieldAuth.ts");
 const solUnshieldAuthSource = readRepoFile("src/solana/solUnshieldAuth.ts");
@@ -35,12 +36,9 @@ for (const phrase of [
   "Recipient (you) sees",
   "Operator sees",
   "exit terms and release status",
-  "Advanced unshield settings",
-  "Custom note selection",
-  "NotePicker",
-  "No ledger-spendable notes",
-  "Reference note for receipt",
   "selectedUnshieldNoteId",
+  "UnshieldAdvancedPanel",
+  "handleSelectUnshieldNote",
   "unshieldPrimaryActionLabel",
   "Withdraw",
   "signUnshieldIntent",
@@ -78,6 +76,21 @@ for (const phrase of [
   assert.ok(
     unshieldPageSource.includes(phrase),
     `Unshield Phantom-safe public-exit flow missing ${phrase}.`,
+  );
+}
+
+for (const phrase of [
+  "Advanced unshield settings",
+  "Custom note selection",
+  "NotePicker",
+  "No ledger-spendable notes",
+  "Reference note for receipt",
+  "Receipt references stay bounded to the selected exit note and public release record.",
+  "data-vanta-unshield-advanced-panel",
+]) {
+  assert.ok(
+    unshieldAdvancedPanelSource.includes(phrase),
+    `Unshield advanced panel must preserve progressive-disclosure phrase ${phrase}.`,
   );
 }
 

@@ -16,6 +16,7 @@ const sendPageSource = readRepoFile("src/pages/SendPage.tsx");
 const swapPageSource = readRepoFile("src/pages/SwapPage.tsx");
 const swapAdvancedPanelSource = readRepoFile("src/components/SwapAdvancedPanel.tsx");
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
+const unshieldAdvancedPanelSource = readRepoFile("src/components/UnshieldAdvancedPanel.tsx");
 const stylesSource = readRepoFile("src/styles.css");
 const packageJson = JSON.parse(readRepoFile("package.json"));
 
@@ -60,8 +61,8 @@ for (const [pageName, pageSource, requiredPhrases] of [
     ],
   ],
   [
-    "UnshieldPage",
-    unshieldPageSource,
+    "UnshieldAdvancedPanel",
+    unshieldAdvancedPanelSource,
     [
       "import { NotePicker",
       "<NotePicker",
@@ -84,10 +85,20 @@ for (const marker of [
   assert.ok(swapPageSource.includes(marker), `SwapPage missing SwapAdvancedPanel NotePicker adoption marker: ${marker}`);
 }
 
+for (const marker of [
+  "import { UnshieldAdvancedPanel",
+  "<UnshieldAdvancedPanel",
+]) {
+  assert.ok(
+    unshieldPageSource.includes(marker),
+    `UnshieldPage missing UnshieldAdvancedPanel NotePicker adoption marker: ${marker}`,
+  );
+}
+
 for (const [pageName, pageSource, panelClass] of [
   ["SendPage", sendPageSource, "send-advanced-panel"],
   ["SwapAdvancedPanel", swapAdvancedPanelSource, "swap-advanced-panel"],
-  ["UnshieldPage", unshieldPageSource, "unshield-advanced-panel"],
+  ["UnshieldAdvancedPanel", unshieldAdvancedPanelSource, "unshield-advanced-panel"],
 ]) {
   const panelIndex = pageSource.indexOf(panelClass);
   const notePickerIndex = pageSource.indexOf("<NotePicker", panelIndex);

@@ -11,11 +11,12 @@ import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
+import { UnshieldAdvancedPanel } from "@/components/UnshieldAdvancedPanel";
 import {
   PrivacySummary,
   type PrivacySummaryItem,
 } from "@/components/PrivacySummary";
-import { NotePicker, type NotePickerOption } from "@/components/NotePicker";
+import type { NotePickerOption } from "@/components/NotePicker";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
@@ -808,6 +809,33 @@ export function UnshieldPage() {
   );
   const selectedLaneDecimals =
     selectedLane === "SOL" ? 9 : getLiveShieldTokenAsset(selectedLane).decimals;
+  const handleSelectUnshieldNote = useCallback(
+    (nextNoteId: string | null) => {
+      if (!nextNoteId) {
+        setSelectedUnshieldNoteId(null);
+        return;
+      }
+
+      const nextNote = currentSpendableUnshieldNotes.find(
+        (note) => note.noteId === nextNoteId,
+      );
+
+      if (!nextNote) {
+        setSelectedUnshieldNoteId(null);
+        return;
+      }
+
+      setSelectedUnshieldNoteId(nextNote.noteId);
+
+      if (selectedLane === "USDC") {
+        setRequestedAmountInput(formatEditableAmount(nextNote.amount, selectedLaneDecimals));
+      }
+
+      setStatus("idle");
+      setFlowError(null);
+    },
+    [currentSpendableUnshieldNotes, selectedLane, selectedLaneDecimals],
+  );
   const requestedAmountNumeric =
     selectedLane === "USDC"
       ? parseEditableAmount(requestedAmountInput)
@@ -2920,56 +2948,15 @@ export function UnshieldPage() {
                 note="Production Unshield privacy remains claim-locked until program-owned release custody, on-chain proof-verified TAG_UNSHIELD release, audit evidence, and live settlement gates pass."
               />
 
-              <details className="send-advanced-panel unshield-advanced-panel">
-                <summary>Advanced unshield settings</summary>
-                <div className="send-advanced-panel__grid">
-                  <div className="send-advanced-panel__field">
-                    <span>Custom note selection</span>
-                    <strong>{selectedUnshieldNoteLabel}</strong>
-                    <NotePicker
-                      ariaLabel="Unshield note selection"
-                      automaticLabel="Automatic best note"
-                      emptyCopy="start with Shield to create a ledger-spendable exit note."
-                      emptyOptionLabel="No ledger-spendable notes"
-                      helperText="Unshield still releases only from ledger-spendable notes."
-                      onSelectNote={(nextNoteId) => {
-                        if (!nextNoteId) {
-                          setSelectedUnshieldNoteId(null);
-                          return;
-                        }
-
-                        const nextNote = currentSpendableUnshieldNotes.find(
-                          (note) => note.noteId === nextNoteId,
-                        );
-
-                        if (!nextNote) {
-                          setSelectedUnshieldNoteId(null);
-                          return;
-                        }
-
-                        setSelectedUnshieldNoteId(nextNote.noteId);
-
-                        if (selectedLane === "USDC") {
-                          setRequestedAmountInput(
-                            formatEditableAmount(nextNote.amount, selectedLaneDecimals),
-                          );
-                        }
-
-                        setStatus("idle");
-                        setFlowError(null);
-                      }}
-                      options={unshieldNotePickerOptions}
-                      selectedNoteId={selectedUnshieldNoteId}
-                    />
-                    <small>Unshield still releases only from ledger-spendable notes.</small>
-                  </div>
-                  <div className="send-advanced-panel__field">
-                    <span>Reference note for receipt</span>
-                    <strong>{selectedUnshieldNote ? abbreviate(selectedUnshieldNote.noteId) : "Unavailable"}</strong>
-                    <small>Receipt references stay bounded to the selected exit note and public release record.</small>
-                  </div>
-                </div>
-              </details>
+              <UnshieldAdvancedPanel
+                notePickerOptions={unshieldNotePickerOptions}
+                noteSelectionLabel={selectedUnshieldNoteLabel}
+                onSelectNote={handleSelectUnshieldNote}
+                referenceNoteLabel={
+                  selectedUnshieldNote ? abbreviate(selectedUnshieldNote.noteId) : "Unavailable"
+                }
+                selectedNoteId={selectedUnshieldNoteId}
+              />
 
               <div className="unshield-ticket__action">
                 <p className="shield-helper">{validationMessage}</p>
