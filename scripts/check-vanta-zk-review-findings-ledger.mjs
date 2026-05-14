@@ -1402,6 +1402,55 @@ for (const phrase of [
   );
 }
 
+const swapRecentReceiptSurfaceLoopId = "VANTA-ZK-FEEDBACK-2026-05-14-SWAP-RECENT-RECEIPT-SURFACE";
+assert(
+  activeFeedbackLoopIds.has(swapRecentReceiptSurfaceLoopId),
+  `${swapRecentReceiptSurfaceLoopId} active feedback loop is missing`,
+);
+const swapRecentReceiptSurfaceLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === swapRecentReceiptSurfaceLoopId,
+);
+const swapRecentReceiptSurfaceLoopText = JSON.stringify(swapRecentReceiptSurfaceLoop);
+for (const command of [
+  "red-first npm run swap:receipt-modal-check",
+  "npm run swap:receipt-modal-check",
+  "npm run swap:requires-shielded-state-check",
+  "npm run swap:trust-packet-check",
+  "npm run private-core:swap-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run product-ui:browser-check",
+  "npm run build",
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:feedback-loop-check",
+  "git diff --check",
+]) {
+  assert(
+    swapRecentReceiptSurfaceLoop?.localVerification?.includes(command),
+    `${swapRecentReceiptSurfaceLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "SwapReceiptModal",
+  "Recent swaps",
+  "data-vanta-swap-recent-list",
+  "data-vanta-swap-recent-card",
+  "data-vanta-swap-recent-empty",
+  "Local session history",
+  "Open receipt",
+  "local-session",
+  "not persistent recent-swaps",
+  "not a full counterparty-verifiable trust packet",
+  "not new route/proof/settlement behavior",
+  "not production-private routing",
+  "not-live-verified",
+  "b4261a2",
+]) {
+  assert(
+    swapRecentReceiptSurfaceLoopText.includes(phrase),
+    `${swapRecentReceiptSurfaceLoopId} must record ${phrase}`,
+  );
+}
+
 const unshieldProgressiveDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-UNSHIELD-PROGRESSIVE-DISCLOSURE";
 assert(
   activeFeedbackLoopIds.has(unshieldProgressiveDisclosureLoopId),
