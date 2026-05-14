@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import { AssetPickerGrid, type AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
+import { RecoveryPanel } from "@/components/RecoveryPanel";
 import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import {
   usePrivacyFlow,
@@ -2077,6 +2078,48 @@ export function ShieldPage(_props: ShieldPageProps) {
   const legacyQuarantinePolicyLabel = "automatic migration off";
   const legacyQuarantinePolicyDetail =
     "Old random-seeded browser-local records stay quarantined local-only. Record-source import verifies wallet-derived records but does not promote legacy records or recover missing secrets.";
+  const showViewingKeyBackup = () => {
+    if (!viewingKey) {
+      return;
+    }
+
+    setViewingKeyBackupText(viewingKey.exportText);
+    setViewingKeyCustodyStatus("exported");
+  };
+  const restoreViewingKeyBackup = () => {
+    if (!viewingKey) {
+      return;
+    }
+
+    try {
+      viewingKey.importText(viewingKeyImportText);
+      setViewingKeyBackupText("");
+      setViewingKeyImportText("");
+      setViewingKeyCustodyStatus("imported");
+    } catch {
+      setViewingKeyCustodyStatus("failed");
+    }
+  };
+  const resetViewingKeyBackup = () => {
+    if (!viewingKey) {
+      return;
+    }
+
+    viewingKey.reset();
+    setViewingKeyBackupText("");
+    setViewingKeyImportText("");
+    setViewingKeyCustodyStatus("reset");
+  };
+  const viewingKeyStatusMessage =
+    viewingKeyCustodyStatus === "exported"
+      ? "Backup shown. Store it somewhere private."
+      : viewingKeyCustodyStatus === "imported"
+        ? "Recovery key restored."
+        : viewingKeyCustodyStatus === "reset"
+          ? "New recovery key created. Existing notes may need the old backup to appear."
+          : viewingKeyCustodyStatus === "failed"
+            ? "Could not restore that backup."
+            : undefined;
 
   const routeLabel = capability.routeLabel;
   const shieldFlowActiveIndex =
@@ -2262,191 +2305,63 @@ export function ShieldPage(_props: ShieldPageProps) {
                 </div>
               )}
 
-              <details className="shield-viewing-key-panel">
-                <summary>
-                  <span>Advanced shield settings</span>
-                  <strong>{viewingKey ? "Recovery ready" : "Connect wallet"}</strong>
-                </summary>
-                <div className="shield-viewing-key-panel__body">
-                  <p className="shield-helper shield-helper--meta">
-                    Lets this browser recognize your shielded notes. Back it up if you use Vanta
-                    on another device.
-                  </p>
-                  <div className="shield-advanced-summary-grid" aria-label="Advanced shield settings status">
-                    <div>
-                      <span>Viewing key backup</span>
-                      <strong>{viewingKey ? "Available" : "Connect wallet"}</strong>
-                    </div>
-                    <div>
-                      <span>Decoy batch</span>
-                      <strong>Automatic</strong>
-                    </div>
-                    <div>
-                      <span>Custom route</span>
-                      <strong>Default route</strong>
-                    </div>
-                  </div>
-                  <div className="review-list">
-                    <div className="review-row">
-                      <span>Owner recovery evidence</span>
-                      <strong>{ownerRecoveryEvidenceLabel}</strong>
-                    </div>
-                    <div className="review-row">
-                      <span>Record source import proof</span>
-                      <strong>{recordSourceImportProofLabel}</strong>
-                    </div>
-                    <div className="review-row">
-                      <span>Legacy quarantine policy</span>
-                      <strong>{legacyQuarantinePolicyLabel}</strong>
-                    </div>
-                  </div>
-                  <p className="shield-helper shield-helper--meta">
-                    {ownerRecoveryEvidenceDetail}
-                  </p>
-                  <p className="shield-helper shield-helper--meta">
-                    {recordSourceImportProofDetail}
-                  </p>
-                  <p className="shield-helper shield-helper--meta">
-                    {legacyQuarantinePolicyDetail}
-                  </p>
-                  <div className="shield-viewing-key-panel__actions">
-                    <button
-                      className="button button-ghost"
-                      type="button"
-                      disabled={!walletConnected}
-                      onClick={exportRecordSourcePacket}
-                    >
-                      Export record source
-                    </button>
-                    <button
-                      className="button button-ghost"
-                      type="button"
-                      disabled={
-                        !walletConnected ||
-                        recordSourceImportText.trim() === "" ||
-                        (!shieldOwnerContext.ownerContext &&
-                          !shieldOwnerContext.canRequestOwnerContext)
-                      }
-                      onClick={() => {
-                        void verifyRecordSourcePacket();
-                      }}
-                    >
-                      Verify record source
-                    </button>
-                  </div>
-                  <label className="shield-viewing-key-panel__field">
-                    <span>Record source packet</span>
-                    <textarea
-                      readOnly
-                      value={recordSourcePacketText}
-                      placeholder="Export record source to reveal non-secret record references for another browser."
-                    />
-                  </label>
-                  <label className="shield-viewing-key-panel__field">
-                    <span>Import record source packet</span>
-                    <textarea
-                      value={recordSourceImportText}
-                      onChange={(event) => {
-                        setRecordSourceImportText(event.target.value);
-                        setRecordSourceImportStatus("idle");
-                        setRecordSourceImportDetail("");
-                      }}
-                      placeholder="Paste a record source packet from another browser."
-                    />
-                  </label>
-                  {recordSourceImportStatus !== "idle" && (
-                    <p className="shield-helper shield-helper--meta">
-                      <strong>{formatRecordSourceImportStatusLabel(recordSourceImportStatus)}</strong>
-                      {recordSourceImportDetail ? ` - ${recordSourceImportDetail}` : ""}
-                    </p>
-                  )}
-                  <div className="shield-viewing-key-panel__actions">
-                    <button
-                      className="button button-ghost"
-                      type="button"
-                      disabled={!viewingKey}
-                      onClick={() => {
-                        if (!viewingKey) {
-                          return;
-                        }
-
-                        setViewingKeyBackupText(viewingKey.exportText);
-                        setViewingKeyCustodyStatus("exported");
-                      }}
-                    >
-                      Show backup
-                    </button>
-                    <button
-                      className="button button-ghost"
-                      type="button"
-                      disabled={!viewingKey || viewingKeyImportText.trim() === ""}
-                      onClick={() => {
-                        if (!viewingKey) {
-                          return;
-                        }
-
-                        try {
-                          viewingKey.importText(viewingKeyImportText);
-                          setViewingKeyBackupText("");
-                          setViewingKeyImportText("");
-                          setViewingKeyCustodyStatus("imported");
-                        } catch {
-                          setViewingKeyCustodyStatus("failed");
-                        }
-                      }}
-                    >
-                      Restore backup
-                    </button>
-                    <button
-                      className="button button-ghost"
-                      type="button"
-                      disabled={!viewingKey}
-                      onClick={() => {
-                        if (!viewingKey) {
-                          return;
-                        }
-
-                        viewingKey.reset();
-                        setViewingKeyBackupText("");
-                        setViewingKeyImportText("");
-                        setViewingKeyCustodyStatus("reset");
-                      }}
-                    >
-                      Reset recovery key
-                    </button>
-                  </div>
-                  <label className="shield-viewing-key-panel__field">
-                    <span>Recovery backup</span>
-                    <textarea
-                      readOnly
-                      value={viewingKeyBackupText}
-                      placeholder="Show backup to reveal this browser's recovery key."
-                    />
-                  </label>
-                  <label className="shield-viewing-key-panel__field">
-                    <span>Restore on this browser</span>
-                    <textarea
-                      value={viewingKeyImportText}
-                      onChange={(event) => {
-                        setViewingKeyImportText(event.target.value);
-                        setViewingKeyCustodyStatus("idle");
-                      }}
-                      placeholder="Paste a recovery backup from another browser."
-                    />
-                  </label>
-                  {viewingKeyCustodyStatus !== "idle" && (
-                    <p className="shield-helper shield-helper--meta">
-                      {viewingKeyCustodyStatus === "exported"
-                        ? "Backup shown. Store it somewhere private."
-                        : viewingKeyCustodyStatus === "imported"
-                          ? "Recovery key restored."
-                          : viewingKeyCustodyStatus === "reset"
-                            ? "New recovery key created. Existing notes may need the old backup to appear."
-                            : "Could not restore that backup."}
-                    </p>
-                  )}
-                </div>
-              </details>
+              <RecoveryPanel
+                summaryLabel="Advanced shield settings"
+                summaryValue={viewingKey ? "Recovery ready" : "Connect wallet"}
+                description="Lets this browser recognize your shielded notes. Back it up if you use Vanta on another device."
+                statusItems={[
+                  { label: "Viewing key backup", value: viewingKey ? "Available" : "Connect wallet" },
+                  { label: "Decoy batch", value: "Automatic" },
+                  { label: "Custom route", value: "Default route" },
+                ]}
+                recoveryRows={[
+                  { label: "Owner recovery evidence", value: ownerRecoveryEvidenceLabel },
+                  { label: "Record source import proof", value: recordSourceImportProofLabel },
+                  { label: "Legacy quarantine policy", value: legacyQuarantinePolicyLabel },
+                ]}
+                detailNotes={[
+                  ownerRecoveryEvidenceDetail,
+                  recordSourceImportProofDetail,
+                  legacyQuarantinePolicyDetail,
+                ]}
+                canExportRecordSource={walletConnected}
+                canVerifyRecordSource={
+                  walletConnected &&
+                  recordSourceImportText.trim() !== "" &&
+                  (Boolean(shieldOwnerContext.ownerContext) ||
+                    shieldOwnerContext.canRequestOwnerContext)
+                }
+                recordSourcePacketText={recordSourcePacketText}
+                recordSourceImportText={recordSourceImportText}
+                recordSourceStatusLabel={
+                  recordSourceImportStatus !== "idle"
+                    ? formatRecordSourceImportStatusLabel(recordSourceImportStatus)
+                    : undefined
+                }
+                recordSourceStatusDetail={recordSourceImportDetail}
+                onExportRecordSource={exportRecordSourcePacket}
+                onVerifyRecordSource={() => {
+                  void verifyRecordSourcePacket();
+                }}
+                onRecordSourceImportTextChange={(value) => {
+                  setRecordSourceImportText(value);
+                  setRecordSourceImportStatus("idle");
+                  setRecordSourceImportDetail("");
+                }}
+                canShowBackup={Boolean(viewingKey)}
+                canRestoreBackup={Boolean(viewingKey) && viewingKeyImportText.trim() !== ""}
+                canResetRecoveryKey={Boolean(viewingKey)}
+                viewingKeyBackupText={viewingKeyBackupText}
+                viewingKeyImportText={viewingKeyImportText}
+                viewingKeyStatusMessage={viewingKeyStatusMessage}
+                onShowBackup={showViewingKeyBackup}
+                onRestoreBackup={restoreViewingKeyBackup}
+                onResetRecoveryKey={resetViewingKeyBackup}
+                onViewingKeyImportTextChange={(value) => {
+                  setViewingKeyImportText(value);
+                  setViewingKeyCustodyStatus("idle");
+                }}
+              />
 
               <div className="shield-form__actions">
                 <button

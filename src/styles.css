@@ -6724,13 +6724,13 @@ input {
   color: #ffb4b4;
 }
 
-.shield-viewing-key-panel {
+.recovery-panel {
   border: 1px solid rgba(0, 229, 200, 0.1);
   background: rgba(0, 229, 200, 0.025);
   padding: 12px;
 }
 
-.shield-viewing-key-panel summary {
+.recovery-panel summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -6739,36 +6739,36 @@ input {
   list-style: none;
 }
 
-.shield-viewing-key-panel summary::-webkit-details-marker {
+.recovery-panel summary::-webkit-details-marker {
   display: none;
 }
 
-.shield-viewing-key-panel summary span,
-.shield-viewing-key-panel__field span {
+.recovery-panel summary span,
+.recovery-panel__field span {
   color: var(--muted-strong);
   font-size: 0.72rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
-.shield-viewing-key-panel summary strong {
+.recovery-panel summary strong {
   color: var(--text);
   font-size: 0.82rem;
 }
 
-.shield-viewing-key-panel__body {
+.recovery-panel__body {
   display: grid;
   gap: 10px;
   padding-top: 12px;
 }
 
-.shield-advanced-summary-grid {
+.recovery-panel__summary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
-.shield-advanced-summary-grid div {
+.recovery-panel__summary-grid div {
   display: grid;
   gap: 6px;
   padding: 10px;
@@ -6776,31 +6776,33 @@ input {
   background: rgba(3, 8, 10, 0.42);
 }
 
-.shield-advanced-summary-grid span {
+.recovery-panel__summary-grid span {
   color: var(--muted-strong);
   font-size: 0.68rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
-.shield-advanced-summary-grid strong {
+.recovery-panel__summary-grid strong {
   color: var(--text);
   font-family: "Space Mono", monospace;
   font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
-.shield-viewing-key-panel__actions {
+.recovery-panel__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.shield-viewing-key-panel__field {
+.recovery-panel__field {
   display: grid;
   gap: 6px;
 }
 
-.shield-viewing-key-panel textarea {
+.recovery-panel textarea {
   min-height: 72px;
   width: 100%;
   resize: vertical;
@@ -7735,7 +7737,7 @@ input {
   }
 
   .shield-state-grid,
-  .shield-advanced-summary-grid,
+  .recovery-panel__summary-grid,
   .dashboard-trust-hero,
   .dashboard-readiness-row,
   .dashboard-actions,

@@ -86,6 +86,8 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "Strategy: Claim locked" },
         { kind: "text_visible", text: "Pay: Claim locked" },
         { kind: "text_visible", text: "Shield" },
+        { kind: "selector_visible", selector: ".recovery-panel" },
+        { kind: "text_visible", text: "Advanced shield settings" },
         { kind: "no_console_errors" },
       ],
     },
@@ -324,6 +326,96 @@ function assertSendWorkspaceCardCentered() {
 
   if (!value.ok) {
     throw new Error(`Send workspace card is not centered: ${JSON.stringify(value)}`);
+  }
+}
+
+function assertShieldRecoveryPanelDisclosure() {
+  execFileSync("gsd-browser", ["--session", browserSession, "set-viewport", "--width", "1440", "--height", "1000"], {
+    stdio: "ignore",
+  });
+  execFileSync("gsd-browser", ["--session", browserSession, "navigate", `${baseUrl}/app/shield`], {
+    stdio: "ignore",
+  });
+  execFileSync("gsd-browser", ["--session", browserSession, "wait-for", "--condition", "network_idle"], {
+    stdio: "ignore",
+  });
+
+  const rawBefore = execFileSync(
+    "gsd-browser",
+    [
+      "--session",
+      browserSession,
+      "--json",
+      "eval",
+      `(() => {
+        const panel = document.querySelector(".recovery-panel");
+        const packetField = document.querySelector(".recovery-panel textarea[readonly]");
+
+        return {
+          ok: panel instanceof HTMLDetailsElement && !panel.open && packetField instanceof HTMLTextAreaElement,
+          hasPacketField: packetField instanceof HTMLTextAreaElement,
+          open: panel instanceof HTMLDetailsElement ? panel.open : null,
+        };
+      })()`,
+    ],
+    { encoding: "utf8" },
+  );
+  const beforeResult = JSON.parse(rawBefore);
+  const beforeRawValue = beforeResult.result ?? beforeResult.value ?? beforeResult;
+  const before = typeof beforeRawValue === "string" ? JSON.parse(beforeRawValue) : beforeRawValue;
+
+  if (!before.ok) {
+    throw new Error(`Shield recovery panel is not closed with packet field ready: ${JSON.stringify(before)}`);
+  }
+
+  execFileSync(
+    "gsd-browser",
+    [
+      "--session",
+      browserSession,
+      "eval",
+      `document.querySelector(".recovery-panel summary")?.click()`,
+    ],
+    { stdio: "ignore" },
+  );
+
+  const rawAfter = execFileSync(
+    "gsd-browser",
+    [
+      "--session",
+      browserSession,
+      "--json",
+      "eval",
+      `(() => {
+        const panel = document.querySelector(".recovery-panel");
+        const panelText = panel?.textContent ?? "";
+        const documentOverflow =
+          Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) -
+          window.innerWidth;
+
+        return {
+          ok:
+            panel instanceof HTMLDetailsElement &&
+            panel.open &&
+            panelText.includes("Viewing key backup") &&
+            panelText.includes("Owner recovery evidence") &&
+            panelText.includes("Record source packet") &&
+            panelText.includes("Restore on this browser") &&
+            documentOverflow <= 2,
+          documentOverflow,
+          open: panel instanceof HTMLDetailsElement ? panel.open : null,
+          panelText,
+        };
+      })()`,
+    ],
+    { encoding: "utf8" },
+  );
+  const afterResult = JSON.parse(rawAfter);
+  const afterRawValue = afterResult.result ?? afterResult.value ?? afterResult;
+  const after = typeof afterRawValue === "string" ? JSON.parse(afterRawValue) : afterRawValue;
+
+  if (!after.ok) {
+    throw new Error(`Shield recovery panel did not reveal recovery controls: ${JSON.stringify(after)}`);
   }
 }
 
@@ -1159,6 +1251,7 @@ try {
   await waitForVite();
   runBrowserBatchWithRetry();
   assertSendWorkspaceCardCentered();
+  assertShieldRecoveryPanelDisclosure();
   assertSendAdvancedDisclosure();
   assertSwapAdvancedDisclosure();
   assertUnshieldAdvancedDisclosure();

@@ -10,6 +10,10 @@ const shieldPageSource = readFileSync(
   resolve(repoRoot, "src/pages/ShieldPage.tsx"),
   "utf8",
 );
+const recoveryPanelSource = readFileSync(
+  resolve(repoRoot, "src/components/RecoveryPanel.tsx"),
+  "utf8",
+);
 const styleSource = readFileSync(resolve(repoRoot, "src/styles.css"), "utf8");
 
 const failures = [];
@@ -53,8 +57,18 @@ requireIncludes(
 
 requireIncludes(
   shieldPageSource,
-  'className="shield-viewing-key-panel"',
-  "ShieldPage must render a viewing-key custody panel.",
+  "import { RecoveryPanel",
+  "ShieldPage must import the shared recovery panel.",
+);
+requireIncludes(
+  shieldPageSource,
+  "<RecoveryPanel",
+  "ShieldPage must render the shared recovery panel.",
+);
+requireIncludes(
+  recoveryPanelSource,
+  'className="recovery-panel"',
+  "RecoveryPanel must render a stable viewing-key custody container.",
 );
 requireIncludes(
   shieldPageSource,
@@ -93,12 +107,12 @@ requireIncludes(
 );
 requireIncludes(
   styleSource,
-  ".shield-viewing-key-panel",
+  ".recovery-panel",
   "Viewing-key custody panel must have a stable styled container.",
 );
 requireIncludes(
   styleSource,
-  ".shield-advanced-summary-grid",
+  ".recovery-panel__summary-grid",
   "Advanced Shield settings status grid must have a stable styled container.",
 );
 

@@ -9,6 +9,7 @@ const repoRoot = resolve(import.meta.dirname, "..");
 const helperPath = resolve(repoRoot, "src/zk/ownerContextRecordSourceImport.ts");
 const ownerKeyHierarchyPath = resolve(repoRoot, "src/zk/ownerKeyHierarchy.ts");
 const shieldPagePath = resolve(repoRoot, "src/pages/ShieldPage.tsx");
+const recoveryPanelPath = resolve(repoRoot, "src/components/RecoveryPanel.tsx");
 const packagePath = resolve(repoRoot, "package.json");
 
 function ownerEvidenceHash(domain, value) {
@@ -86,6 +87,8 @@ assert.ok(
 
 const helperSource = read(helperPath);
 const shieldPageSource = read(shieldPagePath);
+const recoveryPanelSource = read(recoveryPanelPath);
+const productRecoverySource = `${shieldPageSource}\n${recoveryPanelSource}`;
 const packageJson = JSON.parse(read(packagePath));
 
 for (const marker of [
@@ -132,7 +135,7 @@ for (const marker of [
   "raw owner material rejected",
 ]) {
   assert.ok(
-    shieldPageSource.includes(marker),
+    productRecoverySource.includes(marker),
     `Shield balance recovery panel must expose product-facing record source import/export UX marker: ${marker}`,
   );
 }
