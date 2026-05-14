@@ -85,6 +85,10 @@ const r15aOperatorKeypairEnvLockdownNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r15a-operator-keypair-env-lockdown.md",
 );
+const r16PositiveProofVerifiedClaimGateNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r16-positive-proof-verified-claim-gate.md",
+);
 const r19ThreatModelNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r19-threat-model.md",
@@ -125,6 +129,7 @@ for (const path of [
   r13aLiveMetaDescriptionScrapeNotePath,
   r14Argon2idVaultKdfNotePath,
   r15aOperatorKeypairEnvLockdownNotePath,
+  r16PositiveProofVerifiedClaimGateNotePath,
   r19ThreatModelNotePath,
   completionAuditNotePath,
   privacyAuditWorkflowPath,
@@ -160,6 +165,7 @@ const r12LegacyV1MemoQuarantineNote = read(r12LegacyV1MemoQuarantineNotePath);
 const r13aLiveMetaDescriptionScrapeNote = read(r13aLiveMetaDescriptionScrapeNotePath);
 const r14Argon2idVaultKdfNote = read(r14Argon2idVaultKdfNotePath);
 const r15aOperatorKeypairEnvLockdownNote = read(r15aOperatorKeypairEnvLockdownNotePath);
+const r16PositiveProofVerifiedClaimGateNote = read(r16PositiveProofVerifiedClaimGateNotePath);
 const r19ThreatModelNote = read(r19ThreatModelNotePath);
 const completionAuditNote = read(completionAuditNotePath);
 const privacyAuditWorkflow = read(privacyAuditWorkflowPath);
@@ -328,6 +334,10 @@ for (const phrase of [
   "npm run private-pool-v2:service-network-check",
   "npm run mainnet:role-service-replay-evidence-check",
   "npm run mainnet:observability-sink-check",
+  "R16-POSITIVE-PROOF-VERIFIED-CLAIM-GATE",
+  "local-implemented-fail-closed-blocked-on-tag3-valid-proof",
+  "npm run zk:c01-positive-proof-verified-claim-gate-check",
+  "ops/mainnet/private-pool-v2-c01-positive-proof-verified-claim-gate.evidence.json",
   "not production privacy",
   "partial-local-implemented-pending-production-controls",
   "operator/private-pool-v2-service-network.mjs exposes role-specific service start functions for indexer, prover, relayer, and verifier.",
@@ -727,6 +737,8 @@ for (const phrase of [
   "Operator keypair env lockdown guard",
   "npm run operator:keypair-env-lockdown-check",
   "Positive proof-verified claim gate",
+  "Local implemented, fail-closed; blocked on tag-3 valid-proof success",
+  "npm run zk:c01-positive-proof-verified-claim-gate-check",
   "Threat model",
   "docs/threat-model.md",
   "npm run docs:source-of-truth-check",
@@ -735,9 +747,27 @@ for (const phrase of [
   "R6A/R9B base commit `51809b9`",
   "Use `git status` for the exact count.",
   "R9C direct proof-owner key exchange",
-  "latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint/role-service-control/direct-key/discovery-binding/proof-bound-destination slices are not deployed",
+  "latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint/role-service-control/proof-verified-claim-gate/direct-key/discovery-binding/proof-bound-destination slices are not deployed",
 ]) {
   assert.ok(completionAuditNote.includes(phrase), `completion audit note missing ${phrase}`);
+}
+
+for (const phrase of [
+  "R16 Positive Proof-Verified Claim Gate - 2026-05-14",
+  "Local implemented, fail-closed; blocked on tag-3 valid-proof success.",
+  "ops/mainnet/private-pool-v2-c01-positive-proof-verified-claim-gate.evidence.json",
+  "npm run zk:c01-positive-proof-verified-claim-gate-check",
+  "truth:privacy-claim-gate",
+  "zk:review-guards-check",
+  "zk:feedback-loop-check",
+  "valid-proof success",
+  "wrong-public-input",
+  "wrong-verifying-key",
+  "not tag-3 valid-proof success evidence",
+  "not proof-verified spend evidence",
+  "not production privacy",
+]) {
+  assert.ok(r16PositiveProofVerifiedClaimGateNote.includes(phrase), `R16 note missing ${phrase}`);
 }
 
 for (const phrase of [

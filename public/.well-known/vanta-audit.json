@@ -2,7 +2,7 @@
   "schemaVersion": "vanta-public-audit-discovery-0.1",
   "path": "/.well-known/vanta-audit.json",
   "name": "Vanta public audit discovery",
-  "generatedAt": "2026-05-13",
+  "generatedAt": "2026-05-14",
   "refsOnly": true,
   "auditClaimAllowed": false,
   "thirdPartyAuditAccepted": false,
@@ -18,6 +18,7 @@
     "c01VerifierBackendDecision": "docs/zk/c01-production-verifier-backend-decision.md",
     "c01VerifierCandidateEvidence": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
     "c01VerifierAdapterTestCandidateEvidence": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+    "c01PositiveProofVerifiedClaimGateEvidence": "ops/mainnet/private-pool-v2-c01-positive-proof-verified-claim-gate.evidence.json",
     "offchainProofArtifactOnly": true,
     "solanaC01Groth16VerifierReady": false,
     "productionVerifierBackendSelected": false
@@ -58,6 +59,7 @@
     "npm run audit:package-check",
     "npm run zk:c01-production-verifier-backend-candidate-check",
     "npm run zk:c01-verifier-adapter-test-candidate-check",
+    "npm run zk:c01-positive-proof-verified-claim-gate-check",
     "npm run zk:feedback-loop-check",
     "npm run truth:privacy-claim-gate",
     "npm run build"

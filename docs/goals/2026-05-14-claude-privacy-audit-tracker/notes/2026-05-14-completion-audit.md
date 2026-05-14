@@ -46,7 +46,7 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 | Argon2id vault KDF migration | R14 | Local implemented | `npm run private-vault:crypto-check` |
 | Operator keypair env lockdown | R15 | Local implemented with A2 exception | Pay, Swap auth, Jupiter local-only signer policy, and rebalance-related operator files are guarded; Unshield vault signer remains tracked under A2 |
 | Operator keypair env lockdown guard | R15A | Local implemented | `npm run operator:keypair-env-lockdown-check` scans operator raw keypair env loading and keeps exceptions explicit |
-| Positive proof-verified claim gate | R16 | Blocked on verifier | Requires tag-3 valid proof success before proof-verified claims |
+| Positive proof-verified claim gate | R16 | Local implemented, fail-closed; blocked on tag-3 valid-proof success | `npm run zk:c01-positive-proof-verified-claim-gate-check`; not proof-verified spend evidence |
 | Browser localStorage Merkle mirror | R18 | Blocked on program-owned tree | Current localStorage chain remains non-privacy primitive |
 | Threat model | R19 | Local implemented | `docs/threat-model.md`; `npm run docs:source-of-truth-check` |
 | Mainnet on-chain replay test | R20 | Blocked / approval-gated | Requires mainnet-condition test approval and safe live-state handling |
@@ -56,11 +56,11 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 
 Goal is not complete.
 
-The audit is now tracked and N1, N2, N3, N5, R6A, R8A, R9A, R9B, R9C, R10A, R10B, R11A, R12, R13A, R14, R15/R15A, and R19 source-level/local gates have implementation evidence. Clay has also approved the R9 hybrid recipient-discovery direction and R6 proof-bound fresh-address exit direction. The remaining blockers include deploy/live approval gates, hosted CI evidence, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
+The audit is now tracked and N1, N2, N3, N5, R6A, R8A, R9A, R9B, R9C, R10A, R10B, R11A, R12, R13A, R14, R15/R15A, R16, and R19 source-level/local gates have implementation evidence. Clay has also approved the R9 hybrid recipient-discovery direction and R6 proof-bound fresh-address exit direction. The remaining blockers include deploy/live approval gates, hosted CI evidence, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
 
 ## Current Lumi Snapshot
 
-- Local: tracker, implementation-path, threat-model, legacy-v1 memo quarantine, Argon2id vault KDF, R6A proof-bound destination contract, R9 decision-blocker, R9A ciphertext body-hash discovery-binding, R9B direct viewing-key exchange, R9C direct proof-owner key exchange, R10A service-entrypoint artifacts, and R10B role-service production-control evidence artifacts exist.
+- Local: tracker, implementation-path, threat-model, legacy-v1 memo quarantine, Argon2id vault KDF, R6A proof-bound destination contract, R9 decision-blocker, R9A ciphertext body-hash discovery-binding, R9B direct viewing-key exchange, R9C direct proof-owner key exchange, R10A service-entrypoint artifacts, R10B role-service production-control evidence artifacts, and R16 positive proof-verified claim-gate artifacts exist.
 - Committed: the app branch includes the R6A/R9B base commit `51809b9` (`Add direct-key and proof-bound exit scaffolds`) and records R9C in the current tracker state; use `git log` for the exact current head.
 - Pushed: `codex/vanta-zk-review-hardening` is ahead of origin; the latest audit tracker/source-level commits are not pushed. Use `git status` for the exact count.
-- Deployed/live: latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint/role-service-control/direct-key/discovery-binding/proof-bound-destination slices are not deployed; live-read checks are read-only evidence, not deployment evidence for the current branch.
+- Deployed/live: latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint/role-service-control/proof-verified-claim-gate/direct-key/discovery-binding/proof-bound-destination slices are not deployed; live-read checks are read-only evidence, not deployment evidence for the current branch.

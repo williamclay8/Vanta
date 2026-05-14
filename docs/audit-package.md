@@ -81,6 +81,8 @@ Reviewers should verify that current remote proof-artifact receipts stay `offcha
 
 The current verifier-adapter acceptance-test candidate packet is `ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json`, guarded by `npm run zk:c01-verifier-adapter-test-candidate-check`. It is blocked refs-only evidence for the missing adapter acceptance, `private-spend-public-input-hash` binding, valid-proof mutation, and invalid-proof no-mutation tests; it is not verifier acceptance.
 
+The positive proof-verified claim gate is `ops/mainnet/private-pool-v2-c01-positive-proof-verified-claim-gate.evidence.json`, guarded by `npm run zk:c01-positive-proof-verified-claim-gate-check`. It keeps proof-verified spend wording fail-closed until tag `3` has real valid-proof success, accepted-proof mutation, invalid-proof no-mutation, wrong-public-input no-mutation, wrong-verifying-key no-mutation, SBF/live-lineage, and audit/reviewer evidence.
+
 Focused commands:
 
 ```bash
@@ -90,6 +92,7 @@ npm run zk:c01-verifier-backend-contract-check
 npm run zk:c01-production-verifier-backend-candidate-check
 npm run zk:c01-production-verifying-key-candidate-check
 npm run zk:c01-verifier-adapter-test-candidate-check
+npm run zk:c01-positive-proof-verified-claim-gate-check
 npm run zk:c01-verifier-backend-decision-check
 npm run private-pool-v2:remote-proof-artifact-boundary-check
 ```

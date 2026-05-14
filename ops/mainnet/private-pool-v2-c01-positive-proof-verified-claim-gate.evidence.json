@@ -1,0 +1,81 @@
+{
+  "version": "vanta-private-pool-v2-c01-positive-proof-verified-claim-gate-0.1",
+  "checkedAt": "2026-05-14T00:00:00.000Z",
+  "status": "blocked-no-tag3-valid-proof-success",
+  "tag": 3,
+  "proofVerifiedClaimAllowed": false,
+  "proofVerifiedSpendClaimAllowed": false,
+  "productionReady": false,
+  "mainnetReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "purpose": "Fail-closed evidence contract for R16. No source, copy, finding, receipt, or status surface may unlock proof-verified spend wording until tag 3 has positive valid-proof success evidence plus the matching negative no-mutation evidence.",
+  "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "verifierAdapterTestCandidateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "positiveClaimRequires": {
+    "backendSelection": false,
+    "productionProofFormat": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "privateSpendPublicInputHashBinding": false,
+    "validProofSuccess": false,
+    "acceptedProofMutatesState": false,
+    "invalidProofNoMutation": false,
+    "wrongPublicInputHashNoMutation": false,
+    "wrongVerifyingKeyNoMutation": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "currentTag3Observation": {
+    "status": "reserved-fail-closed",
+    "customError": 14,
+    "errorName": "ERR_PROOF_VERIFIER_NOT_WIRED",
+    "validProofSuccessArtifactRef": null,
+    "acceptedProofMutatesState": false,
+    "invalidProofLeavesAccountsUnchanged": false,
+    "wrongPublicInputHashLeavesAccountsUnchanged": false,
+    "wrongVerifyingKeyLeavesAccountsUnchanged": false,
+    "truthBoundary": "Tag 3 still returns ERR_PROOF_VERIFIER_NOT_WIRED after preflight. That is not positive proof-verified claim evidence and not proof acceptance."
+  },
+  "positiveEvidenceRefs": {
+    "candidatePacketStatus": "blocked-no-production-verifier-backend-selected",
+    "adapterTestCandidateStatus": "blocked-no-verifier-adapter-acceptance-tests",
+    "tag3ValidProofSuccessArtifactRef": null,
+    "tag3AcceptedProofMutationArtifactRef": null,
+    "tag3InvalidProofNoMutationArtifactRef": null,
+    "tag3WrongPublicInputHashNoMutationArtifactRef": null,
+    "tag3WrongVerifyingKeyNoMutationArtifactRef": null
+  },
+  "sourceCopyFindingsGate": {
+    "status": "fail-closed",
+    "scannedSurfaces": [
+      "tracked source files",
+      "tracked docs",
+      "tracked evidence packets",
+      "tracked finding ledger",
+      "tracked product copy"
+    ],
+    "claimPattern": "proof-verified / on-chain proof verified / proof-enforced-spend / production verifier accepted / tag-3 proof acceptance / solana-c01-groth16-verifier-ready",
+    "safeContextRequirement": "Allowed only in blocked, negative, required-future-evidence, or truth-boundary contexts while proofVerifiedClaimAllowed is false.",
+    "proofVerifiedClaimAllowed": false
+  },
+  "forbiddenPromotions": [
+    "solana-c01-groth16-verifier-ready",
+    "proof-enforced-spend",
+    "on-chain proof verified",
+    "production verifier accepted",
+    "tag-3 proof acceptance",
+    "production-private",
+    "mainnet-private"
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-positive-proof-verified-claim-gate-check",
+    "npm run zk:c01-verifier-adapter-test-candidate-check",
+    "npm run zk:c01-production-verifier-backend-candidate-check",
+    "npm run zk:c01-onchain-proof-boundary-check",
+    "npm run truth:privacy-claim-gate"
+  ],
+  "truthBoundary": "This is a blocked proof-verified claim gate packet only. It records that proof-verified claim gate evidence is absent: not tag-3 valid-proof success evidence, not proof-verified spend evidence, not on-chain proof verification, not production verifying-key evidence, not verifier-adapter acceptance, not SBF/live lineage, not audit acceptance, and not production privacy."
+}

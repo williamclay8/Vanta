@@ -14,6 +14,8 @@ Production Verifying-Key Candidate packet: `ops/mainnet/private-pool-v2-c01-prod
 
 Verifier Adapter Acceptance-Test Candidate packet: `ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json`. It is checked by `npm run zk:c01-verifier-adapter-test-candidate-check` and records `blocked-no-verifier-adapter-acceptance-tests` for the current `groth16-tag3-solana-v0` path. This packet does not satisfy verifier-adapter evidence and does not prove tag-3 proof acceptance; it records that adapter acceptance, `private-spend-public-input-hash` binding, valid-proof mutation, and invalid-proof no-mutation evidence are still absent.
 
+Positive Proof-Verified Claim Gate packet: `ops/mainnet/private-pool-v2-c01-positive-proof-verified-claim-gate.evidence.json`. It is checked by `npm run zk:c01-positive-proof-verified-claim-gate-check` and records `blocked-no-tag3-valid-proof-success` for source, copy, finding, receipt, and status surfaces that might otherwise imply proof-verified spend support. This packet does not satisfy tag-3 proof acceptance; it requires valid-proof success, accepted-proof mutation, invalid-proof no-mutation, wrong-public-input no-mutation, wrong-verifying-key no-mutation, SBF/live-lineage, and audit/reviewer evidence before proof-verified wording can unlock.
+
 ## Current Truth
 
 - The current Solana tag `3` path is a reserved `TAG_SPEND_WITH_PROOF` preflight, not proof support.
@@ -21,6 +23,7 @@ Verifier Adapter Acceptance-Test Candidate packet: `ops/mainnet/private-pool-v2-
 - Tag `3` requires root/root-record/nullifier/output/verifier-key account shape, then returns custom error `14` / `ERR_PROOF_VERIFIER_NOT_WIRED` before proof verification, account creation, nullifier/output mutation, or spend acceptance.
 - Current bb.js / UltraHonk proof artifacts remain off-chain evidence only. Accepted remote proof-artifact receipts must stay `offchain-remote-proof-artifact-only`.
 - Any `solana-c01-groth16-verifier-ready` request or receipt overclaim must fail closed until a real Solana tag-3 Groth16 verifier candidate exists.
+- Any proof-verified spend wording must fail closed until `ops/mainnet/private-pool-v2-c01-positive-proof-verified-claim-gate.evidence.json` records positive tag-3 valid-proof success evidence and the matching negative no-mutation tests.
 - Root provenance records at `["vanta2root", pool_state, acceptedRoot]` are lineage metadata, not proof that the root transition is correct, and not a program-owned shared Merkle tree.
 
 ## Local Proof-Format Observation
@@ -114,6 +117,7 @@ npm run zk:c01-verifier-backend-options-check
 npm run zk:c01-groth16-proof-format-candidate-check
 npm run zk:c01-production-verifying-key-candidate-check
 npm run zk:c01-verifier-adapter-test-candidate-check
+npm run zk:c01-positive-proof-verified-claim-gate-check
 npm run zk:c01-verifier-key-registry-check
 npm run private-pool-v2:proof-backend-boundary-check
 npm run private-pool-v2:remote-proof-artifact-boundary-check

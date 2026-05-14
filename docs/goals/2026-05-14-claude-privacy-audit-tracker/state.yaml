@@ -30,7 +30,7 @@ rules:
   no_production_private_claims_without_positive_proof_and_live_receipts: true
 
 lumi:
-  local: "Tracker, N1/N2/N3/N5, R6A, R8A, R9A/R9B/R9C, R10A/R10B, R11A, R12-R15A, and R19 local/source-level receipts exist; use git status for current dirt."
+  local: "Tracker, N1/N2/N3/N5, R6A, R8A, R9A/R9B/R9C, R10A/R10B, R11A, R12-R16, and R19 local/source-level receipts exist; use git status for current dirt."
   committed: "R6A/R9B base commit is 51809b9 (Add direct-key and proof-bound exit scaffolds); R9C is recorded in the current tracker state. Use git log for the exact current head."
   pushed: "codex/vanta-zk-review-hardening is ahead of origin; latest audit tracker commits are not pushed. Use git status for the exact count."
   deployed_live: "latest circuit/tracker/CI/memo-quarantine/vault-KDF/service-entrypoint/role-service-control/direct-key/discovery-binding/proof-bound-destination slices are not deployed/live; live-read probes are evidence about deployed public surfaces only, not deployment of the current branch head."
@@ -613,8 +613,15 @@ audit_remaining_work_backlog:
     source_priority: medium
     source_item: "Add a positive truth gate that tag 3 returns success on a real proof before proof-verified claims are allowed."
     tracker_ref: "A1-TAG3-PROOF-VERIFIER-NOT-WIRED"
-    status: blocked-on-onchain-verifier
-    guard: "npm run zk:c01-onchain-proof-boundary-check"
+    status: local-implemented-fail-closed-blocked-on-tag3-valid-proof
+    guard: "npm run zk:c01-positive-proof-verified-claim-gate-check"
+    evidence:
+      - "ops/mainnet/private-pool-v2-c01-positive-proof-verified-claim-gate.evidence.json records proofVerifiedClaimAllowed: false and blocked-no-tag3-valid-proof-success."
+      - "scripts/check-vanta-private-pool-v2-c01-positive-proof-verified-claim-gate.mjs requires backend selection, production proof format, production verifying-key hash, verifier adapter, private-spend public-input hash binding, valid-proof success, accepted-proof mutation, invalid-proof no-mutation, wrong-public-input no-mutation, wrong-verifying-key no-mutation, SBF/live lineage, and audit/reviewer evidence before proof-verified claims can unlock."
+      - "The gate is wired into truth:privacy-claim-gate, zk:review-guards-check, and zk:feedback-loop-check."
+      - "This is not tag-3 valid-proof success evidence, not proof-verified spend evidence, not on-chain proof verification, not SBF/live lineage, not audit acceptance, not production privacy, and not deployed/live evidence for the current branch."
+    verify:
+      - "npm run zk:c01-positive-proof-verified-claim-gate-check"
   - id: R17-FRONTEND-OPERATOR-ENV-CI
     source_priority: medium
     source_item: "Ensure production build pipeline runs frontend operator-env exposure check green pre-deploy."
@@ -660,7 +667,8 @@ audit_completion_checklist:
     - "R20/R21 remain blocked or approval-gated."
     - "R9 production recipient discovery remains pending even though R9C local proof-owner public-key exchange, R9B local direct viewing-key exchange, and R9A local ciphertext body-hash handoff binding are implemented."
     - "R10 broader production service separation remains partial/pending live controls even though R10A local stub replacement and R10B local/source-level production-control evidence are implemented."
+    - "R16 proof-verified claim gating is locally implemented fail-closed but remains blocked on real tag-3 valid-proof success and no-mutation evidence."
 
 next_safe_slices:
-  - "No remaining small local-only audit quick-fix is open after R6A/R9B/R9C/R10B; remaining work is architecture-blocked, approval-gated, live/CI-gated, or production-service-gated."
+  - "No remaining small local-only audit quick-fix is open after R6A/R9B/R9C/R10B/R16; remaining work is architecture-blocked, approval-gated, live/CI-gated, or production-service-gated."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."
