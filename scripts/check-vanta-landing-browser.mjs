@@ -121,9 +121,26 @@ function checkLandingLiveStripSource() {
   if (!homeSource.includes("import { LandingLiveStrip }") || !homeSource.includes("<LandingLiveStrip />")) {
     throw new Error("Home page must import and render LandingLiveStrip.");
   }
+  for (const snippet of [
+    "data-vanta-landing-flow-visual",
+    "data-vanta-landing-flow-node=\"wallet\"",
+    "data-vanta-landing-flow-node=\"shield\"",
+    "data-vanta-landing-flow-node=\"shielded-state\"",
+    "Local preview",
+    "not production-private proof",
+  ]) {
+    if (!homeSource.includes(snippet)) {
+      throw new Error(`Home page hero flow source missing required snippet: ${snippet}`);
+    }
+  }
 
   const stylesSource = readFileSync(path.join(process.cwd(), "src", "styles.css"), "utf8");
   for (const snippet of [
+    ".landing-minimal__hero-shell",
+    ".landing-minimal__flow-visual",
+    ".landing-minimal__flow-line",
+    ".landing-minimal__flow-packet",
+    "@keyframes landing-flow-packet",
     ".landing-minimal__live-strip",
     ".landing-minimal__live-heading",
     ".landing-minimal__live-metrics",
@@ -151,6 +168,10 @@ function checkLandingLiveStripSource() {
   for (const pattern of bannedClaimPatterns) {
     if (pattern.test(source)) {
       throw new Error(`Landing live strip source includes banned privacy/readiness claim: ${pattern}`);
+    }
+
+    if (pattern.test(homeSource)) {
+      throw new Error(`Landing home source includes banned privacy/readiness claim: ${pattern}`);
     }
   }
 }
@@ -207,6 +228,25 @@ function checkLandingViewport(width, height) {
             Boolean(liveStrip.querySelector("[data-vanta-solana-block-height]")) &&
             Boolean(liveStrip.querySelector("[data-vanta-solana-latency]")) &&
             Boolean(liveStrip.querySelector("[data-vanta-landing-slot-pulse]"));
+        })(),
+        hasHeroFlowVisual: (() => {
+          const flowVisual = document.querySelector("[data-vanta-landing-flow-visual]");
+          const liveStrip = document.querySelector("[data-vanta-landing-live-strip]");
+          const flowText = flowVisual?.textContent ?? "";
+          const flowNodeNames = [...(flowVisual?.querySelectorAll("[data-vanta-landing-flow-node]") ?? [])]
+            .map((node) => node.getAttribute("data-vanta-landing-flow-node"));
+
+          return Boolean(flowVisual) &&
+            Boolean(liveStrip) &&
+            Boolean(flowVisual.compareDocumentPosition(liveStrip) & Node.DOCUMENT_POSITION_FOLLOWING) &&
+            ["wallet", "shield", "shielded-state"].every((nodeName) => flowNodeNames.includes(nodeName)) &&
+            flowText.includes("Wallet") &&
+            flowText.includes("Shield") &&
+            flowText.includes("Shielded state") &&
+            flowText.includes("Local preview") &&
+            flowText.includes("not production-private proof") &&
+            Boolean(flowVisual.querySelector("[data-vanta-landing-flow-line]")) &&
+            Boolean(flowVisual.querySelector("[data-vanta-landing-flow-packet]"));
         })(),
         primaryActionHrefs: [...document.querySelectorAll(".landing-minimal__action-list--primary a")]
           .map((link) => link.getAttribute("href")),
@@ -333,6 +373,10 @@ function checkLandingViewport(width, height) {
 
   if (!result.hasLiveSolanaStrip) {
     throw new Error("Landing page must show the scoped Solana mainnet liveness strip with beta-truth copy.");
+  }
+
+  if (!result.hasHeroFlowVisual) {
+    throw new Error("Landing page must show the beta-safe wallet-to-shielded-state hero flow visualization.");
   }
 
   if (!result.hasPrimaryWalletActions) {

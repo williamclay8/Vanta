@@ -107,6 +107,45 @@ function LandingPointGlyph({ name }: { name: LandingGlyph }) {
   );
 }
 
+function LandingHeroFlowVisual() {
+  return (
+    <aside
+      className="landing-minimal__flow-visual"
+      aria-label="Local preview of Vanta flow"
+      data-vanta-landing-flow-visual
+    >
+      <div className="landing-minimal__flow-header">
+        <span>Local preview</span>
+        <strong>Wallet to shielded state</strong>
+      </div>
+
+      <div className="landing-minimal__flow-map" aria-hidden="true">
+        <svg className="landing-minimal__flow-line" viewBox="0 0 420 120" data-vanta-landing-flow-line>
+          <path d="M68 60 C134 18 188 18 240 60 S334 102 354 60" />
+        </svg>
+        <span className="landing-minimal__flow-packet" data-vanta-landing-flow-packet />
+        <div className="landing-minimal__flow-node" data-vanta-landing-flow-node="wallet">
+          <span />
+          <strong>Wallet</strong>
+          <small>Selected assets</small>
+        </div>
+        <div className="landing-minimal__flow-node" data-vanta-landing-flow-node="shield">
+          <span />
+          <strong>Shield</strong>
+          <small>Vanta entry</small>
+        </div>
+        <div className="landing-minimal__flow-node" data-vanta-landing-flow-node="shielded-state">
+          <span />
+          <strong>Shielded state</strong>
+          <small>Receipts where available</small>
+        </div>
+      </div>
+
+      <p>Illustrates the intended flow; not production-private proof.</p>
+    </aside>
+  );
+}
+
 export function HomePage() {
   const [navScrolled, setNavScrolled] = useState(false);
 
@@ -152,23 +191,29 @@ export function HomePage() {
       </nav>
 
       <section className="landing-minimal__hero">
-        <div className="landing-minimal__kicker">Receipt-backed Solana settlement</div>
-        <h1>
-          Make Solana settlement
-          <span> less public.</span>
-        </h1>
-        <p>
-          Move selected assets into Vanta, test Shield, Send, Swap, and
-          Unshield, and share receipts that show what can be verified.
-        </p>
+        <div className="landing-minimal__hero-shell">
+          <div className="landing-minimal__hero-copy">
+            <div className="landing-minimal__kicker">Receipt-backed Solana settlement</div>
+            <h1>
+              Make Solana settlement
+              <span> less public.</span>
+            </h1>
+            <p>
+              Move selected assets into Vanta, test Shield, Send, Swap, and
+              Unshield, and share receipts that show what can be verified.
+            </p>
 
-        <div className="landing-minimal__actions">
-          <Link className="landing-btn landing-btn--primary" to="/app">
-            Enter App
-          </Link>
-          <a className="landing-btn landing-btn--ghost" href="#what">
-            Learn More
-          </a>
+            <div className="landing-minimal__actions">
+              <Link className="landing-btn landing-btn--primary" to="/app">
+                Enter App
+              </Link>
+              <a className="landing-btn landing-btn--ghost" href="#what">
+                Learn More
+              </a>
+            </div>
+          </div>
+
+          <LandingHeroFlowVisual />
         </div>
       </section>
 
