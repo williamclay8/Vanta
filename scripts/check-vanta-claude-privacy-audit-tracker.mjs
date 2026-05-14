@@ -16,6 +16,10 @@ const n2Ppv2SwapInputPreimageNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-n2-ppv2-swap-input-preimage.md",
 );
+const n2PrivateCoreProofOwnerNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-n2-private-core-proof-owner.md",
+);
 const architectureBlockerNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-architecture-blocker-map.md",
@@ -39,6 +43,7 @@ for (const path of [
   n2BlockerNotePath,
   n2ImplementationPathNotePath,
   n2Ppv2SwapInputPreimageNotePath,
+  n2PrivateCoreProofOwnerNotePath,
   architectureBlockerNotePath,
   n5CiGateNotePath,
   completionAuditNotePath,
@@ -53,6 +58,7 @@ const note = read(notePath);
 const n2BlockerNote = read(n2BlockerNotePath);
 const n2ImplementationPathNote = read(n2ImplementationPathNotePath);
 const n2Ppv2SwapInputPreimageNote = read(n2Ppv2SwapInputPreimageNotePath);
+const n2PrivateCoreProofOwnerNote = read(n2PrivateCoreProofOwnerNotePath);
 const architectureBlockerNote = read(architectureBlockerNotePath);
 const n5CiGateNote = read(n5CiGateNotePath);
 const completionAuditNote = read(completionAuditNotePath);
@@ -77,8 +83,8 @@ const n2SectionMatch = state.match(/  - id: N2\n[\s\S]*?\n  - id: N3\n/);
 assert.ok(n2SectionMatch, "state.yaml missing bounded N2 section");
 const n2Section = n2SectionMatch[0];
 assert.ok(
-  n2Section.includes("status: partial-local-implemented"),
-  "N2 must remain partial until the remaining design blockers are implemented or superseded.",
+  n2Section.includes("status: local-implemented"),
+  "N2 must remain local-implemented after the approved PPv2 Swap and Private Core proof-owner closures.",
 );
 
 for (const phrase of [
@@ -93,22 +99,23 @@ for (const phrase of [
   "privacy_claim_allowed: false",
   "anonymity_claim_allowed: false",
   "completion_guard",
-  "status_must_remain: \"partial-local-implemented\"",
-  "N2 is not complete while Private Core Send/Swap use x25519-secret-prechecked-off-circuit owner authorization",
-  "a nonzero sender_secret_key assertion is not sender authorization",
-  "Do not mark N2 complete based only on keeping Private Core sender_secret_key live/nonzero.",
+  "status_must_remain: \"local-implemented\"",
+  "Private Core Send/Swap now declare provingOwnerKeyMode = poseidon-proof-owner-key-v0",
+  "Private Core Send/Swap still keep source-layer X25519 owner authorization prechecked off-circuit",
+  "Do not claim Private Core Send/Swap prove X25519 ownership in circuit.",
   "remaining_design_blockers",
   "N2-PPV2-SWAP-INPUT-PREIMAGE",
   "status: local-implemented",
   "Private Pool v2 Swap-to-shielded now recomputes input_commitment from owner_commitment, input_asset_id_commitment, input_amount, input_blinding, and input_derivation_tag",
   "invalid-input-commitment-preimage fixtures",
-  "approved-pending-implementation",
   "decision_approved_by: \"Clay\"",
   "approval_answer: \"yes\"",
   "input_commitment = poseidon5(owner_commitment, input_asset_id_commitment, input_amount, input_blinding, input_derivation_tag)",
   "N2-PRIVATE-CORE-SENDER-AUTH",
+  "sender_proving_owner_key_hi/lo",
+  "sender_proving_owner_key_lo = poseidon2([sender_secret_key_hi, sender_secret_key_lo])",
   "provingOwnerKeyMode = poseidon-proof-owner-key-v0",
-  "prefer distinct proving-owner fields",
+  "operator/private-core-proof.mjs serializes sender_proving_owner_key_hi/lo",
   "approval_question",
   "x25519-secret-prechecked-off-circuit",
   "architecture_blocker_map",
@@ -148,19 +155,18 @@ for (const phrase of [
 for (const phrase of [
   "N2-PPV2-SWAP-INPUT-PREIMAGE",
   "N2-PRIVATE-CORE-SENDER-AUTH",
-  "approved-pending-implementation",
   "Clay approved this path on 2026-05-14",
-  "not a safe one-line Noir assertion",
+  "local-implemented",
   "invalid-input-commitment-preimage",
   "invalid-owner-auth fixtures",
   "x25519-secret-prechecked-off-circuit",
-  "Do not mark N2 `local-implemented`",
+  "Do not claim Private Core Send/Swap prove X25519 ownership in circuit.",
 ]) {
   assert.ok(n2BlockerNote.includes(phrase), `N2 blocker note missing ${phrase}`);
 }
 
 for (const phrase of [
-  "proposed-requires-architecture-approval",
+  "approved-and-local-implemented",
   "input_commitment = poseidon5([",
   "input_asset_id_commitment",
   "invalid-input-commitment-preimage",
@@ -171,11 +177,29 @@ for (const phrase of [
   "sender_proving_owner_key_hi = 0",
   "sender_proving_owner_key_lo = poseidon2([sender_secret_key_hi, sender_secret_key_lo])",
   "invalid-owner-auth",
-  "Do not implement either path until the relevant approval question is answered",
+  "Approval answer: yes.",
+  "Do not use this local N2 closure to claim production privacy",
 ]) {
   assert.ok(
     n2ImplementationPathNote.includes(phrase),
     `N2 implementation path note missing ${phrase}`,
+  );
+}
+
+for (const phrase of [
+  "N2 Private Core Proof-Owner Closure - 2026-05-14",
+  "Clay approved the Private Core Send/Swap owner decision on 2026-05-14.",
+  "provingOwnerKeyMode = poseidon-proof-owner-key-v0",
+  "ownerAuthorizationMode = x25519-secret-prechecked-off-circuit",
+  "sender_proving_owner_key_hi",
+  "sender_proving_owner_key_lo = poseidon2([sender_secret_key_hi, sender_secret_key_lo])",
+  "invalid-owner-auth",
+  "operator/private-core-proof.mjs",
+  "does not prove X25519 ownership in circuit",
+]) {
+  assert.ok(
+    n2PrivateCoreProofOwnerNote.includes(phrase),
+    `N2 Private Core proof-owner note missing ${phrase}`,
   );
 }
 
@@ -241,8 +265,9 @@ for (const phrase of [
   "Prompt-To-Artifact Checklist",
   "Goal is not complete.",
   "N2 owner/input binding across lanes",
-  "PPv2 Swap input preimage is locally implemented and verified",
-  "Private Core Send/Swap sender auth remains approved and pending",
+  "Local implemented",
+  "Private Core proof-owner closure note",
+  "PPv2 Send/Claim/Swap/actual-private-spend and Private Core Send/Swap have local binding guards",
   "Deployed bytecode/source hash match",
   "Prover-relay privacy trade-off docs",
   "Ciphertext body-hash discovery binding",

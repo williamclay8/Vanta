@@ -67,6 +67,10 @@ try {
   printStatus("invalid-sender-secret fixture write: PASS");
   expectExecuteFailure("invalid-sender-secret");
 
+  writeFixture("invalid-owner-auth");
+  printStatus("invalid-owner-auth fixture write: PASS");
+  expectExecuteFailure("invalid-owner-auth");
+
   writeFixture("invalid-context-split");
   printStatus("invalid-context-split fixture write: PASS");
   expectExecuteFailure("invalid-context-split");

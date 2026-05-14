@@ -95,6 +95,8 @@ fn compute_leaf_index(membership_path_direction_bits: [Field; MERKLE_DEPTH]) -> 
 }
 
 fn derive_nullifier(
+    owner_public_key_hi: Field,
+    owner_public_key_lo: Field,
     note_secret_hi: Field,
     note_secret_lo: Field,
     note_nonce_hi: Field,
@@ -102,7 +104,9 @@ fn derive_nullifier(
     state_root: Field,
     merkle_leaf: Field,
 ) -> Field {
-    bn254::hash_6([
+    bn254::hash_8([
+        owner_public_key_hi,
+        owner_public_key_lo,
         note_secret_hi,
         note_secret_lo,
         note_nonce_hi,
@@ -110,6 +114,10 @@ fn derive_nullifier(
         state_root,
         merkle_leaf,
     ])
+}
+
+fn derive_proving_owner_key(sender_secret_key_hi: Field, sender_secret_key_lo: Field) -> Field {
+    bn254::hash_2([sender_secret_key_hi, sender_secret_key_lo])
 }
 
 fn derive_send_context_tag(
@@ -211,10 +219,10 @@ fn main(
     change_amount_lo: u64,
     change_amount_hi: u64,
     input_note_type_code: Field,
-    sender_public_key_hi: Field,
-    sender_public_key_lo: Field,
     sender_secret_key_hi: Field,
     sender_secret_key_lo: Field,
+    sender_proving_owner_key_hi: Field,
+    sender_proving_owner_key_lo: Field,
     input_note_nonce_hi: Field,
     input_note_nonce_lo: Field,
     input_note_secret_hi: Field,
@@ -253,6 +261,15 @@ fn main(
     assert(input_note_type_code == 0);
     assert(recipient_note_type_code == 0);
 
+    // The source-layer owner key remains X25519-prechecked off-circuit.
+    // The proving-lane input note is authorized by a Poseidon proof-owner key.
+    let computed_sender_proving_owner_key = derive_proving_owner_key(
+        sender_secret_key_hi,
+        sender_secret_key_lo,
+    );
+    assert(sender_proving_owner_key_hi == 0);
+    assert(computed_sender_proving_owner_key == sender_proving_owner_key_lo);
+
     let computed_send_economic_terms_hash = derive_send_economic_terms_hash(
         asset_id_hi,
         asset_id_lo,
@@ -278,8 +295,8 @@ fn main(
         asset_id_lo,
         input_amount_lo,
         input_amount_hi,
-        sender_public_key_hi,
-        sender_public_key_lo,
+        sender_proving_owner_key_hi,
+        sender_proving_owner_key_lo,
         input_note_nonce_hi,
         input_note_nonce_lo,
         input_note_secret_hi,
@@ -299,6 +316,8 @@ fn main(
     assert(computed_root == state_root);
 
     let computed_input_nullifier = derive_nullifier(
+        sender_proving_owner_key_hi,
+        sender_proving_owner_key_lo,
         input_note_secret_hi,
         input_note_secret_lo,
         input_note_nonce_hi,
@@ -379,10 +398,4 @@ fn main(
     );
     assert(send_context_tag_hi == 0);
     assert(computed_send_context_tag == send_context_tag_lo);
-
-    // v0.1 assumption: sender secret ownership is still prechecked off-circuit.
-    // The supplied sender public key is already part of the consumed note
-    // commitment; reject an all-zero placeholder secret while the full key
-    // relation remains future work.
-    assert(sender_secret_key_hi + sender_secret_key_lo != 0);
 }

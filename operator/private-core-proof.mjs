@@ -803,10 +803,10 @@ function serializeSendWitnessPackageToToml(witnessPackage) {
     `change_amount_lo = "${privateWitness.change_amount_lo}"`,
     `change_amount_hi = "${privateWitness.change_amount_hi}"`,
     `input_note_type_code = "${privateWitness.input_note_type_code}"`,
-    `sender_public_key_hi = "${privateWitness.sender_public_key_hi}"`,
-    `sender_public_key_lo = "${privateWitness.sender_public_key_lo}"`,
     `sender_secret_key_hi = "${privateWitness.sender_secret_key_hi}"`,
     `sender_secret_key_lo = "${privateWitness.sender_secret_key_lo}"`,
+    `sender_proving_owner_key_hi = "${privateWitness.sender_proving_owner_key_hi}"`,
+    `sender_proving_owner_key_lo = "${privateWitness.sender_proving_owner_key_lo}"`,
     `input_note_nonce_hi = "${privateWitness.input_note_nonce_hi}"`,
     `input_note_nonce_lo = "${privateWitness.input_note_nonce_lo}"`,
     `input_note_secret_hi = "${privateWitness.input_note_secret_hi}"`,
@@ -865,10 +865,10 @@ function serializeSwapWitnessPackageToToml(witnessPackage) {
     `output_amount_lo = "${privateWitness.output_amount_lo}"`,
     `output_amount_hi = "${privateWitness.output_amount_hi}"`,
     `input_note_type_code = "${privateWitness.input_note_type_code}"`,
-    `sender_public_key_hi = "${privateWitness.sender_public_key_hi}"`,
-    `sender_public_key_lo = "${privateWitness.sender_public_key_lo}"`,
     `sender_secret_key_hi = "${privateWitness.sender_secret_key_hi}"`,
     `sender_secret_key_lo = "${privateWitness.sender_secret_key_lo}"`,
+    `sender_proving_owner_key_hi = "${privateWitness.sender_proving_owner_key_hi}"`,
+    `sender_proving_owner_key_lo = "${privateWitness.sender_proving_owner_key_lo}"`,
     `input_note_nonce_hi = "${privateWitness.input_note_nonce_hi}"`,
     `input_note_nonce_lo = "${privateWitness.input_note_nonce_lo}"`,
     `input_note_secret_hi = "${privateWitness.input_note_secret_hi}"`,
@@ -1111,6 +1111,8 @@ function assertSendWitnessPackagePublicInputConsistency(witnessPackage) {
   if (String(sourcePublicInputs.noteVersion) !== String(publicInputs.note_version)) {
     throw new Error("Private-core send witness package has mismatched note-version public inputs.");
   }
+
+  assertSenderProvingOwnerKeyConsistency(witnessPackage, "send");
 }
 
 function assertSwapWitnessPackagePublicInputConsistency(witnessPackage) {
@@ -1174,6 +1176,28 @@ function assertSwapWitnessPackagePublicInputConsistency(witnessPackage) {
 
   if (String(sourcePublicInputs.outputNoteVersion) !== String(publicInputs.output_note_version)) {
     throw new Error("Private-core swap witness package has mismatched output-note-version public inputs.");
+  }
+
+  assertSenderProvingOwnerKeyConsistency(witnessPackage, "swap");
+}
+
+function assertSenderProvingOwnerKeyConsistency(witnessPackage, lane) {
+  const privateWitness = witnessPackage.privateWitness;
+
+  if (witnessPackage.provingOwnerKeyMode !== "poseidon-proof-owner-key-v0") {
+    throw new Error(`Private-core ${lane} witness package must declare poseidon proof-owner key mode.`);
+  }
+
+  if (String(privateWitness.sender_proving_owner_key_hi ?? "") !== "0") {
+    throw new Error(`Private-core ${lane} proof-owner key high limb must be zero.`);
+  }
+
+  const expectedProofOwnerKey = poseidon2([
+    BigInt(privateWitness.sender_secret_key_hi),
+    BigInt(privateWitness.sender_secret_key_lo),
+  ]).toString(10);
+  if (String(privateWitness.sender_proving_owner_key_lo ?? "") !== expectedProofOwnerKey) {
+    throw new Error(`Private-core ${lane} proof-owner key does not match sender secret.`);
   }
 }
 

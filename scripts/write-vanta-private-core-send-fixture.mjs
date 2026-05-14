@@ -17,12 +17,13 @@ async function main() {
     fixtureMode !== "valid" &&
     fixtureMode !== "invalid-direction" &&
     fixtureMode !== "invalid-leaf-index" &&
+    fixtureMode !== "invalid-owner-auth" &&
     fixtureMode !== "invalid-context-split" &&
     fixtureMode !== "invalid-amount-range" &&
-    fixtureMode !== "valid-amount-carry"
+      fixtureMode !== "valid-amount-carry"
   ) {
     throw new Error(
-      'Expected fixture mode "valid", "invalid-direction", "invalid-leaf-index", "invalid-context-split", "invalid-amount-range", or "valid-amount-carry". Example: node scripts/write-vanta-private-core-send-fixture.mjs invalid-direction',
+      'Expected fixture mode "valid", "invalid-direction", "invalid-leaf-index", "invalid-owner-auth", "invalid-context-split", "invalid-amount-range", or "valid-amount-carry". Example: node scripts/write-vanta-private-core-send-fixture.mjs invalid-direction',
     );
   }
 
@@ -107,6 +108,18 @@ function createWitnessPackageForMode(fixture, mode) {
     };
   }
 
+  if (mode === "invalid-owner-auth") {
+    return {
+      ...validWitnessPackage,
+      privateWitness: {
+        ...validWitnessPackage.privateWitness,
+        sender_secret_key_lo: (
+          BigInt(validWitnessPackage.privateWitness.sender_secret_key_lo) + 1n
+        ).toString(10),
+      },
+    };
+  }
+
   if (mode === "invalid-context-split") {
     const contextTag = BigInt(validWitnessPackage.publicInputs.send_context_tag_lo);
     return {
@@ -179,8 +192,8 @@ function createAmountAdjustedWitnessPackage(validWitnessPackage, options) {
     note_secret_lo: adjustedPrivateWitness.input_note_secret_lo,
     note_type_code: adjustedPrivateWitness.input_note_type_code,
     note_version: validWitnessPackage.publicInputs.note_version,
-    owner_public_key_hi: adjustedPrivateWitness.sender_public_key_hi,
-    owner_public_key_lo: adjustedPrivateWitness.sender_public_key_lo,
+    owner_public_key_hi: adjustedPrivateWitness.sender_proving_owner_key_hi,
+    owner_public_key_lo: adjustedPrivateWitness.sender_proving_owner_key_lo,
   });
   const inputLeaf = poseidon1([BigInt(inputCommitment)]).toString(10);
   const stateRoot = deriveRoot({
@@ -188,7 +201,9 @@ function createAmountAdjustedWitnessPackage(validWitnessPackage, options) {
     path: adjustedPrivateWitness.membership_path,
     pathDirectionBits: adjustedPrivateWitness.membership_path_direction_bits,
   });
-  const inputNullifier = poseidon6([
+  const inputNullifier = poseidon8([
+    BigInt(adjustedPrivateWitness.sender_proving_owner_key_hi),
+    BigInt(adjustedPrivateWitness.sender_proving_owner_key_lo),
     BigInt(adjustedPrivateWitness.input_note_secret_hi),
     BigInt(adjustedPrivateWitness.input_note_secret_lo),
     BigInt(adjustedPrivateWitness.input_note_nonce_hi),

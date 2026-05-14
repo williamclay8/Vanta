@@ -30,6 +30,10 @@ const forbiddenPatterns = [
     message: "sender secret liveness must not be a restated witness sum",
   },
   {
+    pattern: /sender_secret_key_hi\s*\+\s*sender_secret_key_lo\s*!=\s*0/u,
+    message: "sender secret liveness must be a proof-owner key relation, not a nonzero witness sum",
+  },
+  {
     pattern: /owner_auth_placeholder/u,
     message: "owner auth placeholder must not be reintroduced",
   },
@@ -198,6 +202,27 @@ for (const file of noirFiles) {
     ]) {
       if (!source.includes(requiredPhrase)) {
         failures.push(`${file}: actual-private-spend input commitment must be bound to the note preimage (${requiredPhrase})`);
+      }
+    }
+  }
+
+  if (
+    file === "zk/noir/vanta_private_core_single_note_send/src/main.nr" ||
+    file === "zk/noir/vanta_private_core_single_note_swap/src/main.nr"
+  ) {
+    for (const requiredPhrase of [
+      "fn derive_proving_owner_key",
+      "sender_proving_owner_key_hi: Field",
+      "sender_proving_owner_key_lo: Field",
+      "let computed_sender_proving_owner_key = derive_proving_owner_key",
+      "assert(sender_proving_owner_key_hi == 0)",
+      "assert(computed_sender_proving_owner_key == sender_proving_owner_key_lo)",
+      "derive_nullifier(",
+      "sender_proving_owner_key_hi,",
+      "sender_proving_owner_key_lo,",
+    ]) {
+      if (!source.includes(requiredPhrase)) {
+        failures.push(`${file}: Private Core Send/Swap must bind sender_secret_key to distinct Poseidon proof-owner fields (${requiredPhrase})`);
       }
     }
   }

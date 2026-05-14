@@ -2,70 +2,72 @@
 
 ## Purpose
 
-This note prevents the Claude privacy audit tracker from treating N2 as complete while two protocol decisions are still unresolved.
+This note records the two protocol decisions that originally prevented the Claude privacy audit tracker from treating N2 as locally complete.
 
-N2 is partially implemented locally: Private Pool v2 Send, Claim, Swap owner binding, and actual-private-spend input preimage now have circuit constraints and verification receipts. The remaining work is not a safe one-line Noir assertion; it requires choosing the canonical protocol shape first.
+N2 is now locally implemented across the tracked circuit lanes, but this note remains useful because it explains the approval path and the truth boundary: local N2 closure is not production privacy, not an on-chain verifier, and not in-circuit X25519 ownership.
 
 ## N2-PPV2-SWAP-INPUT-PREIMAGE
 
-Status: `approved-pending-implementation`
+Status: `local-implemented`
 
 Decision: Clay approved this path on 2026-05-14.
 
-Current evidence:
+Closure evidence:
 
 - `zk/noir/vanta_private_pool_v2_swap_to_shielded_entry/src/main.nr` binds `owner_commitment = poseidon1([owner_secret])`.
-- The same circuit still accepts `input_commitment`, `settlement_commitment`, `route_commitment`, and `economics_commitment` as opaque fields.
-- The current ABI does not expose an explicit raw input asset, raw input amount, fee/routing preimage, or derivation/blinding tuple that can unambiguously recompute `input_commitment`.
+- The same circuit now recomputes `input_commitment = poseidon5(owner_commitment, input_asset_id_commitment, input_amount, input_blinding, input_derivation_tag)`.
+- `settlement_commitment`, `route_commitment`, and `economics_commitment` remain separate opaque swap commitments.
+- `scripts/check-vanta-private-pool-v2-swap-to-shielded-circuit.mjs` includes `invalid-input-commitment-preimage`.
 
-Decision required:
+Implemented decision:
 
-- Choose the canonical swap-to-shielded input commitment preimage before adding an in-circuit input assertion.
+- Use the PPv2 Send/Claim-style consumed-note preimage for Swap-to-shielded input ownership and leave route/settlement/economics commitments separate.
 
-Completion evidence required:
+Completion evidence:
 
 - The circuit recomputes `input_commitment` from the chosen preimage.
-- A negative fixture such as `invalid-input-commitment-preimage` fails.
+- The `invalid-input-commitment-preimage` fixture fails.
 - Prover/browser/operator witness paths carry the new fields without leaking witness material.
-- `npm run private-pool-v2:swap-to-shielded-circuit-check` and the swap-to-shielded proof/request/browser/operator checks pass.
+- The focused swap-to-shielded proof/request/browser/operator checks passed locally.
 
 ## N2-PRIVATE-CORE-SENDER-AUTH
 
-Status: `approved-pending-implementation`
+Status: `local-implemented`
 
 Decision: Clay approved this path on 2026-05-14.
 
-Current evidence:
+Closure evidence:
 
-- `zk/noir/vanta_private_core_single_note_send/src/main.nr` states that sender secret ownership is prechecked off-circuit for v0.1 and only rejects an all-zero placeholder secret.
-- `zk/noir/vanta_private_core_single_note_swap/src/main.nr` states that owner authorization remains prechecked off-circuit and only rejects an all-zero placeholder secret.
-- `src/zk/vantaPrivateCoreSendProof.ts` and `src/zk/vantaPrivateCoreSwapProof.ts` label the current authorization relation as `x25519-secret-prechecked-off-circuit`.
-- The current note commitment binds X25519 owner public-key limbs, but Noir cannot prove the X25519 secret-to-public relation with the current simple Poseidon-only pattern.
+- `zk/noir/vanta_private_core_single_note_send/src/main.nr` derives `sender_proving_owner_key_lo = poseidon2([sender_secret_key_hi, sender_secret_key_lo])`.
+- `zk/noir/vanta_private_core_single_note_swap/src/main.nr` derives the same proof-owner key relation.
+- Both circuits assert `sender_proving_owner_key_hi == 0` and bind the consumed-note commitment/nullifier to the proof-owner key.
+- `src/zk/vantaPrivateCoreSendProof.ts` and `src/zk/vantaPrivateCoreSwapProof.ts` preserve `ownerAuthorizationMode = x25519-secret-prechecked-off-circuit` and add `provingOwnerKeyMode = poseidon-proof-owner-key-v0`.
+- The current note commitment no longer treats `sender_secret_key` as a nonzero liveness witness.
 
-Decision required:
+Implemented decision:
 
-- Choose whether Private Core keeps X25519 notes with off-circuit authorization, adds a separate Poseidon proof-owner key, or migrates note ownership to an in-circuit-friendly key model.
+- Private Core keeps X25519 source-layer compatibility and adds a separate Poseidon proof-owner key for the Noir proving lane.
 
-Completion evidence required:
+Completion evidence:
 
 - The selected key model is documented in the tracker and proof metadata.
-- Send and Swap circuits enforce the chosen in-circuit owner authorization relation.
-- `invalid-owner-auth` fixtures fail for both Send and Swap; in plain tracker language, invalid-owner-auth fixtures must be required before completion.
+- Send and Swap circuits enforce the chosen in-circuit proof-owner relation.
+- `invalid-owner-auth` fixtures fail for both Send and Swap; invalid-owner-auth fixtures remain a required guard before any future N2 closure edit.
 - `npm run private-core:send-check` and `npm run private-core:swap-check` pass with updated proof metadata.
 
 ## Tracker Rule
 
-Do not mark N2 `local-implemented` unless both blocker IDs above are either implemented with the required evidence or explicitly superseded by a later architecture decision note.
+N2 may remain `local-implemented` only while both blocker IDs above keep their local closure evidence and the source preserves the proof-owner truth boundary.
 
 Required completion guard:
 
 ```yaml
 completion_guard:
-  status_must_remain: "partial-local-implemented"
-  hard_blockers:
-    - "N2 is not complete while Private Pool v2 Swap-to-shielded lacks a documented canonical input commitment preimage, in-circuit recomputation, and invalid-input-commitment-preimage fixture."
-    - "N2 is not complete while Private Core Send/Swap use x25519-secret-prechecked-off-circuit owner authorization; a nonzero sender_secret_key assertion is not sender authorization."
+  status_must_remain: "local-implemented"
+  residual_truth_boundary:
+    - "Private Core Send/Swap still keep source-layer X25519 owner authorization prechecked off-circuit; Noir proves a Poseidon proof-owner key relation only."
+    - "N2 local implementation is not production privacy, on-chain verifier readiness, custody readiness, shared-tree readiness, fresh-exit privacy, or audit acceptance."
   forbidden_completion_claim:
-    - "Do not mark N2 complete based only on owner_secret -> owner_commitment binding in Swap-to-shielded."
-    - "Do not mark N2 complete based only on keeping Private Core sender_secret_key live/nonzero."
+    - "Do not claim Private Core Send/Swap prove X25519 ownership in circuit."
+    - "Do not treat N2 local implementation as proof-verified on-chain privacy."
 ```

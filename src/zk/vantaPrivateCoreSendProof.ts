@@ -35,6 +35,8 @@ export const VANTA_PRIVATE_CORE_SEND_CIRCUIT_V0 =
 export const VANTA_PRIVATE_CORE_SEND_BACKEND_V0 = "noir-barretenberg" as const;
 export const VANTA_PRIVATE_CORE_SEND_OWNER_AUTH_MODE_V0 =
   "x25519-secret-prechecked-off-circuit" as const;
+export const VANTA_PRIVATE_CORE_SEND_PROOF_OWNER_KEY_MODE_V0 =
+  "poseidon-proof-owner-key-v0" as const;
 export const VANTA_PRIVATE_CORE_SEND_NULLIFIER_KEY_MODE_V0 =
   "note-secret-as-nullifier-key-v0" as const;
 export const VANTA_PRIVATE_CORE_SEND_BYTES32_ENCODING_V0 = "bytes32-2x128-be" as const;
@@ -107,6 +109,8 @@ export type SendPrivateWitnessV0 = {
   senderSecretKey: Bytes32Hex;
   senderDerivedPublicKey: Bytes32Hex;
   ownerAuthorizationMode: typeof VANTA_PRIVATE_CORE_SEND_OWNER_AUTH_MODE_V0;
+  senderProvingOwnerKey: Bytes32EncodingV0;
+  provingOwnerKeyMode: typeof VANTA_PRIVATE_CORE_SEND_PROOF_OWNER_KEY_MODE_V0;
   nullifierKeyWitness: Bytes32Hex;
   nullifierKeyMode: typeof VANTA_PRIVATE_CORE_SEND_NULLIFIER_KEY_MODE_V0;
   recipientNote: SerializedNoteV0;
@@ -126,6 +130,7 @@ export type VantaPrivateCoreNoirSendWitnessPackageV0 = {
   proofVersion: typeof VANTA_PRIVATE_CORE_SEND_PROOF_VERSION_V0;
   merkleDepth: typeof VANTA_PRIVATE_CORE_SEND_CIRCUIT_MERKLE_DEPTH_V0;
   provingHashLane: typeof VANTA_PRIVATE_CORE_SEND_PROVING_HASH_LANE_V0;
+  provingOwnerKeyMode: typeof VANTA_PRIVATE_CORE_SEND_PROOF_OWNER_KEY_MODE_V0;
   sourcePublicInputs: SendPublicInputsV0;
   publicInputs: {
     state_root: FieldDecimalString;
@@ -149,6 +154,8 @@ export type VantaPrivateCoreNoirSendWitnessPackageV0 = {
     sender_public_key_lo: FieldDecimalString;
     sender_secret_key_hi: FieldDecimalString;
     sender_secret_key_lo: FieldDecimalString;
+    sender_proving_owner_key_hi: FieldDecimalString;
+    sender_proving_owner_key_lo: FieldDecimalString;
     input_note_nonce_hi: FieldDecimalString;
     input_note_nonce_lo: FieldDecimalString;
     input_note_secret_hi: FieldDecimalString;
@@ -236,6 +243,10 @@ export function buildVantaPrivateCoreSendProofBoundary(
   );
   const senderDerivedPublicKey = derivePublicKeyFromSecretKey(args.senderSecretKey);
   const senderSecretMatches = senderDerivedPublicKey === inputNote.ownerPublicKey;
+  const senderSecretKeyEncoding = encodeBytes32ToTwoU128Be(
+    normalizeHex32(args.senderSecretKey, "senderSecretKey"),
+  );
+  const senderProvingOwnerKey = derivePoseidonOwnerPublicKeyEncoding(senderSecretKeyEncoding);
   const inputNullifier = deriveVantaPrivateCoreNullifier(inputNote, args.transition.input.witness);
   const recipientCommitment = deriveVantaPrivateCoreNoteCommitment(args.transition.recipient.note);
   const changeCommitment = args.transition.change
@@ -290,6 +301,8 @@ export function buildVantaPrivateCoreSendProofBoundary(
     senderSecretKey: normalizeHex32(args.senderSecretKey, "senderSecretKey"),
     senderDerivedPublicKey,
     ownerAuthorizationMode: VANTA_PRIVATE_CORE_SEND_OWNER_AUTH_MODE_V0,
+    senderProvingOwnerKey,
+    provingOwnerKeyMode: VANTA_PRIVATE_CORE_SEND_PROOF_OWNER_KEY_MODE_V0,
     nullifierKeyWitness: inputNote.noteSecret,
     nullifierKeyMode: VANTA_PRIVATE_CORE_SEND_NULLIFIER_KEY_MODE_V0,
     recipientNote: serializeVantaPrivateCoreNoteV0(args.transition.recipient.note),
@@ -329,7 +342,7 @@ export function buildVantaPrivateCoreSendProofBoundary(
     blockers,
     compatibilityNotes: [
       "Current app-side input and output note commitments, Merkle hashing, and nullifier derivations still use SHA-256 source-layer semantics.",
-      "Current sender authorization is only prechecked off-circuit by recomputing the X25519 public key from the supplied secret key.",
+      "The source-layer sender key remains X25519-prechecked for payload compatibility; the Noir proving lane binds a Poseidon proof-owner key derived from the supplied sender secret.",
       "Current send proving boundary is wired to the first Noir send circuit, but remains a narrow Private Core lane rather than a production actual-private settlement circuit.",
     ],
     publicInputs,
@@ -344,8 +357,15 @@ export function createVantaPrivateCoreNoirSendWitnessPackage(args: {
   privateWitness: SendPrivateWitnessV0;
 }): VantaPrivateCoreNoirSendWitnessPackageV0 {
   const assetEncoding = encodeBytes32ToTwoU128Be(args.publicInputs.assetId);
+  const sourceSenderPublicKey = args.privateWitness.inputNoteFieldEncoding.ownerPublicKey;
+  const senderSecretKeyEncoding = encodeBytes32ToTwoU128Be(args.privateWitness.senderSecretKey);
+  const senderProvingOwnerKey = derivePoseidonOwnerPublicKeyEncoding(senderSecretKeyEncoding);
+  const provingInputNoteFieldEncoding = {
+    ...args.privateWitness.inputNoteFieldEncoding,
+    ownerPublicKey: senderProvingOwnerKey,
+  };
   const inputCommitmentField = derivePoseidonNoteCommitmentField(
-    args.privateWitness.inputNoteFieldEncoding,
+    provingInputNoteFieldEncoding,
   );
   const inputMerkleLeafField = derivePoseidonMerkleLeafField(inputCommitmentField);
   const stateRootField = derivePoseidonMerkleRootField(
@@ -353,8 +373,9 @@ export function createVantaPrivateCoreNoirSendWitnessPackage(args: {
     args.privateWitness.merklePathEncoding,
   );
   const inputNullifierField = derivePoseidonNullifierField(
-    args.privateWitness.inputNoteFieldEncoding.noteSecret,
-    args.privateWitness.inputNoteFieldEncoding.noteNonce,
+    provingInputNoteFieldEncoding.ownerPublicKey,
+    provingInputNoteFieldEncoding.noteSecret,
+    provingInputNoteFieldEncoding.noteNonce,
     stateRootField,
     inputMerkleLeafField,
   );
@@ -386,6 +407,7 @@ export function createVantaPrivateCoreNoirSendWitnessPackage(args: {
     proofVersion: VANTA_PRIVATE_CORE_SEND_PROOF_VERSION_V0,
     merkleDepth: VANTA_PRIVATE_CORE_SEND_CIRCUIT_MERKLE_DEPTH_V0,
     provingHashLane: VANTA_PRIVATE_CORE_SEND_PROVING_HASH_LANE_V0,
+    provingOwnerKeyMode: VANTA_PRIVATE_CORE_SEND_PROOF_OWNER_KEY_MODE_V0,
     sourcePublicInputs: args.publicInputs,
     publicInputs: {
       state_root: stateRootField,
@@ -405,10 +427,12 @@ export function createVantaPrivateCoreNoirSendWitnessPackage(args: {
       change_amount_lo: args.privateWitness.changeNoteFieldEncoding?.amount.lo ?? zeroAmount.lo,
       change_amount_hi: args.privateWitness.changeNoteFieldEncoding?.amount.hi ?? zeroAmount.hi,
       input_note_type_code: args.privateWitness.inputNoteFieldEncoding.noteTypeCode,
-      sender_public_key_hi: args.privateWitness.inputNoteFieldEncoding.ownerPublicKey.hi,
-      sender_public_key_lo: args.privateWitness.inputNoteFieldEncoding.ownerPublicKey.lo,
-      sender_secret_key_hi: encodeBytes32ToTwoU128Be(args.privateWitness.senderSecretKey).hi,
-      sender_secret_key_lo: encodeBytes32ToTwoU128Be(args.privateWitness.senderSecretKey).lo,
+      sender_public_key_hi: sourceSenderPublicKey.hi,
+      sender_public_key_lo: sourceSenderPublicKey.lo,
+      sender_secret_key_hi: senderSecretKeyEncoding.hi,
+      sender_secret_key_lo: senderSecretKeyEncoding.lo,
+      sender_proving_owner_key_hi: senderProvingOwnerKey.hi,
+      sender_proving_owner_key_lo: senderProvingOwnerKey.lo,
       input_note_nonce_hi: args.privateWitness.inputNoteFieldEncoding.noteNonce.hi,
       input_note_nonce_lo: args.privateWitness.inputNoteFieldEncoding.noteNonce.lo,
       input_note_secret_hi: args.privateWitness.inputNoteFieldEncoding.noteSecret.hi,
@@ -501,10 +525,10 @@ export function serializeVantaPrivateCoreNoirSendWitnessPackageToToml(
     `change_amount_lo = "${privateWitness.change_amount_lo}"`,
     `change_amount_hi = "${privateWitness.change_amount_hi}"`,
     `input_note_type_code = "${privateWitness.input_note_type_code}"`,
-    `sender_public_key_hi = "${privateWitness.sender_public_key_hi}"`,
-    `sender_public_key_lo = "${privateWitness.sender_public_key_lo}"`,
     `sender_secret_key_hi = "${privateWitness.sender_secret_key_hi}"`,
     `sender_secret_key_lo = "${privateWitness.sender_secret_key_lo}"`,
+    `sender_proving_owner_key_hi = "${privateWitness.sender_proving_owner_key_hi}"`,
+    `sender_proving_owner_key_lo = "${privateWitness.sender_proving_owner_key_lo}"`,
     `input_note_nonce_hi = "${privateWitness.input_note_nonce_hi}"`,
     `input_note_nonce_lo = "${privateWitness.input_note_nonce_lo}"`,
     `input_note_secret_hi = "${privateWitness.input_note_secret_hi}"`,
@@ -820,13 +844,27 @@ function deriveMerkleSiblingField(sibling: Bytes32EncodingV0): FieldDecimalStrin
   return poseidon2([BigInt(sibling.hi), BigInt(sibling.lo)]).toString(10);
 }
 
+function derivePoseidonOwnerPublicKeyEncoding(
+  ownerSecretKey: Bytes32EncodingV0,
+): Bytes32EncodingV0 {
+  return {
+    encoding: VANTA_PRIVATE_CORE_SEND_BYTES32_ENCODING_V0,
+    sourceHex: zeroHex32(),
+    hi: "0",
+    lo: poseidon2([BigInt(ownerSecretKey.hi), BigInt(ownerSecretKey.lo)]).toString(10),
+  };
+}
+
 function derivePoseidonNullifierField(
+  ownerPublicKey: Bytes32EncodingV0,
   noteSecret: Bytes32EncodingV0,
   noteNonce: Bytes32EncodingV0,
   stateRoot: FieldDecimalString,
   merkleLeafField: FieldDecimalString,
 ): FieldDecimalString {
-  return poseidon6([
+  return poseidon8([
+    BigInt(ownerPublicKey.hi),
+    BigInt(ownerPublicKey.lo),
     BigInt(noteSecret.hi),
     BigInt(noteSecret.lo),
     BigInt(noteNonce.hi),

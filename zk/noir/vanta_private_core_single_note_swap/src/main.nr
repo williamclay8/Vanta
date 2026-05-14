@@ -95,6 +95,8 @@ fn compute_leaf_index(membership_path_direction_bits: [Field; MERKLE_DEPTH]) -> 
 }
 
 fn derive_nullifier(
+    owner_public_key_hi: Field,
+    owner_public_key_lo: Field,
     note_secret_hi: Field,
     note_secret_lo: Field,
     note_nonce_hi: Field,
@@ -102,7 +104,9 @@ fn derive_nullifier(
     state_root: Field,
     merkle_leaf: Field,
 ) -> Field {
-    bn254::hash_6([
+    bn254::hash_8([
+        owner_public_key_hi,
+        owner_public_key_lo,
         note_secret_hi,
         note_secret_lo,
         note_nonce_hi,
@@ -110,6 +114,10 @@ fn derive_nullifier(
         state_root,
         merkle_leaf,
     ])
+}
+
+fn derive_proving_owner_key(sender_secret_key_hi: Field, sender_secret_key_lo: Field) -> Field {
+    bn254::hash_2([sender_secret_key_hi, sender_secret_key_lo])
 }
 
 fn derive_swap_context_tag(
@@ -169,10 +177,10 @@ fn main(
     output_amount_lo: u64,
     output_amount_hi: u64,
     input_note_type_code: Field,
-    sender_public_key_hi: Field,
-    sender_public_key_lo: Field,
     sender_secret_key_hi: Field,
     sender_secret_key_lo: Field,
+    sender_proving_owner_key_hi: Field,
+    sender_proving_owner_key_lo: Field,
     input_note_nonce_hi: Field,
     input_note_nonce_lo: Field,
     input_note_secret_hi: Field,
@@ -200,10 +208,15 @@ fn main(
     assert(output_note_version == 0);
     assert(input_note_type_code == 0);
     assert(output_note_type_code == 0);
-    // v0.1 owner authorization remains prechecked off-circuit. Keep the
-    // sender secret witness live and nonzero until the in-circuit owner-auth
-    // upgrade lands.
-    assert(sender_secret_key_hi + sender_secret_key_lo != 0);
+
+    // The source-layer owner key remains X25519-prechecked off-circuit.
+    // The proving-lane input note is authorized by a Poseidon proof-owner key.
+    let computed_sender_proving_owner_key = derive_proving_owner_key(
+        sender_secret_key_hi,
+        sender_secret_key_lo,
+    );
+    assert(sender_proving_owner_key_hi == 0);
+    assert(computed_sender_proving_owner_key == sender_proving_owner_key_lo);
 
     let computed_swap_economic_terms_hash = derive_swap_economic_terms_hash(
         input_asset_id_hi,
@@ -224,8 +237,8 @@ fn main(
         input_asset_id_lo,
         input_amount_lo as Field,
         input_amount_hi as Field,
-        sender_public_key_hi,
-        sender_public_key_lo,
+        sender_proving_owner_key_hi,
+        sender_proving_owner_key_lo,
         input_note_nonce_hi,
         input_note_nonce_lo,
         input_note_secret_hi,
@@ -245,6 +258,8 @@ fn main(
     assert(computed_root == state_root);
 
     let computed_input_nullifier = derive_nullifier(
+        sender_proving_owner_key_hi,
+        sender_proving_owner_key_lo,
         input_note_secret_hi,
         input_note_secret_lo,
         input_note_nonce_hi,

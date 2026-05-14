@@ -19,7 +19,7 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 | Save the audit in a durable format | `goal.md`, `state.yaml`, `2026-05-14-intake.md` | Done | `npm run privacy-audit:tracker-check` |
 | Preserve revised live website evidence | `state.yaml` live evidence and intake note | Done | `npm run public:audit-discovery-check` |
 | N1 Shield output commitment binding | N1 tracker row and Shield circuit/fixture receipts | Local implemented | `npm run private-pool-v2:shield-circuit-check` |
-| N2 owner/input binding across lanes | N2 tracker row, blocker note, implementation-path note | Partial | PPv2 Swap input preimage is locally implemented and verified; Private Core Send/Swap sender auth remains approved and pending |
+| N2 owner/input binding across lanes | N2 tracker row, PPv2 Swap closure note, Private Core proof-owner closure note | Local implemented | PPv2 Send/Claim/Swap/actual-private-spend and Private Core Send/Swap have local binding guards; this does not imply production privacy or in-circuit X25519 |
 | N3 website meta/caveats | N3 tracker row and truth-copy checks | Local implemented | `npm run truth:privacy-claim-gate` |
 | N4 stale/live SBF lineage | N4 tracker row | Blocked | Requires deploy/live approval and receipts |
 | N5 frontend operator-env CI gate | N5 tracker row, `.github/workflows/privacy-audit.yml`, N5 CI note | Local implemented, pending CI run | Hosted GitHub Actions must run green |
@@ -52,11 +52,11 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 
 Goal is not complete.
 
-The audit is now tracked and several findings are implemented locally, but the remaining blockers include approved-but-unimplemented Private Core N2 protocol work, deploy/live approval gates, hosted CI evidence, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
+The audit is now tracked and N1, N2, N3, and N5 source-level/local gates have implementation evidence, but the remaining blockers include deploy/live approval gates, hosted CI evidence, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
 
 ## Current Lumi Snapshot
 
 - Local: tracker and implementation-path artifacts exist.
-- Committed: app branch has local commits through `02fe5b5`; the current PPv2 Swap input-preimage slice is local pending commit.
+- Committed: app branch has local commits through the PPv2 Swap input-preimage slice; the current Private Core proof-owner slice is local pending commit.
 - Pushed: branch is ahead of origin and the latest tracker commits are not pushed.
 - Deployed/live: latest tracker/circuit/CI slices are not deployed or live-verified.

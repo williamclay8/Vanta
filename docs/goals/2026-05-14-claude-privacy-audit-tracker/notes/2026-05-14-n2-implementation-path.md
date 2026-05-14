@@ -2,15 +2,15 @@
 
 ## Purpose
 
-This packet turns the two remaining N2 blockers into implementable paths without silently choosing a protocol fork.
+This packet records the two N2 implementation paths Clay approved on 2026-05-14 and the local closures that followed.
 
-Status: `proposed-requires-architecture-approval`
+Status: `approved-and-local-implemented`
 
 ## Path 1: Private Pool v2 Swap-To-Shielded Input Preimage
 
-Recommendation: extend the current Private Pool v2 Send/Claim input-preimage pattern to Swap-to-shielded.
+Decision: extend the current Private Pool v2 Send/Claim input-preimage pattern to Swap-to-shielded.
 
-Proposed preimage:
+Implemented preimage:
 
 ```text
 input_commitment = poseidon5([
@@ -57,11 +57,13 @@ Approval question:
 
 - Should Swap-to-shielded consume the same owner/asset/amount/blinding/derivation note preimage convention as PPv2 Send/Claim, with route/settlement/economics commitments remaining separate transcript commitments?
 
+Approval answer: yes.
+
 ## Path 2: Private Core Send/Swap Sender Authorization
 
-Recommendation: extend the existing Private Core Unshield hybrid proof-owner model to Send and Swap.
+Decision: extend the existing Private Core Unshield hybrid proof-owner model to Send and Swap.
 
-Proposed model:
+Implemented model:
 
 - Keep source-layer X25519 owner keys for payload compatibility and app-side recipient/viewing-key flows.
 - Add explicit Send/Swap proof metadata such as `provingOwnerKeyMode = poseidon-proof-owner-key-v0`.
@@ -83,7 +85,7 @@ Implementation files:
 - `zk/noir/vanta_private_core_single_note_swap/src/main.nr`
 - `src/zk/vantaPrivateCoreSendProof.ts`
 - `src/zk/vantaPrivateCoreSwapProof.ts`
-- `src/zk/vantaPrivateCoreOperatorClient.ts`
+- `operator/private-core-proof.mjs`
 - Private Core Send/Swap fixture writers and checks.
 - Owner-key hierarchy and circuit soundness guards.
 
@@ -98,7 +100,8 @@ Verification:
 - `npm run private-core:swap-check`
 - `npm run private-core:send-prove`
 - `npm run private-core:swap-prove`
-- `npm run zk:owner-key-hierarchy-contract-check`
+- `npm run private-core:send-proof-artifact-consistency-check`
+- `npm run private-core:send-operator-no-witness-check`
 - `npm run zk:circuit-soundness-lint`
 - `npm run privacy-audit:tracker-check`
 - `npm run build`
@@ -107,6 +110,8 @@ Approval question:
 
 - Should Private Core Send/Swap adopt an explicit version of the existing Unshield hybrid proof-owner convention, where X25519 remains source-layer compatibility and distinct Poseidon proof-owner keys become the in-circuit authorization relation?
 
-## Stop Rule
+Approval answer: yes.
 
-Do not implement either path until the relevant approval question is answered or superseded by a newer architecture decision. These paths are recommended because they align with existing Vanta patterns, but they still change protocol witness/metadata contracts.
+## Truth Rule
+
+Do not use this local N2 closure to claim production privacy, proof-verified on-chain settlement, program-owned custody, shared-tree correctness, fresh-address exit privacy, audit acceptance, or in-circuit X25519 ownership. The Private Core Send/Swap proof proves a Poseidon proof-owner relation while source-layer X25519 remains prechecked off-circuit.

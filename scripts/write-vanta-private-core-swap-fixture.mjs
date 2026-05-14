@@ -18,12 +18,13 @@ async function main() {
     fixtureMode !== "invalid-direction" &&
     fixtureMode !== "invalid-leaf-index" &&
     fixtureMode !== "invalid-sender-secret" &&
+    fixtureMode !== "invalid-owner-auth" &&
     fixtureMode !== "invalid-context-split" &&
     fixtureMode !== "invalid-amount-range" &&
     fixtureMode !== "valid-asset-sum-collision"
   ) {
     throw new Error(
-      'Expected fixture mode "valid", "invalid-direction", "invalid-leaf-index", "invalid-sender-secret", "invalid-context-split", "invalid-amount-range", or "valid-asset-sum-collision". Example: node scripts/write-vanta-private-core-swap-fixture.mjs invalid-direction',
+      'Expected fixture mode "valid", "invalid-direction", "invalid-leaf-index", "invalid-sender-secret", "invalid-owner-auth", "invalid-context-split", "invalid-amount-range", or "valid-asset-sum-collision". Example: node scripts/write-vanta-private-core-swap-fixture.mjs invalid-direction',
     );
   }
 
@@ -113,6 +114,18 @@ function createWitnessPackageForMode(fixture, mode) {
     };
   }
 
+  if (mode === "invalid-owner-auth") {
+    return {
+      ...validWitnessPackage,
+      privateWitness: {
+        ...validWitnessPackage.privateWitness,
+        sender_secret_key_lo: (
+          BigInt(validWitnessPackage.privateWitness.sender_secret_key_lo) + 1n
+        ).toString(10),
+      },
+    };
+  }
+
   if (mode === "invalid-context-split") {
     const contextTag = BigInt(validWitnessPackage.publicInputs.swap_context_tag_lo);
     return {
@@ -148,7 +161,9 @@ function createInvalidAmountRangeWitnessPackage(validWitnessPackage) {
     path: privateWitness.membership_path,
     pathDirectionBits: privateWitness.membership_path_direction_bits,
   });
-  const inputNullifier = poseidon6([
+  const inputNullifier = poseidon8([
+    BigInt(privateWitness.sender_proving_owner_key_hi),
+    BigInt(privateWitness.sender_proving_owner_key_lo),
     BigInt(privateWitness.input_note_secret_hi),
     BigInt(privateWitness.input_note_secret_lo),
     BigInt(privateWitness.input_note_nonce_hi),
@@ -273,8 +288,8 @@ function deriveInputCommitment(privateWitness) {
     BigInt(privateWitness.input_asset_id_lo),
     BigInt(privateWitness.input_amount_lo),
     BigInt(privateWitness.input_amount_hi),
-    BigInt(privateWitness.sender_public_key_hi),
-    BigInt(privateWitness.sender_public_key_lo),
+    BigInt(privateWitness.sender_proving_owner_key_hi),
+    BigInt(privateWitness.sender_proving_owner_key_lo),
     BigInt(privateWitness.input_note_nonce_hi),
     BigInt(privateWitness.input_note_nonce_lo),
     BigInt(privateWitness.input_note_secret_hi),

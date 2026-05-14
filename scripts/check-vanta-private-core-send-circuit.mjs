@@ -63,6 +63,10 @@ try {
   printStatus("invalid-leaf-index fixture write: PASS");
   expectExecuteFailure("invalid-leaf-index");
 
+  writeFixture("invalid-owner-auth");
+  printStatus("invalid-owner-auth fixture write: PASS");
+  expectExecuteFailure("invalid-owner-auth");
+
   writeFixture("invalid-context-split");
   printStatus("invalid-context-split fixture write: PASS");
   expectExecuteFailure("invalid-context-split");

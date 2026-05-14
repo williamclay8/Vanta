@@ -57,7 +57,7 @@ audit_findings:
   - id: N2
     severity: critical
     title: "Owner secret/input commitment binding missing across spend lanes"
-    status: partial-local-implemented
+    status: local-implemented
     lane: circuits
     files:
       - "zk/noir/vanta_private_pool_v2_send_entry/src/main.nr"
@@ -80,14 +80,18 @@ audit_findings:
       - "Swap-to-shielded proof-request, public-input-hash, browser-worker, local-bb, proof-artifact, operator-no-witness, prove, TypeScript, and build paths were updated and verified for the new witness ABI."
       - "Private Pool v2 actual-private-spend now recomputes input_commitment from note_secret, pool_id, asset_cohort, input_blinding, and input_derivation_tag."
       - "Actual-private-spend circuit check now includes invalid-input-commitment-preimage fixtures and the witness/browser/proof paths carry the new note-preimage fields."
-    remaining:
-      - "Private Core Send/Swap approved Poseidon proof-owner authorization implementation."
+      - "Private Core Send/Swap now declare provingOwnerKeyMode = poseidon-proof-owner-key-v0, carry distinct sender_proving_owner_key_hi/lo fields, and derive that proof-owner key from sender_secret_key limbs inside Noir."
+      - "Private Core Send/Swap consumed-note commitments and nullifiers now use the Poseidon proof-owner key while source-layer X25519 ownership remains prechecked off-circuit for payload compatibility."
+      - "Private Core Send/Swap circuit checks now include invalid-owner-auth fixtures, and operator proof serialization validates the proof-owner key relation before proving."
+    remaining: []
     completion_guard:
-      status_must_remain: "partial-local-implemented"
-      hard_blockers:
-        - "N2 is not complete while Private Core Send/Swap use x25519-secret-prechecked-off-circuit owner authorization; a nonzero sender_secret_key assertion is not sender authorization."
+      status_must_remain: "local-implemented"
+      residual_truth_boundary:
+        - "N2 local implementation does not imply production privacy, in-circuit X25519 ownership, on-chain verifier readiness, program-owned custody, shared-tree correctness, fresh-address exit privacy, or audit acceptance."
+        - "Private Core Send/Swap still keep source-layer X25519 owner authorization prechecked off-circuit; Noir proves a Poseidon proof-owner key relation only."
       forbidden_completion_claim:
-        - "Do not mark N2 complete based only on keeping Private Core sender_secret_key live/nonzero."
+        - "Do not claim Private Core Send/Swap prove X25519 ownership in circuit."
+        - "Do not treat N2 local implementation as proof-verified on-chain privacy."
     remaining_design_blockers:
       - id: N2-PPV2-SWAP-INPUT-PREIMAGE
         status: local-implemented
@@ -115,20 +119,34 @@ audit_findings:
           - "npm run private-pool-v2:contract-check"
           - "npm run build"
       - id: N2-PRIVATE-CORE-SENDER-AUTH
-        status: approved-pending-implementation
+        status: local-implemented
         decision_approved_by: "Clay"
         decision_approved_on: "2026-05-14"
         evidence_refs:
-          - "zk/noir/vanta_private_core_single_note_send/src/main.nr keeps sender_secret_key live/nonzero with owner authorization prechecked off-circuit."
-          - "zk/noir/vanta_private_core_single_note_swap/src/main.nr keeps sender_secret_key live/nonzero with owner authorization prechecked off-circuit."
-          - "src/zk/vantaPrivateCoreSendProof.ts and src/zk/vantaPrivateCoreSwapProof.ts label the current model x25519-secret-prechecked-off-circuit."
+          - "zk/noir/vanta_private_core_single_note_send/src/main.nr derives sender_proving_owner_key_lo = poseidon2([sender_secret_key_hi, sender_secret_key_lo]) and binds the consumed-note commitment/nullifier to that proof-owner key."
+          - "zk/noir/vanta_private_core_single_note_swap/src/main.nr derives sender_proving_owner_key_lo = poseidon2([sender_secret_key_hi, sender_secret_key_lo]) and binds the consumed-note commitment/nullifier to that proof-owner key."
+          - "src/zk/vantaPrivateCoreSendProof.ts and src/zk/vantaPrivateCoreSwapProof.ts declare provingOwnerKeyMode = poseidon-proof-owner-key-v0 while preserving ownerAuthorizationMode = x25519-secret-prechecked-off-circuit."
+          - "operator/private-core-proof.mjs serializes sender_proving_owner_key_hi/lo and rejects proof-owner key drift before proving."
+          - "scripts/check-vanta-private-core-send-circuit.mjs and scripts/check-vanta-private-core-swap-circuit.mjs include invalid-owner-auth fixtures."
+          - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-n2-private-core-proof-owner.md"
           - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-n2-design-blockers.md"
           - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-n2-implementation-path.md"
-        decision_required: "Choose whether Private Core keeps X25519 owner-public-key notes with off-circuit precheck, adds a separate Poseidon proof-owner key, or migrates note ownership to an in-circuit-friendly key model."
-        proposed_path: "Extend the existing Private Core Unshield hybrid proof-owner model explicitly: keep source-layer X25519 compatibility, add provingOwnerKeyMode = poseidon-proof-owner-key-v0, prefer distinct proving-owner fields, and bind Send/Swap Noir notes to a Poseidon proof-owner key derived from sender_secret_key limbs."
+        decision_required: "answered"
+        implemented_path: "Extend the existing Private Core Unshield hybrid proof-owner model explicitly: keep source-layer X25519 compatibility, add provingOwnerKeyMode = poseidon-proof-owner-key-v0, use distinct sender_proving_owner_key fields, and bind Send/Swap Noir notes/nullifiers to a Poseidon proof-owner key derived from sender_secret_key limbs."
         approval_question: "Should Private Core Send/Swap adopt an explicit Unshield-style hybrid proof-owner convention for in-circuit authorization?"
         approval_answer: "yes"
-        not_safe_to_complete_without: "A key-model decision, updated proof metadata, invalid-owner-auth fixtures for Send and Swap, and updated private-core verification commands."
+        not_safe_to_complete_without: "Implemented locally on 2026-05-14 with explicit proof-owner metadata, invalid-owner-auth fixtures for Send and Swap, and updated private-core proof serialization."
+        verification:
+          - "npm run private-core:send-check"
+          - "npm run private-core:swap-check"
+          - "npm run private-core:send-proof-artifact-consistency-check"
+          - "npm run private-core:send-operator-no-witness-check"
+          - "npm run private-core:swap-boundary-check"
+          - "npm run private-core:swap-live-path-check"
+          - "npm run private-core:send-prove"
+          - "npm run private-core:swap-prove"
+          - "npm run zk:circuit-soundness-lint"
+          - "npx tsc --noEmit --pretty false"
     verify:
       - "npm run zk:circuit-soundness-lint"
       - "npm run private-pool-v2:send-circuit-check"
@@ -143,6 +161,12 @@ audit_findings:
       - "npm run private-pool-v2:claim-proof-artifact-consistency-check"
       - "npm run private-pool-v2:claim-operator-no-witness-check"
       - "npm run private-pool-v2:claim-prove"
+      - "npm run private-core:send-check"
+      - "npm run private-core:swap-check"
+      - "npm run private-core:send-proof-artifact-consistency-check"
+      - "npm run private-core:send-operator-no-witness-check"
+      - "npm run private-core:send-prove"
+      - "npm run private-core:swap-prove"
       - "npm run private-pool-v2:swap-to-shielded-circuit-check"
       - "npm run private-pool-v2:swap-to-shielded-proof-request-check"
       - "npm run private-pool-v2:swap-to-shielded-browser-worker-prover-check"
@@ -459,13 +483,11 @@ audit_completion_checklist:
   path: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-completion-audit.md"
   status: active-not-complete
   current_blockers:
-    - "N2 PPv2 Swap input-preimage decision is implemented locally; Private Core proof-owner authorization remains approved but not implemented."
     - "N4 requires deploy/live approval and receipts."
     - "N5 requires hosted GitHub Actions green evidence."
     - "Architecture blockers A1-A6 remain incomplete or approval-gated."
     - "R8A/R9A/R10A/R11A/R12/R13A/R14/R15/R15A/R19/R20/R21 remain pending, blocked, or approval-gated."
 
 next_safe_slices:
-  - "Implement approved N2-PRIVATE-CORE-SENDER-AUTH with explicit Poseidon proof-owner metadata and invalid-owner-auth coverage."
   - "Add focused tracker/guards or implementation for R11A, R12, R13A, R14, R15A, and R19."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."
