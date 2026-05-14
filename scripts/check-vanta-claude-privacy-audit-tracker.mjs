@@ -41,6 +41,10 @@ const r15aOperatorKeypairEnvLockdownNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r15a-operator-keypair-env-lockdown.md",
 );
+const r19ThreatModelNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r19-threat-model.md",
+);
 const completionAuditNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-completion-audit.md",
@@ -66,6 +70,7 @@ for (const path of [
   r11aLiveAnonymitySetProbeNotePath,
   r13aLiveMetaDescriptionScrapeNotePath,
   r15aOperatorKeypairEnvLockdownNotePath,
+  r19ThreatModelNotePath,
   completionAuditNotePath,
   privacyAuditWorkflowPath,
 ]) {
@@ -85,9 +90,11 @@ const r8aProverRelayPrivacyTradeoffNote = read(r8aProverRelayPrivacyTradeoffNote
 const r11aLiveAnonymitySetProbeNote = read(r11aLiveAnonymitySetProbeNotePath);
 const r13aLiveMetaDescriptionScrapeNote = read(r13aLiveMetaDescriptionScrapeNotePath);
 const r15aOperatorKeypairEnvLockdownNote = read(r15aOperatorKeypairEnvLockdownNotePath);
+const r19ThreatModelNote = read(r19ThreatModelNotePath);
 const completionAuditNote = read(completionAuditNotePath);
 const privacyAuditWorkflow = read(privacyAuditWorkflowPath);
 const proverRelayTradeoffs = read(resolve(repoRoot, "docs/zk/prover-relay-privacy-tradeoffs.md"));
+const threatModel = read(resolve(repoRoot, "docs/threat-model.md"));
 const packageJson = JSON.parse(read(packagePath));
 
 for (const phrase of [
@@ -175,6 +182,8 @@ for (const phrase of [
   "npm run operator:keypair-env-lockdown-check",
   "scripts/check-vanta-operator-keypair-env-lockdown.mjs scans operator/*.mjs for raw Solana keypair env loading.",
   "R19-THREAT-MODEL",
+  "docs/threat-model.md documents the current pre-mainnet actors, assets, trust boundaries, adversaries, non-claims, and verification commands.",
+  "scripts/check-vanta-docs-source-of-truth.mjs requires the threat model to preserve beta-truth phrases",
   "R20-MAINNET-ONCHAIN-REPLAY-TEST",
   "R21-E2E-DEPOSIT-SEND-FRESH-EXIT-PRIVACY-TEST",
   "audit_completion_checklist",
@@ -382,6 +391,49 @@ for (const phrase of [
 }
 
 for (const phrase of [
+  "R19 Threat Model - 2026-05-14",
+  "Status: local implemented.",
+  "docs/threat-model.md",
+  "docs/docs-source-of-truth.md",
+  "npm run docs:source-of-truth-check",
+  "Vanta production privacy is not enabled.",
+  "users, merchants, relayers, operators, counterparties",
+  "ERR_PROOF_VERIFIER_NOT_WIRED",
+  "ERR_UNSHIELD_RELEASE_NOT_WIRED",
+  "operator-keypair public exit",
+  "loadKeypairFromEnv(vaultSignerSecretKeyEnvName)",
+  "destinationOwner !== requester",
+  "browser localStorage records are diagnostics and continuity aids only",
+  "recipient discovery",
+  "program-owned shared-tree state",
+  "legacy v1 plaintext memo quarantine",
+  "not production-private proof",
+]) {
+  assert.ok(r19ThreatModelNote.includes(phrase), `R19 threat-model note missing ${phrase}`);
+}
+
+for (const phrase of [
+  "Vanta Threat Model",
+  "Last validated against repo-local code: 2026-05-14.",
+  "Vanta production privacy is not enabled",
+  "It does not claim anonymous, untraceable, fully private, production-ready, or live mainnet-private settlement.",
+  "A remote prover or prover relay must be explicit opt-in.",
+  "Browser localStorage records are diagnostics and continuity aids only.",
+  "currentDistinctCommitments: 2",
+  "minimumDistinctCommitments: 1024",
+  "ERR_PROOF_VERIFIER_NOT_WIRED",
+  "ERR_UNSHIELD_RELEASE_NOT_WIRED",
+  "operator-keypair public exit",
+  "destinationOwner !== requester",
+  "A program-owned shared tree is not deployed.",
+  "Recipient discovery is not production deployed.",
+  "legacy v1 plaintext memo history",
+  "npm run private-pool-v2:live-anonymity-set-probe-check",
+]) {
+  assert.ok(threatModel.includes(phrase), `docs/threat-model.md missing ${phrase}`);
+}
+
+for (const phrase of [
   "Prompt-To-Artifact Checklist",
   "Goal is not complete.",
   "N2 owner/input binding across lanes",
@@ -404,11 +456,13 @@ for (const phrase of [
   "Operator keypair env lockdown guard",
   "npm run operator:keypair-env-lockdown-check",
   "Positive proof-verified claim gate",
+  "Threat model",
+  "docs/threat-model.md",
+  "npm run docs:source-of-truth-check",
   "Mainnet on-chain replay test",
   "Deposit-send-fresh-exit privacy test",
-  "Threat model",
   "branch is ahead of origin",
-  "latest tracker/circuit/CI slices are not deployed or live-verified",
+  "latest tracker/docs/circuit/CI slices are not deployed",
 ]) {
   assert.ok(completionAuditNote.includes(phrase), `completion audit note missing ${phrase}`);
 }

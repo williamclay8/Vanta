@@ -44,7 +44,7 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 | Operator keypair env lockdown guard | R15A | Local implemented | `npm run operator:keypair-env-lockdown-check` scans operator raw keypair env loading and keeps exceptions explicit |
 | Positive proof-verified claim gate | R16 | Blocked on verifier | Requires tag-3 valid proof success before proof-verified claims |
 | Browser localStorage Merkle mirror | R18 | Blocked on program-owned tree | Current localStorage chain remains non-privacy primitive |
-| Threat model | R19 | Pending implementation | Needs docs/threat-model.md or equivalent source-of-truth |
+| Threat model | R19 | Local implemented | `docs/threat-model.md`; `npm run docs:source-of-truth-check` |
 | Mainnet on-chain replay test | R20 | Blocked / approval-gated | Requires mainnet-condition test approval and safe live-state handling |
 | Deposit-send-fresh-exit privacy test | R21 | Blocked | Architecture does not yet permit proof-bound fresh-address exit |
 
@@ -57,6 +57,6 @@ The audit is now tracked and N1, N2, N3, and N5 source-level/local gates have im
 ## Current Lumi Snapshot
 
 - Local: tracker and implementation-path artifacts exist.
-- Committed: app branch has local commits through the PPv2 Swap input-preimage slice; the current Private Core proof-owner slice is local pending commit.
+- Committed: app branch has local commits through the live meta-description scrape slice; the current threat-model slice is local pending commit.
 - Pushed: branch is ahead of origin and the latest tracker commits are not pushed.
-- Deployed/live: latest tracker/circuit/CI slices are not deployed or live-verified.
+- Deployed/live: latest tracker/docs/circuit/CI slices are not deployed; live-read checks are read-only evidence, not deployment evidence for the current branch.

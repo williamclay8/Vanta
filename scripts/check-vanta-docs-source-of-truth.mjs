@@ -49,6 +49,7 @@ const zkReview = readRequired("VANTA_ZK_REVIEW.md");
 const sourceOfTruth = readRequired("docs/docs-source-of-truth.md");
 const limitations = readRequired("SECURITY_LIMITATIONS.md");
 const privacyModel = readRequired("docs/privacy-model.md");
+const threatModel = readRequired("docs/threat-model.md");
 const canonicalNote = readRequired("docs/zk/canonical-note-schema.md");
 const zkAssumptions = readRequired("docs/zk/vanta-zk-v1-assumptions.md");
 const zkRemainingWork = readRequired("docs/zk/vanta-zk-v1-remaining-work.md");
@@ -89,6 +90,7 @@ for (const phrase of [
   "SECURITY_LIMITATIONS.md",
   "docs/privacy-model.md",
   "docs/privacy-rail-contract.md",
+  "docs/threat-model.md",
   "LANE_STATUS.md",
   "src/docs/docsContent.ts",
   "pay:doc-truth-check",
@@ -100,6 +102,28 @@ for (const phrase of [
 requirePhrase(limitations, "Last validated against repo-local code: 2026-05-14", "SECURITY_LIMITATIONS.md");
 requirePhrase(docsContent, "test checkout", "src/docs/docsContent.ts");
 requirePhrase(privacyModel, 'What "shielded state" means today', "docs/privacy-model.md");
+for (const phrase of [
+  "Last validated against repo-local code: 2026-05-14",
+  "Vanta production privacy is not enabled",
+  "users, merchants, relayers, operators, counterparties",
+  "A remote prover or prover relay must be explicit opt-in.",
+  "Browser localStorage records are diagnostics and continuity aids only.",
+  "currentDistinctCommitments: 2",
+  "minimumDistinctCommitments: 1024",
+  "ERR_PROOF_VERIFIER_NOT_WIRED",
+  "ERR_UNSHIELD_RELEASE_NOT_WIRED",
+  "operator-keypair public exit",
+  "loadKeypairFromEnv(vaultSignerSecretKeyEnvName)",
+  "destinationOwner !== requester",
+  "program-owned shared tree is not deployed",
+  "Recipient discovery is not production deployed.",
+  "legacy v1 plaintext memo history",
+  "npm run docs:source-of-truth-check",
+  "npm run privacy-audit:tracker-check",
+  "npm run private-pool-v2:live-anonymity-set-probe-check",
+]) {
+  requirePhrase(threatModel, phrase, "docs/threat-model.md");
+}
 requirePhrase(canonicalNote, "Transitional Hash Surface Today", "docs/zk/canonical-note-schema.md");
 for (const [content, path] of [
   [zkAssumptions, "docs/zk/vanta-zk-v1-assumptions.md"],

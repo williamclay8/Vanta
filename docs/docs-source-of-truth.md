@@ -7,6 +7,7 @@ Markdown docs are the canonical source of truth for security, privacy-model, ope
 - `SECURITY_LIMITATIONS.md`
 - `docs/privacy-model.md`
 - `docs/privacy-rail-contract.md`
+- `docs/threat-model.md`
 - `docs/operator-runbook.md`
 - `docs/audit-package.md`
 - `LANE_STATUS.md`

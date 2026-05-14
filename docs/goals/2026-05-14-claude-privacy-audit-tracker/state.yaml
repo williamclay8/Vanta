@@ -480,8 +480,12 @@ audit_remaining_work_backlog:
     source_priority: low
     source_item: "Document users, merchants, relayers, operators, counterparties, and trust boundaries before mainnet."
     tracker_ref: "docs/threat-model.md"
-    status: pending-implementation
+    status: local-implemented
     guard: "npm run docs:source-of-truth-check"
+    evidence:
+      - "docs/threat-model.md documents the current pre-mainnet actors, assets, trust boundaries, adversaries, non-claims, and verification commands."
+      - "docs/docs-source-of-truth.md now lists docs/threat-model.md as canonical docs source material."
+      - "scripts/check-vanta-docs-source-of-truth.mjs requires the threat model to preserve beta-truth phrases for tag-3/tag-6, operator-keypair public exit, self-wallet exit, program-owned tree absence, recipient discovery absence, prover-relay opt-in, localStorage diagnostics, live anonymity-set block, and legacy v1 memo risk."
   - id: R20-MAINNET-ONCHAIN-REPLAY-TEST
     source_priority: high
     source_item: "Add a mainnet-condition on-chain replay/nullifier test before citing live replay evidence."
@@ -502,8 +506,8 @@ audit_completion_checklist:
     - "N4 requires deploy/live approval and receipts."
     - "N5 requires hosted GitHub Actions green evidence."
     - "Architecture blockers A1-A6 remain incomplete or approval-gated."
-    - "R9A/R10A/R12/R14/R19/R20/R21 remain pending, blocked, or approval-gated."
+    - "R9A/R10A/R12/R14/R20/R21 remain pending, blocked, or approval-gated."
 
 next_safe_slices:
-  - "Add focused tracker/guards or implementation for R12, R14, and R19."
+  - "Add focused tracker/guards or implementation for R12 and R14."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."
