@@ -36,18 +36,21 @@ assert.equal(
   "postgres-jsonb-snapshot-store",
 );
 assert.equal(status.runtimeProductionControls.operatorEventSinkProductionReady, false);
-assert.equal(status.onchainUnshieldCustody.version, "vanta-onchain-unshield-custody-status-0.2");
+assert.equal(status.onchainUnshieldCustody.version, "vanta-onchain-unshield-custody-status-0.3");
 assert.equal(status.onchainUnshieldCustody.status, "blocked");
 assert.equal(status.onchainUnshieldCustody.currentReleaseModel, "operator-keypair-public-exit");
 assert.equal(status.onchainUnshieldCustody.productionCustodyReady, false);
 assert.equal(status.onchainUnshieldCustody.programOwnedVaultReady, false);
 assert.equal(status.onchainUnshieldCustody.sourceOnlyVaultAuthorityPreflightReady, true);
+assert.equal(status.onchainUnshieldCustody.sourceOnlyVaultAssetRegistryReady, true);
+assert.equal(status.onchainUnshieldCustody.sourceOnlyVaultTokenAccountPreflightReady, true);
 assert.equal(status.onchainUnshieldCustody.sourceOnlyRootPreflightReady, true);
 assert.equal(status.onchainUnshieldCustody.onchainUnshieldInstructionReady, false);
 assert.equal(
   status.onchainUnshieldCustody.onchainUnshieldInstructionStatus,
-  "reserved-fail-closed-vault-preflight-source-only",
+  "reserved-fail-closed-vault-asset-preflight-source-only",
 );
+assert.equal(status.onchainUnshieldCustody.tagUnshieldVaultAssetRegistryReleaseEnabled, false);
 assert.equal(status.onchainUnshieldCustody.tokenCpiReleaseReady, false);
 assert.equal(status.onchainUnshieldCustody.onchainProofVerifierReady, false);
 for (const blocker of [

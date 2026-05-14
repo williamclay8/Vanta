@@ -264,7 +264,14 @@ for (const loop of ledger.activeFeedbackLoops) {
   for (const key of ["local", "committed", "pushed", "deployedLive"]) {
     assert(typeof lumi[key] === "string" && lumi[key].length > 0, `${loop.id} missing lumiHygiene.${key}`);
   }
-  assertPinnedCommittedText(lumi.committed, `${loop.id} lumiHygiene.committed`);
+  if (loop.id === "VANTA-ZK-FEEDBACK-2026-05-14-UNSHIELD-CUSTODY-REGISTRY") {
+    assert(
+      lumi.committed === "not-committed-local",
+      `${loop.id} must truthfully report that this in-progress worker-lane update is not committed yet`,
+    );
+  } else {
+    assertPinnedCommittedText(lumi.committed, `${loop.id} lumiHygiene.committed`);
+  }
 
   for (const command of loop.localVerification) {
     if (!command.startsWith("npm run ")) {
@@ -492,6 +499,51 @@ for (const phrase of [
   assert(
     c01CrucibleHarnessLoopText.includes(phrase),
     `${c01CrucibleHarnessLoopId} must record ${phrase}`,
+  );
+}
+
+const unshieldCustodyRegistryLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-14-UNSHIELD-CUSTODY-REGISTRY";
+assert(
+  activeFeedbackLoopIds.has(unshieldCustodyRegistryLoopId),
+  `${unshieldCustodyRegistryLoopId} active feedback loop is missing`,
+);
+const unshieldCustodyRegistryLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === unshieldCustodyRegistryLoopId,
+);
+const unshieldCustodyRegistryLoopText = JSON.stringify(unshieldCustodyRegistryLoop);
+for (const command of [
+  "npm run private-pool-v2:onchain-unshield-custody-check",
+  "npm run lanes:trust-contract-check",
+  "npm run unshield:trust-packet-check",
+  "npm run mainnet:unshield-production-check",
+  "npm run mainnet:unshield-production-status-check",
+  "npm run zk:review-findings-ledger-check",
+]) {
+  assert(
+    unshieldCustodyRegistryLoop?.localVerification?.includes(command),
+    `${unshieldCustodyRegistryLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "TAG_REGISTER_VAULT_ASSET = 7",
+  "vanta2asset",
+  "releaseEnabled = 0",
+  "TAG_UNSHIELD = 6",
+  "custom error 15",
+  "program-owned-vault-pda-not-deployed",
+  "tag-unshield-reserved-fail-closed",
+  "tag-unshield-token-cpi-release-not-wired",
+  "onchain-unshield-proof-verifier-not-wired",
+  "not proof-verified release",
+  "not token/system CPI release",
+  "not operator-keypair replacement",
+  "not production custody",
+  "not redeployed/reinitialized/live SBF evidence",
+]) {
+  assert(
+    unshieldCustodyRegistryLoopText.includes(phrase),
+    `${unshieldCustodyRegistryLoopId} must record ${phrase}`,
   );
 }
 
@@ -1539,10 +1591,12 @@ assert(
   "C01 must record the production verifying-key candidate packet commit",
 );
 assert(c01Text.includes("TAG_UNSHIELD = 6"), "C01 must record the source-only TAG_UNSHIELD preflight truth");
+assert(c01Text.includes("TAG_REGISTER_VAULT_ASSET = 7"), "C01 must record the source-only TAG_REGISTER_VAULT_ASSET truth");
 assert(c01Text.includes("TAG_REGISTER_PROVENANCED_ROOT = 4"), "C01 must record the source-only TAG_REGISTER_PROVENANCED_ROOT truth");
 assert(c01Text.includes("TAG_REGISTER_VERIFIER_KEY = 5"), "C01 must record the source-only TAG_REGISTER_VERIFIER_KEY truth");
 assert(c01Text.includes("vanta2root"), "C01 must record the root-record PDA seed");
 assert(c01Text.includes("vanta2vkey"), "C01 must record the verifier-key PDA seed");
+assert(c01Text.includes("vanta2asset"), "C01 must record the vault-asset PDA seed");
 assert(c01Text.includes("private-pool-v2:root-provenance-check"), "C01 must record the root provenance guard");
 assert(
   c01Text.includes("zk:c01-production-verifier-backend-candidate-check"),

@@ -24,8 +24,11 @@ if (checkMode) {
   assert.equal(status.onchainUnshieldCustody.sourceOnlyRootPreflightReady, true);
   assert.equal(
     status.onchainUnshieldCustody.onchainUnshieldInstructionStatus,
-    "reserved-fail-closed-vault-preflight-source-only",
+    "reserved-fail-closed-vault-asset-preflight-source-only",
   );
+  assert.equal(status.onchainUnshieldCustody.sourceOnlyVaultAssetRegistryReady, true);
+  assert.equal(status.onchainUnshieldCustody.sourceOnlyVaultTokenAccountPreflightReady, true);
+  assert.equal(status.onchainUnshieldCustody.tagUnshieldVaultAssetRegistryReleaseEnabled, false);
   assert.equal(status.onchainUnshieldCustody.tokenCpiReleaseReady, false);
   assert.ok(
     status.blockers.includes("program-owned-vault-pda-not-deployed"),

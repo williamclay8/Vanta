@@ -76,7 +76,7 @@ function createUnshieldRuntimeProductionControlsStatus() {
 
 function createOnchainUnshieldCustodyStatus() {
   return {
-    version: "vanta-onchain-unshield-custody-status-0.2",
+    version: "vanta-onchain-unshield-custody-status-0.3",
     status: "blocked",
     custodyModel: "operator-keypair-in-env",
     currentReleaseModel: "operator-keypair-public-exit",
@@ -84,11 +84,14 @@ function createOnchainUnshieldCustodyStatus() {
     programOwnedVaultReady: false,
     programOwnedVaultPdaReady: false,
     sourceOnlyVaultAuthorityPreflightReady: true,
+    sourceOnlyVaultAssetRegistryReady: true,
+    sourceOnlyVaultTokenAccountPreflightReady: true,
     sourceOnlyRootPreflightReady: true,
     sourceOnlyNullifierMarkerPreflightReady: true,
     onchainUnshieldInstructionReady: false,
-    onchainUnshieldInstructionStatus: "reserved-fail-closed-vault-preflight-source-only",
+    onchainUnshieldInstructionStatus: "reserved-fail-closed-vault-asset-preflight-source-only",
     tagUnshieldReleaseReady: false,
+    tagUnshieldVaultAssetRegistryReleaseEnabled: false,
     tokenCpiReleaseReady: false,
     onchainProofVerifierReady: false,
     blockers: [
@@ -113,7 +116,7 @@ function createOnchainUnshieldCustodyStatus() {
       "Remove operator vault-keypair release authority from the production Unshield path.",
     ],
     truth:
-      "Current Unshield release remains an operator-keypair public exit: the operator signs SPL/SOL transfers from the configured vault owner. The local TAG_UNSHIELD source ABI is reserved fail-closed with source-only root/root-record/nullifier/vault-authority preflight and cannot release funds. This is beta custodial infrastructure, not program-owned on-chain custody.",
+      "Current Unshield release remains an operator-keypair public exit: the operator signs SPL/SOL transfers from the configured vault owner. The local TAG_UNSHIELD source ABI is reserved fail-closed with source-only root/root-record/nullifier/vault-authority/vault-asset/token-account preflight and cannot release funds. The source-level vault-asset registry scaffold keeps releaseEnabled false and is not production custody.",
   };
 }
 
@@ -218,6 +221,6 @@ export function createVantaUnshieldMainnetProductionStatus() {
     safety:
       "No auth tokens, database URLs, wallet keys, signed transactions, seed phrases, or raw private inputs are printed.",
     truth:
-      "Unshield has local no-funds operator and wallet-safety coverage, but the current release model is still an operator-keypair public exit rather than program-owned on-chain custody. It must not be called mainnet-production-ready until live reviewed settlement evidence, active real-funds approval, program-owned vault custody with on-chain TAG_UNSHIELD proof-verified release, audited/shared anonymity-set evidence, and production replay evidence are all present.",
+      "Unshield has local no-funds operator and wallet-safety coverage, but the current release model is still an operator-keypair public exit rather than program-owned on-chain custody. The source-level vault-asset registry scaffold keeps releaseEnabled false and does not release funds. Unshield must not be called mainnet-production-ready until live reviewed settlement evidence, active real-funds approval, program-owned vault custody with on-chain TAG_UNSHIELD proof-verified release, audited/shared anonymity-set evidence, and production replay evidence are all present.",
   };
 }

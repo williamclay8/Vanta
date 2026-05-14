@@ -24,15 +24,18 @@ const status = createVantaUnshieldMainnetProductionStatus();
 const custody = status.onchainUnshieldCustody;
 
 assert.ok(custody, "Unshield production status must expose onchainUnshieldCustody.");
-assert.equal(custody.version, "vanta-onchain-unshield-custody-status-0.2");
+assert.equal(custody.version, "vanta-onchain-unshield-custody-status-0.3");
 assert.equal(custody.status, "blocked");
 assert.equal(custody.productionCustodyReady, false);
 assert.equal(custody.programOwnedVaultReady, false);
 assert.equal(custody.sourceOnlyVaultAuthorityPreflightReady, true);
+assert.equal(custody.sourceOnlyVaultAssetRegistryReady, true);
+assert.equal(custody.sourceOnlyVaultTokenAccountPreflightReady, true);
 assert.equal(custody.sourceOnlyRootPreflightReady, true);
 assert.equal(custody.sourceOnlyNullifierMarkerPreflightReady, true);
 assert.equal(custody.onchainUnshieldInstructionReady, false);
-assert.equal(custody.onchainUnshieldInstructionStatus, "reserved-fail-closed-vault-preflight-source-only");
+assert.equal(custody.onchainUnshieldInstructionStatus, "reserved-fail-closed-vault-asset-preflight-source-only");
+assert.equal(custody.tagUnshieldVaultAssetRegistryReleaseEnabled, false);
 assert.equal(custody.tokenCpiReleaseReady, false);
 assert.equal(custody.onchainProofVerifierReady, false);
 assert.equal(custody.currentReleaseModel, "operator-keypair-public-exit");
@@ -50,34 +53,61 @@ for (const blocker of [
 
 for (const marker of [
   "const TAG_UNSHIELD: u8 = 6;",
+  "const TAG_REGISTER_VAULT_ASSET: u8 = 7;",
   "const ROOT_RECORD_SEED: &[u8] = b\"vanta2root\";",
   "const VAULT_AUTHORITY_SEED: &[u8] = b\"vanta2vault\";",
+  "const VAULT_ASSET_MAGIC: &[u8; 8] = b\"VNTA2AST\";",
+  "const VAULT_ASSET_SEED: &[u8] = b\"vanta2asset\";",
+  "const VAULT_ASSET_RELEASE_ENABLED_OFFSET",
+  "const SPL_TOKEN_PROGRAM_ID: Pubkey",
   "const UNSHIELD_PAYLOAD_LEN",
   "const ERR_UNSHIELD_RELEASE_NOT_WIRED: u32 = 15;",
   "const ERR_VAULT_AUTHORITY_MISMATCH: u32 = 16;",
   "const ERR_ROOT_RECORD_MISMATCH: u32 = 18;",
+  "const ERR_VAULT_ASSET_MISMATCH: u32 = 19;",
+  "const ERR_VAULT_TOKEN_ACCOUNT_MISMATCH: u32 = 20;",
+  "const ERR_DESTINATION_TOKEN_ACCOUNT_MISMATCH: u32 = 21;",
+  "const ERR_TOKEN_PROGRAM_MISMATCH: u32 = 22;",
   "TAG_UNSHIELD => process_unshield",
+  "TAG_REGISTER_VAULT_ASSET => process_register_vault_asset",
   "UNSHIELD_ACCEPTED_ROOT_OFFSET",
   "fn process_unshield",
+  "fn process_register_vault_asset",
   "require_root_record(",
   "require_vault_authority(",
-  "proof-verified unshield release ABI passed root/root-record/nullifier/vault-authority preflight; release not wired",
+  "require_vault_asset_record(",
+  "require_spl_release_accounts(",
+  "asset_data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] != 0",
+  "data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] = 0;",
+  "proof-verified unshield release ABI passed root/root-record/nullifier/vault-asset/token-account preflight; release not wired",
 ]) {
   assert.ok(programSource.includes(marker), `Reserved TAG_UNSHIELD fail-closed source marker missing: ${marker}`);
 }
 
 for (const marker of [
   "### `6` - proof-verified unshield release preflight (reserved, fail closed)",
+  "### `7` - register Unshield vault asset (source-only, release disabled)",
   "Unshield preflight accounts:",
   "`root_record` read-only program-owned PDA derived from `[\"vanta2root\", pool_state, acceptedRoot]`",
   "`vault_authority` read-only, non-signer PDA derived from `[\"vanta2vault\", pool_state, exitAssetId]`",
+  "`vault_asset` read-only program-owned PDA derived from `[\"vanta2asset\", pool_state, exitAssetId]`",
+  "`vault_token_account` writable SPL token account matching the registered mint and vault authority",
+  "`destination_token_account` writable SPL token account matching the registered mint and `exitDestination` owner",
   "Instruction data is exactly 425 bytes",
+  "Register-vault-asset instruction data is exactly 130 bytes",
   "acceptedRoot:32",
   "preflights the deterministic root-record PDA",
-  "preflights the deterministic vault-authority PDA without token accounts or SPL Token CPI",
+  "preflights the deterministic vault-asset registry PDA",
+  "preflights SPL mint/token-account ownership and mint shape without invoking the token program",
+  "rejects token-program ids that are not the canonical SPL Token program",
   "returns custom error `15` after preflight and before mutating accounts",
+  "The registry record stores `releaseEnabled = 0`; tag `6` requires that disabled value today",
   "`18`: supplied root record PDA or account content does not match the expected pool/root provenance record",
   "`16`: supplied Unshield vault authority PDA does not match the expected pool/asset vault authority",
+  "`19`: supplied Unshield vault-asset PDA or account content does not match the expected pool/asset registry record",
+  "`20`: supplied Unshield vault token account does not match the registered mint/vault authority",
+  "`21`: supplied Unshield destination token account does not match the registered mint/exit destination",
+  "`22`: supplied Unshield token program or mint account does not match the expected token-account ownership boundary",
 ]) {
   assert.ok(programReadme.includes(marker), `Reserved TAG_UNSHIELD README marker missing: ${marker}`);
 }
@@ -87,10 +117,9 @@ const forbiddenReleaseMarkers = [
   /\b(?:pub\s+)?const\s+TAG_WITHDRAW\b/,
   /\bfn\s+process_release\s*\(/,
   /\bfn\s+process_withdraw\s*\(/,
-  /\bvault_token_account\b/,
-  /\bdestination_token_account\b/,
   /\bspl_token\b/,
-  /\btoken_program\b/,
+  /\bspl_token::instruction::transfer\b/,
+  /\bsystem_instruction::transfer\b/,
 ].filter((pattern) => pattern.test(programSource));
 
 assert.equal(
@@ -125,10 +154,13 @@ for (const marker of [
   "program-owned-vault-pda-not-deployed",
   "tag-unshield-reserved-fail-closed",
   "tag-unshield-token-cpi-release-not-wired",
-  "reserved-fail-closed-vault-preflight-source-only",
+  "reserved-fail-closed-vault-asset-preflight-source-only",
   "sourceOnlyVaultAuthorityPreflightReady",
+  "sourceOnlyVaultAssetRegistryReady",
+  "sourceOnlyVaultTokenAccountPreflightReady",
   "sourceOnlyRootPreflightReady",
   "sourceOnlyNullifierMarkerPreflightReady",
+  "tagUnshieldVaultAssetRegistryReleaseEnabled",
   "operator-vault-keypair-env-release-still-active",
 ]) {
   assert.ok(unshieldStatusSource.includes(marker), `Unshield status source missing custody marker: ${marker}`);
@@ -141,6 +173,10 @@ assert.equal(
 assert.ok(
   status.truth.includes("operator-keypair public exit"),
   "Unshield truth must name the operator-keypair public-exit custody boundary.",
+);
+assert.ok(
+  status.truth.includes("vault-asset registry scaffold") && status.truth.includes("releaseEnabled false"),
+  "Unshield truth must name the source-only vault-asset registry boundary.",
 );
 
 assert.equal(

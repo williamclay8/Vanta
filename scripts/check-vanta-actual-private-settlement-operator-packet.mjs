@@ -141,8 +141,11 @@ assert.equal(packet.solanaSpendSbfAbiStatus.sourceOnlyRootProvenanceReserved, tr
 assert.equal(packet.solanaSpendSbfAbiStatus.rootRecordSeed, "vanta2root");
 assert.equal(
   packet.solanaSpendSbfAbiStatus.sourceOnlyReservedUnshieldStatus,
-  "fail-closed-vault-preflight-source-only",
+  "fail-closed-vault-asset-preflight-source-only",
 );
+assert.equal(packet.solanaSpendSbfAbiStatus.tagRegisterVaultAsset, 7);
+assert.equal(packet.solanaSpendSbfAbiStatus.unshieldAccountCount, 10);
+assert.equal(packet.solanaSpendSbfAbiStatus.vaultAssetReleaseEnabled, false);
 assert.equal(typeof packet.solanaSpendSbfAbiStatus.status, "string");
 assert.equal(typeof packet.solanaSpendSbfAbiStatus.abiFresh, "boolean");
 assert.equal(typeof packet.solanaSpendSbfAbiStatus.buildToolchainAvailable, "boolean");

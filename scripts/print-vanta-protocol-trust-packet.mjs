@@ -171,14 +171,17 @@ const packets = {
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Unshield currently releases through an operator-keypair public exit. The local TAG_UNSHIELD source ABI preflights root, root-record, nullifier, and vault-authority accounts, then fails closed before proof verification, token CPI, custody transfer, or fund release. This is not a production-private exit or custody claim until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
+        "Unshield currently releases through an operator-keypair public exit. The local TAG_UNSHIELD source ABI preflights root, root-record, nullifier, vault-authority, vault-asset registry, and token-account shape, then fails closed before proof verification, token CPI, custody transfer, or fund release. This is not a production-private exit or custody claim until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
     },
     custodyBoundary: {
       productionCustodyReady: false,
       programOwnedVaultReady: false,
       sourceOnlyVaultAuthorityPreflightReady: true,
+      sourceOnlyVaultAssetRegistryReady: true,
+      sourceOnlyVaultTokenAccountPreflightReady: true,
       sourceOnlyRootPreflightReady: true,
       onchainUnshieldInstructionReady: false,
+      tagUnshieldVaultAssetRegistryReleaseEnabled: false,
       blockerIds: [
         "program-owned-vault-pda-not-deployed",
         "tag-unshield-reserved-fail-closed",
@@ -186,7 +189,7 @@ const packets = {
       ],
       guardCommand: "npm run private-pool-v2:onchain-unshield-custody-check",
       safeReleaseBoundary:
-        "Current release model is operator-keypair public exit; local TAG_UNSHIELD is source-only preflight and cannot release funds; production custody requires program-owned vault custody, proof verification, nullifier consume, and on-chain TAG_UNSHIELD token CPI release.",
+        "Current release model is operator-keypair public exit; local TAG_UNSHIELD and TAG_REGISTER_VAULT_ASSET are source-only preflight/registry scaffolds and cannot release funds; the vault-asset record keeps releaseEnabled false; production custody requires program-owned vault custody, proof verification, nullifier consume, and on-chain TAG_UNSHIELD token CPI release.",
     },
     honestyNote:
       "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in SECURITY_LIMITATIONS.md.",
@@ -338,8 +341,11 @@ if (checkMode) {
     assert.equal(packet.custodyBoundary?.productionCustodyReady, false);
     assert.equal(packet.custodyBoundary?.programOwnedVaultReady, false);
     assert.equal(packet.custodyBoundary?.sourceOnlyVaultAuthorityPreflightReady, true);
+    assert.equal(packet.custodyBoundary?.sourceOnlyVaultAssetRegistryReady, true);
+    assert.equal(packet.custodyBoundary?.sourceOnlyVaultTokenAccountPreflightReady, true);
     assert.equal(packet.custodyBoundary?.sourceOnlyRootPreflightReady, true);
     assert.equal(packet.custodyBoundary?.onchainUnshieldInstructionReady, false);
+    assert.equal(packet.custodyBoundary?.tagUnshieldVaultAssetRegistryReleaseEnabled, false);
     assert.equal(
       packet.custodyBoundary?.guardCommand,
       "npm run private-pool-v2:onchain-unshield-custody-check",
@@ -363,7 +369,9 @@ if (checkMode) {
       "Unshield packet must name the current operator-keypair public-exit release model.",
     );
     assert.ok(
-      packet.claimBoundary.safeClaim.includes("preflights root, root-record, nullifier, and vault-authority accounts"),
+      packet.claimBoundary.safeClaim.includes(
+        "preflights root, root-record, nullifier, vault-authority, vault-asset registry, and token-account shape",
+      ),
       "Unshield packet must name the source-only TAG_UNSHIELD preflight boundary.",
     );
     assert.ok(

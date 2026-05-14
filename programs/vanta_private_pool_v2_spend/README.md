@@ -211,6 +211,11 @@ Unshield preflight accounts:
 3. `root_record` read-only program-owned PDA derived from `["vanta2root", pool_state, acceptedRoot]`
 4. `nullifier_marker` writable PDA derived from `["vanta2nul", pool_state, nullifier]`
 5. `vault_authority` read-only, non-signer PDA derived from `["vanta2vault", pool_state, exitAssetId]`
+6. `vault_asset` read-only program-owned PDA derived from `["vanta2asset", pool_state, exitAssetId]`
+7. `vault_token_account` writable SPL token account matching the registered mint and vault authority
+8. `destination_token_account` writable SPL token account matching the registered mint and `exitDestination` owner
+9. `mint` read-only SPL mint account owned by the registered token program
+10. `token_program` read-only token program account matching the registered vault asset
 
 Instruction data is exactly 425 bytes:
 
@@ -225,10 +230,41 @@ Behavior today:
 - rejects unshield preflights whose `acceptedRoot` has not been registered in `root_history`
 - preflights the deterministic root-record PDA
 - preflights the deterministic nullifier marker PDA without creating or mutating it
-- preflights the deterministic vault-authority PDA without token accounts or SPL Token CPI
+- preflights the deterministic vault-authority PDA
+- preflights the deterministic vault-asset registry PDA
+- preflights SPL mint/token-account ownership and mint shape without invoking the token program
+- The registry record stores `releaseEnabled = 0`; tag `6` requires that disabled value today
 - returns custom error `15` after preflight and before mutating accounts
 - does not perform token CPIs, PDA-signed release, custody transfer, nullifier consume, or proof verification
 - must not be used as program-owned vault or proof-verified release evidence until the actual verifier, token CPI, SBF rebuild, redeploy/reinit, and live/audit evidence exist
+
+### `7` - register Unshield vault asset (source-only, release disabled)
+
+Registers the source-level asset custody registry record used by reserved tag `6` preflight. It is intentionally not a release enablement instruction.
+
+Register-vault-asset accounts:
+
+1. `pool_state` read-only, program-owned
+2. `vault_asset` writable PDA derived from `["vanta2asset", pool_state, exitAssetId]`
+3. `vault_authority` read-only, non-signer PDA derived from `["vanta2vault", pool_state, exitAssetId]`
+4. `operator_authority` writable signer when the vault-asset record is created; must match the pubkey stored during init
+5. `system_program` read-only
+
+Register-vault-asset instruction data is exactly 130 bytes:
+
+```text
+[7, exitAssetId:32, mint:32, vaultTokenAccount:32, tokenProgram:32, assetKind:1]
+```
+
+Behavior today:
+
+- rejects zero `exitAssetId`, `mint`, `vaultTokenAccount`, or `tokenProgram`
+- rejects token-program ids that are not the canonical SPL Token program
+- accepts only the SPL asset-kind marker used by the current source scaffold
+- verifies the supplied vault-authority PDA matches `["vanta2vault", pool_state, exitAssetId]`
+- creates or verifies a program-owned vault-asset registry record at `["vanta2asset", pool_state, exitAssetId]`
+- records `pool_state`, `exitAssetId`, `mint`, `vault_authority`, `vaultTokenAccount`, `tokenProgram`, `assetKind`, and `releaseEnabled = 0`
+- remains source-level custody-registry metadata only; tag `6` still fails closed with custom error `15` before proof verification, nullifier consume, token/system CPI, custody transfer, fund release, or account mutation
 
 ## Build
 
@@ -270,3 +306,7 @@ cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml
 - `16`: supplied Unshield vault authority PDA does not match the expected pool/asset vault authority
 - `17`: supplied spend-with-proof verifier-key PDA or account content does not match the expected pool/key hash
 - `18`: supplied root record PDA or account content does not match the expected pool/root provenance record
+- `19`: supplied Unshield vault-asset PDA or account content does not match the expected pool/asset registry record
+- `20`: supplied Unshield vault token account does not match the registered mint/vault authority
+- `21`: supplied Unshield destination token account does not match the registered mint/exit destination
+- `22`: supplied Unshield token program or mint account does not match the expected token-account ownership boundary

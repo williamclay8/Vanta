@@ -15,8 +15,11 @@ export type UnshieldTrustContract = {
     productionCustodyReady: false;
     programOwnedVaultReady: false;
     sourceOnlyVaultAuthorityPreflightReady: true;
+    sourceOnlyVaultAssetRegistryReady: true;
+    sourceOnlyVaultTokenAccountPreflightReady: true;
     sourceOnlyRootPreflightReady: true;
     onchainUnshieldInstructionReady: false;
+    tagUnshieldVaultAssetRegistryReleaseEnabled: false;
     blockerIds: readonly [
       "program-owned-vault-pda-not-deployed",
       "tag-unshield-reserved-fail-closed",
@@ -43,8 +46,11 @@ export function getUnshieldTrustContract(): UnshieldTrustContract {
       productionCustodyReady: false,
       programOwnedVaultReady: false,
       sourceOnlyVaultAuthorityPreflightReady: true,
+      sourceOnlyVaultAssetRegistryReady: true,
+      sourceOnlyVaultTokenAccountPreflightReady: true,
       sourceOnlyRootPreflightReady: true,
       onchainUnshieldInstructionReady: false,
+      tagUnshieldVaultAssetRegistryReleaseEnabled: false,
       blockerIds: [
         "program-owned-vault-pda-not-deployed",
         "tag-unshield-reserved-fail-closed",
@@ -53,7 +59,7 @@ export function getUnshieldTrustContract(): UnshieldTrustContract {
       guardCommand: "npm run private-pool-v2:onchain-unshield-custody-check",
     },
     visibleStatusCopy:
-      "Unshield currently uses an operator-keypair public exit. The local TAG_UNSHIELD source ABI now preflights root, root-record, nullifier, and vault-authority accounts but remains fail-closed and cannot release funds; production custody is not enabled until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
+      "Unshield currently uses an operator-keypair public exit. The local TAG_UNSHIELD source ABI now preflights root, root-record, nullifier, vault-authority, vault-asset registry, and token-account shape but remains fail-closed and cannot release funds; production custody is not enabled until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists.",
     verificationSurfaces: [
       "npm run private-core:check",
       "npm run private-core:verify",

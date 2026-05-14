@@ -19,6 +19,7 @@ const TAG_SPEND_WITH_PROOF: u8 = 3;
 const TAG_REGISTER_PROVENANCED_ROOT: u8 = 4;
 const TAG_REGISTER_VERIFIER_KEY: u8 = 5;
 const TAG_UNSHIELD: u8 = 6;
+const TAG_REGISTER_VAULT_ASSET: u8 = 7;
 
 const VERSION: u8 = 1;
 const POOL_MAGIC: &[u8; 8] = b"VNTA2POL";
@@ -29,11 +30,13 @@ const OUTPUT_RECORD_MAGIC: &[u8; 8] = b"VNTA2ORC";
 const ROOT_MAGIC: &[u8; 8] = b"VNTA2ROT";
 const ROOT_RECORD_MAGIC: &[u8; 8] = b"VNTA2RRC";
 const VERIFIER_KEY_MAGIC: &[u8; 8] = b"VNTA2VKY";
+const VAULT_ASSET_MAGIC: &[u8; 8] = b"VNTA2AST";
 const NULLIFIER_MARKER_SEED: &[u8] = b"vanta2nul";
 const OUTPUT_RECORD_SEED: &[u8] = b"vanta2out";
 const ROOT_RECORD_SEED: &[u8] = b"vanta2root";
 const VAULT_AUTHORITY_SEED: &[u8] = b"vanta2vault";
 const VERIFIER_KEY_SEED: &[u8] = b"vanta2vkey";
+const VAULT_ASSET_SEED: &[u8] = b"vanta2asset";
 
 const HEADER_LEN: usize = 16;
 const COUNT_OFFSET: usize = 12;
@@ -59,6 +62,11 @@ const PROVENANCED_ROOT_LEAF_COUNT_OFFSET: usize = PROVENANCED_ROOT_LEAF_INDEX_BA
 const PROVENANCED_ROOT_TRANSITION_KIND_OFFSET: usize = PROVENANCED_ROOT_LEAF_COUNT_OFFSET + 4;
 const PROVENANCED_ROOT_PAYLOAD_LEN: usize = 1 + PROVENANCED_ROOT_TRANSITION_KIND_OFFSET + 1;
 const REGISTER_VERIFIER_KEY_PAYLOAD_LEN: usize = 1 + HASH_LEN;
+const REGISTER_VAULT_ASSET_MINT_OFFSET: usize = HASH_LEN;
+const REGISTER_VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET: usize = HASH_LEN * 2;
+const REGISTER_VAULT_ASSET_TOKEN_PROGRAM_OFFSET: usize = HASH_LEN * 3;
+const REGISTER_VAULT_ASSET_KIND_OFFSET: usize = HASH_LEN * 4;
+const REGISTER_VAULT_ASSET_PAYLOAD_LEN: usize = 1 + HASH_LEN * 4 + 1;
 const UNSHIELD_ACCEPTED_ROOT_OFFSET: usize = HASH_LEN;
 const UNSHIELD_EXIT_DESTINATION_OFFSET: usize = HASH_LEN * 2;
 const UNSHIELD_EXIT_ASSET_ID_OFFSET: usize = HASH_LEN * 3;
@@ -90,6 +98,21 @@ const ROOT_RECORD_TRANSITION_KIND_OFFSET: usize = ROOT_RECORD_LEAF_COUNT_OFFSET 
 const VERIFIER_KEY_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 2;
 const VERIFIER_KEY_POOL_OFFSET: usize = HEADER_LEN;
 const VERIFIER_KEY_HASH_OFFSET: usize = HEADER_LEN + HASH_LEN;
+const VAULT_ASSET_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 6 + 2;
+const VAULT_ASSET_POOL_OFFSET: usize = HEADER_LEN;
+const VAULT_ASSET_EXIT_ASSET_ID_OFFSET: usize = VAULT_ASSET_POOL_OFFSET + HASH_LEN;
+const VAULT_ASSET_MINT_OFFSET: usize = VAULT_ASSET_EXIT_ASSET_ID_OFFSET + HASH_LEN;
+const VAULT_ASSET_VAULT_AUTHORITY_OFFSET: usize = VAULT_ASSET_MINT_OFFSET + HASH_LEN;
+const VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET: usize = VAULT_ASSET_VAULT_AUTHORITY_OFFSET + HASH_LEN;
+const VAULT_ASSET_TOKEN_PROGRAM_OFFSET: usize = VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET + HASH_LEN;
+const VAULT_ASSET_KIND_OFFSET: usize = VAULT_ASSET_TOKEN_PROGRAM_OFFSET + HASH_LEN;
+const VAULT_ASSET_RELEASE_ENABLED_OFFSET: usize = VAULT_ASSET_KIND_OFFSET + 1;
+const VAULT_ASSET_KIND_SPL: u8 = 1;
+const SPL_TOKEN_PROGRAM_ID: Pubkey =
+    solana_program::pubkey!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+const TOKEN_ACCOUNT_LEN: usize = 165;
+const TOKEN_ACCOUNT_MINT_OFFSET: usize = 0;
+const TOKEN_ACCOUNT_OWNER_OFFSET: usize = 32;
 
 const ERR_DUPLICATE_NULLIFIER: u32 = 1;
 const ERR_OUTPUT_QUEUE_FULL: u32 = 3;
@@ -108,6 +131,10 @@ const ERR_UNSHIELD_RELEASE_NOT_WIRED: u32 = 15;
 const ERR_VAULT_AUTHORITY_MISMATCH: u32 = 16;
 const ERR_VERIFIER_KEY_MISMATCH: u32 = 17;
 const ERR_ROOT_RECORD_MISMATCH: u32 = 18;
+const ERR_VAULT_ASSET_MISMATCH: u32 = 19;
+const ERR_VAULT_TOKEN_ACCOUNT_MISMATCH: u32 = 20;
+const ERR_DESTINATION_TOKEN_ACCOUNT_MISMATCH: u32 = 21;
+const ERR_TOKEN_PROGRAM_MISMATCH: u32 = 22;
 
 pub fn process_instruction(
     program_id: &Pubkey,
@@ -128,6 +155,7 @@ pub fn process_instruction(
         }
         TAG_REGISTER_VERIFIER_KEY => process_register_verifier_key(program_id, accounts, rest),
         TAG_UNSHIELD => process_unshield(program_id, accounts, rest),
+        TAG_REGISTER_VAULT_ASSET => process_register_vault_asset(program_id, accounts, rest),
         _ => Err(ProgramError::InvalidInstructionData),
     }
 }
@@ -524,6 +552,66 @@ fn process_register_verifier_key(
     )
 }
 
+fn process_register_vault_asset(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    rest: &[u8],
+) -> ProgramResult {
+    if rest.len() + 1 != REGISTER_VAULT_ASSET_PAYLOAD_LEN {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let exit_asset_id = &rest[0..HASH_LEN];
+    let mint = &rest[REGISTER_VAULT_ASSET_MINT_OFFSET..REGISTER_VAULT_ASSET_MINT_OFFSET + HASH_LEN];
+    let vault_token_account = &rest[REGISTER_VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET
+        ..REGISTER_VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET + HASH_LEN];
+    let token_program = &rest[REGISTER_VAULT_ASSET_TOKEN_PROGRAM_OFFSET
+        ..REGISTER_VAULT_ASSET_TOKEN_PROGRAM_OFFSET + HASH_LEN];
+    let asset_kind = rest[REGISTER_VAULT_ASSET_KIND_OFFSET];
+
+    if exit_asset_id.iter().all(|byte| *byte == 0)
+        || mint.iter().all(|byte| *byte == 0)
+        || vault_token_account.iter().all(|byte| *byte == 0)
+        || token_program.iter().all(|byte| *byte == 0)
+        || token_program != SPL_TOKEN_PROGRAM_ID.as_ref()
+        || asset_kind != VAULT_ASSET_KIND_SPL
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let mut account_iter = accounts.iter();
+    let pool_state = next_account_info(&mut account_iter)?;
+    let vault_asset = next_account_info(&mut account_iter)?;
+    let vault_authority = next_account_info(&mut account_iter)?;
+    let authority = next_account_info(&mut account_iter)?;
+    let system_program_info = next_account_info(&mut account_iter)?;
+
+    require_readonly_program_account(program_id, pool_state)?;
+    require_writable_account(vault_asset)?;
+    require_system_program(system_program_info)?;
+    if vault_asset.owner != program_id && !authority.is_writable {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    let pool_data = pool_state.try_borrow_data()?;
+    require_pool_header(&pool_data)?;
+    require_authority(&pool_data, authority)?;
+    require_vault_authority(program_id, pool_state, vault_authority, exit_asset_id)?;
+    ensure_vault_asset(
+        program_id,
+        pool_state,
+        vault_asset,
+        vault_authority,
+        authority,
+        system_program_info,
+        exit_asset_id,
+        mint,
+        vault_token_account,
+        token_program,
+        asset_kind,
+    )
+}
+
 fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) -> ProgramResult {
     if rest.len() + 1 != UNSHIELD_PAYLOAD_LEN {
         return Err(ProgramError::InvalidInstructionData);
@@ -554,6 +642,11 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
     let root_record = next_account_info(&mut account_iter)?;
     let nullifier_marker = next_account_info(&mut account_iter)?;
     let vault_authority = next_account_info(&mut account_iter)?;
+    let vault_asset = next_account_info(&mut account_iter)?;
+    let vault_token_account = next_account_info(&mut account_iter)?;
+    let destination_token_account = next_account_info(&mut account_iter)?;
+    let mint = next_account_info(&mut account_iter)?;
+    let token_program = next_account_info(&mut account_iter)?;
 
     require_program_account(program_id, pool_state)?;
     require_readonly_program_account(program_id, root_history)?;
@@ -571,8 +664,27 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
 
     require_nullifier_marker_available(program_id, pool_state, nullifier_marker, nullifier)?;
     require_vault_authority(program_id, pool_state, vault_authority, exit_asset_id)?;
+    let asset_kind = require_vault_asset_record(
+        program_id,
+        pool_state,
+        vault_asset,
+        exit_asset_id,
+        mint,
+        vault_authority,
+        vault_token_account,
+        token_program,
+    )?;
+    require_spl_release_accounts(
+        asset_kind,
+        mint,
+        vault_authority,
+        vault_token_account,
+        destination_token_account,
+        token_program,
+        exit_destination,
+    )?;
 
-    msg!("vanta_private_pool_v2_spend: proof-verified unshield release ABI passed root/root-record/nullifier/vault-authority preflight; release not wired");
+    msg!("vanta_private_pool_v2_spend: proof-verified unshield release ABI passed root/root-record/nullifier/vault-asset/token-account preflight; release not wired");
     Err(ProgramError::Custom(ERR_UNSHIELD_RELEASE_NOT_WIRED))
 }
 
@@ -1208,6 +1320,243 @@ fn ensure_verifier_key<'a>(
     write_verifier_key_account(&mut key_data, pool_state, verifier_key_hash)
 }
 
+fn ensure_vault_asset<'a>(
+    program_id: &Pubkey,
+    pool_state: &AccountInfo<'a>,
+    vault_asset: &AccountInfo<'a>,
+    vault_authority: &AccountInfo<'a>,
+    authority: &AccountInfo<'a>,
+    system_program_info: &AccountInfo<'a>,
+    exit_asset_id: &[u8],
+    mint: &[u8],
+    vault_token_account: &[u8],
+    token_program: &[u8],
+    asset_kind: u8,
+) -> ProgramResult {
+    let (expected_asset, bump) = Pubkey::find_program_address(
+        &[VAULT_ASSET_SEED, pool_state.key.as_ref(), exit_asset_id],
+        program_id,
+    );
+    if expected_asset != *vault_asset.key {
+        return Err(ProgramError::Custom(ERR_VAULT_ASSET_MISMATCH));
+    }
+
+    if vault_asset.owner == program_id {
+        let mut asset_data = vault_asset.try_borrow_mut_data()?;
+        if asset_data.iter().all(|byte| *byte == 0) {
+            return write_vault_asset_account(
+                &mut asset_data,
+                pool_state,
+                exit_asset_id,
+                mint,
+                vault_authority,
+                vault_token_account,
+                token_program,
+                asset_kind,
+            );
+        }
+        require_vault_asset_record_data(
+            asset_data.as_ref(),
+            pool_state,
+            exit_asset_id,
+            mint,
+            vault_authority,
+            vault_token_account,
+            token_program,
+        )?;
+        return Ok(());
+    }
+
+    if vault_asset.owner != &system_program::ID {
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    {
+        let asset_data = vault_asset.try_borrow_data()?;
+        if !asset_data.is_empty() || vault_asset.lamports() != 0 {
+            return Err(ProgramError::Custom(ERR_VAULT_ASSET_MISMATCH));
+        }
+    }
+
+    let rent_lamports = Rent::get()?.minimum_balance(VAULT_ASSET_ACCOUNT_LEN);
+    let create_asset = system_instruction::create_account(
+        authority.key,
+        vault_asset.key,
+        rent_lamports,
+        VAULT_ASSET_ACCOUNT_LEN as u64,
+        program_id,
+    );
+    invoke_signed(
+        &create_asset,
+        &[
+            authority.clone(),
+            vault_asset.clone(),
+            system_program_info.clone(),
+        ],
+        &[&[
+            VAULT_ASSET_SEED,
+            pool_state.key.as_ref(),
+            exit_asset_id,
+            &[bump],
+        ]],
+    )?;
+
+    let mut asset_data = vault_asset.try_borrow_mut_data()?;
+    write_vault_asset_account(
+        &mut asset_data,
+        pool_state,
+        exit_asset_id,
+        mint,
+        vault_authority,
+        vault_token_account,
+        token_program,
+        asset_kind,
+    )
+}
+
+fn require_vault_asset_record(
+    program_id: &Pubkey,
+    pool_state: &AccountInfo,
+    vault_asset: &AccountInfo,
+    exit_asset_id: &[u8],
+    mint: &AccountInfo,
+    vault_authority: &AccountInfo,
+    vault_token_account: &AccountInfo,
+    token_program: &AccountInfo,
+) -> Result<u8, ProgramError> {
+    let (expected_asset, _) = Pubkey::find_program_address(
+        &[VAULT_ASSET_SEED, pool_state.key.as_ref(), exit_asset_id],
+        program_id,
+    );
+    if expected_asset != *vault_asset.key {
+        return Err(ProgramError::Custom(ERR_VAULT_ASSET_MISMATCH));
+    }
+    require_readonly_program_account(program_id, vault_asset)?;
+
+    let asset_data = vault_asset.try_borrow_data()?;
+    require_vault_asset_record_data(
+        asset_data.as_ref(),
+        pool_state,
+        exit_asset_id,
+        mint.key.as_ref(),
+        vault_authority,
+        vault_token_account.key.as_ref(),
+        token_program.key.as_ref(),
+    )
+}
+
+fn require_vault_asset_record_data(
+    asset_data: &[u8],
+    pool_state: &AccountInfo,
+    exit_asset_id: &[u8],
+    mint: &[u8],
+    vault_authority: &AccountInfo,
+    vault_token_account: &[u8],
+    token_program: &[u8],
+) -> Result<u8, ProgramError> {
+    if asset_data.len() != VAULT_ASSET_ACCOUNT_LEN
+        || &asset_data[..8] != VAULT_ASSET_MAGIC
+        || asset_data[8] != VERSION
+        || read_count(asset_data)? != 1
+        || asset_data[VAULT_ASSET_POOL_OFFSET..VAULT_ASSET_POOL_OFFSET + HASH_LEN]
+            != *pool_state.key.as_ref()
+        || &asset_data
+            [VAULT_ASSET_EXIT_ASSET_ID_OFFSET..VAULT_ASSET_EXIT_ASSET_ID_OFFSET + HASH_LEN]
+            != exit_asset_id
+        || &asset_data[VAULT_ASSET_MINT_OFFSET..VAULT_ASSET_MINT_OFFSET + HASH_LEN] != mint
+        || asset_data
+            [VAULT_ASSET_VAULT_AUTHORITY_OFFSET..VAULT_ASSET_VAULT_AUTHORITY_OFFSET + HASH_LEN]
+            != *vault_authority.key.as_ref()
+        || &asset_data[VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET
+            ..VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET + HASH_LEN]
+            != vault_token_account
+        || &asset_data
+            [VAULT_ASSET_TOKEN_PROGRAM_OFFSET..VAULT_ASSET_TOKEN_PROGRAM_OFFSET + HASH_LEN]
+            != token_program
+        || asset_data[VAULT_ASSET_KIND_OFFSET] != VAULT_ASSET_KIND_SPL
+        || asset_data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] != 0
+    {
+        return Err(ProgramError::Custom(ERR_VAULT_ASSET_MISMATCH));
+    }
+
+    Ok(asset_data[VAULT_ASSET_KIND_OFFSET])
+}
+
+fn require_spl_release_accounts(
+    asset_kind: u8,
+    mint: &AccountInfo,
+    vault_authority: &AccountInfo,
+    vault_token_account: &AccountInfo,
+    destination_token_account: &AccountInfo,
+    token_program: &AccountInfo,
+    exit_destination: &[u8],
+) -> ProgramResult {
+    if asset_kind != VAULT_ASSET_KIND_SPL {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+    require_readonly_token_program(token_program)?;
+    require_readonly_mint_account(mint, token_program)?;
+    require_token_account(
+        vault_token_account,
+        token_program,
+        mint.key.as_ref(),
+        vault_authority.key.as_ref(),
+        ERR_VAULT_TOKEN_ACCOUNT_MISMATCH,
+    )?;
+    require_token_account(
+        destination_token_account,
+        token_program,
+        mint.key.as_ref(),
+        exit_destination,
+        ERR_DESTINATION_TOKEN_ACCOUNT_MISMATCH,
+    )
+}
+
+fn require_readonly_token_program(token_program: &AccountInfo) -> ProgramResult {
+    if token_program.is_writable
+        || token_program.is_signer
+        || *token_program.key != SPL_TOKEN_PROGRAM_ID
+    {
+        return Err(ProgramError::Custom(ERR_TOKEN_PROGRAM_MISMATCH));
+    }
+    Ok(())
+}
+
+fn require_readonly_mint_account(mint: &AccountInfo, token_program: &AccountInfo) -> ProgramResult {
+    if mint.is_writable || mint.is_signer || mint.owner != token_program.key {
+        return Err(ProgramError::Custom(ERR_TOKEN_PROGRAM_MISMATCH));
+    }
+    Ok(())
+}
+
+fn require_token_account(
+    token_account: &AccountInfo,
+    token_program: &AccountInfo,
+    expected_mint: &[u8],
+    expected_owner: &[u8],
+    mismatch_code: u32,
+) -> ProgramResult {
+    if !token_account.is_writable || token_account.is_signer {
+        return Err(ProgramError::InvalidAccountData);
+    }
+    if token_account.owner != token_program.key {
+        return Err(ProgramError::Custom(ERR_TOKEN_PROGRAM_MISMATCH));
+    }
+
+    let token_data = token_account.try_borrow_data()?;
+    if token_data.len() < TOKEN_ACCOUNT_LEN {
+        return Err(ProgramError::AccountDataTooSmall);
+    }
+    if &token_data[TOKEN_ACCOUNT_MINT_OFFSET..TOKEN_ACCOUNT_MINT_OFFSET + HASH_LEN] != expected_mint
+        || &token_data[TOKEN_ACCOUNT_OWNER_OFFSET..TOKEN_ACCOUNT_OWNER_OFFSET + HASH_LEN]
+            != expected_owner
+    {
+        return Err(ProgramError::Custom(mismatch_code));
+    }
+
+    Ok(())
+}
+
 fn write_nullifier_marker(
     marker_data: &mut [u8],
     pool_state: &AccountInfo,
@@ -1501,6 +1850,46 @@ fn write_verifier_key_account(
         .copy_from_slice(pool_state.key.as_ref());
     data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN]
         .copy_from_slice(verifier_key_hash);
+    Ok(())
+}
+
+fn write_vault_asset_account(
+    data: &mut [u8],
+    pool_state: &AccountInfo,
+    exit_asset_id: &[u8],
+    mint: &[u8],
+    vault_authority: &AccountInfo,
+    vault_token_account: &[u8],
+    token_program: &[u8],
+    asset_kind: u8,
+) -> ProgramResult {
+    if data.len() != VAULT_ASSET_ACCOUNT_LEN
+        || exit_asset_id.len() != HASH_LEN
+        || mint.len() != HASH_LEN
+        || vault_token_account.len() != HASH_LEN
+        || token_program.len() != HASH_LEN
+        || asset_kind != VAULT_ASSET_KIND_SPL
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    data.fill(0);
+    data[..8].copy_from_slice(VAULT_ASSET_MAGIC);
+    data[8] = VERSION;
+    write_count(data, 1)?;
+    data[VAULT_ASSET_POOL_OFFSET..VAULT_ASSET_POOL_OFFSET + HASH_LEN]
+        .copy_from_slice(pool_state.key.as_ref());
+    data[VAULT_ASSET_EXIT_ASSET_ID_OFFSET..VAULT_ASSET_EXIT_ASSET_ID_OFFSET + HASH_LEN]
+        .copy_from_slice(exit_asset_id);
+    data[VAULT_ASSET_MINT_OFFSET..VAULT_ASSET_MINT_OFFSET + HASH_LEN].copy_from_slice(mint);
+    data[VAULT_ASSET_VAULT_AUTHORITY_OFFSET..VAULT_ASSET_VAULT_AUTHORITY_OFFSET + HASH_LEN]
+        .copy_from_slice(vault_authority.key.as_ref());
+    data[VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET..VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET + HASH_LEN]
+        .copy_from_slice(vault_token_account);
+    data[VAULT_ASSET_TOKEN_PROGRAM_OFFSET..VAULT_ASSET_TOKEN_PROGRAM_OFFSET + HASH_LEN]
+        .copy_from_slice(token_program);
+    data[VAULT_ASSET_KIND_OFFSET] = asset_kind;
+    data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] = 0;
     Ok(())
 }
 
@@ -3038,7 +3427,313 @@ mod tests {
     }
 
     #[test]
-    fn unshield_release_preflights_vault_authority_before_fail_closed_release() {
+    fn register_vault_asset_writes_source_only_registry_record() {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let nullifier_set = Pubkey::new_unique();
+        let output_queue = Pubkey::new_unique();
+        let root_history = Pubkey::new_unique();
+        let vault_authority = vault_authority_pubkey(&program_id, &pool_state, &[3; HASH_LEN]);
+        let vault_asset = vault_asset_pubkey(&program_id, &pool_state, &[3; HASH_LEN]);
+        let mint = Pubkey::new_unique();
+        let conflicting_mint = Pubkey::new_unique();
+        let vault_token_account = Pubkey::new_unique();
+        let token_program = SPL_TOKEN_PROGRAM_ID;
+        let system_program_id = system_program::ID;
+        let authority = Pubkey::new_unique();
+        let mut pool_lamports = 1_000_000;
+        let mut nullifier_lamports = 1_000_000;
+        let mut output_lamports = 1_000_000;
+        let mut root_lamports = 1_000_000;
+        let mut vault_asset_lamports = 1_000_000;
+        let mut vault_authority_lamports = 0;
+        let mut authority_lamports = 1_000_000;
+        let mut system_lamports = 1_000_000;
+        let mut pool_data = vec![0; POOL_STATE_LEN];
+        let mut nullifier_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut output_data = vec![0; HEADER_LEN];
+        let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut vault_asset_data = vec![0; VAULT_ASSET_ACCOUNT_LEN];
+        let mut vault_authority_data = [];
+        let mut signer_data = [];
+        let mut system_data = [];
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                true,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let nullifier = account_info(
+                &nullifier_set,
+                &program_id,
+                true,
+                false,
+                &mut nullifier_lamports,
+                &mut nullifier_data,
+            );
+            let output = account_info(
+                &output_queue,
+                &program_id,
+                true,
+                false,
+                &mut output_lamports,
+                &mut output_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let accounts = vec![pool, nullifier, output, roots, authority_info];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &[TAG_INIT]),
+                Ok(())
+            );
+        }
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let asset = account_info(
+                &vault_asset,
+                &program_id,
+                true,
+                false,
+                &mut vault_asset_lamports,
+                &mut vault_asset_data,
+            );
+            let vault = account_info(
+                &vault_authority,
+                &system_program::ID,
+                false,
+                false,
+                &mut vault_authority_lamports,
+                &mut vault_authority_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, asset, vault, authority_info, system_info];
+
+            assert_eq!(
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_vault_asset_instruction(&mint, &vault_token_account, &token_program)
+                ),
+                Ok(())
+            );
+        }
+
+        assert_eq!(&vault_asset_data[..8], VAULT_ASSET_MAGIC);
+        assert_eq!(vault_asset_data[8], VERSION);
+        assert_eq!(read_count(&vault_asset_data), Ok(1));
+        assert_eq!(
+            vault_asset_data[VAULT_ASSET_POOL_OFFSET..VAULT_ASSET_POOL_OFFSET + HASH_LEN],
+            *pool_state.as_ref()
+        );
+        assert_eq!(
+            vault_asset_data
+                [VAULT_ASSET_EXIT_ASSET_ID_OFFSET..VAULT_ASSET_EXIT_ASSET_ID_OFFSET + HASH_LEN],
+            [3; HASH_LEN]
+        );
+        assert_eq!(
+            vault_asset_data[VAULT_ASSET_MINT_OFFSET..VAULT_ASSET_MINT_OFFSET + HASH_LEN],
+            *mint.as_ref()
+        );
+        assert_eq!(
+            vault_asset_data
+                [VAULT_ASSET_VAULT_AUTHORITY_OFFSET..VAULT_ASSET_VAULT_AUTHORITY_OFFSET + HASH_LEN],
+            *vault_authority.as_ref()
+        );
+        assert_eq!(
+            vault_asset_data[VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET
+                ..VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET + HASH_LEN],
+            *vault_token_account.as_ref()
+        );
+        assert_eq!(
+            vault_asset_data
+                [VAULT_ASSET_TOKEN_PROGRAM_OFFSET..VAULT_ASSET_TOKEN_PROGRAM_OFFSET + HASH_LEN],
+            *token_program.as_ref()
+        );
+        assert_eq!(
+            vault_asset_data[VAULT_ASSET_KIND_OFFSET],
+            VAULT_ASSET_KIND_SPL
+        );
+        assert_eq!(vault_asset_data[VAULT_ASSET_RELEASE_ENABLED_OFFSET], 0);
+
+        let before_replay = vault_asset_data.clone();
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let asset = account_info(
+                &vault_asset,
+                &program_id,
+                true,
+                false,
+                &mut vault_asset_lamports,
+                &mut vault_asset_data,
+            );
+            let vault = account_info(
+                &vault_authority,
+                &system_program::ID,
+                false,
+                false,
+                &mut vault_authority_lamports,
+                &mut vault_authority_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, asset, vault, authority_info, system_info];
+
+            assert_eq!(
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_vault_asset_instruction(&mint, &vault_token_account, &token_program)
+                ),
+                Ok(())
+            );
+        }
+        assert_eq!(before_replay, vault_asset_data);
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let asset = account_info(
+                &vault_asset,
+                &program_id,
+                true,
+                false,
+                &mut vault_asset_lamports,
+                &mut vault_asset_data,
+            );
+            let vault = account_info(
+                &vault_authority,
+                &system_program::ID,
+                false,
+                false,
+                &mut vault_authority_lamports,
+                &mut vault_authority_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![pool, asset, vault, authority_info, system_info];
+
+            assert_eq!(
+                process_instruction(
+                    &program_id,
+                    &accounts,
+                    &register_vault_asset_instruction(
+                        &conflicting_mint,
+                        &vault_token_account,
+                        &token_program
+                    )
+                ),
+                Err(ProgramError::Custom(ERR_VAULT_ASSET_MISMATCH))
+            );
+        }
+
+        let mut invalid_kind =
+            register_vault_asset_instruction(&mint, &vault_token_account, &token_program);
+        *invalid_kind.last_mut().unwrap() = 2;
+        assert_eq!(
+            process_instruction(&program_id, &[], &invalid_kind),
+            Err(ProgramError::InvalidInstructionData)
+        );
+
+        let invalid_token_program = Pubkey::new_unique();
+        assert_eq!(
+            process_instruction(
+                &program_id,
+                &[],
+                &register_vault_asset_instruction(
+                    &mint,
+                    &vault_token_account,
+                    &invalid_token_program
+                )
+            ),
+            Err(ProgramError::InvalidInstructionData)
+        );
+    }
+
+    #[test]
+    fn unshield_release_preflights_vault_asset_before_fail_closed_release() {
         let program_id = Pubkey::new_unique();
         let pool_state = Pubkey::new_unique();
         let nullifier_set = Pubkey::new_unique();
@@ -3047,6 +3742,11 @@ mod tests {
         let root_record = root_record_pubkey(&program_id, &pool_state, &[4; HASH_LEN]);
         let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &[1; HASH_LEN]);
         let vault_authority = vault_authority_pubkey(&program_id, &pool_state, &[3; HASH_LEN]);
+        let vault_asset = vault_asset_pubkey(&program_id, &pool_state, &[3; HASH_LEN]);
+        let mint = Pubkey::new_unique();
+        let vault_token_account = Pubkey::new_unique();
+        let destination_token_account = Pubkey::new_unique();
+        let token_program = SPL_TOKEN_PROGRAM_ID;
         let system_program_id = system_program::ID;
         let authority = Pubkey::new_unique();
         let mut pool_lamports = 1_000_000;
@@ -3055,7 +3755,12 @@ mod tests {
         let mut root_lamports = 1_000_000;
         let mut root_record_lamports = 1_000_000;
         let mut marker_lamports = 1_000_000;
-        let mut vault_lamports = 0;
+        let mut vault_authority_lamports = 0;
+        let mut vault_asset_lamports = 1_000_000;
+        let mut vault_token_lamports = 1_000_000;
+        let mut destination_token_lamports = 1_000_000;
+        let mut mint_lamports = 1_000_000;
+        let mut token_program_lamports = 1_000_000;
         let mut authority_lamports = 1_000_000;
         let mut system_lamports = 1_000_000;
         let mut pool_data = vec![0; POOL_STATE_LEN];
@@ -3064,7 +3769,12 @@ mod tests {
         let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
         let mut root_record_data = vec![0; ROOT_RECORD_ACCOUNT_LEN];
         let mut marker_data = vec![0; NULLIFIER_MARKER_LEN];
-        let mut vault_data = [];
+        let mut vault_authority_data = [];
+        let mut vault_asset_data = vec![0; VAULT_ASSET_ACCOUNT_LEN];
+        let mut vault_token_data = token_account_data(&mint, vault_authority.as_ref());
+        let mut destination_token_data = token_account_data(&mint, &[2; HASH_LEN]);
+        let mut mint_data = vec![0; 82];
+        let mut token_program_data = [];
         let mut signer_data = [];
         let mut system_data = [];
 
@@ -3169,12 +3879,25 @@ mod tests {
                 Ok(())
             );
         }
+        write_vault_asset_data(
+            &mut vault_asset_data,
+            &pool_state,
+            &[3; HASH_LEN],
+            &mint,
+            &vault_authority,
+            &vault_token_account,
+            &token_program,
+        )
+        .unwrap();
 
         let before = (
             pool_data.clone(),
             root_data.clone(),
             root_record_data.clone(),
             marker_data.clone(),
+            vault_asset_data.clone(),
+            vault_token_data.clone(),
+            destination_token_data.clone(),
         );
 
         {
@@ -3215,10 +3938,61 @@ mod tests {
                 &system_program::ID,
                 false,
                 false,
-                &mut vault_lamports,
-                &mut vault_data,
+                &mut vault_authority_lamports,
+                &mut vault_authority_data,
             );
-            let accounts = vec![pool, roots, root, marker, vault];
+            let asset = account_info(
+                &vault_asset,
+                &program_id,
+                false,
+                false,
+                &mut vault_asset_lamports,
+                &mut vault_asset_data,
+            );
+            let vault_token = account_info(
+                &vault_token_account,
+                &token_program,
+                true,
+                false,
+                &mut vault_token_lamports,
+                &mut vault_token_data,
+            );
+            let destination_token = account_info(
+                &destination_token_account,
+                &token_program,
+                true,
+                false,
+                &mut destination_token_lamports,
+                &mut destination_token_data,
+            );
+            let mint_info = account_info(
+                &mint,
+                &token_program,
+                false,
+                false,
+                &mut mint_lamports,
+                &mut mint_data,
+            );
+            let token_program_info = account_info(
+                &token_program,
+                &system_program::ID,
+                false,
+                false,
+                &mut token_program_lamports,
+                &mut token_program_data,
+            );
+            let accounts = vec![
+                pool,
+                roots,
+                root,
+                marker,
+                vault,
+                asset,
+                vault_token,
+                destination_token,
+                mint_info,
+                token_program_info,
+            ];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &unshield_instruction()),
@@ -3228,7 +4002,15 @@ mod tests {
 
         assert_eq!(
             before,
-            (pool_data, root_data, root_record_data, marker_data)
+            (
+                pool_data,
+                root_data,
+                root_record_data,
+                marker_data,
+                vault_asset_data,
+                vault_token_data,
+                destination_token_data
+            )
         );
     }
 
@@ -3308,6 +4090,11 @@ mod tests {
         let wrong_nullifier_marker = Pubkey::new_unique();
         let vault_authority = vault_authority_pubkey(&program_id, &pool_state, &[3; HASH_LEN]);
         let wrong_vault_authority = Pubkey::new_unique();
+        let vault_asset = vault_asset_pubkey(&program_id, &pool_state, &[3; HASH_LEN]);
+        let mint = Pubkey::new_unique();
+        let vault_token_account = Pubkey::new_unique();
+        let destination_token_account = Pubkey::new_unique();
+        let token_program = SPL_TOKEN_PROGRAM_ID;
         let system_program_id = system_program::ID;
         let authority = Pubkey::new_unique();
         let mut pool_lamports = 1_000_000;
@@ -3318,8 +4105,15 @@ mod tests {
         let mut marker_lamports = 1_000_000;
         let mut wrong_marker_lamports = 1_000_000;
         let mut consumed_marker_lamports = 1_000_000;
-        let mut vault_lamports = 0;
+        let mut vault_authority_lamports = 0;
         let mut wrong_vault_lamports = 0;
+        let mut vault_asset_lamports = 1_000_000;
+        let mut empty_vault_asset_lamports = 1_000_000;
+        let mut vault_token_lamports = 1_000_000;
+        let mut destination_token_lamports = 1_000_000;
+        let mut bad_destination_token_lamports = 1_000_000;
+        let mut mint_lamports = 1_000_000;
+        let mut token_program_lamports = 1_000_000;
         let mut authority_lamports = 1_000_000;
         let mut system_lamports = 1_000_000;
         let mut pool_data = vec![0; POOL_STATE_LEN];
@@ -3330,8 +4124,15 @@ mod tests {
         let mut marker_data = vec![0; NULLIFIER_MARKER_LEN];
         let mut wrong_marker_data = vec![0; NULLIFIER_MARKER_LEN];
         let mut consumed_marker_data = vec![0; NULLIFIER_MARKER_LEN];
-        let mut vault_data = [];
+        let mut vault_authority_data = [];
         let mut wrong_vault_data = [];
+        let mut vault_asset_data = vec![0; VAULT_ASSET_ACCOUNT_LEN];
+        let mut empty_vault_asset_data = vec![0; VAULT_ASSET_ACCOUNT_LEN];
+        let mut vault_token_data = token_account_data(&mint, vault_authority.as_ref());
+        let mut destination_token_data = token_account_data(&mint, &[2; HASH_LEN]);
+        let mut bad_destination_token_data = token_account_data(&mint, &[9; HASH_LEN]);
+        let mut mint_data = vec![0; 82];
+        let mut token_program_data = [];
         let mut signer_data = [];
         let mut system_data = [];
 
@@ -3436,6 +4237,16 @@ mod tests {
                 Ok(())
             );
         }
+        write_vault_asset_data(
+            &mut vault_asset_data,
+            &pool_state,
+            &[3; HASH_LEN],
+            &mint,
+            &vault_authority,
+            &vault_token_account,
+            &token_program,
+        )
+        .unwrap();
 
         let before = (
             pool_data.clone(),
@@ -3443,6 +4254,11 @@ mod tests {
             root_record_data.clone(),
             marker_data.clone(),
             wrong_marker_data.clone(),
+            vault_asset_data.clone(),
+            empty_vault_asset_data.clone(),
+            vault_token_data.clone(),
+            destination_token_data.clone(),
+            bad_destination_token_data.clone(),
         );
 
         {
@@ -3483,10 +4299,61 @@ mod tests {
                 &system_program::ID,
                 false,
                 false,
-                &mut vault_lamports,
-                &mut vault_data,
+                &mut vault_authority_lamports,
+                &mut vault_authority_data,
             );
-            let accounts = vec![pool, roots, root, marker, vault];
+            let asset = account_info(
+                &vault_asset,
+                &program_id,
+                false,
+                false,
+                &mut vault_asset_lamports,
+                &mut vault_asset_data,
+            );
+            let vault_token = account_info(
+                &vault_token_account,
+                &token_program,
+                true,
+                false,
+                &mut vault_token_lamports,
+                &mut vault_token_data,
+            );
+            let destination_token = account_info(
+                &destination_token_account,
+                &token_program,
+                true,
+                false,
+                &mut destination_token_lamports,
+                &mut destination_token_data,
+            );
+            let mint_info = account_info(
+                &mint,
+                &token_program,
+                false,
+                false,
+                &mut mint_lamports,
+                &mut mint_data,
+            );
+            let token_program_info = account_info(
+                &token_program,
+                &system_program::ID,
+                false,
+                false,
+                &mut token_program_lamports,
+                &mut token_program_data,
+            );
+            let accounts = vec![
+                pool,
+                roots,
+                root,
+                marker,
+                vault,
+                asset,
+                vault_token,
+                destination_token,
+                mint_info,
+                token_program_info,
+            ];
 
             assert_eq!(
                 process_instruction(
@@ -3536,10 +4403,61 @@ mod tests {
                 &system_program::ID,
                 false,
                 false,
-                &mut vault_lamports,
-                &mut vault_data,
+                &mut vault_authority_lamports,
+                &mut vault_authority_data,
             );
-            let accounts = vec![pool, roots, root, marker, vault];
+            let asset = account_info(
+                &vault_asset,
+                &program_id,
+                false,
+                false,
+                &mut vault_asset_lamports,
+                &mut vault_asset_data,
+            );
+            let vault_token = account_info(
+                &vault_token_account,
+                &token_program,
+                true,
+                false,
+                &mut vault_token_lamports,
+                &mut vault_token_data,
+            );
+            let destination_token = account_info(
+                &destination_token_account,
+                &token_program,
+                true,
+                false,
+                &mut destination_token_lamports,
+                &mut destination_token_data,
+            );
+            let mint_info = account_info(
+                &mint,
+                &token_program,
+                false,
+                false,
+                &mut mint_lamports,
+                &mut mint_data,
+            );
+            let token_program_info = account_info(
+                &token_program,
+                &system_program::ID,
+                false,
+                false,
+                &mut token_program_lamports,
+                &mut token_program_data,
+            );
+            let accounts = vec![
+                pool,
+                roots,
+                root,
+                marker,
+                vault,
+                asset,
+                vault_token,
+                destination_token,
+                mint_info,
+                token_program_info,
+            ];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &unshield_instruction()),
@@ -3594,10 +4512,61 @@ mod tests {
                 &system_program::ID,
                 false,
                 false,
-                &mut vault_lamports,
-                &mut vault_data,
+                &mut vault_authority_lamports,
+                &mut vault_authority_data,
             );
-            let accounts = vec![pool, roots, root, marker, vault];
+            let asset = account_info(
+                &vault_asset,
+                &program_id,
+                false,
+                false,
+                &mut vault_asset_lamports,
+                &mut vault_asset_data,
+            );
+            let vault_token = account_info(
+                &vault_token_account,
+                &token_program,
+                true,
+                false,
+                &mut vault_token_lamports,
+                &mut vault_token_data,
+            );
+            let destination_token = account_info(
+                &destination_token_account,
+                &token_program,
+                true,
+                false,
+                &mut destination_token_lamports,
+                &mut destination_token_data,
+            );
+            let mint_info = account_info(
+                &mint,
+                &token_program,
+                false,
+                false,
+                &mut mint_lamports,
+                &mut mint_data,
+            );
+            let token_program_info = account_info(
+                &token_program,
+                &system_program::ID,
+                false,
+                false,
+                &mut token_program_lamports,
+                &mut token_program_data,
+            );
+            let accounts = vec![
+                pool,
+                roots,
+                root,
+                marker,
+                vault,
+                asset,
+                vault_token,
+                destination_token,
+                mint_info,
+                token_program_info,
+            ];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &unshield_instruction()),
@@ -3644,10 +4613,61 @@ mod tests {
                 &system_program::ID,
                 true,
                 false,
-                &mut vault_lamports,
-                &mut vault_data,
+                &mut vault_authority_lamports,
+                &mut vault_authority_data,
             );
-            let accounts = vec![pool, roots, root, marker, vault];
+            let asset = account_info(
+                &vault_asset,
+                &program_id,
+                false,
+                false,
+                &mut vault_asset_lamports,
+                &mut vault_asset_data,
+            );
+            let vault_token = account_info(
+                &vault_token_account,
+                &token_program,
+                true,
+                false,
+                &mut vault_token_lamports,
+                &mut vault_token_data,
+            );
+            let destination_token = account_info(
+                &destination_token_account,
+                &token_program,
+                true,
+                false,
+                &mut destination_token_lamports,
+                &mut destination_token_data,
+            );
+            let mint_info = account_info(
+                &mint,
+                &token_program,
+                false,
+                false,
+                &mut mint_lamports,
+                &mut mint_data,
+            );
+            let token_program_info = account_info(
+                &token_program,
+                &system_program::ID,
+                false,
+                false,
+                &mut token_program_lamports,
+                &mut token_program_data,
+            );
+            let accounts = vec![
+                pool,
+                roots,
+                root,
+                marker,
+                vault,
+                asset,
+                vault_token,
+                destination_token,
+                mint_info,
+                token_program_info,
+            ];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &unshield_instruction()),
@@ -3696,11 +4716,262 @@ mod tests {
                 &mut wrong_vault_lamports,
                 &mut wrong_vault_data,
             );
-            let accounts = vec![pool, roots, root, marker, vault];
+            let asset = account_info(
+                &vault_asset,
+                &program_id,
+                false,
+                false,
+                &mut vault_asset_lamports,
+                &mut vault_asset_data,
+            );
+            let vault_token = account_info(
+                &vault_token_account,
+                &token_program,
+                true,
+                false,
+                &mut vault_token_lamports,
+                &mut vault_token_data,
+            );
+            let destination_token = account_info(
+                &destination_token_account,
+                &token_program,
+                true,
+                false,
+                &mut destination_token_lamports,
+                &mut destination_token_data,
+            );
+            let mint_info = account_info(
+                &mint,
+                &token_program,
+                false,
+                false,
+                &mut mint_lamports,
+                &mut mint_data,
+            );
+            let token_program_info = account_info(
+                &token_program,
+                &system_program::ID,
+                false,
+                false,
+                &mut token_program_lamports,
+                &mut token_program_data,
+            );
+            let accounts = vec![
+                pool,
+                roots,
+                root,
+                marker,
+                vault,
+                asset,
+                vault_token,
+                destination_token,
+                mint_info,
+                token_program_info,
+            ];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &unshield_instruction()),
                 Err(ProgramError::Custom(ERR_VAULT_AUTHORITY_MISMATCH))
+            );
+        }
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                false,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                false,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
+            let marker = account_info(
+                &nullifier_marker,
+                &program_id,
+                true,
+                false,
+                &mut marker_lamports,
+                &mut marker_data,
+            );
+            let vault = account_info(
+                &vault_authority,
+                &system_program::ID,
+                false,
+                false,
+                &mut vault_authority_lamports,
+                &mut vault_authority_data,
+            );
+            let asset = account_info(
+                &vault_asset,
+                &program_id,
+                false,
+                false,
+                &mut empty_vault_asset_lamports,
+                &mut empty_vault_asset_data,
+            );
+            let vault_token = account_info(
+                &vault_token_account,
+                &token_program,
+                true,
+                false,
+                &mut vault_token_lamports,
+                &mut vault_token_data,
+            );
+            let destination_token = account_info(
+                &destination_token_account,
+                &token_program,
+                true,
+                false,
+                &mut destination_token_lamports,
+                &mut destination_token_data,
+            );
+            let mint_info = account_info(
+                &mint,
+                &token_program,
+                false,
+                false,
+                &mut mint_lamports,
+                &mut mint_data,
+            );
+            let token_program_info = account_info(
+                &token_program,
+                &system_program::ID,
+                false,
+                false,
+                &mut token_program_lamports,
+                &mut token_program_data,
+            );
+            let accounts = vec![
+                pool,
+                roots,
+                root,
+                marker,
+                vault,
+                asset,
+                vault_token,
+                destination_token,
+                mint_info,
+                token_program_info,
+            ];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &unshield_instruction()),
+                Err(ProgramError::Custom(ERR_VAULT_ASSET_MISMATCH))
+            );
+        }
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                false,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                false,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
+            let marker = account_info(
+                &nullifier_marker,
+                &program_id,
+                true,
+                false,
+                &mut marker_lamports,
+                &mut marker_data,
+            );
+            let vault = account_info(
+                &vault_authority,
+                &system_program::ID,
+                false,
+                false,
+                &mut vault_authority_lamports,
+                &mut vault_authority_data,
+            );
+            let asset = account_info(
+                &vault_asset,
+                &program_id,
+                false,
+                false,
+                &mut vault_asset_lamports,
+                &mut vault_asset_data,
+            );
+            let vault_token = account_info(
+                &vault_token_account,
+                &token_program,
+                true,
+                false,
+                &mut vault_token_lamports,
+                &mut vault_token_data,
+            );
+            let destination_token = account_info(
+                &destination_token_account,
+                &token_program,
+                true,
+                false,
+                &mut bad_destination_token_lamports,
+                &mut bad_destination_token_data,
+            );
+            let mint_info = account_info(
+                &mint,
+                &token_program,
+                false,
+                false,
+                &mut mint_lamports,
+                &mut mint_data,
+            );
+            let token_program_info = account_info(
+                &token_program,
+                &system_program::ID,
+                false,
+                false,
+                &mut token_program_lamports,
+                &mut token_program_data,
+            );
+            let accounts = vec![
+                pool,
+                roots,
+                root,
+                marker,
+                vault,
+                asset,
+                vault_token,
+                destination_token,
+                mint_info,
+                token_program_info,
+            ];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &unshield_instruction()),
+                Err(ProgramError::Custom(ERR_DESTINATION_TOKEN_ACCOUNT_MISMATCH))
             );
         }
 
@@ -3711,7 +4982,12 @@ mod tests {
                 root_data,
                 root_record_data,
                 marker_data,
-                wrong_marker_data
+                wrong_marker_data,
+                vault_asset_data,
+                empty_vault_asset_data,
+                vault_token_data,
+                destination_token_data,
+                bad_destination_token_data
             )
         );
     }
@@ -4731,6 +6007,18 @@ mod tests {
         .0
     }
 
+    fn vault_asset_pubkey(
+        program_id: &Pubkey,
+        pool_state: &Pubkey,
+        exit_asset_id: &[u8],
+    ) -> Pubkey {
+        Pubkey::find_program_address(
+            &[VAULT_ASSET_SEED, pool_state.as_ref(), exit_asset_id],
+            program_id,
+        )
+        .0
+    }
+
     fn verifier_key_pubkey(
         program_id: &Pubkey,
         pool_state: &Pubkey,
@@ -4761,6 +6049,49 @@ mod tests {
         verifier_data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN]
             .copy_from_slice(verifier_key_hash);
         Ok(())
+    }
+
+    fn write_vault_asset_data(
+        data: &mut [u8],
+        pool_state: &Pubkey,
+        exit_asset_id: &[u8],
+        mint: &Pubkey,
+        vault_authority: &Pubkey,
+        vault_token_account: &Pubkey,
+        token_program: &Pubkey,
+    ) -> ProgramResult {
+        if data.len() != VAULT_ASSET_ACCOUNT_LEN {
+            return Err(ProgramError::AccountDataTooSmall);
+        }
+        data.fill(0);
+        data[..8].copy_from_slice(VAULT_ASSET_MAGIC);
+        data[8] = VERSION;
+        write_count(data, 1)?;
+        data[VAULT_ASSET_POOL_OFFSET..VAULT_ASSET_POOL_OFFSET + HASH_LEN]
+            .copy_from_slice(pool_state.as_ref());
+        data[VAULT_ASSET_EXIT_ASSET_ID_OFFSET..VAULT_ASSET_EXIT_ASSET_ID_OFFSET + HASH_LEN]
+            .copy_from_slice(exit_asset_id);
+        data[VAULT_ASSET_MINT_OFFSET..VAULT_ASSET_MINT_OFFSET + HASH_LEN]
+            .copy_from_slice(mint.as_ref());
+        data[VAULT_ASSET_VAULT_AUTHORITY_OFFSET..VAULT_ASSET_VAULT_AUTHORITY_OFFSET + HASH_LEN]
+            .copy_from_slice(vault_authority.as_ref());
+        data[VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET
+            ..VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET + HASH_LEN]
+            .copy_from_slice(vault_token_account.as_ref());
+        data[VAULT_ASSET_TOKEN_PROGRAM_OFFSET..VAULT_ASSET_TOKEN_PROGRAM_OFFSET + HASH_LEN]
+            .copy_from_slice(token_program.as_ref());
+        data[VAULT_ASSET_KIND_OFFSET] = VAULT_ASSET_KIND_SPL;
+        data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] = 0;
+        Ok(())
+    }
+
+    fn token_account_data(mint: &Pubkey, owner: &[u8]) -> Vec<u8> {
+        let mut data = vec![0; TOKEN_ACCOUNT_LEN];
+        data[TOKEN_ACCOUNT_MINT_OFFSET..TOKEN_ACCOUNT_MINT_OFFSET + HASH_LEN]
+            .copy_from_slice(mint.as_ref());
+        data[TOKEN_ACCOUNT_OWNER_OFFSET..TOKEN_ACCOUNT_OWNER_OFFSET + HASH_LEN]
+            .copy_from_slice(owner);
+        data
     }
 
     fn spend_instruction() -> Vec<u8> {
@@ -4818,6 +6149,21 @@ mod tests {
         data.extend_from_slice(&[4; EXIT_AMOUNT_LEN]);
         data.extend_from_slice(&[5; HASH_LEN]);
         data.extend_from_slice(&[6; RESERVED_GROTH16_PROOF_LEN]);
+        data
+    }
+
+    fn register_vault_asset_instruction(
+        mint: &Pubkey,
+        vault_token_account: &Pubkey,
+        token_program: &Pubkey,
+    ) -> Vec<u8> {
+        let mut data = Vec::with_capacity(REGISTER_VAULT_ASSET_PAYLOAD_LEN);
+        data.push(TAG_REGISTER_VAULT_ASSET);
+        data.extend_from_slice(&[3; HASH_LEN]);
+        data.extend_from_slice(mint.as_ref());
+        data.extend_from_slice(vault_token_account.as_ref());
+        data.extend_from_slice(token_program.as_ref());
+        data.push(VAULT_ASSET_KIND_SPL);
         data
     }
 

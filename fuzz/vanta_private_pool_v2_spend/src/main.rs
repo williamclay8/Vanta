@@ -14,6 +14,7 @@ const TAG_SPEND_WITH_PROOF: u8 = 3;
 const TAG_REGISTER_PROVENANCED_ROOT: u8 = 4;
 const TAG_REGISTER_VERIFIER_KEY: u8 = 5;
 const TAG_UNSHIELD: u8 = 6;
+const TAG_REGISTER_VAULT_ASSET: u8 = 7;
 
 const VERSION: u8 = 1;
 const POOL_MAGIC: &[u8; 8] = b"VNTA2POL";
@@ -24,11 +25,13 @@ const OUTPUT_RECORD_MAGIC: &[u8; 8] = b"VNTA2ORC";
 const ROOT_MAGIC: &[u8; 8] = b"VNTA2ROT";
 const ROOT_RECORD_MAGIC: &[u8; 8] = b"VNTA2RRC";
 const VERIFIER_KEY_MAGIC: &[u8; 8] = b"VNTA2VKY";
+const VAULT_ASSET_MAGIC: &[u8; 8] = b"VNTA2AST";
 const NULLIFIER_MARKER_SEED: &[u8] = b"vanta2nul";
 const OUTPUT_RECORD_SEED: &[u8] = b"vanta2out";
 const ROOT_RECORD_SEED: &[u8] = b"vanta2root";
 const VAULT_AUTHORITY_SEED: &[u8] = b"vanta2vault";
 const VERIFIER_KEY_SEED: &[u8] = b"vanta2vkey";
+const VAULT_ASSET_SEED: &[u8] = b"vanta2asset";
 
 const HEADER_LEN: usize = 16;
 const COUNT_OFFSET: usize = 12;
@@ -66,6 +69,18 @@ const ROOT_RECORD_TRANSITION_KIND_OFFSET: usize = ROOT_RECORD_LEAF_COUNT_OFFSET 
 const VERIFIER_KEY_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 2;
 const VERIFIER_KEY_POOL_OFFSET: usize = HEADER_LEN;
 const VERIFIER_KEY_HASH_OFFSET: usize = HEADER_LEN + HASH_LEN;
+const VAULT_ASSET_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 6 + 1;
+const VAULT_ASSET_POOL_OFFSET: usize = HEADER_LEN;
+const VAULT_ASSET_EXIT_ASSET_ID_OFFSET: usize = VAULT_ASSET_POOL_OFFSET + HASH_LEN;
+const VAULT_ASSET_MINT_OFFSET: usize = VAULT_ASSET_EXIT_ASSET_ID_OFFSET + HASH_LEN;
+const VAULT_ASSET_VAULT_AUTHORITY_OFFSET: usize = VAULT_ASSET_MINT_OFFSET + HASH_LEN;
+const VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET: usize = VAULT_ASSET_VAULT_AUTHORITY_OFFSET + HASH_LEN;
+const VAULT_ASSET_TOKEN_PROGRAM_OFFSET: usize = VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET + HASH_LEN;
+const VAULT_ASSET_KIND_OFFSET: usize = VAULT_ASSET_TOKEN_PROGRAM_OFFSET + HASH_LEN;
+const VAULT_ASSET_KIND_SPL: u8 = 1;
+const TOKEN_ACCOUNT_LEN: usize = 165;
+const TOKEN_ACCOUNT_MINT_OFFSET: usize = 0;
+const TOKEN_ACCOUNT_OWNER_OFFSET: usize = 32;
 
 const ERR_DUPLICATE_NULLIFIER: u32 = 1;
 const ERR_INVALID_HEADER: u32 = 4;
@@ -81,6 +96,10 @@ const ERR_UNSHIELD_RELEASE_NOT_WIRED: u32 = 15;
 const ERR_VAULT_AUTHORITY_MISMATCH: u32 = 16;
 const ERR_VERIFIER_KEY_MISMATCH: u32 = 17;
 const ERR_ROOT_RECORD_MISMATCH: u32 = 18;
+const ERR_VAULT_ASSET_MISMATCH: u32 = 19;
+const ERR_VAULT_TOKEN_ACCOUNT_MISMATCH: u32 = 20;
+const ERR_DESTINATION_TOKEN_ACCOUNT_MISMATCH: u32 = 21;
+const ERR_TOKEN_PROGRAM_MISMATCH: u32 = 22;
 
 #[derive(Clone)]
 struct OutputRecord {
@@ -99,6 +118,16 @@ struct RootRecord {
     leaf_index_base: u64,
     leaf_count: u32,
     transition_kind: u8,
+}
+
+#[derive(Clone)]
+struct VaultAssetRecord {
+    exit_asset_id: [u8; HASH_LEN],
+    mint: Pubkey,
+    vault_authority: Pubkey,
+    vault_token_account: Pubkey,
+    token_program: Pubkey,
+    asset_kind: u8,
 }
 
 #[derive(Clone)]
@@ -125,6 +154,7 @@ struct VantaPrivatePoolV2Spend {
     legacy_roots: Vec<[u8; HASH_LEN]>,
     root_records: Vec<RootRecord>,
     registered_verifier_keys: Vec<[u8; HASH_LEN]>,
+    registered_vault_assets: Vec<VaultAssetRecord>,
     output_records: Vec<OutputRecord>,
     latest_public_input_hash: [u8; HASH_LEN],
 }
@@ -200,6 +230,7 @@ impl VantaPrivatePoolV2Spend {
             legacy_roots: Vec::new(),
             root_records: Vec::new(),
             registered_verifier_keys: Vec::new(),
+            registered_vault_assets: Vec::new(),
             output_records: Vec::new(),
             latest_public_input_hash: [0; HASH_LEN],
         }
@@ -449,6 +480,95 @@ impl VantaPrivatePoolV2Spend {
         }
     }
 
+    pub fn action_register_vault_asset(&mut self, seed: u64, selector: u8) {
+        if !self.initialized || self.state_error_code.is_some() {
+            return;
+        }
+
+        let mode = selector % 7;
+        let mut record = self.vault_asset_record(seed);
+        if mode == 2 {
+            record.exit_asset_id = [0; HASH_LEN];
+        }
+        let accounts = match mode {
+            3 => self.vault_asset_registration_accounts_with_wrong_pda(&record),
+            4 => self.vault_asset_registration_accounts_with_wrong_authority(&record),
+            5 => self.vault_asset_registration_accounts_unsigned(&record),
+            6 => self.vault_asset_registration_accounts_with_wrong_vault_authority(&record),
+            _ => self.vault_asset_registration_accounts_for_record(&record),
+        };
+        if mode != 3 {
+            self.ensure_vault_asset_placeholder(&record.exit_asset_id);
+        }
+        self.ensure_vault_authority_placeholder(&record.exit_asset_id);
+        let before = self.snapshot_account_metas(&accounts);
+        let data = register_vault_asset_data(&record);
+        let outcome = match mode {
+            4 => self.call_wrong_authority(data, accounts.clone()),
+            5 => self.call_unsigned(data, accounts.clone()),
+            _ => self.call_authorized(data, accounts.clone()),
+        };
+
+        match mode {
+            0 => {
+                fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_success));
+                if outcome.is_some_and(|o| o.is_success()) {
+                    self.remember_registered_vault_asset(record.clone());
+                    self.assert_vault_asset_account(&record);
+                }
+            }
+            1 => {
+                self.register_vault_asset_for_record(&record);
+                let replay_before = self.snapshot_account_metas(&accounts);
+                let replay =
+                    self.call_authorized(register_vault_asset_data(&record), accounts.clone());
+                fuzz_assert!(replay.as_ref().is_some_and(TxOutcome::is_success));
+                fuzz_assert_eq!(
+                    replay_before,
+                    self.snapshot_account_metas(&accounts),
+                    "idempotent vault-asset replay mutated state"
+                );
+                self.assert_vault_asset_account(&record);
+                return;
+            }
+            2 => {
+                fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+            }
+            3 => {
+                fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+                fuzz_assert_eq!(
+                    outcome.as_ref().and_then(TxOutcome::error_code),
+                    Some(ERR_VAULT_ASSET_MISMATCH)
+                );
+            }
+            4 => {
+                fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+                fuzz_assert_eq!(
+                    outcome.as_ref().and_then(TxOutcome::error_code),
+                    Some(ERR_UNAUTHORIZED_OPERATOR)
+                );
+            }
+            6 => {
+                fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+                fuzz_assert_eq!(
+                    outcome.as_ref().and_then(TxOutcome::error_code),
+                    Some(ERR_VAULT_AUTHORITY_MISMATCH)
+                );
+            }
+            _ => {
+                fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+            }
+        }
+
+        if mode != 0 {
+            fuzz_assert_eq!(
+                before,
+                self.snapshot_account_metas(&accounts),
+                "failed vault-asset registration mutated state"
+            );
+        }
+    }
+
     pub fn action_spend_duplicate(&mut self) {
         let Some(nullifier) = self.accepted_nullifiers.last().copied() else {
             return;
@@ -653,7 +773,7 @@ impl VantaPrivatePoolV2Spend {
             return;
         }
 
-        let mode = selector % 9;
+        let mode = selector % 15;
         let accepted_root = match mode {
             1 => make_hash(seed, 44),
             7 => {
@@ -663,7 +783,7 @@ impl VantaPrivatePoolV2Spend {
                 };
                 root
             }
-            0 | 2 | 3 | 4 | 5 | 6 => {
+            0 | 2 | 3 | 4 | 5 | 6 | 8 | 9 | 10 | 11 | 12 | 13 => {
                 self.ensure_provenanced_root(seed.wrapping_add(606));
                 let Some(record) = self.root_records.last().cloned() else {
                     return;
@@ -685,6 +805,33 @@ impl VantaPrivatePoolV2Spend {
         }
 
         self.ensure_unshield_placeholders(&payload);
+        if matches!(mode, 0 | 2 | 3 | 4 | 5 | 6) {
+            self.register_vault_asset_for_payload(&payload);
+            self.ensure_valid_release_accounts(&payload);
+        }
+        if mode == 8 {
+            if self.is_vault_asset_registered(&payload.exit_asset_id) {
+                return;
+            }
+            self.ensure_unregistered_vault_asset_account(&payload.exit_asset_id);
+            self.ensure_valid_release_accounts(&payload);
+        }
+        if mode == 10 {
+            self.register_cross_asset_for_payload(seed, &payload);
+            self.ensure_valid_release_accounts(&payload);
+        }
+        if mode == 11 {
+            self.register_vault_asset_for_payload(&payload);
+            self.ensure_wrong_vault_token_account(&payload);
+        }
+        if mode == 12 {
+            self.register_vault_asset_for_payload(&payload);
+            self.ensure_wrong_destination_token_account(&payload);
+        }
+        if mode == 13 {
+            self.register_vault_asset_for_payload(&payload);
+            self.ensure_wrong_token_program_accounts(&payload);
+        }
         let (data, accounts, expected_code, forbidden_code) = match mode {
             0 => (
                 payload.data.clone(),
@@ -744,6 +891,42 @@ impl VantaPrivatePoolV2Spend {
                 self.unshield_accounts_for_payload(&payload),
                 None,
                 Some(ERR_UNSHIELD_RELEASE_NOT_WIRED),
+            ),
+            8 => (
+                payload.data.clone(),
+                self.unshield_accounts_for_payload(&payload),
+                Some(ERR_VAULT_ASSET_MISMATCH),
+                None,
+            ),
+            9 => (
+                payload.data.clone(),
+                self.unshield_accounts_with_wrong_vault_asset(&payload),
+                Some(ERR_VAULT_ASSET_MISMATCH),
+                None,
+            ),
+            10 => (
+                payload.data.clone(),
+                self.unshield_accounts_with_cross_asset(&payload, seed),
+                Some(ERR_VAULT_ASSET_MISMATCH),
+                None,
+            ),
+            11 => (
+                payload.data.clone(),
+                self.unshield_accounts_for_payload(&payload),
+                Some(ERR_VAULT_TOKEN_ACCOUNT_MISMATCH),
+                None,
+            ),
+            12 => (
+                payload.data.clone(),
+                self.unshield_accounts_for_payload(&payload),
+                Some(ERR_DESTINATION_TOKEN_ACCOUNT_MISMATCH),
+                None,
+            ),
+            13 => (
+                payload.data.clone(),
+                self.unshield_accounts_for_payload(&payload),
+                Some(ERR_TOKEN_PROGRAM_MISMATCH),
+                None,
             ),
             _ => (
                 vec![TAG_UNSHIELD],
@@ -975,6 +1158,10 @@ fn invariant_test(fixture: &mut VantaPrivatePoolV2Spend) {
     for verifier_key_hash in fixture.registered_verifier_keys.iter() {
         fixture.assert_verifier_key_account(verifier_key_hash);
     }
+
+    for vault_asset in fixture.registered_vault_assets.iter() {
+        fixture.assert_vault_asset_account(vault_asset);
+    }
 }
 
 impl VantaPrivatePoolV2Spend {
@@ -998,6 +1185,7 @@ impl VantaPrivatePoolV2Spend {
         self.legacy_roots.clear();
         self.root_records.clear();
         self.registered_verifier_keys.clear();
+        self.registered_vault_assets.clear();
         self.output_records.clear();
         self.latest_public_input_hash = [0; HASH_LEN];
     }
@@ -1015,6 +1203,7 @@ impl VantaPrivatePoolV2Spend {
             self.legacy_roots.clear();
             self.root_records.clear();
             self.registered_verifier_keys.clear();
+            self.registered_vault_assets.clear();
             self.output_records.clear();
             self.latest_public_input_hash = [0; HASH_LEN];
         } else {
@@ -1125,6 +1314,82 @@ impl VantaPrivatePoolV2Spend {
         }
     }
 
+    fn register_vault_asset_for_payload(&mut self, payload: &UnshieldPayload) {
+        let record = self.vault_asset_record_for_payload(payload);
+        self.register_vault_asset_for_record(&record);
+    }
+
+    fn register_cross_asset_for_payload(&mut self, seed: u64, payload: &UnshieldPayload) {
+        let cross_asset_id = make_hash(seed.wrapping_add(9_999), 63);
+        if cross_asset_id == payload.exit_asset_id {
+            return;
+        }
+        let record =
+            self.vault_asset_record_for_exit_asset(seed.wrapping_add(9_999), cross_asset_id);
+        self.register_vault_asset_for_record(&record);
+    }
+
+    fn register_vault_asset_for_record(&mut self, record: &VaultAssetRecord) {
+        self.ensure_vault_asset_placeholder(&record.exit_asset_id);
+        self.ensure_vault_authority_placeholder(&record.exit_asset_id);
+        let accounts = self.vault_asset_registration_accounts_for_record(record);
+        let outcome = self.call_authorized(register_vault_asset_data(record), accounts);
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_success));
+        if outcome.is_some_and(|o| o.is_success()) {
+            self.remember_registered_vault_asset(record.clone());
+            self.assert_vault_asset_account(record);
+        }
+    }
+
+    fn remember_registered_vault_asset(&mut self, record: VaultAssetRecord) {
+        if let Some(existing) = self
+            .registered_vault_assets
+            .iter_mut()
+            .find(|seen| seen.exit_asset_id == record.exit_asset_id)
+        {
+            *existing = record;
+        } else {
+            self.registered_vault_assets.push(record);
+        }
+    }
+
+    fn is_vault_asset_registered(&self, exit_asset_id: &[u8; HASH_LEN]) -> bool {
+        self.registered_vault_assets
+            .iter()
+            .any(|record| &record.exit_asset_id == exit_asset_id)
+    }
+
+    fn vault_asset_record(&self, seed: u64) -> VaultAssetRecord {
+        let exit_asset_id = make_hash(seed, 63);
+        self.vault_asset_record_for_exit_asset(seed, exit_asset_id)
+    }
+
+    fn vault_asset_record_for_payload(&self, payload: &UnshieldPayload) -> VaultAssetRecord {
+        VaultAssetRecord {
+            exit_asset_id: payload.exit_asset_id,
+            mint: payload.mint,
+            vault_authority: self.vault_authority_pubkey(&payload.exit_asset_id),
+            vault_token_account: payload.vault_token_account,
+            token_program: payload.token_program,
+            asset_kind: VAULT_ASSET_KIND_SPL,
+        }
+    }
+
+    fn vault_asset_record_for_exit_asset(
+        &self,
+        seed: u64,
+        exit_asset_id: [u8; HASH_LEN],
+    ) -> VaultAssetRecord {
+        VaultAssetRecord {
+            exit_asset_id,
+            mint: pubkey_from_hash(make_hash(seed, 65)),
+            vault_authority: self.vault_authority_pubkey(&exit_asset_id),
+            vault_token_account: pubkey_from_hash(make_hash(seed, 66)),
+            token_program: pubkey_from_hash(make_hash(seed, 67)),
+            asset_kind: VAULT_ASSET_KIND_SPL,
+        }
+    }
+
     fn accepted_root_for_spend(&self, seed: u64) -> [u8; HASH_LEN] {
         self.accepted_roots
             .last()
@@ -1208,6 +1473,11 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
             AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
             AccountMeta::new_readonly(self.vault_authority_pubkey(&payload.exit_asset_id), false),
+            AccountMeta::new_readonly(self.vault_asset_pubkey(&payload.exit_asset_id), false),
+            AccountMeta::new(payload.vault_token_account, false),
+            AccountMeta::new(payload.destination_token_account, false),
+            AccountMeta::new_readonly(payload.mint, false),
+            AccountMeta::new_readonly(payload.token_program, false),
         ]
     }
 
@@ -1282,6 +1552,11 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
             AccountMeta::new(self.wrong_nullifier_set, false),
             AccountMeta::new_readonly(self.vault_authority_pubkey(&payload.exit_asset_id), false),
+            AccountMeta::new_readonly(self.vault_asset_pubkey(&payload.exit_asset_id), false),
+            AccountMeta::new(payload.vault_token_account, false),
+            AccountMeta::new(payload.destination_token_account, false),
+            AccountMeta::new_readonly(payload.mint, false),
+            AccountMeta::new_readonly(payload.token_program, false),
         ]
     }
 
@@ -1292,6 +1567,11 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
             AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
             AccountMeta::new_readonly(self.wrong_root_history, false),
+            AccountMeta::new_readonly(self.vault_asset_pubkey(&payload.exit_asset_id), false),
+            AccountMeta::new(payload.vault_token_account, false),
+            AccountMeta::new(payload.destination_token_account, false),
+            AccountMeta::new_readonly(payload.mint, false),
+            AccountMeta::new_readonly(payload.token_program, false),
         ]
     }
 
@@ -1302,6 +1582,11 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
             AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
             AccountMeta::new(self.vault_authority_pubkey(&payload.exit_asset_id), false),
+            AccountMeta::new_readonly(self.vault_asset_pubkey(&payload.exit_asset_id), false),
+            AccountMeta::new(payload.vault_token_account, false),
+            AccountMeta::new(payload.destination_token_account, false),
+            AccountMeta::new_readonly(payload.mint, false),
+            AccountMeta::new_readonly(payload.token_program, false),
         ]
     }
 
@@ -1315,7 +1600,32 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new_readonly(self.wrong_root_history, false),
             AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
             AccountMeta::new_readonly(self.vault_authority_pubkey(&payload.exit_asset_id), false),
+            AccountMeta::new_readonly(self.vault_asset_pubkey(&payload.exit_asset_id), false),
+            AccountMeta::new(payload.vault_token_account, false),
+            AccountMeta::new(payload.destination_token_account, false),
+            AccountMeta::new_readonly(payload.mint, false),
+            AccountMeta::new_readonly(payload.token_program, false),
         ]
+    }
+
+    fn unshield_accounts_with_wrong_vault_asset(
+        &self,
+        payload: &UnshieldPayload,
+    ) -> Vec<AccountMeta> {
+        let mut accounts = self.unshield_accounts_for_payload(payload);
+        accounts[5] = AccountMeta::new_readonly(self.wrong_root_history, false);
+        accounts
+    }
+
+    fn unshield_accounts_with_cross_asset(
+        &self,
+        payload: &UnshieldPayload,
+        seed: u64,
+    ) -> Vec<AccountMeta> {
+        let cross_asset_id = make_hash(seed.wrapping_add(9_999), 63);
+        let mut accounts = self.unshield_accounts_for_payload(payload);
+        accounts[5] = AccountMeta::new_readonly(self.vault_asset_pubkey(&cross_asset_id), false);
+        accounts
     }
 
     fn legacy_root_registration_accounts(&self) -> Vec<AccountMeta> {
@@ -1384,6 +1694,71 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new_readonly(self.pool_state, false),
             AccountMeta::new(self.verifier_key_pubkey(verifier_key_hash), false),
             AccountMeta::new(self.operator_authority.pubkey(), false),
+            AccountMeta::new_readonly(system_program::ID, false),
+        ]
+    }
+
+    fn vault_asset_registration_accounts_for_record(
+        &self,
+        record: &VaultAssetRecord,
+    ) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new(self.vault_asset_pubkey(&record.exit_asset_id), false),
+            AccountMeta::new_readonly(record.vault_authority, false),
+            AccountMeta::new(self.operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
+        ]
+    }
+
+    fn vault_asset_registration_accounts_with_wrong_pda(
+        &self,
+        record: &VaultAssetRecord,
+    ) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new(self.wrong_root_history, false),
+            AccountMeta::new_readonly(record.vault_authority, false),
+            AccountMeta::new(self.operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
+        ]
+    }
+
+    fn vault_asset_registration_accounts_with_wrong_authority(
+        &self,
+        record: &VaultAssetRecord,
+    ) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new(self.vault_asset_pubkey(&record.exit_asset_id), false),
+            AccountMeta::new_readonly(record.vault_authority, false),
+            AccountMeta::new(self.wrong_operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
+        ]
+    }
+
+    fn vault_asset_registration_accounts_unsigned(
+        &self,
+        record: &VaultAssetRecord,
+    ) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new(self.vault_asset_pubkey(&record.exit_asset_id), false),
+            AccountMeta::new_readonly(record.vault_authority, false),
+            AccountMeta::new(self.operator_authority.pubkey(), false),
+            AccountMeta::new_readonly(system_program::ID, false),
+        ]
+    }
+
+    fn vault_asset_registration_accounts_with_wrong_vault_authority(
+        &self,
+        record: &VaultAssetRecord,
+    ) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new(self.vault_asset_pubkey(&record.exit_asset_id), false),
+            AccountMeta::new_readonly(self.wrong_root_history, false),
+            AccountMeta::new(self.operator_authority.pubkey(), true),
             AccountMeta::new_readonly(system_program::ID, false),
         ]
     }
@@ -1482,6 +1857,21 @@ impl VantaPrivatePoolV2Spend {
         self.ensure_root_record_placeholder(&payload.accepted_root);
         self.ensure_marker_placeholder(&payload.nullifier);
         self.ensure_vault_authority_placeholder(&payload.exit_asset_id);
+        self.ensure_vault_asset_placeholder(&payload.exit_asset_id);
+        self.ensure_token_program_account(payload.token_program);
+        self.ensure_mint_account(payload.mint, payload.token_program);
+        self.ensure_token_account(
+            payload.vault_token_account,
+            payload.token_program,
+            payload.mint,
+            self.vault_authority_pubkey(&payload.exit_asset_id),
+        );
+        self.ensure_token_account(
+            payload.destination_token_account,
+            payload.token_program,
+            payload.mint,
+            payload.exit_destination_pubkey(),
+        );
     }
 
     fn ensure_marker_placeholder(&mut self, nullifier: &[u8; HASH_LEN]) {
@@ -1541,6 +1931,166 @@ impl VantaPrivatePoolV2Spend {
             .owner(system_program::ID)
             .size(0)
             .create()
+            .unwrap();
+    }
+
+    fn ensure_vault_asset_placeholder(&mut self, exit_asset_id: &[u8; HASH_LEN]) {
+        let vault_asset = self.vault_asset_pubkey(exit_asset_id);
+        if self.ctx.get_account(&vault_asset).is_ok() {
+            return;
+        }
+        self.ctx
+            .create_account()
+            .pubkey(vault_asset)
+            .lamports(0)
+            .owner(system_program::ID)
+            .size(0)
+            .create()
+            .unwrap();
+    }
+
+    fn ensure_unregistered_vault_asset_account(&mut self, exit_asset_id: &[u8; HASH_LEN]) {
+        let vault_asset = self.vault_asset_pubkey(exit_asset_id);
+        if self.ctx.get_account(&vault_asset).is_err() {
+            self.ctx
+                .create_account()
+                .pubkey(vault_asset)
+                .lamports(1_000_000)
+                .owner(self.program_id)
+                .size(VAULT_ASSET_ACCOUNT_LEN)
+                .create()
+                .unwrap();
+            return;
+        }
+        let mut account = self.ctx.read_account(&vault_asset).unwrap();
+        account.lamports = 1_000_000;
+        account.owner = self.program_id;
+        account.data = vec![0; VAULT_ASSET_ACCOUNT_LEN];
+        self.ctx.write_account(&vault_asset, account).unwrap();
+    }
+
+    fn ensure_valid_release_accounts(&mut self, payload: &UnshieldPayload) {
+        self.ensure_token_program_account(payload.token_program);
+        self.ensure_mint_account(payload.mint, payload.token_program);
+        self.ensure_token_account(
+            payload.vault_token_account,
+            payload.token_program,
+            payload.mint,
+            self.vault_authority_pubkey(&payload.exit_asset_id),
+        );
+        self.ensure_token_account(
+            payload.destination_token_account,
+            payload.token_program,
+            payload.mint,
+            payload.exit_destination_pubkey(),
+        );
+    }
+
+    fn ensure_wrong_vault_token_account(&mut self, payload: &UnshieldPayload) {
+        self.ensure_token_program_account(payload.token_program);
+        self.ensure_mint_account(payload.mint, payload.token_program);
+        self.ensure_token_account(
+            payload.vault_token_account,
+            payload.token_program,
+            payload.mint,
+            self.wrong_root_history,
+        );
+        self.ensure_token_account(
+            payload.destination_token_account,
+            payload.token_program,
+            payload.mint,
+            payload.exit_destination_pubkey(),
+        );
+    }
+
+    fn ensure_wrong_destination_token_account(&mut self, payload: &UnshieldPayload) {
+        self.ensure_token_program_account(payload.token_program);
+        self.ensure_mint_account(payload.mint, payload.token_program);
+        self.ensure_token_account(
+            payload.vault_token_account,
+            payload.token_program,
+            payload.mint,
+            self.vault_authority_pubkey(&payload.exit_asset_id),
+        );
+        self.ensure_token_account(
+            payload.destination_token_account,
+            payload.token_program,
+            payload.mint,
+            self.wrong_root_history,
+        );
+    }
+
+    fn ensure_wrong_token_program_accounts(&mut self, payload: &UnshieldPayload) {
+        let wrong_token_program = self.wrong_root_history;
+        self.ensure_token_program_account(payload.token_program);
+        self.ensure_mint_account(payload.mint, wrong_token_program);
+        self.ensure_token_account(
+            payload.vault_token_account,
+            payload.token_program,
+            payload.mint,
+            self.vault_authority_pubkey(&payload.exit_asset_id),
+        );
+        self.ensure_token_account(
+            payload.destination_token_account,
+            payload.token_program,
+            payload.mint,
+            payload.exit_destination_pubkey(),
+        );
+    }
+
+    fn ensure_token_program_account(&mut self, token_program: Pubkey) {
+        if self.ctx.get_account(&token_program).is_ok() {
+            return;
+        }
+        create_system_account(&mut self.ctx, token_program, 0);
+    }
+
+    fn ensure_mint_account(&mut self, mint: Pubkey, token_program: Pubkey) {
+        if self.ctx.get_account(&mint).is_err() {
+            self.ctx
+                .create_account()
+                .pubkey(mint)
+                .lamports(1_000_000)
+                .owner(token_program)
+                .size(0)
+                .create()
+                .unwrap();
+            return;
+        }
+        let mut account = self.ctx.read_account(&mint).unwrap();
+        account.owner = token_program;
+        self.ctx.write_account(&mint, account).unwrap();
+    }
+
+    fn ensure_token_account(
+        &mut self,
+        token_account: Pubkey,
+        token_program: Pubkey,
+        mint: Pubkey,
+        owner: Pubkey,
+    ) {
+        if self.ctx.get_account(&token_account).is_err() {
+            self.ctx
+                .create_account()
+                .pubkey(token_account)
+                .lamports(1_000_000)
+                .owner(token_program)
+                .size(TOKEN_ACCOUNT_LEN)
+                .create()
+                .unwrap();
+        } else {
+            let mut account = self.ctx.read_account(&token_account).unwrap();
+            account.owner = token_program;
+            self.ctx.write_account(&token_account, account).unwrap();
+        }
+        self.ctx
+            .update_account(&token_account, |data| {
+                data.fill(0);
+                data[TOKEN_ACCOUNT_MINT_OFFSET..TOKEN_ACCOUNT_MINT_OFFSET + HASH_LEN]
+                    .copy_from_slice(mint.as_ref());
+                data[TOKEN_ACCOUNT_OWNER_OFFSET..TOKEN_ACCOUNT_OWNER_OFFSET + HASH_LEN]
+                    .copy_from_slice(owner.as_ref());
+            })
             .unwrap();
     }
 
@@ -1700,6 +2250,43 @@ impl VantaPrivatePoolV2Spend {
         );
     }
 
+    fn assert_vault_asset_account(&self, record: &VaultAssetRecord) {
+        let asset_data = self.account_data(self.vault_asset_pubkey(&record.exit_asset_id));
+        fuzz_assert!(asset_data.len() >= VAULT_ASSET_ACCOUNT_LEN);
+        fuzz_assert_eq!(&asset_data[..8], VAULT_ASSET_MAGIC);
+        fuzz_assert_eq!(asset_data[8], VERSION);
+        fuzz_assert_eq!(read_u32(&asset_data, COUNT_OFFSET), 1);
+        fuzz_assert_eq!(
+            &asset_data[VAULT_ASSET_POOL_OFFSET..VAULT_ASSET_POOL_OFFSET + HASH_LEN],
+            &self.pool_state.to_bytes()
+        );
+        fuzz_assert_eq!(
+            &asset_data
+                [VAULT_ASSET_EXIT_ASSET_ID_OFFSET..VAULT_ASSET_EXIT_ASSET_ID_OFFSET + HASH_LEN],
+            &record.exit_asset_id
+        );
+        fuzz_assert_eq!(
+            &asset_data[VAULT_ASSET_MINT_OFFSET..VAULT_ASSET_MINT_OFFSET + HASH_LEN],
+            record.mint.as_ref()
+        );
+        fuzz_assert_eq!(
+            &asset_data
+                [VAULT_ASSET_VAULT_AUTHORITY_OFFSET..VAULT_ASSET_VAULT_AUTHORITY_OFFSET + HASH_LEN],
+            record.vault_authority.as_ref()
+        );
+        fuzz_assert_eq!(
+            &asset_data[VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET
+                ..VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET + HASH_LEN],
+            record.vault_token_account.as_ref()
+        );
+        fuzz_assert_eq!(
+            &asset_data
+                [VAULT_ASSET_TOKEN_PROGRAM_OFFSET..VAULT_ASSET_TOKEN_PROGRAM_OFFSET + HASH_LEN],
+            record.token_program.as_ref()
+        );
+        fuzz_assert_eq!(asset_data[VAULT_ASSET_KIND_OFFSET], record.asset_kind);
+    }
+
     fn nullifier_marker_pubkey(&self, nullifier: &[u8; HASH_LEN]) -> Pubkey {
         Pubkey::find_program_address(
             &[NULLIFIER_MARKER_SEED, self.pool_state.as_ref(), nullifier],
@@ -1735,6 +2322,14 @@ impl VantaPrivatePoolV2Spend {
                 self.pool_state.as_ref(),
                 exit_asset_id,
             ],
+            &self.program_id,
+        )
+        .0
+    }
+
+    fn vault_asset_pubkey(&self, exit_asset_id: &[u8; HASH_LEN]) -> Pubkey {
+        Pubkey::find_program_address(
+            &[VAULT_ASSET_SEED, self.pool_state.as_ref(), exit_asset_id],
             &self.program_id,
         )
         .0
@@ -1780,7 +2375,18 @@ struct UnshieldPayload {
     data: Vec<u8>,
     nullifier: [u8; HASH_LEN],
     accepted_root: [u8; HASH_LEN],
+    exit_destination: [u8; HASH_LEN],
     exit_asset_id: [u8; HASH_LEN],
+    mint: Pubkey,
+    vault_token_account: Pubkey,
+    destination_token_account: Pubkey,
+    token_program: Pubkey,
+}
+
+impl UnshieldPayload {
+    fn exit_destination_pubkey(&self) -> Pubkey {
+        pubkey_from_hash(self.exit_destination)
+    }
 }
 
 fn spend_payload(seed: u64, accepted_root: [u8; HASH_LEN]) -> SpendPayload {
@@ -1854,7 +2460,12 @@ fn unshield_payload_with_nullifier(
         ),
         nullifier,
         accepted_root,
+        exit_destination,
         exit_asset_id,
+        mint: pubkey_from_hash(make_hash(seed, 65)),
+        vault_token_account: pubkey_from_hash(make_hash(seed, 66)),
+        destination_token_account: pubkey_from_hash(make_hash(seed, 68)),
+        token_program: pubkey_from_hash(make_hash(seed, 67)),
     }
 }
 
@@ -1960,6 +2571,17 @@ fn register_verifier_key_data(verifier_key_hash: [u8; HASH_LEN]) -> Vec<u8> {
     data
 }
 
+fn register_vault_asset_data(record: &VaultAssetRecord) -> Vec<u8> {
+    let mut data = Vec::with_capacity(1 + HASH_LEN * 4 + 1);
+    data.push(TAG_REGISTER_VAULT_ASSET);
+    data.extend_from_slice(&record.exit_asset_id);
+    data.extend_from_slice(record.mint.as_ref());
+    data.extend_from_slice(record.vault_token_account.as_ref());
+    data.extend_from_slice(record.token_program.as_ref());
+    data.push(record.asset_kind);
+    data
+}
+
 fn make_hash(seed: u64, domain: u8) -> [u8; HASH_LEN] {
     let mut out = [domain; HASH_LEN];
     out[0..8].copy_from_slice(&seed.to_le_bytes());
@@ -1967,6 +2589,10 @@ fn make_hash(seed: u64, domain: u8) -> [u8; HASH_LEN] {
     out[16..24].copy_from_slice(&(seed ^ ((domain as u64) << 56)).to_le_bytes());
     out[24..32].copy_from_slice(&seed.wrapping_mul(0x9e37_79b9_7f4a_7c15).to_le_bytes());
     out
+}
+
+fn pubkey_from_hash(hash: [u8; HASH_LEN]) -> Pubkey {
+    Pubkey::new_from_array(hash)
 }
 
 fn create_program_accounts(
