@@ -612,6 +612,64 @@ function assertSwapReceiptModalIdleHidden() {
   }
 }
 
+function assertUnshieldReceiptModalIdleHidden() {
+  for (const width of [1440, 390, 320]) {
+    execFileSync(
+      "gsd-browser",
+      ["--session", browserSession, "set-viewport", "--width", String(width), "--height", "1000"],
+      {
+        stdio: "ignore",
+      },
+    );
+    execFileSync("gsd-browser", ["--session", browserSession, "navigate", `${baseUrl}/app/unshield`], {
+      stdio: "ignore",
+    });
+    execFileSync("gsd-browser", ["--session", browserSession, "wait-for", "--condition", "network_idle"], {
+      stdio: "ignore",
+    });
+
+    const rawResult = execFileSync(
+      "gsd-browser",
+      [
+        "--session",
+        browserSession,
+        "--json",
+        "eval",
+        `(() => {
+          const modal = document.querySelector("[data-vanta-unshield-receipt-modal]");
+          const bodyText = document.body.innerText;
+          const documentOverflow =
+            Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) -
+            window.innerWidth;
+
+          return {
+            ok:
+              modal === null &&
+              !bodyText.includes("View receipt details") &&
+              !bodyText.includes("Latest unshield receipt") &&
+              !bodyText.includes("View on Solscan") &&
+              documentOverflow <= 2,
+            documentOverflow,
+            hasModal: modal !== null,
+            hasReceiptCta: bodyText.includes("View receipt details"),
+            hasReceiptTitle: bodyText.includes("Latest unshield receipt"),
+            hasSolscanLink: bodyText.includes("View on Solscan"),
+            width: window.innerWidth,
+          };
+        })()`,
+      ],
+      { encoding: "utf8" },
+    );
+    const result = JSON.parse(rawResult);
+    const rawValue = result.result ?? result.value ?? result;
+    const value = typeof rawValue === "string" ? JSON.parse(rawValue) : rawValue;
+
+    if (!value.ok) {
+      throw new Error(`Unshield receipt modal should stay hidden before completion: ${JSON.stringify(value)}`);
+    }
+  }
+}
+
 function assertSendAdvancedDisclosure() {
   execFileSync("gsd-browser", ["--session", browserSession, "set-viewport", "--width", "1440", "--height", "1000"], {
     stdio: "ignore",
@@ -1448,6 +1506,7 @@ try {
   assertPayTransactionStatusToast();
   assertSwapQuoteCountdownBar();
   assertSwapReceiptModalIdleHidden();
+  assertUnshieldReceiptModalIdleHidden();
   assertSendAdvancedDisclosure();
   assertSwapAdvancedDisclosure();
   assertUnshieldAdvancedDisclosure();

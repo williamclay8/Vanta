@@ -3232,6 +3232,128 @@ input {
   }
 }
 
+.unshield-receipt-modal__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(2, 6, 12, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.unshield-receipt-modal,
+.unshield-receipt-modal__dialog {
+  width: min(100%, 720px);
+  max-height: min(820px, calc(100vh - 48px));
+  overflow: auto;
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 229, 200, 0.18);
+  background:
+    linear-gradient(180deg, rgba(0, 229, 200, 0.08), rgba(0, 229, 200, 0) 90px),
+    rgba(5, 8, 15, 0.98);
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.unshield-receipt-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.unshield-receipt-modal__header span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.unshield-receipt-modal__header h3 {
+  margin: 0;
+  font-size: 1.22rem;
+  letter-spacing: 0;
+}
+
+.unshield-receipt-modal__close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.unshield-receipt-modal__boundary {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.unshield-receipt-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.unshield-receipt-modal__grid div {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055);
+}
+
+.unshield-receipt-modal__grid dt {
+  margin: 0 0 4px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.unshield-receipt-modal__grid dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.unshield-receipt-modal__details {
+  display: grid;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .unshield-receipt-modal__overlay {
+    padding: 14px;
+  }
+
+  .unshield-receipt-modal,
+  .unshield-receipt-modal__dialog {
+    max-height: calc(100vh - 28px);
+    padding: 16px;
+  }
+
+  .unshield-receipt-modal__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .swap-route-card {
   display: grid;
   gap: 10px;

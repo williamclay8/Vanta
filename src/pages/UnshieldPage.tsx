@@ -13,6 +13,10 @@ import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import { UnshieldAdvancedPanel } from "@/components/UnshieldAdvancedPanel";
 import {
+  UnshieldReceiptModal,
+  type UnshieldReceiptModalDetails,
+} from "@/components/UnshieldReceiptModal";
+import {
   PrivacySummary,
   type PrivacySummaryItem,
 } from "@/components/PrivacySummary";
@@ -561,6 +565,7 @@ export function UnshieldPage() {
   const [unshieldReceiptCopyStatus, setUnshieldReceiptCopyStatus] = useState<
     "idle" | "copied" | "failed"
   >("idle");
+  const [unshieldReceiptModalOpen, setUnshieldReceiptModalOpen] = useState(false);
   const [unshieldBridgeError, setUnshieldBridgeError] = useState<string | null>(null);
   const [operatorAuthorizationStarted, setOperatorAuthorizationStarted] = useState(false);
   const [operatorReleaseSignature, setOperatorReleaseSignature] = useState<string | null>(null);
@@ -2083,6 +2088,38 @@ export function UnshieldPage() {
       : currentUnshieldTransactionEvidence.wallet.status === "signature-recorded"
         ? "Transition signature captured"
         : "Pending operator release";
+  const unshieldReceiptModalDetails = useMemo<UnshieldReceiptModalDetails | null>(() => {
+    if (!lastCompletion) {
+      return null;
+    }
+
+    return {
+      amountLabel: formatUnshieldAmount(lastCompletion.amount, lastCompletion.asset),
+      evidenceLabel: completionEvidenceLabel,
+      exitVisibilityLabel: "public on-chain exit",
+      operatorReleaseLabel: operatorReleaseSignature
+        ? abbreviate(operatorReleaseSignature)
+        : "Pending",
+      operatorRequestLabel: lastCompletion.requestId
+        ? abbreviate(lastCompletion.requestId)
+        : "Pending receipt",
+      settlementScopeLabel: currentUnshieldTransactionEvidence.settlement.status,
+      solscanUrl: operatorReleaseSignature
+        ? getSolscanTransactionUrl(operatorReleaseSignature)
+        : undefined,
+      transitionNoteLabel: abbreviate(lastCompletion.transitionNoteId),
+    };
+  }, [
+    completionEvidenceLabel,
+    currentUnshieldTransactionEvidence.settlement.status,
+    lastCompletion,
+    operatorReleaseSignature,
+  ]);
+  useEffect(() => {
+    if (status !== "complete") {
+      setUnshieldReceiptModalOpen(false);
+    }
+  }, [status]);
   const selectedUnshieldNoteLabel = selectedUnshieldNote
     ? `${formatUnshieldAmount(selectedUnshieldNote.amount, selectedLane)} note - ${abbreviate(
         selectedUnshieldNote.noteId,
@@ -3225,6 +3262,15 @@ export function UnshieldPage() {
                   className="button button-ghost"
                   type="button"
                   onClick={() => {
+                    setUnshieldReceiptModalOpen(true);
+                  }}
+                >
+                  View receipt details
+                </button>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => {
                     void copyUnshieldReceipt();
                   }}
                 >
@@ -3245,288 +3291,296 @@ export function UnshieldPage() {
                   </a>
                 )}
               </div>
-              <details className="unshield-completion-details">
-                <summary>Operator workflow and export details</summary>
-                <div className="preview-grid">
-                  <div className="preview-card preview-card--accent">
-                    <span>Exact candidate</span>
-                    <strong>
-                      {privateCoreReleaseCandidateState?.lifecycleStatusLabel ?? "Unavailable"}
-                    </strong>
-                  </div>
-                  <div className="preview-card">
-                    <span>Release workflow</span>
-                    <strong>
-                      {privateCoreReleaseWorkflowState?.shipStatusLabel ?? "Unavailable"}
-                    </strong>
-                  </div>
-                  <div className="preview-card">
-                    <span>Release handoff</span>
-                    <strong>
-                      {privateCoreReleaseHandoffState?.handoffStatusLabel ?? "Unavailable"}
-                    </strong>
-                  </div>
-                  <div className="preview-card">
-                    <span>Release package</span>
-                    <strong>
-                      {privateCoreReleasePackageState?.packageStatusLabel ??
-                        privateCoreReleaseHandoffState?.packageStatusLabel ??
-                        "Unavailable"}
-                    </strong>
-                  </div>
-                </div>
-                <div className="review-list">
-                  <div className="review-row">
-                    <span>Workflow prepare</span>
-                    <strong>
-                      {privateCoreReleaseWorkflowState?.prepareStatusLabel ?? "Unavailable"}
-                    </strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Workflow check</span>
-                    <strong>{privateCoreReleaseWorkflowState?.checkStatusLabel ?? "Unavailable"}</strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Workflow ship</span>
-                    <strong>{privateCoreReleaseWorkflowState?.shipStatusLabel ?? "Unavailable"}</strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Shipping artifact</span>
-                    <strong>
-                      {privateCoreReleaseWorkflowState?.artifactStatusLabel ?? "Unavailable"}
-                    </strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Workflow note</span>
-                    <strong>{privateCoreReleaseWorkflowState?.shipPrimaryNote ?? "Unavailable"}</strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Handoff</span>
-                    <strong>{privateCoreReleaseHandoffState?.handoffStatusLabel ?? "Unavailable"}</strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Next handoff action</span>
-                    <strong>{privateCoreReleaseHandoffState?.nextActionLabel ?? "Unavailable"}</strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Handoff note</span>
-                    <strong>{privateCoreReleaseHandoffState?.handoffPrimaryNote ?? "Unavailable"}</strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Package identity</span>
-                    <strong>{privateCoreReleasePackageState?.packageIdentityLabel ?? "Unavailable"}</strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Release package</span>
-                    <strong>
-                      {privateCoreReleasePackageState?.packageStatusLabel ??
-                        privateCoreReleaseHandoffState?.packageStatusLabel ??
-                        "Unavailable"}
-                    </strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Package note</span>
-                    <strong>
-                      {privateCoreReleasePackageState?.packagePrimaryNote ??
-                        privateCoreReleaseHandoffState?.packagePrimaryNote ??
-                        "Unavailable"}
-                    </strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Package gate</span>
-                    <strong>{privateCoreReleasePackageState?.gateStatusLabel ?? "Unavailable"}</strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Package gate note</span>
-                    <strong>{privateCoreReleasePackageState?.gatePrimaryNote ?? "Unavailable"}</strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Artifact identity</span>
-                    <strong>
-                      {privateCoreReleasePackageState?.artifactIdentityLabel ??
-                        privateCoreReleaseHandoffState?.artifactIdentityLabel ??
-                        "Unavailable"}
-                    </strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Decision identity</span>
-                    <strong>
-                      {privateCoreReleasePackageState?.decisionIdentityLabel ??
-                        privateCoreReleaseHandoffState?.decisionIdentityLabel ??
-                        "Unavailable"}
-                    </strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Contract identity</span>
-                    <strong>{privateCoreReleasePackageState?.contractIdentityLabel ?? "Unavailable"}</strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Snapshot identity</span>
-                    <strong>{privateCoreReleasePackageState?.snapshotIdentityLabel ?? "Unavailable"}</strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Summary generated</span>
-                    <strong>{privateCoreReleasePackageState?.summaryGeneratedLabel ?? "Unavailable"}</strong>
-                  </div>
-                  <div className="review-row">
-                    <span>Package lineage</span>
-                    <strong>{privateCoreReleasePackageState?.lineageSummaryLabel ?? "Unavailable"}</strong>
-                  </div>
-                </div>
-                <div className="status-actions" style={{ marginTop: 16 }}>
-                  <button
-                    className="button button-ghost"
-                    type="button"
-                    onClick={() => {
-                      setReleaseHandoffRefreshPending(true);
-                      void refreshPrivateCoreOperatorSummary().finally(() => {
-                        setReleaseHandoffRefreshPending(false);
-                      });
-                    }}
-                    disabled={releaseHandoffRefreshPending}
-                  >
-                    {releaseHandoffRefreshPending ? "Refreshing handoff" : "Refresh release handoff"}
-                  </button>
-                  <button
-                    className="button button-ghost"
-                    type="button"
-                    onClick={() => {
-                      void copyReleasePackageExport("summary");
-                    }}
-                    disabled={!privateCoreReleasePackageState}
-                  >
-                    {releasePackageExportStatus === "summary-copy"
-                      ? "Copied operator package summary"
-                      : "Copy operator package summary"}
-                  </button>
-                  <button
-                    className="button button-ghost"
-                    type="button"
-                    onClick={() => {
-                      void copyReleasePackageExport("json");
-                    }}
-                    disabled={!privateCoreReleasePackageState}
-                  >
-                    {releasePackageExportStatus === "json-copy"
-                      ? "Copied operator package JSON"
-                      : "Copy operator package JSON"}
-                  </button>
-                  <button
-                    className="button button-ghost"
-                    type="button"
-                    onClick={() => {
-                      downloadReleasePackageExport("summary");
-                    }}
-                    disabled={!privateCoreReleasePackageState}
-                  >
-                    {releasePackageExportStatus === "summary-download"
-                      ? "Downloaded package summary"
-                      : "Download package summary"}
-                  </button>
-                  <button
-                    className="button button-ghost"
-                    type="button"
-                    onClick={() => {
-                      downloadReleasePackageExport("json");
-                    }}
-                    disabled={!privateCoreReleasePackageState}
-                  >
-                    {releasePackageExportStatus === "json-download"
-                      ? "Downloaded package JSON"
-                      : "Download package JSON"}
-                  </button>
-                </div>
-                {lastTransitionSignature && (
-                  <p className="shield-helper shield-helper--meta">
-                    Unshield transition: {abbreviate(lastTransitionSignature)}
-                  </p>
-                )}
-                {lastSpentMarkerSignature && (
-                  <p className="shield-helper shield-helper--meta">
-                    Spent marker: {abbreviate(lastSpentMarkerSignature)}
-                  </p>
-                )}
-              </details>
-              <details className="preview-card" style={{ marginTop: 16 }}>
-                <summary>Internal zk diagnostics</summary>
-                <p className="shield-helper shield-helper--meta">
-                  Internal/debug only. This shows the retained canonical consumption trace for
-                  the latest live unshield bridge record.
-                </p>
-                {unshieldBridgeError && (
-                  <p className="shield-helper shield-helper--meta" style={{ color: "#b42318" }}>
-                    Canonical bridge retention issue: {unshieldBridgeError}
-                  </p>
-                )}
-                {currentUnshieldZkDiagnostics ? (
-                  <div className="review-list" style={{ marginTop: 12 }}>
-                    <div className="review-row">
-                      <span>Lane</span>
-                      <strong>{currentUnshieldZkDiagnostics.asset}</strong>
-                    </div>
-                    <div className="review-row">
-                      <span>Consumed note ref</span>
-                      <strong>{abbreviate(currentUnshieldZkDiagnostics.consumedReferenceHash)}</strong>
-                    </div>
-                    <div className="review-row">
-                      <span>Canonical consumed ref</span>
-                      <strong>
-                        {currentUnshieldZkDiagnostics.consumedCanonicalCommitment
-                          ? abbreviate(currentUnshieldZkDiagnostics.consumedCanonicalCommitment)
-                          : "Not yet resolvable"}
-                      </strong>
-                    </div>
-                    <div className="review-row">
-                      <span>Canonical source</span>
-                      <strong>{currentUnshieldZkDiagnostics.consumedCanonicalRecordSource ?? "Unresolved"}</strong>
-                    </div>
-                    <div className="review-row">
-                      <span>Exit amount</span>
-                      <strong>{currentUnshieldZkDiagnostics.amountDisplay}</strong>
-                    </div>
-                    <div className="review-row">
-                      <span>Destination owner</span>
-                      <strong>{abbreviate(currentUnshieldZkDiagnostics.destinationOwner) ?? "Unavailable"}</strong>
-                    </div>
-                    <div className="review-row">
-                      <span>Transition signature</span>
-                      <strong>{abbreviate(currentUnshieldZkDiagnostics.transitionSignature)}</strong>
-                    </div>
-                    <div className="review-row">
-                      <span>Operator request</span>
-                      <strong>
-                        {currentUnshieldZkDiagnostics.operatorRequestId
-                          ? abbreviate(currentUnshieldZkDiagnostics.operatorRequestId)
-                          : "Unavailable"}
-                      </strong>
-                    </div>
-                    <div className="review-row">
-                      <span>Operator release</span>
-                      <strong>
-                        {currentUnshieldZkDiagnostics.operatorReleaseSignature
-                          ? abbreviate(currentUnshieldZkDiagnostics.operatorReleaseSignature)
-                          : "Unavailable"}
-                      </strong>
-                    </div>
-                    {currentUnshieldZkDiagnostics.spentMarkerSignature && (
-                      <div className="review-row">
-                        <span>Spent marker</span>
-                        <strong>{abbreviate(currentUnshieldZkDiagnostics.spentMarkerSignature)}</strong>
+              {unshieldReceiptModalDetails && (
+                <UnshieldReceiptModal
+                  details={unshieldReceiptModalDetails}
+                  open={unshieldReceiptModalOpen}
+                  onClose={() => setUnshieldReceiptModalOpen(false)}
+                >
+                  <details className="unshield-completion-details" open>
+                    <summary>Operator workflow and export details</summary>
+                    <div className="preview-grid">
+                      <div className="preview-card preview-card--accent">
+                        <span>Exact candidate</span>
+                        <strong>
+                          {privateCoreReleaseCandidateState?.lifecycleStatusLabel ?? "Unavailable"}
+                        </strong>
                       </div>
-                    )}
-                    {currentUnshieldZkDiagnostics.sourceSwapNoteReferenceHash && (
-                      <div className="review-row">
-                        <span>Source swap ref</span>
-                        <strong>{abbreviate(currentUnshieldZkDiagnostics.sourceSwapNoteReferenceHash)}</strong>
+                      <div className="preview-card">
+                        <span>Release workflow</span>
+                        <strong>
+                          {privateCoreReleaseWorkflowState?.shipStatusLabel ?? "Unavailable"}
+                        </strong>
                       </div>
+                      <div className="preview-card">
+                        <span>Release handoff</span>
+                        <strong>
+                          {privateCoreReleaseHandoffState?.handoffStatusLabel ?? "Unavailable"}
+                        </strong>
+                      </div>
+                      <div className="preview-card">
+                        <span>Release package</span>
+                        <strong>
+                          {privateCoreReleasePackageState?.packageStatusLabel ??
+                            privateCoreReleaseHandoffState?.packageStatusLabel ??
+                            "Unavailable"}
+                        </strong>
+                      </div>
+                    </div>
+                    <div className="review-list">
+                      <div className="review-row">
+                        <span>Workflow prepare</span>
+                        <strong>
+                          {privateCoreReleaseWorkflowState?.prepareStatusLabel ?? "Unavailable"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Workflow check</span>
+                        <strong>{privateCoreReleaseWorkflowState?.checkStatusLabel ?? "Unavailable"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Workflow ship</span>
+                        <strong>{privateCoreReleaseWorkflowState?.shipStatusLabel ?? "Unavailable"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Shipping artifact</span>
+                        <strong>
+                          {privateCoreReleaseWorkflowState?.artifactStatusLabel ?? "Unavailable"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Workflow note</span>
+                        <strong>{privateCoreReleaseWorkflowState?.shipPrimaryNote ?? "Unavailable"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Handoff</span>
+                        <strong>{privateCoreReleaseHandoffState?.handoffStatusLabel ?? "Unavailable"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Next handoff action</span>
+                        <strong>{privateCoreReleaseHandoffState?.nextActionLabel ?? "Unavailable"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Handoff note</span>
+                        <strong>{privateCoreReleaseHandoffState?.handoffPrimaryNote ?? "Unavailable"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Package identity</span>
+                        <strong>{privateCoreReleasePackageState?.packageIdentityLabel ?? "Unavailable"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Release package</span>
+                        <strong>
+                          {privateCoreReleasePackageState?.packageStatusLabel ??
+                            privateCoreReleaseHandoffState?.packageStatusLabel ??
+                            "Unavailable"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Package note</span>
+                        <strong>
+                          {privateCoreReleasePackageState?.packagePrimaryNote ??
+                            privateCoreReleaseHandoffState?.packagePrimaryNote ??
+                            "Unavailable"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Package gate</span>
+                        <strong>{privateCoreReleasePackageState?.gateStatusLabel ?? "Unavailable"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Package gate note</span>
+                        <strong>{privateCoreReleasePackageState?.gatePrimaryNote ?? "Unavailable"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Artifact identity</span>
+                        <strong>
+                          {privateCoreReleasePackageState?.artifactIdentityLabel ??
+                            privateCoreReleaseHandoffState?.artifactIdentityLabel ??
+                            "Unavailable"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Decision identity</span>
+                        <strong>
+                          {privateCoreReleasePackageState?.decisionIdentityLabel ??
+                            privateCoreReleaseHandoffState?.decisionIdentityLabel ??
+                            "Unavailable"}
+                        </strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Contract identity</span>
+                        <strong>{privateCoreReleasePackageState?.contractIdentityLabel ?? "Unavailable"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Snapshot identity</span>
+                        <strong>{privateCoreReleasePackageState?.snapshotIdentityLabel ?? "Unavailable"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Summary generated</span>
+                        <strong>{privateCoreReleasePackageState?.summaryGeneratedLabel ?? "Unavailable"}</strong>
+                      </div>
+                      <div className="review-row">
+                        <span>Package lineage</span>
+                        <strong>{privateCoreReleasePackageState?.lineageSummaryLabel ?? "Unavailable"}</strong>
+                      </div>
+                    </div>
+                    <div className="status-actions" style={{ marginTop: 16 }}>
+                      <button
+                        className="button button-ghost"
+                        type="button"
+                        onClick={() => {
+                          setReleaseHandoffRefreshPending(true);
+                          void refreshPrivateCoreOperatorSummary().finally(() => {
+                            setReleaseHandoffRefreshPending(false);
+                          });
+                        }}
+                        disabled={releaseHandoffRefreshPending}
+                      >
+                        {releaseHandoffRefreshPending ? "Refreshing handoff" : "Refresh release handoff"}
+                      </button>
+                      <button
+                        className="button button-ghost"
+                        type="button"
+                        onClick={() => {
+                          void copyReleasePackageExport("summary");
+                        }}
+                        disabled={!privateCoreReleasePackageState}
+                      >
+                        {releasePackageExportStatus === "summary-copy"
+                          ? "Copied operator package summary"
+                          : "Copy operator package summary"}
+                      </button>
+                      <button
+                        className="button button-ghost"
+                        type="button"
+                        onClick={() => {
+                          void copyReleasePackageExport("json");
+                        }}
+                        disabled={!privateCoreReleasePackageState}
+                      >
+                        {releasePackageExportStatus === "json-copy"
+                          ? "Copied operator package JSON"
+                          : "Copy operator package JSON"}
+                      </button>
+                      <button
+                        className="button button-ghost"
+                        type="button"
+                        onClick={() => {
+                          downloadReleasePackageExport("summary");
+                        }}
+                        disabled={!privateCoreReleasePackageState}
+                      >
+                        {releasePackageExportStatus === "summary-download"
+                          ? "Downloaded package summary"
+                          : "Download package summary"}
+                      </button>
+                      <button
+                        className="button button-ghost"
+                        type="button"
+                        onClick={() => {
+                          downloadReleasePackageExport("json");
+                        }}
+                        disabled={!privateCoreReleasePackageState}
+                      >
+                        {releasePackageExportStatus === "json-download"
+                          ? "Downloaded package JSON"
+                          : "Download package JSON"}
+                      </button>
+                    </div>
+                    {lastTransitionSignature && (
+                      <p className="shield-helper shield-helper--meta">
+                        Unshield transition: {abbreviate(lastTransitionSignature)}
+                      </p>
                     )}
-                  </div>
-                ) : (
-                  <p className="shield-helper shield-helper--meta">
-                    No retained canonical unshield diagnostics are available yet for this client.
-                  </p>
-                )}
-              </details>
+                    {lastSpentMarkerSignature && (
+                      <p className="shield-helper shield-helper--meta">
+                        Spent marker: {abbreviate(lastSpentMarkerSignature)}
+                      </p>
+                    )}
+                  </details>
+                  <details className="preview-card" style={{ marginTop: 16 }}>
+                    <summary>Internal zk diagnostics</summary>
+                    <p className="shield-helper shield-helper--meta">
+                      Internal/debug only. This shows the retained canonical consumption trace for
+                      the latest live unshield bridge record.
+                    </p>
+                    {unshieldBridgeError && (
+                      <p className="shield-helper shield-helper--meta" style={{ color: "#b42318" }}>
+                        Canonical bridge retention issue: {unshieldBridgeError}
+                      </p>
+                    )}
+                    {currentUnshieldZkDiagnostics ? (
+                      <div className="review-list" style={{ marginTop: 12 }}>
+                        <div className="review-row">
+                          <span>Lane</span>
+                          <strong>{currentUnshieldZkDiagnostics.asset}</strong>
+                        </div>
+                        <div className="review-row">
+                          <span>Consumed note ref</span>
+                          <strong>{abbreviate(currentUnshieldZkDiagnostics.consumedReferenceHash)}</strong>
+                        </div>
+                        <div className="review-row">
+                          <span>Canonical consumed ref</span>
+                          <strong>
+                            {currentUnshieldZkDiagnostics.consumedCanonicalCommitment
+                              ? abbreviate(currentUnshieldZkDiagnostics.consumedCanonicalCommitment)
+                              : "Not yet resolvable"}
+                          </strong>
+                        </div>
+                        <div className="review-row">
+                          <span>Canonical source</span>
+                          <strong>{currentUnshieldZkDiagnostics.consumedCanonicalRecordSource ?? "Unresolved"}</strong>
+                        </div>
+                        <div className="review-row">
+                          <span>Exit amount</span>
+                          <strong>{currentUnshieldZkDiagnostics.amountDisplay}</strong>
+                        </div>
+                        <div className="review-row">
+                          <span>Destination owner</span>
+                          <strong>{abbreviate(currentUnshieldZkDiagnostics.destinationOwner) ?? "Unavailable"}</strong>
+                        </div>
+                        <div className="review-row">
+                          <span>Transition signature</span>
+                          <strong>{abbreviate(currentUnshieldZkDiagnostics.transitionSignature)}</strong>
+                        </div>
+                        <div className="review-row">
+                          <span>Operator request</span>
+                          <strong>
+                            {currentUnshieldZkDiagnostics.operatorRequestId
+                              ? abbreviate(currentUnshieldZkDiagnostics.operatorRequestId)
+                              : "Unavailable"}
+                          </strong>
+                        </div>
+                        <div className="review-row">
+                          <span>Operator release</span>
+                          <strong>
+                            {currentUnshieldZkDiagnostics.operatorReleaseSignature
+                              ? abbreviate(currentUnshieldZkDiagnostics.operatorReleaseSignature)
+                              : "Unavailable"}
+                          </strong>
+                        </div>
+                        {currentUnshieldZkDiagnostics.spentMarkerSignature && (
+                          <div className="review-row">
+                            <span>Spent marker</span>
+                            <strong>{abbreviate(currentUnshieldZkDiagnostics.spentMarkerSignature)}</strong>
+                          </div>
+                        )}
+                        {currentUnshieldZkDiagnostics.sourceSwapNoteReferenceHash && (
+                          <div className="review-row">
+                            <span>Source swap ref</span>
+                            <strong>{abbreviate(currentUnshieldZkDiagnostics.sourceSwapNoteReferenceHash)}</strong>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="shield-helper shield-helper--meta">
+                        No retained canonical unshield diagnostics are available yet for this client.
+                      </p>
+                    )}
+                  </details>
+                </UnshieldReceiptModal>
+              )}
             </TransactionStatusToast>
           )}
         </article>
