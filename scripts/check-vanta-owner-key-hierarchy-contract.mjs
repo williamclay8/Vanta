@@ -14,6 +14,7 @@ const liveShieldBridgePath = resolve(repoRoot, "src/zk/liveShieldBridge.ts");
 const liveSendBridgePath = resolve(repoRoot, "src/zk/liveSendBridge.ts");
 const liveSwapBridgePath = resolve(repoRoot, "src/zk/liveSwapBridge.ts");
 const walletMessageIntentPath = resolve(repoRoot, "src/wallet/walletMessageIntentSafety.mjs");
+const unshieldCircuitPath = resolve(repoRoot, "zk/noir/vanta_private_core_single_note_unshield/src/main.nr");
 const packagePath = resolve(repoRoot, "package.json");
 const bn254ScalarField =
   21888242871839275222246405745257275088548364400416034343698204186575808495617n;
@@ -87,6 +88,7 @@ const liveShieldBridgeSource = readFileSync(liveShieldBridgePath, "utf8");
 const liveSendBridgeSource = readFileSync(liveSendBridgePath, "utf8");
 const liveSwapBridgeSource = readFileSync(liveSwapBridgePath, "utf8");
 const walletMessageIntentSource = readFileSync(walletMessageIntentPath, "utf8");
+const unshieldCircuitSource = readFileSync(unshieldCircuitPath, "utf8");
 const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 
 assert.ok(
@@ -155,6 +157,27 @@ assert.ok(
   !walletMessageIntentSource.includes('"shield-master-seed"') &&
     !walletMessageIntentSource.includes('"shield-owner-key-hierarchy"'),
   "Existing short-lived wallet action intents must not accept Shield master-seed derivation.",
+);
+const proofOwnerDerivationIndex = unshieldCircuitSource.indexOf(
+  "let computed_owner_public_key = derive_owner_public_key(",
+);
+const proofOwnerHighLimbCommentIndex = unshieldCircuitSource.indexOf(
+  "// The proof-owner key is a single Poseidon/BN254 field carried in the low",
+);
+const proofOwnerX25519CommentIndex = unshieldCircuitSource.indexOf(
+  "// limb; the source-layer X25519 owner key remains prechecked off-circuit.",
+);
+const proofOwnerHighLimbAssertIndex = unshieldCircuitSource.indexOf("assert(owner_public_key_hi == 0);");
+const proofOwnerLowLimbAssertIndex = unshieldCircuitSource.indexOf(
+  "assert(owner_public_key_lo == computed_owner_public_key);",
+);
+assert.ok(
+  proofOwnerDerivationIndex >= 0 &&
+    proofOwnerHighLimbCommentIndex > proofOwnerDerivationIndex &&
+    proofOwnerX25519CommentIndex > proofOwnerHighLimbCommentIndex &&
+    proofOwnerHighLimbAssertIndex > proofOwnerX25519CommentIndex &&
+    proofOwnerLowLimbAssertIndex > proofOwnerHighLimbAssertIndex,
+  "Unshield circuit must explain that owner_public_key_hi == 0 is intentional low-limb Poseidon proof-owner encoding, not X25519 ownership.",
 );
 assert.equal(
   packageJson.scripts["zk:owner-key-hierarchy-contract-check"],

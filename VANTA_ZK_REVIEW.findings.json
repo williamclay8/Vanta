@@ -1345,6 +1345,37 @@
       "truthBoundary": "This is a local Poseidon proof-owner binding, not an in-circuit proof of X25519 ownership, no-witness production owner authorization, on-chain verifier enforcement, audit acceptance, or live deployment evidence."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-14-UNSHIELD-PROOF-OWNER-LIMB-COMMENT",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#new-observations-from-the-re-walk",
+        "zk/noir/vanta_private_core_single_note_unshield/src/main.nr",
+        "scripts/check-vanta-owner-key-hierarchy-contract.mjs",
+        "npm run zk:owner-key-hierarchy-contract-check"
+      ],
+      "summary": "The review observation about assert(owner_public_key_hi == 0) is now closed as guarded auditor context. The Unshield circuit explains that the proof-owner key is a single Poseidon/BN254 field carried in the low limb, while the source-layer X25519 owner key remains prechecked off-circuit; the owner-key hierarchy guard now requires that explanation next to assert(owner_public_key_hi == 0) and assert(owner_public_key_lo == computed_owner_public_key).",
+      "changedFiles": [
+        "VANTA_ZK_REVIEW.md",
+        "VANTA_ZK_REVIEW.findings.json",
+        "scripts/check-vanta-owner-key-hierarchy-contract.mjs",
+        "scripts/check-vanta-zk-review-findings-ledger.mjs"
+      ],
+      "localVerification": [
+        "npm run zk:owner-key-hierarchy-contract-check",
+        "npm run private-core:check",
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:review-guards-check",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the Unshield proof-owner low-limb comment guard, Private Core check, findings ledger, review guards, and diff whitespace check",
+        "committed": "572c46e (Bind Unshield proof owner key); guard/doc record committed in this feedback-loop commit",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is auditor-context and guard hardening for an existing Poseidon proof-owner limb convention. It is not an in-circuit X25519 ownership proof, not no-witness production owner authorization, not on-chain proof verification, not on-chain release enforcement, not audit acceptance, not production-private readiness, and not live deployment evidence."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-10-OUTPUT-RECORD-PDA",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [

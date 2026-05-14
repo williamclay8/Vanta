@@ -1364,6 +1364,54 @@ assert(
 );
 assert(feedbackGuardHardeningLoopText.includes("17e6539"), `${feedbackGuardHardeningLoopId} must pin the implementation commit`);
 
+const unshieldProofOwnerLimbCommentLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-14-UNSHIELD-PROOF-OWNER-LIMB-COMMENT";
+assert(
+  activeFeedbackLoopIds.has(unshieldProofOwnerLimbCommentLoopId),
+  `${unshieldProofOwnerLimbCommentLoopId} active feedback loop is missing`,
+);
+const unshieldProofOwnerLimbCommentLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === unshieldProofOwnerLimbCommentLoopId,
+);
+const unshieldProofOwnerLimbCommentText = JSON.stringify(unshieldProofOwnerLimbCommentLoop);
+for (const command of [
+  "npm run zk:owner-key-hierarchy-contract-check",
+  "npm run private-core:check",
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:review-guards-check",
+  "git diff --check",
+]) {
+  assert(
+    unshieldProofOwnerLimbCommentLoop?.localVerification?.includes(command),
+    `${unshieldProofOwnerLimbCommentLoopId} must record ${command}`,
+  );
+}
+for (const file of [
+  "VANTA_ZK_REVIEW.md",
+  "VANTA_ZK_REVIEW.findings.json",
+  "scripts/check-vanta-owner-key-hierarchy-contract.mjs",
+  "scripts/check-vanta-zk-review-findings-ledger.mjs",
+]) {
+  assert(
+    unshieldProofOwnerLimbCommentLoop?.changedFiles?.includes(file),
+    `${unshieldProofOwnerLimbCommentLoopId} must record changed file ${file}`,
+  );
+}
+for (const phrase of [
+  "assert(owner_public_key_hi == 0)",
+  "single Poseidon/BN254 field carried in the low limb",
+  "source-layer X25519 owner key remains prechecked off-circuit",
+  "assert(owner_public_key_lo == computed_owner_public_key)",
+  "not an in-circuit X25519 ownership proof",
+  "not no-witness production owner authorization",
+  "not on-chain release enforcement",
+]) {
+  assert(
+    unshieldProofOwnerLimbCommentText.includes(phrase),
+    `${unshieldProofOwnerLimbCommentLoopId} must record ${phrase}`,
+  );
+}
+
 const ids = new Set();
 for (const finding of ledger.findings) {
   assert(typeof finding.id === "string", "finding is missing id");
