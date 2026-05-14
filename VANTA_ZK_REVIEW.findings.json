@@ -1077,6 +1077,40 @@
       "truthBoundary": "This is public landing hierarchy and guard hardening only. It does not remove Pay or Strategy routes, does not make wallet lanes production-private, does not make Pay or Strategy live production routes, does not choose a C01 verifier backend, and does not provide pushed or live deployment evidence."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-14-LANDING-SOLANA-LIVENESS-STRIP",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#cc6-the-solana-native-context-is-invisible",
+        "VANTA_ZK_REVIEW.md#--home",
+        "src/pages/HomePage.tsx",
+        "src/components/LandingLiveStrip.tsx",
+        "src/solana/browserRpcEndpoint.ts",
+        "src/styles.css",
+        "scripts/check-vanta-landing-browser.mjs",
+        "scripts/check-vanta-helius-rpc-config.mjs"
+      ],
+      "summary": "The landing Solana-native proof-of-life feedback now has a guarded local slice: Home renders a landing-minimal__live-strip between the hero and current-truth disclosures, polls getBlockHeight every 2s through the shared browser-safe RPC resolver, shows public block height, latency, RPC status, and a pulsing slot/liveness dot, and preserves beta-truth copy that says the signal is network liveness only.",
+      "localVerification": [
+        "npm run landing:browser-check",
+        "npm run landing:anonymity-disclosure-check",
+        "npm run solana:helius-rpc-config-check",
+        "npm run mainnet:external-gates-production-claim-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run product-ui:browser-check",
+        "npm run build",
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:feedback-loop-check",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the landing Solana liveness strip across focused landing browser, anonymity disclosure, browser-safe RPC config, production-claim, privacy-claim, product UI browser, production build, review-ledger, feedback-loop, and diff checks",
+        "committed": "77d79ee (Add landing Solana liveness strip)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is public Solana chain-liveness UI only. It is not TVL, not user-count or adoption evidence, not a live depth oracle, not live anonymity, not production-private settlement, not pushed, and not deployed/live."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-PAY-PROGRESSIVE-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [

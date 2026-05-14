@@ -859,6 +859,50 @@ for (const phrase of [
   );
 }
 
+const landingSolanaLivenessStripLoopId = "VANTA-ZK-FEEDBACK-2026-05-14-LANDING-SOLANA-LIVENESS-STRIP";
+assert(
+  activeFeedbackLoopIds.has(landingSolanaLivenessStripLoopId),
+  `${landingSolanaLivenessStripLoopId} active feedback loop is missing`,
+);
+const landingSolanaLivenessStripLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === landingSolanaLivenessStripLoopId,
+);
+const landingSolanaLivenessStripLoopText = JSON.stringify(landingSolanaLivenessStripLoop);
+for (const command of [
+  "npm run landing:browser-check",
+  "npm run landing:anonymity-disclosure-check",
+  "npm run solana:helius-rpc-config-check",
+  "npm run mainnet:external-gates-production-claim-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run product-ui:browser-check",
+  "npm run build",
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:feedback-loop-check",
+  "git diff --check",
+]) {
+  assert(
+    landingSolanaLivenessStripLoop?.localVerification?.includes(command),
+    `${landingSolanaLivenessStripLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "landing-minimal__live-strip",
+  "Solana",
+  "block height",
+  "slot",
+  "latency",
+  "network liveness only",
+  "not TVL",
+  "not a live depth oracle",
+  "not-live-verified",
+  "77d79ee",
+]) {
+  assert(
+    landingSolanaLivenessStripLoopText.includes(phrase),
+    `${landingSolanaLivenessStripLoopId} must record ${phrase}`,
+  );
+}
+
 const payProgressiveDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PAY-PROGRESSIVE-DISCLOSURE";
 assert(
   activeFeedbackLoopIds.has(payProgressiveDisclosureLoopId),
