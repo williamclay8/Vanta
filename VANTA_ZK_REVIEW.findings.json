@@ -1147,6 +1147,39 @@
       "truthBoundary": "This is a Strategy UX and guard-hardening slice. It preserves the existing local preview planner, runtime, and private-rail trust packet shape, but it is not Strategy production readiness, not live strategy execution, not live mainnet private settlement, not a production private-rail launch, not pushed, and not live-deployed."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-14-STRATEGY-ADVANCED-PANEL",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#strategy-redesign",
+        "src/components/StrategyAdvancedPanel.tsx",
+        "src/pages/StrategyPage.tsx",
+        "scripts/check-vanta-strategy-tab-copy.mjs",
+        "scripts/check-vanta-strategy-page-state.mjs"
+      ],
+      "summary": "The recommended StrategyAdvancedPanel is now extracted as a shared presentation component for the advanced Strategy disclosure. It owns Advanced strategy settings, the DCA/TWAP visual mode toggle, disabled Coming soon option rendering, and the plain-English advanced labels while StrategyPage keeps form state, planner inputs, preview ledger/timeline, runtime guards, and private-rail trust packet ownership. The strategy tab copy guard failed red-first while the component was absent, then passed once the extraction landed.",
+      "localVerification": [
+        "red-first npm run strategy-tab:copy-check failed before StrategyAdvancedPanel existed",
+        "npm run strategy:page-state-check",
+        "npm run strategy-tab:copy-check",
+        "npm run strategy:browser-check",
+        "npm run strategy:private-rail-trust-contract-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run build",
+        "npm run strategy:verify",
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:feedback-loop-check",
+        "git diff --check",
+        "git diff --cached --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for StrategyAdvancedPanel extraction, Strategy page-state/copy/browser/private-rail checks, privacy claim gate, build, aggregate strategy verify, ZK review ledger, ZK feedback-loop bundle, and diff whitespace checks",
+        "committed": "5480e0d (Extract Strategy advanced panel)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is Strategy shared UI extraction and guard hardening only. It is not Strategy production readiness, not live strategy execution, not a production private-rail launch, not a scheduler/runtime change, not live mainnet private settlement, not pushed, and not live-deployed."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-SHIELD-ADVANCED-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [

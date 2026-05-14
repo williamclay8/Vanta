@@ -942,6 +942,44 @@ for (const phrase of [
   );
 }
 
+const strategyAdvancedPanelLoopId = "VANTA-ZK-FEEDBACK-2026-05-14-STRATEGY-ADVANCED-PANEL";
+assert(
+  activeFeedbackLoopIds.has(strategyAdvancedPanelLoopId),
+  `${strategyAdvancedPanelLoopId} active feedback loop is missing`,
+);
+const strategyAdvancedPanelLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === strategyAdvancedPanelLoopId);
+const strategyAdvancedPanelLoopText = JSON.stringify(strategyAdvancedPanelLoop);
+for (const command of [
+  "npm run strategy:page-state-check",
+  "npm run strategy-tab:copy-check",
+  "npm run strategy:browser-check",
+  "npm run strategy:private-rail-trust-contract-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run strategy:verify",
+  "npm run zk:feedback-loop-check",
+  "npm run build",
+]) {
+  assert(
+    strategyAdvancedPanelLoop?.localVerification?.includes(command),
+    `${strategyAdvancedPanelLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "StrategyAdvancedPanel",
+  "Advanced strategy settings",
+  "DCA/TWAP visual mode toggle",
+  "Coming soon option rendering",
+  "StrategyPage keeps form state",
+  "not Strategy production readiness",
+  "not live strategy execution",
+  "5480e0d",
+]) {
+  assert(
+    strategyAdvancedPanelLoopText.includes(phrase),
+    `${strategyAdvancedPanelLoopId} must record ${phrase}`,
+  );
+}
+
 const shieldAdvancedDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-SHIELD-ADVANCED-DISCLOSURE";
 assert(
   activeFeedbackLoopIds.has(shieldAdvancedDisclosureLoopId),
