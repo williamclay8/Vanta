@@ -336,6 +336,7 @@ export function RecoveryPanelController({
         ownerRecoveryEvidenceDetail,
         recordSourceImportProofDetail,
         legacyQuarantinePolicyDetail,
+        "Viewing keys are stored in this browser's localStorage. Clearing site data, changing browsers, or losing the backup can make local notes undiscoverable until a valid backup and record source packet are imported.",
       ]}
       canExportRecordSource={walletConnected}
       canVerifyRecordSource={

@@ -51,6 +51,9 @@ for (const marker of [
   "setViewingKeyBackupText(viewingKey.exportText);",
   "viewingKey.importText(viewingKeyImportText);",
   "viewingKey.reset();",
+  "browser's localStorage",
+  "local notes undiscoverable",
+  "valid backup and record source packet",
 ]) {
   assert.ok(
     controllerSource.includes(marker),

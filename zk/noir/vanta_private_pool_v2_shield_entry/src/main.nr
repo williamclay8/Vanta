@@ -96,6 +96,22 @@ fn compute_economics_commitment(
     ])
 }
 
+fn compute_output_commitment(
+    owner_commitment: Field,
+    target_asset_id: Field,
+    amount: u128,
+    output_blinding: Field,
+    output_derivation_tag: Field,
+) -> Field {
+    bn254::hash_5([
+        owner_commitment,
+        target_asset_id,
+        amount as Field,
+        output_blinding,
+        output_derivation_tag,
+    ])
+}
+
 fn main(
     shield_public_input_hash: pub Field,
     request_version: Field,
@@ -110,6 +126,8 @@ fn main(
     tree_id: Field,
     leaf_index: Field,
     output_commitment: Field,
+    output_blinding: Field,
+    output_derivation_tag: Field,
     previous_root: Field,
     output_root: Field,
     append_path: [Field; MERKLE_DEPTH],
@@ -142,6 +160,15 @@ fn main(
         economics_blinding,
     );
     assert(computed_economics_commitment == economics_commitment);
+
+    let computed_output_commitment = compute_output_commitment(
+        owner_commitment,
+        target_asset_id,
+        amount,
+        output_blinding,
+        output_derivation_tag,
+    );
+    assert(computed_output_commitment == output_commitment);
 
     let computed_public_input_hash = bind_shield_public_inputs(
         request_version,

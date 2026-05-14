@@ -32,6 +32,8 @@ for (const marker of [
   "formatRecordSourceImportStatusLabel",
   "RecoveryPanel",
   "defaultOpen",
+  "browser's localStorage",
+  "local notes undiscoverable",
 ]) {
   assert.ok(
     controllerSource.includes(marker),

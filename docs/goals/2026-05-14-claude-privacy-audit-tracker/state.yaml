@@ -1,0 +1,170 @@
+version: 1
+
+goal:
+  title: "Claude Privacy Audit Tracker (2026-05-14)"
+  slug: "2026-05-14-claude-privacy-audit-tracker"
+  status: active
+  source_audit: "Vanta privacy audit - 2026-05-14"
+  interpreted_outcome: "Every audit item has a repo-local task, owner lane, verification command set, and Lumi state until implemented or explicitly blocked."
+  live_evidence_update:
+    status: received
+    confidence: high
+    live_site: "https://vantaprivacy.xyz"
+    local_live_bundle_hash_match: "index-BhWFlXXv.js"
+    live_js_chunks_scanned: 62
+    live_dist_size: "2.7 MB"
+    public_manifest: "/.well-known/vanta-audit.json"
+    current_distinct_commitments: 2
+    minimum_distinct_commitments: 1024
+    privacy_claim_allowed: false
+    anonymity_claim_allowed: false
+
+rules:
+  full_blast: true
+  one_active_implementation_slice: true
+  no_completion_without_verification: true
+  no_push_deploy_or_real_funds_without_approval: true
+  no_production_private_claims_without_positive_proof_and_live_receipts: true
+
+lumi:
+  local: "tracker and local fixes may be present in the working tree"
+  committed: "not guaranteed by this tracker; check git log/status for each slice"
+  pushed: "not-pushed unless a later receipt says otherwise"
+  deployed_live: "not-live-verified unless a later receipt says otherwise"
+
+audit_findings:
+  - id: N1
+    severity: critical
+    title: "Private Pool v2 Shield output_commitment is unconstrained"
+    status: open
+    lane: circuits
+    files:
+      - "zk/noir/vanta_private_pool_v2_shield_entry/src/main.nr"
+      - "src/privacy/privatePoolV2ShieldCircuitFixture.ts"
+      - "scripts/write-vanta-private-pool-v2-shield-fixture.mjs"
+      - "scripts/check-vanta-circuit-soundness-lint.mjs"
+    required_fix: "Bind output_commitment to canonical note preimage fields, including owner/asset/amount/blinding/derivation data, and add invalid-preimage fixtures."
+    verify:
+      - "npm run zk:circuit-soundness-lint"
+      - "npm run private-pool-v2:shield-circuit-check"
+      - "npm run private-pool-v2:shield-proof-request-check"
+      - "npm run private-pool-v2:public-input-hash-alignment-check"
+
+  - id: N2
+    severity: critical
+    title: "Owner secret/input commitment binding missing across spend lanes"
+    status: open
+    lane: circuits
+    files:
+      - "zk/noir/vanta_private_pool_v2_send_entry/src/main.nr"
+      - "zk/noir/vanta_private_pool_v2_claim_entry/src/main.nr"
+      - "zk/noir/vanta_private_pool_v2_swap_to_shielded_entry/src/main.nr"
+      - "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr"
+      - "zk/noir/vanta_private_core_single_note_send/src/main.nr"
+      - "zk/noir/vanta_private_core_single_note_swap/src/main.nr"
+    required_fix: "Constrain owner_secret/proof-owner fields to owner_commitment and input commitment preimages using the existing owner-key/canonical-note pattern; keep Private Core Unshield marked already-bound."
+    verify:
+      - "npm run zk:circuit-soundness-lint"
+      - "npm run private-pool-v2:send-circuit-check"
+      - "npm run private-pool-v2:claim-circuit-check"
+      - "npm run private-pool-v2:swap-to-shielded-circuit-check"
+      - "npm run private-pool-v2:actual-private-spend-circuit-check"
+      - "npm run private-core:send-check"
+      - "npm run private-core:swap-check"
+
+  - id: N3
+    severity: medium
+    title: "Website crawler metadata and transaction-page caveats"
+    status: local-implemented
+    lane: truth-copy
+    files:
+      - "index.html"
+      - "src/pages/ShieldPage.tsx"
+      - "src/pages/UnshieldPage.tsx"
+      - "src/components/RecoveryPanelController.tsx"
+      - "scripts/check-vanta-privacy-claim-gate.mjs"
+      - "scripts/check-vanta-shield-ui-claim-boundary.mjs"
+      - "scripts/check-vanta-unshield-public-exit-surface.mjs"
+      - "scripts/check-vanta-recovery-panel.mjs"
+      - "scripts/check-vanta-recovery-settings-route.mjs"
+    required_fix: "Keep meta description beta-truthful, disclose operator-controlled vault custody on Shield, self-wallet exit constraint on Unshield, and browser-local viewing-key recovery risk."
+    verify:
+      - "npm run truth:privacy-claim-gate"
+      - "npm run shield:ui-claim-boundary-check"
+      - "npm run unshield:public-exit-surface-check"
+      - "npm run recovery:panel-check"
+      - "npm run recovery:settings-route-check"
+      - "npm run build"
+
+  - id: N4
+    severity: medium
+    title: "Mainnet SBF binary predates local authority/PDA/root-record hardening"
+    status: blocked-approval-gated
+    lane: deploy
+    files:
+      - "programs/vanta_private_pool_v2_spend/src/lib.rs"
+      - "docs/mainnet-deployment-runbook.md"
+      - "SECURITY_LIMITATIONS.md"
+    required_fix: "Rebuild, redeploy, and live-verify the current SBF ABI only after explicit deploy approval, secret handling, and production readiness gates."
+    verify:
+      - "npm run private-pool-v2:sbf-abi-check"
+      - "npm run mainnet:deployment-runbook-check"
+      - "deployment/live receipts after approval"
+
+  - id: N5
+    severity: low
+    title: "Frontend operator env exposure check needs CI/build ownership"
+    status: pending-ci
+    lane: ci
+    files:
+      - "scripts/check-vanta-frontend-operator-env-exposure.mjs"
+      - "package.json"
+      - "CI pipeline"
+    required_fix: "Ensure production build pipeline runs the operator-env exposure check green pre-deploy; preserve live bundle scan evidence as supplementary proof."
+    verify:
+      - "npm run frontend:operator-env-exposure-check"
+      - "npm run build"
+
+architecture_backlog:
+  - id: A1
+    title: "On-chain Groth16/UltraHonk verifier for TAG_SPEND_WITH_PROOF and TAG_UNSHIELD"
+    status: blocked-architecture-audit-deploy
+    verify:
+      - "positive proof acceptance test"
+      - "invalid proof rejection test"
+      - "npm run zk:c01-onchain-proof-boundary-check"
+  - id: A2
+    title: "Program-owned PDA vault and proof-verified CPI release"
+    status: blocked-architecture-audit-deploy
+    verify:
+      - "npm run private-pool-v2:onchain-unshield-custody-check"
+      - "npm run private-pool-v2:crucible-check"
+  - id: A3
+    title: "Program-owned shared Merkle tree roots"
+    status: blocked-architecture
+    verify:
+      - "npm run private-pool-v2:root-provenance-check"
+  - id: A4
+    title: "Production browser/remote prover selection and routing"
+    status: blocked-on-c01-verifier-compatibility
+    verify:
+      - "npm run zk:h08-production-prover-candidate-check"
+      - "npm run zk:h08-production-prover-runtime-options-check"
+  - id: A5
+    title: "Recipient discovery, view tags, and indexer/service separation"
+    status: pending-design
+    verify:
+      - "npm run private-pool-v2:send-discovery-indexer-handoff-check"
+      - "npm run private-pool-v2:service-network-check"
+  - id: A6
+    title: "Live anonymity set threshold and external audit"
+    status: blocked-volume-and-external-audit
+    verify:
+      - "npm run private-pool-v2:anonymity-set-readiness-check"
+      - "npm run private-pool-v2:production-privacy-reviewer-packet-check"
+
+next_safe_slices:
+  - "Finish N3 verification and local browser/source checks."
+  - "Implement N1 Shield output_commitment preimage binding with red invalid-preimage fixture."
+  - "Split N2 into PPv2 owner/input binding and Private Core send/swap owner-auth binding."
+  - "Add explicit blocker-map guard for tag 3 error 14, tag 6 error 15, operator-keypair custody, self-wallet exit, and list-based roots."

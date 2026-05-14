@@ -20,7 +20,9 @@ export type VantaPrivatePoolV2ShieldCircuitWitness = {
   economics_blinding: bigint;
   economics_commitment: bigint;
   leaf_index: bigint;
+  output_blinding: bigint;
   output_commitment: bigint;
+  output_derivation_tag: bigint;
   output_root: bigint;
   owner_commitment: bigint;
   previous_root: bigint;
@@ -45,7 +47,9 @@ export type VantaPrivatePoolV2ShieldCircuitWitnessInput = {
   economics_blinding: bigint | string;
   economics_commitment: bigint | string;
   leaf_index: bigint | string;
+  output_blinding: bigint | string;
   output_commitment: bigint | string;
+  output_derivation_tag: bigint | string;
   output_root: bigint | string;
   owner_commitment: bigint | string;
   previous_root: bigint | string;
@@ -64,7 +68,9 @@ export type VantaPrivatePoolV2ShieldCircuitNoirInputs = {
   economics_blinding: string;
   economics_commitment: string;
   leaf_index: string;
+  output_blinding: string;
   output_commitment: string;
+  output_derivation_tag: string;
   output_root: string;
   owner_commitment: string;
   previous_root: string;
@@ -81,6 +87,7 @@ export type VantaPrivatePoolV2ShieldCircuitFixtureMode =
   | "valid"
   | "forged-append-path"
   | "invalid-economics-commitment"
+  | "invalid-output-commitment-preimage"
   | "invalid-binding"
   | "invalid-root"
   | "invalid-amount-range";
@@ -92,7 +99,9 @@ const SHIELD_WITNESS_FIELDS = [
   "economics_blinding",
   "economics_commitment",
   "leaf_index",
+  "output_blinding",
   "output_commitment",
+  "output_derivation_tag",
   "output_root",
   "owner_commitment",
   "previous_root",
@@ -114,7 +123,8 @@ const DEFAULT_WITNESS_BASE = {
   append_path_direction_bits: directionBitsForLeafIndex(5n),
   economics_blinding: 9191n,
   leaf_index: 5n,
-  output_commitment: 808n,
+  output_blinding: 808n,
+  output_derivation_tag: 809n,
   owner_commitment: 505n,
   request_version: 101n,
   route_commitment: 606n,
@@ -137,6 +147,13 @@ const DEFAULT_WITH_PREVIOUS_ROOT = {
     leaf_value: 0n,
     path: DEFAULT_WITNESS_BASE.append_path,
     pathDirectionBits: DEFAULT_WITNESS_BASE.append_path_direction_bits,
+  }),
+  output_commitment: computeVantaPrivatePoolV2ShieldOutputCommitment({
+    amount: DEFAULT_WITNESS_BASE.amount,
+    output_blinding: DEFAULT_WITNESS_BASE.output_blinding,
+    output_derivation_tag: DEFAULT_WITNESS_BASE.output_derivation_tag,
+    owner_commitment: DEFAULT_WITNESS_BASE.owner_commitment,
+    target_asset_id: DEFAULT_WITNESS_BASE.target_asset_id,
   }),
 };
 
@@ -272,6 +289,29 @@ export function computeVantaPrivatePoolV2ShieldEconomicsCommitment({
   ]);
 }
 
+export function computeVantaPrivatePoolV2ShieldOutputCommitment({
+  amount,
+  output_blinding,
+  output_derivation_tag,
+  owner_commitment,
+  target_asset_id,
+}: Pick<
+  VantaPrivatePoolV2ShieldCircuitWitness,
+  | "amount"
+  | "output_blinding"
+  | "output_derivation_tag"
+  | "owner_commitment"
+  | "target_asset_id"
+>) {
+  return poseidon5([
+    owner_commitment,
+    target_asset_id,
+    amount,
+    output_blinding,
+    output_derivation_tag,
+  ]);
+}
+
 export function computeVantaPrivatePoolV2ShieldNode({
   current,
   directionBit,
@@ -337,7 +377,12 @@ export function normalizeVantaPrivatePoolV2ShieldCircuitWitnessInput(
       "economics_commitment",
     ),
     leaf_index: normalizeWitnessField(input.leaf_index, "leaf_index"),
+    output_blinding: normalizeWitnessField(input.output_blinding, "output_blinding"),
     output_commitment: normalizeWitnessField(input.output_commitment, "output_commitment"),
+    output_derivation_tag: normalizeWitnessField(
+      input.output_derivation_tag,
+      "output_derivation_tag",
+    ),
     output_root: normalizeWitnessField(input.output_root, "output_root"),
     owner_commitment: normalizeWitnessField(input.owner_commitment, "owner_commitment"),
     previous_root: normalizeWitnessField(input.previous_root, "previous_root"),
@@ -388,6 +433,13 @@ export function normalizeVantaPrivatePoolV2ShieldCircuitWitnessInput(
     throw new Error("Shield witness economics_commitment must match the hidden economics fields.");
   }
 
+  if (
+    witness.output_commitment !==
+    computeVantaPrivatePoolV2ShieldOutputCommitment(witness)
+  ) {
+    throw new Error("Shield witness output_commitment must match the output note preimage.");
+  }
+
   return witness;
 }
 
@@ -405,6 +457,11 @@ export function createVantaPrivatePoolV2ShieldCircuitFixture({
       ? {
           ...witness,
           economics_commitment: witness.economics_commitment + 1n,
+        }
+      : mode === "invalid-output-commitment-preimage"
+      ? {
+          ...witness,
+          output_blinding: witness.output_blinding + 1n,
         }
       : mode === "invalid-root"
       ? {
@@ -453,7 +510,9 @@ export function createVantaPrivatePoolV2ShieldCircuitNoirInputs(
     economics_blinding: toCircuitString(witness.economics_blinding),
     economics_commitment: toCircuitString(witness.economics_commitment),
     leaf_index: toCircuitString(witness.leaf_index),
+    output_blinding: toCircuitString(witness.output_blinding),
     output_commitment: toCircuitString(witness.output_commitment),
+    output_derivation_tag: toCircuitString(witness.output_derivation_tag),
     output_root: toCircuitString(witness.output_root),
     owner_commitment: toCircuitString(witness.owner_commitment),
     previous_root: toCircuitString(witness.previous_root),
@@ -481,6 +540,10 @@ function createInvalidAmountRangeWitness(
       source_mint: witness.source_mint,
       target_asset_id: witness.target_asset_id,
       target_mint: witness.target_mint,
+    }),
+    output_commitment: computeVantaPrivatePoolV2ShieldOutputCommitment({
+      ...witness,
+      amount,
     }),
   };
 }
@@ -520,6 +583,8 @@ export function serializeVantaPrivatePoolV2ShieldCircuitFixtureToToml(
     `tree_id = "${witness.tree_id.toString(10)}"`,
     `leaf_index = "${witness.leaf_index.toString(10)}"`,
     `output_commitment = "${witness.output_commitment.toString(10)}"`,
+    `output_blinding = "${witness.output_blinding.toString(10)}"`,
+    `output_derivation_tag = "${witness.output_derivation_tag.toString(10)}"`,
     `previous_root = "${witness.previous_root.toString(10)}"`,
     `output_root = "${witness.output_root.toString(10)}"`,
     `append_path = [${witness.append_path.map((value) => `"${value.toString(10)}"`).join(", ")}]`,

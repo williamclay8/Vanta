@@ -14,12 +14,13 @@ if (
   fixtureMode !== "valid" &&
   fixtureMode !== "forged-append-path" &&
   fixtureMode !== "invalid-economics-commitment" &&
+  fixtureMode !== "invalid-output-commitment-preimage" &&
   fixtureMode !== "invalid-binding" &&
   fixtureMode !== "invalid-root" &&
   fixtureMode !== "invalid-amount-range"
 ) {
   console.error(
-    'Expected fixture mode "valid", "forged-append-path", "invalid-economics-commitment", "invalid-binding", "invalid-root", or "invalid-amount-range". Example: node scripts/write-vanta-private-pool-v2-shield-fixture.mjs invalid-root',
+    'Expected fixture mode "valid", "forged-append-path", "invalid-economics-commitment", "invalid-output-commitment-preimage", "invalid-binding", "invalid-root", or "invalid-amount-range". Example: node scripts/write-vanta-private-pool-v2-shield-fixture.mjs invalid-root',
   );
   process.exit(1);
 }

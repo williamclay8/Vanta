@@ -2003,6 +2003,11 @@ export function ShieldPage(_props: ShieldPageProps) {
               </div>
 
               <p className="shield-helper shield-helper--meta">{routeLabel}</p>
+              <p className="shield-helper shield-helper--meta">
+                Current Shield deposits are public transfers into a Vanta vault wallet whose
+                keypair is operator-controlled. Program-owned custody and production-private
+                settlement are not enabled.
+              </p>
               {targetShieldedBalanceReadUnavailable && (
                 <p className="shield-helper shield-helper--meta">
                   Shielded balance read is delayed by the RPC endpoint; new Shield actions can

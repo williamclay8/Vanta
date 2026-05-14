@@ -2909,7 +2909,9 @@ export function UnshieldPage() {
                     <span className="unshield-destination-card__pill">to your own wallet</span>
                   </div>
                   <small id="unshield-destination-card-copy">
-                    Current Unshield releases only to the connected wallet that signs the exit intent.
+                    Current Unshield releases only to the connected requester/depositor wallet that
+                    signs the exit intent. Fresh-address exits are disabled until the destination is
+                    proof-bound.
                   </small>
                 </div>
                 <label

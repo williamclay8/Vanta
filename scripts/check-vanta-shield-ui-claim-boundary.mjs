@@ -56,6 +56,10 @@ for (const phrase of [
   "Recording local shield-state evidence",
   "Vault transfer approval",
   "Production privacy is not enabled",
+  "public transfers into a Vanta vault wallet whose",
+  "keypair is operator-controlled",
+  "Program-owned custody and production-private",
+  "settlement are not enabled",
 ]) {
   assert.ok(shieldPage.includes(phrase), `Shield page missing bounded claim phrase: ${phrase}`);
 }

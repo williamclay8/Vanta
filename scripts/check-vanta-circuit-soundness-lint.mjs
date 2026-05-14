@@ -120,6 +120,17 @@ for (const file of noirFiles) {
     if (/\bamount\s*:\s*Field\b/u.test(mainSignature)) {
       failures.push(`${file}: shield amount in main ABI must be u128, not raw Field`);
     }
+    for (const requiredPhrase of [
+      "fn compute_output_commitment",
+      "output_blinding: Field",
+      "output_derivation_tag: Field",
+      "let computed_output_commitment = compute_output_commitment",
+      "assert(computed_output_commitment == output_commitment)",
+    ]) {
+      if (!source.includes(requiredPhrase)) {
+        failures.push(`${file}: shield output_commitment must be bound to an output note preimage (${requiredPhrase})`);
+      }
+    }
   }
 
   if (file === "zk/noir/vanta_private_pool_v2_claim_entry/src/main.nr") {

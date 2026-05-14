@@ -128,6 +128,32 @@ try {
     console.log("invalid-economics-commitment fixture: expected failure observed");
   }
 
+  writeFixture("invalid-output-commitment-preimage");
+  console.log("invalid-output-commitment-preimage fixture write: PASS");
+
+  try {
+    clearCircuitTarget();
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-output-commitment-preimage fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-output-commitment-preimage fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    const stdout = String(error.stdout ?? "").trim();
+    const stderr = String(error.stderr ?? "").trim();
+    if (stdout) {
+      console.log(stdout);
+    }
+    if (stderr) {
+      console.log(stderr);
+    }
+    console.log("invalid-output-commitment-preimage fixture: expected failure observed");
+  }
+
   writeFixture("invalid-amount-range");
   console.log("invalid-amount-range fixture write: PASS");
 
