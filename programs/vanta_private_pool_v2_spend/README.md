@@ -184,7 +184,7 @@ Behavior today:
   6. `nullifier_marker` (writable PDA derived from `["vanta2nul", pool_state, nullifier]`)
   7. `output_record` (writable PDA derived from `["vanta2out", pool_state, publicInputHash]`)
   8. `verifier_key` (read-only program-owned PDA derived from `["vanta2vkey", pool_state, verifierKeyHash]`)
-- validates account headers, registered `acceptedRoot`, root-record provenance, output-index/spend-count consistency, unused nullifier marker, unused output record, and the verifier-key hash account
+- validates account headers, registered `acceptedRoot`, root-record provenance, output-index/spend-count consistency, full output-counter rejection with custom error `3`, unused nullifier marker, unused output record, and the verifier-key hash account
 - the verifier-key hash account can now be created or idempotently verified by tag `5`, but that registry record is source-only metadata and not production verifying-key evidence
 - returns custom error `14` after preflight and before proof verification, nullifier/output mutation, account creation, or proof-enforced spend acceptance
 - must not be used as proof-enforced spend evidence until the actual Groth16 verifier, verifying-key commitment, fresh post-verifier SBF rebuild, redeploy/reinit, and live/audit evidence exist

@@ -495,6 +495,9 @@ fn process_spend_with_proof(
     if spend_count != output_count {
         return Err(ProgramError::Custom(ERR_STATE_COUNT_MISMATCH));
     }
+    if output_count == u32::MAX as usize {
+        return Err(ProgramError::Custom(ERR_OUTPUT_QUEUE_FULL));
+    }
 
     require_nullifier_marker_available(program_id, pool_state, nullifier_marker, nullifier)?;
     require_output_record_available(
@@ -3216,6 +3219,108 @@ mod tests {
 
         assert_eq!(
             before,
+            (
+                pool_data.clone(),
+                nullifier_data.clone(),
+                output_data.clone(),
+                root_data.clone(),
+                root_record_data.clone(),
+                marker_data.clone(),
+                record_data.clone(),
+                verifier_data.clone(),
+            )
+        );
+
+        write_u64(&mut pool_data, POOL_SPEND_COUNT_OFFSET, u32::MAX as u64).unwrap();
+        write_count(&mut output_data, u32::MAX as usize).unwrap();
+        let overflow_before = (
+            pool_data.clone(),
+            nullifier_data.clone(),
+            output_data.clone(),
+            root_data.clone(),
+            root_record_data.clone(),
+            marker_data.clone(),
+            record_data.clone(),
+            verifier_data.clone(),
+        );
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                false,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let nullifier = account_info(
+                &nullifier_set,
+                &program_id,
+                false,
+                false,
+                &mut nullifier_lamports,
+                &mut nullifier_data,
+            );
+            let output = account_info(
+                &output_queue,
+                &program_id,
+                false,
+                false,
+                &mut output_lamports,
+                &mut output_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                false,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let root = account_info(
+                &root_record,
+                &program_id,
+                false,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
+            let marker = account_info(
+                &nullifier_marker,
+                &program_id,
+                true,
+                false,
+                &mut marker_lamports,
+                &mut marker_data,
+            );
+            let record = account_info(
+                &output_record,
+                &program_id,
+                true,
+                false,
+                &mut record_lamports,
+                &mut record_data,
+            );
+            let verifier = account_info(
+                &verifier_key,
+                &program_id,
+                false,
+                false,
+                &mut verifier_lamports,
+                &mut verifier_data,
+            );
+            let accounts = vec![
+                pool, nullifier, output, roots, root, marker, record, verifier,
+            ];
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &spend_with_proof_instruction()),
+                Err(ProgramError::Custom(ERR_OUTPUT_QUEUE_FULL))
+            );
+        }
+
+        assert_eq!(
+            overflow_before,
             (
                 pool_data,
                 nullifier_data,

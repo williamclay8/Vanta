@@ -67,6 +67,7 @@ for (const marker of [
   "const PROVENANCED_ROOT_PAYLOAD_LEN",
   "const SPEND_WITH_PROOF_PAYLOAD_LEN",
   "const ERR_PROOF_VERIFIER_NOT_WIRED: u32 = 14;",
+  "const ERR_OUTPUT_QUEUE_FULL: u32 = 3;",
   "const ERR_VERIFIER_KEY_MISMATCH: u32 = 17;",
   "const ERR_ROOT_RECORD_MISMATCH: u32 = 18;",
   "fn process_register_root",
@@ -80,9 +81,30 @@ for (const marker of [
   "fixed_slot_contains(&root_data, HASH_LEN, accepted_root)?",
   "require_root_record(program_id, pool_state, root_record, accepted_root)?;",
   "ensure_nullifier_marker(",
+  "proof_carrying_spend_preflights_accounts_before_fail_closed_verifier",
+  "Err(ProgramError::Custom(ERR_OUTPUT_QUEUE_FULL))",
 ]) {
   includes(program, marker, programPath);
 }
+
+const spendWithProofStart = program.indexOf("fn process_spend_with_proof");
+const spendWithProofEnd = program.indexOf("fn process_register_verifier_key", spendWithProofStart);
+assert(spendWithProofStart >= 0 && spendWithProofEnd > spendWithProofStart, "missing tag 3 spend-with-proof section");
+const spendWithProofSection = program.slice(spendWithProofStart, spendWithProofEnd);
+for (const marker of [
+  "if output_count == u32::MAX as usize",
+  "return Err(ProgramError::Custom(ERR_OUTPUT_QUEUE_FULL));",
+  "require_nullifier_marker_available",
+  "require_output_record_available",
+  "require_verifier_key_hash",
+]) {
+  includes(spendWithProofSection, marker, "tag 3 spend-with-proof capacity preflight");
+}
+assert(
+  spendWithProofSection.indexOf("ERR_OUTPUT_QUEUE_FULL") <
+    spendWithProofSection.indexOf("require_output_record_available"),
+  "tag 3 must reject a full output counter before output-record preflight",
+);
 
 for (const marker of [
   "no proof verification",
@@ -98,6 +120,7 @@ for (const marker of [
   "nullifier_marker",
   "proof-carrying spend (reserved, fail closed)",
   "returns custom error `14`",
+  "full output-counter rejection with custom error `3`",
   "[\"vanta2vkey\", pool_state, verifierKeyHash]",
   "[\"vanta2root\", pool_state, acceptedRoot]",
 ]) {

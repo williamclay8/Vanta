@@ -83,6 +83,7 @@ const TOKEN_ACCOUNT_MINT_OFFSET: usize = 0;
 const TOKEN_ACCOUNT_OWNER_OFFSET: usize = 32;
 
 const ERR_DUPLICATE_NULLIFIER: u32 = 1;
+const ERR_OUTPUT_QUEUE_FULL: u32 = 3;
 const ERR_INVALID_HEADER: u32 = 4;
 const ERR_STATE_COUNT_MISMATCH: u32 = 5;
 const ERR_UNAUTHORIZED_OPERATOR: u32 = 6;
@@ -656,7 +657,7 @@ impl VantaPrivatePoolV2Spend {
             return;
         }
 
-        let mode = selector % 8;
+        let mode = selector % 9;
         let accepted_root = match mode {
             1 => make_hash(seed, 94),
             6 => {
@@ -666,7 +667,7 @@ impl VantaPrivatePoolV2Spend {
                 };
                 root
             }
-            0 | 2 | 3 | 4 | 5 => {
+            0 | 2 | 3 | 4 | 5 | 7 => {
                 self.ensure_provenanced_root(seed.wrapping_add(505));
                 let Some(record) = self.root_records.last().cloned() else {
                     return;
@@ -687,6 +688,41 @@ impl VantaPrivatePoolV2Spend {
         }
 
         self.ensure_spend_with_proof_placeholders(&payload);
+        if mode == 7 {
+            let pool_before = self.ctx.read_account(&self.pool_state).unwrap();
+            let output_before = self.ctx.read_account(&self.output_queue).unwrap();
+            self.ctx
+                .update_account(&self.pool_state, |data| {
+                    data[POOL_SPEND_COUNT_OFFSET..POOL_SPEND_COUNT_OFFSET + 8]
+                        .copy_from_slice(&(u32::MAX as u64).to_le_bytes());
+                })
+                .unwrap();
+            self.ctx
+                .update_account(&self.output_queue, |data| {
+                    data[COUNT_OFFSET..COUNT_OFFSET + 4].copy_from_slice(&u32::MAX.to_le_bytes());
+                })
+                .unwrap();
+
+            let accounts = self.spend_with_proof_accounts_for_payload(&payload);
+            let before = self.snapshot_account_metas(&accounts);
+            let outcome = self.call_unsigned(payload.data.clone(), accounts.clone());
+            fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+            fuzz_assert_eq!(
+                outcome.as_ref().and_then(TxOutcome::error_code),
+                Some(ERR_OUTPUT_QUEUE_FULL)
+            );
+            fuzz_assert_eq!(
+                before,
+                self.snapshot_account_metas(&accounts),
+                "spend-with-proof full output counter preflight mutated account bytes or lamports"
+            );
+            self.ctx.write_account(&self.pool_state, pool_before).unwrap();
+            self.ctx
+                .write_account(&self.output_queue, output_before)
+                .unwrap();
+            return;
+        }
+
         let (data, accounts, expected_code, forbidden_code) = match mode {
             0 => (
                 payload.data.clone(),
