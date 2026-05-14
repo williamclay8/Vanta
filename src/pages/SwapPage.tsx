@@ -61,6 +61,7 @@ import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentS
 import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
 import { AssetPickerGrid, type AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
+import { QuoteCountdownBar, type QuoteCountdownBarTone } from "@/components/QuoteCountdownBar";
 import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import {
@@ -1631,7 +1632,12 @@ export function SwapPage() {
   const quoteProgressPercent = quote
     ? Math.max(0, Math.min(100, Math.round((quoteRemainingMs / quoteTotalMs) * 100)))
     : 0;
-  const quoteProgressTone = quote && quoteProgressPercent <= 24 ? "warning" : "fresh";
+  const quoteProgressTone: QuoteCountdownBarTone =
+    quote && quoteRemainingSeconds <= 0
+      ? "refreshing"
+      : quote && quoteProgressPercent <= 24
+        ? "warning"
+        : "fresh";
   const quoteStatusLabel = quote
     ? quoteRemainingSeconds > 0
       ? `Quote refreshes in ${quoteRemainingSeconds}s`
@@ -1711,13 +1717,11 @@ export function SwapPage() {
 
           <div className="shield-form swap-widget">
             <div className="swap-module">
-              <div
-                className="swap-quote-progress"
-                data-tone={quoteProgressTone}
-                aria-label={quoteStatusLabel}
-              >
-                <span style={{ width: `${quoteProgressPercent}%` }} />
-              </div>
+              <QuoteCountdownBar
+                label={quoteStatusLabel}
+                progressPercent={quoteProgressPercent}
+                tone={quoteProgressTone}
+              />
 
               <div className="swap-route-card" aria-label="Swap route">
                 <div className="swap-route-card__row">

@@ -183,7 +183,7 @@ function runBrowserBatch() {
         { kind: "url_contains", text: "/app/swap" },
         { kind: "selector_visible", selector: ".privacy-summary" },
         { kind: "selector_visible", selector: ".swap-advanced-panel" },
-        { kind: "selector_visible", selector: ".swap-quote-progress" },
+        { kind: "selector_visible", selector: "[data-vanta-quote-countdown-bar]" },
         { kind: "text_visible", text: "Swap" },
         { kind: "text_visible", text: "Privacy summary" },
         { kind: "text_visible", text: "Chain sees" },
@@ -475,6 +475,83 @@ function assertPayTransactionStatusToast() {
 
     if (!value.ok) {
       throw new Error(`Pay TransactionStatusToast failed browser assertion: ${JSON.stringify(value)}`);
+    }
+  }
+}
+
+function assertSwapQuoteCountdownBar() {
+  for (const width of [1440, 390, 320]) {
+    execFileSync(
+      "gsd-browser",
+      ["--session", browserSession, "set-viewport", "--width", String(width), "--height", "1000"],
+      {
+        stdio: "ignore",
+      },
+    );
+    execFileSync("gsd-browser", ["--session", browserSession, "navigate", `${baseUrl}/app/swap`], {
+      stdio: "ignore",
+    });
+    execFileSync("gsd-browser", ["--session", browserSession, "wait-for", "--condition", "network_idle"], {
+      stdio: "ignore",
+    });
+
+    const rawResult = execFileSync(
+      "gsd-browser",
+      [
+        "--session",
+        browserSession,
+        "--json",
+        "eval",
+        `(() => {
+          const bar = document.querySelector("[data-vanta-quote-countdown-bar]");
+          const fill = document.querySelector(".quote-countdown-bar__fill");
+          const module = document.querySelector(".swap-module");
+          const routeCard = document.querySelector(".swap-route-card");
+          const barRect = bar instanceof HTMLElement ? bar.getBoundingClientRect() : null;
+          const routeCardRect = routeCard instanceof HTMLElement ? routeCard.getBoundingClientRect() : null;
+          const ariaValueNow =
+            bar instanceof HTMLElement ? Number(bar.getAttribute("aria-valuenow")) : Number.NaN;
+          const documentOverflow =
+            Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) -
+            window.innerWidth;
+
+          return {
+            ok:
+              bar instanceof HTMLElement &&
+              fill instanceof HTMLElement &&
+              module instanceof HTMLElement &&
+              bar.getAttribute("role") === "progressbar" &&
+              bar.getAttribute("aria-label")?.includes("Quote") &&
+              bar.getAttribute("aria-valuemin") === "0" &&
+              bar.getAttribute("aria-valuemax") === "100" &&
+              Number.isFinite(ariaValueNow) &&
+              ariaValueNow >= 0 &&
+              ariaValueNow <= 100 &&
+              barRect.width > 0 &&
+              barRect.height >= 4 &&
+              (!routeCardRect || barRect.top <= routeCardRect.top) &&
+              documentOverflow <= 2,
+            ariaLabel: bar instanceof HTMLElement ? bar.getAttribute("aria-label") : null,
+            ariaValueNow,
+            barHeight: barRect?.height ?? 0,
+            barTop: barRect?.top ?? 0,
+            documentOverflow,
+            hasFill: fill instanceof HTMLElement,
+            role: bar instanceof HTMLElement ? bar.getAttribute("role") : null,
+            routeCardTop: routeCardRect?.top ?? null,
+            tone: bar instanceof HTMLElement ? bar.getAttribute("data-quote-countdown-tone") : null,
+            width: window.innerWidth,
+          };
+        })()`,
+      ],
+      { encoding: "utf8" },
+    );
+    const result = JSON.parse(rawResult);
+    const rawValue = result.result ?? result.value ?? result;
+    const value = typeof rawValue === "string" ? JSON.parse(rawValue) : rawValue;
+
+    if (!value.ok) {
+      throw new Error(`Swap QuoteCountdownBar failed browser assertion: ${JSON.stringify(value)}`);
     }
   }
 }
@@ -1313,6 +1390,7 @@ try {
   assertSendWorkspaceCardCentered();
   assertShieldRecoveryPanelDisclosure();
   assertPayTransactionStatusToast();
+  assertSwapQuoteCountdownBar();
   assertSendAdvancedDisclosure();
   assertSwapAdvancedDisclosure();
   assertUnshieldAdvancedDisclosure();
