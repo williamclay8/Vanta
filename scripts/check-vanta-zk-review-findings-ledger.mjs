@@ -2129,6 +2129,70 @@ for (const phrase of [
   );
 }
 
+const sendDiscoveryVerifierMirrorLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-14-SEND-DISCOVERY-VERIFIER-MIRROR";
+assert(
+  activeFeedbackLoopIds.has(sendDiscoveryVerifierMirrorLoopId),
+  `${sendDiscoveryVerifierMirrorLoopId} active feedback loop is missing`,
+);
+const sendDiscoveryVerifierMirrorLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === sendDiscoveryVerifierMirrorLoopId,
+);
+const sendDiscoveryVerifierMirrorLoopText = JSON.stringify(sendDiscoveryVerifierMirrorLoop);
+for (const command of [
+  "node --check operator/private-pool-v2-service-network.mjs",
+  "node --check scripts/check-vanta-private-pool-v2-service-network.mjs",
+  "npm run private-pool-v2:service-network-check",
+  "npm run private-pool-v2:send-discovery-indexer-handoff-check",
+  "npm run send:discovery-migration-policy-check",
+  "npm run send:trust-packet-check",
+  "npm run mainnet:send-production-check",
+  "npm run send:verify",
+  "npm run truth:privacy-claim-gate",
+  "npm run private-pool-v2:verify",
+  "npm run build",
+  "git diff --check",
+]) {
+  assert(
+    sendDiscoveryVerifierMirrorLoop?.localVerification?.includes(command),
+    `${sendDiscoveryVerifierMirrorLoopId} must record ${command}`,
+  );
+}
+for (const file of [
+  "operator/private-pool-v2-server.mjs",
+  "operator/private-pool-v2-service-network.mjs",
+  "scripts/check-vanta-private-pool-v2-service-network.mjs",
+  "scripts/check-vanta-send-discovery-migration-policy.mjs",
+  "scripts/check-vanta-send-mainnet-production-status.mjs",
+  "scripts/print-vanta-protocol-trust-packet.mjs",
+  "src/readiness/sendMainnetProductionStatus.mjs",
+]) {
+  assert(
+    sendDiscoveryVerifierMirrorLoop?.changedFiles?.includes(file),
+    `${sendDiscoveryVerifierMirrorLoopId} must record changed file ${file}`,
+  );
+}
+for (const phrase of [
+  "/v1/proofs/accept",
+  "sendDiscoveryPackets",
+  "proof-bound Send discovery packets",
+  "memo ciphertext body hash field",
+  "proof public-input commitment",
+  "input commitment tree id",
+  "localVerifierMirroredDiscoveryHandoffCovered",
+  "deployedMemoIndexerHandoffCovered",
+  "send-memo-indexer-body-hash-handoff-not-deployed",
+  "not recipient viewing-key exchange",
+  "not deployed memo/indexer discovery",
+  "not production-private Send readiness",
+  "2abfb94",
+]) {
+  assert(
+    sendDiscoveryVerifierMirrorLoopText.includes(phrase),
+    `${sendDiscoveryVerifierMirrorLoopId} must record ${phrase}`,
+  );
+}
+
 const actualPrivateSpendBrowserLoopId =
   "VANTA-ZK-FEEDBACK-2026-05-13-ACTUAL-PRIVATE-SPEND-BROWSER-WORKER-PROVER";
 assert(

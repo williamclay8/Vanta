@@ -1719,6 +1719,54 @@
       "truthBoundary": "This simplifies the local Send proof-request/circuit public-input contract and preserves opaque memo body binding. It is not recipient viewing-key exchange, not deployed memo/indexer discovery, not on-chain verifier enforcement, not audit acceptance, and not live deployment evidence."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-14-SEND-DISCOVERY-VERIFIER-MIRROR",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#recommended-order-of-operations",
+        "VANTA_ZK_REVIEW.md#twenty-sixth-codex-feedback-loop---send-discoveryindexer-handoff-packet",
+        "operator/private-pool-v2-service-network.mjs",
+        "operator/private-pool-v2-server.mjs",
+        "scripts/check-vanta-private-pool-v2-service-network.mjs",
+        "src/readiness/sendMainnetProductionStatus.mjs",
+        "scripts/check-vanta-send-mainnet-production-status.mjs",
+        "scripts/check-vanta-send-discovery-migration-policy.mjs",
+        "scripts/print-vanta-protocol-trust-packet.mjs",
+        "npm run private-pool-v2:service-network-check"
+      ],
+      "summary": "The separated verifier role can now mirror proof-bound Send discovery packets into the indexer only after local proof acceptance. Optional sendDiscoveryPackets on /v1/proofs/accept are normalized through the Send discovery packet validator and prevalidated against the accepted stateful Send proof request for audience, output commitment/root/leaf index, input commitment tree id, proof receipt id, proof public-input commitment, Send public-input hash, and memo ciphertext body hash field before verifier receipt storage. Send readiness/trust surfaces now expose localVerifierMirroredDiscoveryHandoffCovered while keeping deployedMemoIndexerHandoffCovered false and the blocker send-memo-indexer-body-hash-handoff-not-deployed.",
+      "changedFiles": [
+        "operator/private-pool-v2-server.mjs",
+        "operator/private-pool-v2-service-network.mjs",
+        "scripts/check-vanta-private-pool-v2-service-network.mjs",
+        "scripts/check-vanta-send-discovery-migration-policy.mjs",
+        "scripts/check-vanta-send-mainnet-production-status.mjs",
+        "scripts/print-vanta-protocol-trust-packet.mjs",
+        "src/readiness/sendMainnetProductionStatus.mjs"
+      ],
+      "localVerification": [
+        "node --check operator/private-pool-v2-server.mjs",
+        "node --check operator/private-pool-v2-service-network.mjs",
+        "node --check scripts/check-vanta-private-pool-v2-service-network.mjs",
+        "npm run private-pool-v2:service-network-check",
+        "npm run private-pool-v2:send-discovery-indexer-handoff-check",
+        "npm run send:discovery-migration-policy-check",
+        "npm run send:trust-packet-check",
+        "npm run mainnet:send-production-check",
+        "npm run send:verify",
+        "npm run truth:privacy-claim-gate",
+        "npm run private-pool-v2:verify",
+        "npm run build",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for proof-bound Send discovery verifier mirroring, Send discovery indexer handoff, Send production/trust surfaces, privacy claim gate, full Send verify, full Private Pool v2 aggregate verify, build, and diff whitespace check",
+        "committed": "2abfb94 (Mirror proof-bound Send discovery packets)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is local role-service verifier/indexer coupling for proof-bound Send discovery packets. It is not recipient viewing-key exchange, not deployed memo/indexer discovery, not production recipient discovery, not live settlement evidence, not idempotent production recovery evidence, not audit acceptance, and not production-private Send readiness."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-UNSHIELD-CUSTODY-TRUTH-SURFACE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
