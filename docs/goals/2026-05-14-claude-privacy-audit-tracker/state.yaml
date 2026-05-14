@@ -27,23 +27,27 @@ rules:
   no_production_private_claims_without_positive_proof_and_live_receipts: true
 
 lumi:
-  local: "tracker and local fixes may be present in the working tree"
-  committed: "not guaranteed by this tracker; check git log/status for each slice"
-  pushed: "not-pushed unless a later receipt says otherwise"
-  deployed_live: "not-live-verified unless a later receipt says otherwise"
+  local: "N1/N3 implementation receipt exists in the repository tracker; use git status for current dirt."
+  committed: "implementation commit 86497bd records the tracker, N3 truth fixes, and N1 Shield output-commitment preimage binding."
+  pushed: "codex/vanta-zk-review-hardening is the publishing branch; check git refs for the exact pushed head."
+  deployed_live: "not-live-verified for this tracker slice unless a later public website receipt says otherwise"
 
 audit_findings:
   - id: N1
     severity: critical
     title: "Private Pool v2 Shield output_commitment is unconstrained"
-    status: open
+    status: local-implemented
     lane: circuits
     files:
       - "zk/noir/vanta_private_pool_v2_shield_entry/src/main.nr"
       - "src/privacy/privatePoolV2ShieldCircuitFixture.ts"
       - "scripts/write-vanta-private-pool-v2-shield-fixture.mjs"
       - "scripts/check-vanta-circuit-soundness-lint.mjs"
-    required_fix: "Bind output_commitment to canonical note preimage fields, including owner/asset/amount/blinding/derivation data, and add invalid-preimage fixtures."
+    required_fix: "Bind output_commitment to owner/asset/amount/blinding/derivation data, and add invalid-preimage fixtures."
+    delivered:
+      - "Shield circuit now recomputes output_commitment from owner_commitment, target_asset_id, amount, output_blinding, and output_derivation_tag."
+      - "Shield fixture writer/check now includes invalid-output-commitment-preimage and restores a valid Prover.toml."
+      - "Circuit soundness lint requires the Shield output commitment preimage relation."
     verify:
       - "npm run zk:circuit-soundness-lint"
       - "npm run private-pool-v2:shield-circuit-check"
@@ -165,6 +169,5 @@ architecture_backlog:
 
 next_safe_slices:
   - "Finish N3 verification and local browser/source checks."
-  - "Implement N1 Shield output_commitment preimage binding with red invalid-preimage fixture."
   - "Split N2 into PPv2 owner/input binding and Private Core send/swap owner-auth binding."
   - "Add explicit blocker-map guard for tag 3 error 14, tag 6 error 15, operator-keypair custody, self-wallet exit, and list-based roots."
