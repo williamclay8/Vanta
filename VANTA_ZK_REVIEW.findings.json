@@ -1782,6 +1782,45 @@
       "truthBoundary": "This is a refs-only public discovery surface for current review evidence and blockers. It is not an audit report, not third-party acceptance, not legal/compliance/custody approval, not a production verifier selection, not production readiness, not mainnet readiness, not pushed, and not live-deployed."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-14-PUBLIC-MANIFESTO-AUDIT-ALIAS",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#t8-hide-easter-eggs-that-respect-the-topic",
+        "src/pages/ManifestoPage.tsx",
+        "src/App.tsx",
+        "src/pages/HomePage.tsx",
+        "public/.well-known/audit",
+        "public/.well-known/vanta-audit.json",
+        "docs/audit-package.md",
+        "scripts/check-vanta-public-manifesto.mjs",
+        "scripts/check-vanta-public-audit-discovery.mjs",
+        "scripts/check-vanta-product-ui-browser.mjs",
+        "scripts/check-vanta-privacy-claim-gate.mjs",
+        "npm run public:manifesto-check"
+      ],
+      "summary": "The T8 public taste/discovery feedback now has a beta-truthful /manifesto route and a refs-only /.well-known/audit alias. The manifesto carries the one-paragraph Vanta Manifesto credo, links reviewers to the audit alias and security limits, preserves Production privacy is not enabled and not an audit report copy, and the alias points to /.well-known/vanta-audit.json while keeping auditClaimAllowed: false, thirdPartyAuditAccepted: false, productionReady: false, mainnetReady: false, liveDeploymentVerified: false, privacyClaimAllowed: false, and anonymityClaimAllowed: false. The public manifest guard is wired into truth:privacy-claim-gate and zk:feedback-loop-check, while product browser coverage now visits /manifesto.",
+      "localVerification": [
+        "red-first npm run public:manifesto-check",
+        "npm run public:manifesto-check",
+        "npm run public:audit-discovery-check",
+        "npm run audit:package-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run build",
+        "npm run product-ui:browser-check",
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:feedback-loop-check",
+        "git diff --check",
+        "git diff --cached --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the /manifesto route, refs-only /.well-known/audit alias, public manifesto guard, public audit discovery guard, audit package, privacy claim gate, product UI browser, build, review-ledger, feedback-loop, and diff checks",
+        "committed": "7c7043a (Add public manifesto route)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a public manifesto and refs-only audit alias surface. It is not an audit report, not third-party approval, not production privacy, not production readiness, not mainnet readiness, not a live deployment change, not pushed, and not deployed/live."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-ROUTE-FALLBACK-TRUTH",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [

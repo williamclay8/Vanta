@@ -1819,6 +1819,53 @@ assert(
 assert(publicAuditDiscoveryLoopText.includes("146f212"), `${publicAuditDiscoveryLoopId} must pin the discovery implementation commit`);
 assert(publicAuditDiscoveryLoopText.includes("9f452a5"), `${publicAuditDiscoveryLoopId} must pin the guard hardening commit`);
 
+const publicManifestoAuditAliasLoopId = "VANTA-ZK-FEEDBACK-2026-05-14-PUBLIC-MANIFESTO-AUDIT-ALIAS";
+assert(
+  activeFeedbackLoopIds.has(publicManifestoAuditAliasLoopId),
+  `${publicManifestoAuditAliasLoopId} active feedback loop is missing`,
+);
+const publicManifestoAuditAliasLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === publicManifestoAuditAliasLoopId,
+);
+const publicManifestoAuditAliasLoopText = JSON.stringify(publicManifestoAuditAliasLoop);
+for (const command of [
+  "npm run public:manifesto-check",
+  "npm run public:audit-discovery-check",
+  "npm run audit:package-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run build",
+  "npm run product-ui:browser-check",
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:feedback-loop-check",
+]) {
+  assert(
+    publicManifestoAuditAliasLoop?.localVerification?.includes(command),
+    `${publicManifestoAuditAliasLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "/manifesto",
+  "/.well-known/audit",
+  "/.well-known/vanta-audit.json",
+  "Vanta Manifesto",
+  "Production privacy is not enabled",
+  "not an audit report",
+  "refs-only",
+  "auditClaimAllowed: false",
+  "productionReady: false",
+  "mainnetReady: false",
+  "truth:privacy-claim-gate",
+  "zk:feedback-loop-check",
+  "not pushed",
+  "not deployed/live",
+  "7c7043a",
+]) {
+  assert(
+    publicManifestoAuditAliasLoopText.includes(phrase),
+    `${publicManifestoAuditAliasLoopId} must record ${phrase}`,
+  );
+}
+
 const routeFallbackTruthLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-ROUTE-FALLBACK-TRUTH";
 assert(activeFeedbackLoopIds.has(routeFallbackTruthLoopId), `${routeFallbackTruthLoopId} active feedback loop is missing`);
 const routeFallbackTruthLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === routeFallbackTruthLoopId);
