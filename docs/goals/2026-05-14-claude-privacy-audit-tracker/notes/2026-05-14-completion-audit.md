@@ -36,8 +36,9 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 | Direct viewing-key exchange | R9B | Local implemented, local-only | `npm run send:direct-viewing-key-exchange-check`; not production recipient discovery |
 | Direct proof-owner key exchange | R9C | Local implemented, local-only | `npm run send:direct-viewing-key-exchange-check`; public-key material only, external Send proof path remains blocked |
 | Ciphertext body-hash discovery binding | R9A | Local implemented, local-only | proof-bound body-hash fields feed the local verifier-mirrored Send discovery handoff |
-| Service separation | A5 / R10 | Partial local implemented, pending production controls | Local role services are separated and guarded; production controls/live receipts remain absent |
+| Service separation | A5 / R10 | Partial local implemented, pending live production controls | Local role services are separated and guarded; live receipts, least-privilege secret-manager evidence, provider observability/alerting controls, multi-replica recovery review, and external review remain absent |
 | Service stub replacement | R10A | Local implemented | Role-specific entrypoints are enforced by `npm run private-pool-v2:service-network-check` |
+| Role-service production controls | R10B | Local implemented, production evidence partial | role storage and replay evidence gates pass locally; not live production settlement evidence |
 | Anonymity-set volume | A6 / R11 | Blocked | Live distinct commitments remain below threshold |
 | Live anonymity-set probe | R11A | Local implemented, live-read verified | `npm run private-pool-v2:live-anonymity-set-probe-check` observed live depth `2 / 1024` and fail-closed claim flags |
 | Legacy v1 plaintext memo quarantine | R12 | Local implemented | `npm run actions:legacy-v1-memo-quarantine-check` |
@@ -55,11 +56,11 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 
 Goal is not complete.
 
-The audit is now tracked and N1, N2, N3, N5, R6A, R8A, R9A, R9B, R9C, R10A, R11A, R12, R13A, R14, R15/R15A, and R19 source-level/local gates have implementation evidence. Clay has also approved the R9 hybrid recipient-discovery direction and R6 proof-bound fresh-address exit direction. The remaining blockers include deploy/live approval gates, hosted CI evidence, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
+The audit is now tracked and N1, N2, N3, N5, R6A, R8A, R9A, R9B, R9C, R10A, R10B, R11A, R12, R13A, R14, R15/R15A, and R19 source-level/local gates have implementation evidence. Clay has also approved the R9 hybrid recipient-discovery direction and R6 proof-bound fresh-address exit direction. The remaining blockers include deploy/live approval gates, hosted CI evidence, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
 
 ## Current Lumi Snapshot
 
-- Local: tracker, implementation-path, threat-model, legacy-v1 memo quarantine, Argon2id vault KDF, R6A proof-bound destination contract, R9 decision-blocker, R9A ciphertext body-hash discovery-binding, R9B direct viewing-key exchange, R9C direct proof-owner key exchange, and R10A service-entrypoint artifacts exist.
+- Local: tracker, implementation-path, threat-model, legacy-v1 memo quarantine, Argon2id vault KDF, R6A proof-bound destination contract, R9 decision-blocker, R9A ciphertext body-hash discovery-binding, R9B direct viewing-key exchange, R9C direct proof-owner key exchange, R10A service-entrypoint artifacts, and R10B role-service production-control evidence artifacts exist.
 - Committed: the app branch includes the R6A/R9B base commit `51809b9` (`Add direct-key and proof-bound exit scaffolds`) and records R9C in the current tracker state; use `git log` for the exact current head.
 - Pushed: `codex/vanta-zk-review-hardening` is ahead of origin; the latest audit tracker/source-level commits are not pushed. Use `git status` for the exact count.
-- Deployed/live: latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint/direct-key/discovery-binding/proof-bound-destination slices are not deployed; live-read checks are read-only evidence, not deployment evidence for the current branch.
+- Deployed/live: latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint/role-service-control/direct-key/discovery-binding/proof-bound-destination slices are not deployed; live-read checks are read-only evidence, not deployment evidence for the current branch.

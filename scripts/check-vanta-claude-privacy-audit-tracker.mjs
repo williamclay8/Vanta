@@ -61,6 +61,10 @@ const r10aServiceEntrypointsNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r10a-service-entrypoints.md",
 );
+const r10bRoleServiceProductionControlsNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r10b-role-service-production-controls.md",
+);
 const r11aLiveAnonymitySetProbeNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r11a-live-anonymity-set-probe.md",
@@ -115,6 +119,7 @@ for (const path of [
   r6FreshAddressExitApprovedPathNotePath,
   r6aProofBoundDestinationContractNotePath,
   r10aServiceEntrypointsNotePath,
+  r10bRoleServiceProductionControlsNotePath,
   r11aLiveAnonymitySetProbeNotePath,
   r12LegacyV1MemoQuarantineNotePath,
   r13aLiveMetaDescriptionScrapeNotePath,
@@ -149,6 +154,7 @@ const r9cDirectProofOwnerKeyExchangeNote = read(r9cDirectProofOwnerKeyExchangeNo
 const r6FreshAddressExitApprovedPathNote = read(r6FreshAddressExitApprovedPathNotePath);
 const r6aProofBoundDestinationContractNote = read(r6aProofBoundDestinationContractNotePath);
 const r10aServiceEntrypointsNote = read(r10aServiceEntrypointsNotePath);
+const r10bRoleServiceProductionControlsNote = read(r10bRoleServiceProductionControlsNotePath);
 const r11aLiveAnonymitySetProbeNote = read(r11aLiveAnonymitySetProbeNotePath);
 const r12LegacyV1MemoQuarantineNote = read(r12LegacyV1MemoQuarantineNotePath);
 const r13aLiveMetaDescriptionScrapeNote = read(r13aLiveMetaDescriptionScrapeNotePath);
@@ -316,6 +322,13 @@ for (const phrase of [
   "direct-known-counterparty",
   "direct-key-beta-not-production-recipient-discovery",
   "R10A-SERVICE-STUB-REPLACEMENT",
+  "R10B-ROLE-SERVICE-PRODUCTION-CONTROLS",
+  "role-service replay barrier",
+  "npm run private-pool-v2:role-storage-check",
+  "npm run private-pool-v2:service-network-check",
+  "npm run mainnet:role-service-replay-evidence-check",
+  "npm run mainnet:observability-sink-check",
+  "not production privacy",
   "partial-local-implemented-pending-production-controls",
   "operator/private-pool-v2-service-network.mjs exposes role-specific service start functions for indexer, prover, relayer, and verifier.",
   "operator/private-pool-v2-{indexer,prover,relayer,verifier}-server.mjs now export role-specific entrypoint descriptors",
@@ -698,6 +711,9 @@ for (const phrase of [
   "proof-bound body-hash fields feed the local verifier-mirrored Send discovery handoff",
   "Service stub replacement",
   "Role-specific entrypoints are enforced by `npm run private-pool-v2:service-network-check`",
+  "Role-service production controls",
+  "Local implemented, production evidence partial",
+  "role storage and replay evidence gates pass locally",
   "Live anonymity-set probe",
   "Local implemented, live-read verified",
   "Live meta-description scrape",
@@ -719,7 +735,7 @@ for (const phrase of [
   "R6A/R9B base commit `51809b9`",
   "Use `git status` for the exact count.",
   "R9C direct proof-owner key exchange",
-  "latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint/direct-key/discovery-binding/proof-bound-destination slices are not deployed",
+  "latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint/role-service-control/direct-key/discovery-binding/proof-bound-destination slices are not deployed",
 ]) {
   assert.ok(completionAuditNote.includes(phrase), `completion audit note missing ${phrase}`);
 }
@@ -741,6 +757,36 @@ for (const phrase of [
   "not production service separation",
 ]) {
   assert.ok(r10aServiceEntrypointsNote.includes(phrase), `R10A note missing ${phrase}`);
+}
+
+for (const phrase of [
+  "R10B Role-Service Production Controls - 2026-05-14",
+  "Local implemented, production evidence partial.",
+  "role-service replay barrier",
+  "role storage",
+  "service topology",
+  "service deployment evidence",
+  "relayer separation",
+  "observability sink template",
+  "secret handling",
+  "npm run private-pool-v2:role-storage-check",
+  "npm run private-pool-v2:service-network-check",
+  "npm run mainnet:role-service-replay-evidence-check",
+  "npm run mainnet:role-service-replay-status-check",
+  "npm run mainnet:service-topology-check",
+  "npm run mainnet:service-deployment-evidence-check",
+  "npm run mainnet:observability-sink-check",
+  "npm run private-pool-v2:relayer-separation-evidence-check",
+  "npm run private-pool-v2:production-relayer-review-check",
+  "npm run mainnet:secret-handling-check",
+  "not live production settlement evidence",
+  "not provider observability/alerting completion",
+  "not production privacy",
+]) {
+  assert.ok(
+    r10bRoleServiceProductionControlsNote.includes(phrase),
+    `R10B role-service production-controls note missing ${phrase}`,
+  );
 }
 
 for (const phrase of [
