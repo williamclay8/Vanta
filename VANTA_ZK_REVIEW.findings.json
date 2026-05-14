@@ -1849,6 +1849,33 @@
       "truthBoundary": "This is review-loop guard and wording hardening. It is not a new proof lane, not production privacy, not an audit or reviewer acceptance artifact, not pushed, and not live-deployed."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-14-ZK-LEDGER-LUMI-PIN-HARDENING",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.findings.json",
+        "scripts/check-vanta-zk-review-findings-ledger.mjs",
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:feedback-loop-check",
+        "npm run mainnet:secret-exposure-check",
+        "npm run public:audit-discovery-check"
+      ],
+      "summary": "The ZK feedback ledger checker now rejects vague and earlier / earlier local commit-pin wording, replaces the remaining vague 572c46e baseline references with a concrete local verified feedback-loop baseline pin, and uses assertLumiPromotionBoundary to enforce local-only Lumi promotion boundaries so non-pushed/non-live statuses must keep pushed as not-pushed and deployedLive as not-live-verified.",
+      "localVerification": [
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:feedback-loop-check",
+        "npm run public:audit-discovery-check",
+        "npm run mainnet:secret-exposure-check",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for ZK review-ledger pinning, local-only Lumi promotion boundaries, public audit discovery, secret exposure, feedback-loop bundle, and diff checks",
+        "committed": "f899388 (Harden ZK ledger hygiene)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is feedback-ledger hygiene only. It is not a new proof lane, not production privacy, not accepted closure, not pushed, and not deployed/live."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-12-SEND-WITNESS-INPUT-PROVER",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [

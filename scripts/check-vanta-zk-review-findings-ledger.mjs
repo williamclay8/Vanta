@@ -1898,6 +1898,45 @@ assert(
 );
 assert(feedbackGuardHardeningLoopText.includes("17e6539"), `${feedbackGuardHardeningLoopId} must pin the implementation commit`);
 
+const ledgerLumiPinHardeningLoopId = "VANTA-ZK-FEEDBACK-2026-05-14-ZK-LEDGER-LUMI-PIN-HARDENING";
+assert(
+  activeFeedbackLoopIds.has(ledgerLumiPinHardeningLoopId),
+  `${ledgerLumiPinHardeningLoopId} active feedback loop is missing`,
+);
+const ledgerLumiPinHardeningLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === ledgerLumiPinHardeningLoopId,
+);
+const ledgerLumiPinHardeningLoopText = JSON.stringify(ledgerLumiPinHardeningLoop);
+for (const command of [
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:feedback-loop-check",
+  "npm run public:audit-discovery-check",
+  "npm run mainnet:secret-exposure-check",
+  "git diff --check",
+]) {
+  assert(
+    ledgerLumiPinHardeningLoop?.localVerification?.includes(command),
+    `${ledgerLumiPinHardeningLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "and earlier",
+  "earlier local",
+  "assertLumiPromotionBoundary",
+  "not-pushed",
+  "not-live-verified",
+  "local verified feedback-loop baseline",
+  "572c46e",
+  "f899388",
+  "not accepted closure",
+  "not production privacy",
+]) {
+  assert(
+    ledgerLumiPinHardeningLoopText.includes(phrase),
+    `${ledgerLumiPinHardeningLoopId} must record ${phrase}`,
+  );
+}
+
 const unshieldProofOwnerLimbCommentLoopId =
   "VANTA-ZK-FEEDBACK-2026-05-14-UNSHIELD-PROOF-OWNER-LIMB-COMMENT";
 assert(
