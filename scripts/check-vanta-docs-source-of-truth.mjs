@@ -137,6 +137,11 @@ requirePhrase(
 );
 requirePhrase(
   readme,
+  "Claim now has dev-only Claim browser/Web Worker proof execution plus worker-side witness generation from typed Claim witness input",
+  "README.md",
+);
+requirePhrase(
+  readme,
   "opt-in browser-worker proof-result adapter",
   "README.md",
 );

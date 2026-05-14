@@ -510,6 +510,11 @@ try {
       compressedWorker.transferLists[0]?.length === 1,
       "client must transfer one copied Claim compressed-witness buffer.",
     );
+    assert(
+      compressedWorker.requests[0]?.payload?.compressedWitness?.byteLength ===
+        compressedWitness.byteLength,
+      "client fake worker must receive the copied Claim compressed witness.",
+    );
 
     await client.proveClaim({
       circuit: "vanta_private_pool_v2_claim_entry",

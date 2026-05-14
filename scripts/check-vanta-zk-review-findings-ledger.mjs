@@ -1881,6 +1881,10 @@ assert(
   "H08 verification commands must include the Shield browser worker prover guard",
 );
 assert(
+  h08.verification.commands.includes("npm run private-pool-v2:claim-browser-worker-prover-check"),
+  "H08 verification commands must include the Claim browser worker prover guard",
+);
+assert(
   h08.verification.commands.includes("npm run zk:h08-production-prover-candidate-check"),
   "H08 verification commands must include the production prover candidate guard",
 );
@@ -1932,6 +1936,10 @@ assert(
   h08.codexRemediation.commits.some((commitRef) => commitRef.includes("96b7008")),
   "H08 must record the Shield browser worker prover commit",
 );
+assert(
+  h08.codexRemediation.commits.some((commitRef) => commitRef.includes("804be13")),
+  "H08 must record the Claim browser worker prover commit",
+);
 assert(h08Text.includes("send-public-input-hash"), "H08 must record Send public-input hash binding");
 assert(
   h08Text.includes("private-spend-public-input-hash"),
@@ -1947,12 +1955,20 @@ assert(
 assert(h08Text.includes("local-bb-derived-artifact"), "H08 must record the derived artifact backend");
 assert(h08Text.includes("browser/Web Worker proof-execution"), "H08 must record the browser worker proof-execution boundary");
 assert(
-  h08Text.includes("dev-only Shield browser/Web Worker proof execution"),
-  "H08 must record the Shield browser worker proof-execution boundary",
+  h08Text.includes("Shield, Claim, Send, and actual-private-spend also have dev-only browser/Web Worker proof-execution"),
+  "H08 must record the Shield/Claim browser worker proof-execution boundary",
+);
+assert(
+  h08Text.includes("dev-only Claim browser/Web Worker proof execution"),
+  "H08 must record the Claim browser worker proof-execution boundary",
 );
 assert(
   h08Text.includes("typed Shield witness input"),
   "H08 must record the typed Shield witness-input boundary",
+);
+assert(
+  h08Text.includes("typed Claim witness input"),
+  "H08 must record the typed Claim witness-input boundary",
 );
 assert(
   h08Text.includes("browser-worker proof-result adapter"),
@@ -2172,6 +2188,77 @@ for (const phrase of [
   assert(
     shieldBrowserWorkerLoopText.includes(phrase),
     `${shieldBrowserWorkerLoopId} must record ${phrase}`,
+  );
+}
+
+const claimBrowserWorkerLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-14-H08-CLAIM-BROWSER-WORKER-PROVER";
+assert(
+  activeFeedbackLoopIds.has(claimBrowserWorkerLoopId),
+  `${claimBrowserWorkerLoopId} active feedback loop is missing`,
+);
+const claimBrowserWorkerLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === claimBrowserWorkerLoopId,
+);
+const claimBrowserWorkerLoopText = JSON.stringify(claimBrowserWorkerLoop);
+for (const command of [
+  "npm run private-pool-v2:claim-browser-worker-prover-check",
+  "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
+  "npm run private-pool-v2:proof-backend-boundary-check",
+  "npm run private-pool-v2:local-prover-check",
+  "npm run private-pool-v2:claim-proof-artifact-consistency-check",
+  "npm run private-pool-v2:claim-operator-no-witness-check",
+  "npm run zk:h08-production-prover-candidate-check",
+  "npm run zk:h08-production-prover-runtime-options-check",
+  "npm run docs:source-of-truth-check",
+  "npm run security:limitations-check",
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:feedback-loop-check",
+  "npm run zk:review-guards-check",
+  "npm run build",
+]) {
+  assert(
+    claimBrowserWorkerLoop?.localVerification?.includes(command),
+    `${claimBrowserWorkerLoopId} must record ${command}`,
+  );
+}
+for (const file of [
+  "src/privacy/privatePoolV2ClaimCircuitFixture.ts",
+  "src/privacy/privatePoolV2BrowserProverProtocol.ts",
+  "src/privacy/privatePoolV2BrowserProverWorker.ts",
+  "src/privacy/privatePoolV2BrowserProverClient.ts",
+  "src/privacy/privatePoolV2BrowserWorkerProofResultAdapter.ts",
+  "scripts/check-vanta-private-pool-v2-claim-browser-worker-prover.mjs",
+  "ops/mainnet/private-pool-v2-h08-production-prover-candidate.evidence.json",
+  "ops/mainnet/private-pool-v2-h08-production-prover-runtime-options.evidence.json",
+  "README.md",
+  "SECURITY_LIMITATIONS.md",
+]) {
+  assert(
+    claimBrowserWorkerLoop?.changedFiles?.includes(file),
+    `${claimBrowserWorkerLoopId} must record changed file ${file}`,
+  );
+}
+for (const phrase of [
+  "dev-only Claim browser/Web Worker proof execution",
+  "worker-side witness generation",
+  "typed Claim witness input",
+  "claim-public-input-hash",
+  "local-bb-derived-artifact",
+  "does not replace the default mock / local-mock prover",
+  "not live Claim routing",
+  "not a production browser runtime prover",
+  "not a production remote proof service",
+  "not on-chain proof verification",
+  "not production verifying-key evidence",
+  "not audit acceptance",
+  "not live deployment evidence",
+  "not real-funds readiness",
+  "804be13",
+]) {
+  assert(
+    claimBrowserWorkerLoopText.includes(phrase),
+    `${claimBrowserWorkerLoopId} must record ${phrase}`,
   );
 }
 
