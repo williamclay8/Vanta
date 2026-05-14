@@ -31,6 +31,8 @@ These are intake templates, not approvals. They must contain reference names and
 
 `/.well-known/vanta-audit.json` is a refs-only public discovery surface for reviewers and counterparties who need to find the current Vanta audit handoff without reading the whole repo first.
 
+`/.well-known/audit` is a short JSON alias for the same public discovery surface. It points to `/.well-known/vanta-audit.json` instead of duplicating audit evidence, so reviewers get a memorable URL while the canonical refs-only packet remains the source of truth.
+
 This public discovery file is not an audit report, not third-party approval, and not production readiness. It must preserve `auditClaimAllowed: false`, `productionReady: false`, and `mainnetReady: false` until the matching external gates actually clear.
 
 The file may point to source-of-truth docs, packet templates, finding ledgers, proof-boundary decisions, and blocker evidence. It must not include secrets, private keys, seed phrases, privileged legal text, under-NDA report bodies, signed transaction bytes, customer private inputs, witness material, or live provider credentials.

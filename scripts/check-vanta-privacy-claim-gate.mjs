@@ -14,7 +14,8 @@ const trackedFiles = execFileSync("git", ["ls-files"], {
   .filter(Boolean)
   .filter((path) => {
     return (
-      (path.endsWith(".md") ||
+      (path.endsWith(".html") ||
+        path.endsWith(".md") ||
         path.endsWith(".mjs") ||
         path.endsWith(".ts") ||
         path.endsWith(".tsx")) &&
@@ -167,9 +168,36 @@ function lineIsSafeContext(line, lines, index) {
 }
 
 const failures = [];
+const metaDescriptionFailures = [];
+
+function htmlMetaDescriptions(source) {
+  return [...source.matchAll(/<meta\s+[^>]*name=["']description["'][^>]*>/giu)]
+    .map((match) => match[0])
+    .map((tag) => tag.match(/\bcontent=["']([^"']*)["']/iu)?.[1] ?? "")
+    .filter(Boolean);
+}
+
+function metaDescriptionIsSafe(content) {
+  return /\b(?:alpha|beta|not audited|not production-private|not production private|not production-ready|not mainnet-ready)\b/iu.test(
+    content,
+  );
+}
 
 for (const file of trackedFiles) {
   const source = readFileSync(resolve(repoRoot, file), "utf8");
+  if (file.endsWith(".html")) {
+    for (const content of htmlMetaDescriptions(source)) {
+      if (
+        /\bprivacy layer\b/iu.test(content) ||
+        /\bprivate\s+(?:send|swap|payment|payments|settlement)\b/iu.test(content)
+      ) {
+        if (!metaDescriptionIsSafe(content)) {
+          metaDescriptionFailures.push(`${file}: ${content}`);
+        }
+      }
+    }
+  }
+
   const lines = source.split(/\r?\n/u);
   for (const [index, line] of lines.entries()) {
     if (!lineHasDangerousClaim(line) || lineIsSafeContext(line, lines, index)) {
@@ -180,11 +208,14 @@ for (const file of trackedFiles) {
   }
 }
 
-if (!privacyClaimsAllowed && failures.length > 0) {
+if (!privacyClaimsAllowed && (failures.length > 0 || metaDescriptionFailures.length > 0)) {
   console.error("Vanta privacy claim gate: FAIL");
   console.error("Privacy/mainnet production claims are still disabled, but unguarded claim language was found:");
   for (const failure of failures) {
     console.error(`- ${failure}`);
+  }
+  for (const failure of metaDescriptionFailures) {
+    console.error(`- meta description overclaim: ${failure}`);
   }
   process.exit(1);
 }
@@ -196,6 +227,7 @@ console.log(
       privacyClaimsAllowed,
       scannedFiles: trackedFiles.length,
       unguardedClaimCount: failures.length,
+      metaDescriptionOverclaimCount: metaDescriptionFailures.length,
       mainnetReady: snapshot.mainnetReady,
       productionReady: snapshot.productionReady,
       privateSettlementPrivacyClaimAllowed: snapshot.privateSettlement?.privacyClaimAllowed === true,

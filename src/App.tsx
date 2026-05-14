@@ -27,6 +27,9 @@ const DocsRoadmapPage = lazy(() =>
   import("@/pages/DocsRoadmapPage").then((m) => ({ default: m.DocsRoadmapPage })),
 );
 const HomePage = lazy(() => import("@/pages/HomePage").then((m) => ({ default: m.HomePage })));
+const ManifestoPage = lazy(() =>
+  import("@/pages/ManifestoPage").then((m) => ({ default: m.ManifestoPage })),
+);
 const AppDashboardPage = lazy(() =>
   import("@/pages/AppDashboardPage").then((m) => ({ default: m.AppDashboardPage })),
 );
@@ -72,6 +75,7 @@ function App() {
       <RouteErrorBoundary>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/manifesto" element={<ManifestoPage />} />
           <Route path="/docs" element={<DocsLayout />}>
             <Route index element={<DocsHomePage />} />
             <Route path="portal" element={<DocsPortalPage />} />

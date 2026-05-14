@@ -180,6 +180,7 @@ export function HomePage() {
         <div className="landing-nav__links">
           <a href="#what">How it works</a>
           <a href="#use">Open actions</a>
+          <Link to="/manifesto">Manifesto</Link>
           <Link to="/docs">Docs</Link>
           <a href="https://x.com/vantaprivacy" target="_blank" rel="noreferrer">
             X

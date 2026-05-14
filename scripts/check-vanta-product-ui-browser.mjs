@@ -122,6 +122,21 @@ function runBrowserBatch() {
         { kind: "no_console_errors" },
       ],
     },
+    { action: "navigate", url: `${baseUrl}/manifesto` },
+    { action: "wait_for", condition: "network_idle" },
+    {
+      action: "assert",
+      checks: [
+        { kind: "url_contains", text: "/manifesto" },
+        { kind: "selector_visible", selector: "[data-vanta-manifesto-page]" },
+        { kind: "selector_visible", selector: "[data-vanta-manifesto-credo]" },
+        { kind: "text_visible", text: "Vanta Manifesto" },
+        { kind: "text_visible", text: "Privacy should close the door" },
+        { kind: "text_visible", text: "Production privacy is not enabled" },
+        { kind: "text_visible", text: "not an audit report" },
+        { kind: "no_console_errors" },
+      ],
+    },
     { action: "navigate", url: `${baseUrl}/app/send` },
     { action: "wait_for", condition: "network_idle" },
     {

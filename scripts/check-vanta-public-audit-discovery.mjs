@@ -4,6 +4,7 @@ import { isAbsolute, resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const discoveryPath = resolve(repoRoot, "public/.well-known/vanta-audit.json");
+const auditAliasPath = resolve(repoRoot, "public/.well-known/audit");
 const auditPackagePath = resolve(repoRoot, "docs/audit-package.md");
 const packageJsonPath = resolve(repoRoot, "package.json");
 
@@ -71,6 +72,14 @@ function assertRepoRefsForKey(key, value, path) {
   }
 }
 
+function assertSafeNpmRunCommand(command, label) {
+  assert.equal(typeof command, "string", `${label} must be a string.`);
+  assert.ok(!/[;&|`$<>]/u.test(command), `${label} must not include shell operators: ${command}`);
+  const match = command.match(/^npm run ([A-Za-z0-9:_-]+)$/u);
+  assert.ok(match, `${label} must be an npm run command: ${command}`);
+  assert.ok(packageJson.scripts?.[match[1]], `${label} references missing package script: ${match[1]}`);
+}
+
 function walkRepoRefs(value, path = "$") {
   if (Array.isArray(value)) {
     value.forEach((entry, index) => walkRepoRefs(entry, `${path}[${index}]`));
@@ -85,10 +94,13 @@ function walkRepoRefs(value, path = "$") {
 }
 
 assert.ok(existsSync(discoveryPath), "Missing public/.well-known/vanta-audit.json.");
+assert.ok(existsSync(auditAliasPath), "Missing public/.well-known/audit.");
 assert.ok(existsSync(auditPackagePath), "Missing docs/audit-package.md.");
 
 const discoverySource = readFileSync(discoveryPath, "utf8");
+const auditAliasSource = readFileSync(auditAliasPath, "utf8");
 const discovery = JSON.parse(discoverySource);
+const auditAlias = JSON.parse(auditAliasSource);
 const auditPackage = readFileSync(auditPackagePath, "utf8");
 const packageJson = readJson(packageJsonPath);
 
@@ -112,6 +124,22 @@ assert.equal(discovery.liveDeploymentVerified, false);
 assert.equal(discovery.privacyClaimAllowed, false);
 assert.equal(discovery.anonymityClaimAllowed, false);
 assert.equal(discovery.refsOnly, true);
+
+assert.equal(auditAlias.schemaVersion, "vanta-public-audit-alias-0.1");
+assert.equal(auditAlias.path, "/.well-known/audit");
+assert.equal(auditAlias.canonicalDiscovery, "/.well-known/vanta-audit.json");
+assert.equal(auditAlias.refsOnly, true);
+assert.equal(auditAlias.auditClaimAllowed, false);
+assert.equal(auditAlias.thirdPartyAuditAccepted, false);
+assert.equal(auditAlias.productionReady, false);
+assert.equal(auditAlias.mainnetReady, false);
+assert.equal(auditAlias.liveDeploymentVerified, false);
+assert.equal(auditAlias.privacyClaimAllowed, false);
+assert.equal(auditAlias.anonymityClaimAllowed, false);
+assert.ok(
+  auditAlias.currentBlockers?.includes("See /.well-known/vanta-audit.json for current blocked gates."),
+  "Audit alias must point at canonical blocked gates.",
+);
 
 assert.equal(discovery.securityLimitations, "SECURITY_LIMITATIONS.md");
 assert.equal(discovery.auditPackage, "docs/audit-package.md");
@@ -181,8 +209,17 @@ for (const command of [
   assert.ok(discovery.safeCommands?.includes(command), `Discovery JSON must include command: ${command}`);
 }
 
+discovery.safeCommands?.forEach((command, index) =>
+  assertSafeNpmRunCommand(command, `discovery.safeCommands[${index}]`),
+);
+auditAlias.safeCommands?.forEach((command, index) =>
+  assertSafeNpmRunCommand(command, `auditAlias.safeCommands[${index}]`),
+);
+
 for (const phrase of [
   "/.well-known/vanta-audit.json",
+  "/.well-known/audit",
+  "alias",
   "refs-only public discovery",
   "auditClaimAllowed: false",
   "productionReady: false",
@@ -209,6 +246,7 @@ const forbiddenClaimPhrases = [
 const lowerDiscovery = discoverySource.toLowerCase();
 for (const phrase of forbiddenClaimPhrases) {
   assert.ok(!lowerDiscovery.includes(phrase), `Discovery JSON must not overclaim with phrase: ${phrase}`);
+  assert.ok(!auditAliasSource.toLowerCase().includes(phrase), `Audit alias must not overclaim with phrase: ${phrase}`);
 }
 
 const forbiddenContentPatterns = [
@@ -248,6 +286,24 @@ walk(discovery, (value, path) => {
     assert.ok(
       !pattern.test(value),
       `Discovery JSON appears to include a secret-shaped value at ${path}; use refs-only metadata.`,
+    );
+  }
+});
+
+walk(auditAlias, (value, path) => {
+  if (typeof value !== "string") {
+    return;
+  }
+  for (const forbidden of forbiddenContentPatterns) {
+    assert.ok(
+      !forbidden.test(value),
+      `Audit alias must not include secret/report/witness content marker at ${path}; use refs-only metadata.`,
+    );
+  }
+  for (const pattern of secretValuePatterns) {
+    assert.ok(
+      !pattern.test(value),
+      `Audit alias appears to include a secret-shaped value at ${path}; use refs-only metadata.`,
     );
   }
 });

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "vanta-public-audit-alias-0.1",
+  "path": "/.well-known/audit",
+  "canonicalDiscovery": "/.well-known/vanta-audit.json",
+  "name": "Vanta public audit alias",
+  "generatedAt": "2026-05-14",
+  "refsOnly": true,
+  "auditClaimAllowed": false,
+  "thirdPartyAuditAccepted": false,
+  "productionReady": false,
+  "mainnetReady": false,
+  "liveDeploymentVerified": false,
+  "privacyClaimAllowed": false,
+  "anonymityClaimAllowed": false,
+  "currentBlockers": [
+    "See /.well-known/vanta-audit.json for current blocked gates."
+  ],
+  "safeCommands": [
+    "npm run public:audit-discovery-check",
+    "npm run public:manifesto-check",
+    "npm run truth:privacy-claim-gate"
+  ]
+}
