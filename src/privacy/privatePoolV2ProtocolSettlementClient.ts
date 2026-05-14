@@ -7,6 +7,7 @@ import {
   createVantaPrivatePoolV2SendProofRequest,
   createVantaPrivatePoolV2ShieldProofRequest,
   createVantaPrivatePoolV2SwapToShieldedProofRequest,
+  createVantaPrivatePoolV2UnshieldProofRequest,
 } from "./privatePoolV2ProofRequests";
 import {
   serializeVantaShieldCommittedEconomicsSettlementOpening,
@@ -85,6 +86,7 @@ export type VantaCommittedEconomicsSettlementTerms = {
   poolId?: string;
   privateSpendContextHash?: string;
   privateSpendPublicInputHash?: string;
+  proofBoundDestinationCommitment?: string;
   recipientMemoCiphertextBodyHash?: string;
   routeCommitment: string;
   sendContextTag?: string;
@@ -125,6 +127,7 @@ export type VantaRawProtocolSettlementRequest = {
   poolId?: never;
   privateSpendContextHash?: never;
   privateSpendPublicInputHash?: never;
+  proofBoundDestinationCommitment?: never;
   recipientMemoCiphertextBodyHash?: never;
   routeCommitment?: never;
   sendContextTag?: never;
@@ -247,6 +250,7 @@ export type VantaCommittedEconomicsProtocolSettlementReceipt =
     economicsCommitment: string;
     economicsMode: "committed-economics";
     exitTermsCommitment?: string;
+    proofBoundDestinationCommitment?: string;
     settlementCommitment: string;
   };
 
@@ -634,6 +638,19 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
       "Committed Private Pool v2 protocol settlement receipt settlement commitment does not match the request.",
     );
     if (request.action === "unshield") {
+      const expectedUnshieldProofRequest = createVantaPrivatePoolV2UnshieldProofRequest({
+        economicsCommitment: request.economicsCommitment,
+        exitTermsCommitment: request.exitTermsCommitment!,
+        inputCommitment: request.inputCommitment!,
+        inputRoot: request.inputRoot!,
+        nullifierOrReplayCommitment: request.nullifierOrReplayCommitment,
+        ownerCommitment: request.ownerCommitment,
+        proofBoundDestinationCommitment: request.proofBoundDestinationCommitment!,
+        routeCommitment: request.routeCommitment,
+        settlementCommitment: request.settlementCommitment,
+        unshieldContextTag: request.unshieldContextTag!,
+        unshieldPublicInputHash: request.unshieldPublicInputHash,
+      });
       requireProtocolSettlementCondition(
         response.proofReceipt?.intent === "unshield",
         "Committed Unshield protocol settlement proof receipt intent is not unshield.",
@@ -641,6 +658,16 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
       requireProtocolSettlementCondition(
         committedReceipt.exitTermsCommitment === request.exitTermsCommitment,
         "Committed Unshield protocol settlement receipt exit terms commitment does not match the request.",
+      );
+      requireProtocolSettlementCondition(
+        committedReceipt.proofBoundDestinationCommitment ===
+          request.proofBoundDestinationCommitment,
+        "Committed Unshield protocol settlement receipt proof-bound destination commitment does not match the request.",
+      );
+      requireProtocolSettlementCondition(
+        response.proofReceipt?.publicInputCommitment ===
+          expectedLocalProofPublicInputCommitment(expectedUnshieldProofRequest),
+        "Committed Unshield proof receipt public input commitment does not match the request.",
       );
     }
     if (request.action === "swap") {
@@ -922,6 +949,7 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
   poolId,
   privateSpendContextHash,
   privateSpendPublicInputHash,
+  proofBoundDestinationCommitment,
   recipientMemoCiphertextBodyHash,
   routeCommitment,
   sendContextTag,
@@ -968,6 +996,7 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
       ...(poolId ? { poolId } : {}),
       ...(privateSpendContextHash ? { privateSpendContextHash } : {}),
       ...(privateSpendPublicInputHash ? { privateSpendPublicInputHash } : {}),
+      ...(proofBoundDestinationCommitment ? { proofBoundDestinationCommitment } : {}),
       ...(recipientMemoCiphertextBodyHash ? { recipientMemoCiphertextBodyHash } : {}),
       ...(routeCommitment ? { routeCommitment } : {}),
       ...(sendContextTag ? { sendContextTag } : {}),
@@ -1024,6 +1053,7 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
       poolId,
       privateSpendContextHash,
       privateSpendPublicInputHash,
+      proofBoundDestinationCommitment,
       recipientMemoCiphertextBodyHash,
       routeCommitment,
       sendContextTag,

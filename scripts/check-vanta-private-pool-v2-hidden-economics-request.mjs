@@ -204,6 +204,8 @@ try {
     inputRoot: "field:input-root",
     nullifierOrReplayCommitment: "field:replay",
     ownerCommitment: "field:owner",
+    proofBoundDestinationCommitment:
+      "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
     routeCommitment: "field:route",
     settlementCommitment: "field:settlement",
     unshieldContextTag: "field:unshield-context",
@@ -215,6 +217,8 @@ try {
     inputRoot: "field:input-root",
     nullifierOrReplayCommitment: "field:replay",
     ownerCommitment: "field:owner",
+    proofBoundDestinationCommitment:
+      "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
     routeCommitment: "field:route",
     settlementCommitment: "field:settlement",
     unshieldContextTag: "field:unshield-context",

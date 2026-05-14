@@ -299,15 +299,20 @@ architecture_blocker_map:
     guard: "npm run private-pool-v2:onchain-unshield-custody-check"
     completion_requires: "Program-owned vault PDA custody, removal of operator vault-signer release from the production path, and reviewed migration/runbook evidence."
   - id: A2-SELF-WALLET-EXIT-ONLY
-    status: approved-design-blocked-on-proof-bound-release
-    current_truth: "The current Unshield operator rejects destinationOwner !== requester, so fresh-address exit privacy is not available. Clay approved the proof-bound fresh-address exit direction on 2026-05-14, but implementation is still blocked on proof-bound TAG_UNSHIELD release and program-owned custody."
+    status: partial-local-contract-implemented-blocked-on-proof-bound-release
+    current_truth: "The current Unshield operator rejects destinationOwner !== requester, so fresh-address exit privacy is not available. Clay approved the proof-bound fresh-address exit direction on 2026-05-14. Local proof/protocol request surfaces now require a sha256 proofBoundDestinationCommitment, but implementation remains blocked on proof-bound TAG_UNSHIELD release and program-owned custody."
     guard: "npm run unshield:public-exit-surface-check"
     approved_direction:
       approved_by: "Clay"
       approved_on: "2026-05-14"
       direction: "Allow destinationOwner != requester only when the destination is proof-bound."
       required_guardrail: "Do not allow fresh-address exit from the operator-keypair public-exit path without proof-bound destination authorization."
-    completion_requires: "Proof-bound exit destination, fresh-address UX, operator checks that allow destinationOwner != requester only when proof-bound, and updated product copy."
+    local_contract_evidence:
+      - "src/privacy/privatePoolV2ProofRequests.ts requires proofBoundDestinationCommitment to match sha256:<64 lowercase hex> in committed Unshield proof requests and public-input hashing."
+      - "operator/private-pool-v2-server.mjs requires, fingerprints, replays, and receipts proofBoundDestinationCommitment for committed Unshield protocol settlements."
+      - "src/mainnet/actualPrivateSettlementPlan.mjs and scripts/print-vanta-actual-private-settlement-plan-json.mjs require the proof-bound destination commitment for actual-private Unshield plans."
+      - "The current operator public-exit authorization still rejects destinationOwner != requester."
+    completion_requires: "Proof-bound on-chain exit destination, fresh-address UX, operator checks that allow destinationOwner != requester only when proof-bound by TAG_UNSHIELD/program-owned custody, and updated product copy."
   - id: A3-ROOTS-NOT-PROGRAM-OWNED-SHARED-TREE
     status: blocked-architecture
     current_truth: "Root provenance records exist, but root registration is still not proof that the root transition is correct and is not a program-owned shared Merkle tree."
@@ -353,8 +358,8 @@ audit_remaining_work_backlog:
     source_priority: blocker
     source_item: "Allow destinationOwner != requester on Unshield by binding the exit destination in proof."
     tracker_ref: "A2-SELF-WALLET-EXIT-ONLY"
-    status: approved-design-blocked-on-proof-bound-release
-    guard: "npm run unshield:public-exit-surface-check"
+    status: partial-local-contract-implemented-blocked-on-proof-bound-release
+    guard: "npm run private-pool-v2:unshield-proof-request-check"
     approved_direction:
       approved_by: "Clay"
       approved_on: "2026-05-14"
@@ -362,8 +367,32 @@ audit_remaining_work_backlog:
       note: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-r6-fresh-address-exit-approved-path.md"
     evidence:
       - "Clay approved proof-bound fresh-address exit on 2026-05-14."
+      - "Local committed Unshield proof requests, operator protocol settlements, actual-private plans, and plan JSON now require a proofBoundDestinationCommitment field shaped as sha256:<64 lowercase hex>."
       - "Implementation remains blocked until TAG_UNSHIELD can verify a destination-bound proof and release from program-owned custody."
       - "The current operator-keypair public-exit path must keep rejecting destinationOwner != requester."
+  - id: R6A-PROOF-BOUND-DESTINATION-CONTRACT
+    source_priority: blocker
+    source_item: "Add a local proof-bound destination commitment contract before enabling any fresh-address exit."
+    tracker_ref: "A2-SELF-WALLET-EXIT-ONLY"
+    status: local-implemented-fail-closed
+    guard: "npm run private-pool-v2:unshield-proof-request-check"
+    evidence:
+      - "src/privacy/privatePoolV2ProofRequests.ts rejects missing or raw proofBoundDestinationCommitment values and includes proof-bound-destination-commitment in Unshield public inputs."
+      - "operator/private-pool-v2-server.mjs requires proofBoundDestinationCommitment for committed Unshield, includes it in fingerprints/replay checks, and preserves it in protocolSettlementReceipt."
+      - "src/privacy/privatePoolV2ProtocolSettlementClient.ts validates the receipt proofBoundDestinationCommitment against the request."
+      - "src/mainnet/actualPrivateSettlementPlan.mjs and scripts/print-vanta-actual-private-settlement-plan-json.mjs require proofBoundDestinationCommitment for actual-private Unshield plans."
+      - "src/data/context/PrivacyFlowContext.tsx and src/pay/vantaPayPrivateSettlementAdapter.ts derive sha256 proof-bound destination commitments without sending raw destination as a committed Unshield protocol field."
+      - "This is not fresh-address exit privacy; the public Unshield route still rejects destinationOwner != requester and TAG_UNSHIELD still cannot release."
+    verify:
+      - "npm run private-pool-v2:unshield-proof-request-check"
+      - "npm run private-pool-v2:protocol-client-check"
+      - "npm run private-pool-v2:http-smoke"
+      - "npm run private-pool-v2:restart-check"
+      - "npm run mainnet:actual-private-settlement-plan-check"
+      - "npm run mainnet:actual-private-settlement-plan-json-check"
+      - "npm run mainnet:actual-private-settlement-relayer-caller-check"
+      - "npm run private-core:unshield-committed-settlement-check"
+      - "npm run unshield:public-exit-surface-check"
   - id: R7-SBF-REDEPLOY-LIVE-LINEAGE
     source_priority: blocker
     source_item: "Rebuild and redeploy the current SBF ABI before citing live replay/nullifier evidence."
@@ -395,8 +424,8 @@ audit_remaining_work_backlog:
     source_priority: high
     source_item: "Build production recipient discovery via viewing-key exchange or view-tag/indexer protocol."
     tracker_ref: "A5"
-    status: approved-design-pending-implementation
-    guard: "npm run private-pool-v2:send-discovery-indexer-handoff-check"
+    status: partial-local-implemented-pending-production-discovery
+    guard: "npm run send:direct-viewing-key-exchange-check"
     approved_decision:
       approved_by: "Clay"
       approved_on: "2026-05-14"
@@ -406,10 +435,29 @@ audit_remaining_work_backlog:
       note: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-r9-recipient-discovery-approved-path.md"
     evidence:
       - "Clay approved hybrid discovery on 2026-05-14."
+      - "R9B local direct viewing-key exchange scaffold is implemented for known-counterparty public viewing-key packets and local registry storage."
       - "R9A local ciphertext body-hash handoff binding is implemented, but production recipient discovery still requires implementation of the approved hybrid model."
       - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-r9-recipient-discovery-decision-blocker.md records direct viewing-key exchange, indexed encrypted view tags, and hybrid discovery as the viable choices."
       - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-r9-recipient-discovery-approved-path.md records the approved hybrid path."
-      - "The current blocker send-memo-indexer-body-hash-handoff-not-deployed remains until a deployed discovery service and external-recipient discovery UX exist."
+      - "The current blockers send-memo-indexer-body-hash-handoff-not-deployed and direct-key-beta-not-production-recipient-discovery remain until a deployed discovery service and external-recipient discovery UX exist."
+  - id: R9B-DIRECT-VIEWING-KEY-EXCHANGE
+    source_priority: high
+    source_item: "Implement the first approved hybrid discovery phase as a local direct viewing-key exchange scaffold."
+    tracker_ref: "A5"
+    status: local-implemented-local-only
+    guard: "npm run send:direct-viewing-key-exchange-check"
+    evidence:
+      - "src/solana/vantaShieldViewingKey.ts exports VantaShieldRecipientViewingKeyExchangePacket helpers with productionReady false, direct-known-counterparty scope, fingerprint validation, and forbidden plaintext/private field rejection."
+      - "src/solana/vantaRecipientViewingKeyExchange.ts provides a browser-local registry helper keyed by recipient address and viewing-key fingerprint."
+      - "src/pages/SendPage.tsx detects local direct viewing-key exchange packets for recipients but keeps external Private Core Send blocked until proof-owner exchange is available."
+      - "src/components/RecipientField.tsx labels external recipient delivery as direct-key beta only and not deployed recipient discovery."
+      - "This is not production recipient discovery, not indexed view tags, not query-private service behavior, and not production privacy."
+    verify:
+      - "npm run send:direct-viewing-key-exchange-check"
+      - "npm run send:recipient-validation-check"
+      - "npm run send:discovery-migration-policy-check"
+      - "npm run private-pool-v2:send-discovery-indexer-handoff-check"
+      - "npm run mainnet:send-production-check"
   - id: R9A-CIPHERTEXT-BODY-HASH-DISCOVERY-BINDING
     source_priority: high
     source_item: "Wire locally proof-bound ciphertext body-hash fields into the recipient discovery/indexer design."
@@ -564,8 +612,9 @@ audit_completion_checklist:
     - "Architecture blockers A1-A6 remain incomplete or approval-gated."
     - "R20/R21 remain blocked or approval-gated."
     - "R9 production recipient discovery remains pending even though R9A local ciphertext body-hash handoff binding is implemented."
+    - "R9 production recipient discovery remains pending even though R9B local direct viewing-key exchange and R9A local ciphertext body-hash handoff binding are implemented."
     - "R10 broader production service separation remains partial/pending production controls even though R10A local stub replacement is implemented."
 
 next_safe_slices:
-  - "No remaining small local-only audit quick-fix is open; remaining work is architecture-blocked, approval-gated, live/CI-gated, or production-design-gated."
+  - "No remaining small local-only audit quick-fix is open after R6A/R9B; remaining work is architecture-blocked, approval-gated, live/CI-gated, or production-service-gated."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."

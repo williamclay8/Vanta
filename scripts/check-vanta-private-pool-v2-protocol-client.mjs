@@ -1070,6 +1070,8 @@ try {
     inputRoot: committedSwapOutputRoot,
     nullifierOrReplayCommitment: "0xcommittedunshield_replay",
     ownerCommitment: "0xcommittedunshield_owner",
+    proofBoundDestinationCommitment:
+      "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
     routeCommitment: "0xcommittedunshield_route",
     settlementCommitment: "0xcommittedunshield_settlement",
     settlementId: "protocol-client-committed-unshield",
@@ -1108,6 +1110,11 @@ try {
       "0xcommittedunshield_exit_terms",
     "Expected committed Unshield settlement receipt to preserve exit terms commitment.",
   );
+  assert(
+    committedUnshieldSettlement?.protocolSettlementReceipt?.proofBoundDestinationCommitment ===
+      "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "Expected committed Unshield settlement receipt to preserve proof-bound destination commitment.",
+  );
   for (const rawField of ["amount", "asset", "destination", "owner"]) {
     assert(
       !(rawField in committedUnshieldSettlement.protocolSettlementReceipt),
@@ -1132,6 +1139,8 @@ try {
         nullifierOrReplayCommitment: "0xrejectedunshield_replay",
         owner: "protocol-client-raw-owner",
         ownerCommitment: "0xrejectedunshield_owner",
+        proofBoundDestinationCommitment:
+          "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         routeCommitment: "0xrejectedunshield_route",
         settlementCommitment: "0xrejectedunshield_settlement",
         settlementId: "protocol-client-rejected-committed-unshield",
@@ -1154,6 +1163,8 @@ try {
         inputRoot: "0xcommittedunshield_input_root_second",
         nullifierOrReplayCommitment: "0xcommittedunshield_replay",
         ownerCommitment: "0xcommittedunshield_owner_second",
+        proofBoundDestinationCommitment:
+          "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         routeCommitment: "0xcommittedunshield_route_second",
         settlementCommitment: "0xcommittedunshield_settlement_second",
         settlementId: "protocol-client-committed-unshield-replay",

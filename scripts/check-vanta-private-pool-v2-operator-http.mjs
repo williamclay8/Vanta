@@ -962,6 +962,8 @@ try {
       inputRoot: committedShieldOutput.merkleRoot,
       nullifierOrReplayCommitment: "0xcommitted_unshield_replay",
       ownerCommitment: "0xcommitted_unshield_owner",
+      proofBoundDestinationCommitment:
+        "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       routeCommitment: "0xcommitted_unshield_route",
       settlementCommitment: "0xcommitted_unshield_settlement",
       settlementId: "protocol-committed-unshield-settlement",
@@ -989,6 +991,11 @@ try {
     "Expected committed unshield receipt to preserve exit terms commitment.",
   );
   assert(
+    committedUnshieldSettlement.parsed?.protocolSettlementReceipt?.proofBoundDestinationCommitment ===
+      "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "Expected committed unshield receipt to preserve proof-bound destination commitment.",
+  );
+  assert(
     !("amount" in committedUnshieldSettlement.parsed.protocolSettlementReceipt) &&
       !("asset" in committedUnshieldSettlement.parsed.protocolSettlementReceipt) &&
       !("destination" in committedUnshieldSettlement.parsed.protocolSettlementReceipt) &&
@@ -1006,6 +1013,8 @@ try {
 	        inputRoot: `0xraw_rejected_unshield_input_root_${rawField}`,
 	        nullifierOrReplayCommitment: `0xraw_rejected_unshield_replay_${rawField}`,
 	        ownerCommitment: `0xraw_rejected_unshield_owner_${rawField}`,
+	        proofBoundDestinationCommitment:
+	          "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
 	        routeCommitment: `0xraw_rejected_unshield_route_${rawField}`,
 	        settlementCommitment: `0xraw_rejected_unshield_settlement_${rawField}`,
 	        settlementId: `protocol-committed-unshield-raw-${rawField}-rejected`,
@@ -1032,6 +1041,8 @@ try {
 	      inputRoot: "0xcommitted_unshield_replay_input_root",
 	      nullifierOrReplayCommitment: "0xcommitted_unshield_replay",
 	      ownerCommitment: "0xcommitted_unshield_replay_owner",
+	      proofBoundDestinationCommitment:
+	        "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 	      routeCommitment: "0xcommitted_unshield_replay_route",
 	      settlementCommitment: "0xcommitted_unshield_replay_settlement",
 	      settlementId: "protocol-committed-unshield-replay-rejected",

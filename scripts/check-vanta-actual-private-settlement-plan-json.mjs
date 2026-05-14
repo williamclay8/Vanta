@@ -34,6 +34,8 @@ const unshieldEnv = {
   VANTA_ACTUAL_PRIVATE_EXIT_TERMS_COMMITMENT: "commitment:exit-terms",
   VANTA_ACTUAL_PRIVATE_INPUT_COMMITMENT: "commitment:input-note",
   VANTA_ACTUAL_PRIVATE_INPUT_ROOT: "root:input",
+  VANTA_ACTUAL_PRIVATE_PROOF_BOUND_DESTINATION_COMMITMENT:
+    "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
   VANTA_ACTUAL_PRIVATE_UNSHIELD_CONTEXT_TAG: "context:actual-private-unshield-live-candidate",
   VANTA_ACTUAL_PRIVATE_UNSHIELD_PUBLIC_INPUT_HASH:
     "public-input-hash:actual-private-unshield-live-candidate",
@@ -74,6 +76,10 @@ assert.equal(unshieldPlanJson.action, "unshield");
 assert.equal(unshieldPlanJson.exitTermsCommitment, unshieldEnv.VANTA_ACTUAL_PRIVATE_EXIT_TERMS_COMMITMENT);
 assert.equal(unshieldPlanJson.inputCommitment, unshieldEnv.VANTA_ACTUAL_PRIVATE_INPUT_COMMITMENT);
 assert.equal(unshieldPlanJson.inputRoot, unshieldEnv.VANTA_ACTUAL_PRIVATE_INPUT_ROOT);
+assert.equal(
+  unshieldPlanJson.proofBoundDestinationCommitment,
+  unshieldEnv.VANTA_ACTUAL_PRIVATE_PROOF_BOUND_DESTINATION_COMMITMENT,
+);
 assert.equal(unshieldPlanJson.unshieldContextTag, unshieldEnv.VANTA_ACTUAL_PRIVATE_UNSHIELD_CONTEXT_TAG);
 assert.equal(
   unshieldPlanJson.unshieldPublicInputHash,

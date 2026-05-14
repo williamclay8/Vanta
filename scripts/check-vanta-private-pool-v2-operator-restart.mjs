@@ -246,6 +246,8 @@ async function loadFixtureRuntime() {
     inputRoot: swapOutputCommitment.merkleRoot,
     nullifierOrReplayCommitment: "field:restart-unshield-nullifier",
     ownerCommitment: "field:restart-unshield-owner-commitment",
+    proofBoundDestinationCommitment:
+      "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
     routeCommitment: "field:restart-unshield-route-commitment",
     settlementCommitment: "field:restart-unshield-settlement-commitment",
     unshieldContextTag: "field:restart-unshield-context-tag",

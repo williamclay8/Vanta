@@ -103,6 +103,13 @@ export function validateVantaActualPrivateSettlementResponse({ plan, response })
   ) {
     return { accepted: false, reason: "exit-terms-commitment-mismatch" };
   }
+  if (
+    plan.request.action === "unshield" &&
+    response.protocolSettlementReceipt?.proofBoundDestinationCommitment !==
+      plan.request.proofBoundDestinationCommitment
+  ) {
+    return { accepted: false, reason: "proof-bound-destination-commitment-mismatch" };
+  }
   if (!response.protocolSettlementReceipt?.proofReceiptPublicInputCommitment) {
     return { accepted: false, reason: "missing-proof-public-input-commitment" };
   }

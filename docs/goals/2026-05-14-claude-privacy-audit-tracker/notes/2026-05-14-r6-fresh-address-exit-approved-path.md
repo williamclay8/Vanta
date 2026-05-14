@@ -12,11 +12,14 @@ Allow `destinationOwner != requester` only when the destination is proof-bound.
 
 Plain-language guard phrase for future checks: destinationOwner != requester only when the destination is proof-bound.
 
-The current operator-keypair public-exit path must keep rejecting fresh-address exit until the release destination is bound by proof and the release path is wired through program-owned custody.
+The current operator-keypair public-exit path must keep rejecting fresh-address exit until the release destination is bound by proof and the release path is wired through program-owned custody. Local committed Unshield proof/protocol/plan surfaces now require `proofBoundDestinationCommitment`, but that is only a fail-closed contract scaffold.
 
 ## Current Local Truth
 
 - The current Unshield operator still rejects `destinationOwner !== requester`.
+- `src/privacy/privatePoolV2ProofRequests.ts` requires `proofBoundDestinationCommitment` shaped as `sha256:<64 lowercase hex>` and binds it into committed Unshield public inputs.
+- `operator/private-pool-v2-server.mjs` requires, fingerprints, replays, and receipts `proofBoundDestinationCommitment` for committed Unshield protocol settlements.
+- `src/mainnet/actualPrivateSettlementPlan.mjs` and `scripts/print-vanta-actual-private-settlement-plan-json.mjs` require the proof-bound destination commitment for actual-private Unshield plans.
 - `TAG_UNSHIELD` remains reserved and returns `ERR_UNSHIELD_RELEASE_NOT_WIRED` before release.
 - The beta release path still depends on operator-keypair public exit.
 - program-owned vault PDA release is not implemented.
@@ -34,9 +37,11 @@ The current operator-keypair public-exit path must keep rejecting fresh-address 
 ## Verification
 
 - `npm run unshield:public-exit-surface-check`
+- `npm run private-pool-v2:unshield-proof-request-check`
+- `npm run private-pool-v2:protocol-client-check`
 - `npm run private-pool-v2:onchain-unshield-custody-check`
 - `npm run zk:c01-onchain-proof-boundary-check`
 
 ## Truth Boundary
 
-This note records an approved design direction only. It is not fresh-address exit privacy, not proof-verified release, not program-owned custody, not deployed `TAG_UNSHIELD`, not audit acceptance, not production privacy, and not real-funds readiness.
+This note records an approved design direction and a local proof-bound destination commitment contract. It is not fresh-address exit privacy, not proof-verified release, not program-owned custody, not deployed `TAG_UNSHIELD`, not audit acceptance, not production privacy, and not real-funds readiness.

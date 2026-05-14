@@ -131,6 +131,10 @@ function hashPrivatePoolV2CommittedTerm(...parts: readonly string[]) {
   return `0x${bytesToHex(sha256(new TextEncoder().encode(parts.join("\u001f"))))}`;
 }
 
+function hashPrivatePoolV2ProofBoundDestinationCommitment(...parts: readonly string[]) {
+  return `sha256:${bytesToHex(sha256(new TextEncoder().encode(parts.join("\u001f"))))}`;
+}
+
 function buildPrivateCoreUnshieldCommittedSettlement(args: {
   proofBoundary: VantaPrivateCoreUnshieldProofBoundaryV0;
   sourceArtifacts: ReturnType<typeof deriveVantaPrivateCoreSourceArtifactsFromHeldNote>;
@@ -167,11 +171,16 @@ function buildPrivateCoreUnshieldCommittedSettlement(args: {
     proofInputs.unshield_economic_terms_hash,
     proofInputs.state_root,
   );
+  const proofBoundDestinationCommitment = hashPrivatePoolV2ProofBoundDestinationCommitment(
+    "vanta.private-core.unshield.proof-bound-destination-commitment.v0",
+    sourceInputs.releaseDestination,
+  );
   const unshieldPublicInputHash = hashPrivatePoolV2CommittedTerm(
     "vanta.private-core.unshield.public-input-hash.v0",
     proofInputs.state_root,
     proofInputs.nullifier,
     proofInputs.unshield_economic_terms_hash,
+    proofBoundDestinationCommitment,
     proofInputs.note_version,
     proofInputs.consume_context_tag_hi ?? "0",
     proofInputs.consume_context_tag_lo ?? "0",
@@ -188,6 +197,7 @@ function buildPrivateCoreUnshieldCommittedSettlement(args: {
       args.nullifier,
     ),
     ownerCommitment,
+    proofBoundDestinationCommitment,
     routeCommitment,
     settlementCommitment,
     unshieldContextTag: sourceInputs.consumeContextTag ?? hashPrivatePoolV2CommittedTerm(
@@ -2551,6 +2561,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         inputRoot: committedUnshieldSettlement.inputRoot,
         nullifierOrReplayCommitment: committedUnshieldSettlement.nullifierOrReplayCommitment,
         ownerCommitment: committedUnshieldSettlement.ownerCommitment,
+        proofBoundDestinationCommitment: committedUnshieldSettlement.proofBoundDestinationCommitment,
         routeCommitment: committedUnshieldSettlement.routeCommitment,
         settlementCommitment: committedUnshieldSettlement.settlementCommitment,
         settlementId: committedUnshieldSettlement.settlementCommitment,

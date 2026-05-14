@@ -46,6 +46,8 @@ const unshieldPlan = createVantaActualPrivateSettlementPlan({
   nullifier: "nullifier:actual-private-unshield-demo",
   ownerCommitment: "commitment:owner",
   poolId: "pool:stablecoin-usdc-v1",
+  proofBoundDestinationCommitment:
+    "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
   routeCommitment: "commitment:route",
   settlementCommitment: "commitment:unshield-settlement",
   settlementId: "settlement:actual-private-unshield-demo",
@@ -177,6 +179,8 @@ assert.equal(
         object: "protocol_settlement_receipt",
         proofReceiptId: "ppv2_unshield_receipt",
         proofReceiptPublicInputCommitment: "commitment:proof-public-input",
+        proofBoundDestinationCommitment:
+          "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         settlementCommitment: "commitment:unshield-settlement",
         settlementId: "settlement:actual-private-unshield-demo",
         status: "confirmed",
@@ -184,6 +188,39 @@ assert.equal(
     },
   }).accepted,
   true,
+);
+
+assert.equal(
+  validateVantaActualPrivateSettlementResponse({
+    plan: unshieldPlan,
+    response: {
+      kind: "protocol_settlement",
+      proofReceipt: {
+        assetId: "hidden:economic-terms",
+        intent: "unshield",
+        proofSystem: "noir-bb",
+        publicInputCommitment: "commitment:proof-public-input",
+        receiptId: "receipt:actual-private-unshield-demo",
+        replayKey: "unshield:nullifier:actual-private-unshield-demo",
+      },
+      protocolSettlementReceipt: {
+        action: "unshield",
+        economicsCommitment: "commitment:economics",
+        economicsMode: "committed-economics",
+        exitTermsCommitment: "commitment:exit-terms",
+        id: "proto:actual-private-unshield-demo",
+        object: "protocol_settlement_receipt",
+        proofReceiptId: "ppv2_unshield_receipt",
+        proofReceiptPublicInputCommitment: "commitment:proof-public-input",
+        proofBoundDestinationCommitment:
+          "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        settlementCommitment: "commitment:unshield-settlement",
+        settlementId: "settlement:actual-private-unshield-demo",
+        status: "confirmed",
+      },
+    },
+  }).reason,
+  "proof-bound-destination-commitment-mismatch",
 );
 
 const body = JSON.parse(calls[1].body);

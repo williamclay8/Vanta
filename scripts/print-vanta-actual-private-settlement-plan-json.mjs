@@ -30,6 +30,7 @@ const unshieldFields = [
   ["exitTermsCommitment", "VANTA_ACTUAL_PRIVATE_EXIT_TERMS_COMMITMENT"],
   ["inputCommitment", "VANTA_ACTUAL_PRIVATE_INPUT_COMMITMENT"],
   ["inputRoot", "VANTA_ACTUAL_PRIVATE_INPUT_ROOT"],
+  ["proofBoundDestinationCommitment", "VANTA_ACTUAL_PRIVATE_PROOF_BOUND_DESTINATION_COMMITMENT"],
   ["unshieldContextTag", "VANTA_ACTUAL_PRIVATE_UNSHIELD_CONTEXT_TAG"],
   ["unshieldPublicInputHash", "VANTA_ACTUAL_PRIVATE_UNSHIELD_PUBLIC_INPUT_HASH"],
 ];

@@ -20,6 +20,8 @@ function createLocalActualPrivateUnshieldPlanStatus() {
     nullifier: "nullifier:actual-private-unshield-status",
     ownerCommitment: "commitment:owner",
     poolId: "pool:stablecoin-usdc-v1",
+    proofBoundDestinationCommitment:
+      "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
     routeCommitment: "commitment:route",
     settlementCommitment: "commitment:settlement",
     settlementId: "settlement:actual-private-unshield-status",

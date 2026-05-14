@@ -110,6 +110,8 @@ try {
     inputRoot: "field:input-root",
     nullifierOrReplayCommitment: "field:nullifier",
     ownerCommitment: "field:owner",
+	    proofBoundDestinationCommitment:
+	      "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
 	    routeCommitment: "field:route",
 	    settlementCommitment: "field:settlement",
 	    unshieldContextTag: "field:unshield-context",
@@ -138,6 +140,7 @@ try {
         "settlement-commitment:field:settlement",
         "route-commitment:field:route",
         "exit-terms-commitment:field:exit-terms",
+        "proof-bound-destination-commitment:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         "economics-commitment:field:economics",
         "owner-commitment:field:owner",
         "unshield-context-tag:field:unshield-context",
@@ -181,6 +184,8 @@ try {
         inputRoot: "field:input-root",
         nullifierOrReplayCommitment: " ",
         ownerCommitment: "field:owner",
+        proofBoundDestinationCommitment:
+          "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         routeCommitment: "field:route",
         settlementCommitment: "field:settlement",
         unshieldContextTag: "field:unshield-context",
@@ -198,6 +203,8 @@ try {
         inputRoot: "field:input-root",
         nullifierOrReplayCommitment: "field:nullifier",
         ownerCommitment: "field:owner",
+        proofBoundDestinationCommitment:
+          "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         routeCommitment: "field:route",
         settlementCommitment: "field:settlement",
         unshieldContextTag: "field:unshield-context",
@@ -205,6 +212,41 @@ try {
     "exit terms commitment",
   );
   console.log("private-pool-v2 unshield proof request exit-term guard: PASS");
+
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2UnshieldProofRequest({
+        economicsCommitment: "field:economics",
+        exitTermsCommitment: "field:exit-terms",
+        inputCommitment: "field:input-note",
+        inputRoot: "field:input-root",
+        nullifierOrReplayCommitment: "field:nullifier",
+        ownerCommitment: "field:owner",
+        routeCommitment: "field:route",
+        settlementCommitment: "field:settlement",
+        unshieldContextTag: "field:unshield-context",
+      }),
+    "proof-bound destination commitment",
+  );
+  console.log("private-pool-v2 unshield proof request proof-bound destination required: PASS");
+
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2UnshieldProofRequest({
+        economicsCommitment: "field:economics",
+        exitTermsCommitment: "field:exit-terms",
+        inputCommitment: "field:input-note",
+        inputRoot: "field:input-root",
+        nullifierOrReplayCommitment: "field:nullifier",
+        ownerCommitment: "field:owner",
+        proofBoundDestinationCommitment: "recipient-public-address",
+        routeCommitment: "field:route",
+        settlementCommitment: "field:settlement",
+        unshieldContextTag: "field:unshield-context",
+      }),
+    "proof-bound destination commitment",
+  );
+  console.log("private-pool-v2 unshield proof request raw destination guard: PASS");
 } catch (error) {
   const stdout = String(error.stdout ?? "");
   const stderr = String(error.stderr ?? "");

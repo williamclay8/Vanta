@@ -1,5 +1,6 @@
 export const VANTA_ACTUAL_PRIVATE_SETTLEMENT_PLAN_VERSION =
   "vanta-actual-private-settlement-plan-0.1";
+const PROOF_BOUND_DESTINATION_COMMITMENT_PATTERN = /^sha256:[0-9a-f]{64}$/;
 
 const forbiddenRequestKeys = new Set([
   "amount",
@@ -20,6 +21,16 @@ function requireText(value, fieldName) {
   }
 
   return value.trim();
+}
+
+function requireProofBoundDestinationCommitment(value) {
+  const commitment = requireText(value, "proofBoundDestinationCommitment");
+  if (!PROOF_BOUND_DESTINATION_COMMITMENT_PATTERN.test(commitment)) {
+    throw new Error(
+      "Actual-private settlement plan requires proofBoundDestinationCommitment to match sha256:<64 lowercase hex>.",
+    );
+  }
+  return commitment;
 }
 
 function optionalText(value) {
@@ -91,6 +102,9 @@ export function createVantaActualPrivateSettlementPlan(input) {
           exitTermsCommitment: requireText(input.exitTermsCommitment, "exitTermsCommitment"),
           inputCommitment: requireText(input.inputCommitment, "inputCommitment"),
           inputRoot: requireText(input.inputRoot, "inputRoot"),
+          proofBoundDestinationCommitment: requireProofBoundDestinationCommitment(
+            input.proofBoundDestinationCommitment,
+          ),
           unshieldContextTag: requireText(input.unshieldContextTag, "unshieldContextTag"),
           unshieldPublicInputHash: requireText(
             input.unshieldPublicInputHash,
@@ -144,6 +158,7 @@ export function createVantaActualPrivateSettlementPlan(input) {
       "input-root-for-unshield-only",
       "input-commitment-for-unshield-only",
       "exit-terms-commitment-for-unshield-only",
+      "proof-bound-destination-commitment-for-unshield-only",
       "unshield-context-tag-for-unshield-only",
       "unshield-public-input-hash-for-unshield-only",
     ],
@@ -189,6 +204,7 @@ export function validateVantaActualPrivateSettlementPlan(plan) {
           "nullifierOrReplayCommitment",
           "ownerCommitment",
           "poolId",
+          "proofBoundDestinationCommitment",
           "routeCommitment",
           "settlementCommitment",
           "settlementId",
@@ -216,6 +232,12 @@ export function validateVantaActualPrivateSettlementPlan(plan) {
     if (typeof plan.request?.[field] !== "string" || plan.request[field].trim().length === 0) {
       return { accepted: false, reason: `missing-${field}` };
     }
+  }
+  if (
+    plan.request.action === "unshield" &&
+    !PROOF_BOUND_DESTINATION_COMMITMENT_PATTERN.test(plan.request.proofBoundDestinationCommitment)
+  ) {
+    return { accepted: false, reason: "invalid-proofBoundDestinationCommitment" };
   }
 
   try {

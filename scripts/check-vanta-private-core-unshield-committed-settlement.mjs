@@ -73,6 +73,7 @@ try {
     "inputRoot:",
     "nullifierOrReplayCommitment:",
     "ownerCommitment:",
+    "proofBoundDestinationCommitment:",
     "routeCommitment:",
     "settlementCommitment:",
     "unshieldContextTag:",

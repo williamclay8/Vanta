@@ -86,6 +86,7 @@ export type VantaPayWithdrawalCommittedEconomicsSettlementRequest = {
   inputRoot: string;
   nullifierOrReplayCommitment: string;
   ownerCommitment: string;
+  proofBoundDestinationCommitment: string;
   routeCommitment: string;
   settlementCommitment: string;
   settlementId: string;
@@ -142,6 +143,10 @@ const bn254ScalarField =
 
 function hashHex(...parts: readonly string[]) {
   return `0x${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f"))))}`;
+}
+
+function hashSha256Ref(...parts: readonly string[]) {
+  return `sha256:${bytesToHex(sha256(textEncoder.encode(parts.join("\u001f"))))}`;
 }
 
 function hashId(prefix: string, ...parts: readonly string[]) {
@@ -538,6 +543,11 @@ export function createVantaPayWithdrawalCommittedEconomicsSettlementRequest({
     normalizedAmount,
     asset,
   );
+  const proofBoundDestinationCommitment = hashSha256Ref(
+    VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
+    "withdrawal-proof-bound-destination",
+    destination,
+  );
   const routeCommitment = hashHex(
     VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION,
     "withdrawal-route",
@@ -566,6 +576,7 @@ export function createVantaPayWithdrawalCommittedEconomicsSettlementRequest({
     settlementCommitment,
     routeCommitment,
     exitTermsCommitment,
+    proofBoundDestinationCommitment,
     economicsCommitment,
     ownerCommitment,
     unshieldContextTag,
@@ -580,6 +591,7 @@ export function createVantaPayWithdrawalCommittedEconomicsSettlementRequest({
     inputRoot,
     nullifierOrReplayCommitment,
     ownerCommitment,
+    proofBoundDestinationCommitment,
     routeCommitment,
     settlementCommitment,
     settlementId: hashId("pay_withdrawal", merchantId, destination, normalizedAmount, asset),
@@ -734,6 +746,7 @@ export function createVantaPayPrivateSettlementAdapter({
         initialCommittedRequest.settlementCommitment,
         initialCommittedRequest.routeCommitment,
         initialCommittedRequest.exitTermsCommitment,
+        initialCommittedRequest.proofBoundDestinationCommitment,
         initialCommittedRequest.economicsCommitment,
         initialCommittedRequest.ownerCommitment,
         initialCommittedRequest.unshieldContextTag,

@@ -41,9 +41,17 @@ const r9RecipientDiscoveryApprovedPathNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r9-recipient-discovery-approved-path.md",
 );
+const r9bDirectViewingKeyExchangeNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r9b-direct-viewing-key-exchange.md",
+);
 const r6FreshAddressExitApprovedPathNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r6-fresh-address-exit-approved-path.md",
+);
+const r6aProofBoundDestinationContractNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r6a-proof-bound-destination-contract.md",
 );
 const r10aServiceEntrypointsNotePath = resolve(
   trackerRoot,
@@ -98,7 +106,9 @@ for (const path of [
   r9aCiphertextBodyHashDiscoveryBindingNotePath,
   r9RecipientDiscoveryDecisionBlockerNotePath,
   r9RecipientDiscoveryApprovedPathNotePath,
+  r9bDirectViewingKeyExchangeNotePath,
   r6FreshAddressExitApprovedPathNotePath,
+  r6aProofBoundDestinationContractNotePath,
   r10aServiceEntrypointsNotePath,
   r11aLiveAnonymitySetProbeNotePath,
   r12LegacyV1MemoQuarantineNotePath,
@@ -129,7 +139,9 @@ const r9RecipientDiscoveryDecisionBlockerNote = read(
   r9RecipientDiscoveryDecisionBlockerNotePath,
 );
 const r9RecipientDiscoveryApprovedPathNote = read(r9RecipientDiscoveryApprovedPathNotePath);
+const r9bDirectViewingKeyExchangeNote = read(r9bDirectViewingKeyExchangeNotePath);
 const r6FreshAddressExitApprovedPathNote = read(r6FreshAddressExitApprovedPathNotePath);
+const r6aProofBoundDestinationContractNote = read(r6aProofBoundDestinationContractNotePath);
 const r10aServiceEntrypointsNote = read(r10aServiceEntrypointsNotePath);
 const r11aLiveAnonymitySetProbeNote = read(r11aLiveAnonymitySetProbeNotePath);
 const r12LegacyV1MemoQuarantineNote = read(r12LegacyV1MemoQuarantineNotePath);
@@ -188,8 +200,8 @@ const r9SectionMatch = state.match(/  - id: R9-RECIPIENT-DISCOVERY\n[\s\S]*?\n  
 assert.ok(r9SectionMatch, "state.yaml missing bounded R9 recipient discovery backlog row");
 const r9Section = r9SectionMatch[0];
 assert.ok(
-  r9Section.includes("status: approved-design-pending-implementation"),
-  "R9 production recipient discovery must record Clay's approved design path.",
+  r9Section.includes("status: partial-local-implemented-pending-production-discovery"),
+  "R9 production recipient discovery must record local direct-key progress while remaining pending production discovery.",
 );
 assert.ok(
   r9Section.includes("approved_decision:"),
@@ -199,14 +211,18 @@ assert.ok(
   r9Section.includes("selected_model: \"hybrid discovery\""),
   "R9 production recipient discovery must record hybrid discovery as the selected model.",
 );
+assert.ok(
+  r9Section.includes("R9B local direct viewing-key exchange scaffold is implemented"),
+  "R9 production recipient discovery must point to the R9B local direct-key scaffold.",
+);
 const a2FreshExitSectionMatch = state.match(
   /  - id: A2-SELF-WALLET-EXIT-ONLY\n[\s\S]*?\n  - id: A3-ROOTS-NOT-PROGRAM-OWNED-SHARED-TREE\n/,
 );
 assert.ok(a2FreshExitSectionMatch, "state.yaml missing bounded A2 self-wallet exit row");
 const a2FreshExitSection = a2FreshExitSectionMatch[0];
 assert.ok(
-  a2FreshExitSection.includes("status: approved-design-blocked-on-proof-bound-release"),
-  "A2 fresh-address exit must record Clay's approved proof-bound design path.",
+  a2FreshExitSection.includes("status: partial-local-contract-implemented-blocked-on-proof-bound-release"),
+  "A2 fresh-address exit must record local proof-bound destination contract progress.",
 );
 assert.ok(
   a2FreshExitSection.includes("approved_direction:"),
@@ -215,6 +231,10 @@ assert.ok(
 assert.ok(
   a2FreshExitSection.includes("destinationOwner != requester only when the destination is proof-bound"),
   "A2 fresh-address exit must stay limited to proof-bound destination release.",
+);
+assert.ok(
+  a2FreshExitSection.includes("proofBoundDestinationCommitment"),
+  "A2 fresh-address exit must preserve the local proof-bound destination commitment contract evidence.",
 );
 
 for (const phrase of [
@@ -257,6 +277,11 @@ for (const phrase of [
   "loadKeypairFromEnv(vaultSignerSecretKeyEnvName)",
   "A2-SELF-WALLET-EXIT-ONLY",
   "destinationOwner !== requester",
+  "partial-local-contract-implemented-blocked-on-proof-bound-release",
+  "proofBoundDestinationCommitment",
+  "R6A-PROOF-BOUND-DESTINATION-CONTRACT",
+  "status: local-implemented-fail-closed",
+  "proof-bound-destination-commitment",
   "A3-ROOTS-NOT-PROGRAM-OWNED-SHARED-TREE",
   "not proof that the root transition is correct",
   "audit_remaining_work_backlog",
@@ -271,8 +296,11 @@ for (const phrase of [
   "send-memo-indexer-body-hash-handoff-not-deployed",
   "not production recipient discovery",
   "R9-RECIPIENT-DISCOVERY",
-  "status: approved-design-pending-implementation",
+  "status: partial-local-implemented-pending-production-discovery",
   "Clay approved hybrid discovery on 2026-05-14",
+  "R9B-DIRECT-VIEWING-KEY-EXCHANGE",
+  "direct-known-counterparty",
+  "direct-key-beta-not-production-recipient-discovery",
   "R10A-SERVICE-STUB-REPLACEMENT",
   "partial-local-implemented-pending-production-controls",
   "operator/private-pool-v2-service-network.mjs exposes role-specific service start functions for indexer, prover, relayer, and verifier.",
@@ -636,10 +664,14 @@ for (const phrase of [
   "Prover-relay privacy trade-off docs",
   "docs/zk/prover-relay-privacy-tradeoffs.md",
   "Recipient discovery/indexer",
-  "Approved hybrid design, pending implementation",
-  "Clay approved hybrid discovery; implementation still needs direct viewing-key exchange, indexed encrypted view tags, deployed service behavior, and UX",
+  "Partial local implementation, pending production discovery",
+  "Clay approved hybrid discovery; local direct viewing-key exchange exists for known counterparties",
+  "Direct viewing-key exchange",
+  "Local implemented, local-only",
   "Fresh-address exit privacy",
-  "Approved design, blocked on proof-bound release",
+  "Partial local contract implemented, blocked on proof-bound release",
+  "Proof-bound destination contract",
+  "npm run private-pool-v2:unshield-proof-request-check",
   "Ciphertext body-hash discovery binding",
   "Local implemented, local-only",
   "proof-bound body-hash fields feed the local verifier-mirrored Send discovery handoff",
@@ -664,7 +696,7 @@ for (const phrase of [
   "Mainnet on-chain replay test",
   "Deposit-send-fresh-exit privacy test",
   "branch is ahead of origin",
-  "latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint/discovery-binding slices are not deployed",
+  "latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint/direct-key/discovery-binding/proof-bound-destination slices are not deployed",
 ]) {
   assert.ok(completionAuditNote.includes(phrase), `completion audit note missing ${phrase}`);
 }
@@ -731,6 +763,10 @@ for (const phrase of [
   "Clay approved hybrid discovery on 2026-05-14.",
   "direct viewing-key exchange first for merchant/OTC/treasury design partners",
   "indexed encrypted view tags after service/indexer privacy review",
+  "local direct viewing-key exchange scaffold",
+  "productionReady: false",
+  "direct-known-counterparty",
+  "direct-key beta only",
   "send-memo-indexer-body-hash-handoff-not-deployed",
   "not production recipient discovery",
   "not production privacy",
@@ -742,10 +778,33 @@ for (const phrase of [
 }
 
 for (const phrase of [
+  "R9B Direct Viewing-Key Exchange - 2026-05-14",
+  "Local implemented, local-only.",
+  "first approved hybrid discovery phase",
+  "VantaShieldRecipientViewingKeyExchangePacket",
+  "productionReady: false",
+  "direct-known-counterparty",
+  "forbidden plaintext/private field rejection",
+  "src/solana/vantaRecipientViewingKeyExchange.ts",
+  "browser-local storage",
+  "external Private Core Send still stays blocked",
+  "direct-key beta only",
+  "npm run send:direct-viewing-key-exchange-check",
+  "not production recipient discovery",
+]) {
+  assert.ok(
+    r9bDirectViewingKeyExchangeNote.includes(phrase),
+    `R9B direct viewing-key exchange note missing ${phrase}`,
+  );
+}
+
+for (const phrase of [
   "R6 Fresh-Address Exit Approved Path - 2026-05-14",
   "Approved owner decision.",
   "Clay approved proof-bound fresh-address exit on 2026-05-14.",
   "destinationOwner != requester only when the destination is proof-bound",
+  "proofBoundDestinationCommitment",
+  "sha256:<64 lowercase hex>",
   "program-owned vault PDA",
   "TAG_UNSHIELD",
   "ERR_UNSHIELD_RELEASE_NOT_WIRED",
@@ -755,6 +814,30 @@ for (const phrase of [
   assert.ok(
     r6FreshAddressExitApprovedPathNote.includes(phrase),
     `R6 fresh-address exit approved-path note missing ${phrase}`,
+  );
+}
+
+for (const phrase of [
+  "R6A Proof-Bound Destination Contract - 2026-05-14",
+  "Local implemented, fail-closed.",
+  "first local contract slice",
+  "proofBoundDestinationCommitment",
+  "sha256:<64 lowercase hex>",
+  "proof-bound-destination-commitment",
+  "operator/private-pool-v2-server.mjs",
+  "fingerprints and replay checks",
+  "src/privacy/privatePoolV2ProtocolSettlementClient.ts",
+  "src/mainnet/actualPrivateSettlementPlan.mjs",
+  "src/data/context/PrivacyFlowContext.tsx",
+  "src/pay/vantaPayPrivateSettlementAdapter.ts",
+  "npm run private-pool-v2:unshield-proof-request-check",
+  "npm run private-pool-v2:protocol-client-check",
+  "not fresh-address exit privacy",
+  "destinationOwner != requester",
+]) {
+  assert.ok(
+    r6aProofBoundDestinationContractNote.includes(phrase),
+    `R6A proof-bound destination contract note missing ${phrase}`,
   );
 }
 
@@ -835,6 +918,8 @@ for (const phrase of [
   "npm run truth:privacy-claim-gate",
   "npm run frontend:operator-env-exposure-check",
   "npm run operator:keypair-env-lockdown-check",
+  "npm run send:direct-viewing-key-exchange-check",
+  "npm run private-pool-v2:unshield-proof-request-check",
   "npm run private-pool-v2:live-anonymity-set-probe-check",
   "npm run public:live-meta-description-check",
 ]) {
@@ -870,6 +955,28 @@ assert.equal(
   packageJson.scripts["public:live-meta-description-check"],
   "node scripts/check-vanta-live-meta-description.mjs",
   "package.json must expose public:live-meta-description-check.",
+);
+assert.equal(
+  packageJson.scripts["send:direct-viewing-key-exchange-check"],
+  "node scripts/check-vanta-send-direct-viewing-key-exchange.mjs",
+  "package.json must expose send:direct-viewing-key-exchange-check.",
+);
+assert.equal(
+  packageJson.scripts["private-pool-v2:unshield-proof-request-check"],
+  "node scripts/check-vanta-private-pool-v2-unshield-proof-request.mjs",
+  "package.json must expose private-pool-v2:unshield-proof-request-check.",
+);
+assert.ok(
+  packageJson.scripts["truth:privacy-claim-gate"]?.includes(
+    "npm run send:direct-viewing-key-exchange-check",
+  ),
+  "truth:privacy-claim-gate must include send:direct-viewing-key-exchange-check.",
+);
+assert.ok(
+  packageJson.scripts["private-pool-v2:verify"]?.includes(
+    "npm run private-pool-v2:unshield-proof-request-check",
+  ),
+  "private-pool-v2:verify must include private-pool-v2:unshield-proof-request-check.",
 );
 assert.ok(
   packageJson.scripts["mainnet:secret-handling-check"]?.includes(

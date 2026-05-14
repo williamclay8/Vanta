@@ -105,6 +105,7 @@ export type VantaPrivatePoolV2UnshieldProofRequestArgs = {
   inputRoot: string;
   nullifierOrReplayCommitment: string;
   ownerCommitment: string;
+  proofBoundDestinationCommitment: string;
   routeCommitment: string;
   settlementCommitment: string;
   unshieldContextTag: string;
@@ -149,6 +150,8 @@ function hashParts(...parts: readonly string[]) {
 
 const VANTA_PRIVATE_POOL_V2_MEMO_CIPHERTEXT_BODY_HASH_PATTERN =
   /^sha256:([0-9a-f]{64})$/;
+const VANTA_PRIVATE_POOL_V2_PROOF_BOUND_DESTINATION_COMMITMENT_PATTERN =
+  /^sha256:[0-9a-f]{64}$/;
 
 export const VANTA_PRIVATE_POOL_V2_ZERO_MEMO_CIPHERTEXT_BODY_HASH_FIELD =
   "0" as const satisfies VantaPrivatePoolV2MemoCiphertextBodyHashField;
@@ -195,6 +198,7 @@ export function computeVantaPrivatePoolV2UnshieldPublicInputHash({
   inputRoot,
   nullifierOrReplayCommitment,
   ownerCommitment,
+  proofBoundDestinationCommitment,
   routeCommitment,
   settlementCommitment,
   unshieldContextTag,
@@ -213,6 +217,8 @@ export function computeVantaPrivatePoolV2UnshieldPublicInputHash({
     routeCommitment,
     "exit-terms-commitment",
     exitTermsCommitment,
+    "proof-bound-destination-commitment",
+    proofBoundDestinationCommitment,
     "economics-commitment",
     economicsCommitment,
     "owner-commitment",
@@ -637,6 +643,7 @@ export function createVantaPrivatePoolV2UnshieldProofRequest({
   inputRoot,
   nullifierOrReplayCommitment,
   ownerCommitment,
+  proofBoundDestinationCommitment,
   routeCommitment,
   settlementCommitment,
   unshieldContextTag,
@@ -665,6 +672,20 @@ export function createVantaPrivatePoolV2UnshieldProofRequest({
     throw new Error("Private unshield proof request requires an exit terms commitment.");
   }
 
+  if (!proofBoundDestinationCommitment?.trim()) {
+    throw new Error("Private unshield proof request requires a proof-bound destination commitment.");
+  }
+
+  if (
+    !VANTA_PRIVATE_POOL_V2_PROOF_BOUND_DESTINATION_COMMITMENT_PATTERN.test(
+      proofBoundDestinationCommitment.trim(),
+    )
+  ) {
+    throw new Error(
+      "Private unshield proof request requires proof-bound destination commitment to match sha256:<64 lowercase hex>.",
+    );
+  }
+
   if (!economicsCommitment.trim()) {
     throw new Error("Private unshield proof request requires an economics commitment.");
   }
@@ -684,6 +705,7 @@ export function createVantaPrivatePoolV2UnshieldProofRequest({
     inputRoot,
     nullifierOrReplayCommitment,
     ownerCommitment,
+    proofBoundDestinationCommitment: proofBoundDestinationCommitment.trim(),
     routeCommitment,
     settlementCommitment,
     unshieldContextTag,
@@ -702,6 +724,7 @@ export function createVantaPrivatePoolV2UnshieldProofRequest({
       `settlement-commitment:${settlementCommitment}`,
       `route-commitment:${routeCommitment}`,
       `exit-terms-commitment:${exitTermsCommitment}`,
+      `proof-bound-destination-commitment:${proofBoundDestinationCommitment.trim()}`,
       `economics-commitment:${economicsCommitment}`,
       `owner-commitment:${ownerCommitment}`,
       `unshield-context-tag:${unshieldContextTag}`,

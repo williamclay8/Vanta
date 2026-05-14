@@ -17,6 +17,7 @@ import {
   validateLiveSendRecipient,
   type SendRecipientInputSource,
 } from "@/solana/sendRecipientValidation";
+import { findVantaRecipientViewingKeyExchangePacket } from "@/solana/vantaRecipientViewingKeyExchange";
 import {
   getShieldedSendAssetCapability,
   listShieldedSendAssetOptions,
@@ -686,6 +687,17 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     recipientValidation.ready &&
     recipientValidation.kind === "solana-address" &&
     recipientValidation.isSelf;
+  const matchedRecipientViewingKeyExchange = useMemo(
+    () =>
+      recipientValidation.ready && recipientValidation.kind === "solana-address"
+        ? findVantaRecipientViewingKeyExchangePacket(recipientValidation.canonicalAddress)
+        : null,
+    [recipientValidation],
+  );
+  const recipientViewingPublicKey =
+    isSelfPrivateCoreRecipient
+      ? viewingKey?.publicKey ?? null
+      : matchedRecipientViewingKeyExchange?.viewingPublicKey ?? null;
   const isRealSendReady =
     selectedSendCapability.status === "live" &&
     Boolean(selectedSpendableNote) &&
@@ -804,6 +816,17 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     }
 
     if (!isSelfPrivateCoreRecipient) {
+      if (matchedRecipientViewingKeyExchange) {
+        return {
+          basis,
+          detail:
+            "Direct viewing-key exchange is present for this recipient, but Private Core external Send still needs proof-owner exchange before proof preview or execution.",
+          primaryNote: selectedCanonicalSendLedgerNote,
+          ready: false,
+          statusLabel: "Proof-owner key required",
+        };
+      }
+
       return {
         basis,
         detail:
@@ -825,6 +848,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     isAmountValid,
     isRecipientValid,
     isSelfPrivateCoreRecipient,
+    matchedRecipientViewingKeyExchange,
     privateCoreHeldLedgerBindingMatchesSelectedNote,
     privateCoreHeldAmountMatchesLedgerNote,
     privateCoreHoldState,
@@ -1465,6 +1489,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         throw new Error("Private Core Send memo body-hash binding requires your Shield viewing key to be ready.");
       }
 
+      if (!recipientViewingPublicKey) {
+        throw new Error("Private Core Send requires direct viewing-key exchange for recipient memo encryption.");
+      }
+
       const preparedPrivateCoreSendMemo = createPreparedSendDualAeadMemo(
         {
           amount: formatBaseUnits(
@@ -1486,7 +1514,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         },
         {
           changeViewingPublicKey: viewingKey.publicKey,
-          recipientViewingPublicKey: viewingKey.publicKey,
+          recipientViewingPublicKey,
         },
       );
 

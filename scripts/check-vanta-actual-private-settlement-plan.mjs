@@ -44,6 +44,8 @@ const unshieldPlan = createVantaActualPrivateSettlementPlan({
   nullifier: "nullifier:actual-private-unshield-demo",
   ownerCommitment: "commitment:owner",
   poolId: "pool:stablecoin-usdc-v1",
+  proofBoundDestinationCommitment:
+    "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
   routeCommitment: "commitment:route",
   settlementCommitment: "commitment:settlement",
   settlementId: "settlement:actual-private-unshield-demo",
@@ -85,6 +87,10 @@ assert.equal(unshieldPlan.request.economicsMode, "committed-economics");
 assert.equal(unshieldPlan.request.exitTermsCommitment, "commitment:exit-terms");
 assert.equal(unshieldPlan.request.inputCommitment, "commitment:input-note");
 assert.equal(unshieldPlan.request.inputRoot, "root:input");
+assert.equal(
+  unshieldPlan.request.proofBoundDestinationCommitment,
+  "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+);
 assert.equal(unshieldPlan.request.unshieldContextTag, "context:actual-private-unshield-demo");
 assert.equal(
   unshieldPlan.request.unshieldPublicInputHash,
@@ -165,6 +171,34 @@ const rejectedUnshield = {
 
 assert.equal(validateVantaActualPrivateSettlementPlan(rejectedUnshield).accepted, false);
 assert.equal(validateVantaActualPrivateSettlementPlan(rejectedUnshield).reason, "missing-exitTermsCommitment");
+
+const rejectedUnshieldDestinationBinding = {
+  ...unshieldPlan,
+  request: {
+    ...unshieldPlan.request,
+    proofBoundDestinationCommitment: "",
+  },
+};
+
+assert.equal(validateVantaActualPrivateSettlementPlan(rejectedUnshieldDestinationBinding).accepted, false);
+assert.equal(
+  validateVantaActualPrivateSettlementPlan(rejectedUnshieldDestinationBinding).reason,
+  "missing-proofBoundDestinationCommitment",
+);
+
+const rejectedRawUnshieldDestinationBinding = {
+  ...unshieldPlan,
+  request: {
+    ...unshieldPlan.request,
+    proofBoundDestinationCommitment: "recipient-public-address",
+  },
+};
+
+assert.equal(validateVantaActualPrivateSettlementPlan(rejectedRawUnshieldDestinationBinding).accepted, false);
+assert.equal(
+  validateVantaActualPrivateSettlementPlan(rejectedRawUnshieldDestinationBinding).reason,
+  "invalid-proofBoundDestinationCommitment",
+);
 
 const rejectedUnshieldRelayerTransaction = {
   ...unshieldPlan,

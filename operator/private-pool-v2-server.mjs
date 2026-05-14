@@ -1228,6 +1228,7 @@ function validateProtocolSettlementBody(body) {
       requireNonEmptyString(body.inputRoot, "inputRoot");
       requireNonEmptyString(body.inputCommitment, "inputCommitment");
       requireNonEmptyString(body.exitTermsCommitment, "exitTermsCommitment");
+      requireNonEmptyString(body.proofBoundDestinationCommitment, "proofBoundDestinationCommitment");
       requireNonEmptyString(body.unshieldContextTag, "unshieldContextTag");
     }
 
@@ -1291,6 +1292,9 @@ function validateProtocolSettlementBody(body) {
       poolId: optionalNonEmptyString(body.poolId),
       privateSpendContextHash: optionalNonEmptyString(body.privateSpendContextHash),
       privateSpendPublicInputHash: optionalNonEmptyString(body.privateSpendPublicInputHash),
+      proofBoundDestinationCommitment: optionalNonEmptyString(
+        body.proofBoundDestinationCommitment,
+      ),
       recipientMemoCiphertextBodyHash: optionalNonEmptyString(body.recipientMemoCiphertextBodyHash),
       relayerSerializedTransaction: optionalNonEmptyString(body.relayerSerializedTransaction),
       routeCommitment: requireNonEmptyString(body.routeCommitment, "routeCommitment"),
@@ -1861,6 +1865,7 @@ function protocolSettlementFingerprint({
   poolId,
   privateSpendContextHash,
   privateSpendPublicInputHash,
+  proofBoundDestinationCommitment,
   recipientMemoCiphertextBodyHash,
   relayerSerializedTransaction,
   routeCommitment,
@@ -1929,6 +1934,7 @@ function protocolSettlementFingerprint({
     poolId,
     privateSpendContextHash,
     privateSpendPublicInputHash,
+    proofBoundDestinationCommitment,
     recipientMemoCiphertextBodyHash,
     relayerSerializedTransaction ? hashHex("relayer-serialized-transaction", relayerSerializedTransaction) : "",
     routeCommitment,
@@ -1968,6 +1974,7 @@ function assertProtocolReplayMatches(
     poolId,
     privateSpendContextHash,
     privateSpendPublicInputHash,
+    proofBoundDestinationCommitment,
     recipientMemoCiphertextBodyHash,
     relayerSerializedTransaction,
     routeCommitment,
@@ -2881,6 +2888,7 @@ async function proveAndAcceptProtocolSettlement(body) {
     poolId,
     privateSpendContextHash,
     privateSpendPublicInputHash,
+    proofBoundDestinationCommitment,
     recipientMemoCiphertextBodyHash,
     relayerSerializedTransaction,
     routeCommitment,
@@ -2928,6 +2936,7 @@ async function proveAndAcceptProtocolSettlement(body) {
         poolId,
         privateSpendContextHash,
         privateSpendPublicInputHash,
+        proofBoundDestinationCommitment,
         recipientMemoCiphertextBodyHash,
         relayerSerializedTransaction,
         routeCommitment,
@@ -3039,6 +3048,7 @@ async function proveAndAcceptProtocolSettlement(body) {
       inputRoot,
       nullifierOrReplayCommitment,
       ownerCommitment,
+      proofBoundDestinationCommitment,
       routeCommitment,
       settlementCommitment,
       unshieldContextTag,
@@ -3207,6 +3217,7 @@ async function proveAndAcceptProtocolSettlement(body) {
           economicsCommitment,
           economicsMode,
           ...(exitTermsCommitment ? { exitTermsCommitment } : {}),
+          ...(proofBoundDestinationCommitment ? { proofBoundDestinationCommitment } : {}),
           settlementCommitment,
         }
       : {
