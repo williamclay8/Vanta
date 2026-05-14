@@ -19,7 +19,7 @@ const requiredCapabilityMarkers = [
   "programmaticPrivateSwapReady: false",
   "target-c-operator-visible-beta",
   "Target C beta: this USDC to SOL route uses operator-custodial liquidity",
-  "production-private or programmatic swap",
+  "Swap production privacy is not enabled",
   "needs-private-route-adapter",
   "Shielded USDC",
   "Shielded USDC",
@@ -89,7 +89,7 @@ const requiredSwapTrustMarkers = [
   "Target C operator-visible Swap beta",
   "programmaticPrivateSwapClaim: false",
   "operator-visible/custodial",
-  "production-private programmatic settlement is not enabled",
+  "Production privacy is not enabled for programmatic Swap",
 ];
 
 const forbiddenPageMarkers = [

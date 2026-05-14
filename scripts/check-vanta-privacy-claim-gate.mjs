@@ -178,7 +178,7 @@ function htmlMetaDescriptions(source) {
 }
 
 function metaDescriptionIsSafe(content) {
-  return /\b(?:alpha|beta|not audited|not production-private|not production private|not production-ready|not mainnet-ready)\b/iu.test(
+  return /\b(?:alpha|beta|not audited|production privacy is not enabled|not production-private|not production private|not production-ready|not mainnet-ready)\b/iu.test(
     content,
   );
 }

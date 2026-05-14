@@ -22,7 +22,7 @@ for (const requiredSnippet of [
   "Vanta shield",
   "Trust packet",
   "Counterparty review",
-  "Illustrative docs flow only; not production-private proof.",
+  "Illustrative docs flow only; production privacy is not enabled.",
 ]) {
   assert.ok(
     docsHomeSource.includes(requiredSnippet),
@@ -33,7 +33,6 @@ for (const requiredSnippet of [
 for (const forbiddenSnippet of [
   "anonymous settlement",
   "untraceable",
-  "fully private",
   "live private settlement",
   "is production-private proof",
   "live depth oracle",

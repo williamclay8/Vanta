@@ -28,7 +28,7 @@ rules:
 
 lumi:
   local: "N1/N3 implementation receipt exists in the repository tracker; use git status for current dirt."
-  committed: "implementation commit 86497bd records the tracker, N3 truth fixes, and N1 Shield output-commitment preimage binding."
+  committed: "implementation commits record the tracker, N3 truth fixes, N1 Shield output-commitment preimage binding, and N2 PPv2 Send owner/input binding; use git refs for exact head."
   pushed: "codex/vanta-zk-review-hardening is the publishing branch; check git refs for the exact pushed head."
   deployed_live: "not-live-verified for this tracker slice unless a later public website receipt says otherwise"
 
@@ -71,8 +71,10 @@ audit_findings:
       - "Private Pool v2 Send now recomputes owner_commitment from owner_secret and input_commitment from owner_commitment, asset_id_commitment, input_amount, input_blinding, and input_derivation_tag."
       - "Send circuit check now includes invalid-owner-secret-binding and invalid-input-commitment-preimage fixtures."
       - "Send witness-input, browser-worker, proof-artifact, operator-no-witness, public-input-hash, and send-prove paths were updated and verified for the new witness ABI."
+      - "Private Pool v2 Claim now recomputes owner_commitment from owner_secret and input_commitment from owner_commitment, asset_id, amount, input_blinding, and input_derivation_tag."
+      - "Claim circuit check now includes invalid-owner-secret-binding and invalid-input-commitment-preimage fixtures."
+      - "Claim browser-worker, proof-artifact, operator-no-witness, proof-request, and TypeScript paths were updated and verified for the new witness ABI."
     remaining:
-      - "Private Pool v2 Claim owner/input binding."
       - "Private Pool v2 Swap-to-shielded owner binding and explicit input-preimage design."
       - "Actual-private-spend owner/input binding design decision."
       - "Private Core Send/Swap sender authorization key-model decision."
@@ -85,6 +87,11 @@ audit_findings:
       - "npm run private-pool-v2:send-operator-no-witness-check"
       - "npm run private-pool-v2:send-prove"
       - "npm run private-pool-v2:claim-circuit-check"
+      - "npm run private-pool-v2:claim-proof-request-check"
+      - "npm run private-pool-v2:claim-browser-worker-prover-check"
+      - "npm run private-pool-v2:claim-proof-artifact-consistency-check"
+      - "npm run private-pool-v2:claim-operator-no-witness-check"
+      - "npm run private-pool-v2:claim-prove"
       - "npm run private-pool-v2:swap-to-shielded-circuit-check"
       - "npm run private-pool-v2:actual-private-spend-circuit-check"
       - "npm run private-core:send-check"

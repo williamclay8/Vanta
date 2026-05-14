@@ -79,7 +79,7 @@ export function DocsSecurityPage() {
             <p>A product surface that explains the intended workflow but is not live production infrastructure.</p>
           </article>
           <article>
-            <strong>Production-ready</strong>
+            <strong>Production privacy gate</strong>
             <p>A higher bar requiring audited proof boundaries, durable services, secret handling, replay protection, and deployment evidence.</p>
           </article>
         </div>
@@ -100,11 +100,11 @@ export function DocsSecurityPage() {
         <div className="docs-callout docs-callout--warm">
           <strong>Security copy should make the current limit obvious.</strong>
           <p>
-            These docs do not present Vanta as production-ready, fully audited,
-            untraceable, or final from a privacy perspective. Preview checkout
-            and merchant dashboards help explain the system, but they do not
-            turn it into a finished payment network or live mainnet-private
-            settlement.
+            Production privacy is not enabled. These docs do not present Vanta
+            as fully audited, untraceable, or final from a privacy perspective.
+            Preview checkout and merchant dashboards help explain the system,
+            but they do not turn it into a finished payment network with live
+            private settlement.
           </p>
         </div>
       </section>

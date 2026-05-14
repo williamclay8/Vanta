@@ -186,7 +186,7 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "Security" },
         { kind: "text_visible", text: "Privacy model" },
         { kind: "text_visible", text: "Current constraints" },
-        { kind: "text_visible", text: "production-ready" },
+        { kind: "text_visible", text: "Production privacy is not enabled" },
         { kind: "no_console_errors" },
       ],
     },

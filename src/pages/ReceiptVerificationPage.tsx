@@ -14,7 +14,7 @@ export function ReceiptVerificationPage() {
       <p>
         <strong>Receipt verification preview.</strong> This page identifies the shared Pay receipt
         packet path and the beta truth boundary. It does not prove a live public receipt lookup,
-        production payment processing, or live mainnet private settlement.
+        production payment processing, or live private settlement.
       </p>
       <div className="route-fallback__actions" aria-label="Receipt verification actions">
         <Link className="route-fallback__action route-fallback__action--primary" to="/app/pay">
@@ -34,7 +34,7 @@ export function ReceiptVerificationPage() {
         </div>
         <div>
           <dt>Claim boundary</dt>
-          <dd>receipt-backed-test-settlement-not-production-private</dd>
+          <dd>Receipt-backed test settlement; production privacy is not enabled.</dd>
         </div>
         <div>
           <dt>Status</dt>

@@ -65,8 +65,8 @@ export function SendReceiptModal({
 
         <p id="send-receipt-modal-boundary" className="send-receipt-modal__boundary">
           This receipt summarizes local send evidence, operator-visible proof status, and recipient
-          recovery context. It does not prove production-private recipient delivery or live
-          mainnet-private settlement.
+          recovery context. Production privacy is not enabled for Send, and this does not prove
+          live private settlement.
         </p>
 
         <dl className="send-receipt-modal__grid">

@@ -204,7 +204,7 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
         ready: false,
         status: "blocked",
         reason:
-          "Private Pool v2 production anonymity-set readiness is still blocked; do not claim this asset is fully private.",
+          "Private Pool v2 production anonymity-set readiness is still blocked; production privacy is not enabled for this asset.",
       }),
       swapFrom: action({
         executable: isUsdc && liveSwapPair.configured,
@@ -212,7 +212,7 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
         mode: isUsdc && liveSwapPair.configured ? "operator-usdc-sol" : "adapter-required",
         reason:
           isUsdc && liveSwapPair.configured
-            ? "Target C beta: route settlement uses operator-custodial liquidity, not production-private programmatic Swap."
+            ? "Target C beta: route settlement uses operator-custodial liquidity; production privacy is not enabled for programmatic Swap."
             : "Route not ready yet for this shielded asset.",
       }),
       swapTo: action({
@@ -221,7 +221,7 @@ export function listVantaTokenAvailability(): VantaTokenAvailability[] {
         mode: isSol && liveSwapPair.configured ? "operator-usdc-sol" : "adapter-required",
         reason:
           isSol && liveSwapPair.configured
-            ? "Target C beta: route settlement uses operator-custodial liquidity, not production-private programmatic Swap."
+            ? "Target C beta: route settlement uses operator-custodial liquidity; production privacy is not enabled for programmatic Swap."
             : "Route not ready yet for this shielded asset.",
       }),
       unshield: action({

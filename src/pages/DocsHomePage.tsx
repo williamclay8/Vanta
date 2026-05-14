@@ -68,7 +68,7 @@ function DocsHomeFlowDiagram() {
         <path className="docs-home__flow-path" d="M42 164 H936" />
       </svg>
       <figcaption>
-        Illustrative docs flow only; not production-private proof.
+        Illustrative docs flow only; production privacy is not enabled.
       </figcaption>
     </figure>
   );
@@ -96,10 +96,10 @@ export function DocsHomePage() {
         <div className="docs-home__hero-note">
           <strong>The beta truth is part of the product.</strong>
           <p>
-            Vanta is not production-ready private settlement yet. These docs
-            explain the useful pattern first, then label what is live, what is
-            preview-only, and what still needs proof, operator, audit, and
-            mainnet gates before stronger claims are fair.
+            Production privacy is not enabled. These docs explain the useful
+            pattern first, then label what is live, what is preview-only, and
+            what still needs proof, operator, audit, and mainnet gates before
+            stronger claims are fair.
           </p>
         </div>
       </section>

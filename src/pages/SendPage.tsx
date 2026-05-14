@@ -1829,7 +1829,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   },
                 ]}
                 note="Approve this shielded-state send only after the wallet prompt matches the selected recipient, asset, and amount."
-                truthBoundary="This is a local wallet approval review; it does not prove production Send privacy or live mainnet-private settlement."
+                truthBoundary="This is a local wallet approval review. Production privacy is not enabled for Send, and this does not prove live private settlement."
               />
             </TransactionStatusToast>
           )}

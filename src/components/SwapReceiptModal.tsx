@@ -69,7 +69,7 @@ export function SwapReceiptModal({
 
         <p id="swap-receipt-modal-boundary" className="swap-receipt-modal__boundary">
           Route settlement remains operator-visible. This receipt summarizes local committed
-          settlement evidence and does not prove production-private routing.
+          settlement evidence. Swap production privacy is not enabled.
         </p>
 
         <dl className="swap-receipt-modal__grid">

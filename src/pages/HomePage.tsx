@@ -141,7 +141,7 @@ function LandingHeroFlowVisual() {
         </div>
       </div>
 
-      <p>Illustrates the intended flow; not production-private proof.</p>
+      <p>Illustrates the intended flow; production privacy is not enabled.</p>
     </aside>
   );
 }

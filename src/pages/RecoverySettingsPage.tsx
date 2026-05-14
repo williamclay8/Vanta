@@ -20,7 +20,7 @@ export function RecoverySettingsPage() {
           <strong>Beta recovery boundary</strong>
           <p>
             These controls help another browser inspect matching local records after import. They
-            do not enable production-private recovery or recover missing wallet secrets.
+            do not enable recovery production privacy or recover missing wallet secrets.
           </p>
         </div>
       </div>

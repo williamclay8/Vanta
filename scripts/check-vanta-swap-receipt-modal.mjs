@@ -26,7 +26,7 @@ for (const marker of [
   "aria-modal=\"true\"",
   "Swap receipt",
   "Route settlement remains operator-visible",
-  "does not prove production-private routing",
+  "Swap production privacy is not enabled",
   "onClose",
   "details",
   "Operator request",

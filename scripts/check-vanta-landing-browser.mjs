@@ -127,7 +127,7 @@ function checkLandingLiveStripSource() {
     "data-vanta-landing-flow-node=\"shield\"",
     "data-vanta-landing-flow-node=\"shielded-state\"",
     "Local preview",
-    "not production-private proof",
+    "production privacy is not enabled",
   ]) {
     if (!homeSource.includes(snippet)) {
       throw new Error(`Home page hero flow source missing required snippet: ${snippet}`);
@@ -208,7 +208,7 @@ function checkLandingViewport(width, height) {
           document.body.innerText.includes("1,024") &&
           document.body.innerText.toLowerCase().includes("evidence-recorded commitments") &&
           document.body.innerText.toLowerCase().includes("required minimum") &&
-          document.body.innerText.includes("Vanta does not claim live anonymity or production-private mainnet settlement yet"),
+          document.body.innerText.includes("Vanta does not claim live anonymity. Production privacy is not enabled."),
         hasLiveSolanaStrip: (() => {
           const liveStrip = document.querySelector("[data-vanta-landing-live-strip]");
           const whatSection = document.querySelector("#what");
@@ -244,7 +244,7 @@ function checkLandingViewport(width, height) {
             flowText.includes("Shield") &&
             flowText.includes("Shielded state") &&
             flowText.includes("Local preview") &&
-            flowText.includes("not production-private proof") &&
+            flowText.includes("production privacy is not enabled") &&
             Boolean(flowVisual.querySelector("[data-vanta-landing-flow-line]")) &&
             Boolean(flowVisual.querySelector("[data-vanta-landing-flow-packet]"));
         })(),

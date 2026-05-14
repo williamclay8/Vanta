@@ -122,7 +122,7 @@ export const docsPages: DocsPageMeta[] = [
     slug: "/docs/security",
     title: "Security",
     summary:
-      "Security explains the current beta limits in normal language, including why Vanta is not production-ready private settlement yet.",
+      "Security explains the current beta limits in normal language, including that production privacy is not enabled.",
     track: "shared",
     section: "security",
     badge: "live-now",

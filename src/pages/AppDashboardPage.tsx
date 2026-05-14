@@ -80,7 +80,7 @@ export function AppDashboardPage() {
       : !positionSummary.walletConnected
     ? "Connect wallet to start the private-core flow."
     : hasShieldedSol
-      ? "Verified spendable SOL notes are available. Review the SOL exit lane without treating it as production-private."
+      ? "Verified spendable SOL notes are available. Review the SOL exit lane while remembering production privacy is not enabled."
       : hasSpendableShieldedValue
         ? "Spendable shielded state is available. Choose the lane you want to test next."
         : shieldedBalance > 0
@@ -146,7 +146,7 @@ export function AppDashboardPage() {
     {
       label: "Boundary",
       value: "Beta/test settlement",
-      detail: "Not production-ready, anonymous, untraceable, or live mainnet-private.",
+      detail: "Production privacy is not enabled. Not anonymous, untraceable, or live private settlement.",
     },
   ];
 

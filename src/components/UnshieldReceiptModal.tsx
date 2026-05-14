@@ -64,7 +64,7 @@ export function UnshieldReceiptModal({
 
         <p id="unshield-receipt-modal-boundary" className="unshield-receipt-modal__boundary">
           Verify the public exit transaction before treating funds as moved. This receipt summarizes
-          operator-visible public release terms and does not prove production-private exit privacy.
+          operator-visible public release terms. Unshield production privacy is not enabled.
         </p>
 
         <dl className="unshield-receipt-modal__grid">

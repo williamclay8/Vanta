@@ -58,9 +58,9 @@ for (const required of [
   "Current reviewed spend evidence reports",
   "distinct commitments toward",
   "minimum",
-  "Vanta does not claim live",
-  "anonymity or production-private",
-  "mainnet settlement yet",
+  "Vanta does not claim live anonymity",
+  "Production privacy is not",
+  "enabled",
   "Evidence-recorded commitments",
   "Required minimum",
   "sourceEvidencePath",
@@ -93,7 +93,7 @@ for (const required of [
   "1,024",
   "evidence-recorded commitments",
   "required minimum",
-  "Vanta does not claim live anonymity or production-private mainnet settlement yet",
+  "Vanta does not claim live anonymity. Production privacy is not enabled.",
 ]) {
   assert.ok(browserCheckSource.includes(required), `Landing browser check missing ${required}.`);
 }

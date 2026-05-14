@@ -157,12 +157,12 @@ export function DocsTrustPage() {
         <div className="docs-callout">
           <strong>Trust comes from legibility, not overclaiming.</strong>
           <p>
-            These docs do not claim that all Vanta surfaces are production-ready
-            or that normal wallet activity becomes private automatically. A
+            Production privacy is not enabled across Vanta, and these docs do
+            not claim that normal wallet activity becomes private automatically. A
             merchant preview, an operator surface, a proof command, and a live
             operator path are different things, and the docs keep those
-            differences visible. They also do not claim anonymous, untraceable,
-            fully private, or live mainnet-private settlement.
+            differences visible. They also do not claim anonymous or untraceable
+            settlement.
           </p>
         </div>
       </section>

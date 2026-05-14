@@ -482,7 +482,7 @@ function assertRecoverySettingsRoute() {
               moreTrigger.textContent?.includes("Recovery") &&
               routeText.includes("Recovery settings") &&
               routeText.includes("Beta recovery boundary") &&
-              routeText.includes("do not enable production-private recovery") &&
+              routeText.includes("do not enable recovery production privacy") &&
               panelText.includes("Viewing key backup") &&
               panelText.includes("Owner recovery evidence") &&
               panelText.includes("Record source packet") &&

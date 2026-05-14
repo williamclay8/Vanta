@@ -110,7 +110,7 @@ export function getShieldedSwapPairCapability(args: {
       status: "live",
       targetModel: "target-c-operator-visible-beta",
       userFacingRouteTruth:
-        "Target C beta: this USDC to SOL route uses operator-custodial liquidity and operator-visible settlement evidence; it is not a production-private or programmatic swap.",
+        "Target C beta: this USDC to SOL route uses operator-custodial liquidity and operator-visible settlement evidence; Swap production privacy is not enabled.",
     };
   }
 
@@ -131,7 +131,7 @@ export function getShieldedSwapPairCapability(args: {
         status: "live",
         targetModel: "target-c-operator-visible-beta",
         userFacingRouteTruth:
-          "Target C beta: this SOL to shielded-asset route uses an operator route adapter with operator-visible settlement evidence; it is not a production-private or programmatic swap.",
+          "Target C beta: this SOL to shielded-asset route uses an operator route adapter with operator-visible settlement evidence; Swap production privacy is not enabled.",
       };
     }
 

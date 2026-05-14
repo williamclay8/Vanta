@@ -2005,8 +2005,8 @@ export function ShieldPage(_props: ShieldPageProps) {
               <p className="shield-helper shield-helper--meta">{routeLabel}</p>
               <p className="shield-helper shield-helper--meta">
                 Current Shield deposits are public transfers into a Vanta vault wallet whose
-                keypair is operator-controlled. Program-owned custody and production-private
-                settlement are not enabled.
+                keypair is operator-controlled. Program-owned custody and production privacy are
+                not enabled.
               </p>
               {targetShieldedBalanceReadUnavailable && (
                 <p className="shield-helper shield-helper--meta">

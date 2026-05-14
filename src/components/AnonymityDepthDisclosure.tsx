@@ -16,8 +16,8 @@ export function AnonymityDepthDisclosure() {
         <h2>Current pool depth is below the privacy threshold.</h2>
         <p>
           Current reviewed spend evidence reports {currentCount} distinct commitments toward
-          the {threshold} minimum. Vanta does not claim live anonymity or production-private
-          mainnet settlement yet.
+          the {threshold} minimum. Vanta does not claim live anonymity. Production privacy is not
+          enabled.
         </p>
       </div>
 

@@ -22,7 +22,7 @@ export const capabilities: Capability[] = [
     title: "Swap routing beta",
     status: "Target C beta",
     summary: "Route from shielded state with operator-visible settlement.",
-    details: "Current routes are not production-private or programmatic; the private rebalance contract remains a future gate.",
+    details: "Production privacy is not enabled for current routes; the private rebalance contract remains a future gate.",
   },
   {
     title: "Private Pay",

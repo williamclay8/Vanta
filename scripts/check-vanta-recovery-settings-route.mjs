@@ -48,7 +48,7 @@ for (const marker of [
   "data-vanta-recovery-settings-route",
   "Viewing-key backup",
   "record source",
-  "production-private recovery",
+  "recovery production privacy",
 ]) {
   assert.ok(pageSource.includes(marker), `RecoverySettingsPage missing marker: ${marker}`);
 }

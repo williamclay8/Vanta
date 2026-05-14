@@ -59,7 +59,7 @@ function verifyReceiptPacketCardSource() {
   requireSourceMarkers("src/pages/ReceiptVerificationPage.tsx", [
     "data-vanta-pay-receipt-verify-page",
     "Receipt verification preview",
-    "receipt-backed-test-settlement-not-production-private",
+    "Receipt-backed test settlement; production privacy is not enabled.",
     "Production privacy is not enabled",
     "No production funds moved. Test receipt only.",
     "npm run pay:verify",

@@ -26,7 +26,7 @@ for (const marker of [
   "unshield-receipt-modal",
   "Latest unshield receipt",
   "Verify the public exit transaction before treating funds as moved",
-  "does not prove production-private exit privacy",
+  "Unshield production privacy is not enabled",
   "Amount",
   "Transaction evidence",
   "Operator release",

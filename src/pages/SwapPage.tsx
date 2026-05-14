@@ -212,7 +212,7 @@ const SWAP_PRIVACY_SUMMARY_ITEMS: readonly PrivacySummaryItem[] = [
   },
   {
     label: "Venue sees",
-    value: "operator-visible route settlement terms, not a production-private route",
+    value: "operator-visible route settlement terms; Swap production privacy is not enabled",
   },
   {
     label: "You see",
@@ -2061,8 +2061,8 @@ export function SwapPage() {
                 ) : (
                   <p className="swap-recent-swaps__empty" data-vanta-swap-recent-empty>
                     Completed swaps with committed receipt evidence will appear here for review.
-                    Stored in this browser only; this history does not prove production-private
-                    routing.
+                    Stored in this browser only; this history does not prove Swap production
+                    privacy.
                   </p>
                 )}
               </section>
@@ -2176,7 +2176,7 @@ export function SwapPage() {
                       },
                     ]}
                     note="Approve only if the wallet prompt matches the selected route, asset, amount, and destination."
-                    truthBoundary="This is a local wallet approval review; route settlement remains operator-visible and is not production-private."
+                    truthBoundary="This is a local wallet approval review; route settlement remains operator-visible and Swap production privacy is not enabled."
                   />
                 )}
                 {swapBridgeError && status === "complete" && (
