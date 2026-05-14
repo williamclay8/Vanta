@@ -434,14 +434,19 @@ audit_remaining_work_backlog:
     source_priority: medium
     source_item: "Lock down liquidityKeypair-style env loading across pay-server, swap-auth, rebalance, and operator paths."
     tracker_ref: "operator-env-keypair-lockdown"
-    status: pending-audit
-    guard: "npm run privacy-audit:tracker-check"
+    status: local-implemented-with-a2-exception
+    guard: "npm run operator:keypair-env-lockdown-check"
+    evidence:
+      - "scripts/check-vanta-operator-keypair-env-lockdown.mjs scans operator/*.mjs for raw Solana keypair env loading."
+      - "Pay server and Swap auth are guarded against Keypair.fromSecretKey, loadKeypairFromEnv, raw keypair/private-key env names, and swap-auth env handling."
+      - "Jupiter SOL-to-shielded remains the only local-only liquidity keypair exception and must enforce assertLiquiditySignerPolicy before parsing keypair env JSON."
+      - "Unshield vault signer remains a tracked A2 operator-keypair public-exit exception; this guard does not close custody."
   - id: R15A-OPERATOR-KEYPAIR-ENV-LOCKDOWN-GUARD
     source_priority: medium
     source_item: "Add a dedicated guard for operator keypair-style env loading beyond frontend bundle exposure."
     tracker_ref: "operator-env-keypair-lockdown"
-    status: pending-implementation
-    guard: "new operator keypair env lockdown guard"
+    status: local-implemented
+    guard: "npm run operator:keypair-env-lockdown-check"
   - id: R16-POSITIVE-PROOF-VERIFIED-CLAIM-GATE
     source_priority: medium
     source_item: "Add a positive truth gate that tag 3 returns success on a real proof before proof-verified claims are allowed."
@@ -486,8 +491,8 @@ audit_completion_checklist:
     - "N4 requires deploy/live approval and receipts."
     - "N5 requires hosted GitHub Actions green evidence."
     - "Architecture blockers A1-A6 remain incomplete or approval-gated."
-    - "R8A/R9A/R10A/R11A/R12/R13A/R14/R15/R15A/R19/R20/R21 remain pending, blocked, or approval-gated."
+    - "R8A/R9A/R10A/R11A/R12/R13A/R14/R19/R20/R21 remain pending, blocked, or approval-gated."
 
 next_safe_slices:
-  - "Add focused tracker/guards or implementation for R11A, R12, R13A, R14, R15A, and R19."
+  - "Add focused tracker/guards or implementation for R11A, R12, R13A, R14, and R19."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."

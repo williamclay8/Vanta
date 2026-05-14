@@ -40,8 +40,8 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 | Legacy v1 plaintext memo quarantine | R12 | Pending design | Must quarantine or migrate before privacy claims |
 | Live meta-description scrape | R13A | Pending implementation | Needs a live crawler-copy scrape gate after deploy approval or public evidence |
 | Argon2id vault KDF migration | R14 | Pending implementation | PBKDF2 v2 remains current quick-fix |
-| Operator keypair env lockdown | R15 | Pending audit | Needs operator path audit beyond current exposed-env checks |
-| Operator keypair env lockdown guard | R15A | Pending implementation | Needs a dedicated repo guard for raw keypair env loading |
+| Operator keypair env lockdown | R15 | Local implemented with A2 exception | Pay, Swap auth, Jupiter local-only signer policy, and rebalance-related operator files are guarded; Unshield vault signer remains tracked under A2 |
+| Operator keypair env lockdown guard | R15A | Local implemented | `npm run operator:keypair-env-lockdown-check` scans operator raw keypair env loading and keeps exceptions explicit |
 | Positive proof-verified claim gate | R16 | Blocked on verifier | Requires tag-3 valid proof success before proof-verified claims |
 | Browser localStorage Merkle mirror | R18 | Blocked on program-owned tree | Current localStorage chain remains non-privacy primitive |
 | Threat model | R19 | Pending implementation | Needs docs/threat-model.md or equivalent source-of-truth |

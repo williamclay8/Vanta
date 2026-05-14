@@ -25,6 +25,10 @@ const architectureBlockerNotePath = resolve(
   "notes/2026-05-14-architecture-blocker-map.md",
 );
 const n5CiGateNotePath = resolve(trackerRoot, "notes/2026-05-14-n5-ci-gate.md");
+const r15aOperatorKeypairEnvLockdownNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r15a-operator-keypair-env-lockdown.md",
+);
 const completionAuditNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-completion-audit.md",
@@ -46,6 +50,7 @@ for (const path of [
   n2PrivateCoreProofOwnerNotePath,
   architectureBlockerNotePath,
   n5CiGateNotePath,
+  r15aOperatorKeypairEnvLockdownNotePath,
   completionAuditNotePath,
   privacyAuditWorkflowPath,
 ]) {
@@ -61,6 +66,7 @@ const n2Ppv2SwapInputPreimageNote = read(n2Ppv2SwapInputPreimageNotePath);
 const n2PrivateCoreProofOwnerNote = read(n2PrivateCoreProofOwnerNotePath);
 const architectureBlockerNote = read(architectureBlockerNotePath);
 const n5CiGateNote = read(n5CiGateNotePath);
+const r15aOperatorKeypairEnvLockdownNote = read(r15aOperatorKeypairEnvLockdownNotePath);
 const completionAuditNote = read(completionAuditNotePath);
 const privacyAuditWorkflow = read(privacyAuditWorkflowPath);
 const packageJson = JSON.parse(read(packagePath));
@@ -140,6 +146,9 @@ for (const phrase of [
   "R14-ARGON2ID-VAULT-KDF",
   "R15-OPERATOR-KEYPAIR-ENV-LOCKDOWN",
   "R15A-OPERATOR-KEYPAIR-ENV-LOCKDOWN-GUARD",
+  "local-implemented-with-a2-exception",
+  "npm run operator:keypair-env-lockdown-check",
+  "scripts/check-vanta-operator-keypair-env-lockdown.mjs scans operator/*.mjs for raw Solana keypair env loading.",
   "R19-THREAT-MODEL",
   "R20-MAINNET-ONCHAIN-REPLAY-TEST",
   "R21-E2E-DEPOSIT-SEND-FRESH-EXIT-PRIVACY-TEST",
@@ -262,6 +271,24 @@ for (const phrase of [
 }
 
 for (const phrase of [
+  "R15A Operator Keypair Env Lockdown Guard - 2026-05-14",
+  "Local implemented.",
+  "VANTA_PAY_SECRET_KEY",
+  "Keypair.fromSecretKey",
+  "loadKeypairFromEnv",
+  "VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF",
+  "assertLiquiditySignerPolicy()",
+  "Unshield server: remains the known A2 operator-keypair public-exit exception.",
+  "npm run operator:keypair-env-lockdown-check",
+  "not a program-owned custody migration",
+]) {
+  assert.ok(
+    r15aOperatorKeypairEnvLockdownNote.includes(phrase),
+    `R15A operator keypair env lockdown note missing ${phrase}`,
+  );
+}
+
+for (const phrase of [
   "Prompt-To-Artifact Checklist",
   "Goal is not complete.",
   "N2 owner/input binding across lanes",
@@ -277,7 +304,9 @@ for (const phrase of [
   "Legacy v1 plaintext memo quarantine",
   "Argon2id vault KDF migration",
   "Operator keypair env lockdown",
+  "Local implemented with A2 exception",
   "Operator keypair env lockdown guard",
+  "npm run operator:keypair-env-lockdown-check",
   "Positive proof-verified claim gate",
   "Mainnet on-chain replay test",
   "Deposit-send-fresh-exit privacy test",
@@ -336,6 +365,7 @@ for (const phrase of [
   "npm run private-core:swap-check",
   "npm run truth:privacy-claim-gate",
   "npm run frontend:operator-env-exposure-check",
+  "npm run operator:keypair-env-lockdown-check",
 ]) {
   assert.ok(state.includes(phrase), `state.yaml missing verification command ${phrase}`);
 }
@@ -344,6 +374,17 @@ assert.equal(
   packageJson.scripts["privacy-audit:tracker-check"],
   "node scripts/check-vanta-claude-privacy-audit-tracker.mjs",
   "package.json must expose privacy-audit:tracker-check.",
+);
+assert.equal(
+  packageJson.scripts["operator:keypair-env-lockdown-check"],
+  "node scripts/check-vanta-operator-keypair-env-lockdown.mjs",
+  "package.json must expose operator:keypair-env-lockdown-check.",
+);
+assert.ok(
+  packageJson.scripts["mainnet:secret-handling-check"]?.includes(
+    "npm run operator:keypair-env-lockdown-check",
+  ),
+  "mainnet:secret-handling-check must include operator:keypair-env-lockdown-check.",
 );
 assert.ok(
   packageJson.scripts["zk:feedback-loop-check"]?.includes("npm run privacy-audit:tracker-check"),
