@@ -22,13 +22,26 @@ const productPoints = [
   },
 ];
 
-const appActions = [
+const primaryAppActions = [
   { label: "Shield funds", path: "shield" },
   { label: "Send from shielded state", path: "send" },
   { label: "Swap from shielded state", path: "swap" },
-  { label: "Plan execution", path: "strategy" },
   { label: "Unshield funds", path: "unshield" },
-  { label: "Collect payments", path: "pay" },
+];
+
+const previewAppActions = [
+  {
+    copy: "Create payment requests and local receipt-backed records for merchant review.",
+    eyebrow: "Pay preview",
+    label: "Collect payments",
+    path: "pay",
+  },
+  {
+    copy: "Preview private-rail execution planning before live routing is enabled.",
+    eyebrow: "Strategy preview",
+    label: "Plan execution",
+    path: "strategy",
+  },
 ];
 
 export function HomePage() {
@@ -127,12 +140,31 @@ export function HomePage() {
           <h2>The actions Vanta can show honestly.</h2>
         </div>
 
-        <div className="landing-minimal__action-list" aria-label="Vanta app actions">
-          {appActions.map((action) => (
-            <Link key={action.path} to={`/app/${action.path}`}>
-              {action.label}
-            </Link>
-          ))}
+        <div className="landing-minimal__action-group">
+          <span className="landing-minimal__action-kicker">Wallet lanes</span>
+          <div
+            className="landing-minimal__action-list landing-minimal__action-list--primary"
+            aria-label="Primary Vanta wallet actions"
+          >
+            {primaryAppActions.map((action) => (
+              <Link key={action.path} to={`/app/${action.path}`}>
+                {action.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="landing-minimal__action-preview" aria-label="Vanta preview surfaces">
+          <span className="landing-minimal__action-kicker">Preview surfaces</span>
+          <div className="landing-minimal__preview-list">
+            {previewAppActions.map((action) => (
+              <Link key={action.path} className="landing-minimal__preview-link" to={`/app/${action.path}`}>
+                <span>{action.eyebrow}</span>
+                <strong>{action.label}</strong>
+                <small>{action.copy}</small>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
     </main>

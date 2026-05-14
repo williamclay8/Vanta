@@ -106,9 +106,46 @@ function checkLandingViewport(width, height) {
           document.body.innerText.toLowerCase().includes("required minimum") &&
           document.body.innerText.includes("Vanta does not claim live anonymity or production-private mainnet settlement yet"),
         hidesBetaCopy: !document.body.innerText.toLowerCase().includes("beta"),
-        hasPointedActions: ["shield", "send", "swap", "strategy", "unshield", "pay"].every((path) =>
-          [...document.querySelectorAll("a")].some((link) => link.getAttribute("href") === "/app/" + path),
-        ),
+        primaryActionHrefs: [...document.querySelectorAll(".landing-minimal__action-list--primary a")]
+          .map((link) => link.getAttribute("href")),
+        previewActionHrefs: [...document.querySelectorAll(".landing-minimal__preview-link")]
+          .map((link) => link.getAttribute("href")),
+        previewActionText: [...document.querySelectorAll(".landing-minimal__preview-link")]
+          .map((link) => link.textContent ?? "")
+          .join(" "),
+        hasPrimaryWalletActions:
+          ["shield", "send", "swap", "unshield"].every((path) =>
+            [...document.querySelectorAll(".landing-minimal__action-list--primary a")].some(
+              (link) => link.getAttribute("href") === "/app/" + path,
+            ),
+          ) &&
+          !["strategy", "pay"].some((path) =>
+            [...document.querySelectorAll(".landing-minimal__action-list--primary a")].some(
+              (link) => link.getAttribute("href") === "/app/" + path,
+            ),
+          ),
+        hasPreviewSurfaceActions:
+          ["pay", "strategy"].every((path) =>
+            [...document.querySelectorAll(".landing-minimal__preview-link")].some(
+              (link) => link.getAttribute("href") === "/app/" + path,
+            ),
+          ) &&
+          [...document.querySelectorAll(".landing-minimal__preview-link")]
+            .map((link) => link.textContent ?? "")
+            .join(" ")
+            .includes("Pay preview") &&
+          [...document.querySelectorAll(".landing-minimal__preview-link")]
+            .map((link) => link.textContent ?? "")
+            .join(" ")
+            .includes("Strategy preview") &&
+          [...document.querySelectorAll(".landing-minimal__preview-link")]
+            .map((link) => link.textContent ?? "")
+            .join(" ")
+            .includes("local receipt-backed records") &&
+          [...document.querySelectorAll(".landing-minimal__preview-link")]
+            .map((link) => link.textContent ?? "")
+            .join(" ")
+            .includes("before live routing is enabled"),
         horizontalOverflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth,
         smallTargets: [...document.querySelectorAll("a, button")]
           .filter((element) => {
@@ -165,8 +202,19 @@ function checkLandingViewport(width, height) {
     throw new Error("Landing page must not talk about beta state.");
   }
 
-  if (!result.hasPointedActions) {
-    throw new Error("Landing page must point users to the app actions.");
+  if (!result.hasPrimaryWalletActions) {
+    throw new Error(
+      `Landing page must keep Shield/Send/Swap/Unshield as primary wallet actions without Pay/Strategy: ${JSON.stringify(result.primaryActionHrefs)}`,
+    );
+  }
+
+  if (!result.hasPreviewSurfaceActions) {
+    throw new Error(
+      `Landing page must keep Pay/Strategy as preview surfaces: ${JSON.stringify({
+        hrefs: result.previewActionHrefs,
+        text: result.previewActionText,
+      })}`,
+    );
   }
 
   if (result.horizontalOverflow > 2) {
