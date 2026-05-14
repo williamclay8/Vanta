@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
+import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { VANTA_PAY_ASSET_SYMBOLS, type VantaPayAsset } from "@/pay/vantaPayAssets";
 import { VANTA_PAY_MERCHANT_COMMAND_CENTER } from "@/pay/vantaPayMerchantCommandCenter";
 import { VANTA_PAY_MERCHANT_DEMO_CONTENT } from "@/pay/vantaPayMerchantDemoContent";
@@ -514,16 +515,29 @@ export function PayPage() {
               </aside>
             </div>
 
-            <section className="status-panel pay-path-card" aria-label="Transaction status">
-              <div className="pay-section-mini-header">
-                <span className="pay-kicker">Transaction status</span>
-                <strong>Live approval and execution are locked in beta.</strong>
-                <span>
-                  {phase === "settlement_complete"
-                    ? "Local test settlement complete."
-                    : "Local test settlement can complete after a generated receipt."}
-                </span>
-              </div>
+            <TransactionStatusToast
+              ariaLabel="Transaction status"
+              className="pay-path-card"
+              tone={phase === "settlement_complete" ? "success" : phase === "checkout_created" ? "processing" : "pending"}
+              phase={
+                phase === "settlement_complete"
+                  ? "complete"
+                  : phase === "checkout_created"
+                    ? "confirmed"
+                    : "pending"
+              }
+              title={
+                phase === "settlement_complete"
+                  ? "Payment record completed"
+                  : "Live approval and execution are locked in beta."
+              }
+              message={
+                phase === "settlement_complete"
+                  ? "Local test settlement complete."
+                  : "Local test settlement can complete after a generated receipt."
+              }
+              progress={phase === "checkout_created"}
+            >
               <div className="pay-path-steps">
                 <span data-state={phase !== "draft" ? "active" : "idle"}>Preview</span>
                 <span data-state="locked">Approve</span>
@@ -542,7 +556,7 @@ export function PayPage() {
                 </span>
                 <span>No production funds moved.</span>
               </div>
-            </section>
+            </TransactionStatusToast>
 
             <section className="pay-next-workspace" aria-label="Next actions">
               <div className="pay-section-mini-header">

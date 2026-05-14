@@ -6,6 +6,7 @@ import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { NotePicker, type NotePickerOption } from "@/components/NotePicker";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { PrivacySummary, type PrivacySummaryItem } from "@/components/PrivacySummary";
+import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
 import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import { isBetaMode } from "@/config/deploymentMode";
@@ -1646,9 +1647,14 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           </div>
 
           {status === "awaiting_confirmation" && (
-            <div className="status-panel">
-              <span>Awaiting wallet confirmation</span>
-              <p>Approve this shielded-state send in your wallet.</p>
+            <TransactionStatusToast
+              tone="pending"
+              phase="pending"
+              title="Awaiting wallet confirmation"
+              message="Approve this shielded-state send in your wallet."
+              progress
+              floating
+            >
               <WalletApprovalSheet
                 heading="Send wallet approval"
                 walletPrompt="Wallet approval"
@@ -1669,45 +1675,47 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 note="Approve this shielded-state send only after the wallet prompt matches the selected recipient, asset, and amount."
                 truthBoundary="This is a local wallet approval review; it does not prove production Send privacy or live mainnet-private settlement."
               />
-              <div className="status-bar">
-                <div className="status-bar__fill" />
-              </div>
-            </div>
+            </TransactionStatusToast>
           )}
 
           {status === "sending" && (
-            <div className="status-panel status-panel--processing">
-              <span>Send in progress</span>
-              <p>Recording the constrained Send transition from your shielded balance.</p>
+            <TransactionStatusToast
+              tone="processing"
+              phase="confirmed"
+              title="Send in progress"
+              message="Recording the constrained Send transition from your shielded balance."
+              progress
+              floating
+            >
               {sendProgressLabel && (
                 <p className="shield-helper shield-helper--meta">{sendProgressLabel}</p>
               )}
-              <div className="status-bar">
-                <div className="status-bar__fill" />
-              </div>
-            </div>
+            </TransactionStatusToast>
           )}
 
           {status === "settling" && (
-            <div className="status-panel status-panel--processing">
-              <span>Updating your private balance</span>
-              <p>
-                Confirming the spent marker and resolving the next spendable
-                note set, including any residual change note.
-              </p>
+            <TransactionStatusToast
+              tone="processing"
+              phase="confirmed"
+              title="Updating your private balance"
+              message="Confirming the spent marker and resolving the next spendable note set, including any residual change note."
+              progress
+              floating
+            >
               {settleProgressLabel && (
                 <p className="shield-helper shield-helper--meta">{settleProgressLabel}</p>
               )}
-              <div className="status-bar">
-                <div className="status-bar__fill" />
-              </div>
-            </div>
+            </TransactionStatusToast>
           )}
 
           {status === "failed" && (
-            <div className="status-panel status-panel--failed">
-              <span>Send failed</span>
-              <p>Your shielded balance was not changed. Try again.</p>
+            <TransactionStatusToast
+              tone="error"
+              phase="failed"
+              title="Send failed"
+              message="Your shielded balance was not changed. Try again."
+              floating
+            >
               {flowError && <p className="shield-helper shield-helper--error">{flowError}</p>}
               <button
                 className="button button-primary"
@@ -1719,17 +1727,21 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               >
                 Retry send
               </button>
-            </div>
+            </TransactionStatusToast>
           )}
 
           {status === "complete" && (
-            <div className="status-panel status-panel--success">
-              <span>Send complete</span>
-              <p>
-                {lastSentAmount !== null && lastRecipient
+            <TransactionStatusToast
+              tone="success"
+              phase="complete"
+              title="Send complete"
+              message={
+                lastSentAmount !== null && lastRecipient
                   ? `${formatBalance(lastSentAmount, "USDC")} was recorded from shielded state for recipient ${lastRecipient}.`
-                  : "The constrained Vanta send note was confirmed."}
-              </p>
+                  : "The constrained Vanta send note was confirmed."
+              }
+              floating
+            >
               <div className="success-metrics">
                 <div className="preview-card preview-card--accent">
                   <span>Amount sent</span>
@@ -1830,7 +1842,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   Back to Shield
                 </Link>
               </div>
-            </div>
+            </TransactionStatusToast>
           )}
 
           {shieldStateRefreshing && status === "idle" && (

@@ -61,6 +61,12 @@ const requiredMarkers = [
   "freshQuote.quoteExpiresAt <= Date.now()",
   "The latest live quote expired, so the swap path is blocked until a fresh quote is available.",
   "!isReady ||",
+  "TransactionStatusToast",
+  "<TransactionStatusToast",
+  "Recording swap transition",
+  "Authorizing swap",
+  "Finalizing beta route evidence",
+  "Swap recorded",
 ];
 
 const failures = [];

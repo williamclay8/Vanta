@@ -40,6 +40,7 @@ const requiredPageCopy = [
   "Checkout mode",
   "Checkout session",
   "Client token",
+  "TransactionStatusToast",
   "Transaction status",
   "Preview",
   "Approve",

@@ -61,6 +61,7 @@ import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentS
 import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
 import { AssetPickerGrid, type AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
+import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import {
   PrivacySummary,
@@ -1903,17 +1904,27 @@ export function SwapPage() {
               status === "finalizing_state" ||
               status === "complete" ||
               status === "failed") && (
-              <div
-                className={
+              <TransactionStatusToast
+                tone={
                   status === "complete"
-                    ? "status-panel status-panel--success"
+                    ? "success"
                     : status === "failed"
-                      ? "status-panel status-panel--error"
-                      : "status-panel status-panel--processing"
+                      ? "error"
+                      : status === "awaiting_confirmation"
+                        ? "pending"
+                        : "processing"
                 }
-              >
-                <span>
-                  {status === "awaiting_confirmation"
+                phase={
+                  status === "complete"
+                    ? "complete"
+                    : status === "failed"
+                      ? "failed"
+                      : status === "awaiting_confirmation"
+                        ? "pending"
+                        : "confirmed"
+                }
+                title={
+                  status === "awaiting_confirmation"
                     ? "Awaiting wallet confirmation"
                     : status === "recording_transition"
                       ? "Recording swap transition"
@@ -1923,10 +1934,10 @@ export function SwapPage() {
                           ? "Finalizing beta route evidence"
                           : status === "complete"
                             ? "Swap recorded"
-                            : "Swap failed"}
-                </span>
-                <p>
-                  {status === "complete" && selectedTargetAsset === "SOL" && lastSwapSummary
+                            : "Swap failed"
+                }
+                message={
+                  status === "complete" && selectedTargetAsset === "SOL" && lastSwapSummary
                     ? `Recorded ${formatAssetAmount(lastSwapSummary.inputAmount, "USDC")} into ${formatAssetAmount(lastSwapSummary.outputAmount, "SOL")} with committed receipt checks and operator-visible settlement.`
                     : status === "complete"
                       ? `Recorded ${formatAssetAmount(parsedAmount, selectedSourceAsset)} into shielded ${selectedTargetAsset}; route settlement remains operator-visible.`
@@ -1936,8 +1947,11 @@ export function SwapPage() {
                         ? "Authorizing the operator-visible route settlement."
                       : status === "finalizing_state"
                           ? `Registering spent-marker and committed receipt evidence for shielded ${selectedTargetAsset}.`
-                          : "Approve the swap in your wallet to continue."}
-                </p>
+                          : "Approve the swap in your wallet to continue."
+                }
+                progress={status !== "complete" && status !== "failed"}
+                floating
+              >
                 {quote &&
                   status !== "failed" &&
                   status !== "complete" && (
@@ -1979,7 +1993,7 @@ export function SwapPage() {
                 {swapBridgeError && status === "complete" && (
                   <p className="shield-helper shield-helper--meta">{swapBridgeError}</p>
                 )}
-              </div>
+              </TransactionStatusToast>
             )}
           </div>
         </article>

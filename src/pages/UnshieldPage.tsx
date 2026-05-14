@@ -9,6 +9,7 @@ import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePa
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
+import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import {
   PrivacySummary,
@@ -2998,13 +2999,18 @@ export function UnshieldPage() {
           </div>
 
           {status === "awaiting_confirmation" && (
-            <div className="status-panel">
-              <span>Preparing wallet approval</span>
-              <p>
-                {requiresExactSplit
+            <TransactionStatusToast
+              tone="pending"
+              phase="pending"
+              title="Preparing wallet approval"
+              message={
+                requiresExactSplit
                   ? "Approve the private split so Vanta can isolate the exact USDC amount first."
-                  : "Vanta is preparing and simulating the constrained unshield transition."}
-              </p>
+                  : "Vanta is preparing and simulating the constrained unshield transition."
+              }
+              progress
+              floating
+            >
               {pendingUmbraApprovalDisplay && (
                 <WalletApprovalSheet
                   heading="Private rail approval"
@@ -3016,10 +3022,7 @@ export function UnshieldPage() {
                   truthBoundary="Local approval review only; it does not prove production privacy or mainnet readiness."
                 />
               )}
-              <div className="status-bar">
-                <div className="status-bar__fill" />
-              </div>
-            </div>
+            </TransactionStatusToast>
           )}
 
           {status === "transition_ready" && (
@@ -3044,36 +3047,40 @@ export function UnshieldPage() {
           )}
 
           {status === "splitting_note" && (
-            <div className="status-panel status-panel--processing">
-              <span>Preparing exact amount</span>
-              <p>Preparing the exact amount to move out.</p>
-              <div className="status-bar">
-                <div className="status-bar__fill" />
-              </div>
-            </div>
+            <TransactionStatusToast
+              tone="processing"
+              phase="confirmed"
+              title="Preparing exact amount"
+              message="Preparing the exact amount to move out."
+              progress
+              floating
+            />
           )}
 
           {status === "recording_transition" && (
-            <div className="status-panel status-panel--processing">
-              <span>Recording unshield transition</span>
-              <p>Moving the selected shielded funds toward public release.</p>
+            <TransactionStatusToast
+              tone="processing"
+              phase="confirmed"
+              title="Recording unshield transition"
+              message="Moving the selected shielded funds toward public release."
+              progress
+              floating
+            >
               {transitionProgressLabel && (
                 <p className="shield-helper shield-helper--meta">{transitionProgressLabel}</p>
               )}
-              <div className="status-bar">
-                <div className="status-bar__fill" />
-              </div>
-            </div>
+            </TransactionStatusToast>
           )}
 
           {status === "finalizing_split" && (
-            <div className="status-panel status-panel--processing">
-              <span>Finalizing split state</span>
-              <p>Recording the hidden split spent marker before the exact note is unshielded.</p>
-              <div className="status-bar">
-                <div className="status-bar__fill" />
-              </div>
-            </div>
+            <TransactionStatusToast
+              tone="processing"
+              phase="confirmed"
+              title="Finalizing split state"
+              message="Recording the hidden split spent marker before the exact note is unshielded."
+              progress
+              floating
+            />
           )}
 
           {status === "split_finalization_ready" && (
@@ -3118,13 +3125,14 @@ export function UnshieldPage() {
           )}
 
           {status === "authorizing_operator" && (
-            <div className="status-panel status-panel--processing">
-              <span>Authorizing public release</span>
-              <p>Requesting the constrained public release for this {selectedLane} exit.</p>
-              <div className="status-bar">
-                <div className="status-bar__fill" />
-              </div>
-            </div>
+            <TransactionStatusToast
+              tone="processing"
+              phase="confirmed"
+              title="Authorizing public release"
+              message={`Requesting the constrained public release for this ${selectedLane} exit.`}
+              progress
+              floating
+            />
           )}
 
           {status === "release_ready" && (
@@ -3149,41 +3157,50 @@ export function UnshieldPage() {
           )}
 
           {status === "finalizing_state" && (
-            <div className="status-panel status-panel--processing">
-              <span>Finalizing shielded state</span>
-              <p>Recording the spent marker and refreshing Vanta state.</p>
+            <TransactionStatusToast
+              tone="processing"
+              phase="confirmed"
+              title="Finalizing shielded state"
+              message="Recording the spent marker and refreshing Vanta state."
+              progress
+              floating
+            >
               {finalizationProgressLabel && (
                 <p className="shield-helper shield-helper--meta">{finalizationProgressLabel}</p>
               )}
-              <div className="status-bar">
-                <div className="status-bar__fill" />
-              </div>
-            </div>
+            </TransactionStatusToast>
           )}
 
           {status === "failed" && (
-            <div className="status-panel status-panel--warning">
-              <span>Funds were not moved</span>
-              <p>{flowError ?? "The exit did not complete. Try again."}</p>
-            </div>
+            <TransactionStatusToast
+              tone="error"
+              phase="failed"
+              title="Funds were not moved"
+              message={flowError ?? "The exit did not complete. Try again."}
+              floating
+            />
           )}
 
           {status === "complete" && lastCompletion && (
-            <div className="status-panel status-panel--success">
-              <span>
-                {operatorReleaseSignature
+            <TransactionStatusToast
+              tone="success"
+              phase="complete"
+              title={
+                operatorReleaseSignature
                   ? `${lastCompletion.asset} public operator release reported`
-                  : `${lastCompletion.asset} public exit transition recorded`}
-              </span>
-              <p>
-                {operatorReleaseSignature
+                  : `${lastCompletion.asset} public exit transition recorded`
+              }
+              message={
+                operatorReleaseSignature
                   ? lastCompletion.asset === "SOL"
                     ? `${formatSolAmount(lastCompletion.amount)} has an operator release signature. Verify the public exit transaction before treating funds as moved; the source shielded SOL note is blocked from reuse by the release record.`
                     : `${formatShieldTokenAmount(lastCompletion.amount, lastCompletion.asset)} has an operator release signature. Verify the public exit transaction before treating funds as moved; the source shielded ${lastCompletion.asset} note is blocked from reuse by the release record.`
                   : lastCompletion.asset === "SOL"
                     ? `${formatSolAmount(lastCompletion.amount)} public exit transition was recorded. Operator release is still pending.`
-                    : `${formatShieldTokenAmount(lastCompletion.amount, lastCompletion.asset)} public exit transition was recorded. Operator release is still pending.`}
-              </p>
+                    : `${formatShieldTokenAmount(lastCompletion.amount, lastCompletion.asset)} public exit transition was recorded. Operator release is still pending.`
+              }
+              floating
+            >
               <div className="preview-grid unshield-evidence-grid">
                 <div className="preview-card preview-card--accent">
                   <span>Transaction evidence</span>
@@ -3523,7 +3540,7 @@ export function UnshieldPage() {
                   </p>
                 )}
               </details>
-            </div>
+            </TransactionStatusToast>
           )}
         </article>
       </div>

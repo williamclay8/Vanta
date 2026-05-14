@@ -50,6 +50,8 @@ for (const phrase of [
 }
 
 for (const phrase of [
+  "TransactionStatusToast",
+  "<TransactionStatusToast",
   "Shield deposit recorded",
   "Recording local shield-state evidence",
   "Vault transfer approval",

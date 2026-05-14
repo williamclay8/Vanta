@@ -53,6 +53,11 @@ const requiredPageMarkers = [
   "Automatic v2 AEAD packet",
   "Spent marker",
   "Plaintext memo contents stay out of the operator packet.",
+  "TransactionStatusToast",
+  "<TransactionStatusToast",
+  "Send in progress",
+  "Updating your private balance",
+  "Send complete",
 ];
 
 const requiredPrivateCorePrimarySendMarkers = [

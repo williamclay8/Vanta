@@ -3,6 +3,7 @@ import { isBetaMode } from "@/config/deploymentMode";
 import { AssetPickerGrid, type AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { RecoveryPanel } from "@/components/RecoveryPanel";
+import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import {
   usePrivacyFlow,
@@ -2392,19 +2393,29 @@ export function ShieldPage(_props: ShieldPageProps) {
               status === "recovery_recorded" ||
               status === "complete" ||
               status === "failed") && (
-              <div
-                className={
+              <TransactionStatusToast
+                tone={
                   status === "complete"
-                    ? "status-panel status-panel--success"
+                    ? "success"
                     : status === "recovery_recorded"
-                      ? "status-panel status-panel--success"
+                      ? "success"
                       : status === "failed"
-                        ? "status-panel status-panel--error"
-                        : "status-panel status-panel--processing"
+                        ? "error"
+                        : status === "awaiting_wallet_confirmation"
+                          ? "pending"
+                          : "processing"
                 }
-              >
-                <span>
-                  {status === "awaiting_wallet_confirmation"
+                phase={
+                  status === "complete" || status === "recovery_recorded"
+                    ? "complete"
+                    : status === "failed"
+                      ? "failed"
+                      : status === "awaiting_wallet_confirmation"
+                        ? "pending"
+                        : "confirmed"
+                }
+                title={
+                  status === "awaiting_wallet_confirmation"
                     ? "Awaiting wallet confirmation"
                     : status === "routing_public_swap"
                       ? "Preparing shield route"
@@ -2418,10 +2429,10 @@ export function ShieldPage(_props: ShieldPageProps) {
                               ? recentShield?.claimTier === "proof_receipt_verified"
                                 ? "Shield proof receipt verified"
                                 : "Shield deposit recorded"
-                              : "Shield failed"}
-                </span>
-                <p>
-                  {status === "complete"
+                              : "Shield failed"
+                }
+                message={
+                  status === "complete"
                     ? recentShield
                       ? describeRecentShieldCompletion(recentShield, flowError)
                       : "The selected asset was recorded, but proof-backed Shield state was not confirmed."
@@ -2432,11 +2443,18 @@ export function ShieldPage(_props: ShieldPageProps) {
                         : status === "shielding_in_progress"
                           ? "Submitting the shield transfer into the Vanta vault."
                           : status === "entering_shielded_state"
-                            ? "Recording local shield-state evidence."
-                            : status === "recovery_recorded"
-                              ? "No new transfer was submitted. Vanta saved the existing SOL vault deposit as pending recovery evidence; shielded balance updates after a verified shield-state note is available."
-                            : "Approve the shield action in your wallet to continue."}
-                </p>
+                          ? "Recording local shield-state evidence."
+                          : status === "recovery_recorded"
+                            ? "No new transfer was submitted. Vanta saved the existing SOL vault deposit as pending recovery evidence; shielded balance updates after a verified shield-state note is available."
+                            : "Approve the shield action in your wallet to continue."
+                }
+                progress={
+                  status !== "complete" &&
+                  status !== "failed" &&
+                  status !== "recovery_recorded"
+                }
+                floating
+              >
                 {pendingUmbraApprovalDisplay && status !== "complete" && status !== "failed" && (
                   <WalletApprovalSheet
                     heading="Vault transfer approval"
@@ -2466,7 +2484,7 @@ export function ShieldPage(_props: ShieldPageProps) {
                     {pendingShieldAsset === "SOL" ? nativeSolShieldWait.detailLabel : splShieldTransferWait.detailLabel}
                   </p>
                 )}
-              </div>
+              </TransactionStatusToast>
             )}
           </div>
         </article>
