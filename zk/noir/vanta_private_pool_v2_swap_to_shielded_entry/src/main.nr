@@ -13,6 +13,22 @@ fn compute_owner_commitment(owner_secret: Field) -> Field {
     bn254::hash_1([owner_secret])
 }
 
+fn compute_input_commitment(
+    owner_commitment: Field,
+    input_asset_id_commitment: Field,
+    input_amount: u128,
+    input_blinding: Field,
+    input_derivation_tag: Field,
+) -> Field {
+    bn254::hash_5([
+        owner_commitment,
+        input_asset_id_commitment,
+        input_amount as Field,
+        input_blinding,
+        input_derivation_tag,
+    ])
+}
+
 fn hash_merkle_leaf(commitment: Field) -> Field {
     bn254::hash_1([commitment])
 }
@@ -113,6 +129,10 @@ fn main(
     request_version: Field,
     input_root: Field,
     input_commitment: Field,
+    input_asset_id_commitment: Field,
+    input_amount: u128,
+    input_blinding: Field,
+    input_derivation_tag: Field,
     input_leaf_index: Field,
     membership_path: [Field; MERKLE_DEPTH],
     membership_path_direction_bits: [Field; MERKLE_DEPTH],
@@ -131,6 +151,15 @@ fn main(
 ) {
     let computed_owner_commitment = compute_owner_commitment(owner_secret);
     assert(computed_owner_commitment == owner_commitment);
+
+    let computed_input_commitment = compute_input_commitment(
+        owner_commitment,
+        input_asset_id_commitment,
+        input_amount,
+        input_blinding,
+        input_derivation_tag,
+    );
+    assert(computed_input_commitment == input_commitment);
 
     let computed_input_root = compute_root(
         input_commitment,

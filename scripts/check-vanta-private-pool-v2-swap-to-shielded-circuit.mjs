@@ -105,6 +105,24 @@ try {
     console.log("invalid-owner-secret-binding fixture: expected failure observed");
   }
 
+  writeFixture("invalid-input-commitment-preimage");
+  console.log("invalid-input-commitment-preimage fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-input-commitment-preimage fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-input-commitment-preimage fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-input-commitment-preimage fixture: expected failure observed");
+  }
+
   writeFixture("invalid-output-root");
   console.log("invalid-output-root fixture write: PASS");
 

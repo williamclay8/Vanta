@@ -175,10 +175,16 @@ for (const file of noirFiles) {
   if (file === "zk/noir/vanta_private_pool_v2_swap_to_shielded_entry/src/main.nr") {
     for (const requiredPhrase of [
       "fn compute_owner_commitment",
+      "fn compute_input_commitment",
+      "input_asset_id_commitment: Field",
+      "input_amount: u128",
+      "input_blinding: Field",
+      "input_derivation_tag: Field",
       "assert(computed_owner_commitment == owner_commitment)",
+      "assert(computed_input_commitment == input_commitment)",
     ]) {
       if (!source.includes(requiredPhrase)) {
-        failures.push(`${file}: Swap-to-shielded owner commitment must be bound to the owner preimage (${requiredPhrase})`);
+        failures.push(`${file}: Swap-to-shielded owner/input commitment must be bound to owner and consumed-note preimages (${requiredPhrase})`);
       }
     }
   }

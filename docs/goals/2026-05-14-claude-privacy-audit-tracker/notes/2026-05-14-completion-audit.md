@@ -19,7 +19,7 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 | Save the audit in a durable format | `goal.md`, `state.yaml`, `2026-05-14-intake.md` | Done | `npm run privacy-audit:tracker-check` |
 | Preserve revised live website evidence | `state.yaml` live evidence and intake note | Done | `npm run public:audit-discovery-check` |
 | N1 Shield output commitment binding | N1 tracker row and Shield circuit/fixture receipts | Local implemented | `npm run private-pool-v2:shield-circuit-check` |
-| N2 owner/input binding across lanes | N2 tracker row, blocker note, implementation-path note | Partial | Clay approved both owner decisions on 2026-05-14; Swap input preimage and Private Core Send/Swap sender auth now require implementation and verification |
+| N2 owner/input binding across lanes | N2 tracker row, blocker note, implementation-path note | Partial | PPv2 Swap input preimage is locally implemented and verified; Private Core Send/Swap sender auth remains approved and pending |
 | N3 website meta/caveats | N3 tracker row and truth-copy checks | Local implemented | `npm run truth:privacy-claim-gate` |
 | N4 stale/live SBF lineage | N4 tracker row | Blocked | Requires deploy/live approval and receipts |
 | N5 frontend operator-env CI gate | N5 tracker row, `.github/workflows/privacy-audit.yml`, N5 CI note | Local implemented, pending CI run | Hosted GitHub Actions must run green |
@@ -28,26 +28,35 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 | Program-owned PDA vault | A2 / R4 | Blocked | Current release model is operator-keypair public exit |
 | Program-owned shared tree | A3 / R5 | Blocked | Root provenance is not proof of transition correctness |
 | Fresh-address exit privacy | A2 self-wallet blocker / R6 | Blocked | Current operator rejects `destinationOwner !== requester` |
+| Deployed bytecode/source hash match | R7A | Blocked / approval-gated | Requires deployment/live bytecode receipt after approval |
 | Real browser prover in live paths | A4 / R8 | Blocked | C01 verifier compatibility and production runtime evidence absent |
+| Prover-relay privacy trade-off docs | R8A | Pending documentation | Needs opt-in remote-prover privacy caveat before user-facing fallback |
 | Recipient discovery/indexer | A5 / R9 | Pending design | Requires viewing-key exchange or view-tag/indexer design |
+| Ciphertext body-hash discovery binding | R9A | Pending design | Proof-bound body-hash fields must feed the discovery/indexer path |
 | Service separation | A5 / R10 | Pending design | Requires prover/relayer/verifier/indexer/operator separation |
+| Service stub replacement | R10A | Pending implementation | Prover/relayer/verifier/indexer stubs must become real separated services |
 | Anonymity-set volume | A6 / R11 | Blocked | Live distinct commitments remain below threshold |
+| Live anonymity-set probe | R11A | Pending implementation | Needs live fail-closed threshold probe |
 | Legacy v1 plaintext memo quarantine | R12 | Pending design | Must quarantine or migrate before privacy claims |
+| Live meta-description scrape | R13A | Pending implementation | Needs a live crawler-copy scrape gate after deploy approval or public evidence |
 | Argon2id vault KDF migration | R14 | Pending implementation | PBKDF2 v2 remains current quick-fix |
 | Operator keypair env lockdown | R15 | Pending audit | Needs operator path audit beyond current exposed-env checks |
+| Operator keypair env lockdown guard | R15A | Pending implementation | Needs a dedicated repo guard for raw keypair env loading |
 | Positive proof-verified claim gate | R16 | Blocked on verifier | Requires tag-3 valid proof success before proof-verified claims |
 | Browser localStorage Merkle mirror | R18 | Blocked on program-owned tree | Current localStorage chain remains non-privacy primitive |
 | Threat model | R19 | Pending implementation | Needs docs/threat-model.md or equivalent source-of-truth |
+| Mainnet on-chain replay test | R20 | Blocked / approval-gated | Requires mainnet-condition test approval and safe live-state handling |
+| Deposit-send-fresh-exit privacy test | R21 | Blocked | Architecture does not yet permit proof-bound fresh-address exit |
 
 ## Completion Decision
 
 Goal is not complete.
 
-The audit is now tracked and several findings are implemented locally, but the remaining blockers include approved-but-unimplemented N2 protocol work, deploy/live approval gates, hosted CI evidence, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
+The audit is now tracked and several findings are implemented locally, but the remaining blockers include approved-but-unimplemented Private Core N2 protocol work, deploy/live approval gates, hosted CI evidence, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
 
 ## Current Lumi Snapshot
 
 - Local: tracker and implementation-path artifacts exist.
-- Committed: app branch has local commits through `291e403`.
+- Committed: app branch has local commits through `02fe5b5`; the current PPv2 Swap input-preimage slice is local pending commit.
 - Pushed: branch is ahead of origin and the latest tracker commits are not pushed.
 - Deployed/live: latest tracker/circuit/CI slices are not deployed or live-verified.

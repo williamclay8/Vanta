@@ -95,7 +95,11 @@ function swapWitnessInputFromFixture(fixture) {
 
   return {
     economics_commitment: stringify(witness.economics_commitment),
+    input_amount: stringify(witness.input_amount),
+    input_asset_id_commitment: stringify(witness.input_asset_id_commitment),
+    input_blinding: stringify(witness.input_blinding),
     input_commitment: stringify(witness.input_commitment),
+    input_derivation_tag: stringify(witness.input_derivation_tag),
     input_leaf_index: stringify(witness.input_leaf_index),
     input_root: stringify(witness.input_root),
     membership_path: witness.membership_path.map(stringify),

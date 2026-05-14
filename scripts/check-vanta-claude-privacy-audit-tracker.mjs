@@ -12,6 +12,10 @@ const n2ImplementationPathNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-n2-implementation-path.md",
 );
+const n2Ppv2SwapInputPreimageNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-n2-ppv2-swap-input-preimage.md",
+);
 const architectureBlockerNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-architecture-blocker-map.md",
@@ -34,6 +38,7 @@ for (const path of [
   notePath,
   n2BlockerNotePath,
   n2ImplementationPathNotePath,
+  n2Ppv2SwapInputPreimageNotePath,
   architectureBlockerNotePath,
   n5CiGateNotePath,
   completionAuditNotePath,
@@ -47,6 +52,7 @@ const state = read(statePath);
 const note = read(notePath);
 const n2BlockerNote = read(n2BlockerNotePath);
 const n2ImplementationPathNote = read(n2ImplementationPathNotePath);
+const n2Ppv2SwapInputPreimageNote = read(n2Ppv2SwapInputPreimageNotePath);
 const architectureBlockerNote = read(architectureBlockerNotePath);
 const n5CiGateNote = read(n5CiGateNotePath);
 const completionAuditNote = read(completionAuditNotePath);
@@ -88,13 +94,14 @@ for (const phrase of [
   "anonymity_claim_allowed: false",
   "completion_guard",
   "status_must_remain: \"partial-local-implemented\"",
-  "N2 is not complete while Private Pool v2 Swap-to-shielded lacks a documented canonical input commitment preimage",
   "N2 is not complete while Private Core Send/Swap use x25519-secret-prechecked-off-circuit owner authorization",
   "a nonzero sender_secret_key assertion is not sender authorization",
-  "Do not mark N2 complete based only on owner_secret -> owner_commitment binding in Swap-to-shielded.",
   "Do not mark N2 complete based only on keeping Private Core sender_secret_key live/nonzero.",
   "remaining_design_blockers",
   "N2-PPV2-SWAP-INPUT-PREIMAGE",
+  "status: local-implemented",
+  "Private Pool v2 Swap-to-shielded now recomputes input_commitment from owner_commitment, input_asset_id_commitment, input_amount, input_blinding, and input_derivation_tag",
+  "invalid-input-commitment-preimage fixtures",
   "approved-pending-implementation",
   "decision_approved_by: \"Clay\"",
   "approval_answer: \"yes\"",
@@ -117,9 +124,18 @@ for (const phrase of [
   "not proof that the root transition is correct",
   "audit_remaining_work_backlog",
   "R12-LEGACY-V1-MEMO-QUARANTINE",
+  "R7A-DEPLOYED-BYTECODE-HASH-SOURCE-MATCH",
+  "R8A-PROVER-RELAY-PRIVACY-TRADEOFF",
+  "R9A-CIPHERTEXT-BODY-HASH-DISCOVERY-BINDING",
+  "R10A-SERVICE-STUB-REPLACEMENT",
+  "R11A-LIVE-ANONYMITY-SET-PROBE",
+  "R13A-LIVE-META-DESCRIPTION-SCRAPE",
   "R14-ARGON2ID-VAULT-KDF",
   "R15-OPERATOR-KEYPAIR-ENV-LOCKDOWN",
+  "R15A-OPERATOR-KEYPAIR-ENV-LOCKDOWN-GUARD",
   "R19-THREAT-MODEL",
+  "R20-MAINNET-ONCHAIN-REPLAY-TEST",
+  "R21-E2E-DEPOSIT-SEND-FRESH-EXIT-PRIVACY-TEST",
   "audit_completion_checklist",
   "active-not-complete",
   ".github/workflows/privacy-audit.yml",
@@ -164,6 +180,27 @@ for (const phrase of [
 }
 
 for (const phrase of [
+  "N2 PPv2 Swap Input Preimage Closure - 2026-05-14",
+  "Clay approved the PPv2 Swap-to-shielded owner decision on 2026-05-14.",
+  "input_commitment = poseidon5(owner_commitment, input_asset_id_commitment, input_amount, input_blinding, input_derivation_tag)",
+  "settlement_commitment",
+  "route_commitment",
+  "economics_commitment",
+  "asserts `computed_input_commitment == input_commitment`",
+  "invalid-input-commitment-preimage",
+  "Red-first: `npm run zk:circuit-soundness-lint` failed before implementation",
+  "npm run private-pool-v2:swap-to-shielded-circuit-check",
+  "npm run private-pool-v2:swap-to-shielded-browser-worker-prover-check",
+  "npm run private-pool-v2:local-bb-fixture-prover-check",
+  "N2 remains partial because Private Core Send/Swap still need the approved explicit Poseidon proof-owner authorization model.",
+]) {
+  assert.ok(
+    n2Ppv2SwapInputPreimageNote.includes(phrase),
+    `N2 PPv2 Swap input-preimage note missing ${phrase}`,
+  );
+}
+
+for (const phrase of [
   "A1-TAG3-PROOF-VERIFIER-NOT-WIRED",
   "TAG_SPEND_WITH_PROOF = 3",
   "ERR_PROOF_VERIFIER_NOT_WIRED",
@@ -204,11 +241,21 @@ for (const phrase of [
   "Prompt-To-Artifact Checklist",
   "Goal is not complete.",
   "N2 owner/input binding across lanes",
-  "Clay approved both owner decisions on 2026-05-14",
+  "PPv2 Swap input preimage is locally implemented and verified",
+  "Private Core Send/Swap sender auth remains approved and pending",
+  "Deployed bytecode/source hash match",
+  "Prover-relay privacy trade-off docs",
+  "Ciphertext body-hash discovery binding",
+  "Service stub replacement",
+  "Live anonymity-set probe",
+  "Live meta-description scrape",
   "Legacy v1 plaintext memo quarantine",
   "Argon2id vault KDF migration",
   "Operator keypair env lockdown",
+  "Operator keypair env lockdown guard",
   "Positive proof-verified claim gate",
+  "Mainnet on-chain replay test",
+  "Deposit-send-fresh-exit privacy test",
   "Threat model",
   "branch is ahead of origin",
   "latest tracker/circuit/CI slices are not deployed or live-verified",
