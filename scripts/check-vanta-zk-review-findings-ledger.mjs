@@ -1877,6 +1877,72 @@ for (const phrase of [
   );
 }
 
+const c01VerifierReadinessBoundaryLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-14-C01-VERIFIER-READINESS-BOUNDARY";
+assert(
+  activeFeedbackLoopIds.has(c01VerifierReadinessBoundaryLoopId),
+  `${c01VerifierReadinessBoundaryLoopId} active feedback loop is missing`,
+);
+const c01VerifierReadinessBoundaryLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === c01VerifierReadinessBoundaryLoopId,
+);
+const c01VerifierReadinessBoundaryLoopText = JSON.stringify(c01VerifierReadinessBoundaryLoop);
+for (const command of [
+  "npm run zk:c01-production-verifier-backend-candidate-check",
+  "npm run zk:c01-verifier-backend-options-check",
+  "npm run zk:c01-verifier-backend-decision-check",
+  "npm run zk:h08-production-prover-candidate-check",
+  "npm run zk:c01-groth16-proof-format-candidate-check",
+  "npm run zk:c01-production-verifying-key-candidate-check",
+  "npm run zk:c01-verifier-adapter-test-candidate-check",
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:review-guards-check",
+  "npm run zk:feedback-loop-check",
+  "npm run build",
+  "git diff --check",
+]) {
+  assert(
+    c01VerifierReadinessBoundaryLoop?.localVerification?.includes(command),
+    `${c01VerifierReadinessBoundaryLoopId} must record ${command}`,
+  );
+}
+for (const file of [
+  "VANTA_ZK_REVIEW.md",
+  "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "ops/mainnet/private-pool-v2-h08-production-prover-candidate.evidence.json",
+  "scripts/check-vanta-private-pool-v2-c01-verifier-backend-options.mjs",
+  "scripts/check-vanta-private-pool-v2-h08-production-prover-candidate.mjs",
+  "scripts/check-vanta-private-pool-v2-production-verifier-backend-candidate.mjs",
+  "scripts/check-vanta-zk-c01-verifier-backend-decision.mjs",
+]) {
+  assert(
+    c01VerifierReadinessBoundaryLoop?.changedFiles?.includes(file),
+    `${c01VerifierReadinessBoundaryLoopId} must record changed file ${file}`,
+  );
+}
+for (const phrase of [
+  "proofFormatVsProductionReadinessBoundary",
+  "groth16ProofFormatCandidate as intermediate-only",
+  "Groth16 + Light is a blocked option",
+  "c01VerifierCompatibilityRefs",
+  "selectedBackend: null",
+  "selectedBackendStatus",
+  "not-selected",
+  "c01VerifierReady: false",
+  "solanaC01Groth16VerifierReady: false",
+  "not backend selection",
+  "not production proof-format evidence",
+  "not production verifying-key evidence",
+  "not H08 production prover runtime selection",
+  "f0aa8a5",
+]) {
+  assert(
+    c01VerifierReadinessBoundaryLoopText.includes(phrase),
+    `${c01VerifierReadinessBoundaryLoopId} must record ${phrase}`,
+  );
+}
+
 const actualPrivateSpendBrowserLoopId =
   "VANTA-ZK-FEEDBACK-2026-05-13-ACTUAL-PRIVATE-SPEND-BROWSER-WORKER-PROVER";
 assert(

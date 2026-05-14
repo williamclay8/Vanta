@@ -501,6 +501,61 @@
       "truthBoundary": "This is a blocked production-prover evidence packet only. It is not production prover runtime selection, not production proof-format evidence, not production verifying-key evidence, not live route wiring, not a production browser runtime prover, not a production remote proof service, not C01 verifier compatibility, not deployed/live evidence, not audit acceptance, not production-private readiness, and not real-funds readiness."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-14-C01-VERIFIER-READINESS-BOUNDARY",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#still-open-1--embed-a-groth16-verifier-in-the-program",
+        "VANTA_ZK_REVIEW.md#still-open-2--replace-the-mock-prover-with-bbjs",
+        "docs/zk/c01-production-verifier-backend-decision.md",
+        "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+        "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
+        "ops/mainnet/private-pool-v2-h08-production-prover-candidate.evidence.json",
+        "scripts/check-vanta-private-pool-v2-production-verifier-backend-candidate.mjs",
+        "scripts/check-vanta-private-pool-v2-c01-verifier-backend-options.mjs",
+        "scripts/check-vanta-zk-c01-verifier-backend-decision.mjs",
+        "scripts/check-vanta-private-pool-v2-h08-production-prover-candidate.mjs",
+        "npm run zk:c01-production-verifier-backend-candidate-check",
+        "npm run zk:h08-production-prover-candidate-check"
+      ],
+      "summary": "The C01 verifier candidate now carries proofFormatVsProductionReadinessBoundary, so the local noir-bb / barretenberg-ultrahonk proof-format observation is visible but cannot satisfy production verifier readiness, production proof-format evidence, or production verifying-key evidence. The backend-options packet marks groth16ProofFormatCandidate as intermediate-only, W6 says Groth16 + Light is a blocked option rather than selectedBackend, and the H08 production prover packet now carries c01VerifierCompatibilityRefs that keep H08 blocked while C01 selectedBackend: null, selectedBackendStatus: \"not-selected\", c01VerifierReady: false, and solanaC01Groth16VerifierReady: false.",
+      "changedFiles": [
+        "VANTA_ZK_REVIEW.md",
+        "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
+        "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+        "ops/mainnet/private-pool-v2-h08-production-prover-candidate.evidence.json",
+        "scripts/check-vanta-private-pool-v2-c01-verifier-backend-options.mjs",
+        "scripts/check-vanta-private-pool-v2-h08-production-prover-candidate.mjs",
+        "scripts/check-vanta-private-pool-v2-production-verifier-backend-candidate.mjs",
+        "scripts/check-vanta-zk-c01-verifier-backend-decision.mjs"
+      ],
+      "localVerification": [
+        "red-first npm run zk:c01-production-verifier-backend-candidate-check failed on missing proofFormatVsProductionReadinessBoundary evidence",
+        "red-first npm run zk:c01-verifier-backend-options-check failed on missing intermediate-only groth16ProofFormatCandidate",
+        "red-first npm run zk:c01-verifier-backend-decision-check failed on missing W6 blocked-backend pointer",
+        "red-first npm run zk:h08-production-prover-candidate-check failed on missing c01VerifierCompatibilityRefs",
+        "npm run zk:c01-production-verifier-backend-candidate-check",
+        "npm run zk:c01-verifier-backend-options-check",
+        "npm run zk:c01-verifier-backend-decision-check",
+        "npm run zk:h08-production-prover-candidate-check",
+        "npm run zk:c01-groth16-proof-format-candidate-check",
+        "npm run zk:c01-production-verifying-key-candidate-check",
+        "npm run zk:c01-verifier-adapter-test-candidate-check",
+        "node -e JSON.parse VANTA_ZK_REVIEW.findings.json and C01/H08 evidence packets",
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:review-guards-check",
+        "npm run zk:feedback-loop-check",
+        "npm run build",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the C01 verifier readiness boundary, backend-options intermediate-only marker, W6 blocked-backend pointer, H08 C01 compatibility refs, C01 candidate/options/decision/H08 focused guards, C01 Groth16/prod-VK/adapter sibling guards, review guards, feedback-loop guard, build, JSON parsing, and diff whitespace check",
+        "committed": "f0aa8a5 (Harden C01 verifier readiness evidence); feedback-loop record committed in this ledger commit",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is source/evidence/guard/doc hardening only. It is not backend selection, not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not H08 production prover runtime selection, not tag-3 proof acceptance, not on-chain proof verification, not SBF/live redeploy or reinit evidence, not audit acceptance, not production-private readiness, and not real-funds readiness."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-SEND-BROWSER-WORKER-PROVER",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
