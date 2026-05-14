@@ -11,6 +11,7 @@ type RecoveryPanelProps = {
   canRestoreBackup: boolean;
   canShowBackup: boolean;
   canVerifyRecordSource: boolean;
+  defaultOpen?: boolean;
   description: ReactNode;
   detailNotes: readonly ReactNode[];
   recordSourceImportText: string;
@@ -39,6 +40,7 @@ export function RecoveryPanel({
   canRestoreBackup,
   canShowBackup,
   canVerifyRecordSource,
+  defaultOpen = false,
   description,
   detailNotes,
   recordSourceImportText,
@@ -63,7 +65,7 @@ export function RecoveryPanel({
   const recoveryPanelStatusItems = statusItems;
 
   return (
-    <details className="recovery-panel">
+    <details className="recovery-panel" open={defaultOpen ? true : undefined}>
       <summary>
         <span>{summaryLabel}</span>
         <strong>{summaryValue}</strong>

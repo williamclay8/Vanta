@@ -10,11 +10,16 @@ const shieldPageSource = readFileSync(
   resolve(repoRoot, "src/pages/ShieldPage.tsx"),
   "utf8",
 );
+const recoveryPanelControllerSource = readFileSync(
+  resolve(repoRoot, "src/components/RecoveryPanelController.tsx"),
+  "utf8",
+);
 const recoveryPanelSource = readFileSync(
   resolve(repoRoot, "src/components/RecoveryPanel.tsx"),
   "utf8",
 );
 const styleSource = readFileSync(resolve(repoRoot, "src/styles.css"), "utf8");
+const recoveryProductSource = `${shieldPageSource}\n${recoveryPanelControllerSource}\n${recoveryPanelSource}`;
 
 const failures = [];
 
@@ -57,13 +62,13 @@ requireIncludes(
 
 requireIncludes(
   shieldPageSource,
-  "import { RecoveryPanel",
-  "ShieldPage must import the shared recovery panel.",
+  "import { RecoveryPanelController",
+  "ShieldPage must import the shared recovery panel controller.",
 );
 requireIncludes(
   shieldPageSource,
-  "<RecoveryPanel",
-  "ShieldPage must render the shared recovery panel.",
+  "<RecoveryPanelController",
+  "ShieldPage must render the shared recovery panel controller.",
 );
 requireIncludes(
   recoveryPanelSource,
@@ -71,37 +76,37 @@ requireIncludes(
   "RecoveryPanel must render a stable viewing-key custody container.",
 );
 requireIncludes(
-  shieldPageSource,
+  recoveryProductSource,
   "Advanced shield settings",
   "ShieldPage must put recovery and route power controls behind Advanced shield settings.",
 );
 requireIncludes(
-  shieldPageSource,
+  recoveryProductSource,
   "Viewing key backup",
   "ShieldPage advanced settings must expose viewing-key backup status.",
 );
 requireIncludes(
-  shieldPageSource,
+  recoveryProductSource,
   "Decoy batch",
   "ShieldPage advanced settings must expose decoy-batch status.",
 );
 requireIncludes(
-  shieldPageSource,
+  recoveryProductSource,
   "Custom route",
   "ShieldPage advanced settings must expose custom-route status.",
 );
 requireIncludes(
-  shieldPageSource,
+  recoveryPanelControllerSource,
   "setViewingKeyBackupText(viewingKey.exportText);",
   "ShieldPage must let users export a viewing-key backup.",
 );
 requireIncludes(
-  shieldPageSource,
+  recoveryPanelControllerSource,
   "viewingKey.importText(viewingKeyImportText);",
   "ShieldPage must let users restore an exported viewing key.",
 );
 requireIncludes(
-  shieldPageSource,
+  recoveryPanelControllerSource,
   "viewingKey.reset();",
   "ShieldPage must let users rotate the local viewing key.",
 );

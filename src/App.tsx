@@ -47,6 +47,11 @@ const PayPage = lazy(() => import("@/pages/PayPage").then((m) => ({ default: m.P
 const LaunchPage = lazy(() =>
   import("@/pages/LaunchPage").then((m) => ({ default: m.LaunchPage })),
 );
+const RecoverySettingsPage = lazy(() =>
+  import("@/pages/RecoverySettingsPage").then((m) => ({
+    default: m.RecoverySettingsPage,
+  })),
+);
 const PrivacyReviewPage = lazy(() =>
   import("@/pages/PrivacyReviewPage").then((m) => ({ default: m.PrivacyReviewPage })),
 );
@@ -81,6 +86,7 @@ function App() {
             <Route path="unshield" element={<UnshieldPage />} />
             <Route path="pay" element={<PayPage />} />
             <Route path="launch" element={<LaunchPage />} />
+            <Route path="settings/recovery" element={<RecoverySettingsPage />} />
             <Route path="privacy-review" element={<PrivacyReviewPage />} />
             <Route path="actual-private-settlement" element={<ActualPrivateSettlementPage />} />
             <Route path="*" element={<NotFoundPage surface="app" />} />

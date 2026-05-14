@@ -15,6 +15,8 @@ const lineagePanelPath = resolve(
   "src/components/InternalCanonicalLifecycleLineageBranchPanel.tsx",
 );
 const shieldPagePath = resolve(repoRoot, "src/pages/ShieldPage.tsx");
+const recoveryPanelControllerPath = resolve(repoRoot, "src/components/RecoveryPanelController.tsx");
+const recoverySettingsPagePath = resolve(repoRoot, "src/pages/RecoverySettingsPage.tsx");
 const packagePath = resolve(repoRoot, "package.json");
 
 function read(path) {
@@ -62,6 +64,9 @@ const liveSwapBridgeSource = read(liveSwapBridgePath);
 const liveLifecycleInspectionSource = read(liveLifecycleInspectionPath);
 const lineagePanelSource = read(lineagePanelPath);
 const shieldPageSource = read(shieldPagePath);
+const recoveryPanelControllerSource = read(recoveryPanelControllerPath);
+const recoverySettingsPageSource = read(recoverySettingsPagePath);
+const recoveryProductSource = `${shieldPageSource}\n${recoveryPanelControllerSource}\n${recoverySettingsPageSource}`;
 const packageJson = JSON.parse(read(packagePath));
 
 for (const marker of [
@@ -99,8 +104,8 @@ assert.ok(
   "Lifecycle branch panel must show owner recovery evidence instead of a bare owner hint.",
 );
 assert.ok(
-  shieldPageSource.includes("Owner recovery evidence") &&
-    shieldPageSource.includes("legacy local-only"),
+  recoveryProductSource.includes("Owner recovery evidence") &&
+    recoveryProductSource.includes("legacy local-only"),
   "Shield balance recovery panel must explain owner recovery evidence and legacy local-only records.",
 );
 

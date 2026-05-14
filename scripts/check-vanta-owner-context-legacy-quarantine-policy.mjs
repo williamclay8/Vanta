@@ -9,6 +9,8 @@ const repoRoot = resolve(import.meta.dirname, "..");
 const policyPath = resolve(repoRoot, "src/zk/ownerContextLegacyQuarantinePolicy.ts");
 const importPath = resolve(repoRoot, "src/zk/ownerContextRecordSourceImport.ts");
 const shieldPagePath = resolve(repoRoot, "src/pages/ShieldPage.tsx");
+const recoveryPanelControllerPath = resolve(repoRoot, "src/components/RecoveryPanelController.tsx");
+const recoverySettingsPagePath = resolve(repoRoot, "src/pages/RecoverySettingsPage.tsx");
 const packagePath = resolve(repoRoot, "package.json");
 
 function read(path) {
@@ -58,6 +60,9 @@ assert.ok(
 const policySource = read(policyPath);
 const importSource = read(importPath);
 const shieldPageSource = read(shieldPagePath);
+const recoveryPanelControllerSource = read(recoveryPanelControllerPath);
+const recoverySettingsPageSource = read(recoverySettingsPagePath);
+const recoveryProductSource = `${shieldPageSource}\n${recoveryPanelControllerSource}\n${recoverySettingsPageSource}`;
 const packageJson = JSON.parse(read(packagePath));
 
 for (const marker of [
@@ -93,7 +98,7 @@ for (const marker of [
   "does not promote legacy records",
 ]) {
   assert.ok(
-    shieldPageSource.includes(marker),
+    recoveryProductSource.includes(marker),
     `Shield recovery UI must expose the legacy quarantine marker: ${marker}`,
   );
 }

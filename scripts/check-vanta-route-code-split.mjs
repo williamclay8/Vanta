@@ -18,6 +18,7 @@ const staticAppPageImports = [
   "@/pages/LaunchPage",
   "@/pages/PayPage",
   "@/pages/PrivacyReviewPage",
+  "@/pages/RecoverySettingsPage",
   "@/pages/SendPage",
   "@/pages/ShieldPage",
   "@/pages/StrategyPage",

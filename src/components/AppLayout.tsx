@@ -23,6 +23,7 @@ const appLinks = [
 const moreAppLinks = [
   { to: "/app/pay", label: "Pay", action: "Get paid", end: false },
   { to: "/app/strategy", label: "Strategy", action: "Plan trades", end: false },
+  { to: "/app/settings/recovery", label: "Recovery", action: "Keys & records", end: false },
   { to: "/app/launch", label: "Launch", action: "Coming soon", end: false },
 ];
 

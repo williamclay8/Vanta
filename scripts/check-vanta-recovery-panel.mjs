@@ -12,6 +12,7 @@ const componentPath = resolve(repoRoot, "src/components/RecoveryPanel.tsx");
 assert.ok(existsSync(componentPath), "Shared RecoveryPanel component must exist.");
 
 const componentSource = readFileSync(componentPath, "utf8");
+const controllerSource = readRepoFile("src/components/RecoveryPanelController.tsx");
 const shieldPageSource = readRepoFile("src/pages/ShieldPage.tsx");
 const stylesSource = readRepoFile("src/styles.css");
 const packageJson = JSON.parse(readRepoFile("package.json"));
@@ -32,7 +33,15 @@ for (const marker of [
 }
 
 for (const marker of [
-  "import { RecoveryPanel",
+  "import { RecoveryPanelController",
+  "<RecoveryPanelController",
+  "viewingKeyControls={viewingKey}",
+]) {
+  assert.ok(shieldPageSource.includes(marker), `ShieldPage missing RecoveryPanel controller marker: ${marker}`);
+}
+
+for (const marker of [
+  'from "@/components/RecoveryPanel"',
   "<RecoveryPanel",
   "ownerRecoveryEvidenceLabel",
   "recordSourceImportProofLabel",
@@ -43,7 +52,10 @@ for (const marker of [
   "viewingKey.importText(viewingKeyImportText);",
   "viewingKey.reset();",
 ]) {
-  assert.ok(shieldPageSource.includes(marker), `ShieldPage missing RecoveryPanel marker: ${marker}`);
+  assert.ok(
+    controllerSource.includes(marker),
+    `RecoveryPanelController missing RecoveryPanel marker: ${marker}`,
+  );
 }
 
 for (const legacyMarker of [

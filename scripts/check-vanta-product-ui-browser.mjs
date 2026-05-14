@@ -421,6 +421,78 @@ function assertShieldRecoveryPanelDisclosure() {
   }
 }
 
+function assertRecoverySettingsRoute() {
+  for (const width of [1440, 390, 320]) {
+    execFileSync(
+      "gsd-browser",
+      ["--session", browserSession, "set-viewport", "--width", String(width), "--height", "1000"],
+      {
+        stdio: "ignore",
+      },
+    );
+    execFileSync(
+      "gsd-browser",
+      ["--session", browserSession, "navigate", `${baseUrl}/app/settings/recovery`],
+      {
+        stdio: "ignore",
+      },
+    );
+    execFileSync("gsd-browser", ["--session", browserSession, "wait-for", "--condition", "network_idle"], {
+      stdio: "ignore",
+    });
+
+    const rawResult = execFileSync(
+      "gsd-browser",
+      [
+        "--session",
+        browserSession,
+        "--json",
+        "eval",
+        `(() => {
+          const route = document.querySelector("[data-vanta-recovery-settings-route]");
+          const panel = document.querySelector(".recovery-panel");
+          const moreTrigger = document.querySelector(".app-header__more > button");
+          const routeText = route?.textContent ?? "";
+          const panelText = panel?.textContent ?? "";
+          const documentOverflow =
+            Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) -
+            window.innerWidth;
+
+          return {
+            ok:
+              route instanceof HTMLElement &&
+              panel instanceof HTMLDetailsElement &&
+              panel.open &&
+              moreTrigger instanceof HTMLButtonElement &&
+              moreTrigger.textContent?.includes("Recovery") &&
+              routeText.includes("Recovery settings") &&
+              routeText.includes("Beta recovery boundary") &&
+              routeText.includes("do not enable production-private recovery") &&
+              panelText.includes("Viewing key backup") &&
+              panelText.includes("Owner recovery evidence") &&
+              panelText.includes("Record source packet") &&
+              panelText.includes("Restore on this browser") &&
+              documentOverflow <= 2,
+            documentOverflow,
+            moreText: moreTrigger?.textContent ?? "",
+            panelOpen: panel instanceof HTMLDetailsElement ? panel.open : null,
+            routeText,
+            width: window.innerWidth,
+          };
+        })()`,
+      ],
+      { encoding: "utf8" },
+    );
+    const result = JSON.parse(rawResult);
+    const rawValue = result.result ?? result.value ?? result;
+    const value = typeof rawValue === "string" ? JSON.parse(rawValue) : rawValue;
+
+    if (!value.ok) {
+      throw new Error(`Recovery settings route failed browser assertion: ${JSON.stringify(value)}`);
+    }
+  }
+}
+
 function assertPayTransactionStatusToast() {
   for (const width of [1440, 390, 320]) {
     execFileSync(
@@ -1673,6 +1745,7 @@ try {
   runBrowserBatchWithRetry();
   assertSendWorkspaceCardCentered();
   assertShieldRecoveryPanelDisclosure();
+  assertRecoverySettingsRoute();
   assertPayTransactionStatusToast();
   assertSwapQuoteCountdownBar();
   assertSendRecipientValidation();

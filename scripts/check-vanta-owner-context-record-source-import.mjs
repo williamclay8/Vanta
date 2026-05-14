@@ -10,6 +10,8 @@ const helperPath = resolve(repoRoot, "src/zk/ownerContextRecordSourceImport.ts")
 const ownerKeyHierarchyPath = resolve(repoRoot, "src/zk/ownerKeyHierarchy.ts");
 const shieldPagePath = resolve(repoRoot, "src/pages/ShieldPage.tsx");
 const recoveryPanelPath = resolve(repoRoot, "src/components/RecoveryPanel.tsx");
+const recoveryPanelControllerPath = resolve(repoRoot, "src/components/RecoveryPanelController.tsx");
+const recoverySettingsPagePath = resolve(repoRoot, "src/pages/RecoverySettingsPage.tsx");
 const packagePath = resolve(repoRoot, "package.json");
 
 function ownerEvidenceHash(domain, value) {
@@ -88,7 +90,9 @@ assert.ok(
 const helperSource = read(helperPath);
 const shieldPageSource = read(shieldPagePath);
 const recoveryPanelSource = read(recoveryPanelPath);
-const productRecoverySource = `${shieldPageSource}\n${recoveryPanelSource}`;
+const recoveryPanelControllerSource = read(recoveryPanelControllerPath);
+const recoverySettingsPageSource = read(recoverySettingsPagePath);
+const productRecoverySource = `${shieldPageSource}\n${recoveryPanelControllerSource}\n${recoveryPanelSource}\n${recoverySettingsPageSource}`;
 const packageJson = JSON.parse(read(packagePath));
 
 for (const marker of [
@@ -114,9 +118,9 @@ for (const marker of [
 }
 
 assert.ok(
-  shieldPageSource.includes("Record source import proof") &&
-    shieldPageSource.includes("second device") &&
-    shieldPageSource.includes("legacy local-only"),
+  productRecoverySource.includes("Record source import proof") &&
+    productRecoverySource.includes("second device") &&
+    productRecoverySource.includes("legacy local-only"),
   "Shield balance recovery panel must explain the record source import proof and second-device boundary.",
 );
 for (const marker of [

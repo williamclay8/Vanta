@@ -7271,6 +7271,20 @@ input {
   padding: 10px;
 }
 
+.recovery-settings-page {
+  padding-top: 12px;
+}
+
+.recovery-settings-page__layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.recovery-settings-page__workspace {
+  max-width: 920px;
+  justify-self: center;
+  width: 100%;
+}
+
 .percent-row {
   display: flex;
   flex-wrap: wrap;
@@ -8256,6 +8270,7 @@ input {
   .app-content > .swap-page,
   .app-content > .pay-page,
   .app-content > .unshield-page,
+  .app-content > .recovery-settings-page,
   .app-content > .privacy-review-page {
     animation: vanta-page-enter 320ms var(--ease-out) both;
   }
