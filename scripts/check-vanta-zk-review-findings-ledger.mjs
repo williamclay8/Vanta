@@ -795,6 +795,55 @@ for (const phrase of [
   );
 }
 
+const c01PositiveProofVerifiedClaimGateLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-14-C01-POSITIVE-PROOF-VERIFIED-CLAIM-GATE";
+assert(
+  activeFeedbackLoopIds.has(c01PositiveProofVerifiedClaimGateLoopId),
+  `${c01PositiveProofVerifiedClaimGateLoopId} active feedback loop is missing`,
+);
+const c01PositiveProofVerifiedClaimGateLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === c01PositiveProofVerifiedClaimGateLoopId,
+);
+const c01PositiveProofVerifiedClaimGateLoopText = JSON.stringify(c01PositiveProofVerifiedClaimGateLoop);
+for (const command of [
+  "npm run zk:c01-positive-proof-verified-claim-gate-check",
+  "npm run privacy-audit:tracker-check",
+  "npm run audit:package-check",
+  "npm run public:audit-discovery-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run zk:feedback-loop-check",
+  "npm run zk:c01-production-verifier-backend-candidate-check",
+  "npm run zk:c01-verifier-adapter-test-candidate-check",
+  "npm run zk:c01-onchain-proof-boundary-check",
+  "git diff --check",
+]) {
+  assert(
+    c01PositiveProofVerifiedClaimGateLoop?.localVerification?.includes(command),
+    `${c01PositiveProofVerifiedClaimGateLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "ops/mainnet/private-pool-v2-c01-positive-proof-verified-claim-gate.evidence.json",
+  "blocked-no-tag3-valid-proof-success",
+  "proofVerifiedClaimAllowed",
+  "proofVerifiedSpendClaimAllowed",
+  "valid-proof success",
+  "accepted-proof mutation",
+  "invalid-proof no-mutation",
+  "wrong-public-input no-mutation",
+  "wrong-verifying-key no-mutation",
+  "SBF/live lineage",
+  "audit/reviewer acceptance",
+  "not tag-3 valid-proof success evidence",
+  "not proof-verified spend evidence",
+  "d5a5ba3",
+]) {
+  assert(
+    c01PositiveProofVerifiedClaimGateLoopText.includes(phrase),
+    `${c01PositiveProofVerifiedClaimGateLoopId} must record ${phrase}`,
+  );
+}
+
 const copyClaimBoundaryLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-COPY-CLAIM-BOUNDARY";
 assert(activeFeedbackLoopIds.has(copyClaimBoundaryLoopId), `${copyClaimBoundaryLoopId} active feedback loop is missing`);
 const copyClaimBoundaryLoop = ledger.activeFeedbackLoops.find((loop) => loop.id === copyClaimBoundaryLoopId);

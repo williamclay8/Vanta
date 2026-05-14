@@ -404,6 +404,43 @@
       "truthBoundary": "This is a blocked verifier adapter acceptance-test candidate packet only. It records that verifier adapter acceptance, private-spend public-input hash binding, valid-proof mutation, invalid-proof no-mutation, wrong-public-input-hash no-mutation, and wrong-verifying-key no-mutation evidence are absent. It is not backend selection, not verifier-adapter acceptance or proof acceptance evidence, not production proof-format evidence, not production verifying-key evidence, not tag-3 proof acceptance, not on-chain proof verification, not SBF/live redeploy or reinit evidence, not audit acceptance, not production-private readiness, and not real-funds readiness."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-14-C01-POSITIVE-PROOF-VERIFIED-CLAIM-GATE",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#1-the-on-chain-solana-program-does-not-verify-proofs-at-all",
+        "docs/zk/c01-production-verifier-backend-decision.md",
+        "docs/audit-package.md",
+        "public/.well-known/vanta-audit.json",
+        "ops/mainnet/private-pool-v2-c01-positive-proof-verified-claim-gate.evidence.json",
+        "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+        "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+        "scripts/check-vanta-private-pool-v2-c01-positive-proof-verified-claim-gate.mjs",
+        "npm run zk:c01-positive-proof-verified-claim-gate-check"
+      ],
+      "summary": "C01 now has a dedicated positive proof-verified claim gate packet with status blocked-no-tag3-valid-proof-success. The packet keeps proofVerifiedClaimAllowed and proofVerifiedSpendClaimAllowed false until tag 3 has backend selection, production proof-format evidence, production verifying-key-hash evidence, verifier-adapter evidence, private-spend public-input hash binding, valid-proof success, accepted-proof mutation, invalid-proof no-mutation, wrong-public-input no-mutation, wrong-verifying-key no-mutation, SBF/live lineage, and audit/reviewer acceptance.",
+      "localVerification": [
+        "red-first npm run zk:c01-positive-proof-verified-claim-gate-check failed while the blocked evidence packet was missing",
+        "npm run zk:c01-positive-proof-verified-claim-gate-check",
+        "npm run privacy-audit:tracker-check",
+        "npm run audit:package-check",
+        "npm run public:audit-discovery-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run zk:feedback-loop-check",
+        "npm run zk:c01-production-verifier-backend-candidate-check",
+        "npm run zk:c01-verifier-adapter-test-candidate-check",
+        "npm run zk:c01-onchain-proof-boundary-check",
+        "git diff --check",
+        "git diff --cached --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the blocked R16 positive proof-verified claim gate packet, public audit discovery, audit package, privacy-audit tracker, truth privacy-claim gate, C01 candidate/adapter/on-chain boundary guards, feedback-loop guard, and diff whitespace checks",
+        "committed": "d5a5ba3 (Add proof verified claim gate)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a local fail-closed claim gate only. It is not tag-3 valid-proof success evidence, not proof-verified spend evidence, not on-chain proof verification, not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not SBF/live lineage, not audit acceptance, not production-private readiness, and not real-funds readiness."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-H08-LOCAL-BB-FIXTURE-LANE-COMPLETENESS",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
