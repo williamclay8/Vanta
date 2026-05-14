@@ -38,7 +38,7 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 | Anonymity-set volume | A6 / R11 | Blocked | Live distinct commitments remain below threshold |
 | Live anonymity-set probe | R11A | Local implemented, live-read verified | `npm run private-pool-v2:live-anonymity-set-probe-check` observed live depth `2 / 1024` and fail-closed claim flags |
 | Legacy v1 plaintext memo quarantine | R12 | Pending design | Must quarantine or migrate before privacy claims |
-| Live meta-description scrape | R13A | Pending implementation | Needs a live crawler-copy scrape gate after deploy approval or public evidence |
+| Live meta-description scrape | R13A | Local implemented, live-read verified | `npm run public:live-meta-description-check` observed the beta-safe crawler description on `https://vantaprivacy.xyz` |
 | Argon2id vault KDF migration | R14 | Pending implementation | PBKDF2 v2 remains current quick-fix |
 | Operator keypair env lockdown | R15 | Local implemented with A2 exception | Pay, Swap auth, Jupiter local-only signer policy, and rebalance-related operator files are guarded; Unshield vault signer remains tracked under A2 |
 | Operator keypair env lockdown guard | R15A | Local implemented | `npm run operator:keypair-env-lockdown-check` scans operator raw keypair env loading and keeps exceptions explicit |

@@ -429,8 +429,12 @@ audit_remaining_work_backlog:
     source_priority: medium
     source_item: "Add a live vantaprivacy.xyz/index.html meta-description scrape gate so crawler copy cannot regress post-deploy."
     tracker_ref: "N3"
-    status: pending-implementation
-    guard: "live website scrape after deployment approval or public evidence bundle"
+    status: local-implemented-live-read-verified
+    guard: "npm run public:live-meta-description-check"
+    evidence:
+      - "scripts/check-vanta-live-meta-description.mjs fetches https://vantaprivacy.xyz by default and validates the crawler-visible meta description."
+      - "2026-05-14 local run observed: Vanta is alpha-stage zk research toward a Solana privacy layer. Not audited. Production privacy is not enabled; live anonymity set blocked. See /.well-known/vanta-audit.json."
+      - "The live guard rejects the old unqualified zk-powered privacy layer / private send / private swap / private payment flows copy."
   - id: R14-ARGON2ID-VAULT-KDF
     source_priority: medium
     source_item: "Migrate private vault password-derived material from PBKDF2 quick-fix to Argon2id."
@@ -498,8 +502,8 @@ audit_completion_checklist:
     - "N4 requires deploy/live approval and receipts."
     - "N5 requires hosted GitHub Actions green evidence."
     - "Architecture blockers A1-A6 remain incomplete or approval-gated."
-    - "R9A/R10A/R12/R13A/R14/R19/R20/R21 remain pending, blocked, or approval-gated."
+    - "R9A/R10A/R12/R14/R19/R20/R21 remain pending, blocked, or approval-gated."
 
 next_safe_slices:
-  - "Add focused tracker/guards or implementation for R12, R13A, R14, and R19."
+  - "Add focused tracker/guards or implementation for R12, R14, and R19."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."
