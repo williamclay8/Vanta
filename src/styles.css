@@ -5789,6 +5789,15 @@ input {
   gap: 14px;
 }
 
+.pay-receipt-packet-card__header small {
+  display: block;
+  margin-bottom: 5px;
+  color: rgba(236, 255, 252, 0.68);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .pay-receipt-packet-card__actions {
   display: flex;
   flex-wrap: wrap;
@@ -5852,6 +5861,20 @@ input {
   background:
     linear-gradient(135deg, rgba(119, 242, 212, 0.08), rgba(228, 199, 129, 0.04)),
     rgba(0, 0, 0, 0.18);
+}
+
+@media print {
+  .pay-receipt-packet-card {
+    break-inside: avoid;
+    color: #111827;
+    background: #ffffff;
+    box-shadow: none;
+  }
+
+  .pay-receipt-packet-card__actions,
+  .pay-receipt-packet-card::before {
+    display: none;
+  }
 }
 
 .pay-suite-plain-rows {

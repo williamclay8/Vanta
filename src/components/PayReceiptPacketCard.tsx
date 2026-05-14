@@ -6,6 +6,7 @@ import type {
 
 type PayReceiptPacketCardProps = {
   copied?: boolean;
+  merchantName: string;
   onCopyShareLink: () => void;
   privacyContract: VantaPayReceiptPrivacyContract;
   publicView: VantaPayReceiptPublicView;
@@ -21,6 +22,7 @@ function formatRedactedReference(
 
 export function PayReceiptPacketCard({
   copied = false,
+  merchantName,
   onCopyShareLink,
   privacyContract,
   publicView,
@@ -46,7 +48,8 @@ export function PayReceiptPacketCard({
       tabIndex={-1}
     >
       <div className="pay-receipt-packet-card__header">
-        <div>
+        <div data-vanta-pay-receipt-merchant>
+          <small>{merchantName}</small>
           <span>Receipt packet</span>
           <strong>Receipt packet ready</strong>
         </div>
@@ -66,12 +69,20 @@ export function PayReceiptPacketCard({
           >
             {copied ? "Share link copied" : "Copy share link"}
           </button>
+          <button
+            className="button button-ghost pay-receipt-packet-card__print"
+            data-pay-action="print-receipt-packet"
+            onClick={() => window.print()}
+            type="button"
+          >
+            Print receipt
+          </button>
         </div>
       </div>
 
-      <p className="pay-receipt-packet-card__boundary">
+      <p className="pay-receipt-packet-card__boundary" data-vanta-pay-receipt-printable>
         {privacyContract.currentTruth}; {privacyContract.claimSummary}. No production funds moved.
-        Test receipt only.
+        Test receipt only. Printable receipt packet for local review.
       </p>
 
       <div className="pay-receipt-packet-card__summary">
@@ -137,10 +148,10 @@ export function PayReceiptPacketCard({
         </div>
       </dl>
 
-      <div className="pay-receipt-packet-card__qr" data-vanta-pay-receipt-qr aria-label="Receipt packet QR">
-        <span>Receipt QR</span>
+      <div className="pay-receipt-packet-card__qr" data-vanta-pay-receipt-qr aria-label="Receipt packet QR preview">
+        <span>Receipt QR preview</span>
         <strong>{publicView.receiptId.slice(0, 12)}</strong>
-        <small>Redacted local test share packet</small>
+        <small>Redacted local test share packet: {shareHref}</small>
       </div>
     </section>
   );

@@ -58,10 +58,15 @@ const receiptPacketCardSource = requireMarkers("src/components/PayReceiptPacketC
   "Receipt packet ready",
   "Proof receipt ID",
   "Test receipt only.",
+  "Print receipt",
+  "Printable receipt packet",
   "publicView.verification.claimBoundary",
   "data-vanta-pay-receipt-packet-card",
   "data-vanta-pay-receipt-verify-link",
+  "data-vanta-pay-receipt-merchant",
+  "data-vanta-pay-receipt-printable",
   'data-pay-action="copy-receipt-share-link"',
+  'data-pay-action="print-receipt-packet"',
 ]);
 
 for (const banned of [

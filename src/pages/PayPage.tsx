@@ -767,6 +767,7 @@ export function PayPage() {
                 <div ref={receiptPacketRef} tabIndex={-1}>
                   <PayReceiptPacketCard
                     copied={receiptLinkCopied}
+                    merchantName={merchant.branding.name}
                     onCopyShareLink={copyReceiptShareLink}
                     privacyContract={receiptPrivacyContract}
                     publicView={receiptPublicView}
