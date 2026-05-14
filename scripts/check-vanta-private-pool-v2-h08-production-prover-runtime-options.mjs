@@ -223,10 +223,10 @@ assert(
   browserRuntime.proofBackendContract === "explicitly-accepted-production-browser-runtime",
   "browser-runtime option must require an explicit production browser runtime contract",
 );
-for (const target of ["send", "actual-private-spend"]) {
+for (const target of ["shield", "send", "actual-private-spend"]) {
   assert(browserRuntime.currentCoverage?.includes(target), `browser runtime must record current ${target} coverage`);
 }
-for (const target of ["shield", "claim", "swap-to-shielded"]) {
+for (const target of ["claim", "swap-to-shielded"]) {
   assert(
     !browserRuntime.currentCoverage?.includes(target),
     `browser runtime current coverage must not overclaim ${target}`,
@@ -309,6 +309,7 @@ for (const command of [
   "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
   "npm run private-pool-v2:browser-worker-prover-check",
   "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
+  "npm run private-pool-v2:shield-browser-worker-prover-check",
   "npm run private-pool-v2:proof-backend-boundary-check",
   "npm run zk:c01-verifier-backend-decision-check",
   "npm run zk:c01-verifier-backend-options-check",

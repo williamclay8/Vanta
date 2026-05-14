@@ -3,6 +3,8 @@ import {
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_RESPONSE,
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_MESSAGE,
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE,
+  VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_MESSAGE,
+  VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_RESPONSE,
   type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendCompressedWitnessPayload,
   type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
   type VantaPrivatePoolV2BrowserWorkerProverMessage,
@@ -10,10 +12,13 @@ import {
   type VantaPrivatePoolV2BrowserWorkerProverResponse,
   type VantaPrivatePoolV2BrowserWorkerSendCompressedWitnessPayload,
   type VantaPrivatePoolV2BrowserWorkerSendProverPayload,
+  type VantaPrivatePoolV2BrowserWorkerShieldCompressedWitnessPayload,
+  type VantaPrivatePoolV2BrowserWorkerShieldProverPayload,
 } from "./privatePoolV2BrowserProverProtocol";
 import type {
   VantaPrivatePoolV2ActualPrivateSpendProofArtifact,
   VantaPrivatePoolV2SendProofArtifact,
+  VantaPrivatePoolV2ShieldProofArtifact,
 } from "./privatePoolV2Types";
 
 export type VantaPrivatePoolV2BrowserProverClientArgs = {
@@ -28,6 +33,9 @@ export type VantaPrivatePoolV2BrowserProverClient = {
   proveSend(
     payload: VantaPrivatePoolV2BrowserWorkerSendProverPayload,
   ): Promise<VantaPrivatePoolV2SendProofArtifact>;
+  proveShield(
+    payload: VantaPrivatePoolV2BrowserWorkerShieldProverPayload,
+  ): Promise<VantaPrivatePoolV2ShieldProofArtifact>;
 };
 
 function createVantaPrivatePoolV2BrowserProverWorker() {
@@ -47,6 +55,7 @@ function hasCompressedWitnessPayload(
   payload: VantaPrivatePoolV2BrowserWorkerProverPayload,
 ): payload is
   | VantaPrivatePoolV2BrowserWorkerSendCompressedWitnessPayload
+  | VantaPrivatePoolV2BrowserWorkerShieldCompressedWitnessPayload
   | VantaPrivatePoolV2BrowserWorkerActualPrivateSpendCompressedWitnessPayload {
   return "compressedWitness" in payload && payload.compressedWitness !== undefined;
 }
@@ -95,14 +104,18 @@ function postWorkerProverRequest({
   payload: VantaPrivatePoolV2BrowserWorkerProverPayload;
   requestKind:
     | typeof VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_MESSAGE
+    | typeof VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_MESSAGE
     | typeof VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_MESSAGE;
   responseKind:
     | typeof VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE
+    | typeof VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_RESPONSE
     | typeof VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_RESPONSE;
   timeoutMs: number;
   workerFactory: () => Worker;
 }): Promise<
-  VantaPrivatePoolV2SendProofArtifact | VantaPrivatePoolV2ActualPrivateSpendProofArtifact
+  | VantaPrivatePoolV2SendProofArtifact
+  | VantaPrivatePoolV2ShieldProofArtifact
+  | VantaPrivatePoolV2ActualPrivateSpendProofArtifact
 > {
   const worker = workerFactory();
   const requestPayload = copyPayloadForTransfer(payload);
@@ -175,6 +188,15 @@ export function createVantaPrivatePoolV2BrowserProverClient({
         timeoutMs,
         workerFactory,
       }) as Promise<VantaPrivatePoolV2SendProofArtifact>;
+    },
+    proveShield(payload) {
+      return postWorkerProverRequest({
+        payload,
+        requestKind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_MESSAGE,
+        responseKind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_RESPONSE,
+        timeoutMs,
+        workerFactory,
+      }) as Promise<VantaPrivatePoolV2ShieldProofArtifact>;
     },
   };
 }

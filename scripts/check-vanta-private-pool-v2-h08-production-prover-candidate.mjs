@@ -386,8 +386,12 @@ assert(worker.liveRouting === false, "browser worker must not claim live routing
 for (const command of [
   "npm run private-pool-v2:browser-worker-prover-check",
   "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
+  "npm run private-pool-v2:shield-browser-worker-prover-check",
 ]) {
   assert(worker.guards?.includes(command), `browser worker guards missing ${command}`);
+}
+for (const target of ["shield", "send", "actual-private-spend"]) {
+  assert(worker.supportedTargets?.includes(target), `browser worker current coverage missing ${target}`);
 }
 assert(worker.satisfiesProductionProverEvidence === false, "browser worker path must not satisfy production evidence");
 
@@ -395,6 +399,9 @@ const adapter = observations.browserWorkerProofResultAdapter ?? {};
 assert(adapter.status === "opt-in-dev-only-proof-result-interface", "browser-worker adapter status mismatch");
 assert(adapter.implementsInterface === "VantaPrivatePoolV2Prover", "browser-worker adapter interface mismatch");
 assert(adapter.guard === "npm run private-pool-v2:browser-worker-proof-result-adapter-check", "browser-worker adapter guard mismatch");
+for (const target of ["shield", "send", "actual-private-spend"]) {
+  assert(adapter.supportedTargets?.includes(target), `browser-worker adapter current coverage missing ${target}`);
+}
 assert(adapter.requiresProofBackend === "local-bb-derived-artifact", "browser-worker adapter backend mismatch");
 assert(adapter.replacesDefaultLocalProver === false, "browser-worker adapter must not replace default local prover");
 assert(adapter.satisfiesProductionProverEvidence === false, "browser-worker adapter must not satisfy production evidence");

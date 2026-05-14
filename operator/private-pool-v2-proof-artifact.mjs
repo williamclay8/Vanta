@@ -26,6 +26,7 @@ const proofArtifactCircuitProfiles = {
     circuitDir: shieldCircuitDir,
     circuitName: shieldCircuitName,
     label: "Private Pool v2 Shield",
+    localProofBackends: ["local-bb-fixture-artifact", "local-bb-derived-artifact"],
     publicInputLabels: ["shield-public-input-hash"],
     verifiedPublicInputKey: "shieldPublicInputHash",
   },

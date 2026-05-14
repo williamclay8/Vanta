@@ -5,11 +5,16 @@ import { pathToFileURL } from "node:url";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const sendCircuitDir = resolve(repoRoot, "zk/noir/vanta_private_pool_v2_send_entry");
+const shieldCircuitDir = resolve(repoRoot, "zk/noir/vanta_private_pool_v2_shield_entry");
 const actualPrivateSpendCircuitDir = resolve(
   repoRoot,
   "zk/noir/vanta_private_pool_v2_actual_private_spend_entry",
 );
 const sendProofArtifactPath = resolve(sendCircuitDir, "target/vanta_private_pool_v2_send_entry.proof.json");
+const shieldProofArtifactPath = resolve(
+  shieldCircuitDir,
+  "target/vanta_private_pool_v2_shield_entry.proof.json",
+);
 const actualPrivateSpendProofArtifactPath = resolve(
   actualPrivateSpendCircuitDir,
   "target/vanta_private_pool_v2_actual_private_spend_entry.proof.json",
@@ -27,6 +32,7 @@ const sourceFiles = [
   "privatePoolV2MerkleFixtureHelpers.ts",
   "privatePoolV2ActualPrivateSpendCircuitFixture.ts",
   "privatePoolV2SendCircuitFixture.ts",
+  "privatePoolV2ShieldCircuitFixture.ts",
   "privatePoolV2BrowserProverProtocol.ts",
   "privatePoolV2BrowserProverClient.ts",
   "privatePoolV2LocalProver.ts",
@@ -227,6 +233,7 @@ try {
   }
 
   ensureProofArtifact(sendProofArtifactPath, "send");
+  ensureProofArtifact(shieldProofArtifactPath, "shield");
   ensureProofArtifact(actualPrivateSpendProofArtifactPath, "actual-private-spend");
 
   const [
@@ -235,11 +242,13 @@ try {
       VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROOF_RESULT_ADAPTER_SCHEME,
     },
     { createVantaPrivatePoolV2SendCircuitFixture },
+    { createVantaPrivatePoolV2ShieldCircuitFixture },
     { createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture },
     { createVantaPrivatePoolV2LocalProver },
   ] = await Promise.all([
     import(pathToFileURL(join(tempJsDir, "privatePoolV2BrowserWorkerProofResultAdapter.js")).href),
     import(pathToFileURL(join(tempJsDir, "privatePoolV2SendCircuitFixture.js")).href),
+    import(pathToFileURL(join(tempJsDir, "privatePoolV2ShieldCircuitFixture.js")).href),
     import(pathToFileURL(join(tempJsDir, "privatePoolV2ActualPrivateSpendCircuitFixture.js")).href),
     import(pathToFileURL(join(tempJsDir, "privatePoolV2LocalProver.js")).href),
   ]);
@@ -251,13 +260,19 @@ try {
   );
 
   const sendFixture = createVantaPrivatePoolV2SendCircuitFixture({ mode: "valid" });
+  const shieldFixture = createVantaPrivatePoolV2ShieldCircuitFixture({ mode: "valid" });
   const actualPrivateSpendFixture = createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture({
     mode: "valid",
   });
   const sendArtifact = readArtifact(sendProofArtifactPath);
+  const shieldArtifact = readArtifact(shieldProofArtifactPath);
   const actualPrivateSpendArtifact = readArtifact(actualPrivateSpendProofArtifactPath);
   const sendDerivedArtifact = {
     ...sendArtifact,
+    proofBackend: "local-bb-derived-artifact",
+  };
+  const shieldDerivedArtifact = {
+    ...shieldArtifact,
     proofBackend: "local-bb-derived-artifact",
   };
   const actualPrivateSpendDerivedArtifact = {
@@ -267,6 +282,10 @@ try {
   const sendPublicInputHash = normalizeFieldString(
     readCircuitPublicInput(sendFixture.proofRequest, "send-public-input-hash"),
     "send public input hash",
+  );
+  const shieldPublicInputHash = normalizeFieldString(
+    readCircuitPublicInput(shieldFixture.proofRequest, "shield-public-input-hash"),
+    "Shield public input hash",
   );
   const actualPrivateSpendPublicInputHash = normalizeFieldString(
     readCircuitPublicInput(
@@ -294,6 +313,10 @@ try {
     async proveSend(payload) {
       calls.push({ payload, target: "send" });
       return sendDerivedArtifact;
+    },
+    async proveShield(payload) {
+      calls.push({ payload, target: "shield" });
+      return shieldDerivedArtifact;
     },
   };
 
@@ -415,6 +438,71 @@ try {
   );
   assertProofResultHasNoWitnessMaterial(actualPrivateSpendProof);
 
+  const shieldAdapter = createVantaPrivatePoolV2BrowserWorkerProofResultAdapter({
+    client,
+    fixtureProofRequest: shieldFixture.proofRequest,
+    payload: {
+      circuit: "vanta_private_pool_v2_shield_entry",
+      compiledProgramBytecode: "fixture-bytecode",
+      compressedWitness: new Uint8Array([8, 9, 10]),
+      expectedPublicInputHash: shieldPublicInputHash,
+      proofRuntimeVersion: "fixture-bb",
+      target: "shield",
+    },
+    target: "shield",
+  });
+  const shieldProof = await shieldAdapter.prove(shieldFixture.proofRequest);
+  assert(calls.at(-1)?.target === "shield", "Shield adapter must call proveShield.");
+  assert(
+    calls.at(-1)?.payload.expectedPublicInputHash === shieldPublicInputHash,
+    "Shield adapter must bind shield-public-input-hash into the worker payload.",
+  );
+  assert(shieldProof.proofSystem === "noir-bb", "Shield adapter proof system must be noir-bb.");
+  assert(
+    shieldProof.proofBackend === "local-bb-derived-artifact",
+    "Shield adapter proof backend must be local-bb-derived-artifact.",
+  );
+  assertProofResultHasNoWitnessMaterial(shieldProof);
+  assert(
+    await shieldAdapter.verify?.({ proof: shieldProof, request: shieldFixture.proofRequest }),
+    "Shield adapter verify() must accept its own proof result.",
+  );
+  assert(
+    !(await shieldAdapter.verify?.({
+      proof: { ...shieldProof, proofBytes: tamperProofBytes(shieldProof.proofBytes) },
+      request: shieldFixture.proofRequest,
+    })),
+    "Shield adapter verify() must reject tampered proof bytes.",
+  );
+
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2BrowserWorkerProofResultAdapter({
+        client: {
+          async proveActualPrivateSpend() {
+            return actualPrivateSpendDerivedArtifact;
+          },
+          async proveSend() {
+            return sendDerivedArtifact;
+          },
+          async proveShield() {
+            return shieldArtifact;
+          },
+        },
+        fixtureProofRequest: shieldFixture.proofRequest,
+        payload: {
+          circuit: "vanta_private_pool_v2_shield_entry",
+          compiledProgramBytecode: "fixture-bytecode",
+          compressedWitness: new Uint8Array([7]),
+          expectedPublicInputHash: shieldPublicInputHash,
+          proofRuntimeVersion: "fixture-bb",
+          target: "shield",
+        },
+        target: "shield",
+      }).prove(shieldFixture.proofRequest),
+    "requires local-bb-derived-artifact evidence",
+  );
+
   await expectRejection(
     () =>
       createVantaPrivatePoolV2BrowserWorkerProofResultAdapter({
@@ -468,9 +556,9 @@ try {
           compiledProgramBytecode: "fixture-bytecode",
           compressedWitness: new Uint8Array([7]),
           proofRuntimeVersion: "fixture-bb",
-          target: "shield",
+          target: "claim",
         },
-        target: "shield",
+        target: "claim",
       }).prove(sendFixture.proofRequest),
     "unsupported target",
   );
@@ -504,6 +592,9 @@ try {
           },
           async proveSend() {
             throw new Error("owner_secret leaked");
+          },
+          async proveShield() {
+            throw new Error("shield witness leaked");
           },
         },
         fixtureProofRequest: sendFixture.proofRequest,

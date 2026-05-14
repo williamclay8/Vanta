@@ -38,6 +38,7 @@ const sourceFiles = [
   "privatePoolV2MerkleFixtureHelpers.ts",
   "privatePoolV2SendCircuitFixture.ts",
   "privatePoolV2ActualPrivateSpendCircuitFixture.ts",
+  "privatePoolV2ShieldCircuitFixture.ts",
   "privatePoolV2BrowserProverProtocol.ts",
   "privatePoolV2BrowserProverWorker.ts",
   "privatePoolV2BrowserProverClient.ts",

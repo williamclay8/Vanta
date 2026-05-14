@@ -213,7 +213,10 @@ const LOCAL_BB_FIXTURE_TARGET_CONFIGS = {
     versionPrefix: "vanta-private-pool-v2-send-proof-request-0.1:version",
   },
   shield: {
-    allowedProofBackends: [VANTA_PRIVATE_POOL_V2_LOCAL_BB_FIXTURE_PROOF_BACKEND],
+    allowedProofBackends: [
+      VANTA_PRIVATE_POOL_V2_LOCAL_BB_FIXTURE_PROOF_BACKEND,
+      VANTA_PRIVATE_POOL_V2_LOCAL_BB_DERIVED_PROOF_BACKEND,
+    ],
     circuit: "vanta_private_pool_v2_shield_entry",
     displayName: "Shield",
     intent: "shield",

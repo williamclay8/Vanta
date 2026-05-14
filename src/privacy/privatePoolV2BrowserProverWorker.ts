@@ -5,6 +5,8 @@ import {
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_RESPONSE,
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_MESSAGE,
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE,
+  VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_MESSAGE,
+  VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_RESPONSE,
   type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverMessage,
   type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
   type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverResponse,
@@ -14,6 +16,9 @@ import {
   type VantaPrivatePoolV2BrowserWorkerSendProverMessage,
   type VantaPrivatePoolV2BrowserWorkerSendProverPayload,
   type VantaPrivatePoolV2BrowserWorkerSendProverResponse,
+  type VantaPrivatePoolV2BrowserWorkerShieldProverMessage,
+  type VantaPrivatePoolV2BrowserWorkerShieldProverPayload,
+  type VantaPrivatePoolV2BrowserWorkerShieldProverResponse,
 } from "./privatePoolV2BrowserProverProtocol";
 import {
   createVantaPrivatePoolV2ActualPrivateSpendCircuitFixtureFromWitnessInput,
@@ -23,12 +28,18 @@ import {
   createVantaPrivatePoolV2SendCircuitFixtureFromWitnessInput,
   createVantaPrivatePoolV2SendCircuitNoirInputs,
 } from "./privatePoolV2SendCircuitFixture";
+import {
+  createVantaPrivatePoolV2ShieldCircuitFixtureFromWitnessInput,
+  createVantaPrivatePoolV2ShieldCircuitNoirInputs,
+} from "./privatePoolV2ShieldCircuitFixture";
 import type {
   VantaPrivatePoolV2ActualPrivateSpendProofArtifact,
   VantaPrivatePoolV2SendProofArtifact,
+  VantaPrivatePoolV2ShieldProofArtifact,
 } from "./privatePoolV2Types";
 
 const SEND_CIRCUIT = "vanta_private_pool_v2_send_entry" as const;
+const SHIELD_CIRCUIT = "vanta_private_pool_v2_shield_entry" as const;
 const ACTUAL_PRIVATE_SPEND_CIRCUIT =
   "vanta_private_pool_v2_actual_private_spend_entry" as const;
 const BN254_SCALAR_FIELD =
@@ -126,6 +137,34 @@ function assertSendPayload(payload: VantaPrivatePoolV2BrowserWorkerSendProverPay
   }
 }
 
+function assertShieldPayload(payload: VantaPrivatePoolV2BrowserWorkerShieldProverPayload) {
+  assert(payload.target === "shield", "Browser worker prover only supports Shield.");
+  assert(payload.circuit === SHIELD_CIRCUIT, "Browser worker prover requires the Shield circuit.");
+  assert(
+    typeof payload.compiledProgramBytecode === "string" &&
+      payload.compiledProgramBytecode.length > 0,
+    "Browser worker prover requires compiled ACIR bytecode.",
+  );
+  assert(
+    typeof payload.proofRuntimeVersion === "string" && payload.proofRuntimeVersion.length > 0,
+    "Browser worker prover requires the bb.js runtime version.",
+  );
+  if (payload.expectedPublicInputHash !== undefined) {
+    normalizeFieldString(payload.expectedPublicInputHash, "expected Shield public input hash");
+  }
+
+  const compressedWitnessProvided = hasCompressedWitness(payload);
+  const witnessInputProvided = hasWitnessInput(payload);
+  assert(
+    compressedWitnessProvided !== witnessInputProvided,
+    "Browser worker prover requires exactly one Shield witness source: compressedWitness or witnessInput.",
+  );
+
+  if (witnessInputProvided) {
+    assertCompiledProgramAbi(payload.compiledProgramAbi);
+  }
+}
+
 function assertActualPrivateSpendPayload(
   payload: VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
 ) {
@@ -179,6 +218,29 @@ async function generateSendCompressedWitness(
     payload.witnessInput,
   );
   const noirInputs = createVantaPrivatePoolV2SendCircuitNoirInputs(fixture);
+  const noir = new Noir({
+    abi: payload.compiledProgramAbi,
+    bytecode: payload.compiledProgramBytecode,
+  } as CompiledCircuit);
+  const { witness } = await noir.execute(noirInputs as InputMap);
+
+  return compressedWitnessBytes(witness);
+}
+
+async function generateShieldCompressedWitness(
+  payload: VantaPrivatePoolV2BrowserWorkerShieldProverPayload,
+) {
+  if (hasCompressedWitness(payload)) {
+    return compressedWitnessBytes(payload.compressedWitness);
+  }
+
+  assert(hasWitnessInput(payload), "Browser worker prover requires Shield witness input.");
+  assertCompiledProgramAbi(payload.compiledProgramAbi);
+
+  const fixture = createVantaPrivatePoolV2ShieldCircuitFixtureFromWitnessInput(
+    payload.witnessInput,
+  );
+  const noirInputs = createVantaPrivatePoolV2ShieldCircuitNoirInputs(fixture);
   const noir = new Noir({
     abi: payload.compiledProgramAbi,
     bytecode: payload.compiledProgramBytecode,
@@ -261,6 +323,53 @@ async function proveVantaPrivatePoolV2SendInBrowserWorkerImpl(
   }
 }
 
+async function proveVantaPrivatePoolV2ShieldInBrowserWorkerImpl(
+  payload: VantaPrivatePoolV2BrowserWorkerShieldProverPayload,
+): Promise<VantaPrivatePoolV2ShieldProofArtifact> {
+  assertShieldPayload(payload);
+  const compressedWitness = await generateShieldCompressedWitness(payload);
+  const api = await Barretenberg.new({ threads: 1 });
+
+  try {
+    const backend = new UltraHonkBackend(payload.compiledProgramBytecode, api);
+    const proofData = await backend.generateProof(compressedWitness);
+    const verified = await backend.verifyProof(proofData);
+    assert(verified, "Browser worker prover generated a proof that did not verify.");
+
+    const publicInputs = proofData.publicInputs.map((input) => String(input));
+    assert(publicInputs.length === 1, "Browser worker Shield proof must expose one public input.");
+    const publicInput = normalizeFieldString(publicInputs[0]!, "browser worker Shield public input");
+    if (payload.expectedPublicInputHash !== undefined) {
+      assert(
+        publicInput === normalizeFieldString(payload.expectedPublicInputHash, "expected Shield public input hash"),
+        "Browser worker Shield proof public input does not match the expected Shield public-input hash.",
+      );
+    }
+
+    const acirBytecodeHash = `sha256:${await sha256HexUtf8(payload.compiledProgramBytecode)}`;
+    const proofHex = bytesToHex(new Uint8Array(proofData.proof));
+
+    return {
+      acirBytecodeHash,
+      backend: "barretenberg-ultrahonk",
+      circuit: SHIELD_CIRCUIT,
+      proofBackend: "local-bb-derived-artifact",
+      proofHex,
+      proofRuntimePackage: "@aztec/bb.js",
+      proofRuntimeVersion: payload.proofRuntimeVersion,
+      proofSystem: "noir-bb",
+      publicInputCommitment: await proofArtifactPublicInputCommitment(publicInputs),
+      publicInputLabels: ["shield-public-input-hash"],
+      publicInputs,
+      verifyingKeyHash: acirBytecodeHash,
+      verifyingKeyHashKind: "local-acir-bytecode-hash-not-production-vk",
+      verifyingKeyId: `local-acir-bytecode:${SHIELD_CIRCUIT}:${acirBytecodeHash}`,
+    };
+  } finally {
+    await api.destroy();
+  }
+}
+
 async function proveVantaPrivatePoolV2ActualPrivateSpendInBrowserWorkerImpl(
   payload: VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
 ): Promise<VantaPrivatePoolV2ActualPrivateSpendProofArtifact> {
@@ -324,6 +433,12 @@ export function proveVantaPrivatePoolV2SendInBrowserWorker(
   return proveVantaPrivatePoolV2SendInBrowserWorkerImpl(payload);
 }
 
+export function proveVantaPrivatePoolV2ShieldInBrowserWorker(
+  payload: VantaPrivatePoolV2BrowserWorkerShieldProverPayload,
+): Promise<VantaPrivatePoolV2ShieldProofArtifact> {
+  return proveVantaPrivatePoolV2ShieldInBrowserWorkerImpl(payload);
+}
+
 export function proveVantaPrivatePoolV2ActualPrivateSpendInBrowserWorker(
   payload: VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
 ): Promise<VantaPrivatePoolV2ActualPrivateSpendProofArtifact> {
@@ -338,6 +453,10 @@ function browserWorkerErrorMessage({
   payload: VantaPrivatePoolV2BrowserWorkerProverPayload;
 }) {
   if (hasWitnessInput(payload)) {
+    if (payload.target === "shield") {
+      return "Private Pool v2 browser worker prover rejected the Shield witness input.";
+    }
+
     if (payload.target === "actual-private-spend") {
       return "Private Pool v2 browser worker prover rejected the actual-private-spend witness input.";
     }
@@ -385,6 +504,29 @@ if (isWorkerScope) {
             kind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE,
             ok: false,
           } satisfies VantaPrivatePoolV2BrowserWorkerSendProverResponse);
+        });
+
+      return;
+    }
+
+    if (message?.kind === VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_MESSAGE) {
+      const shieldMessage: VantaPrivatePoolV2BrowserWorkerShieldProverMessage = message;
+      void proveVantaPrivatePoolV2ShieldInBrowserWorker(shieldMessage.payload)
+        .then((artifact) => {
+          workerGlobal.postMessage!({
+            artifact,
+            id: shieldMessage.id,
+            kind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_RESPONSE,
+            ok: true,
+          } satisfies VantaPrivatePoolV2BrowserWorkerShieldProverResponse);
+        })
+        .catch((error: unknown) => {
+          workerGlobal.postMessage!({
+            error: browserWorkerErrorMessage({ error, payload: shieldMessage.payload }),
+            id: shieldMessage.id,
+            kind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_RESPONSE,
+            ok: false,
+          } satisfies VantaPrivatePoolV2BrowserWorkerShieldProverResponse);
         });
 
       return;

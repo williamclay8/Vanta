@@ -2,9 +2,11 @@ import type { CompiledCircuit } from "@noir-lang/noir_js";
 
 import type { VantaPrivatePoolV2ActualPrivateSpendCircuitWitnessInput } from "./privatePoolV2ActualPrivateSpendCircuitFixture";
 import type { VantaPrivatePoolV2SendCircuitWitnessInput } from "./privatePoolV2SendCircuitFixture";
+import type { VantaPrivatePoolV2ShieldCircuitWitnessInput } from "./privatePoolV2ShieldCircuitFixture";
 import type {
   VantaPrivatePoolV2ActualPrivateSpendProofArtifact,
   VantaPrivatePoolV2SendProofArtifact,
+  VantaPrivatePoolV2ShieldProofArtifact,
 } from "./privatePoolV2Types";
 
 export const VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVER_SCHEME =
@@ -13,6 +15,10 @@ export const VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_MESSAGE =
   "vanta-private-pool-v2-browser-worker-prove-send" as const;
 export const VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE =
   "vanta-private-pool-v2-browser-worker-prove-send-response" as const;
+export const VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_MESSAGE =
+  "vanta-private-pool-v2-browser-worker-prove-shield" as const;
+export const VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_RESPONSE =
+  "vanta-private-pool-v2-browser-worker-prove-shield-response" as const;
 export const VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_MESSAGE =
   "vanta-private-pool-v2-browser-worker-prove-actual-private-spend" as const;
 export const VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_ACTUAL_PRIVATE_SPEND_RESPONSE =
@@ -44,6 +50,32 @@ export type VantaPrivatePoolV2BrowserWorkerSendProverPayload =
   | VantaPrivatePoolV2BrowserWorkerSendCompressedWitnessPayload
   | VantaPrivatePoolV2BrowserWorkerSendWitnessInputPayload;
 
+export type VantaPrivatePoolV2BrowserWorkerShieldProverBasePayload = {
+  circuit: "vanta_private_pool_v2_shield_entry";
+  compiledProgramBytecode: string;
+  expectedPublicInputHash?: string;
+  proofRuntimeVersion: string;
+  target: "shield";
+};
+
+export type VantaPrivatePoolV2BrowserWorkerShieldCompressedWitnessPayload =
+  VantaPrivatePoolV2BrowserWorkerShieldProverBasePayload & {
+    compiledProgramAbi?: never;
+    compressedWitness: ArrayBuffer | Uint8Array;
+    witnessInput?: never;
+  };
+
+export type VantaPrivatePoolV2BrowserWorkerShieldWitnessInputPayload =
+  VantaPrivatePoolV2BrowserWorkerShieldProverBasePayload & {
+    compiledProgramAbi: CompiledCircuit["abi"];
+    compressedWitness?: never;
+    witnessInput: VantaPrivatePoolV2ShieldCircuitWitnessInput;
+  };
+
+export type VantaPrivatePoolV2BrowserWorkerShieldProverPayload =
+  | VantaPrivatePoolV2BrowserWorkerShieldCompressedWitnessPayload
+  | VantaPrivatePoolV2BrowserWorkerShieldWitnessInputPayload;
+
 export type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverBasePayload = {
   circuit: "vanta_private_pool_v2_actual_private_spend_entry";
   compiledProgramBytecode: string;
@@ -72,6 +104,7 @@ export type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload =
 
 export type VantaPrivatePoolV2BrowserWorkerProverPayload =
   | VantaPrivatePoolV2BrowserWorkerSendProverPayload
+  | VantaPrivatePoolV2BrowserWorkerShieldProverPayload
   | VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload;
 
 export type VantaPrivatePoolV2BrowserWorkerSendProverMessage = {
@@ -91,6 +124,26 @@ export type VantaPrivatePoolV2BrowserWorkerSendProverResponse =
       error: string;
       id: string;
       kind: typeof VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE;
+      ok: false;
+    };
+
+export type VantaPrivatePoolV2BrowserWorkerShieldProverMessage = {
+  id: string;
+  kind: typeof VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_MESSAGE;
+  payload: VantaPrivatePoolV2BrowserWorkerShieldProverPayload;
+};
+
+export type VantaPrivatePoolV2BrowserWorkerShieldProverResponse =
+  | {
+      artifact: VantaPrivatePoolV2ShieldProofArtifact;
+      id: string;
+      kind: typeof VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_RESPONSE;
+      ok: true;
+    }
+  | {
+      error: string;
+      id: string;
+      kind: typeof VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_RESPONSE;
       ok: false;
     };
 
@@ -116,8 +169,10 @@ export type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverResponse =
 
 export type VantaPrivatePoolV2BrowserWorkerProverMessage =
   | VantaPrivatePoolV2BrowserWorkerSendProverMessage
+  | VantaPrivatePoolV2BrowserWorkerShieldProverMessage
   | VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverMessage;
 
 export type VantaPrivatePoolV2BrowserWorkerProverResponse =
   | VantaPrivatePoolV2BrowserWorkerSendProverResponse
+  | VantaPrivatePoolV2BrowserWorkerShieldProverResponse
   | VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverResponse;

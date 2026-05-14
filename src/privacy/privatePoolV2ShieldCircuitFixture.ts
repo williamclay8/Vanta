@@ -2,6 +2,7 @@ import { poseidon1, poseidon2, poseidon3, poseidon5, poseidon8 } from "poseidon-
 import {
   directionBitsForLeafIndex,
   emptyMerklePathForLeafIndex,
+  VANTA_PRIVATE_POOL_V2_CIRCUIT_MERKLE_DEPTH,
 } from "./privatePoolV2MerkleFixtureHelpers";
 import { createVantaPrivatePoolV2ShieldProofRequest } from "./privatePoolV2ProofRequests";
 import type {
@@ -37,6 +38,45 @@ export type VantaPrivatePoolV2ShieldCircuitFixture = {
   witness: VantaPrivatePoolV2ShieldCircuitWitness;
 };
 
+export type VantaPrivatePoolV2ShieldCircuitWitnessInput = {
+  amount: bigint | string;
+  append_path: readonly (bigint | string)[];
+  append_path_direction_bits: readonly (bigint | string)[];
+  economics_blinding: bigint | string;
+  economics_commitment: bigint | string;
+  leaf_index: bigint | string;
+  output_commitment: bigint | string;
+  output_root: bigint | string;
+  owner_commitment: bigint | string;
+  previous_root: bigint | string;
+  request_version: bigint | string;
+  route_commitment: bigint | string;
+  source_mint: bigint | string;
+  target_asset_id: bigint | string;
+  target_mint: bigint | string;
+  tree_id: bigint | string;
+};
+
+export type VantaPrivatePoolV2ShieldCircuitNoirInputs = {
+  amount: string;
+  append_path: string[];
+  append_path_direction_bits: string[];
+  economics_blinding: string;
+  economics_commitment: string;
+  leaf_index: string;
+  output_commitment: string;
+  output_root: string;
+  owner_commitment: string;
+  previous_root: string;
+  request_version: string;
+  route_commitment: string;
+  shield_public_input_hash: string;
+  source_mint: string;
+  target_asset_id: string;
+  target_mint: string;
+  tree_id: string;
+};
+
 export type VantaPrivatePoolV2ShieldCircuitFixtureMode =
   | "valid"
   | "forged-append-path"
@@ -44,6 +84,29 @@ export type VantaPrivatePoolV2ShieldCircuitFixtureMode =
   | "invalid-binding"
   | "invalid-root"
   | "invalid-amount-range";
+
+const SHIELD_WITNESS_FIELDS = [
+  "amount",
+  "append_path",
+  "append_path_direction_bits",
+  "economics_blinding",
+  "economics_commitment",
+  "leaf_index",
+  "output_commitment",
+  "output_root",
+  "owner_commitment",
+  "previous_root",
+  "request_version",
+  "route_commitment",
+  "source_mint",
+  "target_asset_id",
+  "target_mint",
+  "tree_id",
+] as const;
+
+const BN254_SCALAR_FIELD =
+  21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+const U128_MAX = (1n << 128n) - 1n;
 
 const DEFAULT_WITNESS_BASE = {
   amount: 1_000_000n,
@@ -88,6 +151,77 @@ const DEFAULT_WITNESS = {
 
 function toCircuitString(value: bigint) {
   return value.toString(10);
+}
+
+function assertRecord(value: unknown, label: string): asserts value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${label} must be an object.`);
+  }
+}
+
+function normalizeWitnessField(value: unknown, label: string) {
+  const parsed =
+    typeof value === "bigint"
+      ? value
+      : typeof value === "string" && (value === "0" || /^[1-9][0-9]*$/u.test(value))
+        ? BigInt(value)
+        : null;
+
+  if (parsed === null) {
+    throw new Error(`${label} must be a canonical decimal BN254 field string.`);
+  }
+
+  if (parsed < 0n || parsed >= BN254_SCALAR_FIELD) {
+    throw new Error(`${label} must fit in BN254.`);
+  }
+
+  return parsed;
+}
+
+function normalizeU128WitnessField(value: unknown, label: string) {
+  const parsed = normalizeWitnessField(value, label);
+  if (parsed > U128_MAX) {
+    throw new Error(`${label} must fit in u128.`);
+  }
+
+  return parsed;
+}
+
+function normalizeWitnessFieldArray(value: unknown, label: string) {
+  if (!Array.isArray(value)) {
+    throw new Error(`${label} must be an array.`);
+  }
+
+  if (value.length !== VANTA_PRIVATE_POOL_V2_CIRCUIT_MERKLE_DEPTH) {
+    throw new Error(
+      `${label} must contain ${VANTA_PRIVATE_POOL_V2_CIRCUIT_MERKLE_DEPTH} fields.`,
+    );
+  }
+
+  return value.map((entry, index) => normalizeWitnessField(entry, `${label}[${index}]`));
+}
+
+function assertNoUnexpectedWitnessFields(input: Record<string, unknown>) {
+  const allowed = new Set<string>(SHIELD_WITNESS_FIELDS);
+
+  for (const key of Object.keys(input)) {
+    if (!allowed.has(key)) {
+      throw new Error(`Shield witness input contains unexpected field ${key}.`);
+    }
+  }
+
+  for (const key of allowed) {
+    if (!(key in input)) {
+      throw new Error(`Shield witness input is missing ${key}.`);
+    }
+  }
+}
+
+function leafIndexFromDirectionBits(directionBits: readonly bigint[]) {
+  return directionBits.reduce(
+    (leafIndex, bit, index) => leafIndex + (bit << BigInt(index)),
+    0n,
+  );
 }
 
 function toTreeCommitment(
@@ -181,6 +315,82 @@ export function computeVantaPrivatePoolV2ShieldLegacyAppendRoot(
   return poseidon3([witness.previous_root, witness.output_commitment, witness.leaf_index]);
 }
 
+export function normalizeVantaPrivatePoolV2ShieldCircuitWitnessInput(
+  input: unknown,
+): VantaPrivatePoolV2ShieldCircuitWitness {
+  assertRecord(input, "Shield witness input");
+  assertNoUnexpectedWitnessFields(input);
+
+  const witness: VantaPrivatePoolV2ShieldCircuitWitness = {
+    amount: normalizeU128WitnessField(input.amount, "amount"),
+    append_path: normalizeWitnessFieldArray(input.append_path, "append_path"),
+    append_path_direction_bits: normalizeWitnessFieldArray(
+      input.append_path_direction_bits,
+      "append_path_direction_bits",
+    ),
+    economics_blinding: normalizeWitnessField(
+      input.economics_blinding,
+      "economics_blinding",
+    ),
+    economics_commitment: normalizeWitnessField(
+      input.economics_commitment,
+      "economics_commitment",
+    ),
+    leaf_index: normalizeWitnessField(input.leaf_index, "leaf_index"),
+    output_commitment: normalizeWitnessField(input.output_commitment, "output_commitment"),
+    output_root: normalizeWitnessField(input.output_root, "output_root"),
+    owner_commitment: normalizeWitnessField(input.owner_commitment, "owner_commitment"),
+    previous_root: normalizeWitnessField(input.previous_root, "previous_root"),
+    request_version: normalizeWitnessField(input.request_version, "request_version"),
+    route_commitment: normalizeWitnessField(input.route_commitment, "route_commitment"),
+    source_mint: normalizeWitnessField(input.source_mint, "source_mint"),
+    target_asset_id: normalizeWitnessField(input.target_asset_id, "target_asset_id"),
+    target_mint: normalizeWitnessField(input.target_mint, "target_mint"),
+    tree_id: normalizeWitnessField(input.tree_id, "tree_id"),
+  };
+
+  for (const [index, bit] of witness.append_path_direction_bits.entries()) {
+    if (bit !== 0n && bit !== 1n) {
+      throw new Error(`append_path_direction_bits[${index}] must be 0 or 1.`);
+    }
+  }
+
+  if (witness.leaf_index !== leafIndexFromDirectionBits(witness.append_path_direction_bits)) {
+    throw new Error("Shield witness leaf_index must match direction bits.");
+  }
+
+  if (
+    witness.previous_root !==
+    computeVantaPrivatePoolV2ShieldRootFromLeaf({
+      leaf_value: 0n,
+      path: witness.append_path,
+      pathDirectionBits: witness.append_path_direction_bits,
+    })
+  ) {
+    throw new Error("Shield witness previous_root must match the empty append path.");
+  }
+
+  if (
+    witness.output_root !==
+    computeVantaPrivatePoolV2ShieldRootFromLeaf({
+      leaf_value: witness.output_commitment,
+      path: witness.append_path,
+      pathDirectionBits: witness.append_path_direction_bits,
+    })
+  ) {
+    throw new Error("Shield witness output_root must match the output append path.");
+  }
+
+  if (
+    witness.economics_commitment !==
+    computeVantaPrivatePoolV2ShieldEconomicsCommitment(witness)
+  ) {
+    throw new Error("Shield witness economics_commitment must match the hidden economics fields.");
+  }
+
+  return witness;
+}
+
 export function createVantaPrivatePoolV2ShieldCircuitFixture({
   mode = "valid",
   witness = DEFAULT_WITNESS,
@@ -222,6 +432,38 @@ export function createVantaPrivatePoolV2ShieldCircuitFixture({
     proofRequest,
     shieldPublicInputHash: mode === "invalid-binding" ? validPublicHash + 1n : validPublicHash,
     witness: circuitWitness,
+  };
+}
+
+export function createVantaPrivatePoolV2ShieldCircuitFixtureFromWitnessInput(input: unknown) {
+  return createVantaPrivatePoolV2ShieldCircuitFixture({
+    witness: normalizeVantaPrivatePoolV2ShieldCircuitWitnessInput(input),
+  });
+}
+
+export function createVantaPrivatePoolV2ShieldCircuitNoirInputs(
+  fixture: VantaPrivatePoolV2ShieldCircuitFixture,
+): VantaPrivatePoolV2ShieldCircuitNoirInputs {
+  const { witness } = fixture;
+
+  return {
+    amount: toCircuitString(witness.amount),
+    append_path: witness.append_path.map(toCircuitString),
+    append_path_direction_bits: witness.append_path_direction_bits.map(toCircuitString),
+    economics_blinding: toCircuitString(witness.economics_blinding),
+    economics_commitment: toCircuitString(witness.economics_commitment),
+    leaf_index: toCircuitString(witness.leaf_index),
+    output_commitment: toCircuitString(witness.output_commitment),
+    output_root: toCircuitString(witness.output_root),
+    owner_commitment: toCircuitString(witness.owner_commitment),
+    previous_root: toCircuitString(witness.previous_root),
+    request_version: toCircuitString(witness.request_version),
+    route_commitment: toCircuitString(witness.route_commitment),
+    shield_public_input_hash: toCircuitString(fixture.shieldPublicInputHash),
+    source_mint: toCircuitString(witness.source_mint),
+    target_asset_id: toCircuitString(witness.target_asset_id),
+    target_mint: toCircuitString(witness.target_mint),
+    tree_id: toCircuitString(witness.tree_id),
   };
 }
 

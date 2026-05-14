@@ -7,6 +7,7 @@ import {
 import type {
   VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
   VantaPrivatePoolV2BrowserWorkerSendProverPayload,
+  VantaPrivatePoolV2BrowserWorkerShieldProverPayload,
 } from "./privatePoolV2BrowserProverProtocol";
 import {
   createVantaPrivatePoolV2LocalBbFixtureProver,
@@ -19,6 +20,7 @@ import type {
   VantaPrivatePoolV2Prover,
   VantaPrivatePoolV2Readiness,
   VantaPrivatePoolV2SendProofArtifact,
+  VantaPrivatePoolV2ShieldProofArtifact,
 } from "./privatePoolV2Types";
 
 export const VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROOF_RESULT_ADAPTER_SCHEME =
@@ -26,16 +28,19 @@ export const VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROOF_RESULT_ADAPTER_SCHEME =
 
 export type VantaPrivatePoolV2BrowserWorkerProofResultAdapterTarget =
   | "actual-private-spend"
-  | "send";
+  | "send"
+  | "shield";
 
 type VantaPrivatePoolV2BrowserWorkerProofResultAdapterPayloadByTarget = {
   "actual-private-spend": VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload;
   send: VantaPrivatePoolV2BrowserWorkerSendProverPayload;
+  shield: VantaPrivatePoolV2BrowserWorkerShieldProverPayload;
 };
 
 type VantaPrivatePoolV2BrowserWorkerProofResultAdapterArtifactByTarget = {
   "actual-private-spend": VantaPrivatePoolV2ActualPrivateSpendProofArtifact;
   send: VantaPrivatePoolV2SendProofArtifact;
+  shield: VantaPrivatePoolV2ShieldProofArtifact;
 };
 
 type VantaPrivatePoolV2BrowserWorkerProofResultAdapterTargetConfig = {
@@ -70,6 +75,12 @@ const TARGET_CONFIGS = {
     displayName: "Send",
     publicInputLabel: "send-public-input-hash",
     target: "send",
+  },
+  shield: {
+    circuit: "vanta_private_pool_v2_shield_entry",
+    displayName: "Shield",
+    publicInputLabel: "shield-public-input-hash",
+    target: "shield",
   },
 } as const satisfies Record<
   VantaPrivatePoolV2BrowserWorkerProofResultAdapterTarget,
@@ -150,7 +161,8 @@ function assertPayloadMatchesTarget({
   config: VantaPrivatePoolV2BrowserWorkerProofResultAdapterTargetConfig;
   payload:
     | VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload
-    | VantaPrivatePoolV2BrowserWorkerSendProverPayload;
+    | VantaPrivatePoolV2BrowserWorkerSendProverPayload
+    | VantaPrivatePoolV2BrowserWorkerShieldProverPayload;
 }) {
   if (payload.target !== config.target || payload.circuit !== config.circuit) {
     throw new Error(
@@ -168,7 +180,8 @@ function assertPayloadPublicInputHash({
   expected: string;
   payload:
     | VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload
-    | VantaPrivatePoolV2BrowserWorkerSendProverPayload;
+    | VantaPrivatePoolV2BrowserWorkerSendProverPayload
+    | VantaPrivatePoolV2BrowserWorkerShieldProverPayload;
 }) {
   if (
     payload.expectedPublicInputHash !== undefined &&
@@ -185,7 +198,10 @@ function assertDerivedArtifact({
   artifact,
   config,
 }: {
-  artifact: VantaPrivatePoolV2ActualPrivateSpendProofArtifact | VantaPrivatePoolV2SendProofArtifact;
+  artifact:
+    | VantaPrivatePoolV2ActualPrivateSpendProofArtifact
+    | VantaPrivatePoolV2SendProofArtifact
+    | VantaPrivatePoolV2ShieldProofArtifact;
   config: VantaPrivatePoolV2BrowserWorkerProofResultAdapterTargetConfig;
 }) {
   if (artifact.proofBackend !== VANTA_PRIVATE_POOL_V2_LOCAL_BB_DERIVED_PROOF_BACKEND) {
@@ -291,7 +307,7 @@ export class VantaPrivatePoolV2BrowserWorkerProofResultAdapter<
       blockers: [],
       ready: true,
       warnings: [
-        "Private Pool v2 browser-worker proof-result adapter is dev-only browser/Web Worker proof execution and local no-real-funds evidence. The default local prover remains mock / local-mock; this is not live Send routing, not routed live actual-private-spend execution, not a production browser runtime prover, not a production remote proof service, not on-chain proof verification, not production verifying-key evidence, not audit acceptance, not live deployment evidence, and not real-funds readiness.",
+        "Private Pool v2 browser-worker proof-result adapter is dev-only browser/Web Worker proof execution and local no-real-funds evidence. The default local prover remains mock / local-mock; this is not live Shield routing, not live Send routing, not routed live actual-private-spend execution, not a production browser runtime prover, not a production remote proof service, not on-chain proof verification, not production verifying-key evidence, not audit acceptance, not live deployment evidence, and not real-funds readiness.",
       ],
     };
   }
@@ -316,7 +332,11 @@ export class VantaPrivatePoolV2BrowserWorkerProofResultAdapter<
   #proveWithClient(
     config: VantaPrivatePoolV2BrowserWorkerProofResultAdapterTargetConfig,
     expectedPublicInputHashValue: string,
-  ): Promise<VantaPrivatePoolV2ActualPrivateSpendProofArtifact | VantaPrivatePoolV2SendProofArtifact> {
+  ): Promise<
+    | VantaPrivatePoolV2ActualPrivateSpendProofArtifact
+    | VantaPrivatePoolV2SendProofArtifact
+    | VantaPrivatePoolV2ShieldProofArtifact
+  > {
     if (config.target === "actual-private-spend") {
       return this.#client.proveActualPrivateSpend({
         ...this.#payload,
@@ -329,6 +349,13 @@ export class VantaPrivatePoolV2BrowserWorkerProofResultAdapter<
         ...this.#payload,
         expectedPublicInputHash: expectedPublicInputHashValue,
       } as VantaPrivatePoolV2BrowserWorkerSendProverPayload);
+    }
+
+    if (config.target === "shield") {
+      return this.#client.proveShield({
+        ...this.#payload,
+        expectedPublicInputHash: expectedPublicInputHashValue,
+      } as VantaPrivatePoolV2BrowserWorkerShieldProverPayload);
     }
 
     throw new Error("Private Pool v2 browser-worker proof-result adapter unsupported target.");

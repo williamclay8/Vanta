@@ -5,15 +5,17 @@ import { pathToFileURL } from "node:url";
 
 import {
   assertVantaPrivatePoolV2ProofArtifactHasNoWitnessMaterial,
-  verifyVantaPrivatePoolV2SendProofArtifact,
+  verifyVantaPrivatePoolV2ShieldProofArtifact,
 } from "../operator/private-pool-v2-proof-artifact.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
-const circuitDir = resolve(repoRoot, "zk/noir/vanta_private_pool_v2_send_entry");
-const compiledProgramPath = resolve(circuitDir, "target/vanta_private_pool_v2_send_entry.json");
-const witnessPath = resolve(circuitDir, "target/vanta_private_pool_v2_send_entry.gz");
-const proofArtifactPath = resolve(circuitDir, "target/vanta_private_pool_v2_send_entry.proof.json");
-const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-pool-v2-browser-worker-prover-"));
+const circuitDir = resolve(repoRoot, "zk/noir/vanta_private_pool_v2_shield_entry");
+const compiledProgramPath = resolve(circuitDir, "target/vanta_private_pool_v2_shield_entry.json");
+const witnessPath = resolve(circuitDir, "target/vanta_private_pool_v2_shield_entry.gz");
+const proofArtifactPath = resolve(circuitDir, "target/vanta_private_pool_v2_shield_entry.proof.json");
+const tempRoot = mkdtempSync(
+  resolve(repoRoot, ".tmp/vanta-private-pool-v2-shield-browser-worker-prover-"),
+);
 const tempTsDir = join(tempRoot, "ts");
 const tempJsDir = join(tempRoot, "js");
 
@@ -76,46 +78,27 @@ function normalizeFieldString(value, label) {
   return parsed.toString(10);
 }
 
-function sendWitnessInputFromFixture(fixture) {
+function shieldWitnessInputFromFixture(fixture) {
   const { witness } = fixture;
   const stringify = (value) => value.toString(10);
 
   return {
-    asset_id_commitment: stringify(witness.asset_id_commitment),
-    change_amount: stringify(witness.change_amount),
-    change_append_path: witness.change_append_path.map(stringify),
-    change_append_path_direction_bits: witness.change_append_path_direction_bits.map(stringify),
-    change_leaf_index: stringify(witness.change_leaf_index),
-    change_memo_ciphertext_body_hash: `sha256:${"22".repeat(32)}`,
-    change_memo_ciphertext_body_hash_field: stringify(
-      witness.change_memo_ciphertext_body_hash_field,
-    ),
-    change_output_commitment: stringify(witness.change_output_commitment),
-    change_output_root: stringify(witness.change_output_root),
+    amount: stringify(witness.amount),
+    append_path: witness.append_path.map(stringify),
+    append_path_direction_bits: witness.append_path_direction_bits.map(stringify),
     economics_blinding: stringify(witness.economics_blinding),
     economics_commitment: stringify(witness.economics_commitment),
-    input_amount: stringify(witness.input_amount),
-    input_commitment: stringify(witness.input_commitment),
-    input_leaf_index: stringify(witness.input_leaf_index),
-    input_root: stringify(witness.input_root),
-    membership_path: witness.membership_path.map(stringify),
-    membership_path_direction_bits: witness.membership_path_direction_bits.map(stringify),
-    nullifier: stringify(witness.nullifier),
+    leaf_index: stringify(witness.leaf_index),
+    output_commitment: stringify(witness.output_commitment),
+    output_root: stringify(witness.output_root),
     owner_commitment: stringify(witness.owner_commitment),
-    owner_secret: stringify(witness.owner_secret),
-    recipient_amount: stringify(witness.recipient_amount),
-    recipient_append_path: witness.recipient_append_path.map(stringify),
-    recipient_append_path_direction_bits:
-      witness.recipient_append_path_direction_bits.map(stringify),
-    recipient_leaf_index: stringify(witness.recipient_leaf_index),
-    recipient_memo_ciphertext_body_hash: `sha256:${"11".repeat(32)}`,
-    recipient_memo_ciphertext_body_hash_field: stringify(
-      witness.recipient_memo_ciphertext_body_hash_field,
-    ),
-    recipient_output_commitment: stringify(witness.recipient_output_commitment),
-    recipient_output_root: stringify(witness.recipient_output_root),
+    previous_root: stringify(witness.previous_root),
     request_version: stringify(witness.request_version),
-    send_context_tag: stringify(witness.send_context_tag),
+    route_commitment: stringify(witness.route_commitment),
+    source_mint: stringify(witness.source_mint),
+    target_asset_id: stringify(witness.target_asset_id),
+    target_mint: stringify(witness.target_mint),
+    tree_id: stringify(witness.tree_id),
   };
 }
 
@@ -196,21 +179,21 @@ async function waitForWorkerResponse(responses) {
 try {
   const packageJson = JSON.parse(read("package.json"));
   assert(
-    packageJson.scripts?.["private-pool-v2:browser-worker-prover-check"] ===
-      "node scripts/check-vanta-private-pool-v2-browser-worker-prover.mjs",
-    "package.json must expose private-pool-v2:browser-worker-prover-check.",
+    packageJson.scripts?.["private-pool-v2:shield-browser-worker-prover-check"] ===
+      "node scripts/check-vanta-private-pool-v2-shield-browser-worker-prover.mjs",
+    "package.json must expose private-pool-v2:shield-browser-worker-prover-check.",
   );
   assert(
     packageJson.scripts?.["private-pool-v2:local-prover-check"]?.includes(
-      "npm run private-pool-v2:browser-worker-prover-check",
+      "npm run private-pool-v2:shield-browser-worker-prover-check",
     ),
-    "private-pool-v2:local-prover-check must include the browser worker prover check.",
+    "private-pool-v2:local-prover-check must include the Shield browser worker prover check.",
   );
   assert(
     packageJson.scripts?.["private-pool-v2:proof-backend-boundary-check"]?.includes(
-      "npm run private-pool-v2:browser-worker-prover-check",
+      "npm run private-pool-v2:shield-browser-worker-prover-check",
     ),
-    "private-pool-v2:proof-backend-boundary-check must include the browser worker prover check.",
+    "private-pool-v2:proof-backend-boundary-check must include the Shield browser worker prover check.",
   );
 
   const protocolSource = read("src/privacy/privatePoolV2BrowserProverProtocol.ts");
@@ -227,60 +210,52 @@ try {
       read("src/privacy/privatePoolV2MerkleFixtureHelpers.ts"),
     ],
     [
-      "src/privacy/privatePoolV2SendCircuitFixture.ts",
-      read("src/privacy/privatePoolV2SendCircuitFixture.ts"),
-    ],
-    [
-      "src/privacy/privatePoolV2ActualPrivateSpendCircuitFixture.ts",
-      read("src/privacy/privatePoolV2ActualPrivateSpendCircuitFixture.ts"),
+      "src/privacy/privatePoolV2ShieldCircuitFixture.ts",
+      read("src/privacy/privatePoolV2ShieldCircuitFixture.ts"),
     ],
   ]) {
     assertBrowserSafeSource(relativePath, source);
   }
 
-  assert(workerSource.includes("@aztec/bb.js"), "worker must use @aztec/bb.js.");
-  assert(workerSource.includes("@noir-lang/noir_js"), "worker must use NoirJS for witness generation.");
-  assert(workerSource.includes("new Noir"), "worker must execute NoirJS in the worker.");
-  assert(workerSource.includes(".execute("), "worker must call NoirJS execute for witness inputs.");
   assert(
-    workerSource.includes("createVantaPrivatePoolV2SendCircuitFixtureFromWitnessInput"),
-    "worker must normalize Send witness input through the typed fixture builder.",
+    protocolSource.includes("VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_MESSAGE"),
+    "protocol must define the Shield browser worker request kind.",
   );
   assert(
-    workerSource.includes("createVantaPrivatePoolV2SendCircuitNoirInputs"),
-    "worker must derive Send Noir inputs from the normalized fixture.",
+    protocolSource.includes("VantaPrivatePoolV2BrowserWorkerShieldProverPayload"),
+    "protocol must define a Shield browser worker payload.",
+  );
+  assert(workerSource.includes("SHIELD_CIRCUIT"), "worker must pin the Shield circuit name.");
+  assert(
+    workerSource.includes("createVantaPrivatePoolV2ShieldCircuitFixtureFromWitnessInput"),
+    "worker must normalize Shield witness input through the typed fixture builder.",
   );
   assert(
-    workerSource.includes("requires exactly one Send witness source"),
-    "worker must reject ambiguous compressedWitness/witnessInput payloads.",
+    workerSource.includes("createVantaPrivatePoolV2ShieldCircuitNoirInputs"),
+    "worker must derive Shield Noir inputs from the normalized fixture.",
   );
   assert(
-    workerSource.includes("browserWorkerErrorMessage"),
-    "worker must sanitize witness-input errors before posting responses.",
+    workerSource.includes("requires exactly one Shield witness source"),
+    "worker must reject ambiguous Shield compressedWitness/witnessInput payloads.",
   );
+  assert(
+    workerSource.includes("shield-public-input-hash"),
+    "worker Shield artifacts must label the Shield public input.",
+  );
+  assert(
+    workerSource.includes("proveVantaPrivatePoolV2ShieldInBrowserWorker"),
+    "worker must export the Shield browser prover.",
+  );
+  assert(
+    workerSource.includes("Private Pool v2 browser worker prover rejected the Shield witness input."),
+    "worker must sanitize Shield witness-input errors.",
+  );
+  assert(clientSource.includes("proveShield"), "client must expose proveShield.");
   assert(
     clientSource.includes("try") &&
       clientSource.includes("worker.postMessage") &&
       clientSource.includes("cleanup()"),
     "client must clean up workers and timers when postMessage throws.",
-  );
-  assert(workerSource.includes("Barretenberg.new({ threads: 1 })"), "worker must force bb.js threads: 1.");
-  assert(workerSource.includes("UltraHonkBackend"), "worker must use UltraHonkBackend.");
-  assert(
-    workerSource.includes("local-bb-derived-artifact"),
-    "worker artifacts must stay on the local-bb-derived-artifact backend.",
-  );
-  assert(
-    workerSource.includes("local-acir-bytecode-hash-not-production-vk"),
-    "worker artifacts must stay on local ACIR bytecode hash evidence.",
-  );
-  assert(
-    workerSource.includes("addEventListener") && workerSource.includes("postMessage"),
-    "worker must expose a Web Worker message handler.",
-  );
-  assert(
-    clientSource.includes("new Worker(new URL(\"./privatePoolV2BrowserProverWorker.ts\", import.meta.url)"),
-    "client must construct the browser worker via Vite's worker URL pattern.",
   );
   assert(
     !clientSource.includes("from \"./privatePoolV2BrowserProverWorker\""),
@@ -308,14 +283,14 @@ try {
       "--outDir",
       tempJsDir,
     ],
-    { cwd: repoRoot, stdio: "pipe" },
+    { cwd: repoRoot, stdio: "inherit" },
   );
 
   for (const file of sourceFiles) {
     patchRelativeImports(file);
   }
 
-  run("node", ["scripts/prove-vanta-private-pool-v2-circuit.mjs", "send"]);
+  run("node", ["scripts/prove-vanta-private-pool-v2-circuit.mjs", "shield"]);
 
   const compiledProgram = JSON.parse(readFileSync(compiledProgramPath, "utf8"));
   const compressedWitness = readFileSync(witnessPath);
@@ -326,27 +301,27 @@ try {
     "unknown";
 
   const [
-    { proveVantaPrivatePoolV2SendInBrowserWorker },
-    { createVantaPrivatePoolV2SendCircuitFixture },
+    { proveVantaPrivatePoolV2ShieldInBrowserWorker },
+    { createVantaPrivatePoolV2ShieldCircuitFixture },
     { createVantaPrivatePoolV2BrowserProverClient },
   ] = await Promise.all([
     import(pathToFileURL(join(tempJsDir, "privatePoolV2BrowserProverWorker.js")).href),
-    import(pathToFileURL(join(tempJsDir, "privatePoolV2SendCircuitFixture.js")).href),
+    import(pathToFileURL(join(tempJsDir, "privatePoolV2ShieldCircuitFixture.js")).href),
     import(pathToFileURL(join(tempJsDir, "privatePoolV2BrowserProverClient.js")).href),
   ]);
 
-  const compressedWitnessProofArtifact = await proveVantaPrivatePoolV2SendInBrowserWorker({
-    circuit: "vanta_private_pool_v2_send_entry",
+  const compressedWitnessProofArtifact = await proveVantaPrivatePoolV2ShieldInBrowserWorker({
+    circuit: "vanta_private_pool_v2_shield_entry",
     compiledProgramBytecode: compiledProgram.bytecode,
     compressedWitness,
     expectedPublicInputHash: existingArtifact.publicInputs[0],
     proofRuntimeVersion: packageVersion,
-    target: "send",
+    target: "shield",
   });
 
   assert(
-    compressedWitnessProofArtifact.circuit === "vanta_private_pool_v2_send_entry",
-    "artifact must stay on Send circuit.",
+    compressedWitnessProofArtifact.circuit === "vanta_private_pool_v2_shield_entry",
+    "artifact must stay on Shield circuit.",
   );
   assert(
     compressedWitnessProofArtifact.proofBackend === "local-bb-derived-artifact",
@@ -359,40 +334,43 @@ try {
     "artifact must not claim production verifying-key evidence.",
   );
   assert(
+    compressedWitnessProofArtifact.publicInputLabels[0] === "shield-public-input-hash",
+    "artifact must label the Shield public input.",
+  );
+  assert(
     normalizeFieldString(
       compressedWitnessProofArtifact.publicInputs[0],
       "browser worker artifact public input",
-    ) ===
-      normalizeFieldString(existingArtifact.publicInputs[0], "existing Send public input"),
-    "browser worker artifact must bind the Send public-input hash.",
+    ) === normalizeFieldString(existingArtifact.publicInputs[0], "existing Shield public input"),
+    "browser worker artifact must bind the Shield public-input hash.",
   );
   assertVantaPrivatePoolV2ProofArtifactHasNoWitnessMaterial(
     compressedWitnessProofArtifact,
-    "Private Pool v2 Send browser worker compressed-witness proof artifact",
+    "Private Pool v2 Shield browser worker compressed-witness proof artifact",
   );
 
-  const compressedWitnessReceipt = await verifyVantaPrivatePoolV2SendProofArtifact({
+  const compressedWitnessReceipt = await verifyVantaPrivatePoolV2ShieldProofArtifact({
     proofArtifact: compressedWitnessProofArtifact,
   });
   assert(compressedWitnessReceipt.verified === true, "browser worker proof artifact must verify.");
   assert(
     normalizeFieldString(
-      compressedWitnessReceipt.verifiedPublicInputs.sendPublicInputHash,
-      "browser worker verified Send public input",
-    ) === normalizeFieldString(existingArtifact.publicInputs[0], "existing Send public input"),
-    "browser worker verified receipt must bind the Send public-input hash.",
+      compressedWitnessReceipt.verifiedPublicInputs.shieldPublicInputHash,
+      "browser worker verified Shield public input",
+    ) === normalizeFieldString(existingArtifact.publicInputs[0], "existing Shield public input"),
+    "browser worker verified receipt must bind the Shield public-input hash.",
   );
 
-  const sendFixture = createVantaPrivatePoolV2SendCircuitFixture({ mode: "valid" });
-  const sendWitnessInput = sendWitnessInputFromFixture(sendFixture);
-  const witnessInputProofArtifact = await proveVantaPrivatePoolV2SendInBrowserWorker({
-    circuit: "vanta_private_pool_v2_send_entry",
+  const shieldFixture = createVantaPrivatePoolV2ShieldCircuitFixture({ mode: "valid" });
+  const shieldWitnessInput = shieldWitnessInputFromFixture(shieldFixture);
+  const witnessInputProofArtifact = await proveVantaPrivatePoolV2ShieldInBrowserWorker({
+    circuit: "vanta_private_pool_v2_shield_entry",
     compiledProgramAbi: compiledProgram.abi,
     compiledProgramBytecode: compiledProgram.bytecode,
     expectedPublicInputHash: existingArtifact.publicInputs[0],
     proofRuntimeVersion: packageVersion,
-    target: "send",
-    witnessInput: sendWitnessInput,
+    target: "shield",
+    witnessInput: shieldWitnessInput,
   });
 
   assert(
@@ -400,69 +378,82 @@ try {
     "witness-input worker artifact must use local-bb-derived-artifact.",
   );
   assert(
-    witnessInputProofArtifact.verifyingKeyHashKind === "local-acir-bytecode-hash-not-production-vk",
+    witnessInputProofArtifact.verifyingKeyHashKind ===
+      "local-acir-bytecode-hash-not-production-vk",
     "witness-input worker artifact must not claim production verifying-key evidence.",
   );
   assert(
     normalizeFieldString(
       witnessInputProofArtifact.publicInputs[0],
       "browser worker witness-input artifact public input",
-    ) === normalizeFieldString(existingArtifact.publicInputs[0], "existing Send public input"),
-    "browser worker witness-input artifact must bind the Send public-input hash.",
+    ) === normalizeFieldString(existingArtifact.publicInputs[0], "existing Shield public input"),
+    "browser worker witness-input artifact must bind the Shield public-input hash.",
   );
   assertVantaPrivatePoolV2ProofArtifactHasNoWitnessMaterial(
     witnessInputProofArtifact,
-    "Private Pool v2 Send browser worker witness-input proof artifact",
+    "Private Pool v2 Shield browser worker witness-input proof artifact",
   );
 
-  const witnessInputReceipt = await verifyVantaPrivatePoolV2SendProofArtifact({
+  const witnessInputReceipt = await verifyVantaPrivatePoolV2ShieldProofArtifact({
     proofArtifact: witnessInputProofArtifact,
   });
   assert(witnessInputReceipt.verified === true, "browser worker witness-input proof artifact must verify.");
   assert(
     normalizeFieldString(
-      witnessInputReceipt.verifiedPublicInputs.sendPublicInputHash,
-      "browser worker witness-input verified Send public input",
-    ) === normalizeFieldString(existingArtifact.publicInputs[0], "existing Send public input"),
-    "browser worker witness-input receipt must bind the Send public-input hash.",
+      witnessInputReceipt.verifiedPublicInputs.shieldPublicInputHash,
+      "browser worker witness-input verified Shield public input",
+    ) === normalizeFieldString(existingArtifact.publicInputs[0], "existing Shield public input"),
+    "browser worker witness-input receipt must bind the Shield public-input hash.",
   );
 
   await expectRejection(
     () =>
-      proveVantaPrivatePoolV2SendInBrowserWorker({
-        circuit: "vanta_private_pool_v2_send_entry",
+      proveVantaPrivatePoolV2ShieldInBrowserWorker({
+        circuit: "vanta_private_pool_v2_shield_entry",
         compiledProgramBytecode: compiledProgram.bytecode,
         expectedPublicInputHash: existingArtifact.publicInputs[0],
         proofRuntimeVersion: packageVersion,
-        target: "send",
+        target: "shield",
       }),
-    "requires exactly one Send witness source",
+    "requires exactly one Shield witness source",
   );
   await expectRejection(
     () =>
-      proveVantaPrivatePoolV2SendInBrowserWorker({
-        circuit: "vanta_private_pool_v2_send_entry",
+      proveVantaPrivatePoolV2ShieldInBrowserWorker({
+        circuit: "vanta_private_pool_v2_shield_entry",
         compiledProgramAbi: compiledProgram.abi,
         compiledProgramBytecode: compiledProgram.bytecode,
         compressedWitness,
         expectedPublicInputHash: existingArtifact.publicInputs[0],
         proofRuntimeVersion: packageVersion,
-        target: "send",
-        witnessInput: sendWitnessInput,
+        target: "shield",
+        witnessInput: shieldWitnessInput,
       }),
-    "requires exactly one Send witness source",
+    "requires exactly one Shield witness source",
   );
   await expectRejection(
     () =>
-      proveVantaPrivatePoolV2SendInBrowserWorker({
-        circuit: "vanta_private_pool_v2_send_entry",
+      proveVantaPrivatePoolV2ShieldInBrowserWorker({
+        circuit: "vanta_private_pool_v2_shield_entry",
         compiledProgramBytecode: compiledProgram.bytecode,
         expectedPublicInputHash: existingArtifact.publicInputs[0],
         proofRuntimeVersion: packageVersion,
-        target: "send",
-        witnessInput: sendWitnessInput,
+        target: "shield",
+        witnessInput: shieldWitnessInput,
       }),
     "requires the compiled Noir program ABI",
+  );
+  await expectRejection(
+    () =>
+      proveVantaPrivatePoolV2ShieldInBrowserWorker({
+        circuit: "vanta_private_pool_v2_shield_entry",
+        compiledProgramBytecode: compiledProgram.bytecode,
+        compressedWitness,
+        expectedPublicInputHash: (BigInt(existingArtifact.publicInputs[0]) + 1n).toString(10),
+        proofRuntimeVersion: packageVersion,
+        target: "shield",
+      }),
+    "does not match the expected Shield public-input hash",
   );
 
   await withWindowTimerHarness(async ({ activeTimeouts }) => {
@@ -485,7 +476,7 @@ try {
             data: {
               artifact: this.artifact,
               id: responseId,
-              kind: "vanta-private-pool-v2-browser-worker-prove-send-response",
+              kind: "vanta-private-pool-v2-browser-worker-prove-shield-response",
               ok: true,
             },
           });
@@ -506,45 +497,51 @@ try {
       },
     });
 
-    await client.proveSend({
-      circuit: "vanta_private_pool_v2_send_entry",
+    await client.proveShield({
+      circuit: "vanta_private_pool_v2_shield_entry",
       compiledProgramBytecode: compiledProgram.bytecode,
       compressedWitness,
       expectedPublicInputHash: existingArtifact.publicInputs[0],
       proofRuntimeVersion: packageVersion,
-      target: "send",
+      target: "shield",
     });
     const compressedWorker = fakeWorkers[0];
-    assert(compressedWorker.terminated === true, "client must terminate the compressed-witness worker.");
+    assert(
+      compressedWorker.terminated === true,
+      "client must terminate the compressed-witness Shield worker.",
+    );
     assert(
       compressedWorker.transferLists[0]?.length === 1,
-      "client must transfer one copied compressed-witness buffer.",
+      "client must transfer one copied Shield compressed-witness buffer.",
     );
     assert(
       compressedWorker.requests[0]?.payload?.compressedWitness?.byteLength ===
         compressedWitness.byteLength,
-      "client fake worker must receive the copied compressed witness.",
+      "client fake worker must receive the copied Shield compressed witness.",
     );
 
-    await client.proveSend({
-      circuit: "vanta_private_pool_v2_send_entry",
+    await client.proveShield({
+      circuit: "vanta_private_pool_v2_shield_entry",
       compiledProgramAbi: compiledProgram.abi,
       compiledProgramBytecode: compiledProgram.bytecode,
       expectedPublicInputHash: existingArtifact.publicInputs[0],
       proofRuntimeVersion: packageVersion,
-      target: "send",
-      witnessInput: sendWitnessInput,
+      target: "shield",
+      witnessInput: shieldWitnessInput,
     });
     const witnessWorker = fakeWorkers[1];
-    assert(witnessWorker.terminated === true, "client must terminate the witness-input worker.");
     assert(
-      witnessWorker.transferLists[0]?.length === 0,
-      "client must not transfer buffers for structured-cloned witness-input payloads.",
+      witnessWorker.terminated === true,
+      "client must terminate the witness-input Shield worker.",
     );
     assert(
-      witnessWorker.requests[0]?.payload?.witnessInput?.owner_secret ===
-        sendWitnessInput.owner_secret,
-      "client fake worker must structured-clone the witness input payload.",
+      witnessWorker.transferLists[0]?.length === 0,
+      "client must not transfer buffers for structured-cloned Shield witness input.",
+    );
+    assert(
+      witnessWorker.requests[0]?.payload?.witnessInput?.owner_commitment ===
+        shieldWitnessInput.owner_commitment,
+      "client fake worker must structured-clone the Shield witness input payload.",
     );
     assert(
       witnessWorker.requests[0]?.payload?.compiledProgramAbi?.parameters?.length > 0,
@@ -560,7 +557,7 @@ try {
           onmessage: null,
           terminated: false,
           postMessage() {
-            throw new Error("structured clone boom");
+            throw new Error("Shield structured clone boom");
           },
           terminate() {
             this.terminated = true;
@@ -572,18 +569,21 @@ try {
 
     await expectRejection(
       () =>
-        throwingClient.proveSend({
-          circuit: "vanta_private_pool_v2_send_entry",
+        throwingClient.proveShield({
+          circuit: "vanta_private_pool_v2_shield_entry",
           compiledProgramAbi: compiledProgram.abi,
           compiledProgramBytecode: compiledProgram.bytecode,
           expectedPublicInputHash: existingArtifact.publicInputs[0],
           proofRuntimeVersion: packageVersion,
-          target: "send",
-          witnessInput: sendWitnessInput,
+          target: "shield",
+          witnessInput: shieldWitnessInput,
         }),
-      "structured clone boom",
+      "Shield structured clone boom",
     );
-    assert(throwingWorker?.terminated === true, "client must terminate the worker when postMessage throws.");
+    assert(
+      throwingWorker?.terminated === true,
+      "client must terminate the Shield worker when postMessage throws.",
+    );
     assert(activeTimeouts.size === 0, "client must clear the timeout when postMessage throws.");
   });
 
@@ -602,23 +602,25 @@ try {
 
   try {
     await import(
-      `${pathToFileURL(join(tempJsDir, "privatePoolV2BrowserProverWorker.js")).href}?worker-scope-error-sanitizer`
+      `${pathToFileURL(join(tempJsDir, "privatePoolV2BrowserProverWorker.js")).href}?shield-worker-scope-error-sanitizer`
     );
     assert(workerListener !== null, "worker module must register a message listener in worker scope.");
     workerListener({
       data: {
-        id: "witness-input-error",
-        kind: "vanta-private-pool-v2-browser-worker-prove-send",
+        id: "shield-witness-input-error",
+        kind: "vanta-private-pool-v2-browser-worker-prove-shield",
         payload: {
-          circuit: "vanta_private_pool_v2_send_entry",
+          circuit: "vanta_private_pool_v2_shield_entry",
           compiledProgramAbi: compiledProgram.abi,
           compiledProgramBytecode: compiledProgram.bytecode,
           expectedPublicInputHash: existingArtifact.publicInputs[0],
           proofRuntimeVersion: packageVersion,
-          target: "send",
+          target: "shield",
           witnessInput: {
-            ...sendWitnessInput,
-            owner_secret: (BigInt(sendWitnessInput.owner_secret) + 1n).toString(10),
+            ...shieldWitnessInput,
+            append_path_direction_bits: shieldWitnessInput.append_path_direction_bits.map(
+              (bit, index) => (index === 0 ? "2" : bit),
+            ),
           },
         },
       },
@@ -626,13 +628,17 @@ try {
     const errorResponse = await waitForWorkerResponse(workerResponses);
     assert(errorResponse.ok === false, "worker must return a failed response for invalid witness input.");
     assert(
-      errorResponse.error ===
-        "Private Pool v2 browser worker prover rejected the Send witness input.",
-      "worker must sanitize invalid witness-input errors.",
+      errorResponse.kind === "vanta-private-pool-v2-browser-worker-prove-shield-response",
+      "worker must return the Shield response kind.",
     );
     assert(
-      !errorResponse.error.includes(sendWitnessInput.owner_secret),
-      "worker witness-input errors must not echo owner_secret values.",
+      errorResponse.error ===
+        "Private Pool v2 browser worker prover rejected the Shield witness input.",
+      "worker must sanitize invalid Shield witness-input errors.",
+    );
+    assert(
+      !errorResponse.error.includes(shieldWitnessInput.owner_commitment),
+      "worker witness-input errors must not echo Shield witness values.",
     );
   } finally {
     if (previousAddEventListener === undefined) {
@@ -647,7 +653,7 @@ try {
     }
   }
 
-  console.log("Vanta Private Pool v2 browser worker prover check: PASS");
+  console.log("Vanta Private Pool v2 Shield browser worker prover check: PASS");
 } finally {
   rmSync(tempRoot, { recursive: true, force: true });
 }

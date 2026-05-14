@@ -75,6 +75,7 @@
         "actual-private-spend"
       ],
       "currentCoverage": [
+        "shield",
         "send",
         "actual-private-spend"
       ],
@@ -91,12 +92,12 @@
       "currentBlockedBy": [
         "current browser-worker evidence is dev-only",
         "no production browser runtime contract exists",
-        "shield, claim, and swap-to-shielded coverage is absent",
+        "claim and swap-to-shielded coverage is absent",
         "live route wiring is absent",
         "C01 verifier compatibility is absent",
         "audit-or-reviewer acceptance is absent"
       ],
-      "truthBoundary": "The browser-worker option is not production prover readiness; current evidence is dev-only Send and actual-private-spend execution without production route wiring."
+      "truthBoundary": "The browser-worker option is not production prover readiness; current evidence is dev-only Shield, Send, and actual-private-spend execution without production route wiring."
     }
   ],
   "currentLocalEvidenceRefs": [
@@ -120,9 +121,9 @@
       "id": "browser-worker-proof-execution",
       "status": "dev-only-local-execution-not-production",
       "artifactRef": "src/privacy/privatePoolV2BrowserProverWorker.ts",
-      "command": "npm run private-pool-v2:browser-worker-prover-check",
+      "command": "npm run private-pool-v2:shield-browser-worker-prover-check",
       "satisfiesProductionProverEvidence": false,
-      "truthBoundary": "Browser-worker Send and actual-private-spend execution is dev-only local evidence and not production prover evidence."
+      "truthBoundary": "Browser-worker Shield, Send, and actual-private-spend execution is dev-only local evidence and not production prover evidence."
     },
     {
       "id": "browser-worker-proof-result-adapter",
@@ -180,6 +181,7 @@
     "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
     "npm run private-pool-v2:browser-worker-prover-check",
     "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
+    "npm run private-pool-v2:shield-browser-worker-prover-check",
     "npm run private-pool-v2:proof-backend-boundary-check",
     "npm run zk:c01-verifier-backend-decision-check",
     "npm run zk:c01-verifier-backend-options-check"
