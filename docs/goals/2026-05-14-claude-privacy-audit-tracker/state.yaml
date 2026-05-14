@@ -95,7 +95,10 @@ audit_findings:
         evidence_refs:
           - "zk/noir/vanta_private_pool_v2_swap_to_shielded_entry/src/main.nr exposes opaque settlement_commitment, route_commitment, and economics_commitment but no raw input asset/amount/economics preimage."
           - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-n2-design-blockers.md"
+          - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-n2-implementation-path.md"
         decision_required: "Choose the canonical raw input/economic preimage for swap-to-shielded input_commitment before adding an in-circuit assertion."
+        proposed_path: "Use the PPv2 Send/Claim-style consumed-note preimage: input_commitment = poseidon5(owner_commitment, input_asset_id_commitment, input_amount, input_blinding, input_derivation_tag), while keeping settlement/route/economics commitments separate."
+        approval_question: "Should Swap-to-shielded consume the same owner/asset/amount/blinding/derivation note preimage convention as PPv2 Send/Claim?"
         not_safe_to_complete_without: "A fixture that makes a forged swap input preimage fail and a documented ABI update for the prover/browser/operator witness paths."
       - id: N2-PRIVATE-CORE-SENDER-AUTH
         status: blocked-architecture-decision
@@ -104,7 +107,10 @@ audit_findings:
           - "zk/noir/vanta_private_core_single_note_swap/src/main.nr keeps sender_secret_key live/nonzero with owner authorization prechecked off-circuit."
           - "src/zk/vantaPrivateCoreSendProof.ts and src/zk/vantaPrivateCoreSwapProof.ts label the current model x25519-secret-prechecked-off-circuit."
           - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-n2-design-blockers.md"
+          - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-n2-implementation-path.md"
         decision_required: "Choose whether Private Core keeps X25519 owner-public-key notes with off-circuit precheck, adds a separate Poseidon proof-owner key, or migrates note ownership to an in-circuit-friendly key model."
+        proposed_path: "Extend the existing Private Core Unshield hybrid proof-owner model explicitly: keep source-layer X25519 compatibility, add provingOwnerKeyMode = poseidon-proof-owner-key-v0, prefer distinct proving-owner fields, and bind Send/Swap Noir notes to a Poseidon proof-owner key derived from sender_secret_key limbs."
+        approval_question: "Should Private Core Send/Swap adopt an explicit Unshield-style hybrid proof-owner convention for in-circuit authorization?"
         not_safe_to_complete_without: "A key-model decision, updated proof metadata, invalid-owner-auth fixtures for Send and Swap, and updated private-core verification commands."
     verify:
       - "npm run zk:circuit-soundness-lint"

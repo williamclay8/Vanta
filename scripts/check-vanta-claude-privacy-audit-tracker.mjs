@@ -8,6 +8,10 @@ const goalPath = resolve(trackerRoot, "goal.md");
 const statePath = resolve(trackerRoot, "state.yaml");
 const notePath = resolve(trackerRoot, "notes/2026-05-14-intake.md");
 const n2BlockerNotePath = resolve(trackerRoot, "notes/2026-05-14-n2-design-blockers.md");
+const n2ImplementationPathNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-n2-implementation-path.md",
+);
 const architectureBlockerNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-architecture-blocker-map.md",
@@ -25,6 +29,7 @@ for (const path of [
   statePath,
   notePath,
   n2BlockerNotePath,
+  n2ImplementationPathNotePath,
   architectureBlockerNotePath,
   n5CiGateNotePath,
   privacyAuditWorkflowPath,
@@ -36,6 +41,7 @@ const goal = read(goalPath);
 const state = read(statePath);
 const note = read(notePath);
 const n2BlockerNote = read(n2BlockerNotePath);
+const n2ImplementationPathNote = read(n2ImplementationPathNotePath);
 const architectureBlockerNote = read(architectureBlockerNotePath);
 const n5CiGateNote = read(n5CiGateNotePath);
 const privacyAuditWorkflow = read(privacyAuditWorkflowPath);
@@ -83,7 +89,11 @@ for (const phrase of [
   "Do not mark N2 complete based only on keeping Private Core sender_secret_key live/nonzero.",
   "remaining_design_blockers",
   "N2-PPV2-SWAP-INPUT-PREIMAGE",
+  "input_commitment = poseidon5(owner_commitment, input_asset_id_commitment, input_amount, input_blinding, input_derivation_tag)",
   "N2-PRIVATE-CORE-SENDER-AUTH",
+  "provingOwnerKeyMode = poseidon-proof-owner-key-v0",
+  "prefer distinct proving-owner fields",
+  "approval_question",
   "blocked-architecture-decision",
   "x25519-secret-prechecked-off-circuit",
   "architecture_blocker_map",
@@ -115,6 +125,26 @@ for (const phrase of [
   "Do not mark N2 `local-implemented`",
 ]) {
   assert.ok(n2BlockerNote.includes(phrase), `N2 blocker note missing ${phrase}`);
+}
+
+for (const phrase of [
+  "proposed-requires-architecture-approval",
+  "input_commitment = poseidon5([",
+  "input_asset_id_commitment",
+  "invalid-input-commitment-preimage",
+  "Swap-to-shielded consume the same owner/asset/amount/blinding/derivation note preimage convention",
+  "extend the existing Private Core Unshield hybrid proof-owner model",
+  "provingOwnerKeyMode = poseidon-proof-owner-key-v0",
+  "Prefer distinct proving-owner fields",
+  "sender_proving_owner_key_hi = 0",
+  "sender_proving_owner_key_lo = poseidon2([sender_secret_key_hi, sender_secret_key_lo])",
+  "invalid-owner-auth",
+  "Do not implement either path until the relevant approval question is answered",
+]) {
+  assert.ok(
+    n2ImplementationPathNote.includes(phrase),
+    `N2 implementation path note missing ${phrase}`,
+  );
 }
 
 for (const phrase of [
