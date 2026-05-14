@@ -946,6 +946,50 @@ for (const phrase of [
   );
 }
 
+const landingHeroFlowVisualizationLoopId = "VANTA-ZK-FEEDBACK-2026-05-14-LANDING-HERO-FLOW-VISUALIZATION";
+assert(
+  activeFeedbackLoopIds.has(landingHeroFlowVisualizationLoopId),
+  `${landingHeroFlowVisualizationLoopId} active feedback loop is missing`,
+);
+const landingHeroFlowVisualizationLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === landingHeroFlowVisualizationLoopId,
+);
+const landingHeroFlowVisualizationLoopText = JSON.stringify(landingHeroFlowVisualizationLoop);
+for (const command of [
+  "npm run landing:browser-check",
+  "npm run product-ui:browser-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run mainnet:external-gates-production-claim-check",
+  "npm run build",
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:feedback-loop-check",
+  "git diff --check",
+]) {
+  assert(
+    landingHeroFlowVisualizationLoop?.localVerification?.includes(command),
+    `${landingHeroFlowVisualizationLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "hero visualization",
+  "wallet-to-shield-to-shielded-state",
+  "packet line",
+  "reduced-motion",
+  "decorative",
+  "not production-private",
+  "not a live depth oracle",
+  "not social proof",
+  "not TVL",
+  "not route/proof/settlement behavior",
+  "not-live-verified",
+  "6ef36c9",
+]) {
+  assert(
+    landingHeroFlowVisualizationLoopText.includes(phrase),
+    `${landingHeroFlowVisualizationLoopId} must record ${phrase}`,
+  );
+}
+
 const payProgressiveDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PAY-PROGRESSIVE-DISCLOSURE";
 assert(
   activeFeedbackLoopIds.has(payProgressiveDisclosureLoopId),

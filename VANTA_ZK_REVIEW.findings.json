@@ -1140,6 +1140,38 @@
       "truthBoundary": "This is public landing presentation and guard hardening only. It is not a hero visualization, not social proof, not TVL or user-count evidence, not route/proof/settlement behavior, not production-private wallet-lane readiness, not Pay or Strategy live production routing, not pushed, and not deployed/live."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-14-LANDING-HERO-FLOW-VISUALIZATION",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#cc1-the-visual-language-is-on-thesis-but-emotionally-flat",
+        "VANTA_ZK_REVIEW.md#--home",
+        "VANTA_ZK_REVIEW.md#v1-a-cohesive-motion-vocabulary",
+        "VANTA_ZK_REVIEW.md#v3-the-shielded-state-visualization-that-should-exist-throughout-the-app",
+        "VANTA_ZK_REVIEW.md#whats-almost-there",
+        "src/pages/HomePage.tsx",
+        "src/styles.css",
+        "scripts/check-vanta-landing-browser.mjs"
+      ],
+      "summary": "The landing hero visualization feedback now has a guarded beta-safe slice: Home renders a decorative wallet-to-shield-to-shielded-state flow with a packet line, reduced-motion fallback, source/DOM guards, and no new privacy, adoption, TVL, depth-oracle, route, proof, or settlement claims.",
+      "localVerification": [
+        "npm run landing:browser-check",
+        "npm run product-ui:browser-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run mainnet:external-gates-production-claim-check",
+        "npm run build",
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:feedback-loop-check",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the landing hero flow visualization across landing browser, product UI browser, privacy claim gate, external production-claim gate, build, review-ledger, feedback-loop, and diff checks",
+        "committed": "6ef36c9 (Add landing hero flow visual)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is public landing presentation and guard hardening only. It is not production-private settlement, not a live depth oracle, not live anonymity, not social proof, not TVL or user-count evidence, not route/proof/settlement behavior, not wallet-lane production readiness, not pushed, and not deployed/live."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-PAY-PROGRESSIVE-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
