@@ -1451,6 +1451,58 @@ for (const phrase of [
   );
 }
 
+const swapPersistentRecentReceiptsLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-14-SWAP-PERSISTENT-RECENT-RECEIPTS";
+assert(
+  activeFeedbackLoopIds.has(swapPersistentRecentReceiptsLoopId),
+  `${swapPersistentRecentReceiptsLoopId} active feedback loop is missing`,
+);
+const swapPersistentRecentReceiptsLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === swapPersistentRecentReceiptsLoopId,
+);
+const swapPersistentRecentReceiptsLoopText = JSON.stringify(swapPersistentRecentReceiptsLoop);
+for (const command of [
+  "red-first npm run swap:receipt-modal-check",
+  "npm run swap:receipt-modal-check",
+  "npx tsc --noEmit --pretty false",
+  "npm run swap:requires-shielded-state-check",
+  "npm run swap:trust-packet-check",
+  "npm run private-core:swap-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run build",
+  "npm run product-ui:browser-check",
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:feedback-loop-check",
+  "git diff --check",
+]) {
+  assert(
+    swapPersistentRecentReceiptsLoop?.localVerification?.includes(command),
+    `${swapPersistentRecentReceiptsLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "listCanonicalSwapRecords",
+  "persistCanonicalSwapRecord",
+  "buildRecentSwapReceiptSummaries",
+  "recentSwapSummaries",
+  "Browser-local history",
+  "Stored in this browser",
+  "data-vanta-swap-recent-browser-local",
+  "dedupes local-session summaries",
+  "not cross-device history",
+  "not a server/indexer recent-swaps API",
+  "not a full counterparty-verifiable trust packet",
+  "not new route/proof/settlement behavior",
+  "not production-private routing",
+  "not-live-verified",
+  "610e7b0",
+]) {
+  assert(
+    swapPersistentRecentReceiptsLoopText.includes(phrase),
+    `${swapPersistentRecentReceiptsLoopId} must record ${phrase}`,
+  );
+}
+
 const unshieldProgressiveDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-UNSHIELD-PROGRESSIVE-DISCLOSURE";
 assert(
   activeFeedbackLoopIds.has(unshieldProgressiveDisclosureLoopId),

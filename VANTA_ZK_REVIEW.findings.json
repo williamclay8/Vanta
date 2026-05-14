@@ -1524,6 +1524,43 @@
       "truthBoundary": "This is local-session Swap receipt revisitability and guard hardening only. It is not persistent recent-swaps across reload, not a full counterparty-verifiable trust packet, not new route/proof/settlement behavior, not production-private routing, not Swap production privacy, not live mainnet private settlement, not pushed, and not deployed/live."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-14-SWAP-PERSISTENT-RECENT-RECEIPTS",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#swap-page-redesign",
+        "src/pages/SwapPage.tsx",
+        "src/zk/liveSwapBridge.ts",
+        "src/components/SwapReceiptModal.tsx",
+        "src/styles.css",
+        "scripts/check-vanta-swap-receipt-modal.mjs",
+        "scripts/check-vanta-swap-requires-shielded-state.mjs",
+        "scripts/check-vanta-product-ui-browser.mjs",
+        "npm run swap:receipt-modal-check"
+      ],
+      "summary": "The Swap recent receipt feedback now has browser-local persistence: SwapPage reads canonical records with listCanonicalSwapRecords, keeps the existing persistCanonicalSwapRecord write path, builds up to five recentSwapSummaries through buildRecentSwapReceiptSummaries, renders the data-vanta-swap-recent-browser-local marker, dedupes local-session summaries against persisted canonical records, labels the panel Browser-local history / Stored in this browser, and opens SwapReceiptModal for the selected persisted receipt.",
+      "localVerification": [
+        "red-first npm run swap:receipt-modal-check",
+        "npm run swap:receipt-modal-check",
+        "npx tsc --noEmit --pretty false",
+        "npm run swap:requires-shielded-state-check",
+        "npm run swap:trust-packet-check",
+        "npm run private-core:swap-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run build",
+        "npm run product-ui:browser-check",
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:feedback-loop-check",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for browser-local Swap recent receipt persistence across focused receipt guard, TypeScript, shield-first guard, trust packet, private-core swap aggregate, privacy claim gate, build, product UI browser, review-ledger, feedback-loop, and diff checks",
+        "committed": "610e7b0 (Persist Swap recent receipts)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is browser-local Swap receipt history and guard hardening only. It is not cross-device history, not a server/indexer recent-swaps API, not a full counterparty-verifiable trust packet, not new route/proof/settlement behavior, not production-private routing, not Swap production privacy, not live mainnet private settlement, not pushed, and not deployed/live."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-UNSHIELD-PROGRESSIVE-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
