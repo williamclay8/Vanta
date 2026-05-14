@@ -153,6 +153,17 @@ assert.ok(
   n2Section.includes("status: local-implemented"),
   "N2 must remain local-implemented after the approved PPv2 Swap and Private Core proof-owner closures.",
 );
+const r3SectionMatch = state.match(/  - id: R3-OWNER-INPUT-BINDING\n[\s\S]*?\n  - id: R4-PDA-VAULT-UNSHIELD\n/);
+assert.ok(r3SectionMatch, "state.yaml missing bounded R3 owner/input binding backlog row");
+const r3Section = r3SectionMatch[0];
+assert.ok(
+  r3Section.includes("status: local-implemented"),
+  "R3 owner/input binding backlog row must mirror N2 local implementation status.",
+);
+assert.ok(
+  r3Section.includes("tracker_ref: \"N2\""),
+  "R3 owner/input binding backlog row must stay tied to N2.",
+);
 
 for (const phrase of [
   "output_commitment is unconstrained",

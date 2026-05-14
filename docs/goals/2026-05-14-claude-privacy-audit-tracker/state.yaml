@@ -326,8 +326,12 @@ audit_remaining_work_backlog:
     source_priority: blocker
     source_item: "Constrain owner_secret to owner_commitment/input_commitment in Send/Swap/Claim/Spend."
     tracker_ref: "N2"
-    status: partial-local-implemented
+    status: local-implemented
     guard: "npm run privacy-audit:tracker-check"
+    evidence:
+      - "N2 is local-implemented: Private Pool v2 Send, Claim, Swap-to-shielded, and actual-private-spend now bind owner/proof-owner fields and consumed-note input commitments locally."
+      - "Private Core Send/Swap now use provingOwnerKeyMode = poseidon-proof-owner-key-v0 while preserving source-layer x25519-secret-prechecked-off-circuit truth."
+      - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-n2-ppv2-swap-input-preimage.md and notes/2026-05-14-n2-private-core-proof-owner.md record the final design decisions and verification commands."
   - id: R4-PDA-VAULT-UNSHIELD
     source_priority: blocker
     source_item: "Replace operator-keypair vault custody with program-owned PDA vault and wire proof-verified TAG_UNSHIELD release."
