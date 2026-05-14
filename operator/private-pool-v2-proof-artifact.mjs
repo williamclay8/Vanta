@@ -50,6 +50,7 @@ const proofArtifactCircuitProfiles = {
     circuitDir: swapToShieldedCircuitDir,
     circuitName: swapToShieldedCircuitName,
     label: "Private Pool v2 Swap-to-shielded",
+    localProofBackends: ["local-bb-fixture-artifact", "local-bb-derived-artifact"],
     publicInputLabels: ["swap-public-input-hash"],
     verifiedPublicInputKey: "swapPublicInputHash",
   },

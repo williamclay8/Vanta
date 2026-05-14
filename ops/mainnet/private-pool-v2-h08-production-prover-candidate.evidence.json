@@ -152,11 +152,13 @@
         "npm run private-pool-v2:browser-worker-prover-check",
         "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
         "npm run private-pool-v2:shield-browser-worker-prover-check",
-        "npm run private-pool-v2:claim-browser-worker-prover-check"
+        "npm run private-pool-v2:claim-browser-worker-prover-check",
+        "npm run private-pool-v2:swap-to-shielded-browser-worker-prover-check"
       ],
       "supportedTargets": [
         "shield",
         "claim",
+        "swap-to-shielded",
         "send",
         "actual-private-spend"
       ],
@@ -174,6 +176,7 @@
       "supportedTargets": [
         "shield",
         "claim",
+        "swap-to-shielded",
         "send",
         "actual-private-spend"
       ],
@@ -211,9 +214,9 @@
       "id": "browser-worker-proof-execution",
       "status": "dev-only-local-evidence-not-production",
       "artifactRef": "src/privacy/privatePoolV2BrowserProverWorker.ts",
-      "command": "npm run private-pool-v2:claim-browser-worker-prover-check",
+      "command": "npm run private-pool-v2:swap-to-shielded-browser-worker-prover-check",
       "satisfiesProductionProverEvidence": false,
-      "truthBoundary": "The browser-worker guards prove focused local Shield, Claim, Send, and actual-private-spend paths, not production browser-runtime readiness."
+      "truthBoundary": "The browser-worker guards prove focused local Shield, Claim, Swap-to-shielded, Send, and actual-private-spend paths, not production browser-runtime readiness."
     },
     {
       "id": "browser-worker-proof-result-adapter",
@@ -275,7 +278,7 @@
       "status": "blocked",
       "requiredArtifactShape": "test:<Shield-Claim-Swap-Send-actual-private-spend-use-selected-production-prover-path>",
       "currentArtifactRef": null,
-      "truthBoundary": "The current browser-worker proof-result adapter is opt-in and dev-only; it does not route live Shield, Claim, Send, or actual-private-spend execution."
+      "truthBoundary": "The current browser-worker proof-result adapter is opt-in and dev-only; it does not route live Shield, Claim, Swap-to-shielded, Send, or actual-private-spend execution."
     },
     {
       "id": "runtime-reliability-and-performance-evidence",
@@ -342,6 +345,7 @@
     "live private proving",
     "live Shield proof routing",
     "live Claim proof routing",
+    "live Swap-to-shielded proof routing",
     "live Send proof routing",
     "live actual-private-spend proof routing",
     "proof-enforced spend",
@@ -361,6 +365,7 @@
     "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
     "npm run private-pool-v2:shield-browser-worker-prover-check",
     "npm run private-pool-v2:claim-browser-worker-prover-check",
+    "npm run private-pool-v2:swap-to-shielded-browser-worker-prover-check",
     "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
     "npm run private-pool-v2:proof-backend-boundary-check",
     "npm run private-pool-v2:local-prover-check",

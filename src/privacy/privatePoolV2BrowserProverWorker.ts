@@ -9,6 +9,8 @@ import {
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SEND_RESPONSE,
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_MESSAGE,
   VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SHIELD_RESPONSE,
+  VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SWAP_TO_SHIELDED_MESSAGE,
+  VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SWAP_TO_SHIELDED_RESPONSE,
   type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverMessage,
   type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
   type VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverResponse,
@@ -24,6 +26,9 @@ import {
   type VantaPrivatePoolV2BrowserWorkerShieldProverMessage,
   type VantaPrivatePoolV2BrowserWorkerShieldProverPayload,
   type VantaPrivatePoolV2BrowserWorkerShieldProverResponse,
+  type VantaPrivatePoolV2BrowserWorkerSwapToShieldedProverMessage,
+  type VantaPrivatePoolV2BrowserWorkerSwapToShieldedProverPayload,
+  type VantaPrivatePoolV2BrowserWorkerSwapToShieldedProverResponse,
 } from "./privatePoolV2BrowserProverProtocol";
 import {
   createVantaPrivatePoolV2ActualPrivateSpendCircuitFixtureFromWitnessInput,
@@ -41,16 +46,23 @@ import {
   createVantaPrivatePoolV2ShieldCircuitFixtureFromWitnessInput,
   createVantaPrivatePoolV2ShieldCircuitNoirInputs,
 } from "./privatePoolV2ShieldCircuitFixture";
+import {
+  createVantaPrivatePoolV2SwapToShieldedCircuitFixtureFromWitnessInput,
+  createVantaPrivatePoolV2SwapToShieldedCircuitNoirInputs,
+} from "./privatePoolV2SwapToShieldedCircuitFixture";
 import type {
   VantaPrivatePoolV2ActualPrivateSpendProofArtifact,
   VantaPrivatePoolV2ClaimProofArtifact,
   VantaPrivatePoolV2SendProofArtifact,
   VantaPrivatePoolV2ShieldProofArtifact,
+  VantaPrivatePoolV2SwapToShieldedProofArtifact,
 } from "./privatePoolV2Types";
 
 const SEND_CIRCUIT = "vanta_private_pool_v2_send_entry" as const;
 const SHIELD_CIRCUIT = "vanta_private_pool_v2_shield_entry" as const;
 const CLAIM_CIRCUIT = "vanta_private_pool_v2_claim_entry" as const;
+const SWAP_TO_SHIELDED_CIRCUIT =
+  "vanta_private_pool_v2_swap_to_shielded_entry" as const;
 const ACTUAL_PRIVATE_SPEND_CIRCUIT =
   "vanta_private_pool_v2_actual_private_spend_entry" as const;
 const BN254_SCALAR_FIELD =
@@ -204,6 +216,45 @@ function assertClaimPayload(payload: VantaPrivatePoolV2BrowserWorkerClaimProverP
   }
 }
 
+function assertSwapToShieldedPayload(
+  payload: VantaPrivatePoolV2BrowserWorkerSwapToShieldedProverPayload,
+) {
+  assert(
+    payload.target === "swap-to-shielded",
+    "Browser worker prover only supports Swap-to-shielded.",
+  );
+  assert(
+    payload.circuit === SWAP_TO_SHIELDED_CIRCUIT,
+    "Browser worker prover requires the Swap-to-shielded circuit.",
+  );
+  assert(
+    typeof payload.compiledProgramBytecode === "string" &&
+      payload.compiledProgramBytecode.length > 0,
+    "Browser worker prover requires compiled ACIR bytecode.",
+  );
+  assert(
+    typeof payload.proofRuntimeVersion === "string" && payload.proofRuntimeVersion.length > 0,
+    "Browser worker prover requires the bb.js runtime version.",
+  );
+  if (payload.expectedPublicInputHash !== undefined) {
+    normalizeFieldString(
+      payload.expectedPublicInputHash,
+      "expected Swap-to-shielded public input hash",
+    );
+  }
+
+  const compressedWitnessProvided = hasCompressedWitness(payload);
+  const witnessInputProvided = hasWitnessInput(payload);
+  assert(
+    compressedWitnessProvided !== witnessInputProvided,
+    "Browser worker prover requires exactly one Swap-to-shielded witness source: compressedWitness or witnessInput.",
+  );
+
+  if (witnessInputProvided) {
+    assertCompiledProgramAbi(payload.compiledProgramAbi);
+  }
+}
+
 function assertActualPrivateSpendPayload(
   payload: VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
 ) {
@@ -303,6 +354,32 @@ async function generateClaimCompressedWitness(
     payload.witnessInput,
   );
   const noirInputs = createVantaPrivatePoolV2ClaimCircuitNoirInputs(fixture);
+  const noir = new Noir({
+    abi: payload.compiledProgramAbi,
+    bytecode: payload.compiledProgramBytecode,
+  } as CompiledCircuit);
+  const { witness } = await noir.execute(noirInputs as InputMap);
+
+  return compressedWitnessBytes(witness);
+}
+
+async function generateSwapToShieldedCompressedWitness(
+  payload: VantaPrivatePoolV2BrowserWorkerSwapToShieldedProverPayload,
+) {
+  if (hasCompressedWitness(payload)) {
+    return compressedWitnessBytes(payload.compressedWitness);
+  }
+
+  assert(
+    hasWitnessInput(payload),
+    "Browser worker prover requires Swap-to-shielded witness input.",
+  );
+  assertCompiledProgramAbi(payload.compiledProgramAbi);
+
+  const fixture = createVantaPrivatePoolV2SwapToShieldedCircuitFixtureFromWitnessInput(
+    payload.witnessInput,
+  );
+  const noirInputs = createVantaPrivatePoolV2SwapToShieldedCircuitNoirInputs(fixture);
   const noir = new Noir({
     abi: payload.compiledProgramAbi,
     bytecode: payload.compiledProgramBytecode,
@@ -479,6 +556,63 @@ async function proveVantaPrivatePoolV2ClaimInBrowserWorkerImpl(
   }
 }
 
+async function proveVantaPrivatePoolV2SwapToShieldedInBrowserWorkerImpl(
+  payload: VantaPrivatePoolV2BrowserWorkerSwapToShieldedProverPayload,
+): Promise<VantaPrivatePoolV2SwapToShieldedProofArtifact> {
+  assertSwapToShieldedPayload(payload);
+  const compressedWitness = await generateSwapToShieldedCompressedWitness(payload);
+  const api = await Barretenberg.new({ threads: 1 });
+
+  try {
+    const backend = new UltraHonkBackend(payload.compiledProgramBytecode, api);
+    const proofData = await backend.generateProof(compressedWitness);
+    const verified = await backend.verifyProof(proofData);
+    assert(verified, "Browser worker prover generated a proof that did not verify.");
+
+    const publicInputs = proofData.publicInputs.map((input) => String(input));
+    assert(
+      publicInputs.length === 1,
+      "Browser worker Swap-to-shielded proof must expose one public input.",
+    );
+    const publicInput = normalizeFieldString(
+      publicInputs[0]!,
+      "browser worker Swap-to-shielded public input",
+    );
+    if (payload.expectedPublicInputHash !== undefined) {
+      assert(
+        publicInput ===
+          normalizeFieldString(
+            payload.expectedPublicInputHash,
+            "expected Swap-to-shielded public input hash",
+          ),
+        "Browser worker Swap-to-shielded proof public input does not match the expected Swap-to-shielded public-input hash.",
+      );
+    }
+
+    const acirBytecodeHash = `sha256:${await sha256HexUtf8(payload.compiledProgramBytecode)}`;
+    const proofHex = bytesToHex(new Uint8Array(proofData.proof));
+
+    return {
+      acirBytecodeHash,
+      backend: "barretenberg-ultrahonk",
+      circuit: SWAP_TO_SHIELDED_CIRCUIT,
+      proofBackend: "local-bb-derived-artifact",
+      proofHex,
+      proofRuntimePackage: "@aztec/bb.js",
+      proofRuntimeVersion: payload.proofRuntimeVersion,
+      proofSystem: "noir-bb",
+      publicInputCommitment: await proofArtifactPublicInputCommitment(publicInputs),
+      publicInputLabels: ["swap-public-input-hash"],
+      publicInputs,
+      verifyingKeyHash: acirBytecodeHash,
+      verifyingKeyHashKind: "local-acir-bytecode-hash-not-production-vk",
+      verifyingKeyId: `local-acir-bytecode:${SWAP_TO_SHIELDED_CIRCUIT}:${acirBytecodeHash}`,
+    };
+  } finally {
+    await api.destroy();
+  }
+}
+
 async function proveVantaPrivatePoolV2ActualPrivateSpendInBrowserWorkerImpl(
   payload: VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
 ): Promise<VantaPrivatePoolV2ActualPrivateSpendProofArtifact> {
@@ -554,6 +688,12 @@ export function proveVantaPrivatePoolV2ClaimInBrowserWorker(
   return proveVantaPrivatePoolV2ClaimInBrowserWorkerImpl(payload);
 }
 
+export function proveVantaPrivatePoolV2SwapToShieldedInBrowserWorker(
+  payload: VantaPrivatePoolV2BrowserWorkerSwapToShieldedProverPayload,
+): Promise<VantaPrivatePoolV2SwapToShieldedProofArtifact> {
+  return proveVantaPrivatePoolV2SwapToShieldedInBrowserWorkerImpl(payload);
+}
+
 export function proveVantaPrivatePoolV2ActualPrivateSpendInBrowserWorker(
   payload: VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload,
 ): Promise<VantaPrivatePoolV2ActualPrivateSpendProofArtifact> {
@@ -574,6 +714,10 @@ function browserWorkerErrorMessage({
 
     if (payload.target === "claim") {
       return "Private Pool v2 browser worker prover rejected the Claim witness input.";
+    }
+
+    if (payload.target === "swap-to-shielded") {
+      return "Private Pool v2 browser worker prover rejected the Swap-to-shielded witness input.";
     }
 
     if (payload.target === "actual-private-spend") {
@@ -669,6 +813,33 @@ if (isWorkerScope) {
             kind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_CLAIM_RESPONSE,
             ok: false,
           } satisfies VantaPrivatePoolV2BrowserWorkerClaimProverResponse);
+        });
+
+      return;
+    }
+
+    if (message?.kind === VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SWAP_TO_SHIELDED_MESSAGE) {
+      const swapToShieldedMessage:
+        VantaPrivatePoolV2BrowserWorkerSwapToShieldedProverMessage = message;
+      void proveVantaPrivatePoolV2SwapToShieldedInBrowserWorker(swapToShieldedMessage.payload)
+        .then((artifact) => {
+          workerGlobal.postMessage!({
+            artifact,
+            id: swapToShieldedMessage.id,
+            kind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SWAP_TO_SHIELDED_RESPONSE,
+            ok: true,
+          } satisfies VantaPrivatePoolV2BrowserWorkerSwapToShieldedProverResponse);
+        })
+        .catch((error: unknown) => {
+          workerGlobal.postMessage!({
+            error: browserWorkerErrorMessage({
+              error,
+              payload: swapToShieldedMessage.payload,
+            }),
+            id: swapToShieldedMessage.id,
+            kind: VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROVE_SWAP_TO_SHIELDED_RESPONSE,
+            ok: false,
+          } satisfies VantaPrivatePoolV2BrowserWorkerSwapToShieldedProverResponse);
         });
 
       return;

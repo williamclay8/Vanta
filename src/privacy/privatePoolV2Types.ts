@@ -169,7 +169,7 @@ export type VantaPrivatePoolV2SwapToShieldedProofArtifact = {
   acirBytecodeHash: string;
   backend: "barretenberg-ultrahonk";
   circuit: "vanta_private_pool_v2_swap_to_shielded_entry";
-  proofBackend: "local-bb-fixture-artifact";
+  proofBackend: "local-bb-fixture-artifact" | "local-bb-derived-artifact";
   proofHex: string;
   proofRuntimePackage: "@aztec/bb.js";
   proofRuntimeVersion: string;

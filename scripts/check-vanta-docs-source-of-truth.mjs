@@ -97,7 +97,7 @@ for (const phrase of [
   requirePhrase(sourceOfTruth, phrase, "docs/docs-source-of-truth.md");
 }
 
-requirePhrase(limitations, "Last validated against repo-local code: 2026-05-13", "SECURITY_LIMITATIONS.md");
+requirePhrase(limitations, "Last validated against repo-local code: 2026-05-14", "SECURITY_LIMITATIONS.md");
 requirePhrase(docsContent, "test checkout", "src/docs/docsContent.ts");
 requirePhrase(privacyModel, 'What "shielded state" means today', "docs/privacy-model.md");
 requirePhrase(canonicalNote, "Transitional Hash Surface Today", "docs/zk/canonical-note-schema.md");
@@ -137,7 +137,12 @@ requirePhrase(
 );
 requirePhrase(
   readme,
-  "Claim now has dev-only Claim browser/Web Worker proof execution plus worker-side witness generation from typed Claim witness input",
+  "Claim has dev-only Claim browser/Web Worker proof execution plus worker-side witness generation from typed Claim witness input",
+  "README.md",
+);
+requirePhrase(
+  readme,
+  "Swap-to-shielded now has dev-only Swap-to-shielded browser/Web Worker proof execution plus worker-side witness generation from typed Swap-to-shielded witness input",
   "README.md",
 );
 requirePhrase(

@@ -7,6 +7,10 @@ const repoRoot = resolve(import.meta.dirname, "..");
 const sendCircuitDir = resolve(repoRoot, "zk/noir/vanta_private_pool_v2_send_entry");
 const shieldCircuitDir = resolve(repoRoot, "zk/noir/vanta_private_pool_v2_shield_entry");
 const claimCircuitDir = resolve(repoRoot, "zk/noir/vanta_private_pool_v2_claim_entry");
+const swapToShieldedCircuitDir = resolve(
+  repoRoot,
+  "zk/noir/vanta_private_pool_v2_swap_to_shielded_entry",
+);
 const actualPrivateSpendCircuitDir = resolve(
   repoRoot,
   "zk/noir/vanta_private_pool_v2_actual_private_spend_entry",
@@ -19,6 +23,10 @@ const shieldProofArtifactPath = resolve(
 const claimProofArtifactPath = resolve(
   claimCircuitDir,
   "target/vanta_private_pool_v2_claim_entry.proof.json",
+);
+const swapToShieldedProofArtifactPath = resolve(
+  swapToShieldedCircuitDir,
+  "target/vanta_private_pool_v2_swap_to_shielded_entry.proof.json",
 );
 const actualPrivateSpendProofArtifactPath = resolve(
   actualPrivateSpendCircuitDir,
@@ -39,6 +47,7 @@ const sourceFiles = [
   "privatePoolV2ClaimCircuitFixture.ts",
   "privatePoolV2SendCircuitFixture.ts",
   "privatePoolV2ShieldCircuitFixture.ts",
+  "privatePoolV2SwapToShieldedCircuitFixture.ts",
   "privatePoolV2BrowserProverProtocol.ts",
   "privatePoolV2BrowserProverClient.ts",
   "privatePoolV2LocalProver.ts",
@@ -241,6 +250,7 @@ try {
   ensureProofArtifact(sendProofArtifactPath, "send");
   ensureProofArtifact(shieldProofArtifactPath, "shield");
   ensureProofArtifact(claimProofArtifactPath, "claim");
+  ensureProofArtifact(swapToShieldedProofArtifactPath, "swap-to-shielded");
   ensureProofArtifact(actualPrivateSpendProofArtifactPath, "actual-private-spend");
 
   const [
@@ -251,6 +261,7 @@ try {
     { createVantaPrivatePoolV2SendCircuitFixture },
     { createVantaPrivatePoolV2ShieldCircuitFixture },
     { createVantaPrivatePoolV2ClaimCircuitFixture },
+    { createVantaPrivatePoolV2SwapToShieldedCircuitFixture },
     { createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture },
     { createVantaPrivatePoolV2LocalProver },
   ] = await Promise.all([
@@ -258,6 +269,7 @@ try {
     import(pathToFileURL(join(tempJsDir, "privatePoolV2SendCircuitFixture.js")).href),
     import(pathToFileURL(join(tempJsDir, "privatePoolV2ShieldCircuitFixture.js")).href),
     import(pathToFileURL(join(tempJsDir, "privatePoolV2ClaimCircuitFixture.js")).href),
+    import(pathToFileURL(join(tempJsDir, "privatePoolV2SwapToShieldedCircuitFixture.js")).href),
     import(pathToFileURL(join(tempJsDir, "privatePoolV2ActualPrivateSpendCircuitFixture.js")).href),
     import(pathToFileURL(join(tempJsDir, "privatePoolV2LocalProver.js")).href),
   ]);
@@ -271,12 +283,16 @@ try {
   const sendFixture = createVantaPrivatePoolV2SendCircuitFixture({ mode: "valid" });
   const shieldFixture = createVantaPrivatePoolV2ShieldCircuitFixture({ mode: "valid" });
   const claimFixture = createVantaPrivatePoolV2ClaimCircuitFixture({ mode: "valid" });
+  const swapToShieldedFixture = createVantaPrivatePoolV2SwapToShieldedCircuitFixture({
+    mode: "valid",
+  });
   const actualPrivateSpendFixture = createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture({
     mode: "valid",
   });
   const sendArtifact = readArtifact(sendProofArtifactPath);
   const shieldArtifact = readArtifact(shieldProofArtifactPath);
   const claimArtifact = readArtifact(claimProofArtifactPath);
+  const swapToShieldedArtifact = readArtifact(swapToShieldedProofArtifactPath);
   const actualPrivateSpendArtifact = readArtifact(actualPrivateSpendProofArtifactPath);
   const sendDerivedArtifact = {
     ...sendArtifact,
@@ -288,6 +304,10 @@ try {
   };
   const claimDerivedArtifact = {
     ...claimArtifact,
+    proofBackend: "local-bb-derived-artifact",
+  };
+  const swapToShieldedDerivedArtifact = {
+    ...swapToShieldedArtifact,
     proofBackend: "local-bb-derived-artifact",
   };
   const actualPrivateSpendDerivedArtifact = {
@@ -305,6 +325,13 @@ try {
   const claimPublicInputHash = normalizeFieldString(
     readCircuitPublicInput(claimFixture.proofRequest, "claim-public-input-hash"),
     "Claim public input hash",
+  );
+  const swapToShieldedPublicInputHash = normalizeFieldString(
+    readCircuitPublicInput(
+      swapToShieldedFixture.proofRequest,
+      "swap-public-input-hash",
+    ),
+    "Swap-to-shielded public input hash",
   );
   const actualPrivateSpendPublicInputHash = normalizeFieldString(
     readCircuitPublicInput(
@@ -340,6 +367,10 @@ try {
     async proveShield(payload) {
       calls.push({ payload, target: "shield" });
       return shieldDerivedArtifact;
+    },
+    async proveSwapToShielded(payload) {
+      calls.push({ payload, target: "swap-to-shielded" });
+      return swapToShieldedDerivedArtifact;
     },
   };
 
@@ -535,6 +566,57 @@ try {
     "Claim adapter verify() must reject tampered proof bytes.",
   );
 
+  const swapToShieldedAdapter = createVantaPrivatePoolV2BrowserWorkerProofResultAdapter({
+    client,
+    fixtureProofRequest: swapToShieldedFixture.proofRequest,
+    payload: {
+      circuit: "vanta_private_pool_v2_swap_to_shielded_entry",
+      compiledProgramBytecode: "fixture-bytecode",
+      compressedWitness: new Uint8Array([14, 15, 16]),
+      expectedPublicInputHash: swapToShieldedPublicInputHash,
+      proofRuntimeVersion: "fixture-bb",
+      target: "swap-to-shielded",
+    },
+    target: "swap-to-shielded",
+  });
+  const swapToShieldedProof = await swapToShieldedAdapter.prove(
+    swapToShieldedFixture.proofRequest,
+  );
+  assert(
+    calls.at(-1)?.target === "swap-to-shielded",
+    "Swap-to-shielded adapter must call proveSwapToShielded.",
+  );
+  assert(
+    calls.at(-1)?.payload.expectedPublicInputHash === swapToShieldedPublicInputHash,
+    "Swap-to-shielded adapter must bind swap-public-input-hash into the worker payload.",
+  );
+  assert(
+    swapToShieldedProof.proofSystem === "noir-bb",
+    "Swap-to-shielded adapter proof system must be noir-bb.",
+  );
+  assert(
+    swapToShieldedProof.proofBackend === "local-bb-derived-artifact",
+    "Swap-to-shielded adapter proof backend must be local-bb-derived-artifact.",
+  );
+  assertProofResultHasNoWitnessMaterial(swapToShieldedProof);
+  assert(
+    await swapToShieldedAdapter.verify?.({
+      proof: swapToShieldedProof,
+      request: swapToShieldedFixture.proofRequest,
+    }),
+    "Swap-to-shielded adapter verify() must accept its own proof result.",
+  );
+  assert(
+    !(await swapToShieldedAdapter.verify?.({
+      proof: {
+        ...swapToShieldedProof,
+        proofBytes: tamperProofBytes(swapToShieldedProof.proofBytes),
+      },
+      request: swapToShieldedFixture.proofRequest,
+    })),
+    "Swap-to-shielded adapter verify() must reject tampered proof bytes.",
+  );
+
   await expectRejection(
     () =>
       createVantaPrivatePoolV2BrowserWorkerProofResultAdapter({
@@ -623,7 +705,7 @@ try {
         },
         target: "swap-to-shielded",
       }).prove(sendFixture.proofRequest),
-    "unsupported target",
+    "payload target is unsupported",
   );
 
   const disabledAdapter = createVantaPrivatePoolV2BrowserWorkerProofResultAdapter({

@@ -26,6 +26,7 @@ const sourceFiles = [
   "privatePoolV2ClaimCircuitFixture.ts",
   "privatePoolV2SendCircuitFixture.ts",
   "privatePoolV2ShieldCircuitFixture.ts",
+  "privatePoolV2SwapToShieldedCircuitFixture.ts",
   "privatePoolV2BrowserProverProtocol.ts",
   "privatePoolV2BrowserProverWorker.ts",
   "privatePoolV2BrowserProverClient.ts",
@@ -234,6 +235,10 @@ try {
     [
       "src/privacy/privatePoolV2ActualPrivateSpendCircuitFixture.ts",
       read("src/privacy/privatePoolV2ActualPrivateSpendCircuitFixture.ts"),
+    ],
+    [
+      "src/privacy/privatePoolV2SwapToShieldedCircuitFixture.ts",
+      read("src/privacy/privatePoolV2SwapToShieldedCircuitFixture.ts"),
     ],
   ]) {
     assertBrowserSafeSource(relativePath, source);

@@ -9,6 +9,7 @@ import type {
   VantaPrivatePoolV2BrowserWorkerClaimProverPayload,
   VantaPrivatePoolV2BrowserWorkerSendProverPayload,
   VantaPrivatePoolV2BrowserWorkerShieldProverPayload,
+  VantaPrivatePoolV2BrowserWorkerSwapToShieldedProverPayload,
 } from "./privatePoolV2BrowserProverProtocol";
 import {
   createVantaPrivatePoolV2LocalBbFixtureProver,
@@ -23,6 +24,7 @@ import type {
   VantaPrivatePoolV2Readiness,
   VantaPrivatePoolV2SendProofArtifact,
   VantaPrivatePoolV2ShieldProofArtifact,
+  VantaPrivatePoolV2SwapToShieldedProofArtifact,
 } from "./privatePoolV2Types";
 
 export const VANTA_PRIVATE_POOL_V2_BROWSER_WORKER_PROOF_RESULT_ADAPTER_SCHEME =
@@ -32,13 +34,15 @@ export type VantaPrivatePoolV2BrowserWorkerProofResultAdapterTarget =
   | "actual-private-spend"
   | "claim"
   | "send"
-  | "shield";
+  | "shield"
+  | "swap-to-shielded";
 
 type VantaPrivatePoolV2BrowserWorkerProofResultAdapterPayloadByTarget = {
   "actual-private-spend": VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload;
   claim: VantaPrivatePoolV2BrowserWorkerClaimProverPayload;
   send: VantaPrivatePoolV2BrowserWorkerSendProverPayload;
   shield: VantaPrivatePoolV2BrowserWorkerShieldProverPayload;
+  "swap-to-shielded": VantaPrivatePoolV2BrowserWorkerSwapToShieldedProverPayload;
 };
 
 type VantaPrivatePoolV2BrowserWorkerProofResultAdapterArtifactByTarget = {
@@ -46,6 +50,7 @@ type VantaPrivatePoolV2BrowserWorkerProofResultAdapterArtifactByTarget = {
   claim: VantaPrivatePoolV2ClaimProofArtifact;
   send: VantaPrivatePoolV2SendProofArtifact;
   shield: VantaPrivatePoolV2ShieldProofArtifact;
+  "swap-to-shielded": VantaPrivatePoolV2SwapToShieldedProofArtifact;
 };
 
 type VantaPrivatePoolV2BrowserWorkerProofResultAdapterTargetConfig = {
@@ -92,6 +97,12 @@ const TARGET_CONFIGS = {
     displayName: "Shield",
     publicInputLabel: "shield-public-input-hash",
     target: "shield",
+  },
+  "swap-to-shielded": {
+    circuit: "vanta_private_pool_v2_swap_to_shielded_entry",
+    displayName: "Swap-to-shielded",
+    publicInputLabel: "swap-public-input-hash",
+    target: "swap-to-shielded",
   },
 } as const satisfies Record<
   VantaPrivatePoolV2BrowserWorkerProofResultAdapterTarget,
@@ -174,7 +185,8 @@ function assertPayloadMatchesTarget({
     | VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload
     | VantaPrivatePoolV2BrowserWorkerClaimProverPayload
     | VantaPrivatePoolV2BrowserWorkerSendProverPayload
-    | VantaPrivatePoolV2BrowserWorkerShieldProverPayload;
+    | VantaPrivatePoolV2BrowserWorkerShieldProverPayload
+    | VantaPrivatePoolV2BrowserWorkerSwapToShieldedProverPayload;
 }) {
   if (payload.target !== config.target || payload.circuit !== config.circuit) {
     throw new Error(
@@ -194,7 +206,8 @@ function assertPayloadPublicInputHash({
     | VantaPrivatePoolV2BrowserWorkerActualPrivateSpendProverPayload
     | VantaPrivatePoolV2BrowserWorkerClaimProverPayload
     | VantaPrivatePoolV2BrowserWorkerSendProverPayload
-    | VantaPrivatePoolV2BrowserWorkerShieldProverPayload;
+    | VantaPrivatePoolV2BrowserWorkerShieldProverPayload
+    | VantaPrivatePoolV2BrowserWorkerSwapToShieldedProverPayload;
 }) {
   if (
     payload.expectedPublicInputHash !== undefined &&
@@ -215,7 +228,8 @@ function assertDerivedArtifact({
     | VantaPrivatePoolV2ActualPrivateSpendProofArtifact
     | VantaPrivatePoolV2ClaimProofArtifact
     | VantaPrivatePoolV2SendProofArtifact
-    | VantaPrivatePoolV2ShieldProofArtifact;
+    | VantaPrivatePoolV2ShieldProofArtifact
+    | VantaPrivatePoolV2SwapToShieldedProofArtifact;
   config: VantaPrivatePoolV2BrowserWorkerProofResultAdapterTargetConfig;
 }) {
   if (artifact.proofBackend !== VANTA_PRIVATE_POOL_V2_LOCAL_BB_DERIVED_PROOF_BACKEND) {
@@ -321,7 +335,7 @@ export class VantaPrivatePoolV2BrowserWorkerProofResultAdapter<
       blockers: [],
       ready: true,
       warnings: [
-        "Private Pool v2 browser-worker proof-result adapter is dev-only browser/Web Worker proof execution and local no-real-funds evidence. The default local prover remains mock / local-mock; this is not live Shield routing, not live Claim routing, not live Send routing, not routed live actual-private-spend execution, not a production browser runtime prover, not a production remote proof service, not on-chain proof verification, not production verifying-key evidence, not audit acceptance, not live deployment evidence, and not real-funds readiness.",
+        "Private Pool v2 browser-worker proof-result adapter is dev-only browser/Web Worker proof execution and local no-real-funds evidence. The default local prover remains mock / local-mock; this is not live Shield routing, not live Claim routing, not live Swap-to-shielded routing, not live Send routing, not routed live actual-private-spend execution, not a production browser runtime prover, not a production remote proof service, not on-chain proof verification, not production verifying-key evidence, not audit acceptance, not live deployment evidence, and not real-funds readiness.",
       ],
     };
   }
@@ -351,6 +365,7 @@ export class VantaPrivatePoolV2BrowserWorkerProofResultAdapter<
     | VantaPrivatePoolV2ClaimProofArtifact
     | VantaPrivatePoolV2SendProofArtifact
     | VantaPrivatePoolV2ShieldProofArtifact
+    | VantaPrivatePoolV2SwapToShieldedProofArtifact
   > {
     if (config.target === "actual-private-spend") {
       return this.#client.proveActualPrivateSpend({
@@ -378,6 +393,13 @@ export class VantaPrivatePoolV2BrowserWorkerProofResultAdapter<
         ...this.#payload,
         expectedPublicInputHash: expectedPublicInputHashValue,
       } as VantaPrivatePoolV2BrowserWorkerShieldProverPayload);
+    }
+
+    if (config.target === "swap-to-shielded") {
+      return this.#client.proveSwapToShielded({
+        ...this.#payload,
+        expectedPublicInputHash: expectedPublicInputHashValue,
+      } as VantaPrivatePoolV2BrowserWorkerSwapToShieldedProverPayload);
     }
 
     throw new Error("Private Pool v2 browser-worker proof-result adapter unsupported target.");

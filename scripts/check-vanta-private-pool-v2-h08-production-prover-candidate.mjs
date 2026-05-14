@@ -388,10 +388,11 @@ for (const command of [
   "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
   "npm run private-pool-v2:shield-browser-worker-prover-check",
   "npm run private-pool-v2:claim-browser-worker-prover-check",
+  "npm run private-pool-v2:swap-to-shielded-browser-worker-prover-check",
 ]) {
   assert(worker.guards?.includes(command), `browser worker guards missing ${command}`);
 }
-for (const target of ["shield", "claim", "send", "actual-private-spend"]) {
+for (const target of ["shield", "claim", "swap-to-shielded", "send", "actual-private-spend"]) {
   assert(worker.supportedTargets?.includes(target), `browser worker current coverage missing ${target}`);
 }
 assert(worker.satisfiesProductionProverEvidence === false, "browser worker path must not satisfy production evidence");
@@ -400,7 +401,7 @@ const adapter = observations.browserWorkerProofResultAdapter ?? {};
 assert(adapter.status === "opt-in-dev-only-proof-result-interface", "browser-worker adapter status mismatch");
 assert(adapter.implementsInterface === "VantaPrivatePoolV2Prover", "browser-worker adapter interface mismatch");
 assert(adapter.guard === "npm run private-pool-v2:browser-worker-proof-result-adapter-check", "browser-worker adapter guard mismatch");
-for (const target of ["shield", "claim", "send", "actual-private-spend"]) {
+for (const target of ["shield", "claim", "swap-to-shielded", "send", "actual-private-spend"]) {
   assert(adapter.supportedTargets?.includes(target), `browser-worker adapter current coverage missing ${target}`);
 }
 assert(adapter.requiresProofBackend === "local-bb-derived-artifact", "browser-worker adapter backend mismatch");
@@ -474,6 +475,7 @@ for (const phrase of [
   "real-funds ZK readiness",
   "proof-enforced spend",
   "live Claim proof routing",
+  "live Swap-to-shielded proof routing",
 ]) {
   assert(packet.forbiddenPromotions.includes(phrase), `forbiddenPromotions missing ${phrase}`);
 }
@@ -483,6 +485,7 @@ for (const command of [
   "npm run zk:h08-production-prover-runtime-options-check",
   "npm run private-pool-v2:local-bb-fixture-prover-check",
   "npm run private-pool-v2:claim-browser-worker-prover-check",
+  "npm run private-pool-v2:swap-to-shielded-browser-worker-prover-check",
   "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
   "npm run zk:c01-verifier-backend-decision-check",
   "npm run zk:c01-verifier-backend-options-check",
@@ -524,6 +527,7 @@ for (const marker of [
   "threads: 1",
   "proveVantaPrivatePoolV2SendInBrowserWorker",
   "proveVantaPrivatePoolV2ActualPrivateSpendInBrowserWorker",
+  "proveVantaPrivatePoolV2SwapToShieldedInBrowserWorker",
   "local-bb-derived-artifact",
 ]) {
   includes(browserWorker, marker, "browser worker H08 source truth");
@@ -532,6 +536,7 @@ for (const marker of [
   "VantaPrivatePoolV2Prover",
   "requires local-bb-derived-artifact evidence",
   "default local prover remains mock / local-mock",
+  "not live Swap-to-shielded routing",
   "not live Send routing",
   "not routed live actual-private-spend execution",
 ]) {
