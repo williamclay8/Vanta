@@ -23,10 +23,11 @@ if (
   fixtureMode !== "forged-output-append-path" &&
   fixtureMode !== "invalid-binding" &&
   fixtureMode !== "invalid-nullifier" &&
+  fixtureMode !== "invalid-owner-secret-binding" &&
   fixtureMode !== "invalid-output-root"
 ) {
   console.error(
-    'Expected fixture mode "valid", "forged-input-membership", "forged-output-append-path", "invalid-binding", "invalid-nullifier", or "invalid-output-root".',
+    'Expected fixture mode "valid", "forged-input-membership", "forged-output-append-path", "invalid-binding", "invalid-nullifier", "invalid-owner-secret-binding", or "invalid-output-root".',
   );
   process.exit(1);
 }

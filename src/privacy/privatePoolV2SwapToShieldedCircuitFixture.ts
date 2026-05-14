@@ -86,6 +86,7 @@ export type VantaPrivatePoolV2SwapToShieldedCircuitFixtureMode =
   | "forged-output-append-path"
   | "invalid-binding"
   | "invalid-nullifier"
+  | "invalid-owner-secret-binding"
   | "invalid-output-root";
 
 const SWAP_TO_SHIELDED_WITNESS_FIELDS = [
@@ -120,17 +121,22 @@ const DEFAULT_WITNESS_BASE = {
   membership_path_direction_bits: [] as readonly bigint[],
   output_commitment: 1201n,
   output_leaf_index: 6n,
-  owner_commitment: 606n,
   owner_secret: 404n,
   request_version: 101n,
   route_commitment: 909n,
   settlement_commitment: 707n,
   swap_context_tag: 1302n,
 };
+const DEFAULT_WITH_OWNER_COMMITMENT = {
+  ...DEFAULT_WITNESS_BASE,
+  owner_commitment: computeVantaPrivatePoolV2SwapToShieldedOwnerCommitment(
+    DEFAULT_WITNESS_BASE,
+  ),
+};
 
 const DEFAULT_WITH_ROOT = {
-  ...DEFAULT_WITNESS_BASE,
-  ...buildVantaPrivatePoolV2SwapToShieldedTree(DEFAULT_WITNESS_BASE),
+  ...DEFAULT_WITH_OWNER_COMMITMENT,
+  ...buildVantaPrivatePoolV2SwapToShieldedTree(DEFAULT_WITH_OWNER_COMMITMENT),
 };
 
 const DEFAULT_WITH_NULLIFIER = {
@@ -224,6 +230,12 @@ export function computeVantaPrivatePoolV2SwapToShieldedNullifierOrReplayCommitme
   >,
 ) {
   return poseidon2([witness.input_commitment, witness.owner_secret]);
+}
+
+export function computeVantaPrivatePoolV2SwapToShieldedOwnerCommitment(
+  witness: Pick<VantaPrivatePoolV2SwapToShieldedCircuitWitness, "owner_secret">,
+) {
+  return poseidon1([witness.owner_secret]);
 }
 
 export function computeVantaPrivatePoolV2SwapToShieldedLeaf(
@@ -376,6 +388,13 @@ export function normalizeVantaPrivatePoolV2SwapToShieldedCircuitWitnessInput(
   }
 
   if (
+    witness.owner_commitment !==
+    computeVantaPrivatePoolV2SwapToShieldedOwnerCommitment(witness)
+  ) {
+    throw new Error("Swap-to-shielded witness owner_commitment must match the owner secret.");
+  }
+
+  if (
     witness.nullifier_or_replay_commitment !==
     computeVantaPrivatePoolV2SwapToShieldedNullifierOrReplayCommitment(witness)
   ) {
@@ -425,6 +444,8 @@ export function createVantaPrivatePoolV2SwapToShieldedCircuitFixture({
           ...witness,
           nullifier_or_replay_commitment: witness.nullifier_or_replay_commitment + 1n,
         }
+      : mode === "invalid-owner-secret-binding"
+      ? createInvalidOwnerSecretBindingWitness(witness)
       : mode === "invalid-output-root"
         ? {
             ...witness,
@@ -512,7 +533,10 @@ function forgePath(path: readonly bigint[]) {
 }
 
 function buildVantaPrivatePoolV2SwapToShieldedTree(
-  witness: typeof DEFAULT_WITNESS_BASE,
+  witness: Pick<
+    VantaPrivatePoolV2SwapToShieldedCircuitWitness,
+    "input_commitment" | "input_leaf_index" | "output_commitment" | "output_leaf_index"
+  >,
 ) {
   const inputTree = buildVantaPrivatePoolV2SparseMerkleTree({
     leaves: [
@@ -542,6 +566,21 @@ function buildVantaPrivatePoolV2SwapToShieldedTree(
     output_append_path: inputTree.pathForLeaf(witness.output_leaf_index),
     output_append_path_direction_bits: directionBitsForLeafIndex(witness.output_leaf_index),
     output_root: outputTree.root,
+  };
+}
+
+function createInvalidOwnerSecretBindingWitness(
+  witness: VantaPrivatePoolV2SwapToShieldedCircuitWitness,
+): VantaPrivatePoolV2SwapToShieldedCircuitWitness {
+  const tamperedWitness = {
+    ...witness,
+    owner_secret: witness.owner_secret + 1n,
+  };
+
+  return {
+    ...tamperedWitness,
+    nullifier_or_replay_commitment:
+      computeVantaPrivatePoolV2SwapToShieldedNullifierOrReplayCommitment(tamperedWitness),
   };
 }
 

@@ -9,6 +9,10 @@ fn compute_nullifier_or_replay_commitment(
     bn254::hash_2([input_commitment, owner_secret])
 }
 
+fn compute_owner_commitment(owner_secret: Field) -> Field {
+    bn254::hash_1([owner_secret])
+}
+
 fn hash_merkle_leaf(commitment: Field) -> Field {
     bn254::hash_1([commitment])
 }
@@ -125,6 +129,9 @@ fn main(
     swap_context_tag: Field,
     owner_secret: Field,
 ) {
+    let computed_owner_commitment = compute_owner_commitment(owner_secret);
+    assert(computed_owner_commitment == owner_commitment);
+
     let computed_input_root = compute_root(
         input_commitment,
         membership_path,
