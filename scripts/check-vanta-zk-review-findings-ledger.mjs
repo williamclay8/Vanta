@@ -551,6 +551,54 @@ for (const phrase of [
   );
 }
 
+const unshieldVaultAssetHarnessLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-14-UNSHIELD-VAULT-ASSET-HARNESS";
+assert(
+  activeFeedbackLoopIds.has(unshieldVaultAssetHarnessLoopId),
+  `${unshieldVaultAssetHarnessLoopId} active feedback loop is missing`,
+);
+const unshieldVaultAssetHarnessLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === unshieldVaultAssetHarnessLoopId,
+);
+const unshieldVaultAssetHarnessLoopText = JSON.stringify(unshieldVaultAssetHarnessLoop);
+for (const command of [
+  "npm run private-pool-v2:onchain-unshield-custody-check",
+  "npm run private-pool-v2:contract-check",
+  "npm run private-pool-v2:sbf-abi-check",
+  "npm run private-pool-v2:crucible-check",
+  "cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml",
+  "cargo check --manifest-path fuzz/vanta_private_pool_v2_spend/Cargo.toml --features invariant_test",
+  "cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml unshield_release_preflights_vault_asset_before_fail_closed_release -- --nocapture",
+  "cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml unshield_release_rejects_unbound_preflight_accounts_without_mutation -- --nocapture",
+  "npm run zk:feedback-loop-check",
+  "npm run zk:review-guards-check",
+  "npm run build",
+  "git diff --check",
+]) {
+  assert(
+    unshieldVaultAssetHarnessLoop?.localVerification?.includes(command),
+    `${unshieldVaultAssetHarnessLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "VAULT_ASSET_ACCOUNT_LEN = HEADER_LEN + HASH_LEN * 6 + 2",
+  "VAULT_ASSET_KIND_OFFSET + 1",
+  "canonical SPL token program",
+  "releaseEnabled = 0",
+  "releaseEnabled = 1",
+  "ERR_VAULT_ASSET_MISMATCH",
+  "643535b",
+  "not proof-verified TAG_UNSHIELD release",
+  "not token/system CPI release",
+  "not operator-keypair replacement",
+  "not redeployed/reinitialized/live SBF evidence",
+]) {
+  assert(
+    unshieldVaultAssetHarnessLoopText.includes(phrase),
+    `${unshieldVaultAssetHarnessLoopId} must record ${phrase}`,
+  );
+}
+
 const c01VerifierBackendOptionsLoopId =
   "VANTA-ZK-FEEDBACK-2026-05-13-C01-VERIFIER-BACKEND-OPTIONS";
 assert(
@@ -1638,6 +1686,12 @@ assert(
   ),
   "C01 must record the tag-3 output-capacity commit",
 );
+assert(
+  c01.codexRemediation.commits.some((commitRef) =>
+    commitRef.includes("Sync unshield vault asset harness")
+  ),
+  "C01 must record the Unshield vault-asset harness sync commit",
+);
 assert(c01Text.includes("TAG_UNSHIELD = 6"), "C01 must record the source-only TAG_UNSHIELD preflight truth");
 assert(c01Text.includes("TAG_REGISTER_VAULT_ASSET = 7"), "C01 must record the source-only TAG_REGISTER_VAULT_ASSET truth");
 assert(c01Text.includes("TAG_REGISTER_PROVENANCED_ROOT = 4"), "C01 must record the source-only TAG_REGISTER_PROVENANCED_ROOT truth");
@@ -1729,6 +1783,9 @@ assert(
 assert(c01Text.includes("full output-counter rejection"), "C01 must record the tag-3 full output-counter rejection");
 assert(c01Text.includes("custom error 3"), "C01 must record the tag-3 output capacity error code");
 assert(c01Text.includes("output-capacity preflight"), "C01 must preserve the tag-3 output-capacity truth boundary");
+assert(c01Text.includes("exact vault-asset account length"), "C01 must record the vault-asset account-length harness sync");
+assert(c01Text.includes("canonical SPL token-program"), "C01 must record canonical SPL token-program harness coverage");
+assert(c01Text.includes("corrupted releaseEnabled = 1 rejection"), "C01 must record releaseEnabled corruption rejection");
 assert(
   c01Text.includes("blocked verifier adapter acceptance-test candidate"),
   "C01 must record the blocked verifier adapter acceptance-test candidate",
