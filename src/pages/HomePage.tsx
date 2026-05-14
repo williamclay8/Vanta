@@ -4,30 +4,56 @@ import { AnonymityDepthDisclosure } from "@/components/AnonymityDepthDisclosure"
 import { BrandMark } from "@/components/BrandMark";
 import { LandingLiveStrip } from "@/components/LandingLiveStrip";
 
+type LandingGlyph = "exit" | "private-rails" | "receipt" | "shield";
+
 const productPoints = [
   {
     copy: "Move selected Solana assets into Vanta before sending, swapping, or exiting.",
+    icon: "shield",
     title: "Shield assets",
   },
   {
     copy: "Test Shield, Send, Swap, and Unshield with receipts that show what can be verified.",
+    icon: "private-rails",
     title: "Use current lanes",
   },
   {
     copy: "Create payment requests and local receipt-backed records merchants can inspect.",
+    icon: "receipt",
     title: "Accept payments",
   },
   {
     copy: "Move balances back to a public wallet when you choose to leave Vanta.",
+    icon: "exit",
     title: "Exit on your terms",
   },
-];
+] satisfies Array<{ copy: string; icon: LandingGlyph; title: string }>;
 
 const primaryAppActions = [
-  { label: "Shield funds", path: "shield" },
-  { label: "Send from shielded state", path: "send" },
-  { label: "Swap from shielded state", path: "swap" },
-  { label: "Unshield funds", path: "unshield" },
+  {
+    label: "Shield funds",
+    outcome: "Move selected assets into Vanta before Send, Swap, or Unshield.",
+    path: "shield",
+    status: "Wallet lane",
+  },
+  {
+    label: "Send from shielded state",
+    outcome: "Create receipt-backed transfers from shielded state.",
+    path: "send",
+    status: "Wallet lane",
+  },
+  {
+    label: "Swap from shielded state",
+    outcome: "Preview swap routing from shielded state with proof and route context.",
+    path: "swap",
+    status: "Wallet lane",
+  },
+  {
+    label: "Unshield funds",
+    outcome: "Exit selected balances back to a public wallet.",
+    path: "unshield",
+    status: "Wallet lane",
+  },
 ];
 
 const previewAppActions = [
@@ -36,14 +62,50 @@ const previewAppActions = [
     eyebrow: "Pay preview",
     label: "Collect payments",
     path: "pay",
+    status: "Preview",
   },
   {
     copy: "Preview private-rail execution planning before live routing is enabled.",
     eyebrow: "Strategy preview",
     label: "Plan execution",
     path: "strategy",
+    status: "Preview",
   },
 ];
+
+function LandingPointGlyph({ name }: { name: LandingGlyph }) {
+  return (
+    <span className="landing-minimal__point-glyph" data-vanta-landing-glyph={name} aria-hidden="true">
+      <svg viewBox="0 0 32 32" focusable="false">
+        {name === "shield" ? (
+          <path d="M16 4l9 3v7c0 6-3.7 10.7-9 14-5.3-3.3-9-8-9-14V7l9-3z" />
+        ) : null}
+        {name === "private-rails" ? (
+          <>
+            <path d="M8 12h13" />
+            <path d="M17 8l4 4-4 4" />
+            <path d="M24 20H11" />
+            <path d="M15 16l-4 4 4 4" />
+          </>
+        ) : null}
+        {name === "receipt" ? (
+          <>
+            <path d="M10 5h12v22l-3-2-3 2-3-2-3 2V5z" />
+            <path d="M13 12h6" />
+            <path d="M13 17h6" />
+          </>
+        ) : null}
+        {name === "exit" ? (
+          <>
+            <path d="M7 6h11v20H7z" />
+            <path d="M16 16h9" />
+            <path d="M21 12l4 4-4 4" />
+          </>
+        ) : null}
+      </svg>
+    </span>
+  );
+}
 
 export function HomePage() {
   const [navScrolled, setNavScrolled] = useState(false);
@@ -127,6 +189,7 @@ export function HomePage() {
         <div className="landing-minimal__points landing-minimal__points--features">
           {productPoints.map((point) => (
             <article key={point.title} className="landing-minimal__point landing-minimal__point--feature">
+              <LandingPointGlyph name={point.icon} />
               <strong>{point.title}</strong>
               <p>{point.copy}</p>
             </article>
@@ -150,8 +213,13 @@ export function HomePage() {
             aria-label="Primary Vanta wallet actions"
           >
             {primaryAppActions.map((action) => (
-              <Link key={action.path} to={`/app/${action.path}`}>
-                {action.label}
+              <Link key={action.path} to={`/app/${action.path}`} data-vanta-landing-action-card>
+                <span className="landing-minimal__action-status">{action.status}</span>
+                <strong>{action.label}</strong>
+                <small data-vanta-landing-action-outcome>{action.outcome}</small>
+                <span className="landing-minimal__action-arrow" data-vanta-landing-action-arrow aria-hidden="true">
+                  -&gt;
+                </span>
               </Link>
             ))}
           </div>
@@ -161,10 +229,20 @@ export function HomePage() {
           <span className="landing-minimal__action-kicker">Preview surfaces</span>
           <div className="landing-minimal__preview-list">
             {previewAppActions.map((action) => (
-              <Link key={action.path} className="landing-minimal__preview-link" to={`/app/${action.path}`}>
-                <span>{action.eyebrow}</span>
+              <Link
+                key={action.path}
+                className="landing-minimal__preview-link"
+                to={`/app/${action.path}`}
+                data-vanta-landing-action-card
+              >
+                <span className="landing-minimal__action-status">
+                  {action.eyebrow} · {action.status}
+                </span>
                 <strong>{action.label}</strong>
-                <small>{action.copy}</small>
+                <small data-vanta-landing-action-outcome>{action.copy}</small>
+                <span className="landing-minimal__action-arrow" data-vanta-landing-action-arrow aria-hidden="true">
+                  -&gt;
+                </span>
               </Link>
             ))}
           </div>

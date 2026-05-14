@@ -130,6 +130,10 @@ function checkLandingLiveStripSource() {
     ".landing-minimal__live-dot",
     "@keyframes landing-live-dot-pulse",
     "@media (prefers-reduced-motion: reduce)",
+    ".landing-minimal__point-glyph",
+    ".landing-minimal__action-status",
+    ".landing-minimal__action-arrow",
+    "translateX(3px)",
   ]) {
     if (!stylesSource.includes(snippet)) {
       throw new Error(`Landing live strip styles missing required selector/snippet: ${snippet}`);
@@ -244,6 +248,37 @@ function checkLandingViewport(width, height) {
             .map((link) => link.textContent ?? "")
             .join(" ")
             .includes("before live routing is enabled"),
+        hasFeatureGlyphs: (() => {
+          const glyphs = [...document.querySelectorAll(".landing-minimal__point--feature [data-vanta-landing-glyph]")]
+            .map((glyph) => glyph.getAttribute("data-vanta-landing-glyph"));
+
+          return glyphs.length === 4 &&
+            ["shield", "private-rails", "receipt", "exit"].every((glyph) => glyphs.includes(glyph));
+        })(),
+        hasActionCards: (() => {
+          const primaryCards = [...document.querySelectorAll(".landing-minimal__action-list--primary [data-vanta-landing-action-card]")];
+          const previewCards = [...document.querySelectorAll(".landing-minimal__preview-link[data-vanta-landing-action-card]")];
+          const primaryHrefs = primaryCards.map((card) => card.getAttribute("href"));
+          const previewHrefs = previewCards.map((card) => card.getAttribute("href"));
+
+          return primaryCards.length === 4 &&
+            previewCards.length === 2 &&
+            ["/app/shield", "/app/send", "/app/swap", "/app/unshield"].every((href) => primaryHrefs.includes(href)) &&
+            !["/app/pay", "/app/strategy"].some((href) => primaryHrefs.includes(href)) &&
+            ["/app/pay", "/app/strategy"].every((href) => previewHrefs.includes(href)) &&
+            primaryCards.every((card) =>
+              card.textContent?.includes("Wallet lane") &&
+              Boolean(card.querySelector(".landing-minimal__action-status")) &&
+              Boolean(card.querySelector("[data-vanta-landing-action-outcome]")) &&
+              Boolean(card.querySelector(".landing-minimal__action-arrow[data-vanta-landing-action-arrow]")),
+            ) &&
+            previewCards.every((card) =>
+              card.textContent?.includes("Preview") &&
+              Boolean(card.querySelector(".landing-minimal__action-status")) &&
+              Boolean(card.querySelector("[data-vanta-landing-action-outcome]")) &&
+              Boolean(card.querySelector(".landing-minimal__action-arrow[data-vanta-landing-action-arrow]")),
+            );
+        })(),
         horizontalOverflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth,
         smallTargets: [...document.querySelectorAll("a, button")]
           .filter((element) => {
@@ -313,6 +348,14 @@ function checkLandingViewport(width, height) {
         text: result.previewActionText,
       })}`,
     );
+  }
+
+  if (!result.hasFeatureGlyphs) {
+    throw new Error("Landing page must add meaningful glyphs to the four feature cards.");
+  }
+
+  if (!result.hasActionCards) {
+    throw new Error("Landing page must present app entry links as outcome/status cards with arrows.");
   }
 
   if (result.horizontalOverflow > 2) {
