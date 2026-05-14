@@ -990,6 +990,59 @@ for (const phrase of [
   );
 }
 
+const docsInlineDiagramLoopId = "VANTA-ZK-FEEDBACK-2026-05-14-DOCS-INLINE-DIAGRAM";
+assert(
+  activeFeedbackLoopIds.has(docsInlineDiagramLoopId),
+  `${docsInlineDiagramLoopId} active feedback loop is missing`,
+);
+const docsInlineDiagramLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === docsInlineDiagramLoopId,
+);
+const docsInlineDiagramLoopText = JSON.stringify(docsInlineDiagramLoop);
+for (const command of [
+  "red-first npm run docs:browser-check",
+  "npm run docs:inline-diagram-check",
+  "npm run docs:source-of-truth-check",
+  "npm run docs:browser-check",
+  "npm run docs:verify",
+  "npm run truth:privacy-claim-gate",
+  "npm run mainnet:external-gates-production-claim-check",
+  "npm run build",
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:feedback-loop-check",
+  "git diff --check",
+]) {
+  assert(
+    docsInlineDiagramLoop?.localVerification?.includes(command),
+    `${docsInlineDiagramLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "inline diagram",
+  "DocsHomePage",
+  "data-docs-flow-diagram",
+  "Public chain",
+  "Vanta shield",
+  "Trust packet",
+  "Counterparty review",
+  "beta-safe",
+  "mobile horizontal fallback",
+  "not production-private",
+  "not a live depth oracle",
+  "not live anonymity",
+  "not social proof",
+  "not TVL or user-count evidence",
+  "not route/proof/settlement behavior",
+  "not audit acceptance",
+  "not-live-verified",
+  "5b2de61",
+]) {
+  assert(
+    docsInlineDiagramLoopText.includes(phrase),
+    `${docsInlineDiagramLoopId} must record ${phrase}`,
+  );
+}
+
 const payProgressiveDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-PAY-PROGRESSIVE-DISCLOSURE";
 assert(
   activeFeedbackLoopIds.has(payProgressiveDisclosureLoopId),

@@ -1172,6 +1172,40 @@
       "truthBoundary": "This is public landing presentation and guard hardening only. It is not production-private settlement, not a live depth oracle, not live anonymity, not social proof, not TVL or user-count evidence, not route/proof/settlement behavior, not wallet-lane production readiness, not pushed, and not deployed/live."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-14-DOCS-INLINE-DIAGRAM",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#--docs",
+        "VANTA_ZK_REVIEW.md#whats-almost-there",
+        "src/pages/DocsHomePage.tsx",
+        "src/styles.css",
+        "scripts/check-vanta-docs-inline-diagram.mjs",
+        "scripts/check-vanta-docs-browser.mjs",
+        "npm run docs:inline-diagram-check"
+      ],
+      "summary": "The docs inline diagram feedback now has a guarded beta-safe local slice: DocsHomePage renders an inline diagram with the data-docs-flow-diagram marker, Public chain, Vanta shield, Trust packet, and Counterparty review nodes, three arrow markers, a mobile horizontal fallback, and explicit not production-private proof copy without adding privacy, production, liveness, route, proof, settlement, audit, adoption, TVL, or user-count claims.",
+      "localVerification": [
+        "red-first npm run docs:browser-check",
+        "npm run docs:inline-diagram-check",
+        "npm run docs:source-of-truth-check",
+        "npm run docs:browser-check",
+        "npm run docs:verify",
+        "npm run truth:privacy-claim-gate",
+        "npm run mainnet:external-gates-production-claim-check",
+        "npm run build",
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:feedback-loop-check",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for the docs inline diagram across focused docs diagram, docs source-of-truth, docs browser, docs verify, privacy-claim, external production-claim, build, review-ledger, feedback-loop, and diff checks",
+        "committed": "5b2de61 (Add docs inline flow diagram)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is docs presentation and guard hardening only. It is not production-private settlement, not a live depth oracle, not live anonymity, not social proof, not TVL or user-count evidence, not route/proof/settlement behavior, not audit acceptance, not wallet-lane production readiness, not pushed, and not deployed/live."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-PAY-PROGRESSIVE-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
