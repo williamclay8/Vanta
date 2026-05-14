@@ -899,6 +899,57 @@ for (const phrase of [
   );
 }
 
+const payReceiptPacketCardLoopId = "VANTA-ZK-FEEDBACK-2026-05-14-PAY-RECEIPT-PACKET-CARD";
+assert(
+  activeFeedbackLoopIds.has(payReceiptPacketCardLoopId),
+  `${payReceiptPacketCardLoopId} active feedback loop is missing`,
+);
+const payReceiptPacketCardLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === payReceiptPacketCardLoopId,
+);
+const payReceiptPacketCardLoopText = JSON.stringify(payReceiptPacketCardLoop);
+for (const command of [
+  "npm run pay:receipt-public-view-check",
+  "npm run pay:receipt-privacy-contract-check",
+  "npm run pay-tab:copy-check",
+  "npm run pay:browser-check",
+  "npm run product-ui:browser-check",
+  "npm run pay:doc-truth-check",
+  "npm run pay:committed-checkout-acceptance-check",
+  "npm run truth:privacy-claim-gate",
+  "npm run build",
+  "npm run pay:verify",
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:feedback-loop-check",
+]) {
+  assert(
+    payReceiptPacketCardLoop?.localVerification?.includes(command),
+    `${payReceiptPacketCardLoopId} must record ${command}`,
+  );
+}
+for (const phrase of [
+  "receipt packet card",
+  "merchant",
+  "printable",
+  "shareable",
+  "QR",
+  "Copy share link",
+  "Print receipt",
+  "/receipt/<id>",
+  "vantaprivacy.xyz/receipt",
+  "test receipt",
+  "not Pay production readiness",
+  "not customer-side ZK Pay proof V8",
+  "not live mainnet private settlement",
+  "de0d4fb",
+  "5c32497",
+]) {
+  assert(
+    payReceiptPacketCardLoopText.includes(phrase),
+    `${payReceiptPacketCardLoopId} must record ${phrase}`,
+  );
+}
+
 const strategyProgressiveDisclosureLoopId = "VANTA-ZK-FEEDBACK-2026-05-13-STRATEGY-PROGRESSIVE-DISCLOSURE";
 assert(
   activeFeedbackLoopIds.has(strategyProgressiveDisclosureLoopId),

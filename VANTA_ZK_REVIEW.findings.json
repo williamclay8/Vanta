@@ -1113,6 +1113,47 @@
       "truthBoundary": "This is a Pay UX and guard-hardening slice. It preserves the existing local test receipt path and receipt privacy contract, but it is not Pay production readiness, not customer-side ZK Pay proof V8, not live mainnet private settlement, not a production private-rail launch, not pushed, and not live-deployed."
     },
     {
+      "id": "VANTA-ZK-FEEDBACK-2026-05-14-PAY-RECEIPT-PACKET-CARD",
+      "status": "verified-local-in-feedback-loop",
+      "sourceReviewRefs": [
+        "VANTA_ZK_REVIEW.md#pay-redesign",
+        "VANTA_ZK_REVIEW.md#the-single-rule",
+        "src/components/PayReceiptPacketCard.tsx",
+        "src/pages/PayPage.tsx",
+        "src/pages/ReceiptVerificationPage.tsx",
+        "src/App.tsx",
+        "src/styles.css",
+        "scripts/check-vanta-pay-browser.mjs",
+        "scripts/check-vanta-pay-receipt-privacy-contract.mjs",
+        "scripts/check-vanta-pay-tab-copy.mjs",
+        "scripts/check-vanta-lane-trust-contracts.mjs"
+      ],
+      "summary": "The Pay receipt packet UI redesign now has a guarded local slice: Pay settlement completion renders a dedicated receipt packet card instead of an inline dl, scoped to VantaPayReceiptPublicView and the receipt privacy contract. The card is shareable and printable, shows the merchant brand, amount, receipt/payment references, a QR preview block, redacted private-rail and audit references, buyer/merchant/private rows, Copy share link, Print receipt, test receipt boundary copy, and a local /receipt/<id> verification preview route shaped for the future vantaprivacy.xyz/receipt/<id> path. The browser guard failed red-first on the missing card and now requires the stable card selectors, printable/share controls, redacted references, beta truth copy, and the receipt-backed-test-settlement-not-production-private boundary.",
+      "localVerification": [
+        "red-first npm run pay:browser-check failed before PayReceiptPacketCard existed",
+        "npm run pay:receipt-public-view-check",
+        "npm run pay:receipt-privacy-contract-check",
+        "npm run pay-tab:copy-check",
+        "npm run pay:browser-check",
+        "npm run product-ui:browser-check",
+        "npm run pay:doc-truth-check",
+        "npm run pay:committed-checkout-acceptance-check",
+        "npm run truth:privacy-claim-gate",
+        "npm run build",
+        "npm run pay:verify",
+        "npm run zk:review-findings-ledger-check",
+        "npm run zk:feedback-loop-check",
+        "git diff --check"
+      ],
+      "lumiHygiene": {
+        "local": "verified locally for Pay receipt public view, Pay receipt privacy contract, Pay tab copy, Pay browser, product UI browser, Pay doc truth, committed-checkout acceptance, privacy claim gate, production build, aggregate pay:verify, ZK review ledger, ZK feedback-loop bundle, and diff whitespace checks",
+        "committed": "de0d4fb (Add Pay receipt packet card); 5c32497 (Tighten Pay receipt packet print card)",
+        "pushed": "not-pushed",
+        "deployedLive": "not-live-verified"
+      },
+      "truthBoundary": "This is a Pay receipt packet card, local /receipt preview route, and guard-hardening slice only. It is not Pay production readiness, not customer-side ZK Pay proof V8, not a live/public receipt verification deployment, not live mainnet private settlement, not a production private-rail launch, not pushed, and not live-deployed."
+    },
+    {
       "id": "VANTA-ZK-FEEDBACK-2026-05-13-STRATEGY-PROGRESSIVE-DISCLOSURE",
       "status": "verified-local-in-feedback-loop",
       "sourceReviewRefs": [
