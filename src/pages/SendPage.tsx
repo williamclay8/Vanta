@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { sha256 } from "@noble/hashes/sha2";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { NotePicker, type NotePickerOption } from "@/components/NotePicker";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { PrivacySummary, type PrivacySummaryItem } from "@/components/PrivacySummary";
+import { RecipientField } from "@/components/RecipientField";
 import { SendReceiptModal, type SendReceiptModalDetails } from "@/components/SendReceiptModal";
 import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
@@ -13,6 +13,10 @@ import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import { isBetaMode } from "@/config/deploymentMode";
 import { usePrivacyFlow, type PrivacyAssetKey } from "@/data/context/PrivacyFlowContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
+import {
+  validateLiveSendRecipient,
+  type SendRecipientInputSource,
+} from "@/solana/sendRecipientValidation";
 import {
   getShieldedSendAssetCapability,
   listShieldedSendAssetOptions,
@@ -416,6 +420,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     getInitialSendAsset(recentShield?.asset),
   );
   const [recipient, setRecipient] = useState("");
+  const [recipientInputSource, setRecipientInputSource] =
+    useState<SendRecipientInputSource>("typed");
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [isSendAdvancedOpen, setIsSendAdvancedOpen] = useState(false);
   const [amount, setAmount] = useState("");
@@ -662,11 +668,24 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     Number.isFinite(parsedAmount) &&
     parsedAmount > 0 &&
     parsedAmount <= maxNoteAmount;
-  const trimmedRecipient = recipient.trim();
-  const isRecipientValid = trimmedRecipient.length >= 8;
+  const recipientValidation = useMemo(
+    () =>
+      validateLiveSendRecipient(
+        recipient,
+        selectedCanonicalSendLedgerNote?.owner ?? shieldAccount?.owner ?? null,
+        recipientInputSource,
+      ),
+    [recipient, recipientInputSource, selectedCanonicalSendLedgerNote?.owner, shieldAccount?.owner],
+  );
+  const trimmedRecipient =
+    recipientValidation.ready && recipientValidation.kind === "solana-address"
+      ? recipientValidation.canonicalAddress
+      : recipient.trim();
+  const isRecipientValid = recipientValidation.ready;
   const isSelfPrivateCoreRecipient =
-    Boolean(selectedCanonicalSendLedgerNote) &&
-    trimmedRecipient === selectedCanonicalSendLedgerNote?.owner;
+    recipientValidation.ready &&
+    recipientValidation.kind === "solana-address" &&
+    recipientValidation.isSelf;
   const isRealSendReady =
     selectedSendCapability.status === "live" &&
     Boolean(selectedSpendableNote) &&
@@ -775,10 +794,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     if (!isAmountValid || !isRecipientValid) {
       return {
         basis,
-        detail: "Enter a valid amount and destination address for the selected ledger note.",
+        detail: !isRecipientValid
+          ? recipientValidation.detail
+          : "Enter a valid amount for the selected ledger note.",
         primaryNote: selectedCanonicalSendLedgerNote,
         ready: false,
-        statusLabel: "Waiting for input",
+        statusLabel: !isRecipientValid ? recipientValidation.statusLabel : "Waiting for input",
       };
     }
 
@@ -807,6 +828,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreHeldLedgerBindingMatchesSelectedNote,
     privateCoreHeldAmountMatchesLedgerNote,
     privateCoreHoldState,
+    recipientValidation.detail,
+    recipientValidation.statusLabel,
     selectedAsset,
     selectedCanonicalShieldRecord,
     selectedCanonicalSendLedgerNote,
@@ -831,11 +854,15 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         return null;
       }
 
-      const recipientPublicKey = derivePrivateCoreRecipientPublicKey(recipient.trim());
+      if (recipientValidation.kind !== "solana-address" || !recipientValidation.isSelf) {
+        return null;
+      }
+
+      const recipientPublicKey = privateCoreOwner.publicKey;
       const transition = buildVantaPrivateCoreSendTransition({
         input: privateCoreHoldState.heldNote,
         sendAmount: sendAmountBaseUnits,
-        recipientOwnerPublicKey: recipientPublicKey,
+        recipientOwnerPublicKey: privateCoreOwner.publicKey,
       });
       const envelope = buildVantaPrivateCoreSendProofEnvelope(transition);
       const sourceVerification = summarizeVantaPrivateCoreSendProofEnvelopeVerification(envelope);
@@ -868,8 +895,9 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     isRecipientValid,
     parsedAmount,
     privateCoreHoldState,
+    privateCoreOwner.publicKey,
     privateCoreOwner.secretKey,
-    recipient,
+    recipientValidation,
     sendLedgerGateStatus.ready,
     selectedAsset,
   ]);
@@ -883,7 +911,35 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const recentShieldLabel =
     recentShield &&
     `${formatBalance(recentShield.amount, recentShield.asset)} shielded`;
-  const sendZkDiagnostics = listCanonicalSendDiagnosticsSummaries().slice(0, 5);
+  const sendZkDiagnostics = useMemo(
+    () => listCanonicalSendDiagnosticsSummaries().slice(0, 5),
+    [status],
+  );
+  const recentSendRecipients = useMemo(() => {
+    const seen = new Set<string>();
+    const candidates = [
+      lastRecipient,
+      selectedCanonicalSendLedgerNote?.owner,
+      ...sendZkDiagnostics.map((record) => record.recipient),
+    ];
+
+    return candidates
+      .flatMap((candidate) => {
+        const recentValidation = validateLiveSendRecipient(candidate ?? "", null, "recent");
+
+        if (!recentValidation.ready || recentValidation.kind !== "solana-address") {
+          return [];
+        }
+
+        if (seen.has(recentValidation.canonicalAddress)) {
+          return [];
+        }
+
+        seen.add(recentValidation.canonicalAddress);
+        return [recentValidation.canonicalAddress];
+      })
+      .slice(0, 4);
+  }, [lastRecipient, selectedCanonicalSendLedgerNote?.owner, sendZkDiagnostics]);
   const sendReceiptModalDetails = useMemo<SendReceiptModalDetails | null>(() => {
     const privateCoreSendAmountLabel = privateCoreSendState?.recipientAmount
       ? `${formatBaseUnits(BigInt(privateCoreSendState.recipientAmount), DEFAULT_USDC_DECIMALS)} USDC`
@@ -1238,7 +1294,17 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     sendNoteTransaction.reset();
     spentMarkerTransaction.reset();
     setFlowError(null);
-    const trimmedRecipient = args.recipientValue.trim();
+    const liveRecipientValidation = validateLiveSendRecipient(
+      args.recipientValue,
+      args.shieldAccountState.owner,
+      recipientInputSource,
+    );
+
+    if (!liveRecipientValidation.ready || liveRecipientValidation.kind !== "solana-address") {
+      throw new Error(liveRecipientValidation.detail);
+    }
+
+    const trimmedRecipient = liveRecipientValidation.canonicalAddress;
     const nextChangeAmount = Number(
       Math.max(args.note.amount - args.amountNumeric, 0).toFixed(6),
     );
@@ -1488,13 +1554,15 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       : selectedSendCapability.executionMode === "unsupported-private-send-asset"
         ? selectedSendCapability.blockers[0] ??
           "Private-core send currently supports shielded USDC."
+      : recipient.trim().length > 0 && !recipientValidation.ready
+        ? recipientValidation.detail
       : isPrivateCoreUsdcSendReady
       ? "Ready to verify a ledger-gated private-core send transition."
       : !sendLedgerGateStatus.ready && selectedAsset === "USDC"
         ? sendLedgerGateStatus.detail
       : !selectedSpendableNote
         ? "Shield the asset first, then return here to send it."
-        : "Enter a valid amount and destination address.";
+        : "Enter a valid amount and recipient wallet address.";
 
   return (
     <section className="send-page">
@@ -1560,24 +1628,19 @@ export function SendPage({ dashboard = false }: SendPageProps) {
 
           <div className="shield-form swap-widget">
             <div className="swap-module">
-              <div className="swap-module__field">
-                <div className="swap-module__label-row">
-                  <span>To</span>
-                </div>
-                <div className="amount-field">
-                  <input
-                    id="send-recipient"
-                    className="input-compact"
-                    value={recipient}
-                    onChange={(event) => {
-                      setRecipient(event.target.value);
-                      setStatus("idle");
-                      setFlowError(null);
-                    }}
-                    placeholder="Solana address or .sol name"
-                  />
-                </div>
-              </div>
+              <RecipientField
+                id="send-recipient"
+                label="To"
+                onValueChange={(nextRecipient, inputSource) => {
+                  setRecipient(nextRecipient);
+                  setRecipientInputSource(inputSource);
+                  setStatus("idle");
+                  setFlowError(null);
+                }}
+                recentRecipients={recentSendRecipients}
+                validation={recipientValidation}
+                value={recipient}
+              />
 
               <div className="swap-module__divider" aria-hidden="true" />
 
@@ -1672,6 +1735,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
 
               <details
                 className="send-advanced-panel"
+                data-vanta-send-advanced-panel
                 open={isSendAdvancedOpen}
                 onToggle={(event) => {
                   setIsSendAdvancedOpen(event.currentTarget.open);
@@ -1712,11 +1776,14 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 </div>
               </details>
 
-              <p className="shield-helper">{sendHelperMessage}</p>
+              <p className="shield-helper" data-vanta-send-ledger-gate-status>
+                {sendHelperMessage}
+              </p>
 
               <div className="shield-form__actions">
                 <button
                   className="button button-primary"
+                  data-vanta-send-primary-action
                   type="button"
                   onClick={() => {
                     void handleSend();
@@ -1898,7 +1965,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           )}
         </article>
 
-        <article className="send-card">
+        <article className="send-card" data-vanta-send-proof-panel>
           <div className="shield-card__header">
             <div>
               <span>Private-core send</span>
@@ -3026,11 +3093,4 @@ function formatBaseUnits(amount: bigint, decimals: number): string {
   }
 
   return `${whole.toString(10)}.${fraction.toString(10).padStart(decimals, "0").replace(/0+$/, "")}`;
-}
-
-function derivePrivateCoreRecipientPublicKey(reference: string): Bytes32Hex {
-  const bytes = sha256(
-    new TextEncoder().encode(`vanta.private-core.send-recipient.v0:${reference.trim().toLowerCase()}`),
-  );
-  return (`0x${Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("")}`) as Bytes32Hex;
 }

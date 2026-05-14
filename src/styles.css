@@ -4641,6 +4641,67 @@ input {
   letter-spacing: 0.01em;
 }
 
+.recipient-field {
+  min-width: 0;
+}
+
+.recipient-field__status {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+}
+
+.recipient-field__status strong {
+  color: var(--text);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.recipient-field__status span,
+.recipient-field__helper {
+  overflow-wrap: anywhere;
+}
+
+.recipient-field__status--success {
+  border-color: rgba(119, 242, 212, 0.24);
+  background: rgba(119, 242, 212, 0.05);
+}
+
+.recipient-field__status--warning {
+  border-color: rgba(245, 202, 111, 0.32);
+  background: rgba(245, 202, 111, 0.06);
+}
+
+.recipient-field__status--error {
+  border-color: rgba(255, 121, 121, 0.32);
+  background: rgba(255, 121, 121, 0.06);
+}
+
+.recipient-field__helper {
+  margin: 8px 0 0;
+}
+
+.recipient-field__recent {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.recipient-field__recent > span {
+  color: var(--muted-strong);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .pay-page {
   padding: 12px 0 32px;
 }

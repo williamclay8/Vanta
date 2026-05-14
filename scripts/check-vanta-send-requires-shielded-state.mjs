@@ -27,7 +27,8 @@ const forbiddenMarkers = [
 
 const requiredPageMarkers = [
   "Shielded balance:",
-  "<span>To</span>",
+  "RecipientField",
+  'label="To"',
   "<span>Amount</span>",
   "listShieldedSendAssetOptions",
   "getShieldedSendAssetCapability",

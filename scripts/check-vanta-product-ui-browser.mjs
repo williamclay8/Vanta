@@ -130,7 +130,9 @@ function runBrowserBatch() {
         { kind: "selector_visible", selector: ".app-header" },
         { kind: "selector_visible", selector: ".app-header__tabs[data-product-nav]" },
         { kind: "selector_visible", selector: ".privacy-summary" },
-        { kind: "selector_visible", selector: ".send-advanced-panel" },
+        { kind: "selector_visible", selector: "[data-vanta-send-recipient-input]" },
+        { kind: "selector_visible", selector: "[data-vanta-send-recipient-status]" },
+        { kind: "selector_visible", selector: "[data-vanta-send-advanced-panel]" },
         { kind: "text_visible", text: "Send" },
         { kind: "text_visible", text: "Privacy summary" },
         { kind: "text_visible", text: "Chain sees" },
@@ -664,6 +666,118 @@ function assertSendReceiptModalIdleHidden() {
 
     if (!value.ok) {
       throw new Error(`Send receipt modal should stay hidden before completion: ${JSON.stringify(value)}`);
+    }
+  }
+}
+
+function assertSendRecipientValidation() {
+  for (const width of [1440, 390, 320]) {
+    execFileSync(
+      "gsd-browser",
+      ["--session", browserSession, "set-viewport", "--width", String(width), "--height", "1000"],
+      {
+        stdio: "ignore",
+      },
+    );
+    execFileSync("gsd-browser", ["--session", browserSession, "navigate", `${baseUrl}/app/send`], {
+      stdio: "ignore",
+    });
+    execFileSync("gsd-browser", ["--session", browserSession, "wait-for", "--condition", "network_idle"], {
+      stdio: "ignore",
+    });
+
+    execFileSync(
+      "gsd-browser",
+      [
+        "--session",
+        browserSession,
+        "eval",
+        `(() => {
+          const input = document.querySelector("[data-vanta-send-recipient-input]");
+          const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+
+          if (!(input instanceof HTMLInputElement) || !valueSetter) {
+            return;
+          }
+
+          valueSetter.call(input, "clay.sol");
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        })()`,
+      ],
+      { stdio: "ignore" },
+    );
+    execFileSync("sleep", ["0.1"], { stdio: "ignore" });
+
+    const rawResult = execFileSync(
+      "gsd-browser",
+      [
+        "--session",
+        browserSession,
+        "--json",
+        "eval",
+        `(() => {
+          const input = document.querySelector("[data-vanta-send-recipient-input]");
+          const helper = document.querySelector("[data-vanta-send-recipient-helper]");
+          const status = document.querySelector("[data-vanta-send-recipient-status]");
+          const primaryAction = document.querySelector("[data-vanta-send-primary-action]");
+          const proofPanel = document.querySelector("[data-vanta-send-proof-panel]");
+          const advancedPanel = document.querySelector("[data-vanta-send-advanced-panel]");
+          const ledgerGate = document.querySelector("[data-vanta-send-ledger-gate-status]");
+          const helperText = helper instanceof HTMLElement ? helper.textContent ?? "" : "";
+          const statusText = status instanceof HTMLElement ? status.textContent ?? "" : "";
+          const bodyText = document.body.innerText;
+          const normalizedBodyText = bodyText.toLowerCase();
+          const forbiddenClaims = [
+            "resolved .sol",
+            "recipient verified",
+            "recipient owns",
+            "private delivery",
+            "production-private send",
+            "fully private send",
+          ];
+          const forbiddenFound = forbiddenClaims.filter((claim) => normalizedBodyText.includes(claim));
+          const documentOverflow =
+            Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) -
+            window.innerWidth;
+
+          return {
+            ok:
+              input instanceof HTMLInputElement &&
+              input.placeholder === "Recipient wallet address" &&
+              !input.placeholder.includes(".sol") &&
+              helper instanceof HTMLElement &&
+              helperText.includes(".sol resolution") &&
+              status instanceof HTMLElement &&
+              statusText.includes("Solana name resolution required") &&
+              statusText.includes("Paste the resolved Solana wallet address") &&
+              primaryAction instanceof HTMLButtonElement &&
+              primaryAction.disabled &&
+              proofPanel instanceof HTMLElement &&
+              advancedPanel instanceof HTMLDetailsElement &&
+              ledgerGate instanceof HTMLElement &&
+              bodyText.includes(".sol resolution") &&
+              !bodyText.includes("Solana address or .sol name") &&
+              forbiddenFound.length === 0 &&
+              documentOverflow <= 2,
+            advancedPanelTag: advancedPanel?.tagName ?? null,
+            documentOverflow,
+            forbiddenFound,
+            helperText,
+            placeholder: input instanceof HTMLInputElement ? input.placeholder : null,
+            primaryDisabled: primaryAction instanceof HTMLButtonElement ? primaryAction.disabled : null,
+            statusText,
+            width: window.innerWidth,
+          };
+        })()`,
+      ],
+      { encoding: "utf8" },
+    );
+    const result = JSON.parse(rawResult);
+    const rawValue = result.result ?? result.value ?? result;
+    const value = typeof rawValue === "string" ? JSON.parse(rawValue) : rawValue;
+
+    if (!value.ok) {
+      throw new Error(`Send recipient validation failed browser assertion: ${JSON.stringify(value)}`);
     }
   }
 }
@@ -1561,6 +1675,7 @@ try {
   assertShieldRecoveryPanelDisclosure();
   assertPayTransactionStatusToast();
   assertSwapQuoteCountdownBar();
+  assertSendRecipientValidation();
   assertSendReceiptModalIdleHidden();
   assertSwapReceiptModalIdleHidden();
   assertUnshieldReceiptModalIdleHidden();
