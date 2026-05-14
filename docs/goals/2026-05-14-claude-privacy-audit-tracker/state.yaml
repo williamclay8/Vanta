@@ -7,10 +7,18 @@ goal:
   source_audit: "Vanta privacy audit - 2026-05-14"
   interpreted_outcome: "Every audit item has a repo-local task, owner lane, verification command set, and Lumi state until implemented or explicitly blocked."
   live_evidence_update:
-    status: received-historical-current-live-read-checks-pass
+    status: last-verified-website-deploy-and-current-live-read-checks-pass
     confidence: high
     live_site: "https://vantaprivacy.xyz"
     user_reported_local_live_bundle_hash_match: "index-BhWFlXXv.js"
+    last_verified_website_deploy_commit: "7635c9b641a505379b82e74a6679986dbabc55fe"
+    render_workspace: "William's workspace"
+    render_workspace_id: "tea-d7j37af7f7vs739ii8rg"
+    render_service_id: "srv-d7j3ggqqqhas739for80"
+    last_verified_render_deploy_id: "dep-d834ce4vikkc73fb2ep0"
+    github_actions_main_run: "25888198149"
+    github_actions_branch_run: "25888193053"
+    live_main_asset: "assets/index-C5gkBpDx.js"
     live_js_chunks_scanned: 62
     live_dist_size: "2.7 MB"
     public_manifest: "/.well-known/vanta-audit.json"
@@ -31,9 +39,9 @@ rules:
 
 lumi:
   local: "Tracker, N1/N2/N3/N5, R4A, R6A, R8A, R9A/R9B/R9C, R10A/R10B, R11A, R12-R16, and R19 local/source-level receipts exist; use git status for current dirt."
-  committed: "R6A/R9B base commit is 51809b9 (Add direct-key and proof-bound exit scaffolds); R9C is recorded in the current tracker state. Use git log for the exact current head."
-  pushed: "codex/vanta-zk-review-hardening is ahead of origin; latest audit tracker commits are not pushed. Use git status for the exact count."
-  deployed_live: "latest circuit/tracker/CI/memo-quarantine/vault-KDF/service-entrypoint/role-service-control/direct-key/discovery-binding/proof-bound-destination slices are not deployed/live; live-read probes are evidence about deployed public surfaces only, not deployment of the current branch head."
+  committed: "Last verified website deployment receipt references 7635c9b (Add TAG_UNSHIELD verifier key preflight). Use git log for the exact current head."
+  pushed: "Last verified website deployment receipt had origin/codex/vanta-zk-review-hardening and origin/main at 7635c9b641a505379b82e74a6679986dbabc55fe; use git status and git ls-remote for current confirmation."
+  deployed_live: "Last verified website/audit-copy surfaces were live on https://vantaprivacy.xyz via Render deploy dep-d834ce4vikkc73fb2ep0 for commit 7635c9b641a505379b82e74a6679986dbabc55fe; rerun live verification for newer commits. Spend-program SBF, proof verifier, custody, private-settlement, recipient-discovery service, and anonymity evidence remain blocked or not live-verified."
 
 audit_findings:
   - id: N1
@@ -227,7 +235,7 @@ audit_findings:
   - id: N5
     severity: low
     title: "Frontend operator env exposure check needs CI/build ownership"
-    status: local-implemented-pending-ci-run
+    status: ci-verified-pushed-live
     lane: ci
     files:
       - ".github/workflows/privacy-audit.yml"
@@ -239,8 +247,8 @@ audit_findings:
       - "Added Vanta Privacy Audit Gates GitHub Actions workflow for pull requests and pushes to main/codex branches."
       - "The workflow runs privacy-audit:tracker-check and frontend:operator-env-exposure-check after npm ci."
       - "Local frontend:operator-env-exposure-check now passes and runs npm run build internally before scanning the dist bundle."
-    remaining:
-      - "Hosted GitHub Actions run must execute and pass before N5 is CI-verified."
+      - "Hosted GitHub Actions Vanta Privacy Audit Gates passed on main run 25888198149 and codex/vanta-zk-review-hardening run 25888193053 for commit 7635c9b641a505379b82e74a6679986dbabc55fe."
+    remaining: []
     verify:
       - "npm run frontend:operator-env-exposure-check"
       - "npm run privacy-audit:tracker-check"
@@ -543,7 +551,7 @@ audit_remaining_work_backlog:
       - "npm run mainnet:observability-sink-check verifies the observability sink template while provider observability/alerting controls remain pending."
       - "npm run private-pool-v2:relayer-separation-evidence-check and npm run private-pool-v2:production-relayer-review-check preserve relayer separation/review evidence."
       - "npm run mainnet:secret-handling-check verifies secret-handling contracts, frontend bundle exposure, operator keypair env lockdown, and tracked-file secret exposure without printing secret values."
-      - "This is not live production settlement evidence, not least-privilege secret-manager audit completion, not provider observability/alerting completion, not multi-replica recovery proof, not external audit acceptance, not production privacy, and not deployed/live evidence for the current branch."
+      - "This is not live production settlement evidence, not least-privilege secret-manager audit completion, not provider observability/alerting completion, not multi-replica recovery proof, not external audit acceptance, not production privacy, and not live production role-service/private-settlement evidence; the website/audit-copy deploy for commit 7635c9b does not satisfy R10B."
     verify:
       - "npm run private-pool-v2:role-storage-check"
       - "npm run private-pool-v2:service-network-check"
@@ -636,15 +644,17 @@ audit_remaining_work_backlog:
       - "ops/mainnet/private-pool-v2-c01-positive-proof-verified-claim-gate.evidence.json records proofVerifiedClaimAllowed: false and blocked-no-tag3-valid-proof-success."
       - "scripts/check-vanta-private-pool-v2-c01-positive-proof-verified-claim-gate.mjs requires backend selection, production proof format, production verifying-key hash, verifier adapter, private-spend public-input hash binding, valid-proof success, accepted-proof mutation, invalid-proof no-mutation, wrong-public-input no-mutation, wrong-verifying-key no-mutation, SBF/live lineage, and audit/reviewer evidence before proof-verified claims can unlock."
       - "The gate is wired into truth:privacy-claim-gate, zk:review-guards-check, and zk:feedback-loop-check."
-      - "This is not tag-3 valid-proof success evidence, not proof-verified spend evidence, not on-chain proof verification, not SBF/live lineage, not audit acceptance, not production privacy, and not deployed/live evidence for the current branch."
+      - "This is not tag-3 valid-proof success evidence, not proof-verified spend evidence, not on-chain proof verification, not SBF/proof-verifier/private-settlement live evidence, not audit acceptance, and not production privacy; the website/audit-copy deploy for commit 7635c9b does not satisfy tag-3 valid-proof success, verifier-adapter, production verifying-key, no-mutation, SBF lineage, audit, or production-privacy evidence."
     verify:
       - "npm run zk:c01-positive-proof-verified-claim-gate-check"
   - id: R17-FRONTEND-OPERATOR-ENV-CI
     source_priority: medium
     source_item: "Ensure production build pipeline runs frontend operator-env exposure check green pre-deploy."
     tracker_ref: "N5"
-    status: local-implemented-pending-ci-run
+    status: ci-verified-pushed-live
     guard: "npm run frontend:operator-env-exposure-check"
+    evidence:
+      - "GitHub Actions Vanta Privacy Audit Gates passed on main run 25888198149 and codex/vanta-zk-review-hardening run 25888193053 for commit 7635c9b641a505379b82e74a6679986dbabc55fe."
   - id: R18-ONCHAIN-MERKLE-MIRROR
     source_priority: low
     source_item: "Replace browser localStorage AppendOnlyShieldedState hash chain with on-chain Merkle mirror once the program owns the tree."
@@ -679,14 +689,13 @@ audit_completion_checklist:
   status: active-not-complete
   current_blockers:
     - "N4 requires deploy/live approval and receipts."
-    - "N5 requires hosted GitHub Actions green evidence."
     - "Architecture blockers A1-A6 remain incomplete or approval-gated."
     - "R20/R21 remain blocked or approval-gated."
     - "R9 production recipient discovery remains pending even though R9C local proof-owner public-key exchange, R9B local direct viewing-key exchange, and R9A local ciphertext body-hash handoff binding are implemented."
     - "R10 broader production service separation remains partial/pending live controls even though R10A local stub replacement and R10B local/source-level production-control evidence are implemented."
     - "R16 proof-verified claim gating is locally implemented fail-closed but remains blocked on real tag-3 valid-proof success and no-mutation evidence."
-    - "R4A TAG_UNSHIELD verifier-key preflight is locally implemented fail-closed but remains blocked on real proof verification, nullifier consume, token/system CPI, program-owned custody, deployed/live lineage, and audit acceptance."
+    - "R4A TAG_UNSHIELD verifier-key preflight is committed, pushed, and website-live as audit/copy/status code, but remains blocked on real proof verification, nullifier consume, token/system CPI, program-owned custody, live SBF lineage, and audit acceptance."
 
 next_safe_slices:
-  - "No remaining small local-only audit quick-fix is open after R4A/R6A/R9B/R9C/R10B/R16; remaining work is architecture-blocked, approval-gated, live/CI-gated, or production-service-gated unless a fresh source-only preflight seam is identified."
+  - "No remaining small local-only audit quick-fix is open after R4A/R6A/R9B/R9C/R10B/R16 and the website-live status refresh; remaining work is architecture-blocked, approval-gated, live-SBF-gated, or production-service-gated unless a fresh source-only preflight seam is identified."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."

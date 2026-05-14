@@ -27,4 +27,4 @@ This records existing local/source-level controls for the separated Private Pool
 
 ## Truth Boundary
 
-This is local/source-level and evidence-packet coverage only. It is not live production settlement evidence, not least-privilege secret-manager audit completion, not provider observability/alerting completion, not multi-replica recovery proof, not external audit acceptance, not production privacy, and not deployed/live evidence for the current branch.
+This is local/source-level and evidence-packet coverage only. It is not live production settlement evidence, not least-privilege secret-manager audit completion, not provider observability/alerting completion, not multi-replica recovery proof, not external audit acceptance, not production privacy, and not live production role-service/private-settlement evidence. The website/audit-copy deploy for commit `7635c9b` does not satisfy R10B.

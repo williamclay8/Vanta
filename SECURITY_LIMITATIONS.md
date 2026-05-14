@@ -1,6 +1,6 @@
 # Vanta Security Limitations
 
-Last validated against repo-local code: 2026-05-14. Live deployment evidence was not refreshed for this branch.
+Last validated against repo-local code: 2026-05-14. Website deployment evidence was refreshed for commit `7635c9b`; live SBF, on-chain verifier, custody, and private-settlement evidence remain blocked.
 
 This page says what Vanta is allowed to claim today.
 

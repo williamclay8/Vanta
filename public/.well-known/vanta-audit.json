@@ -9,6 +9,15 @@
   "productionReady": false,
   "mainnetReady": false,
   "liveDeploymentVerified": false,
+  "websiteDeployment": {
+    "status": "last-verified-website-deploy",
+    "verifiedCommit": "7635c9b641a505379b82e74a6679986dbabc55fe",
+    "renderServiceId": "srv-d7j3ggqqqhas739for80",
+    "verifiedRenderDeployId": "dep-d834ce4vikkc73fb2ep0",
+    "verifiedAt": "2026-05-14T22:05:07Z",
+    "liveUrl": "https://vantaprivacy.xyz",
+    "truthBoundary": "This records the last externally verified website/audit-copy deploy; rerun live verification for newer commits. Private settlement, SBF, verifier, custody, and anonymity evidence remain blocked."
+  },
   "privacyClaimAllowed": false,
   "anonymityClaimAllowed": false,
   "securityLimitations": "SECURITY_LIMITATIONS.md",
@@ -51,7 +60,7 @@
     {
       "id": "live-deployment-evidence",
       "status": "blocked",
-      "claim": "Latest local feedback-loop changes have not been pushed, deployed, or live-verified."
+      "claim": "Website audit and copy surfaces have a last-verified deploy receipt; private settlement, SBF, verifier, custody, and anonymity deployment evidence remains blocked."
     }
   ],
   "safeCommands": [

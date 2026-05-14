@@ -7,7 +7,7 @@ Turn the 2026-05-14 Claude privacy audit into implemented, verified, and Lumi-tr
 ## Source
 
 - User-provided audit: "Vanta privacy audit - 2026-05-14"
-- Revised live website evidence: deployed `vantaprivacy.xyz` bundle matches local dist hash `index-BhWFlXXv.js`; 62 JS chunks scanned; public `/.well-known/vanta-audit.json` remains fail-closed; live distinct commitments = 2.
+- Revised live website evidence: historical deployed `vantaprivacy.xyz` bundle matched local dist hash `index-BhWFlXXv.js`; the last verified website deployment receipt references commit `7635c9b`, Render deploy `dep-d834ce4vikkc73fb2ep0`, live main asset `assets/index-C5gkBpDx.js`, fail-closed public `/.well-known/vanta-audit.json`, and live distinct commitments = 2.
 - Machine state: `docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml`
 
 ## Operating Rules

@@ -122,6 +122,16 @@ assert.equal(discovery.thirdPartyAuditAccepted, false);
 assert.equal(discovery.productionReady, false);
 assert.equal(discovery.mainnetReady, false);
 assert.equal(discovery.liveDeploymentVerified, false);
+assert.deepEqual(discovery.websiteDeployment, {
+  status: "last-verified-website-deploy",
+  verifiedCommit: "7635c9b641a505379b82e74a6679986dbabc55fe",
+  renderServiceId: "srv-d7j3ggqqqhas739for80",
+  verifiedRenderDeployId: "dep-d834ce4vikkc73fb2ep0",
+  verifiedAt: "2026-05-14T22:05:07Z",
+  liveUrl: "https://vantaprivacy.xyz",
+  truthBoundary:
+    "This records the last externally verified website/audit-copy deploy; rerun live verification for newer commits. Private settlement, SBF, verifier, custody, and anonymity evidence remain blocked.",
+});
 assert.equal(discovery.privacyClaimAllowed, false);
 assert.equal(discovery.anonymityClaimAllowed, false);
 assert.equal(discovery.refsOnly, true);
@@ -200,6 +210,17 @@ const productionVerifierBlocker = discovery.currentBlockers?.find(
 assert.equal(
   productionVerifierBlocker?.evidenceRef,
   "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+);
+const liveDeploymentBlocker = discovery.currentBlockers?.find(
+  (blocker) => blocker?.id === "live-deployment-evidence",
+);
+assert.ok(
+  liveDeploymentBlocker?.claim?.includes("Website audit and copy surfaces have a last-verified deploy receipt"),
+  "Live-deployment blocker must distinguish website live evidence from private-settlement/SBF deployment blockers.",
+);
+assert.ok(
+  liveDeploymentBlocker?.claim?.includes("private settlement, SBF, verifier, custody, and anonymity deployment evidence remains blocked"),
+  "Live-deployment blocker must preserve the remaining private-settlement/SBF deployment boundary.",
 );
 
 for (const command of [

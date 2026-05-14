@@ -29,4 +29,4 @@ The guard rejects the old unqualified `zk-powered privacy layer`, `built for pri
 
 ## Truth Boundary
 
-This is a read-only live crawler-copy probe. It is not deployment evidence for current local commits, not production privacy, not an audit claim, and not a live anonymity claim.
+This is a read-only live crawler-copy probe. By itself it is not deployment evidence for a commit; the separate live website deployment receipt now proves website/audit-copy deploy for commit `7635c9b`. It is not production privacy, not an audit claim, not a live anonymity claim, and not private-settlement/SBF/proof-verifier evidence.

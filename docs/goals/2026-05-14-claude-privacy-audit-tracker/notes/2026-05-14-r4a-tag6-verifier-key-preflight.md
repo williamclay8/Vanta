@@ -39,6 +39,6 @@ This is not proof verification, not a production verifying key, not nullifier co
 ## Lumi hygiene
 
 - Local: implemented in source, docs, status surfaces, and guards.
-- Committed: pending this R4A changeset.
-- Pushed: not pushed.
-- Deployed/live: not deployed or live-verified.
+- Committed: `7635c9b` (`Add TAG_UNSHIELD verifier key preflight`).
+- Pushed: `7635c9b641a505379b82e74a6679986dbabc55fe` is on `origin/codex/vanta-zk-review-hardening` and `origin/main`.
+- Deployed/live: website/audit-copy surfaces are live on `https://vantaprivacy.xyz` through Render deploy `dep-d834ce4vikkc73fb2ep0`; the spend program SBF bytecode is not redeployed/live-verified, so this remains source/local-SBF preflight evidence only.

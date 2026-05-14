@@ -266,9 +266,14 @@ for (const phrase of [
   "Owner secret/input commitment binding",
   "local-implemented",
   "blocked-approval-gated",
-  "received-historical-current-live-read-checks-pass",
+  "last-verified-website-deploy-and-current-live-read-checks-pass",
   "user_reported_local_live_bundle_hash_match",
-  "local-implemented-pending-ci-run",
+  "ci-verified-pushed-live",
+  "last_verified_website_deploy_commit: \"7635c9b641a505379b82e74a6679986dbabc55fe\"",
+  "last_verified_render_deploy_id: \"dep-d834ce4vikkc73fb2ep0\"",
+  "github_actions_main_run: \"25888198149\"",
+  "github_actions_branch_run: \"25888193053\"",
+  "live_main_asset: \"assets/index-C5gkBpDx.js\"",
   "index-BhWFlXXv.js",
   "npm run public:live-meta-description-check",
   "npm run private-pool-v2:live-anonymity-set-probe-check",
@@ -382,14 +387,14 @@ for (const phrase of [
   "R21-E2E-DEPOSIT-SEND-FRESH-EXIT-PRIVACY-TEST",
   "audit_completion_checklist",
   "active-not-complete",
-  "R6A/R9B base commit is 51809b9",
+  "Last verified website deployment receipt references 7635c9b",
   "Use git log for the exact current head.",
-  "Use git status for the exact count.",
-  "not deployment of the current branch head",
-  "No remaining small local-only audit quick-fix is open after R4A/R6A/R9B/R9C/R10B/R16",
+  "Last verified website deployment receipt had origin/codex/vanta-zk-review-hardening and origin/main at 7635c9b641a505379b82e74a6679986dbabc55fe",
+  "Last verified website/audit-copy surfaces were live on https://vantaprivacy.xyz via Render deploy dep-d834ce4vikkc73fb2ep0",
+  "No remaining small local-only audit quick-fix is open after R4A/R6A/R9B/R9C/R10B/R16 and the website-live status refresh",
   ".github/workflows/privacy-audit.yml",
   "Vanta Privacy Audit Gates / Privacy audit gates",
-  "Hosted GitHub Actions run must execute and pass before N5 is CI-verified.",
+  "GitHub Actions Vanta Privacy Audit Gates passed on main run 25888198149",
 ]) {
   assert.ok(state.includes(phrase), `state.yaml missing ${phrase}`);
 }
@@ -512,11 +517,12 @@ for (const phrase of [
 }
 
 for (const phrase of [
-  "local-implemented-pending-ci-run",
+  "ci-verified-pushed-live",
   ".github/workflows/privacy-audit.yml",
   "npm run privacy-audit:tracker-check",
   "npm run frontend:operator-env-exposure-check",
-  "GitHub Actions runs this workflow",
+  "GitHub Actions `Vanta Privacy Audit Gates` on `main`, run `25888198149`",
+  "GitHub Actions `Vanta Privacy Audit Gates` on `codex/vanta-zk-review-hardening`, run `25888193053`",
 ]) {
   assert.ok(n5CiGateNote.includes(phrase), `N5 CI gate note missing ${phrase}`);
 }
@@ -615,7 +621,8 @@ for (const phrase of [
   "zk-powered privacy layer",
   "private payment flows",
   "npm run public:live-meta-description-check",
-  "not deployment evidence for current local commits",
+  "separate live website deployment receipt now proves website/audit-copy deploy for commit `7635c9b`",
+  "not private-settlement/SBF/proof-verifier evidence",
 ]) {
   assert.ok(
     r13aLiveMetaDescriptionScrapeNote.includes(phrase),
@@ -773,10 +780,10 @@ for (const phrase of [
   "npm run docs:source-of-truth-check",
   "Mainnet on-chain replay test",
   "Deposit-send-fresh-exit privacy test",
-  "R6A/R9B base commit `51809b9`",
-  "Use `git status` for the exact count.",
+  "last verified website deployment receipt references `7635c9b`",
+  "last verified website deployment receipt had `origin/codex/vanta-zk-review-hardening` and `origin/main` at `7635c9b641a505379b82e74a6679986dbabc55fe`",
   "R9C direct proof-owner key exchange",
-  "latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint/role-service-control/proof-verified-claim-gate/direct-key/discovery-binding/proof-bound-destination slices are not deployed",
+  "last verified website/audit-copy surfaces were live on `https://vantaprivacy.xyz` via Render deploy `dep-d834ce4vikkc73fb2ep0`",
 ]) {
   assert.ok(completionAuditNote.includes(phrase), `completion audit note missing ${phrase}`);
 }
@@ -794,6 +801,8 @@ for (const phrase of [
   "wrong-verifying-key",
   "not tag-3 valid-proof success evidence",
   "not proof-verified spend evidence",
+  "SBF/proof-verifier/private-settlement live evidence",
+  "website/audit-copy deploy for commit `7635c9b` does not satisfy tag-3 valid-proof success",
   "not production privacy",
 ]) {
   assert.ok(r16PositiveProofVerifiedClaimGateNote.includes(phrase), `R16 note missing ${phrase}`);
@@ -839,6 +848,8 @@ for (const phrase of [
   "npm run private-pool-v2:production-relayer-review-check",
   "npm run mainnet:secret-handling-check",
   "not live production settlement evidence",
+  "not live production role-service/private-settlement evidence",
+  "website/audit-copy deploy for commit `7635c9b` does not satisfy R10B",
   "not provider observability/alerting completion",
   "not production privacy",
 ]) {

@@ -20,4 +20,4 @@ R16 now has a dedicated positive claim gate instead of relying only on the C01 n
 
 ## Truth Boundary
 
-This is a local fail-closed claim gate only. It is not tag-3 valid-proof success evidence, not proof-verified spend evidence, not verifier-adapter acceptance, not production verifying-key evidence, not SBF/live lineage, not audit acceptance, not production privacy, and not deployed/live evidence for the current branch.
+This is a local fail-closed claim gate only. It is not tag-3 valid-proof success evidence, not proof-verified spend evidence, not verifier-adapter acceptance, not production verifying-key evidence, not SBF/proof-verifier/private-settlement live evidence, not audit acceptance, and not production privacy. The website/audit-copy deploy for commit `7635c9b` does not satisfy tag-3 valid-proof success, verifier-adapter, production verifying-key, no-mutation, SBF lineage, audit, or production-privacy evidence.
