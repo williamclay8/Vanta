@@ -16,6 +16,10 @@ import {
 } from "../src/strategy/strategyPageState.ts";
 
 const strategyPageSource = readFileSync(new URL("../src/pages/StrategyPage.tsx", import.meta.url), "utf8");
+const strategyAdvancedPanelSource = readFileSync(
+  new URL("../src/components/StrategyAdvancedPanel.tsx", import.meta.url),
+  "utf8",
+);
 const comingSoonSlicePolicies = ["Min/max child size", "Venue threshold"];
 const comingSoonTimingPolicies = ["Volatility-aware", "Liquidity-aware"];
 
@@ -45,8 +49,8 @@ for (const policy of [...comingSoonSlicePolicies, ...comingSoonTimingPolicies]) 
   assertComingSoonDisabledOption(policy);
 }
 assert.ok(
-  strategyPageSource.includes("disabled={option.disabled}") &&
-    strategyPageSource.includes("{formatStrategySelectOptionLabel(option)}"),
+  strategyAdvancedPanelSource.includes("disabled={option.disabled}") &&
+    strategyAdvancedPanelSource.includes("{formatStrategySelectOptionLabel(option)}"),
   "Strategy selects must keep unimplemented policy options disabled with visible Coming soon labels.",
 );
 

@@ -2021,6 +2021,17 @@ assert(
   "H08 must not preserve the stale Swap-to-shielded missing-coverage limitation",
 );
 assert(
+  !ledgerSource.includes("Shield parity is now tracked") &&
+    !ledgerSource.includes("Shield parity is tracked in the later H08 Shield loop") &&
+    !ledgerSource.includes("The initial loop covered Send and actual-private-spend"),
+  "H08 must not preserve stale one-off browser-worker parity wording",
+);
+assert(
+  ledgerSource.includes("cumulative H08 browser-worker adapter coverage") &&
+    ledgerSource.includes("Shield, Claim, Swap-to-shielded, Send, and actual-private-spend"),
+  "H08 must describe cumulative browser-worker adapter coverage across all current parity loops",
+);
+assert(
   h08Text.includes("ops/mainnet/private-pool-v2-h08-production-prover-candidate.evidence.json"),
   "H08 must record the production prover candidate packet path",
 );

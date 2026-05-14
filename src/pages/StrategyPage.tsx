@@ -1,6 +1,12 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
+import {
+  StrategyAdvancedPanel,
+  StrategySelect,
+  type StrategyModeOption,
+  type StrategySelectOptionConfig,
+} from "@/components/StrategyAdvancedPanel";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import { describePricingForSurface } from "@/pricing/vantaPricing";
@@ -45,13 +51,6 @@ type StrategyFormState = {
   urgency: string;
 };
 
-type StrategySelectOptionConfig = {
-  disabled?: boolean;
-  disabledReason?: string;
-  label?: string;
-  value: string;
-};
-type StrategySelectOption = string | StrategySelectOptionConfig;
 type StrategyTimelineOrder = {
   ariaLabel: string;
   style: CSSProperties;
@@ -106,6 +105,18 @@ const strategyModePreviews: Record<
     ticks: [26, 26, 26, 26, 26, 26, 26, 26],
   },
 };
+const strategyModeOptions: readonly StrategyModeOption<StrategyMode>[] = [
+  {
+    value: strategyModeDca,
+    label: "Preview DCA",
+    ...strategyModePreviews[strategyModeDca],
+  },
+  {
+    value: strategyModeTwap,
+    label: "Preview TWAP",
+    ...strategyModePreviews[strategyModeTwap],
+  },
+];
 const strategyPricing = describePricingForSurface("strategy");
 const strategyReviewCta = "Preview strategy";
 const strategyEnvironmentUnavailableCopy =
@@ -258,53 +269,6 @@ function describeDestinationWallet(input: {
   }
 
   return "";
-}
-
-function normalizeStrategySelectOption(option: StrategySelectOption): StrategySelectOptionConfig {
-  return typeof option === "string" ? { value: option } : option;
-}
-
-function formatStrategySelectOptionLabel(option: StrategySelectOptionConfig): string {
-  const label = option.label ?? option.value;
-  return option.disabled ? `${label} - ${option.disabledReason ?? "Unavailable"}` : label;
-}
-
-function StrategySelect({
-  label,
-  onChange,
-  options,
-  value,
-}: {
-  label: string;
-  onChange: (value: string) => void;
-  options: readonly StrategySelectOption[];
-  value: string;
-}) {
-  const normalizedOptions = options.map(normalizeStrategySelectOption);
-
-  return (
-    <label className="strategy-field">
-      <span>{label}</span>
-      <select
-        aria-label={label}
-        value={value}
-        onChange={(event) => {
-          const option = normalizedOptions.find((candidate) => candidate.value === event.target.value);
-          if (option?.disabled) {
-            return;
-          }
-
-          onChange(event.target.value);
-        }}
-      >
-        {normalizedOptions.map((option) => (
-          <option disabled={option.disabled} key={option.value} value={option.value}>
-            {formatStrategySelectOptionLabel(option)}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
 }
 
 export function StrategyPage() {
@@ -595,102 +559,49 @@ export function StrategyPage() {
               </section>
             ) : null}
 
-            <details className="strategy-advanced">
-              <summary>Advanced strategy settings</summary>
-              <div className="strategy-form-grid strategy-form-grid--advanced">
-                <div className="strategy-mode-toggle strategy-mode-toggle--advanced" aria-label="Strategy style">
-                  {([strategyModeDca, strategyModeTwap] as StrategyMode[]).map((mode) => (
-                    <button
-                      className={mode === form.mode ? "strategy-mode strategy-mode--active" : "strategy-mode"}
-                      key={mode}
-                      onClick={() => {
-                        updateForm("mode", mode);
-                      }}
-                      title={strategyModePreviews[mode].hoverCopy}
-                      type="button"
-                    >
-                      <span className="strategy-mode__spark" aria-hidden="true">
-                        {strategyModePreviews[mode].ticks.map((height, index) => (
-                          <span
-                            key={`${mode}-${index}`}
-                            style={{ "--strategy-mode-tick-height": `${height}px` } as CSSProperties}
-                          />
-                        ))}
-                      </span>
-                      <span className="strategy-mode__content">
-                        <span>{formatStrategyModeLabel(mode)}</span>
-                        <small>{strategyModePreviews[mode].shortCopy}</small>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-                <StrategySelect
-                  label="Trade size variation"
-                  options={slicePolicyOptions}
-                  value={form.slicePolicy}
-                  onChange={(value) => {
-                    updateForm("slicePolicy", value);
-                  }}
-                />
-                <StrategySelect
-                  label="Schedule pattern"
-                  options={timingPolicyOptions}
-                  value={form.timingPolicy}
-                  onChange={(value) => {
-                    updateForm("timingPolicy", value);
-                  }}
-                />
-                <StrategySelect
-                  label="How fast to complete"
-                  options={urgencies}
-                  value={form.urgency}
-                  onChange={(value) => {
-                    updateForm("urgency", value);
-                  }}
-                />
-                <label className="strategy-field">
-                  <span>Max slippage</span>
-                  <input
-                    aria-label="Max slippage"
-                    aria-describedby={formErrors.maxSlippage ? maxSlippageErrorId : undefined}
-                    aria-invalid={formErrors.maxSlippage ? true : undefined}
-                    value={form.maxSlippage}
-                    onChange={(event) => {
-                      updateForm("maxSlippage", event.target.value);
-                    }}
-                  />
-                  {formErrors.maxSlippage ? (
-                    <small className="strategy-field-error" id={maxSlippageErrorId} role="alert">
-                      {formErrors.maxSlippage}
-                    </small>
-                  ) : null}
-                </label>
-                <StrategySelect
-                  label="Submit method"
-                  options={landingModes}
-                  value={form.landingMode}
-                  onChange={(value) => {
-                    updateForm("landingMode", value);
-                  }}
-                />
-                <StrategySelect
-                  label="Settle to"
-                  options={strategyDestinations}
-                  value={form.destination}
-                  onChange={(value) => {
-                    updateForm("destination", value as StrategyDestination);
-                  }}
-                />
-                <StrategySelect
-                  label="Pay from"
-                  options={strategyFundingSources}
-                  value={form.fundingSource}
-                  onChange={(value) => {
-                    updateForm("fundingSource", value as StrategyFundingSource);
-                  }}
-                />
-              </div>
-            </details>
+            <StrategyAdvancedPanel
+              maxSlippage={form.maxSlippage}
+              maxSlippageError={formErrors.maxSlippage}
+              maxSlippageErrorId={maxSlippageErrorId}
+              modeOptions={strategyModeOptions}
+              onMaxSlippageChange={(value) => {
+                updateForm("maxSlippage", value);
+              }}
+              onModeChange={(value) => {
+                updateForm("mode", value);
+              }}
+              onPayFromChange={(value) => {
+                updateForm("fundingSource", value as StrategyFundingSource);
+              }}
+              onSchedulePatternChange={(value) => {
+                updateForm("timingPolicy", value);
+              }}
+              onSettleToChange={(value) => {
+                updateForm("destination", value as StrategyDestination);
+              }}
+              onSubmitMethodChange={(value) => {
+                updateForm("landingMode", value);
+              }}
+              onTradeSizeVariationChange={(value) => {
+                updateForm("slicePolicy", value);
+              }}
+              onUrgencyChange={(value) => {
+                updateForm("urgency", value);
+              }}
+              payFrom={form.fundingSource}
+              payFromOptions={strategyFundingSources}
+              schedulePattern={form.timingPolicy}
+              schedulePatternOptions={timingPolicyOptions}
+              selectedMode={form.mode}
+              settleTo={form.destination}
+              settleToOptions={strategyDestinations}
+              submitMethod={form.landingMode}
+              submitMethodOptions={landingModes}
+              tradeSizeVariation={form.slicePolicy}
+              tradeSizeVariationOptions={slicePolicyOptions}
+              urgency={form.urgency}
+              urgencyOptions={urgencies}
+            />
 
             <section className="strategy-prerequisites" aria-label="Strategy prerequisites">
               <p className="strategy-route-note">{strategyRouteNote}</p>

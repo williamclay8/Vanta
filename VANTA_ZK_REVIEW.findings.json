@@ -453,7 +453,7 @@
         "SECURITY_LIMITATIONS.md",
         "npm run private-pool-v2:browser-worker-proof-result-adapter-check"
       ],
-      "summary": "This initial browser-worker proof-result adapter loop implemented VantaPrivatePoolV2Prover for Send and actual-private-spend, and Shield parity is now tracked by VANTA-ZK-FEEDBACK-2026-05-14-H08-SHIELD-BROWSER-WORKER-PROVER. The original adapter work delegated to the browser prover client, injected the expected send-public-input-hash or private-spend-public-input-hash into the worker payload, rejected request transcript drift before invoking the worker client, required worker artifacts to remain noir-bb / local-bb-derived-artifact, reused the local bb proof-result validator, and left the default local prover on mock / local-mock.",
+      "summary": "The browser-worker proof-result adapter now has cumulative local coverage for Send, actual-private-spend, Shield, Claim, and Swap-to-shielded through the later H08 parity loops. It implements VantaPrivatePoolV2Prover only as an opt-in local adapter. The original adapter work delegated to the browser prover client, injected the expected send-public-input-hash or private-spend-public-input-hash into the worker payload, rejected request transcript drift before invoking the worker client, required worker artifacts to remain noir-bb / local-bb-derived-artifact, reused the local bb proof-result validator, and left the default local prover on mock / local-mock.",
       "localVerification": [
         "red-first npm run private-pool-v2:browser-worker-proof-result-adapter-check failed before the adapter file existed",
         "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
@@ -472,7 +472,7 @@
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
-      "truthBoundary": "This is an opt-in dev-only bridge from browser-worker local proof artifacts into the local prover interface. The initial loop covered Send and actual-private-spend, and Shield parity is tracked in the later H08 Shield loop. It is not live Send routing, not routed live actual-private-spend execution, not live Shield routing, not a production browser runtime prover, not a production remote proof service, not on-chain proof verification, not production verifying-key evidence, not audit acceptance, not live deployment evidence, and not real-funds readiness."
+      "truthBoundary": "This is an opt-in dev-only bridge from browser-worker local proof artifacts into the local prover interface. The cumulative H08 browser-worker adapter coverage now includes Shield, Claim, Swap-to-shielded, Send, and actual-private-spend through local parity loops. It is not live Send routing, not routed live actual-private-spend execution, not live Shield routing, not live Claim routing, not live Swap-to-shielded routing, not a production browser runtime prover, not a production remote proof service, not on-chain proof verification, not production verifying-key evidence, not audit acceptance, not live deployment evidence, and not real-funds readiness."
     },
     {
       "id": "VANTA-ZK-FEEDBACK-2026-05-14-H08-SHIELD-BROWSER-WORKER-PROVER",
@@ -2752,7 +2752,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 572c46e"
+          "ancestor commit 572c46e and earlier local feedback-loop commits"
         ],
         "summary": "Replaced additive note/tree hashing with Poseidon-backed constraints.",
         "residualRisk": [
@@ -2761,7 +2761,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 572c46e",
+        "committed": "572c46e and earlier local feedback-loop commits",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -2814,7 +2814,7 @@
       "codexRemediation": {
         "commits": [
           "22479be",
-          "local feedback loops through 572c46e"
+          "ancestor commit 572c46e and earlier local feedback-loop commits"
         ],
         "summary": "Back-ported Merkle membership and path-derived append roots across the local Private Pool v2 fixture lane.",
         "residualRisk": [
@@ -2824,7 +2824,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 572c46e",
+        "committed": "572c46e and earlier local feedback-loop commits",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -2875,7 +2875,7 @@
       "codexRemediation": {
         "commits": [
           "ea08fed",
-          "local feedback loops through 572c46e"
+          "ancestor commit 572c46e and earlier local feedback-loop commits"
         ],
         "summary": "Migrated active proving lanes and fixtures to depth 20 and added fail-closed linting.",
         "residualRisk": [
@@ -2884,7 +2884,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 572c46e",
+        "committed": "572c46e and earlier local feedback-loop commits",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -2927,7 +2927,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 572c46e"
+          "ancestor commit 572c46e and earlier local feedback-loop commits"
         ],
         "summary": "Replaced bespoke recovery encryption with X25519/HKDF/XChaCha20-Poly1305.",
         "residualRisk": [
@@ -2936,7 +2936,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 572c46e",
+        "committed": "572c46e and earlier local feedback-loop commits",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -2980,7 +2980,7 @@
       "codexRemediation": {
         "commits": [
           "b970af3",
-          "local feedback loops through 572c46e"
+          "ancestor commit 572c46e and earlier local feedback-loop commits"
         ],
         "summary": "Added v2 PBKDF2 envelope with 600000 iterations and guarded legacy fallback behavior.",
         "residualRisk": [
@@ -2990,7 +2990,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 572c46e",
+        "committed": "572c46e and earlier local feedback-loop commits",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -3150,7 +3150,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 572c46e",
+          "ancestor commit 572c46e and earlier local feedback-loop commits",
           "5a6d1fd (Harden proof backend feedback guards)",
           "25a9d14 (Harden remote proof service boundary)",
           "6b495e7 (Add Send proof artifact no-witness route)",
@@ -3337,7 +3337,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 572c46e",
+          "ancestor commit 572c46e and earlier local feedback-loop commits",
           "58e6935 (Harden Private Core context tags)",
           "089b339 (Freeze Private Core single-note lanes)"
         ],
@@ -3400,7 +3400,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 572c46e"
+          "ancestor commit 572c46e and earlier local feedback-loop commits"
         ],
         "summary": "Standardized Poseidon Merkle parent hashing across covered Canonical, Private Pool v2, and Private Core lanes.",
         "residualRisk": [
@@ -3409,7 +3409,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 572c46e",
+        "committed": "572c46e and earlier local feedback-loop commits",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -3455,7 +3455,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 572c46e"
+          "ancestor commit 572c46e and earlier local feedback-loop commits"
         ],
         "summary": "Upgraded the durable replay store to a transaction-backed insert-on-conflict reservation contract.",
         "residualRisk": [
@@ -3464,7 +3464,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 572c46e",
+        "committed": "572c46e and earlier local feedback-loop commits",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -3511,7 +3511,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 572c46e"
+          "ancestor commit 572c46e and earlier local feedback-loop commits"
         ],
         "summary": "Moved Shield economics into a private Poseidon commitment and guarded the committed protocol path.",
         "residualRisk": [
@@ -3521,7 +3521,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 572c46e",
+        "committed": "572c46e and earlier local feedback-loop commits",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },
@@ -3566,7 +3566,7 @@
       },
       "codexRemediation": {
         "commits": [
-          "local feedback loops through 572c46e"
+          "ancestor commit 572c46e and earlier local feedback-loop commits"
         ],
         "summary": "Removed browser swap route VITE_JUPITER_API_KEY use and added a production-bundle exposure guard.",
         "residualRisk": [
@@ -3575,7 +3575,7 @@
       },
       "lumiHygiene": {
         "local": "verified locally",
-        "committed": "through 572c46e",
+        "committed": "572c46e and earlier local feedback-loop commits",
         "pushed": "not-pushed",
         "deployedLive": "not-live-verified"
       },

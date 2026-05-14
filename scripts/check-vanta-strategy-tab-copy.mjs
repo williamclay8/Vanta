@@ -1,5 +1,5 @@
 import { execFileSync, spawn } from "node:child_process";
-import { readFileSync, rmSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import { resolve } from "node:path";
 import path from "node:path";
@@ -8,6 +8,10 @@ const repoRoot = resolve(import.meta.dirname, "..");
 const appSource = readFileSync(resolve(repoRoot, "src/App.tsx"), "utf8");
 const layoutSource = readFileSync(resolve(repoRoot, "src/components/AppLayout.tsx"), "utf8");
 const pageSource = readFileSync(resolve(repoRoot, "src/pages/StrategyPage.tsx"), "utf8");
+const strategyAdvancedPanelPath = resolve(repoRoot, "src/components/StrategyAdvancedPanel.tsx");
+const strategyAdvancedPanelSource = existsSync(strategyAdvancedPanelPath)
+  ? readFileSync(strategyAdvancedPanelPath, "utf8")
+  : "";
 const stylesSource = readFileSync(resolve(repoRoot, "src/styles.css"), "utf8");
 const strategyCopySurface = pageSource;
 const port = 4930 + Math.floor(Math.random() * 200);
@@ -268,20 +272,34 @@ if (
   failures.push("Strategy page must render a human-readable preview ledger.");
 }
 
-if (!pageSource.includes('className="strategy-mode__spark"') || !stylesSource.includes(".strategy-mode__spark")) {
+if (
+  !strategyAdvancedPanelSource.includes('className="strategy-mode__spark"') ||
+  !stylesSource.includes(".strategy-mode__spark")
+) {
   failures.push("Strategy mode toggle must include per-mode visual tick previews.");
 }
 
 if (
-  !pageSource.includes("Advanced strategy settings") ||
-  !pageSource.includes("Trade size variation") ||
-  !pageSource.includes("Schedule pattern") ||
-  !pageSource.includes("How fast to complete") ||
-  !pageSource.includes("Submit method") ||
-  !pageSource.includes("Pay from") ||
-  !pageSource.includes("Settle to")
+  !strategyAdvancedPanelSource.includes("Advanced strategy settings") ||
+  !strategyAdvancedPanelSource.includes("Trade size variation") ||
+  !strategyAdvancedPanelSource.includes("Schedule pattern") ||
+  !strategyAdvancedPanelSource.includes("How fast to complete") ||
+  !strategyAdvancedPanelSource.includes("Submit method") ||
+  !strategyAdvancedPanelSource.includes("Pay from") ||
+  !strategyAdvancedPanelSource.includes("Settle to")
 ) {
-  failures.push("Strategy page must keep advanced controls behind a plain-English Advanced strategy settings disclosure.");
+  failures.push("StrategyAdvancedPanel must keep advanced controls behind a plain-English disclosure.");
+}
+
+if (
+  !existsSync(strategyAdvancedPanelPath) ||
+  !pageSource.includes("StrategyAdvancedPanel") ||
+  !pageSource.includes('"@/components/StrategyAdvancedPanel"') ||
+  !pageSource.includes("<StrategyAdvancedPanel") ||
+  pageSource.includes('<details className="strategy-advanced">') ||
+  !strategyAdvancedPanelSource.includes("data-vanta-strategy-advanced-panel")
+) {
+  failures.push("Strategy advanced controls must live in src/components/StrategyAdvancedPanel.tsx.");
 }
 
 if (
