@@ -63,6 +63,7 @@ import { AssetPickerGrid, type AssetPickerGridOption } from "@/components/AssetP
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { QuoteCountdownBar, type QuoteCountdownBarTone } from "@/components/QuoteCountdownBar";
 import { SwapAdvancedPanel } from "@/components/SwapAdvancedPanel";
+import { SwapReceiptModal, type SwapReceiptModalDetails } from "@/components/SwapReceiptModal";
 import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import {
@@ -239,11 +240,14 @@ export function SwapPage() {
   const [pendingSwapBridge, setPendingSwapBridge] = useState<PendingSwapBridge | null>(null);
   const [swapBridgeError, setSwapBridgeError] = useState<string | null>(null);
   const [operatorAuthorizationStarted, setOperatorAuthorizationStarted] = useState(false);
+  const [swapReceiptModalOpen, setSwapReceiptModalOpen] = useState(false);
   const [optimisticallyConsumedNoteId, setOptimisticallyConsumedNoteId] = useState<string | null>(
     null,
   );
   const [lastSwapSummary, setLastSwapSummary] = useState<{
+    inputAsset: ShieldedSwapAssetKey;
     inputAmount: number;
+    outputAsset: ShieldedSwapAssetKey;
     outputAmount: number;
     outputNoteId: string;
     quoteExpiresAt: number;
@@ -262,6 +266,12 @@ export function SwapPage() {
     disabled: !swapTransaction.signature,
   });
   const spentMarkerTransaction = useVantaSafeSendTransaction();
+
+  useEffect(() => {
+    if (status !== "complete") {
+      setSwapReceiptModalOpen(false);
+    }
+  }, [status]);
   const spentMarkerWait = useRealtimeSignatureProgress(
     spentMarkerTransaction.signature ?? undefined,
     {
@@ -1349,7 +1359,9 @@ export function SwapPage() {
       },
     });
     setLastSwapSummary({
+      inputAsset: "USDC",
       inputAmount: args.note.amount,
+      outputAsset: "SOL",
       outputAmount: Number(args.swapQuote.outputAmount),
       outputNoteId: preparedSwap.outputNoteId,
       quoteExpiresAt: args.swapQuote.quoteExpiresAt,
@@ -1490,7 +1502,9 @@ export function SwapPage() {
       },
     });
     setLastSwapSummary({
+      inputAsset: "SOL",
       inputAmount: args.note.amount,
+      outputAsset: args.swapQuote.outputAsset,
       outputAmount: Number(args.swapQuote.outputAmount),
       outputNoteId: preparedSwap.outputNoteId,
       quoteExpiresAt: args.swapQuote.quoteExpiresAt,
@@ -1700,6 +1714,26 @@ export function SwapPage() {
         : status === "quoting" || Boolean(quote)
           ? 1
           : 0;
+  const swapReceiptDetails: SwapReceiptModalDetails | null = lastSwapSummary
+    ? {
+        bridgeWarning: swapBridgeError ?? undefined,
+        inputLabel: formatAssetAmount(lastSwapSummary.inputAmount, lastSwapSummary.inputAsset),
+        outputLabel: formatAssetAmount(lastSwapSummary.outputAmount, lastSwapSummary.outputAsset),
+        outputNoteId: formatShortSwapId(lastSwapSummary.outputNoteId),
+        quoteExpiresLabel: formatQuoteTimestamp(lastSwapSummary.quoteExpiresAt),
+        quoteId: formatShortSwapId(lastSwapSummary.quoteId),
+        quoteIssuedLabel: formatQuoteTimestamp(lastSwapSummary.quoteTimestamp),
+        requestId: lastSwapSummary.requestId
+          ? formatShortSwapId(lastSwapSummary.requestId)
+          : "Pending operator request",
+        routeTruthLabel,
+        transitionNoteId: formatShortSwapId(lastSwapSummary.transitionNoteId),
+        venueLabel: `${lastSwapSummary.venueName} ${lastSwapSummary.venueFamily}`,
+        venuePoolAddress: lastSwapSummary.venuePoolAddress
+          ? formatShortSwapId(lastSwapSummary.venuePoolAddress)
+          : "Route adapter default",
+      }
+    : null;
 
   return (
     <section className="send-page swap-page">
@@ -1926,8 +1960,8 @@ export function SwapPage() {
                             : "Swap failed"
                 }
                 message={
-                  status === "complete" && selectedTargetAsset === "SOL" && lastSwapSummary
-                    ? `Recorded ${formatAssetAmount(lastSwapSummary.inputAmount, "USDC")} into ${formatAssetAmount(lastSwapSummary.outputAmount, "SOL")} with committed receipt checks and operator-visible settlement.`
+                  status === "complete" && lastSwapSummary
+                    ? `Recorded ${formatAssetAmount(lastSwapSummary.inputAmount, lastSwapSummary.inputAsset)} into ${formatAssetAmount(lastSwapSummary.outputAmount, lastSwapSummary.outputAsset)} with committed receipt checks and operator-visible settlement.`
                     : status === "complete"
                       ? `Recorded ${formatAssetAmount(parsedAmount, selectedSourceAsset)} into shielded ${selectedTargetAsset}; route settlement remains operator-visible.`
                     : status === "failed"
@@ -1982,7 +2016,28 @@ export function SwapPage() {
                 {swapBridgeError && status === "complete" && (
                   <p className="shield-helper shield-helper--meta">{swapBridgeError}</p>
                 )}
+                {status === "complete" && lastSwapSummary && (
+                  <button
+                    className="button button-ghost"
+                    type="button"
+                    onClick={() => setSwapReceiptModalOpen(true)}
+                  >
+                    View swap receipt
+                  </button>
+                )}
+                {status === "complete" && !lastSwapSummary && (
+                  <p className="shield-helper shield-helper--meta">
+                    Swap receipt unavailable until a completed swap exists.
+                  </p>
+                )}
               </TransactionStatusToast>
+            )}
+            {swapReceiptDetails && (
+              <SwapReceiptModal
+                details={swapReceiptDetails}
+                open={swapReceiptModalOpen}
+                onClose={() => setSwapReceiptModalOpen(false)}
+              />
             )}
           </div>
         </article>

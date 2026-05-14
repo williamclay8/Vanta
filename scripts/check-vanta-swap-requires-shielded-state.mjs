@@ -7,6 +7,10 @@ const swapAdvancedPanelSource = readFileSync(
   resolve(repoRoot, "src/components/SwapAdvancedPanel.tsx"),
   "utf8",
 );
+const swapReceiptModalSource = readFileSync(
+  resolve(repoRoot, "src/components/SwapReceiptModal.tsx"),
+  "utf8",
+);
 const shieldStateSource = readFileSync(resolve(repoRoot, "src/solana/vantaShieldState.ts"), "utf8");
 const operatorShieldStateSource = readFileSync(resolve(repoRoot, "operator/vanta-onchain-state.mjs"), "utf8");
 const capabilitySource = readFileSync(
@@ -57,6 +61,12 @@ const requiredMarkers = [
   "Quote refreshes in",
   "SwapAdvancedPanel",
   "<SwapAdvancedPanel",
+  "SwapReceiptModal",
+  "<SwapReceiptModal",
+  "swapReceiptModalOpen",
+  "lastSwapSummary.inputAsset",
+  "lastSwapSummary.outputAsset",
+  "View swap receipt",
   "selectedSourceAsset",
   "sourcePairCapability",
   "exactSpendableNote",
@@ -96,6 +106,16 @@ for (const marker of [
 ]) {
   if (!swapAdvancedPanelSource.includes(marker)) {
     failures.push(`SwapAdvancedPanel missing shield-first marker: ${marker}`);
+  }
+}
+
+for (const marker of [
+  "Swap receipt",
+  "Route settlement remains operator-visible",
+  "data-vanta-swap-receipt-modal",
+]) {
+  if (!swapReceiptModalSource.includes(marker)) {
+    failures.push(`SwapReceiptModal missing shield-first marker: ${marker}`);
   }
 }
 

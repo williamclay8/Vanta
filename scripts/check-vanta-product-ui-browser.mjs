@@ -556,6 +556,62 @@ function assertSwapQuoteCountdownBar() {
   }
 }
 
+function assertSwapReceiptModalIdleHidden() {
+  for (const width of [1440, 390, 320]) {
+    execFileSync(
+      "gsd-browser",
+      ["--session", browserSession, "set-viewport", "--width", String(width), "--height", "1000"],
+      {
+        stdio: "ignore",
+      },
+    );
+    execFileSync("gsd-browser", ["--session", browserSession, "navigate", `${baseUrl}/app/swap`], {
+      stdio: "ignore",
+    });
+    execFileSync("gsd-browser", ["--session", browserSession, "wait-for", "--condition", "network_idle"], {
+      stdio: "ignore",
+    });
+
+    const rawResult = execFileSync(
+      "gsd-browser",
+      [
+        "--session",
+        browserSession,
+        "--json",
+        "eval",
+        `(() => {
+          const modal = document.querySelector("[data-vanta-swap-receipt-modal]");
+          const bodyText = document.body.innerText;
+          const documentOverflow =
+            Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) -
+            window.innerWidth;
+
+          return {
+            ok:
+              modal === null &&
+              !bodyText.includes("View swap receipt") &&
+              !bodyText.includes("Latest swap receipt") &&
+              documentOverflow <= 2,
+            documentOverflow,
+            hasModal: modal !== null,
+            hasReceiptCta: bodyText.includes("View swap receipt"),
+            hasReceiptTitle: bodyText.includes("Latest swap receipt"),
+            width: window.innerWidth,
+          };
+        })()`,
+      ],
+      { encoding: "utf8" },
+    );
+    const result = JSON.parse(rawResult);
+    const rawValue = result.result ?? result.value ?? result;
+    const value = typeof rawValue === "string" ? JSON.parse(rawValue) : rawValue;
+
+    if (!value.ok) {
+      throw new Error(`Swap receipt modal should stay hidden before completion: ${JSON.stringify(value)}`);
+    }
+  }
+}
+
 function assertSendAdvancedDisclosure() {
   execFileSync("gsd-browser", ["--session", browserSession, "set-viewport", "--width", "1440", "--height", "1000"], {
     stdio: "ignore",
@@ -1391,6 +1447,7 @@ try {
   assertShieldRecoveryPanelDisclosure();
   assertPayTransactionStatusToast();
   assertSwapQuoteCountdownBar();
+  assertSwapReceiptModalIdleHidden();
   assertSendAdvancedDisclosure();
   assertSwapAdvancedDisclosure();
   assertUnshieldAdvancedDisclosure();
