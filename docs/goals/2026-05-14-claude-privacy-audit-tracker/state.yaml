@@ -27,10 +27,10 @@ rules:
   no_production_private_claims_without_positive_proof_and_live_receipts: true
 
 lumi:
-  local: "N1/N3/N2 partial implementation receipts exist in the repository tracker; use git status for current dirt."
-  committed: "implementation commits record the tracker, N3 truth fixes, N1 Shield output-commitment preimage binding, and N2 PPv2 Send/Claim/Swap-owner/actual-private-spend slices; use git refs for exact head."
-  pushed: "codex/vanta-zk-review-hardening is the publishing branch; check git refs for the exact pushed head."
-  deployed_live: "latest circuit/tracker slices are not-live-verified unless a later public website receipt says otherwise"
+  local: "Tracker, N1/N2/N3/N5, R6A, R8A, R9A/R9B/R9C, R10A, R11A, R12-R15A, and R19 local/source-level receipts exist; use git status for current dirt."
+  committed: "R6A/R9B base commit is 51809b9 (Add direct-key and proof-bound exit scaffolds); R9C is recorded in the current tracker state. Use git log for the exact current head."
+  pushed: "codex/vanta-zk-review-hardening is ahead of origin; latest audit tracker commits are not pushed. Use git status for the exact count."
+  deployed_live: "latest circuit/tracker/CI/memo-quarantine/vault-KDF/service-entrypoint/direct-key/discovery-binding/proof-bound-destination slices are not deployed/live; live-read probes are evidence about deployed public surfaces only, not deployment of the current branch head."
 
 audit_findings:
   - id: N1
@@ -271,7 +271,7 @@ architecture_backlog:
       - "npm run zk:h08-production-prover-runtime-options-check"
   - id: A5
     title: "Recipient discovery, view tags, and indexer/service separation"
-    status: pending-design
+    status: partial-local-implemented-pending-production-discovery-controls
     verify:
       - "npm run private-pool-v2:send-discovery-indexer-handoff-check"
       - "npm run private-pool-v2:service-network-check"
@@ -436,6 +436,7 @@ audit_remaining_work_backlog:
     evidence:
       - "Clay approved hybrid discovery on 2026-05-14."
       - "R9B local direct viewing-key exchange scaffold is implemented for known-counterparty public viewing-key packets and local registry storage."
+      - "R9C local direct proof-owner public-key exchange is implemented inside the same packet, but external Private Core Send execution remains blocked until the external Send proof path is enabled."
       - "R9A local ciphertext body-hash handoff binding is implemented, but production recipient discovery still requires implementation of the approved hybrid model."
       - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-r9-recipient-discovery-decision-blocker.md records direct viewing-key exchange, indexed encrypted view tags, and hybrid discovery as the viable choices."
       - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-r9-recipient-discovery-approved-path.md records the approved hybrid path."
@@ -448,8 +449,9 @@ audit_remaining_work_backlog:
     guard: "npm run send:direct-viewing-key-exchange-check"
     evidence:
       - "src/solana/vantaShieldViewingKey.ts exports VantaShieldRecipientViewingKeyExchangePacket helpers with productionReady false, direct-known-counterparty scope, fingerprint validation, and forbidden plaintext/private field rejection."
+      - "R9C extends the packet with a public recipientOwnerPublicKey bound into the fingerprint; this is public-key material only and does not enable external-recipient execution."
       - "src/solana/vantaRecipientViewingKeyExchange.ts provides a browser-local registry helper keyed by recipient address and viewing-key fingerprint."
-      - "src/pages/SendPage.tsx detects local direct viewing-key exchange packets for recipients but keeps external Private Core Send blocked until proof-owner exchange is available."
+      - "src/pages/SendPage.tsx detects local direct viewing-key exchange packets for recipients but keeps external Private Core Send blocked until the external Send proof path is enabled."
       - "src/components/RecipientField.tsx labels external recipient delivery as direct-key beta only and not deployed recipient discovery."
       - "This is not production recipient discovery, not indexed view tags, not query-private service behavior, and not production privacy."
     verify:
@@ -458,6 +460,21 @@ audit_remaining_work_backlog:
       - "npm run send:discovery-migration-policy-check"
       - "npm run private-pool-v2:send-discovery-indexer-handoff-check"
       - "npm run mainnet:send-production-check"
+  - id: R9C-DIRECT-PROOF-OWNER-KEY-EXCHANGE
+    source_priority: high
+    source_item: "Extend direct-key beta packets with recipient proof-owner public key material without enabling external execution."
+    tracker_ref: "A5"
+    status: local-implemented-local-only
+    guard: "npm run send:direct-viewing-key-exchange-check"
+    evidence:
+      - "src/solana/vantaShieldViewingKey.ts requires recipientOwnerPublicKey in VantaShieldRecipientViewingKeyExchangePacket and binds it into the packet fingerprint."
+      - "src/solana/vantaShieldViewingKey.ts rejects malformed proof-owner public keys and private/plaintext fields such as secretKey, ownerSecret, privateInputs, and witness."
+      - "src/pages/SendPage.tsx detects recipientProofOwnerPublicKey but keeps external Private Core Send blocked until the external Send proof path is enabled."
+      - "scripts/check-vanta-send-direct-viewing-key-exchange.mjs guards recipientOwnerPublicKey, fingerprint rebinding, malformed-key rejection, and fail-closed UI copy."
+      - "This is not recipient authentication, not external-recipient execution, not production recipient discovery, and not production privacy."
+    verify:
+      - "npm run send:direct-viewing-key-exchange-check"
+      - "npx tsc --noEmit --pretty false"
   - id: R9A-CIPHERTEXT-BODY-HASH-DISCOVERY-BINDING
     source_priority: high
     source_item: "Wire locally proof-bound ciphertext body-hash fields into the recipient discovery/indexer design."
@@ -611,10 +628,9 @@ audit_completion_checklist:
     - "N5 requires hosted GitHub Actions green evidence."
     - "Architecture blockers A1-A6 remain incomplete or approval-gated."
     - "R20/R21 remain blocked or approval-gated."
-    - "R9 production recipient discovery remains pending even though R9A local ciphertext body-hash handoff binding is implemented."
-    - "R9 production recipient discovery remains pending even though R9B local direct viewing-key exchange and R9A local ciphertext body-hash handoff binding are implemented."
+    - "R9 production recipient discovery remains pending even though R9C local proof-owner public-key exchange, R9B local direct viewing-key exchange, and R9A local ciphertext body-hash handoff binding are implemented."
     - "R10 broader production service separation remains partial/pending production controls even though R10A local stub replacement is implemented."
 
 next_safe_slices:
-  - "No remaining small local-only audit quick-fix is open after R6A/R9B; remaining work is architecture-blocked, approval-gated, live/CI-gated, or production-service-gated."
+  - "No remaining small local-only audit quick-fix is open after R6A/R9B/R9C; remaining work is architecture-blocked, approval-gated, live/CI-gated, or production-service-gated."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."

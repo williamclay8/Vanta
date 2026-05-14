@@ -10,7 +10,7 @@ This is the first approved hybrid discovery phase for known counterparties. It i
 
 - `src/solana/vantaShieldViewingKey.ts` defines `VantaShieldRecipientViewingKeyExchangePacket` helpers with `productionReady: false`, `direct-known-counterparty` scope, fingerprint validation, and forbidden plaintext/private field rejection.
 - `src/solana/vantaRecipientViewingKeyExchange.ts` stores direct viewing-key exchange packets in browser-local storage by recipient and fingerprint.
-- `src/pages/SendPage.tsx` detects a local direct viewing-key exchange packet, but external Private Core Send still stays blocked until proof-owner exchange is available.
+- `src/pages/SendPage.tsx` detects a local direct viewing-key exchange packet. R9C now adds the public proof-owner key to that packet, but external Private Core Send still stays blocked until the external Send proof path is enabled.
 - `src/components/RecipientField.tsx` labels external recipient delivery as direct-key beta only and not deployed recipient discovery.
 - `package.json` wires `npm run send:direct-viewing-key-exchange-check` into `send:verify` and `truth:privacy-claim-gate`.
 
@@ -25,4 +25,4 @@ This is the first approved hybrid discovery phase for known counterparties. It i
 
 ## Truth Boundary
 
-This is browser-local direct-key beta only. It is not indexed encrypted view tags, not deployed recipient discovery, not external-recipient execution, not query-private indexer behavior, not production privacy, and not real-funds readiness.
+This is browser-local direct-key beta only. It is not indexed encrypted view tags, not deployed recipient discovery, not external-recipient execution, not query-private indexer behavior, not production privacy, and not real-funds readiness. R9C's proof-owner public key field is public-key material only; it does not authenticate the recipient or enable external execution by itself.

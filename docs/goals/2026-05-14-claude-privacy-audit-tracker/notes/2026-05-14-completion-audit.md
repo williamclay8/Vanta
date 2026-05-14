@@ -32,8 +32,9 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 | Deployed bytecode/source hash match | R7A | Blocked / approval-gated | Requires deployment/live bytecode receipt after approval |
 | Real browser prover in live paths | A4 / R8 | Blocked | C01 verifier compatibility and production runtime evidence absent |
 | Prover-relay privacy trade-off docs | R8A | Local implemented | `docs/zk/prover-relay-privacy-tradeoffs.md` is enforced by `npm run zk:h08-production-prover-runtime-options-check` |
-| Recipient discovery/indexer | A5 / R9 | Partial local implementation, pending production discovery | Clay approved hybrid discovery; local direct viewing-key exchange exists for known counterparties, but production still needs deployed exchange/indexed encrypted view tags, service behavior, and UX |
+| Recipient discovery/indexer | A5 / R9 | Partial local implementation, pending production discovery | Clay approved hybrid discovery; local direct viewing-key exchange plus public proof-owner key exchange exist for known counterparties, but production still needs deployed exchange/indexed encrypted view tags, service behavior, and UX |
 | Direct viewing-key exchange | R9B | Local implemented, local-only | `npm run send:direct-viewing-key-exchange-check`; not production recipient discovery |
+| Direct proof-owner key exchange | R9C | Local implemented, local-only | `npm run send:direct-viewing-key-exchange-check`; public-key material only, external Send proof path remains blocked |
 | Ciphertext body-hash discovery binding | R9A | Local implemented, local-only | proof-bound body-hash fields feed the local verifier-mirrored Send discovery handoff |
 | Service separation | A5 / R10 | Partial local implemented, pending production controls | Local role services are separated and guarded; production controls/live receipts remain absent |
 | Service stub replacement | R10A | Local implemented | Role-specific entrypoints are enforced by `npm run private-pool-v2:service-network-check` |
@@ -54,11 +55,11 @@ Use Full Blast subagents to process the 2026-05-14 Vanta privacy audit, decide t
 
 Goal is not complete.
 
-The audit is now tracked and N1, N2, N3, N5, R6A, R8A, R9A, R9B, R10A, R11A, R12, R13A, R14, R15/R15A, and R19 source-level/local gates have implementation evidence. Clay has also approved the R9 hybrid recipient-discovery direction and R6 proof-bound fresh-address exit direction. The remaining blockers include deploy/live approval gates, hosted CI evidence, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
+The audit is now tracked and N1, N2, N3, N5, R6A, R8A, R9A, R9B, R9C, R10A, R11A, R12, R13A, R14, R15/R15A, and R19 source-level/local gates have implementation evidence. Clay has also approved the R9 hybrid recipient-discovery direction and R6 proof-bound fresh-address exit direction. The remaining blockers include deploy/live approval gates, hosted CI evidence, and substantive privacy architecture work. Do not call this goal complete until `state.yaml` has no partial, pending, or blocked rows except rows explicitly accepted as out-of-scope by Clay.
 
 ## Current Lumi Snapshot
 
-- Local: tracker, implementation-path, threat-model, legacy-v1 memo quarantine, Argon2id vault KDF, R6A proof-bound destination contract, R9 decision-blocker, R9A ciphertext body-hash discovery-binding, R9B direct viewing-key exchange, and R10A service-entrypoint artifacts exist.
-- Committed: app branch includes the local R9 decision-blocker commit titled `Record recipient discovery decision blocker`; use `git log` for the current post-amend hash.
-- Pushed: branch is ahead of origin and the latest tracker commits are not pushed.
+- Local: tracker, implementation-path, threat-model, legacy-v1 memo quarantine, Argon2id vault KDF, R6A proof-bound destination contract, R9 decision-blocker, R9A ciphertext body-hash discovery-binding, R9B direct viewing-key exchange, R9C direct proof-owner key exchange, and R10A service-entrypoint artifacts exist.
+- Committed: the app branch includes the R6A/R9B base commit `51809b9` (`Add direct-key and proof-bound exit scaffolds`) and records R9C in the current tracker state; use `git log` for the exact current head.
+- Pushed: `codex/vanta-zk-review-hardening` is ahead of origin; the latest audit tracker/source-level commits are not pushed. Use `git status` for the exact count.
 - Deployed/live: latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint/direct-key/discovery-binding/proof-bound-destination slices are not deployed; live-read checks are read-only evidence, not deployment evidence for the current branch.

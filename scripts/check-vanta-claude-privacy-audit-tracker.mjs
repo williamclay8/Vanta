@@ -45,6 +45,10 @@ const r9bDirectViewingKeyExchangeNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r9b-direct-viewing-key-exchange.md",
 );
+const r9cDirectProofOwnerKeyExchangeNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r9c-direct-proof-owner-key-exchange.md",
+);
 const r6FreshAddressExitApprovedPathNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r6-fresh-address-exit-approved-path.md",
@@ -107,6 +111,7 @@ for (const path of [
   r9RecipientDiscoveryDecisionBlockerNotePath,
   r9RecipientDiscoveryApprovedPathNotePath,
   r9bDirectViewingKeyExchangeNotePath,
+  r9cDirectProofOwnerKeyExchangeNotePath,
   r6FreshAddressExitApprovedPathNotePath,
   r6aProofBoundDestinationContractNotePath,
   r10aServiceEntrypointsNotePath,
@@ -140,6 +145,7 @@ const r9RecipientDiscoveryDecisionBlockerNote = read(
 );
 const r9RecipientDiscoveryApprovedPathNote = read(r9RecipientDiscoveryApprovedPathNotePath);
 const r9bDirectViewingKeyExchangeNote = read(r9bDirectViewingKeyExchangeNotePath);
+const r9cDirectProofOwnerKeyExchangeNote = read(r9cDirectProofOwnerKeyExchangeNotePath);
 const r6FreshAddressExitApprovedPathNote = read(r6FreshAddressExitApprovedPathNotePath);
 const r6aProofBoundDestinationContractNote = read(r6aProofBoundDestinationContractNotePath);
 const r10aServiceEntrypointsNote = read(r10aServiceEntrypointsNotePath);
@@ -295,10 +301,14 @@ for (const phrase of [
   "proof-bound ciphertext body-hash fields feed the local Send discovery/indexer handoff",
   "send-memo-indexer-body-hash-handoff-not-deployed",
   "not production recipient discovery",
+  "partial-local-implemented-pending-production-discovery-controls",
   "R9-RECIPIENT-DISCOVERY",
   "status: partial-local-implemented-pending-production-discovery",
   "Clay approved hybrid discovery on 2026-05-14",
   "R9B-DIRECT-VIEWING-KEY-EXCHANGE",
+  "R9C-DIRECT-PROOF-OWNER-KEY-EXCHANGE",
+  "recipientOwnerPublicKey",
+  "external Send proof path is enabled",
   "direct-known-counterparty",
   "direct-key-beta-not-production-recipient-discovery",
   "R10A-SERVICE-STUB-REPLACEMENT",
@@ -334,6 +344,11 @@ for (const phrase of [
   "R21-E2E-DEPOSIT-SEND-FRESH-EXIT-PRIVACY-TEST",
   "audit_completion_checklist",
   "active-not-complete",
+  "R6A/R9B base commit is 51809b9",
+  "Use git log for the exact current head.",
+  "Use git status for the exact count.",
+  "not deployment of the current branch head",
+  "No remaining small local-only audit quick-fix is open after R6A/R9B/R9C",
   ".github/workflows/privacy-audit.yml",
   "Vanta Privacy Audit Gates / Privacy audit gates",
   "Hosted GitHub Actions run must execute and pass before N5 is CI-verified.",
@@ -665,9 +680,11 @@ for (const phrase of [
   "docs/zk/prover-relay-privacy-tradeoffs.md",
   "Recipient discovery/indexer",
   "Partial local implementation, pending production discovery",
-  "Clay approved hybrid discovery; local direct viewing-key exchange exists for known counterparties",
+  "Clay approved hybrid discovery; local direct viewing-key exchange plus public proof-owner key exchange exist for known counterparties",
   "Direct viewing-key exchange",
   "Local implemented, local-only",
+  "Direct proof-owner key exchange",
+  "public-key material only, external Send proof path remains blocked",
   "Fresh-address exit privacy",
   "Partial local contract implemented, blocked on proof-bound release",
   "Proof-bound destination contract",
@@ -695,7 +712,9 @@ for (const phrase of [
   "npm run docs:source-of-truth-check",
   "Mainnet on-chain replay test",
   "Deposit-send-fresh-exit privacy test",
-  "branch is ahead of origin",
+  "R6A/R9B base commit `51809b9`",
+  "Use `git status` for the exact count.",
+  "R9C direct proof-owner key exchange",
   "latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF/service-entrypoint/direct-key/discovery-binding/proof-bound-destination slices are not deployed",
 ]) {
   assert.ok(completionAuditNote.includes(phrase), `completion audit note missing ${phrase}`);
@@ -757,6 +776,13 @@ for (const phrase of [
   );
 }
 
+assert.ok(
+  !state.includes(
+    "R9 production recipient discovery remains pending even though R9A local ciphertext body-hash handoff binding is implemented.",
+  ),
+  "state.yaml must not keep the superseded R9A-only completion blocker after R9B direct-key exchange landed.",
+);
+
 for (const phrase of [
   "R9 Recipient Discovery Approved Path - 2026-05-14",
   "Approved owner decision.",
@@ -788,6 +814,8 @@ for (const phrase of [
   "src/solana/vantaRecipientViewingKeyExchange.ts",
   "browser-local storage",
   "external Private Core Send still stays blocked",
+  "R9C now adds the public proof-owner key",
+  "external Send proof path is enabled",
   "direct-key beta only",
   "npm run send:direct-viewing-key-exchange-check",
   "not production recipient discovery",
@@ -795,6 +823,30 @@ for (const phrase of [
   assert.ok(
     r9bDirectViewingKeyExchangeNote.includes(phrase),
     `R9B direct viewing-key exchange note missing ${phrase}`,
+  );
+}
+
+for (const phrase of [
+  "R9C Direct Proof-Owner Key Exchange - 2026-05-14",
+  "Local implemented, local-only.",
+  "viewing public key needed for memo encryption",
+  "recipient proof-owner public key",
+  "recipientOwnerPublicKey",
+  "fingerprint includes `recipientOwnerPublicKey`",
+  "secretKey",
+  "ownerSecret",
+  "privateInputs",
+  "witness",
+  "external Send proof path is enabled",
+  "npm run send:direct-viewing-key-exchange-check",
+  "npx tsc --noEmit --pretty false",
+  "not recipient authentication",
+  "not external-recipient execution",
+  "not production recipient discovery",
+]) {
+  assert.ok(
+    r9cDirectProofOwnerKeyExchangeNote.includes(phrase),
+    `R9C direct proof-owner key exchange note missing ${phrase}`,
   );
 }
 
@@ -887,6 +939,7 @@ for (const phrase of [
 
 for (const phrase of [
   "62 JS chunks",
+  "Initial Intake Lumi Hygiene (Historical)",
   "currentDistinctCommitments: 2",
   "minimumDistinctCommitments: 1024",
   "VITE_OPERATOR_*",

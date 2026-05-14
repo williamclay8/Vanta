@@ -41,6 +41,7 @@ export type VantaShieldRecipientViewingKeyExchangePacket = {
   forbiddenPlaintextFields: readonly string[];
   label?: string;
   productionReady: false;
+  recipientOwnerPublicKey: string;
   recipientWalletAddress: string;
   scope: "direct-known-counterparty";
   version: typeof VANTA_SHIELD_RECIPIENT_VIEWING_KEY_EXCHANGE_VERSION;
@@ -60,6 +61,7 @@ const VANTA_SHIELD_RECIPIENT_VIEWING_KEY_EXCHANGE_ALLOWED_KEYS = new Set([
   "forbiddenPlaintextFields",
   "label",
   "productionReady",
+  "recipientOwnerPublicKey",
   "recipientWalletAddress",
   "scope",
   "version",
@@ -189,9 +191,11 @@ function assertRecipientViewingKeyExchangeNoForbiddenNestedFields(
 }
 
 function deriveRecipientViewingKeyExchangeFingerprint({
+  recipientOwnerPublicKey,
   recipientWalletAddress,
   viewingPublicKey,
 }: {
+  recipientOwnerPublicKey: string;
   recipientWalletAddress: string;
   viewingPublicKey: string;
 }) {
@@ -200,6 +204,7 @@ function deriveRecipientViewingKeyExchangeFingerprint({
       utf8ToBytes(
         canonicalJsonStringify({
           domain: VANTA_SHIELD_RECIPIENT_VIEWING_KEY_EXCHANGE_DOMAIN,
+          recipientOwnerPublicKey,
           recipientWalletAddress,
           scope: "direct-known-counterparty",
           version: VANTA_SHIELD_RECIPIENT_VIEWING_KEY_EXCHANGE_VERSION,
@@ -216,6 +221,12 @@ export function createVantaShieldRecipientViewingKeyExchangePacket(
   assertRecipientViewingKeyExchangeObject(packet);
 
   const recipientWalletAddress = requireRecipientWalletAddress(packet.recipientWalletAddress);
+  const recipientOwnerPublicKey = bytesToHex(
+    requireHexKey(
+      String(packet.recipientOwnerPublicKey ?? ""),
+      "recipient proof-owner public key",
+    ),
+  );
   const viewingPublicKey = bytesToHex(requireHexKey(String(packet.viewingPublicKey ?? ""), "viewing public key"));
   const createdAt =
     packet.createdAt === undefined ? Date.now() : Number(packet.createdAt);
@@ -228,6 +239,7 @@ export function createVantaShieldRecipientViewingKeyExchangePacket(
       ? packet.label.trim().slice(0, 80)
       : undefined;
   const fingerprint = deriveRecipientViewingKeyExchangeFingerprint({
+    recipientOwnerPublicKey,
     recipientWalletAddress,
     viewingPublicKey,
   });
@@ -240,6 +252,7 @@ export function createVantaShieldRecipientViewingKeyExchangePacket(
       VANTA_SHIELD_RECIPIENT_VIEWING_KEY_EXCHANGE_FORBIDDEN_PLAINTEXT_FIELDS,
     ...(label ? { label } : {}),
     productionReady: false,
+    recipientOwnerPublicKey,
     recipientWalletAddress,
     scope: "direct-known-counterparty",
     version: VANTA_SHIELD_RECIPIENT_VIEWING_KEY_EXCHANGE_VERSION,

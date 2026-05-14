@@ -698,6 +698,10 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     isSelfPrivateCoreRecipient
       ? viewingKey?.publicKey ?? null
       : matchedRecipientViewingKeyExchange?.viewingPublicKey ?? null;
+  const recipientProofOwnerPublicKey =
+    isSelfPrivateCoreRecipient
+      ? privateCoreOwner.publicKey
+      : matchedRecipientViewingKeyExchange?.recipientOwnerPublicKey ?? null;
   const isRealSendReady =
     selectedSendCapability.status === "live" &&
     Boolean(selectedSpendableNote) &&
@@ -820,10 +824,14 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         return {
           basis,
           detail:
-            "Direct viewing-key exchange is present for this recipient, but Private Core external Send still needs proof-owner exchange before proof preview or execution.",
+            recipientProofOwnerPublicKey
+              ? "Direct recipient key exchange is present for this recipient, including viewing and proof-owner public keys, but external Private Core Send still waits until the external Send proof path is enabled."
+              : "Direct viewing-key exchange is present for this recipient, but Private Core external Send still needs proof-owner exchange before proof preview or execution.",
           primaryNote: selectedCanonicalSendLedgerNote,
           ready: false,
-          statusLabel: "Proof-owner key required",
+          statusLabel: recipientProofOwnerPublicKey
+            ? "External proof path blocked"
+            : "Proof-owner key required",
         };
       }
 
@@ -852,6 +860,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreHeldLedgerBindingMatchesSelectedNote,
     privateCoreHeldAmountMatchesLedgerNote,
     privateCoreHoldState,
+    recipientProofOwnerPublicKey,
     recipientValidation.detail,
     recipientValidation.statusLabel,
     selectedAsset,

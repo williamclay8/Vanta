@@ -26,6 +26,8 @@ for (const marker of [
   "importVantaShieldRecipientViewingKeyExchangePacket",
   "direct-viewing-key-exchange-local-only-not-production-recipient-discovery",
   "productionReady: false",
+  "recipientOwnerPublicKey",
+  "proof-owner public key",
 ]) {
   assert.ok(viewingKeySource.includes(marker), `Viewing-key exchange source missing ${marker}.`);
 }
@@ -59,8 +61,10 @@ for (const marker of [
 for (const marker of [
   "findVantaRecipientViewingKeyExchangePacket",
   "matchedRecipientViewingKeyExchange",
+  "recipientProofOwnerPublicKey",
   "recipientViewingPublicKey",
   "direct viewing-key exchange",
+  "external Send proof path is enabled",
 ]) {
   assert.ok(sendPageSource.includes(marker), `SendPage direct-key exchange marker missing ${marker}.`);
 }
@@ -185,16 +189,29 @@ try {
   );
 
   const recipientViewingKey = viewingKeyModule.createVantaShieldViewingKeypair();
+  const recipientOwnerPublicKey =
+    "1111111111111111111111111111111111111111111111111111111111111111";
+  const alternateRecipientOwnerPublicKey =
+    "2222222222222222222222222222222222222222222222222222222222222222";
   const walletAddress = "11111111111111111111111111111111";
   const packet = viewingKeyModule.createVantaShieldRecipientViewingKeyExchangePacket({
     createdAt: 1_768_761_000_000,
     label: "Merchant desk",
+    recipientOwnerPublicKey,
     recipientWalletAddress: walletAddress,
     viewingPublicKey: recipientViewingKey.publicKey,
   });
   const packetAgain = viewingKeyModule.createVantaShieldRecipientViewingKeyExchangePacket({
     createdAt: 1_768_761_000_000,
     label: "Merchant desk",
+    recipientOwnerPublicKey,
+    recipientWalletAddress: walletAddress,
+    viewingPublicKey: recipientViewingKey.publicKey,
+  });
+  const packetWithDifferentOwner = viewingKeyModule.createVantaShieldRecipientViewingKeyExchangePacket({
+    createdAt: 1_768_761_000_000,
+    label: "Merchant desk",
+    recipientOwnerPublicKey: alternateRecipientOwnerPublicKey,
     recipientWalletAddress: walletAddress,
     viewingPublicKey: recipientViewingKey.publicKey,
   });
@@ -207,6 +224,8 @@ try {
   );
   assert.equal(packet.fingerprint, packetAgain.fingerprint);
   assert.match(packet.fingerprint, /^rvk:[0-9a-f]{16}$/u);
+  assert.notEqual(packet.fingerprint, packetWithDifferentOwner.fingerprint);
+  assert.equal(packet.recipientOwnerPublicKey, recipientOwnerPublicKey);
   assert.equal(packet.recipientWalletAddress, walletAddress);
   assert.equal(packet.viewingPublicKey, recipientViewingKey.publicKey);
   assert.deepEqual(packet.forbiddenPlaintextFields.includes("seedPhrase"), true);
@@ -215,6 +234,7 @@ try {
     () =>
       viewingKeyModule.createVantaShieldRecipientViewingKeyExchangePacket({
         createdAt: 1,
+        recipientOwnerPublicKey,
         recipientWalletAddress: walletAddress,
         secretKey: recipientViewingKey.secretKey,
         viewingPublicKey: recipientViewingKey.publicKey,
@@ -225,6 +245,7 @@ try {
     () =>
       viewingKeyModule.createVantaShieldRecipientViewingKeyExchangePacket({
         createdAt: 1,
+        recipientOwnerPublicKey,
         recipientWalletAddress: walletAddress,
         viewingPublicKey: recipientViewingKey.publicKey,
         witness: "raw witness",
@@ -235,10 +256,21 @@ try {
     () =>
       viewingKeyModule.createVantaShieldRecipientViewingKeyExchangePacket({
         createdAt: 1,
+        recipientOwnerPublicKey,
         recipientWalletAddress: walletAddress,
         viewingPublicKey: recipientViewingKey.secretKey.slice(0, 62),
       }),
     "viewing public key",
+  );
+  await expectRejection(
+    () =>
+      viewingKeyModule.createVantaShieldRecipientViewingKeyExchangePacket({
+        createdAt: 1,
+        recipientOwnerPublicKey: recipientOwnerPublicKey.slice(0, 62),
+        recipientWalletAddress: walletAddress,
+        viewingPublicKey: recipientViewingKey.publicKey,
+      }),
+    "proof-owner public key",
   );
 
   const storage = new MemoryStorage();
