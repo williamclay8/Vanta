@@ -1885,6 +1885,10 @@ assert(
   "H08 verification commands must include the Claim browser worker prover guard",
 );
 assert(
+  h08.verification.commands.includes("npm run private-pool-v2:swap-to-shielded-browser-worker-prover-check"),
+  "H08 verification commands must include the Swap-to-shielded browser worker prover guard",
+);
+assert(
   h08.verification.commands.includes("npm run zk:h08-production-prover-candidate-check"),
   "H08 verification commands must include the production prover candidate guard",
 );
@@ -1940,6 +1944,10 @@ assert(
   h08.codexRemediation.commits.some((commitRef) => commitRef.includes("804be13")),
   "H08 must record the Claim browser worker prover commit",
 );
+assert(
+  h08.codexRemediation.commits.some((commitRef) => commitRef.includes("14e755b")),
+  "H08 must record the Swap-to-shielded browser worker prover commit",
+);
 assert(h08Text.includes("send-public-input-hash"), "H08 must record Send public-input hash binding");
 assert(
   h08Text.includes("private-spend-public-input-hash"),
@@ -1955,11 +1963,11 @@ assert(
 assert(h08Text.includes("local-bb-derived-artifact"), "H08 must record the derived artifact backend");
 assert(h08Text.includes("browser/Web Worker proof-execution"), "H08 must record the browser worker proof-execution boundary");
 assert(
-  h08Text.includes("Shield, Claim, Send, and actual-private-spend also have dev-only browser/Web Worker proof-execution"),
-  "H08 must record the Shield/Claim browser worker proof-execution boundary",
+  h08Text.includes("Shield, Claim, Swap-to-shielded, Send, and actual-private-spend also have dev-only browser/Web Worker proof-execution"),
+  "H08 must record the Shield/Claim/Swap-to-shielded browser worker proof-execution boundary",
 );
 assert(
-  h08Text.includes("dev-only Claim browser/Web Worker proof execution"),
+  h08Text.includes("Claim now has a strict browser-worker typed witness path"),
   "H08 must record the Claim browser worker proof-execution boundary",
 );
 assert(
@@ -1969,6 +1977,10 @@ assert(
 assert(
   h08Text.includes("typed Claim witness input"),
   "H08 must record the typed Claim witness-input boundary",
+);
+assert(
+  h08Text.includes("typed Swap-to-shielded witness input"),
+  "H08 must record the typed Swap-to-shielded witness-input boundary",
 );
 assert(
   h08Text.includes("browser-worker proof-result adapter"),
@@ -1999,9 +2011,14 @@ assert(
   h08Text.includes("not a production browser runtime prover"),
   "H08 must preserve the browser runtime production boundary",
 );
+assert(h08Text.includes("not live Swap-to-shielded routing"), "H08 must preserve the live Swap-to-shielded routing boundary");
 assert(
   !h08Text.includes("does not generate witnesses in the browser"),
   "H08 must not preserve the stale browser witness-generation limitation",
+);
+assert(
+  !h08Text.includes("Swap-to-shielded browser-worker coverage remains absent"),
+  "H08 must not preserve the stale Swap-to-shielded missing-coverage limitation",
 );
 assert(
   h08Text.includes("ops/mainnet/private-pool-v2-h08-production-prover-candidate.evidence.json"),
@@ -2259,6 +2276,76 @@ for (const phrase of [
   assert(
     claimBrowserWorkerLoopText.includes(phrase),
     `${claimBrowserWorkerLoopId} must record ${phrase}`,
+  );
+}
+
+const swapToShieldedBrowserWorkerLoopId =
+  "VANTA-ZK-FEEDBACK-2026-05-14-H08-SWAP-TO-SHIELDED-BROWSER-WORKER-PROVER";
+assert(
+  activeFeedbackLoopIds.has(swapToShieldedBrowserWorkerLoopId),
+  `${swapToShieldedBrowserWorkerLoopId} active feedback loop is missing`,
+);
+const swapToShieldedBrowserWorkerLoop = ledger.activeFeedbackLoops.find(
+  (loop) => loop.id === swapToShieldedBrowserWorkerLoopId,
+);
+const swapToShieldedBrowserWorkerLoopText = JSON.stringify(swapToShieldedBrowserWorkerLoop);
+for (const command of [
+  "npm run private-pool-v2:swap-to-shielded-browser-worker-prover-check",
+  "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
+  "npm run private-pool-v2:proof-backend-boundary-check",
+  "npm run private-pool-v2:swap-to-shielded-proof-artifact-consistency-check",
+  "npm run private-pool-v2:swap-to-shielded-operator-no-witness-check",
+  "npm run zk:h08-production-prover-candidate-check",
+  "npm run zk:h08-production-prover-runtime-options-check",
+  "npm run docs:source-of-truth-check",
+  "npm run security:limitations-check",
+  "npm run zk:review-findings-ledger-check",
+  "npm run zk:feedback-loop-check",
+  "npm run build",
+]) {
+  assert(
+    swapToShieldedBrowserWorkerLoop?.localVerification?.includes(command),
+    `${swapToShieldedBrowserWorkerLoopId} must record ${command}`,
+  );
+}
+for (const file of [
+  "src/privacy/privatePoolV2SwapToShieldedCircuitFixture.ts",
+  "src/privacy/privatePoolV2BrowserProverProtocol.ts",
+  "src/privacy/privatePoolV2BrowserProverWorker.ts",
+  "src/privacy/privatePoolV2BrowserProverClient.ts",
+  "src/privacy/privatePoolV2BrowserWorkerProofResultAdapter.ts",
+  "scripts/check-vanta-private-pool-v2-swap-to-shielded-browser-worker-prover.mjs",
+  "scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs",
+  "ops/mainnet/private-pool-v2-h08-production-prover-candidate.evidence.json",
+  "ops/mainnet/private-pool-v2-h08-production-prover-runtime-options.evidence.json",
+  "README.md",
+  "SECURITY_LIMITATIONS.md",
+]) {
+  assert(
+    swapToShieldedBrowserWorkerLoop?.changedFiles?.includes(file),
+    `${swapToShieldedBrowserWorkerLoopId} must record changed file ${file}`,
+  );
+}
+for (const phrase of [
+  "dev-only Swap-to-shielded browser/Web Worker proof execution",
+  "worker-side witness generation",
+  "typed Swap-to-shielded witness input",
+  "swap-public-input-hash",
+  "local-bb-derived-artifact",
+  "does not replace the default mock / local-mock prover",
+  "not live Swap-to-shielded routing",
+  "not a production browser runtime prover",
+  "not a production remote proof service",
+  "not on-chain proof verification",
+  "not production verifying-key evidence",
+  "not audit acceptance",
+  "not live deployment evidence",
+  "not real-funds readiness",
+  "14e755b",
+]) {
+  assert(
+    swapToShieldedBrowserWorkerLoopText.includes(phrase),
+    `${swapToShieldedBrowserWorkerLoopId} must record ${phrase}`,
   );
 }
 
