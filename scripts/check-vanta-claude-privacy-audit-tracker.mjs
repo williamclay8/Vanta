@@ -41,6 +41,10 @@ const r13aLiveMetaDescriptionScrapeNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r13a-live-meta-description-scrape.md",
 );
+const r14Argon2idVaultKdfNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r14-argon2id-vault-kdf.md",
+);
 const r15aOperatorKeypairEnvLockdownNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r15a-operator-keypair-env-lockdown.md",
@@ -74,6 +78,7 @@ for (const path of [
   r11aLiveAnonymitySetProbeNotePath,
   r12LegacyV1MemoQuarantineNotePath,
   r13aLiveMetaDescriptionScrapeNotePath,
+  r14Argon2idVaultKdfNotePath,
   r15aOperatorKeypairEnvLockdownNotePath,
   r19ThreatModelNotePath,
   completionAuditNotePath,
@@ -95,6 +100,7 @@ const r8aProverRelayPrivacyTradeoffNote = read(r8aProverRelayPrivacyTradeoffNote
 const r11aLiveAnonymitySetProbeNote = read(r11aLiveAnonymitySetProbeNotePath);
 const r12LegacyV1MemoQuarantineNote = read(r12LegacyV1MemoQuarantineNotePath);
 const r13aLiveMetaDescriptionScrapeNote = read(r13aLiveMetaDescriptionScrapeNotePath);
+const r14Argon2idVaultKdfNote = read(r14Argon2idVaultKdfNotePath);
 const r15aOperatorKeypairEnvLockdownNote = read(r15aOperatorKeypairEnvLockdownNotePath);
 const r19ThreatModelNote = read(r19ThreatModelNotePath);
 const completionAuditNote = read(completionAuditNotePath);
@@ -102,6 +108,7 @@ const privacyAuditWorkflow = read(privacyAuditWorkflowPath);
 const proverRelayTradeoffs = read(resolve(repoRoot, "docs/zk/prover-relay-privacy-tradeoffs.md"));
 const threatModel = read(resolve(repoRoot, "docs/threat-model.md"));
 const shieldState = read(resolve(repoRoot, "src/solana/vantaShieldState.ts"));
+const privateVaultCrypto = read(resolve(repoRoot, "src/privateVault/privateVaultCrypto.ts"));
 const packageJson = JSON.parse(read(packagePath));
 
 for (const phrase of [
@@ -183,6 +190,8 @@ for (const phrase of [
   "npm run public:live-meta-description-check",
   "scripts/check-vanta-live-meta-description.mjs fetches https://vantaprivacy.xyz by default",
   "R14-ARGON2ID-VAULT-KDF",
+  "src/privateVault/privateVaultCrypto.ts writes new vault envelopes with argon2id-aes-gcm-sha256.v3.",
+  "PBKDF2 v2 at 600_000 iterations and legacy v1 at absent/120_000 iterations remain decryptable for existing vault payloads.",
   "R12-LEGACY-V1-MEMO-QUARANTINE",
   "npm run actions:legacy-v1-memo-quarantine-check",
   "getVantaLegacyV1MemoQuarantinePolicy() covering Shield, Send, Unshield, Swap, SOL Unshield, Native SOL Shield, and spent-marker v1 prefixes",
@@ -417,6 +426,44 @@ for (const phrase of [
 }
 
 for (const phrase of [
+  "R14 Argon2id Vault KDF - 2026-05-14",
+  "Status: local implemented.",
+  "argon2id-aes-gcm-sha256.v3",
+  "memory `65_536` KiB",
+  "time cost `3`",
+  "parallelism `1`",
+  "derived key bytes `32`",
+  "version `19`",
+  "pbkdf2-aes-gcm-sha256.v2",
+  "600_000",
+  "pbkdf2-aes-gcm-sha256.v1",
+  "120_000",
+  "npm run private-vault:crypto-check",
+  "Red-first: `npm run private-mode:contract-check` failed before implementation",
+  "not production-private proof",
+]) {
+  assert.ok(
+    r14Argon2idVaultKdfNote.includes(phrase),
+    `R14 Argon2id vault KDF note missing ${phrase}`,
+  );
+}
+
+for (const phrase of [
+  "argon2id-aes-gcm-sha256.v3",
+  "PRIVATE_VAULT_PAYLOAD_SCHEME_V2",
+  "pbkdf2-aes-gcm-sha256.v2",
+  "PRIVATE_VAULT_ARGON2ID_MEMORY_KIB = 65_536",
+  "PRIVATE_VAULT_ARGON2ID_TIME_COST = 3",
+  "PRIVATE_VAULT_ARGON2ID_PARALLELISM = 1",
+  "PRIVATE_VAULT_ARGON2ID_DERIVED_KEY_BYTES = 32",
+  "derivePrivateVaultArgon2idKey",
+  "derivePrivateVaultPbkdf2Key",
+  "hasValidArgon2idParameters",
+]) {
+  assert.ok(privateVaultCrypto.includes(phrase), `private vault crypto missing ${phrase}`);
+}
+
+for (const phrase of [
   "R15A Operator Keypair Env Lockdown Guard - 2026-05-14",
   "Local implemented.",
   "VANTA_PAY_SECRET_KEY",
@@ -496,6 +543,7 @@ for (const phrase of [
   "Legacy v1 plaintext memo quarantine",
   "npm run actions:legacy-v1-memo-quarantine-check",
   "Argon2id vault KDF migration",
+  "npm run private-vault:crypto-check",
   "Operator keypair env lockdown",
   "Local implemented with A2 exception",
   "Operator keypair env lockdown guard",
@@ -507,7 +555,7 @@ for (const phrase of [
   "Mainnet on-chain replay test",
   "Deposit-send-fresh-exit privacy test",
   "branch is ahead of origin",
-  "latest tracker/docs/circuit/CI/memo-quarantine slices are not deployed",
+  "latest tracker/docs/circuit/CI/memo-quarantine/vault-KDF slices are not deployed",
 ]) {
   assert.ok(completionAuditNote.includes(phrase), `completion audit note missing ${phrase}`);
 }
@@ -583,6 +631,11 @@ assert.equal(
   "package.json must expose actions:legacy-v1-memo-quarantine-check.",
 );
 assert.equal(
+  packageJson.scripts["private-vault:crypto-check"],
+  "node scripts/check-vanta-private-mode-contract.mjs",
+  "package.json must expose private-vault:crypto-check.",
+);
+assert.equal(
   packageJson.scripts["private-pool-v2:live-anonymity-set-probe-check"],
   "node scripts/check-vanta-live-anonymity-set-probe.mjs",
   "package.json must expose private-pool-v2:live-anonymity-set-probe-check.",
@@ -601,6 +654,10 @@ assert.ok(
 assert.ok(
   packageJson.scripts["zk:feedback-loop-check"]?.includes("npm run privacy-audit:tracker-check"),
   "zk:feedback-loop-check must include privacy-audit:tracker-check.",
+);
+assert.ok(
+  packageJson.scripts["zk:feedback-loop-check"]?.includes("npm run private-vault:crypto-check"),
+  "zk:feedback-loop-check must include private-vault:crypto-check.",
 );
 
 console.log("Vanta Claude privacy audit tracker check: PASS");

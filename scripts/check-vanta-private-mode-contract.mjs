@@ -17,6 +17,7 @@ const storageSource = read("src/privateVault/privateVaultStorage.ts");
 const recoverySource = read("src/privateVault/privateVaultRecovery.ts");
 const contextSource = read("src/data/context/PrivateVaultContext.tsx");
 const appSource = read("src/App.tsx");
+const productAppRootSource = read("src/ProductAppRoot.tsx");
 
 assert.match(typesSource, /export type PrivateVaultRecord = \{/u);
 assert.match(typesSource, /export type ActiveWalletTopology = \{/u);
@@ -26,11 +27,18 @@ assert.match(cryptoSource, /encrypt_failed/u);
 assert.match(cryptoSource, /PRIVATE_VAULT_PAYLOAD_VERSION/u);
 assert.match(cryptoSource, /PRIVATE_VAULT_PAYLOAD_SCHEME/u);
 assert.match(cryptoSource, /PRIVATE_VAULT_PAYLOAD_SCHEME_V1/u);
+assert.match(cryptoSource, /PRIVATE_VAULT_PAYLOAD_SCHEME_V2/u);
+assert.match(cryptoSource, /argon2id-aes-gcm-sha256\.v3/u);
 assert.match(cryptoSource, /pbkdf2-aes-gcm-sha256\.v2/u);
 assert.match(cryptoSource, /pbkdf2-aes-gcm-sha256\.v1/u);
+assert.match(cryptoSource, /PRIVATE_VAULT_ARGON2ID_MEMORY_KIB = 65_536/u);
+assert.match(cryptoSource, /PRIVATE_VAULT_ARGON2ID_TIME_COST = 3/u);
+assert.match(cryptoSource, /PRIVATE_VAULT_ARGON2ID_PARALLELISM = 1/u);
+assert.match(cryptoSource, /PRIVATE_VAULT_ARGON2ID_DERIVED_KEY_BYTES = 32/u);
+assert.match(cryptoSource, /derivePrivateVaultArgon2idKey/u);
 assert.match(cryptoSource, /PRIVATE_VAULT_KDF_ITERATIONS = 600_000/u);
 assert.match(cryptoSource, /PRIVATE_VAULT_LEGACY_KDF_ITERATIONS = 120_000/u);
-assert.match(cryptoSource, /kdfIterations: PRIVATE_VAULT_KDF_ITERATIONS/u);
+assert.match(cryptoSource, /argon2id: privateVaultArgon2idParameters\(\)/u);
 assert.match(cryptoSource, /resolvePrivateVaultKdfIterations/u);
 assert.match(cryptoSource, /hasValidKdfIterations/u);
 assert.doesNotMatch(cryptoSource, /iterations:\s*120_000/u);
@@ -59,19 +67,33 @@ assert.match(contextSource, /enablePrivateMode/u);
 assert.match(contextSource, /createPrivateVault/u);
 assert.match(contextSource, /downloadPrivateVaultRecoveryFile/u);
 assert.match(contextSource, /activeWalletTopology/u);
-assert.match(appSource, /<PrivateVaultProvider>/u);
+assert.match(appSource, /<ProductAppRoot/u);
+assert.match(productAppRootSource, /<PrivateVaultProvider>/u);
 assert.doesNotMatch(storageSource, /window\.localStorage/u);
 assert.equal(
   packageJson.scripts["private-mode:contract-check"],
   "node scripts/check-vanta-private-mode-contract.mjs",
   "package.json must expose private-mode:contract-check.",
 );
+assert.equal(
+  packageJson.scripts["private-vault:crypto-check"],
+  "node scripts/check-vanta-private-mode-contract.mjs",
+  "package.json must expose private-vault:crypto-check.",
+);
 
 const privateVaultCryptoModule = await loadPrivateVaultCryptoModule();
 assert.equal(privateVaultCryptoModule.PRIVATE_VAULT_KDF_ITERATIONS, 600_000);
 assert.equal(privateVaultCryptoModule.PRIVATE_VAULT_LEGACY_KDF_ITERATIONS, 120_000);
+assert.equal(privateVaultCryptoModule.PRIVATE_VAULT_ARGON2ID_MEMORY_KIB, 65_536);
+assert.equal(privateVaultCryptoModule.PRIVATE_VAULT_ARGON2ID_TIME_COST, 3);
+assert.equal(privateVaultCryptoModule.PRIVATE_VAULT_ARGON2ID_PARALLELISM, 1);
+assert.equal(privateVaultCryptoModule.PRIVATE_VAULT_ARGON2ID_DERIVED_KEY_BYTES, 32);
 assert.equal(
   privateVaultCryptoModule.PRIVATE_VAULT_PAYLOAD_SCHEME,
+  "argon2id-aes-gcm-sha256.v3",
+);
+assert.equal(
+  privateVaultCryptoModule.PRIVATE_VAULT_PAYLOAD_SCHEME_V2,
   "pbkdf2-aes-gcm-sha256.v2",
 );
 
@@ -81,11 +103,32 @@ const encrypted = await privateVaultCryptoModule.encryptPrivateVaultPayload(
   privateVaultPassword,
 );
 const encryptedEnvelope = JSON.parse(encrypted);
-assert.equal(encryptedEnvelope.encryptionScheme, "pbkdf2-aes-gcm-sha256.v2");
-assert.equal(encryptedEnvelope.kdfIterations, 600_000);
+assert.equal(encryptedEnvelope.encryptionScheme, "argon2id-aes-gcm-sha256.v3");
+assert.equal(encryptedEnvelope.argon2id?.memoryKiB, 65_536);
+assert.equal(encryptedEnvelope.argon2id?.timeCost, 3);
+assert.equal(encryptedEnvelope.argon2id?.parallelism, 1);
+assert.equal(encryptedEnvelope.argon2id?.derivedKeyBytes, 32);
+assert.equal(encryptedEnvelope.argon2id?.version, 19);
+assert.equal(encryptedEnvelope.kdfIterations, undefined);
 assert.equal(
   await privateVaultCryptoModule.decryptPrivateVaultPayload(encrypted, privateVaultPassword),
   "private vault fixture",
+);
+
+const pbkdf2V2Encrypted = await encryptPbkdf2PrivateVaultPayload(
+  "pbkdf2 v2 private vault fixture",
+  privateVaultPassword,
+  {
+    encryptionScheme: "pbkdf2-aes-gcm-sha256.v2",
+    kdfIterations: 600_000,
+  },
+);
+assert.equal(
+  await privateVaultCryptoModule.decryptPrivateVaultPayload(
+    pbkdf2V2Encrypted,
+    privateVaultPassword,
+  ),
+  "pbkdf2 v2 private vault fixture",
 );
 
 const legacyEncryptedWithoutIterations = await encryptLegacyPrivateVaultPayload(
@@ -127,7 +170,7 @@ await assert.rejects(
   privateVaultCryptoModule.decryptPrivateVaultPayload(
     JSON.stringify({
       ...encryptedEnvelope,
-      kdfIterations: undefined,
+      argon2id: undefined,
     }),
     privateVaultPassword,
   ),
@@ -193,6 +236,13 @@ async function loadPrivateVaultCryptoModule() {
 }
 
 async function encryptLegacyPrivateVaultPayload(payload, password, options = {}) {
+  return encryptPbkdf2PrivateVaultPayload(payload, password, {
+    encryptionScheme: "pbkdf2-aes-gcm-sha256.v1",
+    kdfIterations: options.kdfIterations,
+  });
+}
+
+async function encryptPbkdf2PrivateVaultPayload(payload, password, options = {}) {
   const cryptoApi = globalThis.crypto;
   assert.ok(cryptoApi?.subtle, "WebCrypto must be available for the private vault check.");
 
@@ -211,7 +261,7 @@ async function encryptLegacyPrivateVaultPayload(payload, password, options = {})
       name: "PBKDF2",
       hash: "SHA-256",
       salt,
-      iterations: 120_000,
+      iterations: options.kdfIterations ?? 120_000,
     },
     keyMaterial,
     { name: "AES-GCM", length: 256 },
@@ -226,7 +276,7 @@ async function encryptLegacyPrivateVaultPayload(payload, password, options = {})
 
   const envelope = {
     envelopeVersion: "vanta.privateVault.payload.v1",
-    encryptionScheme: "pbkdf2-aes-gcm-sha256.v1",
+    encryptionScheme: options.encryptionScheme,
     salt: Array.from(salt),
     iv: Array.from(iv),
     ciphertext: Array.from(new Uint8Array(ciphertext)),
