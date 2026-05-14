@@ -7,13 +7,16 @@ goal:
   source_audit: "Vanta privacy audit - 2026-05-14"
   interpreted_outcome: "Every audit item has a repo-local task, owner lane, verification command set, and Lumi state until implemented or explicitly blocked."
   live_evidence_update:
-    status: received
+    status: received-historical-current-live-read-checks-pass
     confidence: high
     live_site: "https://vantaprivacy.xyz"
-    local_live_bundle_hash_match: "index-BhWFlXXv.js"
+    user_reported_local_live_bundle_hash_match: "index-BhWFlXXv.js"
     live_js_chunks_scanned: 62
     live_dist_size: "2.7 MB"
     public_manifest: "/.well-known/vanta-audit.json"
+    current_live_read_checks:
+      - "npm run public:live-meta-description-check"
+      - "npm run private-pool-v2:live-anonymity-set-probe-check"
     current_distinct_commitments: 2
     minimum_distinct_commitments: 1024
     privacy_claim_allowed: false
