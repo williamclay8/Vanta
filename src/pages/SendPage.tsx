@@ -6,6 +6,7 @@ import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { NotePicker, type NotePickerOption } from "@/components/NotePicker";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { PrivacySummary, type PrivacySummaryItem } from "@/components/PrivacySummary";
+import { SendReceiptModal, type SendReceiptModalDetails } from "@/components/SendReceiptModal";
 import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
 import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
@@ -429,6 +430,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const [lastRecipient, setLastRecipient] = useState<string | null>(null);
   const [lastSentAmount, setLastSentAmount] = useState<number | null>(null);
   const [lastChangeAmount, setLastChangeAmount] = useState<number | null>(null);
+  const [sendReceiptModalOpen, setSendReceiptModalOpen] = useState(false);
   const [pendingSpentMarker, setPendingSpentMarker] = useState<PendingSpentMarker | null>(null);
   const [pendingSendBridge, setPendingSendBridge] = useState<PendingSendBridge | null>(null);
   const [privateCoreSendExecution, setPrivateCoreSendExecution] =
@@ -882,6 +884,93 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     recentShield &&
     `${formatBalance(recentShield.amount, recentShield.asset)} shielded`;
   const sendZkDiagnostics = listCanonicalSendDiagnosticsSummaries().slice(0, 5);
+  const sendReceiptModalDetails = useMemo<SendReceiptModalDetails | null>(() => {
+    const privateCoreSendAmountLabel = privateCoreSendState?.recipientAmount
+      ? `${formatBaseUnits(BigInt(privateCoreSendState.recipientAmount), DEFAULT_USDC_DECIMALS)} USDC`
+      : privateCoreSendPreview
+        ? `${formatBaseUnits(BigInt(privateCoreSendPreview.sendAmountBaseUnits), DEFAULT_USDC_DECIMALS)} USDC`
+        : null;
+    const privateCoreResidualLabel =
+      privateCoreSendState?.changeAmount !== null && privateCoreSendState?.changeAmount !== undefined
+        ? `${formatBaseUnits(BigInt(privateCoreSendState.changeAmount), DEFAULT_USDC_DECIMALS)} USDC`
+        : privateCoreHoldState
+          ? `${formatBaseUnits(privateCoreHoldState.heldNote.note.amount, DEFAULT_USDC_DECIMALS)} USDC`
+          : null;
+
+    if (privateCoreSendExecution.status === "verified" || privateCoreSendState) {
+      return {
+        amountLabel: privateCoreSendAmountLabel ?? formatBalance(lastSentAmount ?? 0, "USDC"),
+        proofStatusLabel:
+          privateCoreSendExecution.status === "verified"
+            ? `Verified locally (${privateCoreSendExecution.proofPublicInputCount ?? 0} public inputs)`
+            : (privateCoreSendState?.observationMode ?? "Private-core send state retained"),
+        recipientLabel:
+          lastRecipient ??
+          (trimmedRecipient.length > 0 ? trimmedRecipient : null) ??
+          abbreviate(privateCoreSendState?.recipientCommitment) ??
+          "Recipient commitment unavailable",
+        releasePackageLabel:
+          privateCoreReleasePackageState?.packageStatusLabel ??
+          privateCoreReleaseHandoffState?.packageStatusLabel ??
+          "No operator package available",
+        remainingBalanceLabel: privateCoreSendState?.residualStateStatus ?? "Residual state unavailable",
+        residualNoteLabel:
+          privateCoreResidualLabel ??
+          privateCoreSendState?.residualStateStatus ??
+          "Residual note unavailable",
+        sendNoteLabel:
+          abbreviate(privateCoreSendExecution.latestSendId) ??
+          abbreviate(privateCoreSendState?.resultingRoot) ??
+          "Operator send id unavailable",
+        spentMarkerLabel:
+          abbreviate(privateCoreOperatorLatestSendLinkedProof?.nullifier) ??
+          "Operator nullifier link unavailable",
+      };
+    }
+
+    if (status !== "complete") {
+      return null;
+    }
+
+    return {
+      amountLabel: formatBalance(lastSentAmount ?? 0, "USDC"),
+      proofStatusLabel: "Local send transition recorded",
+      recipientLabel: lastRecipient ?? "Recipient unavailable",
+      releasePackageLabel:
+        privateCoreReleasePackageState?.packageStatusLabel ??
+        privateCoreReleaseHandoffState?.packageStatusLabel ??
+        "No operator package available",
+      remainingBalanceLabel: formatBalance(shieldAccount?.balance ?? 0, "USDC"),
+      residualNoteLabel: formatBalance(lastChangeAmount ?? 0, "USDC"),
+      sendNoteLabel: abbreviate(sendNoteTransaction.signature) ?? "No send-note signature retained",
+      spentMarkerLabel:
+        abbreviate(spentMarkerTransaction.signature) ?? "No spent-marker signature retained",
+    };
+  }, [
+    lastChangeAmount,
+    lastRecipient,
+    lastSentAmount,
+    privateCoreHoldState,
+    privateCoreOperatorLatestSendLinkedProof?.nullifier,
+    privateCoreReleaseHandoffState?.packageStatusLabel,
+    privateCoreReleasePackageState?.packageStatusLabel,
+    privateCoreSendExecution.latestSendId,
+    privateCoreSendExecution.proofPublicInputCount,
+    privateCoreSendExecution.status,
+    privateCoreSendPreview,
+    privateCoreSendState,
+    sendNoteTransaction.signature,
+    shieldAccount?.balance,
+    spentMarkerTransaction.signature,
+    status,
+    trimmedRecipient,
+  ]);
+
+  useEffect(() => {
+    if (!sendReceiptModalDetails) {
+      setSendReceiptModalOpen(false);
+    }
+  }, [sendReceiptModalDetails]);
 
   const copyReleasePackageExport = useCallback(
     async (mode: "summary" | "json") => {
@@ -1772,59 +1861,15 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   Spent marker: {`${spentMarkerTransaction.signature.slice(0, 8)}...${spentMarkerTransaction.signature.slice(-8)}`}
                 </p>
               )}
-              <details className="shield-helper shield-helper--meta">
-                <summary>Internal zk diagnostics</summary>
-                <p>
-                  Internal/debug only. Inspect canonical predecessor linkage and
-                  successor note insertions created from recent live send actions.
-                </p>
-                {sendZkDiagnostics.length === 0 ? (
-                  <p>No retained canonical send bridge records were found.</p>
-                ) : (
-                  <div className="success-metrics">
-                    {sendZkDiagnostics.map((record) => (
-                      <div key={record.recordId} className="preview-card">
-                        <span>{new Date(record.createdAt).toLocaleTimeString()}</span>
-                        <strong>
-                          {abbreviate(record.transitionSignature) ?? record.transitionSignature}
-                        </strong>
-                        <small>Send transition</small>
-                        <p className="shield-helper shield-helper--meta">
-                          Predecessor: {record.predecessorLiveNoteId}
-                        </p>
-                        {record.predecessorCanonicalCommitment && (
-                          <p className="shield-helper shield-helper--meta">
-                            Canonical predecessor:{" "}
-                            {abbreviate(record.predecessorCanonicalCommitment) ??
-                              record.predecessorCanonicalCommitment}
-                          </p>
-                        )}
-                        <p className="shield-helper shield-helper--meta">
-                          Recipient: {record.recipient}
-                        </p>
-                        {record.spentMarkerSignature && (
-                          <p className="shield-helper shield-helper--meta">
-                            Spent marker:{" "}
-                            {abbreviate(record.spentMarkerSignature) ??
-                              record.spentMarkerSignature}
-                          </p>
-                        )}
-                        {record.successors.map((successor) => (
-                          <p
-                            key={`${record.recordId}:${successor.kind}`}
-                            className="shield-helper shield-helper--meta"
-                          >
-                            {successor.kind} successor #{successor.insertionIndex}:{" "}
-                            {abbreviate(successor.commitment) ?? successor.commitment} · root{" "}
-                            {abbreviate(successor.snapshotRoot) ?? successor.snapshotRoot}
-                          </p>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </details>
               <div className="status-actions">
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => setSendReceiptModalOpen(true)}
+                  disabled={!sendReceiptModalDetails}
+                >
+                  View send receipt
+                </button>
                 <button
                   className="button button-primary"
                   type="button"
@@ -2203,6 +2248,14 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 {privateCoreHoldState?.witnessAvailable ? "Yes" : "Awaiting refreshed hold state"}
               </p>
               <div className="status-actions">
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => setSendReceiptModalOpen(true)}
+                  disabled={!sendReceiptModalDetails}
+                >
+                  View send receipt
+                </button>
                 <Link
                   className="button button-primary"
                   to={privateCoreReleaseHandoffState?.nextActionHref ?? "/app/unshield"}
@@ -2467,6 +2520,14 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 <button
                   className="button button-ghost"
                   type="button"
+                  onClick={() => setSendReceiptModalOpen(true)}
+                  disabled={!sendReceiptModalDetails}
+                >
+                  View send receipt
+                </button>
+                <button
+                  className="button button-ghost"
+                  type="button"
                   onClick={() => {
                     void copyReleasePackageExport("summary");
                   }}
@@ -2588,6 +2649,67 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           </details>
         </article>
       </div>
+
+      {sendReceiptModalDetails && (
+        <SendReceiptModal
+          details={sendReceiptModalDetails}
+          open={sendReceiptModalOpen}
+          onClose={() => setSendReceiptModalOpen(false)}
+        >
+          <details className="send-completion-details shield-helper shield-helper--meta">
+            <summary>Internal send diagnostics</summary>
+            <p>
+              Internal/debug only. Inspect canonical predecessor linkage and successor note
+              insertions created from recent live send actions.
+            </p>
+            {sendZkDiagnostics.length === 0 ? (
+              <p>No retained canonical send bridge records were found.</p>
+            ) : (
+              <div className="success-metrics">
+                {sendZkDiagnostics.map((record) => (
+                  <div key={record.recordId} className="preview-card">
+                    <span>{new Date(record.createdAt).toLocaleTimeString()}</span>
+                    <strong>
+                      {abbreviate(record.transitionSignature) ?? record.transitionSignature}
+                    </strong>
+                    <small>Send transition</small>
+                    <p className="shield-helper shield-helper--meta">
+                      Predecessor: {record.predecessorLiveNoteId}
+                    </p>
+                    {record.predecessorCanonicalCommitment && (
+                      <p className="shield-helper shield-helper--meta">
+                        Canonical predecessor:{" "}
+                        {abbreviate(record.predecessorCanonicalCommitment) ??
+                          record.predecessorCanonicalCommitment}
+                      </p>
+                    )}
+                    <p className="shield-helper shield-helper--meta">
+                      Recipient: {record.recipient}
+                    </p>
+                    {record.spentMarkerSignature && (
+                      <p className="shield-helper shield-helper--meta">
+                        Spent marker:{" "}
+                        {abbreviate(record.spentMarkerSignature) ??
+                          record.spentMarkerSignature}
+                      </p>
+                    )}
+                    {record.successors.map((successor) => (
+                      <p
+                        key={`${record.recordId}:${successor.kind}`}
+                        className="shield-helper shield-helper--meta"
+                      >
+                        {successor.kind} successor #{successor.insertionIndex}:{" "}
+                        {abbreviate(successor.commitment) ?? successor.commitment} · root{" "}
+                        {abbreviate(successor.snapshotRoot) ?? successor.snapshotRoot}
+                      </p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+          </details>
+        </SendReceiptModal>
+      )}
 
       <VantaPrivateCoreStatePanel
         compact

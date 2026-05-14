@@ -612,6 +612,62 @@ function assertSwapReceiptModalIdleHidden() {
   }
 }
 
+function assertSendReceiptModalIdleHidden() {
+  for (const width of [1440, 390, 320]) {
+    execFileSync(
+      "gsd-browser",
+      ["--session", browserSession, "set-viewport", "--width", String(width), "--height", "1000"],
+      {
+        stdio: "ignore",
+      },
+    );
+    execFileSync("gsd-browser", ["--session", browserSession, "navigate", `${baseUrl}/app/send`], {
+      stdio: "ignore",
+    });
+    execFileSync("gsd-browser", ["--session", browserSession, "wait-for", "--condition", "network_idle"], {
+      stdio: "ignore",
+    });
+
+    const rawResult = execFileSync(
+      "gsd-browser",
+      [
+        "--session",
+        browserSession,
+        "--json",
+        "eval",
+        `(() => {
+          const modal = document.querySelector("[data-vanta-send-receipt-modal]");
+          const bodyText = document.body.innerText;
+          const documentOverflow =
+            Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) -
+            window.innerWidth;
+
+          return {
+            ok:
+              modal === null &&
+              !bodyText.includes("View send receipt") &&
+              !bodyText.includes("Latest send receipt") &&
+              documentOverflow <= 2,
+            documentOverflow,
+            hasModal: modal !== null,
+            hasReceiptCta: bodyText.includes("View send receipt"),
+            hasReceiptTitle: bodyText.includes("Latest send receipt"),
+            width: window.innerWidth,
+          };
+        })()`,
+      ],
+      { encoding: "utf8" },
+    );
+    const result = JSON.parse(rawResult);
+    const rawValue = result.result ?? result.value ?? result;
+    const value = typeof rawValue === "string" ? JSON.parse(rawValue) : rawValue;
+
+    if (!value.ok) {
+      throw new Error(`Send receipt modal should stay hidden before completion: ${JSON.stringify(value)}`);
+    }
+  }
+}
+
 function assertUnshieldReceiptModalIdleHidden() {
   for (const width of [1440, 390, 320]) {
     execFileSync(
@@ -1505,6 +1561,7 @@ try {
   assertShieldRecoveryPanelDisclosure();
   assertPayTransactionStatusToast();
   assertSwapQuoteCountdownBar();
+  assertSendReceiptModalIdleHidden();
   assertSwapReceiptModalIdleHidden();
   assertUnshieldReceiptModalIdleHidden();
   assertSendAdvancedDisclosure();
