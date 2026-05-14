@@ -11,6 +11,10 @@ export function parseSignedUnshieldIntent(body) {
     throw new Error("Invalid authenticated unshield request.");
   }
 
+  if (Object.prototype.hasOwnProperty.call(body, "transitionStateSignature")) {
+    throw new Error("Invalid authenticated unshield request.");
+  }
+
   const {
     amount,
     destinationOwner,
@@ -22,7 +26,6 @@ export function parseSignedUnshieldIntent(body) {
     requester,
     signature,
     transitionNoteId,
-    transitionStateSignature,
     vaultOwner,
     version,
   } = body;
@@ -37,8 +40,6 @@ export function parseSignedUnshieldIntent(body) {
     typeof requester !== "string" ||
     typeof signature !== "string" ||
     typeof transitionNoteId !== "string" ||
-    (transitionStateSignature !== undefined &&
-      typeof transitionStateSignature !== "string") ||
     typeof vaultOwner !== "string" ||
     version !== VANTA_UNSHIELD_INTENT_VERSION ||
     typeof issuedAt !== "number" ||
@@ -58,7 +59,6 @@ export function parseSignedUnshieldIntent(body) {
     requester,
     signature,
     transitionNoteId,
-    transitionStateSignature,
     vaultOwner,
     version,
   };
@@ -76,7 +76,6 @@ export function formatUnshieldIntentMessage(payload) {
     `vaultOwner:${payload.vaultOwner}`,
     `noteId:${payload.noteId}`,
     `transitionNoteId:${payload.transitionNoteId}`,
-    `transitionStateSignature:${payload.transitionStateSignature ?? "pending"}`,
     `amount:${payload.amount}`,
   ].join("\n");
 }

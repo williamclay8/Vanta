@@ -46,9 +46,7 @@ import {
 import {
   assertEligibleDirectSolUnshieldRelease,
   assertEligibleDirectUnshieldRelease,
-  assertEligibleSolUnshieldTransition,
   assertEligibleSwapTransition,
-  assertEligibleUnshieldTransition,
   fetchConstrainedOnchainUnshieldContext,
 } from "./vanta-onchain-state.mjs";
 import { createPrivateCoreConsumeStore } from "./private-core-consume-store.mjs";
@@ -276,7 +274,6 @@ const swapTransitionLookupAttempts = Number(
 const swapTransitionLookupDelayMs = Number(
   process.env.VANTA_SWAP_TRANSITION_LOOKUP_DELAY_MS ?? "1000",
 );
-const VANTA_UNSHIELD_MEMO_PREFIX = "vanta:unshield-note:v1:";
 const VANTA_SWAP_MEMO_PREFIX = "vanta:swap-note:v1:";
 const VANTA_MEMO_PROGRAM_ID = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
 const VANTA_UNSHIELD_CONSUMED_NOTE_REFERENCE_HASH_DOMAIN =
@@ -1641,6 +1638,8 @@ export async function handleUnshieldOperatorRequest(request, response) {
         throw new Error("This SOL unshield transition has already been finalized.");
       }
 
+      assertDirectSolUnshieldReleaseIntent(intent);
+
       const onchainContext = await fetchConstrainedOnchainUnshieldContext({
         client,
         mintAddress,
@@ -1648,28 +1647,15 @@ export async function handleUnshieldOperatorRequest(request, response) {
         vaultOwner,
       });
 
-      if (isWalletDirectSolUnshieldIntent(intent)) {
-        assertEligibleDirectSolUnshieldRelease({
-          amount: intent.amount,
-          assetId: intent.assetId,
-          context: onchainContext,
-          consumedNoteId: intent.consumedNoteId,
-          destinationOwner: intent.destinationOwner,
-          owner: intent.owner,
-          vaultOwner,
-        });
-      } else {
-        assertEligibleSolUnshieldTransition({
-          amount: intent.amount,
-          assetId: intent.assetId,
-          context: onchainContext,
-          consumedNoteId: intent.consumedNoteId,
-          destinationOwner: intent.destinationOwner,
-          owner: intent.owner,
-          transitionNoteId: intent.transitionNoteId,
-          vaultOwner,
-        });
-      }
+      assertEligibleDirectSolUnshieldRelease({
+        amount: intent.amount,
+        assetId: intent.assetId,
+        context: onchainContext,
+        consumedNoteId: intent.consumedNoteId,
+        destinationOwner: intent.destinationOwner,
+        owner: intent.owner,
+        vaultOwner,
+      });
 
       const keypair = loadWeb3KeypairFromEnv(vaultSignerSecretKeyEnvName);
       const signerAddress = keypair.publicKey.toBase58();
@@ -1800,36 +1786,24 @@ export async function handleUnshieldOperatorRequest(request, response) {
       throw new Error("This unshield transition has already been finalized.");
     }
 
-    if (isWalletDirectUnshieldIntent(intent)) {
-      const onchainContext = await fetchConstrainedOnchainUnshieldContext({
-        client,
-        mintAddress: intent.mintAddress,
-        owner: intent.owner,
-        vaultOwner,
-      });
+    assertDirectUnshieldReleaseIntent(intent);
 
-      assertEligibleDirectUnshieldRelease({
-        amount: intent.amount,
-        context: onchainContext,
-        destinationOwner: intent.destinationOwner,
-        mintAddress: intent.mintAddress,
-        noteId: intent.noteId,
-        owner: intent.owner,
-        vaultOwner,
-      });
-    } else {
-      await waitForEligibleUnshieldTransition({
-        amount: intent.amount,
-        client,
-        destinationOwner: intent.destinationOwner,
-        mintAddress: intent.mintAddress,
-        noteId: intent.noteId,
-        owner: intent.owner,
-        transitionNoteId: intent.transitionNoteId,
-        transitionStateSignature: intent.transitionStateSignature,
-        vaultOwner,
-      });
-    }
+    const onchainContext = await fetchConstrainedOnchainUnshieldContext({
+      client,
+      mintAddress: intent.mintAddress,
+      owner: intent.owner,
+      vaultOwner,
+    });
+
+    assertEligibleDirectUnshieldRelease({
+      amount: intent.amount,
+      context: onchainContext,
+      destinationOwner: intent.destinationOwner,
+      mintAddress: intent.mintAddress,
+      noteId: intent.noteId,
+      owner: intent.owner,
+      vaultOwner,
+    });
 
     const keypair = await loadKeypairFromEnv(vaultSignerSecretKeyEnvName);
     const signerAddress = keypair.signer.address.toString();
@@ -1903,10 +1877,7 @@ export async function handleUnshieldOperatorRequest(request, response) {
 }
 
 function createUnshieldOperatorReleaseReceipt(args) {
-  const proofStatus =
-    isDirectUnshieldTransitionReference(args.intent)
-      ? "not-provided-wallet-authorized-public-exit"
-      : "not-provided-wallet-signed-transition-public-exit";
+  const proofStatus = "not-provided-wallet-authorized-public-exit";
   const intentHash = hashReleaseIntent(args.intent);
 
   return {
@@ -1943,23 +1914,16 @@ function hashReleaseIntent(intent) {
     .digest("hex")}`;
 }
 
-function isWalletDirectUnshieldIntent(intent) {
-  return (
-    intent.transitionNoteId === `direct:${intent.noteId}` &&
-    !intent.transitionStateSignature
-  );
+function assertDirectUnshieldReleaseIntent(intent) {
+  if (intent.transitionNoteId !== `direct:${intent.noteId}`) {
+    throw new Error("Operator-direct unshield requires a direct wallet-signed note reference.");
+  }
 }
 
-function isWalletDirectSolUnshieldIntent(intent) {
-  return (
-    intent.transitionNoteId === `direct:${intent.consumedNoteId}` &&
-    !intent.transitionStateSignature
-  );
-}
-
-function isDirectUnshieldTransitionReference(intent) {
-  const consumedNoteId = intent.consumedNoteId ?? intent.noteId;
-  return typeof consumedNoteId === "string" && intent.transitionNoteId === `direct:${consumedNoteId}`;
+function assertDirectSolUnshieldReleaseIntent(intent) {
+  if (intent.transitionNoteId !== `direct:${intent.consumedNoteId}`) {
+    throw new Error("Operator-direct SOL unshield requires a direct wallet-signed note reference.");
+  }
 }
 
 async function waitForEligibleSwapTransition(args) {
@@ -2016,91 +1980,8 @@ async function waitForEligibleSwapTransition(args) {
   throw lastError ?? new Error("Referenced onchain swap transition was not found.");
 }
 
-async function waitForEligibleUnshieldTransition(args) {
-  let lastError = null;
-
-  for (let attempt = 0; attempt < swapTransitionLookupAttempts; attempt += 1) {
-    try {
-      const onchainContext = await fetchConstrainedOnchainUnshieldContext({
-        client: args.client,
-        mintAddress: args.mintAddress,
-        owner: args.owner,
-        vaultOwner: args.vaultOwner,
-      });
-
-      assertEligibleUnshieldTransition({
-        amount: args.amount,
-        context: onchainContext,
-        destinationOwner: args.destinationOwner,
-        mintAddress: args.mintAddress,
-        noteId: args.noteId,
-        owner: args.owner,
-        transitionNoteId: args.transitionNoteId,
-        vaultOwner: args.vaultOwner,
-      });
-
-      return;
-    } catch (error) {
-      lastError = error;
-
-      if (await verifyUnshieldTransitionBySignature(args)) {
-        return;
-      }
-
-      const message = error instanceof Error ? error.message : String(error);
-      const canRetry =
-        message === "Referenced onchain unshield transition was not found." &&
-        attempt < swapTransitionLookupAttempts - 1;
-
-      if (!canRetry) {
-        throw error;
-      }
-
-      await sleep(swapTransitionLookupDelayMs);
-    }
-  }
-
-  throw lastError ?? new Error("Referenced onchain unshield transition was not found.");
-}
-
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function verifyUnshieldTransitionBySignature(args) {
-  if (!args.transitionStateSignature) {
-    return false;
-  }
-
-  try {
-    const transaction = await web3Connection.getParsedTransaction(
-      args.transitionStateSignature,
-      {
-        commitment: "confirmed",
-        maxSupportedTransactionVersion: 0,
-      },
-    );
-    const memo = extractMemoFromParsedTransaction(transaction, VANTA_UNSHIELD_MEMO_PREFIX);
-
-    if (!memo) {
-      return false;
-    }
-
-    const payload = parseUnshieldMemoPayload(memo);
-
-    return Boolean(
-      payload &&
-        payload.owner === args.owner &&
-        payload.vaultOwner === args.vaultOwner &&
-        payload.mintAddress === args.mintAddress &&
-        payload.consumedNoteId === args.noteId &&
-        payload.noteId === args.transitionNoteId &&
-        payload.destinationOwner === args.destinationOwner &&
-        payload.amount === args.amount,
-    );
-  } catch {
-    return false;
-  }
 }
 
 async function verifySwapTransitionBySignature(args) {
@@ -2174,34 +2055,6 @@ function extractMemoFromParsedTransaction(transaction, prefix) {
   }
 
   return null;
-}
-
-function parseUnshieldMemoPayload(memo) {
-  if (typeof memo !== "string") {
-    return null;
-  }
-
-  const memoStart = memo.indexOf(VANTA_UNSHIELD_MEMO_PREFIX);
-
-  if (memoStart === -1) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(memo.slice(memoStart + VANTA_UNSHIELD_MEMO_PREFIX.length));
-
-    return {
-      amount: parsed.amount,
-      consumedNoteId: parsed.consumedNoteId ?? parsed.consumedShieldStateSignature,
-      destinationOwner: parsed.destinationOwner,
-      mintAddress: parsed.mintAddress,
-      noteId: parsed.noteId,
-      owner: parsed.owner,
-      vaultOwner: parsed.vaultOwner,
-    };
-  } catch {
-    return null;
-  }
 }
 
 function parseSwapMemoPayload(memo) {

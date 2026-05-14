@@ -11,6 +11,10 @@ export function parseSignedSolUnshieldIntent(body) {
     throw new Error("Invalid authenticated SOL unshield request.");
   }
 
+  if (Object.prototype.hasOwnProperty.call(body, "transitionStateSignature")) {
+    throw new Error("Invalid authenticated SOL unshield request.");
+  }
+
   const {
     amount,
     asset,
@@ -23,7 +27,6 @@ export function parseSignedSolUnshieldIntent(body) {
     requester,
     signature,
     transitionNoteId,
-    transitionStateSignature,
     vaultOwner,
     version,
   } = body;
@@ -39,8 +42,6 @@ export function parseSignedSolUnshieldIntent(body) {
     typeof requester !== "string" ||
     typeof signature !== "string" ||
     typeof transitionNoteId !== "string" ||
-    (transitionStateSignature !== undefined &&
-      typeof transitionStateSignature !== "string") ||
     typeof vaultOwner !== "string" ||
     version !== VANTA_SOL_UNSHIELD_INTENT_VERSION ||
     typeof issuedAt !== "number" ||
@@ -61,7 +62,6 @@ export function parseSignedSolUnshieldIntent(body) {
     requester,
     signature,
     transitionNoteId,
-    transitionStateSignature,
     vaultOwner,
     version,
   };
@@ -79,7 +79,6 @@ export function formatSolUnshieldIntentMessage(payload) {
     `assetId:${payload.assetId}`,
     `consumedNoteId:${payload.consumedNoteId}`,
     `transitionNoteId:${payload.transitionNoteId}`,
-    `transitionStateSignature:${payload.transitionStateSignature ?? "pending"}`,
     `amount:${payload.amount}`,
     `vaultOwner:${payload.vaultOwner}`,
   ].join("\n");

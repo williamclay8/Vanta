@@ -12,7 +12,6 @@ export type UnshieldIntentPayload = {
   requestId: string;
   requester: string;
   transitionNoteId: string;
-  transitionStateSignature?: string;
   vaultOwner: string;
 };
 
@@ -43,7 +42,6 @@ export function formatUnshieldIntentMessage(payload: UnshieldIntentPayload) {
     `vaultOwner:${payload.vaultOwner}`,
     `noteId:${payload.noteId}`,
     `transitionNoteId:${payload.transitionNoteId}`,
-    `transitionStateSignature:${payload.transitionStateSignature ?? "pending"}`,
     `amount:${payload.amount}`,
   ].join("\n");
 }

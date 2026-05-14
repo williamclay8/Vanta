@@ -13,7 +13,6 @@ export type SolUnshieldIntentPayload = {
   requestId: string;
   requester: string;
   transitionNoteId: string;
-  transitionStateSignature?: string;
   vaultOwner: string;
 };
 
@@ -44,7 +43,6 @@ export function formatSolUnshieldIntentMessage(payload: SolUnshieldIntentPayload
     `assetId:${payload.assetId}`,
     `consumedNoteId:${payload.consumedNoteId}`,
     `transitionNoteId:${payload.transitionNoteId}`,
-    `transitionStateSignature:${payload.transitionStateSignature ?? "pending"}`,
     `amount:${payload.amount}`,
     `vaultOwner:${payload.vaultOwner}`,
   ].join("\n");

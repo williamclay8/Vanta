@@ -1181,58 +1181,6 @@ export async function fetchConstrainedOnchainUnshieldContext(args) {
   };
 }
 
-// The local operator only needs a narrow subset of the app resolver:
-// enough to confirm that the referenced unshield transition exists and
-// targets a currently eligible note under the configured shield-token model.
-export function assertEligibleUnshieldTransition(args) {
-  const transition = args.context.candidateUnshieldNotes.find(
-    (note) => note.noteId === args.transitionNoteId,
-  );
-
-  if (!transition) {
-    throw new Error("Referenced onchain unshield transition was not found.");
-  }
-
-  if (
-    transition.owner !== args.owner ||
-    transition.destinationOwner !== args.destinationOwner ||
-    transition.mintAddress !== args.mintAddress ||
-    transition.vaultOwner !== args.vaultOwner ||
-    transition.consumedNoteId !== args.noteId ||
-    !amountsMatch(Number(transition.amount.toFixed(6)), Number(args.amount))
-  ) {
-    throw new Error("Onchain unshield transition does not match the authenticated request.");
-  }
-
-  const consumedNote = args.context.spendableShieldNotes.find(
-    (note) => note.noteId === args.noteId,
-  );
-
-  if (!consumedNote) {
-    throw new Error("Referenced shield note is not currently eligible for unshield release.");
-  }
-
-  if (!amountsMatch(Number(consumedNote.amount.toFixed(6)), Number(args.amount))) {
-    throw new Error("Referenced shield note amount does not match the requested unshield amount.");
-  }
-
-  const competingTransitions = [
-    ...args.context.candidateSendNotes.filter((note) => note.consumedNoteId === args.noteId),
-    ...args.context.candidateSwapNotes.filter((note) => note.consumedNoteId === args.noteId),
-    ...args.context.candidateUnshieldNotes.filter((note) => note.consumedNoteId === args.noteId),
-  ];
-
-  if (
-    competingTransitions.some(
-      (note) => note.noteId !== args.transitionNoteId,
-    )
-  ) {
-    throw new Error("Referenced note already has another constrained transition pending.");
-  }
-
-  return transition;
-}
-
 export function assertEligibleDirectUnshieldRelease(args) {
   if (args.destinationOwner !== args.owner) {
     throw new Error("Operator-direct unshield can only release to the note owner.");
@@ -1317,55 +1265,6 @@ export function assertEligibleSwapTransition(args) {
 
   if (competingTransitions.some((note) => note.noteId !== args.transitionNoteId)) {
     throw new Error("Referenced note already has another constrained transition pending.");
-  }
-
-  return transition;
-}
-
-export function assertEligibleSolUnshieldTransition(args) {
-  const transition = args.context.candidateSolUnshieldNotes.find(
-    (note) => note.noteId === args.transitionNoteId,
-  );
-
-  if (!transition) {
-    throw new Error("Referenced onchain SOL unshield transition was not found.");
-  }
-
-  if (
-    transition.owner !== args.owner ||
-    transition.destinationOwner !== args.destinationOwner ||
-    transition.asset !== "SOL" ||
-    transition.assetId !== args.assetId ||
-    transition.vaultOwner !== args.vaultOwner ||
-    transition.consumedNoteId !== args.consumedNoteId ||
-    !amountsMatch(Number(transition.amount.toFixed(9)), Number(args.amount))
-  ) {
-    throw new Error("Onchain SOL unshield transition does not match the authenticated request.");
-  }
-
-  const consumedNote = args.context.spendableShieldedSolNotes.find(
-    (note) => note.noteId === args.consumedNoteId,
-  );
-
-  if (!consumedNote) {
-    throw new Error("Referenced shielded SOL note is not currently eligible for unshield release.");
-  }
-
-  if (!amountsMatch(Number(consumedNote.amount.toFixed(9)), Number(args.amount))) {
-    throw new Error("Referenced shielded SOL note amount does not match the requested release.");
-  }
-
-  const competingTransitions = [
-    ...args.context.candidateSolUnshieldNotes.filter(
-      (note) => note.consumedNoteId === args.consumedNoteId,
-    ),
-    ...args.context.candidateSwapNotes.filter(
-      (note) => note.inputAsset === "SOL" && note.consumedNoteId === args.consumedNoteId,
-    ),
-  ];
-
-  if (competingTransitions.some((note) => note.noteId !== args.transitionNoteId)) {
-    throw new Error("Referenced shielded SOL note already has another constrained transition pending.");
   }
 
   return transition;
