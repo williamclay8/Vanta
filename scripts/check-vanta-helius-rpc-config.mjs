@@ -112,17 +112,28 @@ function assertBrowserSafeHeliusUrl(label, value, options = {}) {
 
 const env = effectiveEnv();
 const clientSource = readFileSync(resolve(repoRoot, "src/solana/client.ts"), "utf8");
+const browserRpcEndpointSource = readFileSync(resolve(repoRoot, "src/solana/browserRpcEndpoint.ts"), "utf8");
 const envExampleSource = readFileSync(resolve(repoRoot, ".env.example"), "utf8");
 const gitignoreSource = readFileSync(resolve(repoRoot, ".gitignore"), "utf8");
 
 assert.ok(
-  clientSource.indexOf("VITE_SOLANA_BROWSER_RPC_URL") <
-    clientSource.indexOf("VITE_SOLANA_RPC_URL"),
+  browserRpcEndpointSource.indexOf("VITE_SOLANA_BROWSER_RPC_URL") <
+    browserRpcEndpointSource.indexOf("VITE_SOLANA_RPC_URL"),
   "browser-specific RPC env must take precedence over the generic VITE_SOLANA_RPC_URL.",
 );
 assert.ok(
-  clientSource.includes("VITE_SOLANA_READ_RPC_FALLBACK_URLS"),
+  browserRpcEndpointSource.includes("VITE_SOLANA_READ_RPC_FALLBACK_URLS"),
   "read RPC fallback env must stay wired into the browser client.",
+);
+assert.ok(
+  browserRpcEndpointSource.includes("api.mainnet-beta.solana.com") &&
+    browserRpcEndpointSource.includes("isBrowserBlockedMainnetRpcEndpoint"),
+  "browser RPC resolver must keep rejecting the browser-blocked Solana public endpoint.",
+);
+assert.ok(
+  clientSource.includes('from "@/solana/browserRpcEndpoint"') &&
+    clientSource.includes("export const endpoint = mainnetBrowserRpcEndpoint"),
+  "Solana client must keep using the shared browser RPC resolver.",
 );
 assert.ok(
   envExampleSource.includes("VITE_SOLANA_BROWSER_RPC_URL=https://your-secure-url.helius-rpc.com"),

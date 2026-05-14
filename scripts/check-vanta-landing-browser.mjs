@@ -1,10 +1,11 @@
 import { execFileSync, spawn } from "node:child_process";
-import { rmSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 const port = 5260 + Math.floor(Math.random() * 200);
 const baseUrl = `http://127.0.0.1:${port}`;
 const browserSession = `vanta-landing-check-${process.pid}-${Date.now()}`;
+const liveStripSourcePath = path.join(process.cwd(), "src", "components", "LandingLiveStrip.tsx");
 
 function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
@@ -72,6 +73,84 @@ function runBrowserCommand(args, options = {}) {
   }
 }
 
+function checkLandingLiveStripSource() {
+  if (!existsSync(liveStripSourcePath)) {
+    throw new Error("Missing src/components/LandingLiveStrip.tsx for the landing Solana liveness strip.");
+  }
+
+  const source = readFileSync(liveStripSourcePath, "utf8");
+  const requiredSnippets = [
+    "getBlockHeight",
+    "mainnetBrowserRpcEndpoint",
+    "setInterval",
+    "2000",
+    "REQUEST_TIMEOUT_MS",
+    "AbortController",
+    "Network liveness only",
+    "not private-settlement readiness",
+    "data-vanta-landing-live-strip",
+    "data-vanta-solana-block-height",
+    "data-vanta-solana-latency",
+    "data-vanta-landing-slot-pulse",
+  ];
+
+  for (const snippet of requiredSnippets) {
+    if (!source.includes(snippet)) {
+      throw new Error(`Landing live strip source missing required contract snippet: ${snippet}`);
+    }
+  }
+
+  if (source.includes("https://api.mainnet-beta.solana.com")) {
+    throw new Error("Landing live strip must not use the browser-blocked Solana public endpoint.");
+  }
+
+  const rpcResolverSource = readFileSync(path.join(process.cwd(), "src", "solana", "browserRpcEndpoint.ts"), "utf8");
+  for (const snippet of [
+    "VITE_SOLANA_BROWSER_RPC_URL",
+    "VITE_SOLANA_RPC_URL",
+    "VITE_SOLANA_READ_RPC_FALLBACK_URLS",
+    "api.mainnet-beta.solana.com",
+    "https://solana-rpc.publicnode.com",
+  ]) {
+    if (!rpcResolverSource.includes(snippet)) {
+      throw new Error(`Landing live strip RPC resolver missing required contract snippet: ${snippet}`);
+    }
+  }
+
+  const homeSource = readFileSync(path.join(process.cwd(), "src", "pages", "HomePage.tsx"), "utf8");
+  if (!homeSource.includes("import { LandingLiveStrip }") || !homeSource.includes("<LandingLiveStrip />")) {
+    throw new Error("Home page must import and render LandingLiveStrip.");
+  }
+
+  const stylesSource = readFileSync(path.join(process.cwd(), "src", "styles.css"), "utf8");
+  for (const snippet of [
+    ".landing-minimal__live-strip",
+    ".landing-minimal__live-heading",
+    ".landing-minimal__live-metrics",
+    ".landing-minimal__live-dot",
+    "@keyframes landing-live-dot-pulse",
+    "@media (prefers-reduced-motion: reduce)",
+  ]) {
+    if (!stylesSource.includes(snippet)) {
+      throw new Error(`Landing live strip styles missing required selector/snippet: ${snippet}`);
+    }
+  }
+
+  const bannedClaimPatterns = [
+    /\bfully private\b/iu,
+    /\banonymous payments?\b/iu,
+    /\buntraceable\b/iu,
+    /\bproduction[- ]ready\b/iu,
+    /\blive mainnet private settlement\b/iu,
+  ];
+
+  for (const pattern of bannedClaimPatterns) {
+    if (pattern.test(source)) {
+      throw new Error(`Landing live strip source includes banned privacy/readiness claim: ${pattern}`);
+    }
+  }
+}
+
 function checkLandingViewport(width, height) {
   runBrowserCommand(["set-viewport", "--width", String(width), "--height", String(height)], {
     stdio: "ignore",
@@ -105,7 +184,26 @@ function checkLandingViewport(width, height) {
           document.body.innerText.toLowerCase().includes("evidence-recorded commitments") &&
           document.body.innerText.toLowerCase().includes("required minimum") &&
           document.body.innerText.includes("Vanta does not claim live anonymity or production-private mainnet settlement yet"),
-        hidesBetaCopy: !document.body.innerText.toLowerCase().includes("beta"),
+        hasLiveSolanaStrip: (() => {
+          const liveStrip = document.querySelector("[data-vanta-landing-live-strip]");
+          const whatSection = document.querySelector("#what");
+          const stripText = liveStrip?.textContent ?? "";
+
+          return Boolean(liveStrip) &&
+            liveStrip.classList.contains("landing-minimal__live-strip") &&
+            Boolean(whatSection) &&
+            Boolean(liveStrip.compareDocumentPosition(whatSection) & Node.DOCUMENT_POSITION_FOLLOWING) &&
+            stripText.includes("Solana mainnet") &&
+            stripText.includes("Block height") &&
+            stripText.includes("Latency") &&
+            stripText.includes("Beta truth") &&
+            stripText.includes("Network liveness only") &&
+            stripText.includes("not private-settlement readiness") &&
+            Boolean(liveStrip.querySelector("[data-vanta-solana-status]")) &&
+            Boolean(liveStrip.querySelector("[data-vanta-solana-block-height]")) &&
+            Boolean(liveStrip.querySelector("[data-vanta-solana-latency]")) &&
+            Boolean(liveStrip.querySelector("[data-vanta-landing-slot-pulse]"));
+        })(),
         primaryActionHrefs: [...document.querySelectorAll(".landing-minimal__action-list--primary a")]
           .map((link) => link.getAttribute("href")),
         previewActionHrefs: [...document.querySelectorAll(".landing-minimal__preview-link")]
@@ -198,8 +296,8 @@ function checkLandingViewport(width, height) {
     throw new Error("Landing page must show the truthful public anonymity-depth disclosure.");
   }
 
-  if (!result.hidesBetaCopy) {
-    throw new Error("Landing page must not talk about beta state.");
+  if (!result.hasLiveSolanaStrip) {
+    throw new Error("Landing page must show the scoped Solana mainnet liveness strip with beta-truth copy.");
   }
 
   if (!result.hasPrimaryWalletActions) {
@@ -243,6 +341,7 @@ vite.stderr.on("data", (chunk) => {
 });
 
 try {
+  checkLandingLiveStripSource();
   await waitForVite();
   checkLandingViewport(1440, 1000);
   checkLandingViewport(390, 844);

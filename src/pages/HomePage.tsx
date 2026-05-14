@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnonymityDepthDisclosure } from "@/components/AnonymityDepthDisclosure";
 import { BrandMark } from "@/components/BrandMark";
+import { LandingLiveStrip } from "@/components/LandingLiveStrip";
 
 const productPoints = [
   {
@@ -108,6 +109,8 @@ export function HomePage() {
           </a>
         </div>
       </section>
+
+      <LandingLiveStrip />
 
       <AnonymityDepthDisclosure />
 
