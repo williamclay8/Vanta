@@ -3105,6 +3105,51 @@ input {
   }
 }
 
+.swap-recent-swaps {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055);
+}
+
+.swap-recent-swaps__header,
+.swap-recent-swaps__card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.swap-recent-swaps__header span,
+.swap-recent-swaps__card span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.swap-recent-swaps__header strong,
+.swap-recent-swaps__card strong {
+  color: var(--text);
+}
+
+.swap-recent-swaps__card {
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.swap-recent-swaps__card p,
+.swap-recent-swaps__empty {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
 .swap-receipt-modal__overlay {
   position: fixed;
   inset: 0;
@@ -3218,6 +3263,12 @@ input {
 }
 
 @media (max-width: 640px) {
+  .swap-recent-swaps__header,
+  .swap-recent-swaps__card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .swap-receipt-modal__overlay {
     padding: 14px;
   }

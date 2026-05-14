@@ -120,6 +120,23 @@ type PendingSwapBridge = {
   };
 };
 
+type SwapReceiptSummary = {
+  inputAsset: ShieldedSwapAssetKey;
+  inputAmount: number;
+  outputAsset: ShieldedSwapAssetKey;
+  outputAmount: number;
+  outputNoteId: string;
+  quoteExpiresAt: number;
+  quoteId: string;
+  quoteTimestamp: number;
+  requestId?: string;
+  transitionNoteId: string;
+  venueFamily: "Aggregator" | "DLMM";
+  venueName: string;
+  venueNetwork: "Mainnet";
+  venuePoolAddress: string;
+};
+
 type ActiveSwapQuote = SwapQuote | SolToShieldedRouteQuote;
 const STALE_EXECUTION_QUOTE_MESSAGE =
   "The latest live quote expired, so the swap path is blocked until a fresh quote is available.";
@@ -244,22 +261,8 @@ export function SwapPage() {
   const [optimisticallyConsumedNoteId, setOptimisticallyConsumedNoteId] = useState<string | null>(
     null,
   );
-  const [lastSwapSummary, setLastSwapSummary] = useState<{
-    inputAsset: ShieldedSwapAssetKey;
-    inputAmount: number;
-    outputAsset: ShieldedSwapAssetKey;
-    outputAmount: number;
-    outputNoteId: string;
-    quoteExpiresAt: number;
-    quoteId: string;
-    quoteTimestamp: number;
-    requestId?: string;
-    transitionNoteId: string;
-    venueFamily: "Aggregator" | "DLMM";
-    venueName: string;
-    venueNetwork: "Mainnet";
-    venuePoolAddress: string;
-  } | null>(null);
+  const [lastSwapSummary, setLastSwapSummary] = useState<SwapReceiptSummary | null>(null);
+  const [recentSwapSummary, setRecentSwapSummary] = useState<SwapReceiptSummary | null>(null);
   const swapTransaction = useVantaSafeSendTransaction();
   const swapWait = useRealtimeSignatureProgress(swapTransaction.signature ?? undefined, {
     commitment: "confirmed",
@@ -272,6 +275,11 @@ export function SwapPage() {
       setSwapReceiptModalOpen(false);
     }
   }, [status]);
+  useEffect(() => {
+    if (status === "complete" && lastSwapSummary) {
+      setRecentSwapSummary(lastSwapSummary);
+    }
+  }, [lastSwapSummary, status]);
   const spentMarkerWait = useRealtimeSignatureProgress(
     spentMarkerTransaction.signature ?? undefined,
     {
@@ -1714,23 +1722,24 @@ export function SwapPage() {
         : status === "quoting" || Boolean(quote)
           ? 1
           : 0;
-  const swapReceiptDetails: SwapReceiptModalDetails | null = lastSwapSummary
+  const swapReceiptSource = recentSwapSummary ?? (status === "complete" ? lastSwapSummary : null);
+  const swapReceiptDetails: SwapReceiptModalDetails | null = swapReceiptSource
     ? {
         bridgeWarning: swapBridgeError ?? undefined,
-        inputLabel: formatAssetAmount(lastSwapSummary.inputAmount, lastSwapSummary.inputAsset),
-        outputLabel: formatAssetAmount(lastSwapSummary.outputAmount, lastSwapSummary.outputAsset),
-        outputNoteId: formatShortSwapId(lastSwapSummary.outputNoteId),
-        quoteExpiresLabel: formatQuoteTimestamp(lastSwapSummary.quoteExpiresAt),
-        quoteId: formatShortSwapId(lastSwapSummary.quoteId),
-        quoteIssuedLabel: formatQuoteTimestamp(lastSwapSummary.quoteTimestamp),
-        requestId: lastSwapSummary.requestId
-          ? formatShortSwapId(lastSwapSummary.requestId)
+        inputLabel: formatAssetAmount(swapReceiptSource.inputAmount, swapReceiptSource.inputAsset),
+        outputLabel: formatAssetAmount(swapReceiptSource.outputAmount, swapReceiptSource.outputAsset),
+        outputNoteId: formatShortSwapId(swapReceiptSource.outputNoteId),
+        quoteExpiresLabel: formatQuoteTimestamp(swapReceiptSource.quoteExpiresAt),
+        quoteId: formatShortSwapId(swapReceiptSource.quoteId),
+        quoteIssuedLabel: formatQuoteTimestamp(swapReceiptSource.quoteTimestamp),
+        requestId: swapReceiptSource.requestId
+          ? formatShortSwapId(swapReceiptSource.requestId)
           : "Pending operator request",
         routeTruthLabel,
-        transitionNoteId: formatShortSwapId(lastSwapSummary.transitionNoteId),
-        venueLabel: `${lastSwapSummary.venueName} ${lastSwapSummary.venueFamily}`,
-        venuePoolAddress: lastSwapSummary.venuePoolAddress
-          ? formatShortSwapId(lastSwapSummary.venuePoolAddress)
+        transitionNoteId: formatShortSwapId(swapReceiptSource.transitionNoteId),
+        venueLabel: `${swapReceiptSource.venueName} ${swapReceiptSource.venueFamily}`,
+        venuePoolAddress: swapReceiptSource.venuePoolAddress
+          ? formatShortSwapId(swapReceiptSource.venuePoolAddress)
           : "Route adapter default",
       }
     : null;
@@ -1900,6 +1909,45 @@ export function SwapPage() {
                 sourceAssetLabel={selectedSourceAsset}
                 venueLabel={quoteVenueLabel}
               />
+
+              <section
+                className="swap-recent-swaps"
+                data-vanta-swap-recent-list
+                aria-label="Recent swaps"
+              >
+                <div className="swap-recent-swaps__header">
+                  <span>Recent swaps</span>
+                  <strong>Local session history</strong>
+                </div>
+                {recentSwapSummary ? (
+                  <article className="swap-recent-swaps__card" data-vanta-swap-recent-card>
+                    <div>
+                      <span>Latest swap</span>
+                      <strong>
+                        {formatAssetAmount(recentSwapSummary.inputAmount, recentSwapSummary.inputAsset)}
+                        {" -> "}
+                        {formatAssetAmount(recentSwapSummary.outputAmount, recentSwapSummary.outputAsset)}
+                      </strong>
+                      <p>
+                        {recentSwapSummary.venueName} {recentSwapSummary.venueFamily} · Output note{" "}
+                        {formatShortSwapId(recentSwapSummary.outputNoteId)}
+                      </p>
+                    </div>
+                    <button
+                      className="button button-ghost"
+                      type="button"
+                      onClick={() => setSwapReceiptModalOpen(true)}
+                    >
+                      Open receipt
+                    </button>
+                  </article>
+                ) : (
+                  <p className="swap-recent-swaps__empty" data-vanta-swap-recent-empty>
+                    Completed local swaps will appear here for receipt review. This list is local
+                    to this session and does not prove production-private routing.
+                  </p>
+                )}
+              </section>
 
               <div className="shield-form__actions">
                 <button

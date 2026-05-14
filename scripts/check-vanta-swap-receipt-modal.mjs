@@ -68,6 +68,12 @@ for (const marker of [
   "lastSwapSummary.inputAsset",
   "lastSwapSummary.outputAsset",
   'status === "complete" && lastSwapSummary',
+  "data-vanta-swap-recent-list",
+  "data-vanta-swap-recent-card",
+  "data-vanta-swap-recent-empty",
+  "Recent swaps",
+  "Local session history",
+  "Open receipt",
   "View swap receipt",
   "Swap receipt unavailable until a completed swap exists.",
 ]) {
