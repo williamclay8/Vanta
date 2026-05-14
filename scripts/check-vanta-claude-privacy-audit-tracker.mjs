@@ -33,6 +33,10 @@ const r9aCiphertextBodyHashDiscoveryBindingNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r9a-ciphertext-body-hash-discovery-binding.md",
 );
+const r9RecipientDiscoveryDecisionBlockerNotePath = resolve(
+  trackerRoot,
+  "notes/2026-05-14-r9-recipient-discovery-decision-blocker.md",
+);
 const r10aServiceEntrypointsNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-r10a-service-entrypoints.md",
@@ -84,6 +88,7 @@ for (const path of [
   n5CiGateNotePath,
   r8aProverRelayPrivacyTradeoffNotePath,
   r9aCiphertextBodyHashDiscoveryBindingNotePath,
+  r9RecipientDiscoveryDecisionBlockerNotePath,
   r10aServiceEntrypointsNotePath,
   r11aLiveAnonymitySetProbeNotePath,
   r12LegacyV1MemoQuarantineNotePath,
@@ -109,6 +114,9 @@ const n5CiGateNote = read(n5CiGateNotePath);
 const r8aProverRelayPrivacyTradeoffNote = read(r8aProverRelayPrivacyTradeoffNotePath);
 const r9aCiphertextBodyHashDiscoveryBindingNote = read(
   r9aCiphertextBodyHashDiscoveryBindingNotePath,
+);
+const r9RecipientDiscoveryDecisionBlockerNote = read(
+  r9RecipientDiscoveryDecisionBlockerNotePath,
 );
 const r10aServiceEntrypointsNote = read(r10aServiceEntrypointsNotePath);
 const r11aLiveAnonymitySetProbeNote = read(r11aLiveAnonymitySetProbeNotePath);
@@ -164,6 +172,17 @@ assert.ok(
   r3Section.includes("tracker_ref: \"N2\""),
   "R3 owner/input binding backlog row must stay tied to N2.",
 );
+const r9SectionMatch = state.match(/  - id: R9-RECIPIENT-DISCOVERY\n[\s\S]*?\n  - id: R9A-CIPHERTEXT-BODY-HASH-DISCOVERY-BINDING\n/);
+assert.ok(r9SectionMatch, "state.yaml missing bounded R9 recipient discovery backlog row");
+const r9Section = r9SectionMatch[0];
+assert.ok(
+  r9Section.includes("status: blocked-product-protocol-design"),
+  "R9 production recipient discovery must be an explicit product/protocol design blocker.",
+);
+assert.ok(
+  r9Section.includes("decision_required:"),
+  "R9 production recipient discovery must record the owner decision required.",
+);
 
 for (const phrase of [
   "output_commitment is unconstrained",
@@ -218,6 +237,9 @@ for (const phrase of [
   "proof-bound ciphertext body-hash fields feed the local Send discovery/indexer handoff",
   "send-memo-indexer-body-hash-handoff-not-deployed",
   "not production recipient discovery",
+  "R9-RECIPIENT-DISCOVERY",
+  "status: blocked-product-protocol-design",
+  "production recipient discovery requires an owner product/protocol decision",
   "R10A-SERVICE-STUB-REPLACEMENT",
   "partial-local-implemented-pending-production-controls",
   "operator/private-pool-v2-service-network.mjs exposes role-specific service start functions for indexer, prover, relayer, and verifier.",
@@ -578,6 +600,9 @@ for (const phrase of [
   "Deployed bytecode/source hash match",
   "Prover-relay privacy trade-off docs",
   "docs/zk/prover-relay-privacy-tradeoffs.md",
+  "Recipient discovery/indexer",
+  "Blocked product/protocol design",
+  "Requires owner decision between direct viewing-key exchange, indexed encrypted view tags, or a hybrid",
   "Ciphertext body-hash discovery binding",
   "Local implemented, local-only",
   "proof-bound body-hash fields feed the local verifier-mirrored Send discovery handoff",
@@ -642,6 +667,24 @@ for (const phrase of [
   assert.ok(
     r9aCiphertextBodyHashDiscoveryBindingNote.includes(phrase),
     `R9A note missing ${phrase}`,
+  );
+}
+
+for (const phrase of [
+  "R9 Recipient Discovery Decision Blocker - 2026-05-14",
+  "Blocked product/protocol design.",
+  "production recipient discovery requires an owner product/protocol decision",
+  "direct viewing-key exchange",
+  "indexed encrypted view tags",
+  "hybrid discovery",
+  "send-memo-indexer-body-hash-handoff-not-deployed",
+  "external-recipient discovery UX",
+  "not production recipient discovery",
+  "not production privacy",
+]) {
+  assert.ok(
+    r9RecipientDiscoveryDecisionBlockerNote.includes(phrase),
+    `R9 recipient discovery decision-blocker note missing ${phrase}`,
   );
 }
 

@@ -381,8 +381,19 @@ audit_remaining_work_backlog:
     source_priority: high
     source_item: "Build production recipient discovery via viewing-key exchange or view-tag/indexer protocol."
     tracker_ref: "A5"
-    status: pending-design
+    status: blocked-product-protocol-design
     guard: "npm run private-pool-v2:send-discovery-indexer-handoff-check"
+    decision_required:
+      question: "Should production recipient discovery use direct viewing-key exchange, indexed encrypted view tags, or a hybrid model?"
+      options:
+        - "direct viewing-key exchange"
+        - "indexed encrypted view tags"
+        - "hybrid discovery"
+      recommendation: "Hybrid discovery, with direct viewing-key exchange first for merchant/OTC/treasury design partners and indexed encrypted view tags only after service/indexer privacy review."
+    evidence:
+      - "R9A local ciphertext body-hash handoff binding is implemented, but production recipient discovery requires an owner product/protocol decision."
+      - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-r9-recipient-discovery-decision-blocker.md records direct viewing-key exchange, indexed encrypted view tags, and hybrid discovery as the viable choices."
+      - "The current blocker send-memo-indexer-body-hash-handoff-not-deployed remains until a deployed discovery service and external-recipient discovery UX exist."
   - id: R9A-CIPHERTEXT-BODY-HASH-DISCOVERY-BINDING
     source_priority: high
     source_item: "Wire locally proof-bound ciphertext body-hash fields into the recipient discovery/indexer design."
