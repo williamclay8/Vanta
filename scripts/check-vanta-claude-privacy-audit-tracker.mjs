@@ -12,7 +12,9 @@ const architectureBlockerNotePath = resolve(
   trackerRoot,
   "notes/2026-05-14-architecture-blocker-map.md",
 );
+const n5CiGateNotePath = resolve(trackerRoot, "notes/2026-05-14-n5-ci-gate.md");
 const packagePath = resolve(repoRoot, "package.json");
+const privacyAuditWorkflowPath = resolve(repoRoot, ".github/workflows/privacy-audit.yml");
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -24,6 +26,8 @@ for (const path of [
   notePath,
   n2BlockerNotePath,
   architectureBlockerNotePath,
+  n5CiGateNotePath,
+  privacyAuditWorkflowPath,
 ]) {
   assert.ok(existsSync(path), `Missing Claude privacy audit tracker artifact: ${path}`);
 }
@@ -33,6 +37,8 @@ const state = read(statePath);
 const note = read(notePath);
 const n2BlockerNote = read(n2BlockerNotePath);
 const architectureBlockerNote = read(architectureBlockerNotePath);
+const n5CiGateNote = read(n5CiGateNotePath);
+const privacyAuditWorkflow = read(privacyAuditWorkflowPath);
 const packageJson = JSON.parse(read(packagePath));
 
 for (const phrase of [
@@ -62,7 +68,7 @@ for (const phrase of [
   "Owner secret/input commitment binding",
   "local-implemented",
   "blocked-approval-gated",
-  "pending-ci",
+  "local-implemented-pending-ci-run",
   "index-BhWFlXXv.js",
   "current_distinct_commitments: 2",
   "minimum_distinct_commitments: 1024",
@@ -91,6 +97,9 @@ for (const phrase of [
   "destinationOwner !== requester",
   "A3-ROOTS-NOT-PROGRAM-OWNED-SHARED-TREE",
   "not proof that the root transition is correct",
+  ".github/workflows/privacy-audit.yml",
+  "Vanta Privacy Audit Gates / Privacy audit gates",
+  "Hosted GitHub Actions run must execute and pass before N5 is CI-verified.",
 ]) {
   assert.ok(state.includes(phrase), `state.yaml missing ${phrase}`);
 }
@@ -133,6 +142,32 @@ for (const phrase of [
     architectureBlockerNote.includes(phrase),
     `architecture blocker note missing ${phrase}`,
   );
+}
+
+for (const phrase of [
+  "local-implemented-pending-ci-run",
+  ".github/workflows/privacy-audit.yml",
+  "npm run privacy-audit:tracker-check",
+  "npm run frontend:operator-env-exposure-check",
+  "GitHub Actions runs this workflow",
+]) {
+  assert.ok(n5CiGateNote.includes(phrase), `N5 CI gate note missing ${phrase}`);
+}
+
+for (const phrase of [
+  "name: Vanta Privacy Audit Gates",
+  "pull_request:",
+  "branches:",
+  "- main",
+  "- \"codex/**\"",
+  "uses: actions/checkout@v4",
+  "uses: actions/setup-node@v4",
+  "node-version-file: .node-version",
+  "run: npm ci",
+  "run: npm run privacy-audit:tracker-check",
+  "run: npm run frontend:operator-env-exposure-check",
+]) {
+  assert.ok(privacyAuditWorkflow.includes(phrase), `privacy audit workflow missing ${phrase}`);
 }
 
 for (const phrase of [

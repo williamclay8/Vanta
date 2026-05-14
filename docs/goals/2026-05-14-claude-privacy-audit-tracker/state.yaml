@@ -177,15 +177,24 @@ audit_findings:
   - id: N5
     severity: low
     title: "Frontend operator env exposure check needs CI/build ownership"
-    status: pending-ci
+    status: local-implemented-pending-ci-run
     lane: ci
     files:
+      - ".github/workflows/privacy-audit.yml"
       - "scripts/check-vanta-frontend-operator-env-exposure.mjs"
       - "package.json"
       - "CI pipeline"
     required_fix: "Ensure production build pipeline runs the operator-env exposure check green pre-deploy; preserve live bundle scan evidence as supplementary proof."
+    delivered:
+      - "Added Vanta Privacy Audit Gates GitHub Actions workflow for pull requests and pushes to main/codex branches."
+      - "The workflow runs privacy-audit:tracker-check and frontend:operator-env-exposure-check after npm ci."
+      - "Local frontend:operator-env-exposure-check now passes and runs npm run build internally before scanning the dist bundle."
+    remaining:
+      - "Hosted GitHub Actions run must execute and pass before N5 is CI-verified."
     verify:
       - "npm run frontend:operator-env-exposure-check"
+      - "npm run privacy-audit:tracker-check"
+      - "GitHub Actions: Vanta Privacy Audit Gates / Privacy audit gates"
       - "npm run build"
 
 architecture_backlog:

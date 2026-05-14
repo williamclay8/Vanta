@@ -1,0 +1,36 @@
+name: Vanta Privacy Audit Gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "codex/**"
+
+permissions:
+  contents: read
+
+jobs:
+  privacy-audit-gates:
+    name: Privacy audit gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check Claude privacy audit tracker
+        run: npm run privacy-audit:tracker-check
+
+      - name: Check frontend operator env exposure
+        run: npm run frontend:operator-env-exposure-check
