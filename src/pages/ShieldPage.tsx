@@ -2122,7 +2122,8 @@ export function ShieldPage(_props: ShieldPageProps) {
 
               {/* Crisp 2-column From / To layout for better visual weight and inviting picker boxes */}
               <div className="shield-from-to-row">
-                <div className="swap-module__field">
+                {/* LEFT: From */}
+                <div className="swap-module__field shield-picker-column">
                   <div className="swap-module__label-row">
                     <span>From</span>
                   </div>
@@ -2139,21 +2140,14 @@ export function ShieldPage(_props: ShieldPageProps) {
                     options={sourceAssetPickerOptions}
                     selectedOptionId={sourceSelectValue}
                   />
+                  {/* Spacer to match height of To's extra balance lines */}
+                  <div className="shield-picker-footer-spacer" />
                 </div>
 
-                <div className="swap-module__field">
+                {/* RIGHT: To */}
+                <div className="swap-module__field shield-picker-column">
                   <div className="swap-module__label-row">
                     <span>To</span>
-                    <div className="shield-balance-stack">
-                      <div className="send-balance-line shield-helper shield-helper--meta">
-                        Shielded balance: {targetShieldedBalanceLabel}
-                      </div>
-                      {hasPendingNativeSolShieldEvidence && (
-                        <div className="send-balance-line shield-helper shield-helper--meta">
-                          Local SOL evidence pending ledger sync
-                        </div>
-                      )}
-                    </div>
                   </div>
                   <AssetPickerGrid
                     ariaLabel="Shield target asset"
@@ -2162,6 +2156,16 @@ export function ShieldPage(_props: ShieldPageProps) {
                     readOnly
                     selectedOptionId={shieldTargetAssetPickerOptions[0]?.id ?? ""}
                   />
+                  <div className="shield-balance-stack shield-picker-footer">
+                    <div className="send-balance-line shield-helper shield-helper--meta">
+                      Shielded balance: {targetShieldedBalanceLabel}
+                    </div>
+                    {hasPendingNativeSolShieldEvidence && (
+                      <div className="send-balance-line shield-helper shield-helper--meta">
+                        Local SOL evidence pending ledger sync
+                      </div>
+                    )}
+                  </div>
                   <p className="shield-helper shield-helper--route">
                     Route: {selectedSourceAsset?.symbol ?? "Asset"} → {capability.targetShieldAsset?.label ?? "Shielded asset"}
                   </p>

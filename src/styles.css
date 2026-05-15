@@ -3079,12 +3079,34 @@ select:focus {
   margin-top: 16px;
 }
 
-/* Improved Shield layout: Amount on top, then crisp 2-column From | To pickers (more inviting, wider effective boxes) */
+/* Improved Shield layout: Amount on top, then crisp 2-column From | To pickers (vertically aligned, same size, clean spacing) */
 .shield-from-to-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  align-items: start;
+  align-items: stretch; /* critical: both columns get identical height */
+}
+
+.shield-from-to-row .shield-picker-column {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.shield-from-to-row .shield-picker-footer-spacer {
+  /* Invisible spacer that matches the height of .shield-picker-footer when the extra balance line is present */
+  height: 0;
+  min-height: 0;
+  flex-shrink: 0;
+}
+
+.shield-from-to-row .shield-picker-footer {
+  margin-top: 6px;
+  min-height: 32px; /* enough for one line of balance text + padding */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  font-size: 0.82rem;
 }
 
 @media (max-width: 640px) {
