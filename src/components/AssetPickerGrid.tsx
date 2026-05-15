@@ -75,16 +75,14 @@ export function AssetPickerGrid({
                 </span>
                 <span className="asset-picker-grid__body">
                   <span className="asset-picker-grid__symbol">{option.symbol}</span>
-                  <span className="asset-picker-grid__label">{option.label}</span>
-                  {(option.balanceLabel || option.statusLabel) && (
-                    <span className="asset-picker-grid__meta">
-                      {[option.balanceLabel, option.statusLabel].filter(Boolean).join(" - ")}
-                    </span>
-                  )}
-                  {option.disabledReason && (
-                    <span className="asset-picker-grid__reason">{option.disabledReason}</span>
-                  )}
+                  <span className="asset-picker-grid__label">{option.label || "\u00A0"}</span>
+                  <span className="asset-picker-grid__meta">
+                    {[option.balanceLabel, option.statusLabel].filter(Boolean).join(" - ") || "\u00A0"}
+                  </span>
                 </span>
+                {option.disabledReason && (
+                  <span className="asset-picker-grid__reason">{option.disabledReason}</span>
+                )}
               </button>
             );
           })}

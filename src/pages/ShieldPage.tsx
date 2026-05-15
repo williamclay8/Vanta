@@ -2153,7 +2153,14 @@ export function ShieldPage(_props: ShieldPageProps) {
                     options={sourceAssetPickerOptions}
                     selectedOptionId={sourceSelectValue}
                   />
-                  <div className="shield-picker-footer-spacer" />
+                  <div className="shield-picker-footer" aria-hidden="true">
+                    <div className="send-balance-line shield-helper shield-helper--meta" style={{ visibility: "hidden" }}>
+                      Shielded balance: placeholder
+                    </div>
+                    <div className="send-balance-line shield-helper shield-helper--meta" style={{ visibility: "hidden" }}>
+                      Local SOL evidence pending ledger sync
+                    </div>
+                  </div>
                 </div>
 
                 {/* Visual connector (arrow) between From and To */}
