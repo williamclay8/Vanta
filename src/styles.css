@@ -4192,63 +4192,76 @@ select:focus {
   cursor: not-allowed;
 }
 
-/* Inner controls so the four equal swap boxes have consistent internal layout and height */
-.swap-route-card .swap-amount-controls {
+/* Inner "box inside the box" — uniform field style for selects, amount, and quote value */
+.swap-route-card .swap-amount-controls,
+.swap-route-card .swap-quote-value {
+  border: 1px solid rgba(0, 229, 200, 0.25);
+  border-radius: 10px;
+  background: rgba(0, 229, 200, 0.04);
+  padding: 8px 12px;
+  min-height: 46px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 8px;
   flex: 1;
-  min-height: 44px;
 }
 
+/* Amount input is borderless inside the shared field wrapper (the "inner box") */
 .swap-route-card .swap-amount-controls input {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 42px;
-  padding: 8px 12px;
-  border: 1px solid rgba(0, 229, 200, 0.25);
-  border-radius: 10px;
-  background: rgba(0, 229, 200, 0.04);
+  min-height: 38px;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
   color: var(--text);
-  font-size: 0.98rem;
+  font-size: 1.02rem;
   font-family: "Syne", sans-serif;
   font-weight: 500;
+  outline: none;
 }
 
 .swap-route-card .swap-max-btn {
   flex-shrink: 0;
-  padding: 0 14px;
-  height: 42px;
+  padding: 0 12px;
+  height: 36px;
   border-radius: 999px;
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  border: 1px solid rgba(0, 229, 200, 0.3);
-  background: rgba(0, 229, 200, 0.08);
+  border: 1px solid rgba(0, 229, 200, 0.35);
+  background: rgba(0, 229, 200, 0.1);
   color: var(--accent);
+  cursor: pointer;
 }
 
+.swap-route-card .swap-max-btn:hover:not(:disabled) {
+  background: rgba(0, 229, 200, 0.18);
+}
+
+/* Quote value field — same bordered inner box as the selects and amount */
 .swap-route-card .swap-quote-value {
-  display: flex;
   flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
-  gap: 2px;
-  flex: 1;
-  min-height: 44px;
+  gap: 1px;
+  padding: 6px 12px;
 }
 
 .swap-route-card .swap-quote-value strong {
   font-family: "Syne", sans-serif;
-  font-size: 0.98rem;
+  font-size: 1.08rem;
   font-weight: 600;
   color: var(--text);
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .swap-route-card .swap-quote-value span {
   color: var(--muted-strong);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-family: "Space Mono", monospace;
+  letter-spacing: 0.02em;
 }
 
 .note-picker {
