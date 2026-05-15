@@ -15,8 +15,8 @@ import { listCanonicalSendRecords } from "./liveSendBridge";
 import { listCanonicalShieldRecords } from "./liveShieldBridge";
 import {
   AppendOnlyShieldedState,
-  BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
-  type BrowserLocalShieldedStateDiagnostic,
+  PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
+  type PrivatePoolV2ShieldedStateDiagnostic,
   type ShieldedCommitmentInsertionRecord,
 } from "./shieldedState";
 import {
@@ -130,7 +130,7 @@ export type LiveSwapCanonicalRecord = {
     liveStateSignature: string;
     lifecycle?: CanonicalLifecycleOutputLinkage;
   };
-  diagnosticStorage: BrowserLocalShieldedStateDiagnostic;
+  diagnosticStorage: PrivatePoolV2ShieldedStateDiagnostic;
 };
 
 export type LiveSwapDiagnosticsSummary = {
@@ -167,7 +167,7 @@ export type LiveSwapDiagnosticsSummary = {
   operatorRequestId?: string;
   venueSummary: string;
   quoteId: string;
-  storageRole: BrowserLocalShieldedStateDiagnostic["storageRole"];
+  storageRole: PrivatePoolV2ShieldedStateDiagnostic["storageRole"];
   privacyPrimitive: false;
   ownerRecoveryClass: OwnerContextRecoveryEvidence["recoveryClass"];
   ownerRecoveryEvidenceSource: OwnerContextRecoveryEvidence["evidenceSource"];
@@ -296,7 +296,7 @@ export async function recordCanonicalSwapFromLiveSwap(
         branchRole: "output",
       },
     },
-    diagnosticStorage: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
+    diagnosticStorage: PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
   };
 
   if (options.persist !== false) {
@@ -466,7 +466,7 @@ export function listCanonicalSwapDiagnosticsSummaries(): LiveSwapDiagnosticsSumm
       quoteId: record.liveSwap.quoteId,
       storageRole:
         record.diagnosticStorage?.storageRole ??
-        BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC.storageRole,
+        PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC.storageRole,
       privacyPrimitive: false as const,
       ownerRecoveryClass:
         record.ownerContextEvidence?.recoveryClass ??

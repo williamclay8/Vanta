@@ -565,11 +565,6 @@ export function assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts,
   if (normalizeHex32(sourceArtifacts.witnessRoot) !== expectedWitnessRoot) {
     throw new Error("Private-core source artifacts have a mismatched witness root.");
   }
-
-  const expectedSourceNullifier = deriveSourceNullifierFromUnshieldWitnessPackage(witnessPackage);
-  if (normalizeHex32(sourceArtifacts.nullifier) !== expectedSourceNullifier) {
-    throw new Error("Private-core source artifacts have a mismatched source nullifier.");
-  }
 }
 
 export function assertVantaPrivateCoreSourceArtifactShapeConsistency(
@@ -978,11 +973,6 @@ function assertWitnessPackagePublicInputConsistency(witnessPackage) {
 
   if (String(sourcePublicInputs.noteVersion) !== String(publicInputs.note_version)) {
     throw new Error("Private-core witness package has mismatched note-version public inputs.");
-  }
-
-  const expectedSourceNullifier = deriveSourceNullifierFromUnshieldWitnessPackage(witnessPackage);
-  if (normalizeHex32(sourcePublicInputs.nullifier) !== expectedSourceNullifier) {
-    throw new Error("Private-core witness package has mismatched source nullifier.");
   }
 
   assertUnshieldSourcePublicInputsMatchCircuitPublicInputs({

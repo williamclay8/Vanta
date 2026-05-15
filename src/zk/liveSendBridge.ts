@@ -15,8 +15,8 @@ import {
 } from "./canonicalConsumption";
 import {
   AppendOnlyShieldedState,
-  BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
-  type BrowserLocalShieldedStateDiagnostic,
+  PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
+  type PrivatePoolV2ShieldedStateDiagnostic,
   type ShieldedCommitmentInsertionRecord,
 } from "./shieldedState";
 import {
@@ -132,7 +132,7 @@ export type LiveSendCanonicalRecord = {
   consumption?: CanonicalLifecycleConsumptionRecord;
   ownerContextEvidence?: OwnerContextRecoveryEvidence;
   successors: LiveSendCanonicalSuccessorRecord[];
-  diagnosticStorage: BrowserLocalShieldedStateDiagnostic;
+  diagnosticStorage: PrivatePoolV2ShieldedStateDiagnostic;
 };
 
 export type LiveSendDiagnosticsSummary = {
@@ -152,7 +152,7 @@ export type LiveSendDiagnosticsSummary = {
   canonicalNullifierStub?: string;
   transitionSignature: string;
   spentMarkerSignature?: string;
-  storageRole: BrowserLocalShieldedStateDiagnostic["storageRole"];
+  storageRole: PrivatePoolV2ShieldedStateDiagnostic["storageRole"];
   privacyPrimitive: false;
   ownerRecoveryClass: OwnerContextRecoveryEvidence["recoveryClass"];
   ownerRecoveryEvidenceSource: OwnerContextRecoveryEvidence["evidenceSource"];
@@ -280,7 +280,7 @@ export async function recordCanonicalSendFromLiveSend(
     consumption,
     ownerContextEvidence: createOwnerContextRecoveryEvidence({ ownerContext }),
     successors,
-    diagnosticStorage: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
+    diagnosticStorage: PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
   };
 
   persistCanonicalSendRecord(record);
@@ -341,7 +341,7 @@ export function listCanonicalSendDiagnosticsSummaries(): LiveSendDiagnosticsSumm
       spentMarkerSignature: record.liveSend.spentMarkerSignature,
       storageRole:
         record.diagnosticStorage?.storageRole ??
-        BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC.storageRole,
+        PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC.storageRole,
       privacyPrimitive: false as const,
       ownerRecoveryClass:
         record.ownerContextEvidence?.recoveryClass ??
@@ -624,7 +624,7 @@ function redactLiveSendRecordForPersistence(record: LiveSendCanonicalRecord): Li
     }),
     successors: record.successors.map(redactLiveSendSuccessorForPersistence),
     diagnosticStorage:
-      record.diagnosticStorage ?? BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
+      record.diagnosticStorage ?? PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
   };
 }
 

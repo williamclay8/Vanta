@@ -11,8 +11,8 @@ import {
 } from "./canonicalNote";
 import {
   AppendOnlyShieldedState,
-  BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
-  type BrowserLocalShieldedStateDiagnostic,
+  PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
+  type PrivatePoolV2ShieldedStateDiagnostic,
   type ShieldedCommitmentInsertionRecord,
   type ShieldedStateSnapshot,
 } from "./shieldedState";
@@ -72,7 +72,7 @@ export type LiveShieldCanonicalRecord = {
     root: string;
     leafCount: number;
   };
-  diagnosticStorage: BrowserLocalShieldedStateDiagnostic;
+  diagnosticStorage: PrivatePoolV2ShieldedStateDiagnostic;
 };
 
 export type LiveShieldRedactedOwnerContext = {
@@ -99,7 +99,7 @@ export type LiveShieldCanonicalDiagnosticsSummary = {
   creationHintSummary: string;
   depositSignature?: string;
   stateSignature: string;
-  storageRole: BrowserLocalShieldedStateDiagnostic["storageRole"];
+  storageRole: PrivatePoolV2ShieldedStateDiagnostic["storageRole"];
   privacyPrimitive: false;
   ownerRecoveryClass: OwnerContextRecoveryEvidence["recoveryClass"];
   ownerRecoveryEvidenceSource: OwnerContextRecoveryEvidence["evidenceSource"];
@@ -154,7 +154,7 @@ export async function recordCanonicalShieldFromLiveShield(
       root: insertion.snapshot.root.value,
       leafCount: insertion.snapshot.leafCount,
     },
-    diagnosticStorage: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
+    diagnosticStorage: PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
   };
 
   persistCanonicalShieldRecord(record);
@@ -216,7 +216,7 @@ export function listCanonicalShieldDiagnosticsSummaries(): LiveShieldCanonicalDi
       stateSignature: record.liveShield.stateSignature,
       storageRole:
         record.diagnosticStorage?.storageRole ??
-        BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC.storageRole,
+        PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC.storageRole,
       privacyPrimitive: false as const,
       ownerRecoveryClass:
         record.ownerContextEvidence?.recoveryClass ??
@@ -257,13 +257,13 @@ export function getLatestCanonicalShieldSnapshot():
         scheme: "sha256-append-only-commitment-list-v1",
         value: latestRecord?.insertion.root ?? "",
         leafCount,
-        diagnostic: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
+        diagnostic: PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
       },
       entries: records.map((record, index) => ({
         index,
         commitment: record.artifacts.commitment,
       })),
-      diagnostic: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
+      diagnostic: PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
     },
     leafCount,
   };
@@ -332,6 +332,25 @@ function redactLiveShieldRecordForPersistence(
       ownerContext: record.ownerContext,
       redactedOwnerContext: record.redactedOwnerContext,
     }),
+    liveShield: record.liveShield
+      ? {
+          ...record.liveShield,
+          amountBaseUnits: "redacted",
+          amountDisplay: "redacted",
+        }
+      : record.liveShield,
+    canonicalNote: record.canonicalNote
+      ? {
+          ...record.canonicalNote,
+          amount: "redacted" as any,
+        }
+      : record.canonicalNote,
+    artifacts: record.artifacts
+      ? {
+          ...record.artifacts,
+          commitment: { value: "redacted:commitment" } as any,
+        }
+      : record.artifacts,
   };
 }
 

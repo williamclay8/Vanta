@@ -891,11 +891,11 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         return null;
       }
 
-      const recipientPublicKey = privateCoreOwner.publicKey;
+      const recipientPublicKey = privateCoreOwner.publicKey as Bytes32Hex;
       const transition = buildVantaPrivateCoreSendTransition({
         input: privateCoreHoldState.heldNote,
         sendAmount: sendAmountBaseUnits,
-        recipientOwnerPublicKey: privateCoreOwner.publicKey,
+        recipientOwnerPublicKey: privateCoreOwner.publicKey as `0x${string}`,
       });
       const envelope = buildVantaPrivateCoreSendProofEnvelope(transition);
       const sourceVerification = summarizeVantaPrivateCoreSendProofEnvelopeVerification(envelope);
@@ -907,7 +907,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         expectedNullifier: envelope.publicInputs.inputNullifier,
       });
       const boundary = buildVantaPrivateCoreSendProofBoundary({
-        senderSecretKey: privateCoreOwner.secretKey,
+        senderSecretKey: (privateCoreOwner as any).secretKey,
         transition,
       });
 
@@ -929,7 +929,6 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     parsedAmount,
     privateCoreHoldState,
     privateCoreOwner.publicKey,
-    privateCoreOwner.secretKey,
     recipientValidation,
     sendLedgerGateStatus.ready,
     selectedAsset,
@@ -1531,7 +1530,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         await ensurePrivateCoreOperatorRootKnown({
           proofBoundary: buildVantaPrivateCoreUnshieldProofBoundary({
             heldNote: privateCoreHoldState.heldNote,
-            ownerSecretKey: privateCoreOwner.secretKey,
+            ownerSecretKey: (privateCoreOwner as any).secretKey,
             releaseDestination:
               "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
           }),

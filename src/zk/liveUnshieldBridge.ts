@@ -16,8 +16,8 @@ import {
   type CanonicalLifecycleRecordLinkage,
 } from "./canonicalLifecycleLinkage";
 import {
-  BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
-  type BrowserLocalShieldedStateDiagnostic,
+  PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
+  type PrivatePoolV2ShieldedStateDiagnostic,
 } from "./shieldedState";
 import type { LiveShieldTokenAssetKey } from "@/solana/shieldConfig";
 
@@ -87,7 +87,7 @@ export type LiveUnshieldCanonicalRecord = {
     kind: "public_exit";
     resolution: "canonical_reference_resolved" | "canonical_reference_unresolved";
   };
-  diagnosticStorage: BrowserLocalShieldedStateDiagnostic;
+  diagnosticStorage: PrivatePoolV2ShieldedStateDiagnostic;
 };
 
 export type LiveUnshieldDiagnosticsSummary = {
@@ -115,7 +115,7 @@ export type LiveUnshieldDiagnosticsSummary = {
   spentMarkerSignature?: string;
   transitionSignature: string;
   transitionNoteId: string;
-  storageRole: BrowserLocalShieldedStateDiagnostic["storageRole"];
+  storageRole: PrivatePoolV2ShieldedStateDiagnostic["storageRole"];
   privacyPrimitive: false;
 };
 
@@ -197,7 +197,7 @@ export async function recordCanonicalUnshieldFromLiveUnshield(
         ? "canonical_reference_resolved"
         : "canonical_reference_unresolved",
     },
-    diagnosticStorage: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
+    diagnosticStorage: PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
   };
 
   persistCanonicalUnshieldRecord(record);
@@ -261,7 +261,7 @@ export function listCanonicalUnshieldDiagnosticsSummaries(): LiveUnshieldDiagnos
       transitionNoteId: record.liveUnshield.transitionNoteId,
       storageRole:
         record.diagnosticStorage?.storageRole ??
-        BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC.storageRole,
+        PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC.storageRole,
       privacyPrimitive: false as const,
     }))
     .sort((left, right) => right.createdAt - left.createdAt);
@@ -458,7 +458,7 @@ function normalizeLiveUnshieldCanonicalRecord(value: unknown): LiveUnshieldCanon
       nullifierBasis: value.consumed.nullifierBasis,
     },
     diagnosticStorage:
-      value.diagnosticStorage ?? BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
+      value.diagnosticStorage ?? PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
   };
 }
 
