@@ -4033,21 +4033,21 @@ select:focus {
 
 .asset-picker-grid__options {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 140px);
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
   justify-content: start;
   min-width: 0;
 }
 
 .asset-picker-grid__option,
 .asset-picker-grid__empty {
-  min-height: 72px;
+  min-height: 80px;
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 14px;
   align-items: center;
   text-align: left;
-  padding: 12px 14px;
+  padding: 14px 16px;
   border: 1px solid rgba(0, 229, 200, 0.12);
   border-radius: 16px;
   background: rgba(0, 229, 200, 0.03);
@@ -4083,8 +4083,8 @@ select:focus {
 }
 
 .asset-picker-grid__logo {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   display: inline-grid;
   place-items: center;
   overflow: hidden;
@@ -4094,7 +4094,7 @@ select:focus {
     rgba(2, 6, 12, 0.8);
   color: var(--muted-strong);
   font-family: "Syne", sans-serif;
-  font-size: 0.58rem;
+  font-size: 0.62rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -8048,6 +8048,75 @@ select:focus {
   color: var(--muted-strong);
   font-size: 0.86rem;
   line-height: 1.4;
+}
+
+/* Premium, crisp legacy SOL migration panel (replaces ugly inline yellow styles) */
+.shield-legacy-migration-panel {
+  border: 1px solid rgba(0, 229, 200, 0.18);
+  padding: 14px;
+  margin: 12px 0;
+  border-radius: 16px;
+  background: rgba(0, 229, 200, 0.03);
+  box-shadow: var(--shadow-soft);
+}
+
+.shield-legacy-migration-panel .legacy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.shield-legacy-migration-panel .legacy-header strong {
+  display: block;
+  color: var(--text);
+  font-family: "Syne", sans-serif;
+  font-size: 0.9rem;
+}
+
+.shield-legacy-migration-panel .legacy-header p {
+  margin: 4px 0 0;
+  color: var(--muted-strong);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.shield-legacy-migration-panel .legacy-note-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px dashed rgba(0, 229, 200, 0.15);
+}
+
+.shield-legacy-migration-panel .legacy-note-row:first-child {
+  border-top: none;
+  padding-top: 4px;
+}
+
+.shield-legacy-migration-panel .legacy-note-info {
+  flex: 1;
+  font-family: "Space Mono", monospace;
+  font-size: 0.78rem;
+  color: var(--muted-strong);
+}
+
+.shield-legacy-migration-panel .legacy-note-btn {
+  font-size: 0.74rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.shield-legacy-migration-panel .legacy-note-status {
+  font-size: 0.7rem;
+  color: #f59e0b;
+}
+
+.shield-legacy-migration-panel .legacy-footer {
+  font-size: 0.72rem;
+  opacity: 0.75;
+  margin-top: 8px;
+  color: var(--muted-strong);
 }
 
 .shield-approval-review {

@@ -2137,9 +2137,8 @@ export function ShieldPage(_props: ShieldPageProps) {
 
               <p className="shield-helper shield-helper--meta">{routeLabel}</p>
               <p className="shield-helper shield-helper--meta">
-                Current Shield deposits are public transfers into a Vanta vault wallet whose
-                keypair is operator-controlled. Program-owned custody and production privacy are
-                not enabled.
+                Shielding uses public transfers to an operator-controlled vault (beta). Full
+                program-owned private custody is coming.
               </p>
               {targetShieldedBalanceReadUnavailable && (
                 <p className="shield-helper shield-helper--meta">
@@ -2192,27 +2191,25 @@ export function ShieldPage(_props: ShieldPageProps) {
                   After migration, legacy notes removed; v2 indexer becomes source for PositionSummary/NoteStatePanel.
               */}
               {isNativeSolShield && legacySolNotes.length > 0 && showLegacyMigrationPanel && (
-                <div className="shield-legacy-migration-panel" style={{ border: "1px solid #f59e0b", padding: "12px", margin: "12px 0", borderRadius: "8px", background: "#fffbeb" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div className="shield-legacy-migration-panel">
+                  <div className="legacy-header">
                     <div>
-                      <strong>Legacy shielded SOL notes (pre-v2 WSOL path — Phase 2 migration)</strong>
-                      <p style={{ fontSize: "0.85em", margin: "4px 0" }}>
-                        {legacySolNotes.length} note(s) tracked locally with WSOL mint. Migrate to NATIVE_SOL_ASSET_ID_SENTINEL + Private Pool v2 unified tree for canonical indexer membership and future TAG6.
-                        Policy: {getVantaLegacyNativeSolWsolMigrationPolicy().version}. Legacy unshield remains available until migrated (fail-closed).
+                      <strong>Legacy SOL notes (pre-v2) — migrate for full support</strong>
+                      <p>
+                        {legacySolNotes.length} note(s) from old WSOL path. Migrate to sentinel + v2 tree for canonical balances and future features. (One-time, unshield still works.)
                       </p>
                     </div>
                     <button
                       type="button"
                       className="button button-ghost"
                       onClick={() => setShowLegacyMigrationPanel(false)}
-                      style={{ fontSize: "0.75em" }}
                     >
-                      Dismiss
+                      Hide
                     </button>
                   </div>
 
                   {legacyMigrationError && (
-                    <p style={{ color: "#b91c1c", fontSize: "0.8em" }}>Migration error: {legacyMigrationError} (re-shield is safe fallback)</p>
+                    <p style={{ color: "#b91c1c", fontSize: "0.8em", margin: "8px 0 0" }}>Migration error: {legacyMigrationError} (re-shield works as fallback)</p>
                   )}
 
                   <div style={{ marginTop: "8px" }}>
@@ -2220,26 +2217,25 @@ export function ShieldPage(_props: ShieldPageProps) {
                       const key = note.depositSignature || note.noteId;
                       const status = legacyMigrationStatus[key] || "idle";
                       return (
-                        <div key={key} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 0", borderTop: "1px dashed #fcd34d" }}>
-                          <span style={{ flex: 1, fontFamily: "monospace", fontSize: "0.8em" }}>
+                        <div key={key} className="legacy-note-row">
+                          <span className="legacy-note-info">
                             {formatVantaSolAmount(note.amount)} SOL • {note.depositSignature?.slice(0, 8)}... • {new Date(note.createdAt).toLocaleDateString()}
                           </span>
                           <button
                             type="button"
-                            className="button button-primary"
+                            className="button button-primary legacy-note-btn"
                             disabled={status === "migrating" || status === "success" || !walletConnected}
                             onClick={() => handleMigrateLegacySolNote(note)}
-                            style={{ fontSize: "0.75em", padding: "4px 10px" }}
                           >
-                            {status === "migrating" ? "Migrating to v2..." : status === "success" ? "✓ Migrated (v2 sentinel)" : "Migrate to v2 (sentinel + ingest)"}
+                            {status === "migrating" ? "Migrating..." : status === "success" ? "✓ Done" : "Migrate to v2"}
                           </button>
-                          {status === "error" && <span style={{ color: "#b91c1c", fontSize: "0.7em" }}>Failed — try re-shield</span>}
+                          {status === "error" && <span className="legacy-note-status">Failed — re-shield ok</span>}
                         </div>
                       );
                     })}
                   </div>
-                  <p style={{ fontSize: "0.7em", opacity: 0.8, marginTop: "6px" }}>
-                    This computes sentinel commitment (see computeNativeSolShieldPoseidonCommitment) and POSTs to ingestion endpoint. Design doc §11 guarantees no re-shield needed for future on-chain. All surfaces (blocker map, audit tracker, findings.json) updated to close "native-sol-sentinel-asset-id-not-indexed-in-v2-tree" locally.
+                  <p className="legacy-footer">
+                    One-time sentinel commitment + ingest. After migrate, v2 indexer handles your SOL balance.
                   </p>
                 </div>
               )}

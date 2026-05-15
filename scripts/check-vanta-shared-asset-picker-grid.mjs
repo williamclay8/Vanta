@@ -49,15 +49,15 @@ for (const marker of [
 }
 
 for (const marker of [
-  "import { AssetPickerGrid",
   "swapSourceAssetPickerOptions",
   "swapTargetAssetPickerOptions",
   "From shielded asset",
   "To shielded asset",
-  "No shielded assets ready",
-  "<AssetPickerGrid",
 ]) {
-  assert.ok(swapPageSource.includes(marker), `SwapPage missing AssetPickerGrid marker: ${marker}`);
+  // Note: SwapPage intentionally uses native <select> (not AssetPickerGrid) for the choose-trade UX
+  // to achieve equal-size crisp boxes. The shared AssetPickerGrid (with its emptyLabel "No shielded assets ready")
+  // is now Shield-focused for visual multi-asset picking with logos/balances.
+  assert.ok(swapPageSource.includes(marker), `SwapPage missing shared picker marker: ${marker}`);
 }
 
 for (const forbidden of [
