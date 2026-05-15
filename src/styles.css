@@ -3166,6 +3166,14 @@ select:focus {
   grid-template-columns: minmax(0, 1fr) 220px;
 }
 
+/* Shield-specific: Make the Amount box in "Choose asset" go all the way to the right edge
+   of the choose asset container (same width as the From/To row below it) */
+.shield-form .send-entry-grid,
+.shield-form .swap-entry-grid {
+  grid-template-columns: 1fr; /* full width - Amount stretches to the right */
+  gap: 0;
+}
+
 .swap-widget {
   gap: 16px;
   margin-top: 16px;
