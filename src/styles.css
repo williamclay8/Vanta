@@ -3594,6 +3594,7 @@ select:focus {
   gap: 10px;
   padding: 14px;
   border-radius: 14px;
+  border: 1px solid rgba(0, 229, 200, 0.18);
   background:
     linear-gradient(160deg, rgba(141, 185, 255, 0.08), rgba(0, 229, 200, 0.025)),
     rgba(2, 6, 12, 0.62);
@@ -3604,9 +3605,9 @@ select:focus {
 
 .swap-route-card__row {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(220px, 1fr);
+  grid-template-columns: 240px minmax(220px, 1fr);
   gap: 12px;
-  align-items: end;
+  align-items: start;
 }
 
 .swap-route-card__connector {
@@ -3692,8 +3693,13 @@ select:focus {
 }
 
 .swap-choice-group {
-  display: grid;
-  gap: 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 240px;               /* fixed width so both boxes are exactly the same length */
+  min-height: 96px;
+  justify-content: space-between;
+  flex-shrink: 0;
 }
 
 .swap-choice-group > span {
@@ -3701,6 +3707,18 @@ select:focus {
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.swap-choice-group .swap-asset-select {
+  width: 100%;                /* ensure select fills the full 240px box */
+  min-height: 44px;
+  flex: 1 1 auto;
+}
+
+.swap-choice-group small {
+  flex-shrink: 0;
+  margin-top: auto;
 }
 
 .swap-choice-row {
@@ -4130,8 +4148,8 @@ select:focus {
 }
 
 .swap-asset-select {
-  min-height: 44px;
   width: 100%;
+  min-height: 44px;
   padding: 10px 14px;
   border: 1px solid rgba(0, 229, 200, 0.25);
   border-radius: 12px;
