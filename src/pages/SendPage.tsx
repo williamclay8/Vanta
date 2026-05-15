@@ -756,7 +756,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       return {
         basis,
         detail:
-          "Send requires a canonical ledger-spendable note before the private-core proof lane can run.",
+          "Select a shielded note to send.",
         primaryNote: null,
         ready: false,
         statusLabel: "No canonical note",
@@ -767,7 +767,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       return {
         basis,
         detail:
-          "Send requires a canonical ledger-spendable note and a matching held private-core note.",
+          "Hold a matching private-core note for the selected ledger note.",
         primaryNote: selectedCanonicalSendLedgerNote,
         ready: false,
         statusLabel: "No held private note",
@@ -778,7 +778,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       return {
         basis,
         detail:
-          "The held private-core note does not match the selected canonical ledger note; refresh the shielded state before sending.",
+          "Held note does not match ledger note. Refresh shielded state.",
         primaryNote: selectedCanonicalSendLedgerNote,
         ready: false,
         statusLabel: "Ledger mismatch",
@@ -789,7 +789,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       return {
         basis,
         detail:
-          "The selected ledger note is missing canonical shield commitment/root evidence; refresh the shielded state before sending.",
+          "Ledger note missing shield proof. Refresh shielded state.",
         primaryNote: selectedCanonicalSendLedgerNote,
         ready: false,
         statusLabel: "Missing ledger proof",
@@ -800,7 +800,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       return {
         basis,
         detail:
-          "The held private-core note is not bound to the selected canonical ledger note; select the matching Shield note or refresh before sending.",
+          "Held note not bound to ledger note. Select matching Shield note or refresh.",
         primaryNote: selectedCanonicalSendLedgerNote,
         ready: false,
         statusLabel: "Ledger binding mismatch",
@@ -1484,21 +1484,19 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       const noWitnessProofArtifact = privateCoreSendPreview.boundary.proofArtifact;
 
       if (!noWitnessProofArtifact) {
-        throw new Error(
-          "Private Core Send now requires a locally generated no-witness proof artifact before the operator can record a Send. Browser proving for this beta lane is not enabled yet, so Send is blocked instead of sending witness material to the operator.",
-        );
+        throw new Error("Browser proving not enabled yet. Send blocked.");
       }
 
       if (!selectedCanonicalSendLedgerNote) {
-        throw new Error("Private Core Send requires a canonical Send ledger note before body-hash binding.");
+        throw new Error("Select a ledger note first.");
       }
 
       if (!viewingKey?.publicKey) {
-        throw new Error("Private Core Send memo body-hash binding requires your Shield viewing key to be ready.");
+        throw new Error("Shield viewing key required.");
       }
 
       if (!recipientViewingPublicKey) {
-        throw new Error("Private Core Send requires direct viewing-key exchange for recipient memo encryption.");
+        throw new Error("Recipient viewing-key exchange required.");
       }
 
       const preparedPrivateCoreSendMemo = createPreparedSendDualAeadMemo(
@@ -1586,7 +1584,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
   const sendHelperMessage = shieldStateError
     ? shieldStateError
     : isBetaMode
-      ? "Beta mode keeps private-core send visible but prevents live settlement while production evidence, approval, audit, replay, and operator-surface gates remain blocked."
+      ? "Beta: Send visible. Live settlement blocked until gates pass."
       : selectedSendCapability.executionMode === "unsupported-private-send-asset"
         ? selectedSendCapability.blockers[0] ??
           "Private-core send currently supports shielded USDC."
