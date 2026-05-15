@@ -1893,9 +1893,8 @@ export function SwapPage() {
                     <select
                       className="swap-asset-select"
                       value={selectedSourceAsset}
-                      disabled={availableSourceAssetOptions.length === 0}
-                      onChange={(e) => {
-                        const next = e.target.value as ShieldedSwapAssetKey;
+                      onChange={(event) => {
+                        const next = event.target.value as ShieldedSwapAssetKey;
                         setSelectedSourceAsset(next);
                         setSelectedSwapNoteId(null);
                         setStatus("idle");
@@ -1906,47 +1905,48 @@ export function SwapPage() {
                     >
                       {swapSourceAssetPickerOptions.map((opt) => (
                         <option key={opt.id} value={opt.id}>
-                          {opt.symbol} — {opt.label} (Balance: {opt.balanceLabel})
+                          {opt.symbol} — {opt.label} (Balance: {opt.balanceLabel ?? "0"})
                         </option>
                       ))}
                     </select>
-                    <small>Shielded balance: {sourceBalanceLabel}</small>
                   </div>
 
-                  <div className="amount-field swap-amount-field">
-                    <input
-                      id="swap-amount"
-                      inputMode="decimal"
-                      value={amount}
-                      onChange={(event) => {
-                        setAmount(event.target.value);
-                        setSelectedSwapNoteId(null);
-                        setStatus("idle");
-                        setFlowError(null);
-                        setQuote(null);
-                        setQuoteError(null);
-                      }}
-                      placeholder="0.00"
-                    />
-                    <button
-                      className="button button-ghost"
-                      type="button"
-                      disabled={maxAvailableAmount <= 0}
-                      onClick={() => {
-                        if (maxAvailableAmount <= 0 || !maxSwappableNote) {
-                          return;
-                        }
-
-                        setSelectedSwapNoteId(maxSwappableNote.noteId);
-                        setAmount(formatExactSwapInputAmount(maxAvailableAmount, selectedSourceAsset));
-                        setStatus("idle");
-                        setFlowError(null);
-                        setQuote(null);
-                        setQuoteError(null);
-                      }}
-                    >
-                      Max
-                    </button>
+                  <div className="swap-choice-group swap-amount-group" role="group" aria-label="Amount to swap">
+                    <span>Amount</span>
+                    <div className="swap-amount-controls">
+                      <input
+                        id="swap-amount"
+                        inputMode="decimal"
+                        value={amount}
+                        onChange={(event) => {
+                          setAmount(event.target.value);
+                          setSelectedSwapNoteId(null);
+                          setStatus("idle");
+                          setFlowError(null);
+                          setQuote(null);
+                          setQuoteError(null);
+                        }}
+                        placeholder="0.00"
+                      />
+                      <button
+                        className="button button-ghost swap-max-btn"
+                        type="button"
+                        disabled={maxAvailableAmount <= 0}
+                        onClick={() => {
+                          if (maxAvailableAmount <= 0 || !maxSwappableNote) {
+                            return;
+                          }
+                          setSelectedSwapNoteId(maxSwappableNote.noteId);
+                          setAmount(formatExactSwapInputAmount(maxAvailableAmount, selectedSourceAsset));
+                          setStatus("idle");
+                          setFlowError(null);
+                          setQuote(null);
+                          setQuoteError(null);
+                        }}
+                      >
+                        Max
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -1960,8 +1960,8 @@ export function SwapPage() {
                     <select
                       className="swap-asset-select"
                       value={selectedTargetAsset}
-                      onChange={(e) => {
-                        const next = e.target.value as ShieldedSwapAssetKey;
+                      onChange={(event) => {
+                        const next = event.target.value as ShieldedSwapAssetKey;
                         setSelectedTargetAsset(next);
                         setStatus("idle");
                         setFlowError(null);
@@ -1971,21 +1971,22 @@ export function SwapPage() {
                     >
                       {swapTargetAssetPickerOptions.map((opt) => (
                         <option key={opt.id} value={opt.id} disabled={opt.disabled}>
-                          {opt.symbol}
-                          {opt.label ? ` — ${opt.label}` : ''}
-                          {opt.disabled ? ' (unavailable)' : ''}
+                          {opt.symbol} — {opt.label}
                         </option>
                       ))}
                     </select>
                   </div>
 
-                  <div className="swap-quote-line">
-                    <strong>
-                      {status === "quoting"
-                        ? "Getting best available quote..."
-                        : formatAssetAmount(expectedOutputAmount, selectedTargetAsset)}
-                    </strong>
-                    <span>{`Shielded ${selectedTargetAsset}`}</span>
+                  <div className="swap-choice-group swap-quote-group" role="group" aria-label="Expected output">
+                    <span>You receive</span>
+                    <div className="swap-quote-value">
+                      <strong>
+                        {status === "quoting"
+                          ? "Getting best quote..."
+                          : formatAssetAmount(expectedOutputAmount, selectedTargetAsset)}
+                      </strong>
+                      <span>{`Shielded ${selectedTargetAsset}`}</span>
+                    </div>
                   </div>
                 </div>
               </div>
