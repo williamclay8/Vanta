@@ -4639,7 +4639,7 @@ select:focus {
 }
 
 .unshield-ticket__field .send-asset-field select {
-  min-height: 36px;  /* fits inside the 54px field with padding */
+  min-height: 36px !important;  /* force it to fit inside the 54px field with padding; override global */
 }
 
 .unshield-fixed-field strong {
