@@ -63,9 +63,7 @@ export function listShieldedSwapAssetOptions(): ShieldedSwapAssetOption[] {
       entry.symbol === "SOL"
         ? isNativeSolShieldConfigured()
         : entry.configured,
-    label: `${SHIELDED_SWAP_ASSET_LABELS[entry.symbol]} (${abbreviateMintAddress(
-      entry.mainnetMintAddress,
-    )})`,
+    label: SHIELDED_SWAP_ASSET_LABELS[entry.symbol],
     mainnetMintAddress: entry.mainnetMintAddress,
     name: entry.name,
     symbol: entry.symbol,

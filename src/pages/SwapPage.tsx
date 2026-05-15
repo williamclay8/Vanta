@@ -61,7 +61,7 @@ import {
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentSafety.mjs";
 import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
-import { AssetPickerGrid, type AssetPickerGridOption } from "@/components/AssetPickerGrid";
+import type { AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { QuoteCountdownBar, type QuoteCountdownBarTone } from "@/components/QuoteCountdownBar";
 import { SwapAdvancedPanel } from "@/components/SwapAdvancedPanel";
@@ -1890,25 +1890,26 @@ export function SwapPage() {
                 <div className="swap-route-card__row">
                   <div className="swap-choice-group" role="group" aria-label="From shielded asset">
                     <span>From (shielded)</span>
-                    <AssetPickerGrid
-                      ariaLabel="From shielded asset"
+                    <select
+                      className="swap-asset-select"
+                      value={selectedSourceAsset}
                       disabled={availableSourceAssetOptions.length === 0}
-                      emptyLabel="No shielded assets ready"
-                      onSelectOption={(nextSourceAsset) => {
-                        setSelectedSourceAsset(nextSourceAsset as ShieldedSwapAssetKey);
+                      onChange={(e) => {
+                        const next = e.target.value as ShieldedSwapAssetKey;
+                        setSelectedSourceAsset(next);
                         setSelectedSwapNoteId(null);
                         setStatus("idle");
                         setFlowError(null);
                         setQuote(null);
                         setQuoteError(null);
                       }}
-                      options={swapSourceAssetPickerOptions}
-                      selectedOptionId={
-                        availableSourceAssetOptions.some((asset) => asset.symbol === selectedSourceAsset)
-                          ? selectedSourceAsset
-                          : ""
-                      }
-                    />
+                    >
+                      {swapSourceAssetPickerOptions.map((opt) => (
+                        <option key={opt.id} value={opt.id}>
+                          {opt.symbol} — {opt.label} (Balance: {opt.balanceLabel})
+                        </option>
+                      ))}
+                    </select>
                     <small>Shielded balance: {sourceBalanceLabel}</small>
                   </div>
 

@@ -3993,24 +3993,32 @@ select:focus {
 
 .asset-picker-grid__options {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
   min-width: 0;
+}
+
+/* Better on larger screens - max 3 columns for asset grids */
+@media (min-width: 900px) {
+  .asset-picker-grid__options {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
 }
 
 .asset-picker-grid__option,
 .asset-picker-grid__empty {
-  min-height: 68px;
+  min-height: 72px;
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
-  gap: 10px;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 12px;
   align-items: center;
   text-align: left;
-  padding: 11px;
-  border: 1px solid rgba(0, 229, 200, 0.1);
-  border-radius: 14px;
-  background: rgba(0, 229, 200, 0.025);
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 229, 200, 0.12);
+  border-radius: 16px;
+  background: rgba(0, 229, 200, 0.03);
   color: var(--text);
+  transition: all 160ms var(--ease-out);
 }
 
 .asset-picker-grid__option {
@@ -4041,20 +4049,22 @@ select:focus {
 }
 
 .asset-picker-grid__logo {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: inline-grid;
   place-items: center;
   overflow: hidden;
   border-radius: 999px;
   background:
-    linear-gradient(160deg, rgba(0, 229, 200, 0.18), rgba(255, 255, 255, 0.04)),
-    rgba(2, 6, 12, 0.78);
+    linear-gradient(160deg, rgba(0, 229, 200, 0.2), rgba(255, 255, 255, 0.03)),
+    rgba(2, 6, 12, 0.8);
   color: var(--muted-strong);
   font-family: "Syne", sans-serif;
-  font-size: 0.62rem;
-  letter-spacing: 0.06em;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .asset-picker-grid__logo img {

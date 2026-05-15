@@ -51,7 +51,6 @@ const requiredPageMarkers = [
   "shieldedSolSourceEntry",
   "preferredReadySourceAsset",
   "ready",
-  "No shielded assets ready",
   "shieldAssetRegistry.entries.find((entry) => (entry.account?.shieldedSolBalance ?? 0) > 0)",
   "pendingSpentMarker && pendingSpentMarker.asset === \"SOL\"",
   "shieldAccountState: selectedSourceAccount",
