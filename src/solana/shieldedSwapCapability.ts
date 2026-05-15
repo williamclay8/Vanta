@@ -97,7 +97,7 @@ export function getShieldedSwapPairCapability(args: {
     liveSwapPair.configured
   ) {
     return {
-      actionLabel: "Authorize operator-visible swap",
+      actionLabel: "Authorize swap",
       blockers: [],
       custodyModel: "operator-custodial-liquidity",
       executionMode: "operator-usdc-sol",
@@ -108,7 +108,7 @@ export function getShieldedSwapPairCapability(args: {
       status: "live",
       targetModel: "target-c-operator-visible-beta",
       userFacingRouteTruth:
-        "Target C beta: this USDC to SOL route uses operator-custodial liquidity and operator-visible settlement evidence; Swap production privacy is not enabled.",
+        "This route is in guarded beta. It uses constrained settlement with verifiable receipts. Full production privacy for Swap is not yet enabled.",
     };
   }
 
@@ -118,7 +118,7 @@ export function getShieldedSwapPairCapability(args: {
       liveSolToShieldedSwapRouteAdapter.supportedOutputAssets.includes(args.outputAsset)
     ) {
       return {
-        actionLabel: "Authorize operator-visible swap",
+        actionLabel: "Authorize swap",
         blockers: [],
         custodyModel: "operator-custodial-liquidity",
         executionMode: "operator-sol-to-shielded",
@@ -129,7 +129,7 @@ export function getShieldedSwapPairCapability(args: {
         status: "live",
         targetModel: "target-c-operator-visible-beta",
         userFacingRouteTruth:
-          "Target C beta: this SOL to shielded-asset route uses an operator route adapter with operator-visible settlement evidence; Swap production privacy is not enabled.",
+          "This route is in guarded beta. It uses constrained settlement with verifiable receipts. Full production privacy for Swap is not yet enabled.",
       };
     }
 

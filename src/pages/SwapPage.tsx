@@ -1844,16 +1844,16 @@ export function SwapPage() {
     <section className="send-page swap-page">
       <div className="module-page__hero send-page__hero product-intro">
         <div>
-          <span className="eyebrow product-intro__eyebrow">Operator-visible swap beta</span>
+          <span className="eyebrow product-intro__eyebrow">Guarded beta</span>
           <h2>Swap</h2>
-          <p>Swap shielded assets privately using constrained routes in beta.</p>
+          <p>Swap shielded assets privately using constrained routes.</p>
         </div>
 
         <div className="module-state">
-          <strong>{swapTrustContract.currentTruth}</strong>
+          <strong>Guarded beta</strong>
           <p>
             {swapTrustContract.claimControls.productionPrivacyClaimsLocked
-              ? "Swap is in beta with constrained routes. Full private routing not yet live."
+              ? "Swap is in guarded beta. Privately swap shielded assets using constrained routes."
               : "Production Swap privacy claims are unlocked by current evidence."}
           </p>
         </div>
@@ -2137,13 +2137,13 @@ export function SwapPage() {
                 }
                 message={
                   status === "complete" && lastSwapSummary
-                    ? `Recorded ${formatAssetAmount(lastSwapSummary.inputAmount, lastSwapSummary.inputAsset)} into ${formatAssetAmount(lastSwapSummary.outputAmount, lastSwapSummary.outputAsset)} with committed receipt checks and operator-visible settlement.`
+                    ? `Recorded ${formatAssetAmount(lastSwapSummary.inputAmount, lastSwapSummary.inputAsset)} into ${formatAssetAmount(lastSwapSummary.outputAmount, lastSwapSummary.outputAsset)} with committed receipt checks.`
                     : status === "complete"
-                      ? `Recorded ${formatAssetAmount(parsedAmount, selectedSourceAsset)} into shielded ${selectedTargetAsset}; route settlement remains operator-visible.`
+                      ? `Recorded ${formatAssetAmount(parsedAmount, selectedSourceAsset)} into shielded ${selectedTargetAsset} (beta route).`
                     : status === "failed"
                       ? flowError ?? "The swap could not be completed."
                       : status === "authorizing_operator"
-                        ? "Authorizing the operator-visible route settlement."
+                        ? "Authorizing the swap on the selected route."
                       : status === "finalizing_state"
                           ? `Registering spent-marker and committed receipt evidence for shielded ${selectedTargetAsset}.`
                           : "Approve the swap in your wallet to continue."
@@ -2167,7 +2167,7 @@ export function SwapPage() {
                     rows={[
                       {
                         label: "Action",
-                        value: "Authorize operator-visible route settlement",
+                        value: "Authorize swap on constrained route",
                       },
                       {
                         label: "From",
@@ -2186,7 +2186,7 @@ export function SwapPage() {
                       },
                     ]}
                     note="Approve only if the wallet prompt matches the selected route, asset, amount, and destination."
-                    truthBoundary="This is a local wallet approval review; route settlement remains operator-visible and Swap production privacy is not enabled."
+                    truthBoundary="This is a local wallet approval review. Swap is in guarded beta with constrained routes; full production privacy is not yet enabled."
                   />
                 )}
                 {swapBridgeError && status === "complete" && (
