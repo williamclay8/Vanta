@@ -2168,16 +2168,25 @@ export function UnshieldPage() {
         <div>
           <span className="eyebrow product-intro__eyebrow">Move out</span>
           <h2>Unshield</h2>
-          <p>{unshieldTrustContract.visibleStatusCopy}</p>
+          <p className="product-intro__lede">
+            Get your shielded assets back to your regular wallet.
+          </p>
+          <p className="product-intro__meta">
+            Beta. Only to the wallet you used to shield them.
+          </p>
         </div>
 
         <div className="module-state">
-          <strong>{unshieldTrustContract.currentTruth}</strong>
-          <p>
-            {unshieldTrustContract.claimControls.productionPrivacyClaimsLocked
-              ? unshieldTrustContract.visibleStatusCopy
-              : "Production Unshield privacy claims are unlocked by current evidence."}
-          </p>
+          <strong>Beta — get your assets out</strong>
+          <details className="module-state__details">
+            <summary>Technical status</summary>
+            <p>
+              {unshieldTrustContract.claimControls.productionPrivacyClaimsLocked
+                ? unshieldTrustContract.visibleStatusCopy
+                : "Production Unshield privacy claims are unlocked by current evidence."}
+              Current Unshield releases only to the connected requester/depositor wallet that signs the exit intent. Fresh-address exits are disabled until the destination is proof-bound.
+            </p>
+          </details>
         </div>
       </div>
 
@@ -2817,8 +2826,8 @@ export function UnshieldPage() {
         <article className="send-card send-card--workspace">
           <div className="shield-card__header unshield-ticket__header">
             <div>
-              <span>Exit ticket</span>
-              <h3>{selectedLane} to public wallet</h3>
+              <span>Unshield</span>
+              <h3>Send {selectedLane} to your wallet</h3>
             </div>
             <small>
               {selectedLane === "SOL" && !selectedSolNote && selectedSolPendingAmount > 0
@@ -2837,8 +2846,8 @@ export function UnshieldPage() {
               <strong>{exitConsequenceDisplay}</strong>
               <small id="unshield-exit-preview-copy">
                 {walletAddressShort
-                  ? `in ${exitConsequenceDestination} after public exit`
-                  : "connect wallet for public exit destination"}
+                  ? `to ${exitConsequenceDestination}`
+                  : "connect wallet for destination"}
               </small>
             </div>
             <div
@@ -2898,41 +2907,13 @@ export function UnshieldPage() {
                   <span>Destination</span>
                 </div>
                 <div
-                  aria-describedby="unshield-destination-card-copy"
                   aria-label="Unshield destination wallet"
                   className="unshield-fixed-field unshield-destination-card"
                   title={walletAddress ?? undefined}
                 >
-                  <span className="unshield-destination-card__eyebrow">Connected wallet</span>
-                  <div className="unshield-destination-card__row">
-                    <strong>{walletAddressShort ?? "Connect wallet"}</strong>
-                    <span className="unshield-destination-card__pill">to your own wallet</span>
-                  </div>
-                  <small id="unshield-destination-card-copy">
-                    Current Unshield releases only to the connected requester/depositor wallet that
-                    signs the exit intent. Fresh-address exits are disabled until the destination is
-                    proof-bound.
-                  </small>
+                  <strong>{walletAddressShort ?? "Connect wallet"}</strong>
+                  <small>Exits go to your connected wallet.</small>
                 </div>
-                <label
-                  aria-describedby="unshield-destination-toggle-copy"
-                  aria-disabled="true"
-                  className="unshield-destination-toggle"
-                >
-                  <input
-                    aria-label="Send to a different wallet"
-                    aria-describedby="unshield-destination-toggle-copy"
-                    disabled={true}
-                    readOnly={true}
-                    type="checkbox"
-                  />
-                  <span className="unshield-destination-toggle__body">
-                    <strong>Send to a different wallet</strong>
-                    <small id="unshield-destination-toggle-copy">
-                      Coming soon - needs unshield-to-fresh-wallet support
-                    </small>
-                  </span>
-                </label>
               </div>
 
               <div className="swap-module__field unshield-ticket__field unshield-ticket__field--amount">
@@ -2982,20 +2963,7 @@ export function UnshieldPage() {
                 )}
               </div>
 
-              <PrivacySummary
-                items={UNSHIELD_PRIVACY_SUMMARY_ITEMS}
-                note="Production Unshield privacy remains claim-locked until program-owned release custody, on-chain proof-verified TAG_UNSHIELD release, audit evidence, and live settlement gates pass."
-              />
 
-              <UnshieldAdvancedPanel
-                notePickerOptions={unshieldNotePickerOptions}
-                noteSelectionLabel={selectedUnshieldNoteLabel}
-                onSelectNote={handleSelectUnshieldNote}
-                referenceNoteLabel={
-                  selectedUnshieldNote ? abbreviate(selectedUnshieldNote.noteId) : "Unavailable"
-                }
-                selectedNoteId={selectedUnshieldNoteId}
-              />
 
               <div className="unshield-ticket__action">
                 <p className="shield-helper">{validationMessage}</p>
@@ -3023,6 +2991,24 @@ export function UnshieldPage() {
               </div>
             </div>
           </div>
+
+              <PrivacySummary
+                items={UNSHIELD_PRIVACY_SUMMARY_ITEMS}
+                note="Beta — funds remain visible to the operator until the program-owned release path ships."
+              />
+
+              <details className="unshield-advanced-toggle">
+                <summary>Advanced</summary>
+                <UnshieldAdvancedPanel
+                  notePickerOptions={unshieldNotePickerOptions}
+                  noteSelectionLabel={selectedUnshieldNoteLabel}
+                  onSelectNote={handleSelectUnshieldNote}
+                  referenceNoteLabel={
+                    selectedUnshieldNote ? abbreviate(selectedUnshieldNote.noteId) : "Unavailable"
+                  }
+                  selectedNoteId={selectedUnshieldNoteId}
+                />
+              </details>
 
           {status === "awaiting_confirmation" && (
             <TransactionStatusToast
@@ -3211,20 +3197,8 @@ export function UnshieldPage() {
             <TransactionStatusToast
               tone="success"
               phase="complete"
-              title={
-                operatorReleaseSignature
-                  ? `${lastCompletion.asset} public operator release reported`
-                  : `${lastCompletion.asset} public exit transition recorded`
-              }
-              message={
-                operatorReleaseSignature
-                  ? lastCompletion.asset === "SOL"
-                    ? `${formatSolAmount(lastCompletion.amount)} has an operator release signature. Verify the public exit transaction before treating funds as moved; the source shielded SOL note is blocked from reuse by the release record.`
-                    : `${formatShieldTokenAmount(lastCompletion.amount, lastCompletion.asset)} has an operator release signature. Verify the public exit transaction before treating funds as moved; the source shielded ${lastCompletion.asset} note is blocked from reuse by the release record.`
-                  : lastCompletion.asset === "SOL"
-                    ? `${formatSolAmount(lastCompletion.amount)} public exit transition was recorded. Operator release is still pending.`
-                    : `${formatShieldTokenAmount(lastCompletion.amount, lastCompletion.asset)} public exit transition was recorded. Operator release is still pending.`
-              }
+              title={`Done — sent ${formatUnshieldAmount(lastCompletion.amount, lastCompletion.asset)} ${lastCompletion.asset} to ${walletAddressShort ?? "wallet"}`}
+              message="Beta — operator-assisted release. Verify the public exit transaction."
               floating
             >
               <div className="preview-grid unshield-evidence-grid">
@@ -3242,20 +3216,7 @@ export function UnshieldPage() {
                   )}
                 </div>
               </div>
-              <div className="review-list">
-                <div className="review-row">
-                  <span>Transition note</span>
-                  <strong>{abbreviate(lastCompletion.transitionNoteId)}</strong>
-                </div>
-                <div className="review-row">
-                  <span>Operator request</span>
-                  <strong>{lastCompletion.requestId ? abbreviate(lastCompletion.requestId) : "Pending receipt"}</strong>
-                </div>
-                <div className="review-row">
-                  <span>Settlement scope</span>
-                  <strong>{currentUnshieldTransactionEvidence.settlement.status}</strong>
-                </div>
-              </div>
+              <p className="shield-helper">Settlement: {currentUnshieldTransactionEvidence.settlement.status}</p>
               <div className="status-actions unshield-success-actions">
                 <Link className="button button-primary" to="/app/shield">
                   Shield more
@@ -3299,8 +3260,8 @@ export function UnshieldPage() {
                   open={unshieldReceiptModalOpen}
                   onClose={() => setUnshieldReceiptModalOpen(false)}
                 >
-                  <details className="unshield-completion-details" open>
-                    <summary>Operator workflow and export details</summary>
+                  <details className="unshield-completion-details">
+                    <summary>Developer details</summary>
                     <div className="preview-grid">
                       <div className="preview-card preview-card--accent">
                         <span>Exact candidate</span>
@@ -3502,7 +3463,7 @@ export function UnshieldPage() {
                     )}
                   </details>
                   <details className="preview-card" style={{ marginTop: 16 }}>
-                    <summary>Internal zk diagnostics</summary>
+                    <summary>Diagnostics</summary>
                     <p className="shield-helper shield-helper--meta">
                       Internal/debug only. This shows the retained canonical consumption trace for
                       the latest live unshield bridge record.
