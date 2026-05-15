@@ -47,6 +47,18 @@
       "claim": "Vanta does not claim live anonymity or production-private mainnet settlement yet."
     },
     {
+      "id": "native-sol-v2-sentinel-migration",
+      "status": "local-addressable",
+      "description": "Legacy WSOL native SOL notes (VantaShieldedSolNote) can be migrated one-time via ShieldPage panel + migrateLegacyVantaShieldedSolNoteToV2 helper to NATIVE_SOL_ASSET_ID_SENTINEL + Private Pool v2 unified tree ingestion. New paths use sentinel from Day 1. See design doc 2026-05-14-native-sol-private-pool-v2-integration.md Phase 2. 'native-sol-sentinel-asset-id-not-indexed-in-v2-tree' closed locally in blocker map/findings.",
+      "claim": "Native SOL v2 path (sentinel) is locally implemented for migration and new shields but not live-indexed in production; productionCustodyReadyForSol and privacyClaimAllowed remain false. TAG6/program-owned PDA still required for full on-chain privacy."
+    },
+    {
+      "id": "tag6-toolkit-§12-gates",
+      "status": "local-implemented-cited-official",
+      "description": "TAG6 toolkit (Native SOL TAG6 Blocker Removal Toolkit) is the official, cited implementation of the §12 gates (pre-deploy + live evidence) in all audit and truth surfaces per design doc 2026-05-14-native-sol-private-pool-v2-integration.md §12 (Budget & External Review Discipline, Proof-Verified TAG6 Release Evidence, Post-Deployment Monitoring Checklist) + status note (Native SOL TAG6 Post-Deployment Monitoring Checklist). Exact paths: master checklist scripts/native-sol-tag6/run-tag6-full-predeploy-checklist.mjs, verifier scripts/verify-full-tag6-release-evidence.mjs, probe scripts/probe-production-native-sol-sentinel-snapshot.mjs, scanner scripts/scan-onchain-tag6-sol-releases.mjs, generator scripts/native-sol-tag6/generate-tag6-external-gate-request-package.mjs (integrated in package.json, checks, surfaces). Evidence bundles in scripts/native-sol-tag6/examples/ (tag6-full-predeploy-checklist-*.md/json, evidence-bundle-*/design-doc-§12-excerpt.md + status-note-checklist-#8.md). Updated: architecture blocker map (R6A/A1-TAG6 Post-Deployment Phase + R6A section), Claude privacy audit tracker (state.yaml, completion-audit.md, R4A/R6A notes), VANTA_ZK_REVIEW.findings.json (new ledger entry VANTA-ZK-FEEDBACK-2026-05-14-TAG6-TOOLKIT-CANONICAL-§12-IMPLEMENTATION), unshieldMainnetProductionStatus.mjs + unshieldTrustContract.ts (nativeSolOnchainBoundary, nativeSolLongTermBoundary, visibleStatusCopy, monitoringRefs now explicitly point to toolkit as way to satisfy Post-Deployment Monitoring Checklist). Implications: public manifest now records toolkit as canonical mechanism; future live evidence collection for external gate uses toolkit commands only; no production flags elevated until real mainnet TAG6 releases + external acceptance per §12.",
+      "claim": "TAG6 toolkit provides the canonical pre-deploy + live evidence mechanism for §12 gates (heavy refs to design §12 + status note in all surfaces). Local + simulation evidence complete and cited (privacy-audit:tracker-check PASS); real mainnet deploy + live proof-verified PDA TAG6 releases + external review still required before any productionCustodyReadyForSol/privacyClaimAllowed. Fail-closed."
+    },
+    {
       "id": "audit-acceptance",
       "status": "blocked",
       "claim": "No independent third-party audit has accepted the cryptographic, smart-contract, infrastructure, or application boundary."

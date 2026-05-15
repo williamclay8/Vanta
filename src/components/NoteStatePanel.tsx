@@ -4,6 +4,7 @@ import {
 } from "@/solana/shieldConfig";
 import { formatVantaSolAmount } from "@/solana/solAmountFormat";
 import type { VantaShieldAccountState } from "@/solana/vantaShieldState";
+// Phase 2 migration: Legacy WSOL VantaShieldedSolNote removed from local after successful sentinel ingestion (ShieldPage migration panel). Canonical SOL notes now flow from v2 Private Pool indexer state. References design doc §9 + blocker closure for "native-sol-sentinel-asset-id-not-indexed-in-v2-tree".
 
 type NoteStatePanelProps = {
   account: VantaShieldAccountState | null;

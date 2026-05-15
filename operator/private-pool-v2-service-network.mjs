@@ -1620,7 +1620,67 @@ async function createServiceHandlers(role, {
       return true;
     }
 
-    if (request.method === "POST" && url.pathname === "/v1/commitments") {
+    // Phase 1: On-demand ingestion endpoint for native SOL shield deposits
+// This is the main hook that allows the client to submit a validated native SOL shield
+// (memo + tx signature + sentinel-based commitment) so it gets appended to the unified tree.
+if (request.method === "POST" && url.pathname === "/v1/ingest-native-sol-shield-deposit") {
+  if (role !== "indexer") {
+    sendJson(response, 403, { error: "Only indexer role can ingest native SOL shield deposits" });
+    return true;
+  }
+
+  try {
+    const body = await readRequestBody(request);
+    const { depositMemo, depositSignature, commitment, owner, vaultOwner, amount } = body;
+
+    if (!depositMemo || !depositSignature || !commitment || !owner || !vaultOwner) {
+      sendJson(response, 400, { error: "Missing required fields for native SOL shield ingestion" });
+      return true;
+    }
+
+    const validated = await ingestValidatedNativeSolShieldDeposit({
+      client: solanaClient,
+      memo: depositMemo,
+      stateSignature: depositSignature,
+      configuredVaultOwner: vaultOwner,
+      seenDepositSignatures: indexerState.seenDepositSignatures || new Set(),
+    });
+
+    if (!validated) {
+      sendJson(response, 400, { error: "Validation failed (fail-closed)", ok: false });
+      return true;
+    }
+
+    // Force sentinel for all v2 paths
+    const appendPayload = {
+      assetId: NATIVE_SOL_ASSET_ID_SENTINEL,
+      commitment: validated.commitment || commitment,
+      treeId: VANTA_PRIVATE_POOL_V2_UNIFIED_TREE_ID,
+    };
+
+    const appended = await indexerState.appendCommitment(appendPayload);
+
+    // Track for replay protection
+    if (!indexerState.seenDepositSignatures) indexerState.seenDepositSignatures = new Set();
+    indexerState.seenDepositSignatures.add(depositSignature);
+
+    sendJson(response, 200, {
+      ...basePayload(role),
+      ok: true,
+      assetId: NATIVE_SOL_ASSET_ID_SENTINEL,
+      commitment: appended.commitment,
+      treeId: appended.treeId,
+      noteId: validated.noteId,
+      phase1MigrationNote: validated.phase1MigrationNote,
+    });
+    return true;
+  } catch (err) {
+    sendJson(response, 500, { error: "Ingestion failed", details: err.message });
+    return true;
+  }
+}
+
+if (request.method === "POST" && url.pathname === "/v1/commitments") {
       const body = await readRequestBody(request);
       sendJson(response, 200, {
         ...basePayload(role),

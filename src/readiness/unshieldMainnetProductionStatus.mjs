@@ -78,7 +78,7 @@ function createUnshieldRuntimeProductionControlsStatus() {
 
 function createOnchainUnshieldCustodyStatus() {
   return {
-    version: "vanta-onchain-unshield-custody-status-0.4",
+    version: "vanta-onchain-unshield-custody-status-0.5", // + native SOL TAG6 PDA + sentinel + system-CPI boundary fields (future-proofing alignment)
     status: "blocked",
     custodyModel: "operator-keypair-in-env",
     currentReleaseModel: "operator-keypair-public-exit",
@@ -98,12 +98,23 @@ function createOnchainUnshieldCustodyStatus() {
     tagUnshieldVaultAssetRegistryReleaseEnabled: false,
     tokenCpiReleaseReady: false,
     onchainProofVerifierReady: false,
+    // Native SOL long-term TAG6 boundary (program-owned SOL vault PDA + system_program::transfer CPI)
+    nativeSolProgramOwnedVaultPdaReady: false,
+    nativeSolTagUnshieldSystemCpiReady: false,
+    nativeSolVaultAssetRegistryReady: false,
+    nativeSolAssetIdSentinelConfigured: true, // sentinel defined in docs; code adoption in progress for v2 ingestion
+    nativeSolV2IndexerIngestionReady: false, // Phase 1 indexer ingestion implemented; not yet live in production indexer
+    productionCustodyReadyForSol: false, // Still operator-keypair until TAG6 + program-owned SOL PDA is live
     blockers: [
       "program-owned-vault-pda-not-deployed",
       "tag-unshield-reserved-fail-closed",
       "onchain-unshield-proof-verifier-not-wired",
       "tag-unshield-token-cpi-release-not-wired",
       "operator-vault-keypair-env-release-still-active",
+      "native-sol-program-owned-vault-pda-not-deployed",
+      "tag-unshield-sol-kind-not-wired",
+      "native-sol-vault-asset-registry-not-registered",
+      "native-sol-sentinel-asset-id-not-indexed-in-v2-tree", // locally addressable via Phase 1 ingestion (sentinel Day 1); live production snapshot evidence pending
     ],
     checkedRefs: {
       custodyGuard: "npm run private-pool-v2:onchain-unshield-custody-check",
@@ -118,9 +129,11 @@ function createOnchainUnshieldCustodyStatus() {
       "Verify a real Unshield proof or verifier CPI on chain before PDA-signed release.",
       "Wire token CPI release from the program-owned custody account after proof and nullifier checks.",
       "Remove operator vault-keypair release authority from the production Unshield path.",
+      "Deploy program-owned SOL vault PDA (lamports holder) + VAULT_ASSET_KIND_SOL registration + system_program CPI path in TAG_UNSHIELD for native SOL (using fixed asset ID sentinel).",
+      "Extend vault asset registry and release preflights/require_* to support native SOL sentinel without mint/token accounts.",
     ],
     truth:
-      "Current Unshield release remains an operator-keypair public exit: the operator signs SPL/SOL transfers from the configured vault owner. The local TAG_UNSHIELD source ABI is reserved fail-closed with source-only root/root-record/verifier-key/nullifier/vault-authority/vault-asset/token-account preflight and cannot release funds. The source-level vault-asset registry scaffold keeps releaseEnabled false and is not production custody.",
+      "Current Unshield release remains an operator-keypair public exit: the operator signs SPL/SOL transfers from the configured vault owner. The local TAG_UNSHIELD source ABI is reserved fail-closed with source-only root/root-record/verifier-key/nullifier/vault-authority/vault-asset/token-account preflight and cannot release funds. The source-level vault-asset registry scaffold keeps releaseEnabled false and is not production custody. For native SOL: current path uses operator wallet + parallel local notes (assetId=WSOL mint); long-term boundary is program-owned SOL vault PDA + system_program::transfer in TAG_UNSHIELD (asset_id = fixed sentinel, asset_kind=SOL). See VANTA_ZK_REVIEW.md U2-NS and the 2026-05-14 native-sol-private-pool-v2-integration.md §11 + new §12 (Budget & External Review Discipline) for exact PDA derivation, sentinel, CPI branch, ShieldEvent/UnshieldEvent, live evidence gates (indexer snapshot + proof-verified PDA TAG6 releases), monitoring checklist, and when external review/bounded real-funds may be requested (only after high-quality local + canonical note). Current state (2026-05-14 surfaces lane): test helper + three checks PASS evidence in lane-trust-worker (lib.rs:39 VAULT_ASSET_KIND_SOL=2, :42 SOL_VAULT_SEED, :1071 SOL branch, :1122 CPI invoke_signed, :2363 test fn; three mjs checks PASS with 'test helper only ... per §12' language). Post-deployment fields updated in lane-trust-worker (sync to this file recommended for parity). No production custody claim until on-chain proof + PDA + SOL-kind live evidence per §12. Strict fail-closed. Fail-closed language: test helper only until live evidence per §12.",
   };
 }
 

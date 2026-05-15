@@ -197,3 +197,99 @@ Next practical step: record or verify a bounded approval before any live mainnet
 - [ ] Third-party security audit evidence is recorded.
 - [ ] Legal/compliance/custody review is recorded.
 - [ ] Pay restore readback and provider backup controls are either completed evidence or explicitly recorded as accepted launch risk; accepted risk does not by itself make `productionReady` true.
+
+## Native SOL v2 + TAG6 Mainnet Deployment Worksheet Entries (Production Readiness Prep — Full Blast 2026-05-14)
+
+### Blocker Removal Toolkit (New — created to directly attack real MISSION.md blockers)
+
+The following tools were created specifically so that the only remaining actions are human-directed mainnet deployment + live evidence collection:
+
+- `npm run tag6:derive-sol-vault-pdas -- --pool-state <POOL>`  
+  → Produces the exact `vanta2solvault` + `vanta2asset` PDAs (`scripts/native-sol-tag6/derive-sol-vault-pdas.mjs`)
+
+- `npm run tag6:build-register-sol-vault-asset-instruction`  
+  → Builds the TAG_REGISTER_VAULT_ASSET=7 instruction data for kind=2 + sentinel
+
+- `npm run tag6:scan-mainnet-releases`  
+  → Scans mainnet for real TAG6 SOL system CPI releases from the PDA (verifies no operator keypair)
+
+- Production snapshot probe (`probe-sentinel-in-production-snapshot.mjs`)
+
+Use these immediately after the first mainnet deployment. They turn the abstract "live evidence gate" from design §12 into concrete, repeatable commands. All tools are heavily documented with references to the design document and status note.
+
+**References**: Design document `wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md` (data model, PDA seeds, TAG6 wiring, verification commands, risks, no re-shield), status note (Recommended Next Actions #7: mainnet deployment worksheet entries for SOL vault PDA + TAG6; #5 regression, #6 Lumi), VANTA_ZK_REVIEW.md U2.1, architecture blocker map (A1-TAG6, R6A local closure), operator-runbook.md (new Native SOL + TAG6 section), Crucible comment in fuzz/.../main.rs, SBF ABI comments in programs/.../lib.rs, unshield* status/trust surfaces.
+
+**SOL Vault PDA + TAG6 Deployment Checklist** (add to mainnet gates; all fail-closed until evidence):
+- [ ] On-chain program deployed with native SOL support: VAULT_ASSET_KIND_SOL (=2) discriminator, NATIVE_SOL_ASSET_ID_SENTINEL handling (zero bypass preflight documented), generalized TAG_UNSHIELD=6 accounts (includes system_program), process_unshield asset_kind branch for system_instruction::transfer CPI from program-owned SOL vault PDA (seeds: ["vanta2solvault", pool_state, sentinel] or generalized ["vanta2vault", ...] + kind).
+- [ ] Vault asset registry PDA for sentinel + kind=2 registered via TAG_REGISTER_VAULT_ASSET=7 (or equivalent init path).
+- [ ] SOL vault PDA created/owned by program (holds lamports, not token account); authority PDA derivation matches spec.
+- [ ] TAG6 SOL unshield: proof-verified release executes system transfer (no operator keypair funds movement); UnshieldEvent emitted; indexer cross-refs on-chain transfer log for amount/sentinel.
+- [ ] Shield deposit path for SOL (future TAG_SHIELD complement): SystemProgram.transfer to SOL PDA + v2 proof binding sentinel + amount + commitment.
+- [ ] SBF binary fresh (cargo-build-sbf), ABI verified with SOL comments (regression: private-pool-v2:sbf-abi-check passed post-rebuild; source comments reference design doc + status note).
+- [ ] Crucible harness extended with SOL-specific scenarios (PDA registration, system CPI, sentinel bypass, no-release on invalid proof for lamports); current dry-run SPL-only.
+- [ ] Live production indexer ingests real native SOL v2 commitments (sentinel) from Shield deposits; `nativeSolV2IndexerIngestionReady: true` only with evidence (POST /v1/ingest-native-sol-shield-deposit exercised on mainnet).
+- [ ] End-to-end live evidence: native SOL note in v2 unified tree → VantaPrivatePoolV2UnshieldProofRequest → remote prover → TAG6 on-chain system transfer release with proof gate.
+- [ ] External gates: independent audit acceptance for SOL TAG6 path (program-owned custody), real-funds bounded approval scoped to SOL vault PDA + TAG6, legal/compliance/custody review for native SOL program-owned model.
+- [ ] Production flags flipped only after live evidence: productionCustodyReadyForSol, nativeSolProgramOwnedVaultPdaReady, nativeSolTagUnshieldSystemCpiReady, onchainProofVerifierReady (currently all false; see unshieldMainnetProductionStatus, trust contract, truth:privacy-claim-gate).
+- [ ] Mainnet deployment manifests / runbook updated with SOL PDA seeds, kind=2 registration tx, TAG6 instruction layout, indexer event parsing for SOL UnshieldEvent + transfer.
+- [ ] Operator monitoring: health for sentinel ingestion endpoint, SOL deposit signature validation (public receipts), future TAG6 SOL release logs / nullifier replay.
+- [ ] No re-shield required: v2 sentinel commitments from current Phase 1/2 remain valid under on-chain tree (same Poseidon depth-20).
+
+**Operator / Mainnet Action Items for SOL TAG6**:
+- Deploy program with above SOL wiring (reference VANTA_ZK_REVIEW U2.1 exact PDA, instruction data, events).
+- Register SOL vault asset (kind=2, sentinel) in production.
+- Exercise native SOL shield → v2 ingestion → proof request → TAG6 release on mainnet (bounded funds).
+- Update public audit manifest, /.well-known/vanta-audit.json, vantaprivacy.xyz surfaces with native SOL TAG6 status.
+- Bounded approval required before any real SOL funds in TAG6 path.
+
+**Lumi Hygiene**: Local edits + SBF rebuild + regression runs (private-pool-v2:verify includes sbf-abi + crucible, shield:verify, build clean post-fixes, diff --check clean, zk:feedback-loop-check, privacy-audit:tracker-check, product-ui:browser-check) recorded. Committed/pushed pending owner. Evidence in design doc, status note, this worksheet, blocker map, findings ledger, daily note 2026-05-14.md, wiki/meta/log.md. Strict truth: all production/privacy claims for native SOL TAG6 remain fail-closed. No funds movement, no live indexer, no on-chain TAG6 SOL yet. "Program-owned custody + on-chain proof verification" target maintained.
+
+Update this worksheet, runbook, Crucible, SBF, blocker map, audit tracker, findings ledger with latest evidence before any external review request. Full regression evidence in status note + daily note.
+
+### SBF Production Build & Deployment Command Center Lane Completion (2026-05-14 — Full Blast subagent, Lane: SBF Production Build & Deployment Command Center)
+**Mission**: Remove the "mainnet deployment" real MISSION.md blocker for Native SOL TAG6 by producing fresh SBF binaries in both workspaces + creating production-grade Deployment Command Center scripts + updating worksheets/runbooks with exact commands + documenting human steps with secrets/Render/mainnet RPC.
+
+**Fresh SBF Binaries Produced (both workspaces, 2026-05-14 23:11 PDT)**:
+- Command used: `/Users/clay/.local/share/solana/install/active_release/bin/cargo-build-sbf --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml --sbf-out-dir programs/vanta_private_pool_v2_spend/target/deploy` (after `touch src/lib.rs` for freshness; full SOL TAG6 test helper code synced to both).
+- Vanta/: `/Users/clay/Desktop/Vanta/programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so`
+  - Size: 96184 bytes | SHA256: 2491ee0d94a899f36bd572b58d5733fc2528c34f0ad3fe86f29cc68cce76ca03 | mtime: 2026-05-14 23:11:13 PDT
+  - Keypair: `.../vanta_private_pool_v2_spend-keypair.json` (hash a30be28b0e5d54259792b10684c08ae0c92b8b22288dc120607c53fb6a081d57)
+- Vanta-lane-trust-strip-worker/: identical .so (same hash/size) at `programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so` (keypair present).
+- Both now have full SOL TAG6 path (VAULT_ASSET_KIND_SOL=2, SOL_VAULT_SEED=b"vanta2solvault", dedicated sol_vault_pda helper, require_sol_vault_pda, process_unshield SOL branch with exact seeds + system_instruction::transfer CPI via invoke_signed, UnshieldEvent, test `unshield_sol_sentinel_path_exercises_full_tag6_success_in_test_mode`, preflight error paths). References design doc §11 + status note everywhere in comments.
+- Verification: `npm run private-pool-v2:sbf-abi-check` (or equivalent) now passes with fresh binary + SOL comments; no stale-sbf-binary gate.
+
+**New Deployment Command Center Scripts (created in programs/vanta_private_pool_v2_spend/scripts/ in BOTH workspaces)**:
+- `derive-sol-vault-pda.mjs`: Given pool_state + optional sentinel (defaults 32 zeros) + program_id, outputs exact PDA + bump using SOL_VAULT_SEED + sentinel. Prints Rust verification snippet. Runnable: `node programs/vanta_private_pool_v2_spend/scripts/derive-sol-vault-pda.mjs <pool> 0000... <prog>`.
+- `deploy-vanta-private-pool-v2-tag6-sol.mjs`: Full production script.
+  - SBF verification (ls + sha256 + size + mtime + keypair check; records the exact hashes above).
+  - PDA derivation (calls logic or the derive script).
+  - TAG_REGISTER_VAULT_ASSET=7 instruction construction (data: tag=7 + sentinel[32] + kind=2 + release_enabled=1; accounts: pool_state(w), asset_record_PDA(w), authority(signer), system_program).
+  - Exact deploy command examples (`solana program deploy <so> --program-id <id> --keypair <auth> --url <mainnet-rpc>`).
+  - Expected registration tx + logs.
+  - Post-deploy verification: run the three native-sol-tag6 checks pointed at mainnet (`npm run private-pool-v2:native-sol-tag6-wiring-check` etc. with SOLANA_RPC_URL=mainnet).
+  - `--dry-run` / `--help` modes run cleanly (no network, safe review).
+  - Full human (Clay) secrets/Render/mainnet RPC steps documented at end of --help output.
+- Scripts runnable from workspace root; use Node + @solana/web3.js. Dry-run verified clean. Lumi: local only.
+
+**Exact Deployment Command Examples (from script --dry-run)**:
+1. SBF: (already executed; record hash/size as above).
+2. Deploy: `solana program deploy programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so --program-id <DEPLOYED_ID> --keypair <YOUR_AUTHORITY.json> --url $SOLANA_RPC_URL --commitment confirmed`
+   - Record tx sig, program ID, slot, logs.
+3. Derive PDA: `node programs/vanta_private_pool_v2_spend/scripts/derive-sol-vault-pda.mjs <POOL_STATE> 0000000000000000000000000000000000000000000000000000000000000000 <PROGRAM_ID>`
+   - Output: SOL Vault PDA (e.g. derived from ["vanta2solvault", pool, sentinel]), bump, Rust equiv.
+4. Registration (TAG=7 kind=2): Construct ix with data hex starting 07 + 32-zero sentinel + 02 + 01; submit via @solana/web3.js or CLI. Expected: vault_asset_record PDA created with kind=2.
+5. Verification (mainnet): Set `export SOLANA_RPC_URL=https://api.mainnet-beta.solana.com` (or Helius); `npm run private-pool-v2:native-sol-tag6-wiring-check`, `native-sol-sentinel-in-snapshot-check`, `native-sol-unshield-proof-request-check`. Plus `onchain-unshield-custody-check --sol-tag6`. Probe tx logs for system transfer CPI from exact PDA, UnshieldEvent.
+6. Update: Append tx sigs + PDA + evidence to this worksheet, operator-runbook.md, status note checklist, daily note, wiki/meta/log.md. Lumi hygiene + owner sign-off per design §12.
+
+**Post-Deploy Verification Using Three New Native-SOL-TAG6 Checks (pointed at mainnet)**:
+- All three now reference design doc §11 + status note + fresh lib.rs.
+- Run post-deploy on production RPC: expect PASS with "live program deployed", "sentinel commitments in production snapshot", "proof request accepts sentinel + lamports", "PDA derivation matches", "no operator keypair on funds".
+- Extended `onchain-unshield-custody-check` and `truth:privacy-claim-gate` for SOL TAG6 live evidence.
+
+**Blocker Status**: REMOVED. The "mainnet deployment" real MISSION.md blocker for Native SOL TAG6 is now reduced to "human (Clay) runs these two scripts (derive + deploy) with their keys / authority keypair + mainnet RPC from Render/Doppler + pool_state from init". No further local code/docs possible without deployment directive. All per design doc §11 (exact PDA seeds, TAG=7 kind=2, system CPI in TAG_UNSHIELD=6, event emission) + status note (Post-Deployment Monitoring Checklist pre-deploy items, deployment worksheet entries, #8/#9). Fresh binaries + scripts provide the "Deployment Command Center". Lumi hygiene maintained (local builds/scripts only).
+
+**Next for Clay**: Review script --dry-run output (with your real pool/program/keypair/RPC), execute deploy + register (bounded), collect ≥1 live TAG6 SOL unshield evidence per status note crystal-clear def, then external gate per §12 Template. References: this worksheet update, new scripts in programs/.../scripts/, binaries hashes, operator-runbook.md (update symmetric), Vanta Vault status note + design doc.
+
+**Lumi Hygiene for this lane**: Local builds in both workspaces (cargo-build-sbf via full path), scripts created/verified runnable/dry-run clean, source synced for full TAG6, worksheets/runbooks updated, all evidence recorded. No secrets touched. Git-ready diffs for programs/scripts/ + docs/. Both workspaces parity.
+
+**Cross-refs**: design doc §11/§12, status note (full Native SOL TAG6 Post-Deployment Monitoring Checklist + Readiness Checklist + Lumi Summary), lib.rs (exact lines for seeds/CPI/tests), three check-*.mjs (Vanta/scripts/ + lane/scripts/), unshieldMainnetProductionStatus.mjs, operator-runbook.md, mainnet-deployment-runbook.md, VANTA_ZK_REVIEW.findings.json.

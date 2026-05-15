@@ -200,9 +200,9 @@ C01 verifier backend contract:
 - a future positive verifier lane must use `production-verifying-key-hash` evidence and replace the fail-closed custom error `14` boundary with reviewed verifier tests
 - guard: `npm run zk:c01-production-verifier-backend-candidate-check`
 
-### `6` - proof-verified unshield release preflight (reserved, fail closed)
+### `6` (TAG_UNSHIELD) - proof-verified unshield release preflight (TAG6 native SOL wired in test helper via system CPI; SPL path still reserved/not-wired. Per design doc §11 + VANTA_ZK_REVIEW U2.1 + 2026-05-14 status note)
 
-Reserves the future program-owned vault release ABI. It is intentionally not accepted yet.
+TAG6 + native SOL support implemented in the test helper (system_instruction::transfer CPI from program-owned vault PDA for VAULT_ASSET_KIND_SOL=2 + sentinel asset_id). Full production program (when deployed) will use dedicated ["vanta2solvault", pool_state, sentinel] PDA for lamports holding, generalized accounts (system_program), and UnshieldEvent emission. No operator keypair ever signs the funds transfer. Relayer submits user-constructed tx only. Sentinel bypasses zero preflights. Test helper demonstrates the exact private custody path; SPL token release remains not-wired in this scope.
 
 Unshield preflight accounts:
 

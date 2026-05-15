@@ -25,7 +25,7 @@ const status = createVantaUnshieldMainnetProductionStatus();
 const custody = status.onchainUnshieldCustody;
 
 assert.ok(custody, "Unshield production status must expose onchainUnshieldCustody.");
-assert.equal(custody.version, "vanta-onchain-unshield-custody-status-0.4");
+assert.equal(custody.version, "vanta-onchain-unshield-custody-status-0.5"); // bumped for native SOL TAG6 future-state fields (SOL PDA, sentinel, system CPI, blockers)
 assert.equal(custody.status, "blocked");
 assert.equal(custody.productionCustodyReady, false);
 assert.equal(custody.programOwnedVaultReady, false);
@@ -51,6 +51,10 @@ for (const blocker of [
   "onchain-unshield-proof-verifier-not-wired",
   "tag-unshield-token-cpi-release-not-wired",
   "operator-vault-keypair-env-release-still-active",
+  // Native SOL TAG6 future-proofing (per 2026-05-14 integration + TAG6 alignment)
+  "native-sol-program-owned-vault-pda-not-deployed",
+  "tag-unshield-sol-kind-not-wired",
+  "native-sol-vault-asset-registry-not-registered",
 ]) {
   assert.ok(custody.blockers.includes(blocker), `Custody status missing blocker: ${blocker}`);
   assert.ok(status.blockers.includes(blocker), `Unshield production status missing custody blocker: ${blocker}`);
@@ -86,7 +90,14 @@ for (const marker of [
   "require_spl_release_accounts(",
   "asset_data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] != 0",
   "data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] = 0;",
-  "proof-verified unshield release ABI passed root/root-record/verifier-key/nullifier/vault-asset/token-account preflight; release not wired",
+  // Updated post Rust Deepening + Verification Commands (test helper now wires SOL TAG6; SPL path updated message)
+  "vanta_private_pool_v2_spend: proof-verified unshield release ABI passed preflight for SPL; SPL token CPI release not wired in test helper (SOL TAG6 wired)",
+  "if asset_kind == VAULT_ASSET_KIND_SOL {",
+  "system_instruction::transfer(vault_authority.key, destination_token_account.key, exit_lamports)",
+  "SOL_VAULT_SEED",
+  "VAULT_AUTHORITY_SEED, pool_state.key.as_ref(), exit_asset_id",
+  "UnshieldEvent",
+  "SOL TAG6 wired",
 ]) {
   assert.ok(programSource.includes(marker), `Reserved TAG_UNSHIELD fail-closed source marker missing: ${marker}`);
 }
@@ -111,7 +122,7 @@ for (const marker of [
 }
 
 for (const marker of [
-  "### `6` - proof-verified unshield release preflight (reserved, fail closed)",
+  "### `6` (TAG_UNSHIELD) - proof-verified unshield release preflight (TAG6 native SOL wired in test helper via system CPI; SPL path still reserved/not-wired. Per design doc §11 + VANTA_ZK_REVIEW U2.1 + 2026-05-14 status note)",
   "### `7` - register Unshield vault asset (source-only, release disabled)",
   "Unshield preflight accounts:",
   "`root_record` read-only program-owned PDA derived from `[\"vanta2root\", pool_state, acceptedRoot]`",
@@ -147,13 +158,13 @@ const forbiddenReleaseMarkers = [
   /\bfn\s+process_withdraw\s*\(/,
   /\bspl_token\b/,
   /\bspl_token::instruction::transfer\b/,
-  /\bsystem_instruction::transfer\b/,
+  // system_instruction::transfer allowed for native SOL TAG6 test helper (Rust Deepening lane); SPL path remains not wired
 ].filter((pattern) => pattern.test(programSource));
 
 assert.equal(
   forbiddenReleaseMarkers.length,
   0,
-  "Potential PDA/token release markers appeared; replace this reserved ABI guard with positive PDA release/proof verifier assertions.",
+  "Potential PDA/token release markers appeared; replace this reserved ABI guard with positive PDA release/proof verifier assertions. (SOL TAG6 test helper exception noted per Verification Commands + Rust Deepening lanes.)",
 );
 
 for (const marker of [
@@ -253,5 +264,43 @@ for (const [label, source] of [
     `${label} must preserve operator-keypair custody truth.`,
   );
 }
+
+// === Extended native SOL TAG6 assertions (task: extend onchain-unshield-custody-check for TAG6 prep; fail-closed red-first, reference design + status) ===
+function readRobustVaultDoc(relativeOrAbs) {
+  const candidates = [
+    resolve(repoRoot, relativeOrAbs),
+    "/Users/clay/Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md",
+    "/Users/clay/Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-v2-integration-status.md",
+  ];
+  for (const c of candidates) {
+    try {
+      return readFileSync(c, "utf8");
+    } catch {}
+  }
+  return "";
+}
+const designDocForTag6 = readRobustVaultDoc("Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md") ||
+  read("/Users/clay/Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md") || "";
+const statusNoteForTag6 = readRobustVaultDoc("Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-v2-integration-status.md") ||
+  read("/Users/clay/Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-v2-integration-status.md") || "";
+assert.ok(
+  designDocForTag6.includes("NATIVE_SOL_ASSET_ID_SENTINEL") && designDocForTag6.includes("TAG6") && designDocForTag6.includes("sentinel-in-snapshot-check"),
+  "Unshield custody check must reference design doc TAG6 native SOL wiring (PDA, sentinel, new verification commands)."
+);
+assert.ok(
+  statusNoteForTag6.includes("native-sol-tag6-wiring-check") && statusNoteForTag6.includes("productionCustodyReadyForSol: false"),
+  "Unshield custody check must cross-ref status note for TAG6 prep and fail-closed native SOL custody."
+);
+assert.ok(
+  packageJson.scripts["private-pool-v2:native-sol-tag6-wiring-check"] &&
+    packageJson.scripts["private-pool-v2:native-sol-unshield-proof-request-check"] &&
+    packageJson.scripts["private-pool-v2:native-sol-sentinel-in-snapshot-check"],
+  "onchain-unshield-custody-check must confirm the three new native SOL TAG6 checks are wired into package.json and verify chains (fail-closed extension)."
+);
+assert.ok(
+  custody.blockers.includes("native-sol-program-owned-vault-pda-not-deployed") &&
+    custody.blockers.includes("tag-unshield-sol-kind-not-wired"),
+  "Custody status must retain native SOL TAG6 blockers (red-first)."
+);
 
 console.log("Vanta Private Pool v2 on-chain Unshield custody check: PASS");

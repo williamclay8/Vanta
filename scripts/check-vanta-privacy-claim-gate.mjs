@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { strict as assert } from "node:assert";
 import { createVantaMainnetReadinessSnapshot } from "../src/readiness/mainnetReadiness.mjs";
 import { createCurrentVantaShieldPrivacyReadiness } from "../src/readiness/shieldPrivacyReadiness.mjs";
 
@@ -237,3 +238,35 @@ console.log(
     2,
   ),
 );
+
+// === Extended native SOL TAG6 assertions (fail-closed red-first per task + design/status note) ===
+import { readFileSync as gateReadFile } from "node:fs";
+import { resolve as gateResolve } from "node:path";
+const gateRepoRoot = gateResolve(import.meta.dirname, "..");
+function gateRead(p) {
+  try { return gateReadFile(gateResolve(gateRepoRoot, p), "utf8"); } catch { return ""; }
+}
+const gateUnshieldStatus = gateRead("src/readiness/unshieldMainnetProductionStatus.mjs");
+const gateUnshieldTrust = gateRead("src/solana/unshieldTrustContract.ts");
+const gateDesign = gateRead("/Users/clay/Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md") || gateRead("Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md");
+const gateStatusNote = gateRead("/Users/clay/Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-v2-integration-status.md") || gateRead("Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-v2-integration-status.md");
+
+assert.ok(
+  gateUnshieldStatus.includes("productionCustodyReadyForSol: false") &&
+    gateUnshieldStatus.includes("nativeSolProgramOwnedVaultPdaReady: false") &&
+    gateUnshieldStatus.includes("native-sol-program-owned-vault-pda-not-deployed"),
+  "privacy-claim-gate must assert native SOL TAG6 custody fields remain false (no elevation of claims)."
+);
+assert.ok(
+  gateUnshieldTrust.includes("productionCustodyReadyForSol: false") && gateUnshieldTrust.includes("nativeSolLongTermBoundary"),
+  "privacy-claim-gate must confirm unshieldTrustContract preserves native SOL TAG6 fail-closed boundary."
+);
+assert.ok(
+  gateDesign.includes("productionCustodyReadyForSol: false") && gateDesign.includes("program-owned-sol-vault-pda-system-cpi"),
+  "privacy-claim-gate must reference design doc strict native SOL TAG6 truth boundary."
+);
+assert.ok(
+  gateStatusNote.includes("productionCustodyReadyForSol: false") && gateStatusNote.includes("TAG6 prep"),
+  "privacy-claim-gate must cross-reference status note for TAG6 native SOL assertions (red-first)."
+);
+console.log("Native SOL TAG6 privacy claim extensions: asserted (fail-closed).");

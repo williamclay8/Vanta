@@ -2,6 +2,7 @@ import { createJsonSnapshotStore } from "./vantaJsonSnapshotStore.mjs";
 import { createPostgresSnapshotStore } from "./vantaPostgresSnapshotStore.mjs";
 
 const roleDefaults = {
+  // vanta-private-pool-v2:indexer role (unified tree for max anonymity; supports any assetId incl. NATIVE_SOL_ASSET_ID_SENTINEL for native SOL TAG6 post-Phase 1 ingestion)
   indexer: { commitments: [], nullifiers: [] },
   prover: { proofs: [] },
   relayer: { claims: [], quotes: [] },

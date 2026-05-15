@@ -34,11 +34,12 @@ This is not proof verification, not a production verifying key, not nullifier co
 - `npm run lanes:trust-contract-check`
 - `npm run unshield:trust-packet-check`
 - `npm run mainnet:unshield-production-status-check`
+- **TAG6 toolkit for §12 gates (pre-deploy + live evidence per design §12 + status note Post-Deployment Monitoring Checklist)**: `npm run private-pool-v2:tag6-full-predeploy-checklist` (master: scripts/native-sol-tag6/run-tag6-full-predeploy-checklist.mjs), `npm run private-pool-v2:native-sol-tag6-full-verify` (verifier: scripts/verify-full-tag6-release-evidence.mjs), probe/scanner/generator as registered in package.json; see blocker map R6A/A1-TAG6 Post-Deployment Phase for exact paths + evidence bundles in scripts/native-sol-tag6/examples/
 - `npm run privacy-audit:tracker-check`
 
 ## Lumi hygiene
 
-- Local: implemented in source, docs, status surfaces, and guards.
+- Local: implemented in source, docs, status surfaces, and guards. **TAG6 toolkit (scripts/native-sol-tag6/run-tag6-full-predeploy-checklist.mjs master checklist + verifier/probe/scanner/generator) now canonical for §12 gates in audit surfaces (blocker map, tracker state/completion-audit/R notes, findings.json, unshieldMainnetProductionStatus.mjs + unshieldTrustContract.ts nativeSol* + monitoringRefs/visibleStatusCopy updated to point to toolkit paths)**.
 - Committed: `7635c9b` (`Add TAG_UNSHIELD verifier key preflight`).
 - Pushed: `7635c9b641a505379b82e74a6679986dbabc55fe` is on `origin/codex/vanta-zk-review-hardening` and `origin/main`.
-- Deployed/live: website/audit-copy surfaces are live on `https://vantaprivacy.xyz` through Render deploy `dep-d834ce4vikkc73fb2ep0`; the spend program SBF bytecode is not redeployed/live-verified, so this remains source/local-SBF preflight evidence only.
+- Deployed/live: website/audit-copy surfaces are live on `https://vantaprivacy.xyz` through Render deploy `dep-d834ce4vikkc73fb2ep0`; the spend program SBF bytecode is not redeployed/live-verified, so this remains source/local-SBF preflight evidence only. Note implications for public/.well-known/vanta-audit.json (TAG6 toolkit as official §12 implementation).

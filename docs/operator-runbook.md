@@ -1431,3 +1431,36 @@ Do not move this runbook to mainnet operation until Vanta has:
 - third-party security review and audit signoff
 - legal, compliance, and custody review where applicable
 - `npm run mainnet:readiness-check` updated to prove those blockers are resolved instead of truthfully blocking launch
+
+## Native SOL v2 + TAG6 Operator Notes (Production Readiness Prep — Full Blast 2026-05-14)
+
+**Authoritative references**: 
+- Design document: `wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md` (Phase 1/2 complete locally, Phase B TAG6 prep, success criteria, risks, verification requirements).
+- Status note: `wiki/analyses/2026-05-14-native-sol-v2-integration-status.md` (Recommended Next Actions #5 full regression, #6 Lumi hygiene, #7 production readiness artifacts: SBF ABI/comments, operator runbook extensions, Crucible SOL scenarios, mainnet worksheet for SOL vault PDA + TAG6).
+- VANTA_ZK_REVIEW.md U2.1 (native SOL data model, PDA seeds, VAULT_ASSET_KIND_SOL=2, system CPI in TAG_UNSHIELD=6, events, no re-shield guarantee).
+- Architecture blocker map (R6A / native-SOL-second-class remediated locally via sentinel migration + ingestion; A1-TAG6, A2-Operator-Keypair-Custody still active for SOL).
+
+**Current Operator Surfaces for Native SOL v2**:
+- Ingestion: `POST /v1/ingest-native-sol-shield-deposit` in private-pool-v2-service-network.mjs — client supplies sentinel-based commitment + depositSignature; server validates on-chain transfer, normalizes to sentinel, appends to unified VANTA_PRIVATE_POOL_V2_UNIFIED_TREE_ID via appendCommitment.
+- Client migration: migrateLegacyVantaShieldedSolNoteToV2 in vantaShieldState.ts (one-time for legacy WSOL notes); new shields use sentinel from Day 1.
+- Status surfaces: unshieldMainnetProductionStatus.mjs (nativeSolV2IndexerIngestionReady: false, productionCustodyReadyForSol: false), unshieldTrustContract.ts (nativeSolLongTermBoundary with target "program-owned-sol-vault-pda-system-cpi").
+- Verification commands (run in regression): `npm run private-pool-v2:native-sol-shield-ingestion-check`, `npm run private-pool-v2:native-sol-tag6-wiring-check`, `npm run private-pool-v2:native-sol-unshield-proof-request-check`, `npm run private-pool-v2:native-sol-sentinel-in-snapshot-check`, `npm run private-pool-v2:onchain-unshield-custody-check`, `npm run truth:privacy-claim-gate`, `npm run shield:verify`, `npm run private-pool-v2:verify`.
+
+**TAG6 / On-Chain Native SOL Path (Operator Prep)**:
+- Future: TAG_UNSHIELD = 6 generalized for SOL (accounts include system_program; vault_holding_pda for lamports instead of token account).
+- Program logic: asset_kind branch → system_instruction::transfer(sol_vault_pda, destination, lamports) CPI, PDA-signed by seeds ["vanta2solvault", pool_state, sentinel] (or generalized vault seed + kind=2).
+- Vault asset registry: ["vanta2asset", pool_state, sentinel] registered with VAULT_ASSET_KIND_SOL via TAG_REGISTER_VAULT_ASSET=7.
+- Events: ShieldEvent / UnshieldEvent {nullifier, root} for indexer ingestion of on-chain transfer log.
+- No operator keypair on funds movement (closes A2 for SOL).
+- Operator monitoring: watch for on-chain program deploy with SOL support, live indexer ingesting sentinel commitments, proof-verified TAG6 releases.
+- Fail-closed: ERR_UNSHIELD_RELEASE_NOT_WIRED until proof verification + nullifier + CPI wired. productionCustodyReadyForSol remains false until live evidence + external gates.
+
+**Crucible / SBF / Mainnet Deployment Notes**:
+- SBF ABI updated with expanded comments for VAULT_ASSET_KIND_SOL, sentinel bypass, system CPI path (see programs/.../lib.rs). Fresh rebuild performed in regression.
+- Crucible harness (fuzz/vanta_private_pool_v2_spend): extend with SOL-specific invariant scenarios (system transfer from PDA, sentinel asset_id registration, kind=2 preflight bypass, duplicate nullifier no-release for SOL) once on-chain impl complete. Current harness SPL-only.
+- Mainnet deployment worksheet (docs/mainnet-launch-worksheet.md + mainnet-deployment-runbook.md): add entries for SOL vault PDA deployment, TAG_REGISTER_VAULT_ASSET (kind=2), TAG6 SOL wiring test vectors, indexer cross-ref of on-chain transfer logs, native SOL note recovery post-TAG6.
+- Operator runbook extension: add monitoring for native SOL deposit signatures (already in public Shield receipts), sentinel commitment ingestion health, future TAG6 SOL release logs.
+
+**Lumi Hygiene & Strict Boundaries**: All local (edits + rebuild + regression runs), committed (pending this Full Blast), pushed (pending), evidence in design doc/status note + daily/wiki/meta/log. No privacyClaimAllowed or productionCustodyReadyForSol flip. References this status note + design doc required for any future claim elevation. "As private as possible" (program-owned PDA + on-chain proof verification) prioritized over operator-keypair shortcuts.
+
+Run `npm run private-pool-v2:verify` (expect SBF gate) + `npm run truth:privacy-claim-gate` after changes. Update blocker map, findings ledger, audit tracker with this runbook extension.

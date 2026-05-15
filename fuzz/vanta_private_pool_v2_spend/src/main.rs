@@ -28,6 +28,18 @@ const ROOT_MAGIC: &[u8; 8] = b"VNTA2ROT";
 const ROOT_RECORD_MAGIC: &[u8; 8] = b"VNTA2RRC";
 const VERIFIER_KEY_MAGIC: &[u8; 8] = b"VNTA2VKY";
 const VAULT_ASSET_MAGIC: &[u8; 8] = b"VNTA2AST";
+
+/// Production Readiness Artifact — Crucible SOL-specific scenarios (per design doc + status note Recommended Next Action #7)
+/// TODO (on-chain TAG6 SOL impl): Extend invariant_test harness with:
+/// - SOL vault PDA registration (VAULT_ASSET_KIND_SOL=2, sentinel asset_id, system account lamports holder)
+/// - TAG_UNSHIELD=6 for SOL: system_program account present, system_instruction::transfer CPI from PDA (signed), no token CPI
+/// - Sentinel bypass preflight (zero asset_id allowed only for sentinel in SOL path)
+/// - Duplicate nullifier / invalid proof no-mutation for SOL unshield (lamports not released)
+/// - Indexer cross-ref: UnshieldEvent + on-chain transfer log match for amount/sentinel
+/// - Crucible actions: native_sol_shield_deposit (SystemProgram.transfer + memo), native_sol_unshield_proof_request (sentinel note in unified tree)
+/// Current harness: SPL-only (VAULT_ASSET_KIND_SPL). SBF ABI comments updated in lib.rs. Run `npm run private-pool-v2:crucible-check` (dry-run) in regression.
+/// References: 2026-05-14-native-sol-private-pool-v2-integration.md §11, VANTA_ZK_REVIEW.md U2.1, architecture blocker map A1-TAG6, mainnet worksheet SOL PDA entries.
+/// All SOL TAG6 scenarios remain fail-closed until program impl + live evidence. Lumi hygiene recorded in wiki/meta/log.md + daily note.
 const NULLIFIER_MARKER_SEED: &[u8] = b"vanta2nul";
 const OUTPUT_RECORD_SEED: &[u8] = b"vanta2out";
 const ROOT_RECORD_SEED: &[u8] = b"vanta2root";

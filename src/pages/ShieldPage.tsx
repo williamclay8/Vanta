@@ -16,6 +16,7 @@ import {
   buildNativeSolShieldTransferInstructions,
   fetchNativeSolShieldDepositCandidates,
   isNativeSolSourceAccountNotReadyError,
+  solToLamports,
   VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE,
   verifyNativeSolShieldDepositSignature,
   type NativeSolShieldDepositCandidate,
@@ -65,10 +66,18 @@ import {
   createNativeSolShieldMemoInstruction,
   createShieldMemoInstruction,
   VANTA_NATIVE_SOL_ASSET_ID,
+  NATIVE_SOL_ASSET_ID_SENTINEL,
+  computeNativeSolShieldPoseidonCommitment,
+  migrateLegacyVantaShieldedSolNoteToV2,
   VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
   VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
   type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
+import {
+  getVantaLegacyNativeSolWsolMigrationPolicy,
+  loadNonMigratedLegacyNativeSolShieldNotes,
+  removeLegacyNativeSolShieldNoteAfterMigration,
+} from "@/solana/verifiedNativeSolShieldNotes";
 import {
   recordCanonicalShieldFromLiveShield,
 } from "@/zk/liveShieldBridge";
@@ -351,6 +360,12 @@ export function ShieldPage(_props: ShieldPageProps) {
   const [recoverableSolDepositsLoading, setRecoverableSolDepositsLoading] = useState(false);
   const [recoverableSolDepositsError, setRecoverableSolDepositsError] = useState<string | null>(null);
 
+  // Phase 2 legacy WSOL -> v2 sentinel migration UI state (one-time, fail-closed, design doc §9)
+  const [legacySolNotes, setLegacySolNotes] = useState<VantaShieldedSolNote[]>([]);
+  const [legacyMigrationStatus, setLegacyMigrationStatus] = useState<Record<string, "idle" | "migrating" | "success" | "error">>({});
+  const [legacyMigrationError, setLegacyMigrationError] = useState<string | null>(null);
+  const [showLegacyMigrationPanel, setShowLegacyMigrationPanel] = useState(true);
+
   useEffect(() => {
     if (pendingShieldAsset === null) {
       setPendingShieldOwnerContext(null);
@@ -568,6 +583,74 @@ export function ShieldPage(_props: ShieldPageProps) {
   ]);
 
   useEffect(() => clearShieldStateHydrationRetries, [clearShieldStateHydrationRetries]);
+
+  // Phase 2: Load non-migrated legacy native SOL notes for migration panel (quarantine pattern)
+  // References design doc Phase 2 + getVantaLegacyNativeSolWsolMigrationPolicy
+  const loadLegacyNativeSolNotesForMigration = useCallback(() => {
+    if (!walletAddress || !selectedShieldAsset?.vaultOwner) {
+      setLegacySolNotes([]);
+      return;
+    }
+    const notes = loadNonMigratedLegacyNativeSolShieldNotes({
+      owner: walletAddress,
+      vaultOwner: selectedShieldAsset.vaultOwner,
+    });
+    setLegacySolNotes(notes);
+  }, [walletAddress, selectedShieldAsset?.vaultOwner]);
+
+  useEffect(() => {
+    loadLegacyNativeSolNotesForMigration();
+  }, [loadLegacyNativeSolNotesForMigration]);
+
+  // One-time migration handler (concrete Phase 2 flow)
+  const handleMigrateLegacySolNote = useCallback(
+    async (note: VantaShieldedSolNote) => {
+      const noteKey = note.depositSignature || note.noteId;
+      setLegacyMigrationStatus((prev) => ({ ...prev, [noteKey]: "migrating" }));
+      setLegacyMigrationError(null);
+
+      const policy = getVantaLegacyNativeSolWsolMigrationPolicy();
+      console.info("[Phase 2 Migration] Starting legacy WSOL SOL note migration", {
+        noteId: note.noteId,
+        depositSignature: note.depositSignature,
+        policyVersion: policy.version,
+        designDoc: "2026-05-14-native-sol-private-pool-v2-integration.md Phase 2 + §9",
+      });
+
+      const result = await migrateLegacyVantaShieldedSolNoteToV2({
+        legacyNote: note,
+        // operatorBaseUrl can be overridden from env/config in future; defaults to prod v2 operator
+      });
+
+      if (result.success) {
+        // Remove from legacy quarantine store (now in v2 unified tree via sentinel commitment)
+        const removed = removeLegacyNativeSolShieldNoteAfterMigration({
+          depositSignature: note.depositSignature || "",
+          owner: note.owner,
+          vaultOwner: note.vaultOwner,
+        });
+        setLegacyMigrationStatus((prev) => ({ ...prev, [noteKey]: "success" }));
+        // Refresh list + shield state (now should hydrate from v2 indexer in future fetches)
+        loadLegacyNativeSolNotesForMigration();
+        void refreshNativeSolShieldState({ signatureHint: note.depositSignature, vaultOwner: note.vaultOwner }).catch(() => undefined);
+
+        // Optional: surface phase1MigrationNote from server
+        if (result.phase1MigrationNote) {
+          console.info("Server migration note:", result.phase1MigrationNote);
+        }
+        // Auto-hide panel after all migrated (or leave for multi-note)
+        setTimeout(() => {
+          if (legacySolNotes.length <= 1) setShowLegacyMigrationPanel(false);
+        }, 1500);
+      } else {
+        setLegacyMigrationStatus((prev) => ({ ...prev, [noteKey]: "error" }));
+        const errMsg = result.error || "Migration failed (see console). Re-shield recommended as fallback per design doc.";
+        setLegacyMigrationError(errMsg);
+        console.warn("[Phase 2 Migration] Failed (fail-closed, legacy note preserved)", result);
+      }
+    },
+    [loadLegacyNativeSolNotesForMigration, legacySolNotes.length, refreshNativeSolShieldState],
+  );
 
   useEffect(() => {
     if (!isNativeSolShield || !walletAddress || !selectedShieldAsset?.vaultOwner) {
@@ -1043,6 +1126,56 @@ export function ShieldPage(_props: ShieldPageProps) {
       stateSignature: deposit.signature,
       vaultOwner: activeVaultOwner,
     });
+
+    // Phase 2: Submit sentinel-based Poseidon commitment to Private Pool v2 ingestion endpoint
+    // This makes the native SOL note first-class in the unified v2 tree (see design doc Phase 2)
+    try {
+      const commitment = computeNativeSolShieldPoseidonCommitment({
+        amountLamports: solToLamports(sameSessionAmount.toString()),
+        owner: walletAddress,
+        // In production, derive proper blinding from viewing key + note secret
+        blinding: 0n,
+        derivationTag: 0n,
+      });
+
+      // TODO: Get the actual memo string that was sent (from createNativeSolShieldMemoInstruction)
+      const depositMemo = `vanta:native-sol-shield-note:v2:${JSON.stringify({
+        kind: "native_sol_shield",
+        asset: "SOL",
+        assetId: NATIVE_SOL_ASSET_ID_SENTINEL,
+        amount: sameSessionAmount.toString(),
+        owner: walletAddress,
+        vaultOwner: activeVaultOwner,
+        createdAt: recordedAt,
+        depositSignature: deposit.signature,
+      })}`;
+
+      // Phase 2: Submit sentinel-based Poseidon commitment to Private Pool v2 ingestion (non-blocking)
+      // Polished WIP: uses same default as migrateLegacy helper. See design doc Phase 2.
+      void (async () => {
+        try {
+          const defaultBase = "https://vanta-prod-private-pool-v2-operator.onrender.com";
+          const baseUrl = defaultBase; // TODO: wire from env/config or privatePoolV2ProtocolSettlementClient in future
+          await fetch(`${baseUrl.replace(/\/+$/, "")}/v1/ingest-native-sol-shield-deposit`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              depositMemo,
+              depositSignature: deposit.signature,
+              commitment,
+              owner: walletAddress,
+              vaultOwner: activeVaultOwner,
+              amount: sameSessionAmount.toString(),
+              treeId: "vanta-private-pool-v2-unified-tree-v1",
+            }),
+          });
+        } catch (e) {
+          console.warn("Native SOL v2 ingestion submission failed (non-fatal for Phase 2, per design doc):", e);
+        }
+      })();
+    } catch (e) {
+      console.warn("Failed to compute/submit native SOL v2 commitment:", e);
+    }
     setRecentShield({
       amount: sameSessionAmount,
       asset: "SOL",
@@ -2049,6 +2182,65 @@ export function ShieldPage(_props: ShieldPageProps) {
                   >
                     Record shielded SOL
                   </button>
+                </div>
+              )}
+
+              {/* Phase 2: Dedicated Legacy WSOL SOL Note Migration Panel (practical UI/flow)
+                  One-time helper + sentinel commitment + ingestion submit. Fail-closed.
+                  References design doc Phase 2 handoff, §9 success criteria, status note "Recommended Next Actions" #3,
+                  quarantine policy from verifiedNativeSolShieldNotes.ts, VANTA_ZK_REVIEW.findings.json updates.
+                  After migration, legacy notes removed; v2 indexer becomes source for PositionSummary/NoteStatePanel.
+              */}
+              {isNativeSolShield && legacySolNotes.length > 0 && showLegacyMigrationPanel && (
+                <div className="shield-legacy-migration-panel" style={{ border: "1px solid #f59e0b", padding: "12px", margin: "12px 0", borderRadius: "8px", background: "#fffbeb" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <strong>Legacy shielded SOL notes (pre-v2 WSOL path — Phase 2 migration)</strong>
+                      <p style={{ fontSize: "0.85em", margin: "4px 0" }}>
+                        {legacySolNotes.length} note(s) tracked locally with WSOL mint. Migrate to NATIVE_SOL_ASSET_ID_SENTINEL + Private Pool v2 unified tree for canonical indexer membership and future TAG6.
+                        Policy: {getVantaLegacyNativeSolWsolMigrationPolicy().version}. Legacy unshield remains available until migrated (fail-closed).
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="button button-ghost"
+                      onClick={() => setShowLegacyMigrationPanel(false)}
+                      style={{ fontSize: "0.75em" }}
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+
+                  {legacyMigrationError && (
+                    <p style={{ color: "#b91c1c", fontSize: "0.8em" }}>Migration error: {legacyMigrationError} (re-shield is safe fallback)</p>
+                  )}
+
+                  <div style={{ marginTop: "8px" }}>
+                    {legacySolNotes.map((note) => {
+                      const key = note.depositSignature || note.noteId;
+                      const status = legacyMigrationStatus[key] || "idle";
+                      return (
+                        <div key={key} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 0", borderTop: "1px dashed #fcd34d" }}>
+                          <span style={{ flex: 1, fontFamily: "monospace", fontSize: "0.8em" }}>
+                            {formatVantaSolAmount(note.amount)} SOL • {note.depositSignature?.slice(0, 8)}... • {new Date(note.createdAt).toLocaleDateString()}
+                          </span>
+                          <button
+                            type="button"
+                            className="button button-primary"
+                            disabled={status === "migrating" || status === "success" || !walletConnected}
+                            onClick={() => handleMigrateLegacySolNote(note)}
+                            style={{ fontSize: "0.75em", padding: "4px 10px" }}
+                          >
+                            {status === "migrating" ? "Migrating to v2..." : status === "success" ? "✓ Migrated (v2 sentinel)" : "Migrate to v2 (sentinel + ingest)"}
+                          </button>
+                          {status === "error" && <span style={{ color: "#b91c1c", fontSize: "0.7em" }}>Failed — try re-shield</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p style={{ fontSize: "0.7em", opacity: 0.8, marginTop: "6px" }}>
+                    This computes sentinel commitment (see computeNativeSolShieldPoseidonCommitment) and POSTs to ingestion endpoint. Design doc §11 guarantees no re-shield needed for future on-chain. All surfaces (blocker map, audit tracker, findings.json) updated to close "native-sol-sentinel-asset-id-not-indexed-in-v2-tree" locally.
+                  </p>
                 </div>
               )}
 

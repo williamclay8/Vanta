@@ -2086,7 +2086,10 @@ for (const phrase of [
 const ids = new Set();
 for (const finding of ledger.findings) {
   assert(typeof finding.id === "string", "finding is missing id");
-  assert(/^VANTA-ZK-2026-05-09-[CHM]\d{2}$/u.test(finding.id), `${finding.id} is not a stable VANTA ZK finding id`);
+  assert(
+    /^VANTA-ZK-2026-05-09-[CHM]\d{2}$/u.test(finding.id) || /^VANTA-ZK-FEEDBACK-2026-05-(09|1[0-4])-[A-Z0-9-]+$/u.test(finding.id),
+    `${finding.id} is not a stable VANTA ZK finding id`
+  );
   assert(!ids.has(finding.id), `${finding.id} is duplicated`);
   ids.add(finding.id);
 

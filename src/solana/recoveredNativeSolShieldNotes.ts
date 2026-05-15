@@ -1,6 +1,12 @@
 import type { NativeSolShieldDepositCandidate } from "@/solana/nativeSolShield";
 import type { VantaShieldedSolNote } from "@/solana/vantaShieldState";
 
+/**
+ * @deprecated (Phase 2 migration-only) — Legacy parallel WSOL-based tracking.
+ * Shares quarantine + migration policy with verifiedNativeSolShieldNotes (getVantaLegacyNativeSolWsolMigrationPolicy).
+ * Use migrateLegacyVantaShieldedSolNoteToV2 + removeLegacy... after successful sentinel ingestion.
+ * See design document: /Users/clay/Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md Phase 2 handoff + §9.
+ */
 const STORAGE_KEY = "vanta.recoveredNativeSolShieldNotes.v1";
 
 type StoredRecoveredNativeSolShieldNote = {

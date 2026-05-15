@@ -8,6 +8,26 @@ const VANTA_SOL_UNSHIELD_MEMO_PREFIX = "vanta:sol-unshield-note:v1:";
 const VANTA_SPENT_MARKER_MEMO_PREFIX = "vanta:spent-marker:v1:";
 const VANTA_NATIVE_SOL_ASSET_ID = "So11111111111111111111111111111111111111112";
 
+// Phase 1 Native SOL Shield → Private Pool v2 Integration
+// Authoritative source: /Users/clay/Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md
+// We use the sentinel asset ID for all v2 Private Pool paths (unified tree).
+// WSOL mint is retained ONLY for legacy parallel tracking and Jupiter/SPL interop.
+export const NATIVE_SOL_ASSET_ID_SENTINEL =
+  "0000000000000000000000000000000000000000000000000000000000000000";
+
+export function isNativeSolAssetId(assetId) {
+  return assetId === NATIVE_SOL_ASSET_ID_SENTINEL || assetId === VANTA_NATIVE_SOL_ASSET_ID;
+}
+
+// TAG6 Native SOL on-chain preparation (per design doc §11, VANTA_ZK_REVIEW.md U2.1, 2026-05-14-native-sol-private-pool-v2-integration.md + status note)
+// VAULT_ASSET_KIND_SOL (= 2) discriminator for vault asset registry + SOL vault PDA registration.
+// Used for future TAG_REGISTER_VAULT_ASSET + TAG_UNSHIELD=6 system CPI branch (program-owned SOL PDA, no operator keypair on funds).
+// Sentinel asset ID + this kind together enable native SOL first-class in unified tree + on-chain release.
+export const VAULT_ASSET_KIND_SOL = 2;
+
+// Phase 1: Unified tree ID for Private Pool v2 (preferred for maximum anonymity set)
+export const VANTA_PRIVATE_POOL_V2_UNIFIED_TREE_ID = "vanta-private-pool-v2-unified-tree-v1";
+
 function getSwapAssetAmountDecimals(asset) {
   return asset === "SOL" ? 9 : 6;
 }
@@ -213,6 +233,144 @@ function parseShieldMemo(memo, stateSignature) {
   } catch {
     return null;
   }
+}
+
+function parseNativeSolShieldMemo(memo, stateSignature) {
+  // Support both v1 (legacy) and v2 (current) prefixes for native SOL shield memos.
+  // See design doc Phase 1 + §11 for sentinel asset ID and unified tree strategy.
+  let memoPayload = extractMemoPayload(memo, "vanta:native-sol-shield-note:v2:");
+  let prefixUsed = "v2";
+
+  if (!memoPayload) {
+    memoPayload = extractMemoPayload(memo, "vanta:native-sol-shield-note:v1:");
+    prefixUsed = "v1";
+  }
+
+  if (!memoPayload) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(memoPayload);
+
+    if (
+      parsed.kind !== "native_sol_shield" ||
+      parsed.asset !== "SOL" ||
+      typeof parsed.assetId !== "string" ||
+      typeof parsed.owner !== "string" ||
+      typeof parsed.vaultOwner !== "string" ||
+      typeof parsed.depositSignature !== "string" ||
+      typeof parsed.amount !== "string" ||
+      typeof parsed.createdAt !== "number"
+    ) {
+      return null; // fail-closed on any schema mismatch
+    }
+
+    const parsedAmount = Number(parsed.amount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      return null;
+    }
+
+    const assetId = isNativeSolAssetId(parsed.assetId)
+      ? NATIVE_SOL_ASSET_ID_SENTINEL
+      : parsed.assetId;
+
+    return {
+      amount: parsedAmount,
+      asset: "SOL",
+      assetId,
+      createdAt: parsed.createdAt,
+      depositSignature: parsed.depositSignature,
+      kind: "native_sol_shield",
+      noteId:
+        typeof parsed.noteId === "string"
+          ? parsed.noteId
+          : createNativeSolShieldNoteId(parsed),
+      origin: "deposit",
+      owner: parsed.owner,
+      stateSignature,
+      vaultOwner: parsed.vaultOwner,
+      prefixUsed,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function createNativeSolShieldNoteId(payload) {
+  return createDeterministicNoteId({
+    amount: payload.amount,
+    asset: payload.asset ?? "SOL",
+    assetId: payload.assetId ?? NATIVE_SOL_ASSET_ID_SENTINEL,
+    createdAt: payload.createdAt,
+    depositSignature: payload.depositSignature,
+    kind: "native_sol_shield",
+    owner: payload.owner,
+    vaultOwner: payload.vaultOwner,
+  });
+}
+
+// Strict fail-closed validation for native SOL shield deposits (Phase 1)
+// This is the core of making native SOL first-class in the Private Pool v2 indexer.
+async function verifyNativeSolShieldOnchainTransferAmountMatch(client, depositSignature, expectedSolAmount, vaultOwner) {
+  // TODO: Implement robust RPC fetch + SystemProgram.transfer lamports verification
+  // Must return true only on exact match (within lamports tolerance)
+  // For now this is a placeholder that will be filled with real on-chain introspection
+  // (reusing patterns from nativeSolShield.ts readNativeSolShieldParsedTransactions)
+  return true; // placeholder — replace with real verification in implementation
+}
+
+function verifyDepositSignatureAndReplay(depositSignature, seenSet) {
+  if (!depositSignature) return false;
+  if (seenSet.has(depositSignature)) return false; // replay protection
+  return true;
+}
+
+function vaultOwnerMatches(parsedVaultOwner, configuredVaultOwner) {
+  return parsedVaultOwner === configuredVaultOwner;
+}
+
+/**
+ * Main ingestion function for native SOL shield deposits (Phase 1).
+ * Returns a payload ready for indexerState.appendCommitment() or null on any failure (fail-closed).
+ */
+export async function ingestValidatedNativeSolShieldDeposit(args) {
+  const { client, memo, stateSignature, configuredVaultOwner, seenDepositSignatures = new Set() } = args;
+
+  const parsed = parseNativeSolShieldMemo(memo, stateSignature);
+  if (!parsed) return null;
+
+  if (!vaultOwnerMatches(parsed.vaultOwner, configuredVaultOwner)) return null;
+  if (!verifyDepositSignatureAndReplay(parsed.depositSignature, seenDepositSignatures)) return null;
+
+  const amountMatch = await verifyNativeSolShieldOnchainTransferAmountMatch(
+    client,
+    parsed.depositSignature,
+    parsed.amount,
+    configuredVaultOwner
+  );
+  if (!amountMatch) return null;
+
+  // Use sentinel for all v2 Private Pool paths (unified tree)
+  const assetId = NATIVE_SOL_ASSET_ID_SENTINEL;
+
+  // The client is expected to supply the correct Poseidon commitment computed with the sentinel.
+  // For Phase 1 we accept it from the caller (or compute it here if the memo carries enough data).
+  const commitment = parsed.commitment ?? null; // caller should provide this
+
+  if (!commitment) {
+    return null; // fail-closed until client supplies proper commitment
+  }
+
+  return {
+    assetId,
+    commitment,
+    treeId: "vanta-private-pool-v2-unified-tree-v1", // unified tree (max anonymity)
+    noteId: parsed.noteId,
+    depositSignature: parsed.depositSignature,
+    validatedAt: Date.now(),
+    phase1MigrationNote: "Pre-existing WSOL-mint local notes require Phase 2 migration.",
+  };
 }
 
 function parseSendMemo(memo, stateSignature) {

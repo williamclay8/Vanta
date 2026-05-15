@@ -1,5 +1,7 @@
 # R12 Legacy V1 Memo Quarantine - 2026-05-14
 
+**Phase 2 extension (Full Blast subagent)**: Native SOL legacy WSOL notes now follow identical quarantine + migration pattern (policy fn + one-time helper that computes sentinel commitment + submits to ingestion, UI panel in ShieldPage, remove on success). This closes the "native-sol-sentinel-asset-id-not-indexed-in-v2-tree" blocker locally (see architecture-blocker-map.md, VANTA_ZK_REVIEW.findings.json, design doc Phase 2 + §9). New native SOL uses sentinel v2 exclusively. Legacy notes quarantined, unshield fallback preserved (fail-closed). Cross-ref R6A note.
+
 Status: local implemented.
 
 ## What Changed

@@ -1307,6 +1307,8 @@ Notes:
 Effort: 1 week. The work is mostly back-porting the correct Merkle pattern from the actual_private_spend circuit, adding constraint #6, and updating the fixture.
 
 ### U2. On-chain unshield instruction
+### U2.1 Native SOL TAG6 unshield proof request compatibility + wiring (2026-05-14 update)
+Native SOL unshield proof request (VantaPrivatePoolV2UnshieldProofRequest) is asset-agnostic and accepts sentinel assetId in note; exitTermsCommitment + public input hash support lamports semantics (forward-compat for TAG6). See design doc Phase 3/4, native-sol-unshield-proof-request-check, sentinel-in-snapshot-check, tag6-wiring-check. Unified tree + sentinel commitments remain valid for future on-chain. No circuit changes. Strict fail-closed (productionCustodyReadyForSol false). Cross-ref 2026-05-14-native-sol-private-pool-v2-integration.md and status note.
 
 Upgrades the current reserved fail-closed `TAG_UNSHIELD = 6` source ABI into a real release instruction. Target account list:
 
@@ -1348,6 +1350,83 @@ Critical: **the signer is anyone.** A relayer can pay rent/fee for the unshield,
 This eliminates the operator's vault keypair entirely. The vault is a PDA. There is no env-loaded private key in the unshield path.
 
 Effort: 2 weeks, gated on shield W4 (vault PDA) and shield W6 (Groth16 verifier).
+
+### U2-NS. Native SOL specifics for TAG6 (shield deposit into SOL PDA + unshield release from SOL PDA)
+
+**Current vs Future (explicit per Future-Proofing & TAG6 Alignment subagent)**:
+- Today: Native SOL shield = plain `SystemProgram.transfer` to operator `vaultOwner` wallet + `vanta:native-sol-shield-note:v2:` memo (kind="native_sol_shield"). Parallel non-v2 tracking. No program PDA. Unshield for SOL uses operator-signed path (still `operator-keypair-public-exit`).
+- Future (real on-chain Private Pool v2 program): Native SOL uses program-owned SOL vault PDA (lamports holder). Shield deposits transfer directly into the PDA via SystemProgram (verified by future shield instruction). Unshield uses TAG_UNSHIELD=6 with PDA-signed `system_instruction::transfer`. Same commitment tree, proof model, indexer events, and nullifier semantics as SPL. Zero operator keypair in custody/release. "As private as possible": on-chain proof + program-owned custody.
+
+**Data Model Assumptions (must match between current v2 integration and future on-chain)**:
+- `asset_id` for native SOL = fixed sentinel (32 bytes, e.g. `[0u8; 32]` or `poseidon2(b"vanta-native-sol")`; **distinct** from SPL `poseidon2([mint_hi, mint_lo])`). Used in note commitments, vault asset PDA seeds `["vanta2asset", pool_state, sentinel]`, vault authority `["vanta2vault", pool_state, sentinel]`, unshield `exit_asset_id`, shield public inputs.
+- Amount: lamports (u64), encoded as amount_lo/hi in circuit.
+- Vault holding for SOL: dedicated SOL vault PDA (program-owned or authority-controlled; holds native lamports, not a Tokenkeg account). Registered with `asset_kind = VAULT_ASSET_KIND_SOL (=2)`.
+- Note commitment, nullifier, owner_pubkey derivation, Merkle (depth 20, bn254 poseidon) identical to SPL path for unified tree (preferred for max anonymity set).
+- Current integration (memo-based native SOL → v2 indexer commitment) **must** use the sentinel asset_id so produced commitments are valid in the future on-chain tree without migration.
+
+**Future Shield Deposit into SOL PDA (complements W4 on-chain shield instruction)**:
+- Future shield instruction (TAG_SHIELD or extension) account list (native SOL variant; generalized from SPL W4):
+  ```
+  0. pool_state (writable)
+  1. tree_state (writable)
+  2. memo_log (writable)
+  3. depositor (signer)
+  4. sol_vault_pda (writable; PDA ["vanta2solvault", pool_state, NATIVE_SOL_ASSET_ID_SENTINEL] or generalized vault authority; holds lamports)
+  5. system_program (read-only)
+  ```
+- Instruction data includes deposit_amount (lamports), public_inputs_hash (binds asset_id=sentinel, amount, commitment, previous_root, new_root, leaf_index, memo_hash), proof, encrypted_memo.
+- Program logic (SOL branch):
+  1. Verify proof + root transition.
+  2. Verify `SystemProgram.transfer` instruction (or post-lamports on sol_vault_pda) matches deposit_amount and targets the PDA.
+  3. Append commitment, update tree, append to memo_log.
+  4. Emit `ShieldEvent { commitment, leaf_index, root }` (minimal; indexer correlates with on-chain System transfer to known PDA for SOL).
+- No SPL token CPI; pure system transfer. Custody: program-owned from the first lamport.
+
+**Future Unshield Release from SOL PDA (TAG_UNSHIELD = 6 extension)**:
+- Upgrade current reserved fail-closed `process_unshield` (returns ERR_UNSHIELD_RELEASE_NOT_WIRED after preflight) to full PDA-signed release.
+- Generalized account list for TAG6 (SOL variant; see U2 base + asset_kind branch):
+  ```
+  0. pool_state (writable)
+  1. tree_state / root_history (readonly for recent roots)
+  2. root_record (readonly)
+  3. nullifier_marker (writable PDA)
+  4. vault_authority (PDA; signer for release; seeds ["vanta2vault", pool_state, exit_asset_id])
+  5. vault_asset (readonly; registry record for sentinel, kind=SOL, releaseEnabled=1)
+  6. sol_vault_pda (writable; the lamports-holding PDA, owned by program or authority)
+  7. destination (writable system account; user's SOL wallet)
+  8. system_program (read-only)
+  9. verifier_key (readonly)
+  ```
+  (No mint, no token_program, no destination_token_account for SOL kind.)
+- Instruction data (after tag=6): nullifier:32, exit_destination:32, exit_asset_id (=sentinel):32, exit_amount:8 (lamports le u64), public_inputs_hash:32, verifier_key_hash:32, proof: (Groth16).
+- Program logic (in `process_unshield`, after common preflights; branch on `asset_kind` from vault_asset record or exit_asset_id == sentinel):
+  1. Reconstruct/verify accepted_root from tree.
+  2. Verify Groth16 proof against public_inputs_hash (binds nullifier, exit_asset_id=sentinel, exit_amount, exit_destination, root).
+  3. Verify vault_asset record for sentinel + kind=SOL + releaseEnabled.
+  4. Verify destination is valid system account (owner == system_program or rent-exempt check).
+  5. Nullifier not present → mark consumed.
+  6. **CPI release**: `system_instruction::transfer(sol_vault_pda, destination, exit_amount)` — PDA signs via seeds (vault_authority or sol_vault_pda seeds). No token CPI.
+  7. Emit `UnshieldEvent { nullifier, root }` (identical for SOL/SPL; privacy-maximal, no asset/amount/dest in event. On-chain System transfer log makes amount public, unavoidable).
+- `require_vault_asset_record`, `require_spl_release_accounts` (rename/generalize to `require_release_accounts`) must branch: SPL uses token CPI + mint/token_account checks; SOL uses system_program + PDA lamports check. Add `VAULT_ASSET_KIND_SOL: u8 = 2;`, `NATIVE_SOL_ASSET_ID_SENTINEL` consts, and `ERR_*_SOL_MISMATCH` errors.
+- `TAG_REGISTER_VAULT_ASSET = 7` extended to support kind=SOL registration (no token_program validation, vault_holding_pda = sol_vault_pda, releaseEnabled flag).
+
+**Indexer / Event / Store Implications**:
+- Indexer (operator/private-pool-v2-indexer-server + role snapshot stores) listens for ShieldEvent/UnshieldEvent from program logs. For native SOL, correlates events with SystemProgram transfers to the known SOL vault PDA (derived from sentinel).
+- `vantaPrivatePoolV2RoleSnapshotStore` stores native SOL commitments/nullifiers using sentinel asset_id (unified or SOL-partitioned tree; unified preferred).
+- Client proof builders (Private Pool v2 entry circuits) already support asset_id; ensure native SOL unshield/send/swap requests pass sentinel.
+
+**Forward-Compatibility Recommendations (small changes now)**:
+- Define `VANTA_NATIVE_SOL_V2_ASSET_ID_SENTINEL` (or bytes constant) in `src/solana/vantaShieldState.ts` and operator/vanta-onchain-state.mjs; use it for v2 native SOL note ingestion/commitments (decouple from WSOL mint used in routing).
+- In `programs/.../src/lib.rs`: add `const VAULT_ASSET_KIND_SOL: u8 = 2;`, `const NATIVE_SOL_ASSET_ID_SENTINEL: [u8;32] = [0;32];` (or spec value), TODO comments in process_unshield / require_* for SOL branch, and test harness entries. This makes the fail-closed preflight surface ready for the SOL kind without changing behavior today.
+- In custody check script and unshield status: add native-SOL-specific blockers ("native-sol-program-owned-vault-pda-not-deployed", "tag-unshield-sol-kind-not-wired").
+- Ensure v2 indexer/parser for native SOL memos (the current integration work) produces commitments using the sentinel so they are future-compatible.
+
+**Guardrails**:
+- Never promote `productionCustodyReady` or "programmatically private" for native SOL until on-chain TAG6 release + PDA + live proof-verified evidence + reviewed SBF for SOL kind.
+- All status/trust surfaces must name the sentinel, the system CPI path, and the PDA derivation explicitly (current vs future).
+- This subagent work ensures the native SOL v2 ingestion (per the 2026-05-14 integration plan) produces on-chain-compatible state.
+
+This subsection extends the TAG6 wiring plan (U2 base + W4 shield) with the exact native SOL account shapes, CPI, branching logic, and data model required for "one program, one tree, one release mechanism" including native SOL.
 
 ### U3. Replace the plaintext unshield memo
 

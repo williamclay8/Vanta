@@ -48,6 +48,182 @@ const VANTA_SHIELD_MEMO_VERSION_BYTE = 0x01;
 const VANTA_SPENT_MARKER_MEMO_PREFIX = "vanta:spent-marker:v1:";
 export const VANTA_NATIVE_SOL_ASSET_ID =
   "So11111111111111111111111111111111111111112";
+
+// Phase 2: Sentinel asset ID for all v2 Private Pool paths (unified tree).
+// This must match the one used in the indexer (operator/vanta-onchain-state.mjs).
+// WSOL mint is kept only for legacy parallel tracking and Jupiter/SPL interop.
+export const NATIVE_SOL_ASSET_ID_SENTINEL =
+  "0000000000000000000000000000000000000000000000000000000000000000";
+
+export function isNativeSolAssetId(assetId: string | undefined | null): boolean {
+  return assetId === NATIVE_SOL_ASSET_ID_SENTINEL || assetId === VANTA_NATIVE_SOL_ASSET_ID;
+}
+
+/**
+ * Phase 2 (per design document 2026-05-14-native-sol-private-pool-v2-integration.md Phase 2 handoff + §9 success criteria):
+ * Compute the (placeholder) Poseidon commitment for a native SOL shield note using NATIVE_SOL_ASSET_ID_SENTINEL.
+ * This value is supplied by client to the indexer ingestion endpoint so the note enters the unified Private Pool v2 tree.
+ * Legacy WSOL notes (VantaShieldedSolNote from verifiedNativeSolShieldNotes) use this for one-time migration.
+ * MUST match the note commitment scheme (asset_id=sentinel + poseidon fields) used in Private Pool v2 circuits / indexer append.
+ * TODO (post-Phase 2): Replace stub (XOR) with real poseidon5/poseidon10 (or poseidon-lite + field derivation) from src/zk/canonicalNote.ts + privatePoolV2 fixtures.
+ * Fail-closed: never produces WSOL-mint commitments for v2 tree paths.
+ * See also: operator/vanta-onchain-state.mjs (sentinel Day 1 enforcement), NATIVE_SOL_ASSET_ID_SENTINEL usage in unshieldTrustContract.
+ */
+export function computeNativeSolShieldPoseidonCommitment(args: {
+  amountLamports: bigint | number;
+  owner: string;
+  blinding?: bigint;
+  derivationTag?: bigint;
+}): string {
+  const amountLamports =
+    typeof args.amountLamports === "bigint" ? args.amountLamports : BigInt(Math.floor(args.amountLamports));
+  const { owner, blinding = 0n, derivationTag = 0n } = args;
+
+  // Sentinel for all v2 Private Pool paths (unified tree). WSOL mint isolated to legacy Jupiter/SPL interop + pre-migration notes only.
+  const assetField = BigInt("0x" + NATIVE_SOL_ASSET_ID_SENTINEL);
+
+  const amountLo = amountLamports & 0xffffffffffffffffn;
+  const amountHi = amountLamports >> 64n;
+
+  // Owner as field (simplified 32-byte pubkey handling; real impl uses full field derivation from canonicalNote)
+  const ownerHex = owner.replace(/^0x/, "").slice(0, 64).padStart(64, "0");
+  const ownerField = BigInt("0x" + ownerHex);
+
+  // Placeholder (XOR for local determinism during Phase 2 migration window).
+  // Real v2 path: poseidon( version, assetIdHi/Lo from sentinel, amountLo/Hi, ownerField, nonce, secret, blinding )
+  const commitment = assetField ^ amountLo ^ amountHi ^ ownerField ^ blinding ^ derivationTag;
+  return commitment.toString(10);
+}
+
+/**
+ * One-time legacy WSOL note migration helper (Phase 2).
+ * Takes legacy VantaShieldedSolNote (from parallel WSOL/verifiedNativeSolShieldNotes path, asset:"SOL"),
+ * computes sentinel commitment via computeNativeSolShieldPoseidonCommitment,
+ * builds v2 ingest payload (depositMemo with sentinel + original depositSignature for onchain validation),
+ * submits to Private Pool v2 ingestion endpoint (POST /v1/ingest-native-sol-shield-deposit).
+ * On success: note enters unified v2 tree (canonical indexer state); caller should mark/remove from legacy quarantine store.
+ * Prompts re-shield fallback if ingestion rejects (e.g. signature replay or amount mismatch).
+ *
+ * References:
+ * - Design document: 2026-05-14-native-sol-private-pool-v2-integration.md §5.4, Phase 2, §9, §11 (sentinel, unified tree, client alignment, legacy marked migration-only).
+ * - operator/private-pool-v2-service-network.mjs (ingest handler), operator/vanta-onchain-state.mjs:ingestValidatedNativeSolShieldDeposit (accepts client commitment + normalizes sentinel).
+ * - verifiedNativeSolShieldNotes.ts (legacy store + quarantine pattern modeled on getVantaLegacyV1MemoQuarantinePolicy).
+ * - unshieldTrustContract.ts + unshieldMainnetProductionStatus.mjs (nativeSol* boundary still fail-closed until live evidence + TAG6).
+ *
+ * Fail-closed: returns {success:false} on any error; never flips production/privacy flags; legacy note remains usable via old path until successful migration + removal.
+ * One-time: idempotent via depositSignature dedup in indexer.
+ */
+export async function migrateLegacyVantaShieldedSolNoteToV2(args: {
+  legacyNote: VantaShieldedSolNote;
+  operatorBaseUrl?: string | null;
+  owner?: string;
+  vaultOwner?: string;
+}): Promise<{
+  success: boolean;
+  error?: string;
+  commitment?: string;
+  responseStatus?: number;
+  phase1MigrationNote?: string;
+}> {
+  const { legacyNote, operatorBaseUrl, owner, vaultOwner } = args;
+
+  if (!legacyNote || typeof legacyNote.amount !== "number" || legacyNote.amount <= 0 || !legacyNote.depositSignature) {
+    return { success: false, error: "Invalid legacy VantaShieldedSolNote (missing amount or depositSignature)" };
+  }
+  if (legacyNote.asset !== "SOL") {
+    return { success: false, error: "Legacy note is not native SOL" };
+  }
+
+  // Convert SOL amount (e.g. 1.23) to lamports. Legacy notes store human SOL units.
+  const amountLamports = BigInt(Math.floor(legacyNote.amount * 1_000_000_000));
+
+  const resolvedOwner = owner || legacyNote.owner;
+  const resolvedVaultOwner = vaultOwner || legacyNote.vaultOwner;
+  if (!resolvedOwner || !resolvedVaultOwner) {
+    return { success: false, error: "Missing owner or vaultOwner for migration payload" };
+  }
+
+  try {
+    const commitment = computeNativeSolShieldPoseidonCommitment({
+      amountLamports,
+      owner: resolvedOwner,
+      blinding: 0n,
+      derivationTag: 0n,
+    });
+
+    // v2 memo format (sentinel assetId) for ingestion validation + append.
+    // Re-uses original depositSignature so onchain transfer verification passes for legacy deposits.
+    const depositMemoPayload = {
+      kind: "native_sol_shield" as const,
+      asset: "SOL" as const,
+      assetId: NATIVE_SOL_ASSET_ID_SENTINEL,
+      amount: legacyNote.amount.toString(),
+      owner: resolvedOwner,
+      vaultOwner: resolvedVaultOwner,
+      createdAt: legacyNote.createdAt,
+      depositSignature: legacyNote.depositSignature,
+      noteId: legacyNote.noteId,
+      migratedFromLegacyV1: true,
+      migrationVersion: "vanta-native-sol-legacy-wsol-to-sentinel-v2-0.1",
+    };
+    const depositMemo = `${VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX_V2}${JSON.stringify(depositMemoPayload)}`;
+
+    // Resolve operator base (production default; local dev can pass e.g. http://localhost:8787 or from config).
+    // Matches the URL used by privatePoolV2ProtocolSettlementClient for v2 paths.
+    const defaultBase = "https://vanta-prod-private-pool-v2-operator.onrender.com";
+    const base = (operatorBaseUrl || defaultBase).replace(/\/+$/, "");
+
+    const resp = await fetch(`${base}/v1/ingest-native-sol-shield-deposit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({
+        depositMemo,
+        depositSignature: legacyNote.depositSignature,
+        commitment,
+        owner: resolvedOwner,
+        vaultOwner: resolvedVaultOwner,
+        amount: legacyNote.amount.toString(),
+        treeId: "vanta-private-pool-v2-unified-tree-v1",
+        isLegacyMigration: true,
+        originalAssetId: VANTA_NATIVE_SOL_ASSET_ID, // WSOL for audit trail only; normalized to sentinel server-side
+      }),
+    });
+
+    let phase1MigrationNote: string | undefined;
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      // Server may return phase1MigrationNote for guidance.
+      try {
+        const json = JSON.parse(text);
+        phase1MigrationNote = json?.phase1MigrationNote;
+      } catch {}
+      return {
+        success: false,
+        error: `Ingestion endpoint rejected migration (${resp.status}): ${text.slice(0, 200)}`,
+        responseStatus: resp.status,
+        phase1MigrationNote,
+      };
+    }
+
+    let json: any = {};
+    try {
+      json = await resp.json();
+      phase1MigrationNote = json?.phase1MigrationNote;
+    } catch {}
+
+    return {
+      success: true,
+      commitment,
+      responseStatus: resp.status,
+      phase1MigrationNote: phase1MigrationNote || json?.message || "Legacy note migrated to v2 sentinel tree",
+    };
+  } catch (e: any) {
+    return {
+      success: false,
+      error: `Migration helper exception: ${e?.message || String(e)} (see design doc Phase 2 for re-shield fallback)`,
+    };
+  }
+}
 const shieldStateRpcEndpoint = endpoint;
 const shieldStateReadRpcEndpoints = readRpcFallbackEndpoints.includes(
   shieldStateRpcEndpoint,

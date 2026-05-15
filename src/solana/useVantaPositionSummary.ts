@@ -3,6 +3,7 @@ import { useWalletState } from "@/data/context/WalletContext";
 import { getPrimaryLiveShieldTokenAsset } from "@/solana/shieldConfig";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import type { VantaShieldedSolNote } from "@/solana/vantaShieldState";
+// Phase 2: Post-migration (removeLegacyNativeSolShieldNoteAfterMigration), legacy notes no longer appear in pendingRecovered; v2 indexer state (via shieldRegistry) supplies canonical shieldedSolBalance for native SOL. See ShieldPage legacy migration panel + design doc Phase 2.
 
 export type VantaShieldedTokenPosition = {
   balance: number;
