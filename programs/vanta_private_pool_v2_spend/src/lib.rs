@@ -15,6 +15,9 @@ entrypoint!(process_instruction);
 const TAG_INIT: u8 = 0;
 const TAG_SPEND: u8 = 1;
 const TAG_REGISTER_ROOT: u8 = 2;
+const TAG_SPEND_WITH_PROOF: u8 = 3;
+const TAG_REGISTER_PROVENANCED_ROOT: u8 = 4;
+const TAG_REGISTER_VERIFIER_KEY: u8 = 5;
 const TAG_UNSHIELD: u8 = 6;
 const TAG_REGISTER_VAULT_ASSET: u8 = 7; // future: register vault_asset_record (kind=SPL/SOL=2), SOL vault PDA creation, releaseEnabled flag (per design doc §11 + VANTA_ZK_REVIEW U2.1)
 
@@ -99,12 +102,13 @@ const ERR_DUPLICATE_ROOT: u32 = 10;
 const ERR_UNKNOWN_ACCEPTED_ROOT: u32 = 11;
 const ERR_NULLIFIER_MARKER_MISMATCH: u32 = 12;
 const ERR_OUTPUT_RECORD_MISMATCH: u32 = 13;
+const ERR_PROOF_VERIFIER_NOT_WIRED: u32 = 14;
 
 // TAG_UNSHIELD + Native SOL errors (fail-closed until full verifier + registry)
-const ERR_INVALID_ASSET_KIND: u32 = 14;
-const ERR_VAULT_PDA_MISMATCH: u32 = 15;
-const ERR_SENTINEL_ASSET_ID_MISMATCH: u32 = 16;
-const ERR_UNSHIELD_NOT_WIRED: u32 = 17; // placeholder until Groth16 + tree_state fully integrated
+const ERR_INVALID_ASSET_KIND: u32 = 15;
+const ERR_VAULT_PDA_MISMATCH: u32 = 16;
+const ERR_SENTINEL_ASSET_ID_MISMATCH: u32 = 17;
+const ERR_UNSHIELD_NOT_WIRED: u32 = 18; // placeholder until Groth16 + tree_state fully integrated for TAG6
 
 pub fn process_instruction(
     program_id: &Pubkey,
@@ -119,6 +123,7 @@ pub fn process_instruction(
         TAG_INIT => process_init(program_id, accounts, rest),
         TAG_SPEND => process_spend(program_id, accounts, rest),
         TAG_REGISTER_ROOT => process_register_root(program_id, accounts, rest),
+        TAG_SPEND_WITH_PROOF => process_spend_with_proof(program_id, accounts, rest),
         TAG_UNSHIELD => process_unshield(program_id, accounts, rest),
         TAG_REGISTER_VAULT_ASSET => process_register_vault_asset(program_id, accounts, rest), // prep stub (fail-closed until vault registry live)
         _ => Err(ProgramError::InvalidInstructionData),
@@ -271,6 +276,13 @@ fn process_spend(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) -> 
 
     msg!("vanta_private_pool_v2_spend: accepted spend evidence");
     Ok(())
+}
+
+fn process_spend_with_proof(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) -> ProgramResult {
+    // proof-carrying spend ABI is reserved; verifier not wired after root/nullifier/output/verifier-key preflight
+    // This path remains fail-closed with ERR_PROOF_VERIFIER_NOT_WIRED until full Groth16 verifier + TAG3 evidence is wired.
+    let _ = (program_id, accounts, rest);
+    Err(ProgramError::Custom(ERR_PROOF_VERIFIER_NOT_WIRED))
 }
 
 fn process_register_root(

@@ -73,7 +73,7 @@ Date: ________________
 
 **Output File:** `ops/mainnet/tag6-gate-requests/snapshot-probe-YYYY-MM-DD.json`
 
-### 4.2 Proof-Verified TAG6 SOL Release Evidence (≥1, target ≥3)
+### 4.2 Target Evidence for Future TAG6 SOL Releases (once §12 Live Evidence Gate is met)
 
 For each qualifying mainnet TAG6 unshield transaction:
 

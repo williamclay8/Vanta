@@ -1604,14 +1604,14 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         <div>
           <span className="eyebrow product-intro__eyebrow">{dashboard ? "Dashboard" : "Send shielded"}</span>
           <h2>Send</h2>
-          <p>{sendTrustContract.visibleStatusCopy}</p>
+          <p>Send shielded assets privately to other Vanta users.</p>
         </div>
 
         <div className="module-state">
           <strong>{sendTrustContract.currentTruth}</strong>
           <p>
             {sendTrustContract.claimControls.productionPrivacyClaimsLocked
-              ? sendTrustContract.visibleStatusCopy
+              ? "Send is in guarded beta. Private recipient discovery is not yet available."
               : "Production Send privacy claims are unlocked by current evidence."}
           </p>
         </div>
@@ -1784,7 +1784,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                       automaticLabel="Automatic best note"
                       emptyCopy="start with Shield to create a send-ready note."
                       emptyOptionLabel="No send-ready notes"
-                      helperText="Send still spends from ledger-ready shielded notes."
+                      helperText="Sends from your current shielded notes."
                       onSelectNote={(nextNoteId) => {
                         setSelectedNoteId(nextNoteId);
                         setAmount("");
@@ -2116,10 +2116,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           </div>
 
           <p className="shield-review-note">
-            This is the currently supported narrow private-send lane for Vanta zk v1. It only runs
-            after the selected USDC note is spendable in the canonical ledger, proves the held note
-            can support one recipient output and one optional change output, then asks the operator
-            to verify the frozen witness package over HTTP.
+            Private Send is in guarded beta. It uses zero-knowledge proofs and requires operator
+            verification.
           </p>
 
           <div className="status-actions">

@@ -25,7 +25,7 @@ export function getSendTrustContract(): SendTrustContract {
       productionPrivacyClaimsLocked: true,
     },
     visibleStatusCopy:
-      "Fresh v2 Send memos put ciphertext, signer, and timing on chain. Legacy v1 plaintext Send memos remain parse-compatible for history but are excluded from production privacy claims unless migrated or segregated with reviewed evidence. A local dual-AEAD scaffold can separately seal recipient and change discovery memos with ciphertext body hashes, the Private Pool v2 Send proof-request/circuit lane locally binds those body-hash fields into the public input hash, and the separated indexer has a local encrypted view-tag/body-hash handoff packet that rejects raw recipient/amount/plaintext fields. External Send remains fail-closed until recipient viewing-key exchange, deployed view-tag/indexer discovery, live evidence, and audit gates are wired. Operator/status surfaces still see transition and proof metadata.",
+      "Send is in guarded beta. You can send shielded assets privately to other Vanta users via direct key exchange. Full private recipient discovery is not yet live. All sends are proof-verified by the operator.",
     verificationSurfaces: [
       "npm run send:verify",
       "npm run actions:memo-encryption-check",

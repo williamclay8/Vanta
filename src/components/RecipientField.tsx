@@ -74,8 +74,7 @@ export function RecipientField({
         <span>{validation.detail}</span>
       </div>
       <p className="recipient-field__helper shield-helper" data-vanta-send-recipient-helper id={`${id}-helper`}>
-        .sol resolution is not enabled. External recipient delivery is direct-key beta only and
-        not deployed recipient discovery.
+        Recipient discovery is direct-key beta only. .sol names are not supported yet.
       </p>
       {recentRecipients.length > 0 && (
         <div className="recipient-field__recent" data-vanta-send-recent-recipients>

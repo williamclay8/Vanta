@@ -52,8 +52,8 @@ for (const marker of [
 }
 
 for (const marker of [
-  "direct-key beta",
-  "not deployed recipient discovery",
+  "direct-key beta only",
+  "Recipient discovery is direct-key beta only",
 ]) {
   assert.ok(recipientFieldSource.includes(marker), `RecipientField copy missing ${marker}.`);
 }
@@ -63,7 +63,7 @@ for (const marker of [
   "matchedRecipientViewingKeyExchange",
   "recipientProofOwnerPublicKey",
   "recipientViewingPublicKey",
-  "direct viewing-key exchange",
+  "Direct viewing-key exchange is present",
   "external Send proof path is enabled",
 ]) {
   assert.ok(sendPageSource.includes(marker), `SendPage direct-key exchange marker missing ${marker}.`);

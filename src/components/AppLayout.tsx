@@ -14,17 +14,17 @@ import type { PeerOnrampFulfillment, PeerOnrampLaunchState } from "@/peer/peerOn
 import { useWalletPublicAssets } from "@/solana/useWalletPublicAssets";
 
 const appLinks = [
-  { to: "/app/shield", label: "Shield", action: "Shield & get receipt", end: false },
-  { to: "/app/send", label: "Send", action: "Send & share receipt", end: false },
-  { to: "/app/swap", label: "Swap", action: "Swap privately", end: false },
-  { to: "/app/unshield", label: "Unshield", action: "Unshield with proof", end: false },
+  { to: "/app/shield", label: "Shield", action: "Add funds", end: false },
+  { to: "/app/send", label: "Send", action: "Send shielded", end: false },
+  { to: "/app/swap", label: "Swap", action: "Swap shielded", end: false },
+  { to: "/app/unshield", label: "Unshield", action: "Move out", end: false },
 ];
 
 const moreAppLinks = [
-  { to: "/app/pay", label: "Pay", action: "Pay merchants", end: false },
-  { to: "/app/strategy", label: "Strategy", action: "Plan & verify", end: false },
-  { to: "/app/settings/recovery", label: "Recovery", action: "Keys & receipts", end: false },
-  { to: "/app/launch", label: "Launch", action: "Roadmap", end: false },
+  { to: "/app/pay", label: "Pay", action: "Get paid", end: false },
+  { to: "/app/strategy", label: "Strategy", action: "Plan trades", end: false },
+  { to: "/app/settings/recovery", label: "Recovery", action: "Keys & records", end: false },
+  { to: "/app/launch", label: "Launch", action: "Coming soon", end: false },
 ];
 
 type MobileWalletOpenLink = {

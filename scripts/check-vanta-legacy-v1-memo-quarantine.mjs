@@ -98,9 +98,9 @@ for (const phrase of [
 }
 
 for (const phrase of [
-  "Fresh v2 Send memos put ciphertext",
-  "Legacy v1 plaintext Send memos remain parse-compatible for history",
-  "excluded from production privacy claims",
+  "Send is in guarded beta",
+  "direct key exchange",
+  "Full private recipient discovery is not yet live",
 ]) {
   requirePhrase(sendTrustContract, phrase, "src/solana/sendTrustContract.ts");
 }
