@@ -3083,7 +3083,7 @@ select:focus {
 .shield-from-to-row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  gap: 14px;
+  gap: 16px;
   align-items: stretch;          /* was: start — let both columns share row height */
   padding: 0 16px;               /* restored to original buffer */
   box-sizing: border-box;
@@ -3092,7 +3092,7 @@ select:focus {
 .shield-from-to-row .shield-picker-column {
   display: flex;
   flex-direction: column;
-  gap: 10px;                     /* explicit, predictable internal rhythm */
+  gap: 12px;                     /* explicit, predictable internal rhythm */
   min-width: 0;                  /* allow inner grid to shrink, never overflow */
   /* Removed the outer bordered box so the From and To pickers sit directly in the choose asset area with only the outer container's buffer */
 }
@@ -3103,12 +3103,12 @@ select:focus {
    The From column's footer is conceptually empty — keep the slot, hide the content. */
 .shield-from-to-row .shield-picker-footer,
 .shield-from-to-row .shield-picker-footer-spacer {
-  min-height: 36px;
+  min-height: 40px;
   margin-top: 6px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  font-size: 0.86rem;
+  font-size: 0.9rem;
 }
 
 /* Right-align text only inside the To footer, not by flex-aligning the picker. */
@@ -3122,7 +3122,7 @@ select:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   color: var(--accent);
   opacity: 0.7;
   user-select: none;
@@ -3769,7 +3769,7 @@ select:focus {
 
 .swap-module__label-row > span {
   color: var(--muted-strong);
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -4117,7 +4117,7 @@ select:focus {
 
 /* Cap the single-option case in the To picker (scoped so it doesn't affect other pages) */
 .shield-from-to-row .shield-picker-column .asset-picker-grid__options {
-  grid-template-columns: repeat(auto-fill, minmax(240px, 260px));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 280px));
   justify-content: start;
 }
 
@@ -4133,13 +4133,13 @@ select:focus {
 
 .asset-picker-grid__option,
 .asset-picker-grid__empty {
-  height: 104px;                 /* fixed, not min-height */
+  height: 108px;                 /* fixed, not min-height */
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  column-gap: 16px;
+  grid-template-columns: 50px minmax(0, 1fr);
+  column-gap: 18px;
   align-items: start;            /* was center — caused stagger */
   text-align: left;
-  padding: 16px 18px;
+  padding: 18px 20px;
   border: 1px solid rgba(0, 229, 200, 0.12);
   border-radius: 16px;
   background: rgba(0, 229, 200, 0.03);
@@ -4178,8 +4178,8 @@ select:focus {
 }
 
 .asset-picker-grid__logo {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   align-self: start;             /* lock to top of card */
   display: inline-grid;
   place-items: center;
@@ -4190,7 +4190,7 @@ select:focus {
     rgba(2, 6, 12, 0.8);
   color: var(--muted-strong);
   font-family: "Syne", sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -4239,7 +4239,7 @@ select:focus {
 .asset-picker-grid__symbol {
   color: var(--text);
   font-family: "Syne", sans-serif;
-  font-size: 0.98rem;
+  font-size: 1.02rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1.25;
@@ -4252,7 +4252,7 @@ select:focus {
 .asset-picker-grid__label,
 .asset-picker-grid__meta {
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
@@ -4630,8 +4630,8 @@ select:focus {
 .unshield-ticket__field .unshield-fixed-field,
 .unshield-ticket__field .send-asset-field,
 .unshield-ticket__field .amount-field {
-  min-height: 58px;
-  padding: 10px 16px;
+  min-height: 62px;
+  padding: 12px 18px;
 }
 
 /* Ensure the select in the shielded asset box doesn't force the parent taller; center it like the other fields */
@@ -4641,7 +4641,7 @@ select:focus {
 }
 
 .unshield-ticket__field .send-asset-field select {
-  min-height: 38px !important;  /* force it to fit inside the 58px field with padding; override global */
+  min-height: 40px !important;  /* force it to fit inside the 62px field with padding; override global */
 }
 
 .unshield-fixed-field strong {
