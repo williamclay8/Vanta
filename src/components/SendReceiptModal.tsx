@@ -47,10 +47,16 @@ export function SendReceiptModal({
         aria-labelledby="send-receipt-modal-title"
         aria-modal="true"
         role="dialog"
+        style={{
+          boxShadow: '0 0 0 1px rgba(52, 211, 153, 0.15), 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+          transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease',
+          padding: '2rem',
+          transform: 'translateY(0)',
+        }}
       >
         <div className="send-receipt-modal__header">
           <div>
-            <span>Send receipt</span>
+            <span>✓ Send receipt</span>
             <h3 id="send-receipt-modal-title">Latest send receipt</h3>
           </div>
           <button
@@ -64,9 +70,7 @@ export function SendReceiptModal({
         </div>
 
         <p id="send-receipt-modal-boundary" className="send-receipt-modal__boundary">
-          This receipt summarizes local send evidence, operator-visible proof status, and recipient
-          recovery context. Production privacy is not enabled for Send, and this does not prove
-          live private settlement.
+          Trust packet: local send evidence + operator proof status. Inspect &amp; share this receipt to invite next private action.
         </p>
 
         <dl className="send-receipt-modal__grid">

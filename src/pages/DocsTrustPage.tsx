@@ -12,7 +12,7 @@ export function DocsTrustPage() {
     <DocsPageTemplate
       title={page.title}
       summary={page.summary}
-      readFirst="Trust means a reader can tell what happened, what stayed private, who can verify the receipt, what is live today, and what is only a preview."
+      readFirst="Verify what happened, what stayed private, and who can check the receipt. See live vs preview."
       badge={page.badge}
       nextStep={page.nextStep}
     >

@@ -12,7 +12,7 @@ export function DocsPayPage() {
     <DocsPageTemplate
       title={page.title}
       summary={page.summary}
-      readFirst="Vanta Pay is a merchant preview for test checkout, settlement records, and trust packets. It is not a live production payment processor yet."
+      readFirst="Test checkout. Inspect settlement. Verify receipt-backed records. Preview only."
       badge={page.badge}
       nextStep={page.nextStep}
     >

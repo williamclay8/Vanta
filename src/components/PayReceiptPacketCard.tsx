@@ -46,20 +46,27 @@ export function PayReceiptPacketCard({
       aria-label="Receipt packet"
       data-vanta-pay-receipt-packet-card
       tabIndex={-1}
+      style={{
+        boxShadow: '0 0 0 1px rgba(52, 211, 153, 0.15), 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+        transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease',
+        padding: '2rem',
+        transform: 'translateY(0)',
+      }}
     >
       <div className="pay-receipt-packet-card__header">
-        <div data-vanta-pay-receipt-merchant>
+          <div data-vanta-pay-receipt-merchant>
           <small>{merchantName}</small>
-          <span>Receipt packet</span>
-          <strong>Receipt packet ready</strong>
+          <span>✓ Receipt packet</span>
+          <strong>Receipt packet ready — share trust packet</strong>
         </div>
         <div className="pay-receipt-packet-card__actions" aria-label="Receipt packet actions">
           <a
             className="button button-ghost pay-receipt-packet-card__verify-link"
             data-vanta-pay-receipt-verify-link
             href={shareHref}
+            style={{ color: '#34d399', fontWeight: 600 }}
           >
-            Verify receipt
+            Verify on operator
           </a>
           <button
             className="button button-primary pay-receipt-packet-card__copy"

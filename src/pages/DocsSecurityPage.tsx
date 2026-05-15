@@ -18,9 +18,7 @@ export function DocsSecurityPage() {
       <section className="docs-page-section">
         <h2>Privacy model</h2>
         <p>
-          Vanta&apos;s privacy model starts with a simple rule: an ordinary public
-          wallet flow is still public. Privacy begins only when supported
-          Solana stablecoins move into Vanta&apos;s separate private flow.
+          Shield to start privacy. Public flows stay public. Verify beta limits with commands.
         </p>
         <p>
           From there, the security job is to keep the current path honest: what

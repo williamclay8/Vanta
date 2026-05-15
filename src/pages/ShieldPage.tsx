@@ -1820,7 +1820,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   let validationMessage = "Choose an asset and amount. Vanta will show the route before you approve.";
 
   if (!walletConnected) {
-    validationMessage = "Connect a wallet to shield assets.";
+    validationMessage = "Connect a wallet to shield and receive receipt.";
   } else if (isBetaMode) {
     validationMessage = "Beta mode keeps shielding visible but prevents live transfers while production services are offline.";
   } else if (sourceAssetsLoading) {
@@ -1915,7 +1915,7 @@ export function ShieldPage(_props: ShieldPageProps) {
             <div className="swap-module">
               <div className="swap-module__field">
                 <div className="swap-module__label-row">
-                  <span>Amount</span>
+                  <span>Amount to shield</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
                     Balance: {sourceBalanceLabel}
                   </div>
@@ -2071,7 +2071,7 @@ export function ShieldPage(_props: ShieldPageProps) {
                     status === "entering_shielded_state"
                   }
                 >
-                  {isBetaMode ? "Beta mode" : "Shield asset"}
+                  {isBetaMode ? "Beta mode" : "Shield & receive receipt"}
                 </button>
               </div>
             </div>
@@ -2118,7 +2118,7 @@ export function ShieldPage(_props: ShieldPageProps) {
                             : status === "complete"
                               ? recentShield?.claimTier === "proof_receipt_verified"
                                 ? "Shield proof receipt verified"
-                                : "Shield deposit recorded"
+                                : "Shield complete — receipt ready"
                               : "Shield failed"
                 }
                 message={

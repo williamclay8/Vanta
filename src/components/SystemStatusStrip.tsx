@@ -8,12 +8,12 @@ type SystemStatusStripProps = {
 };
 
 const laneStatusPreviewMarkers = [
-  "Shield: Claim locked",
-  "Send: Claim locked",
-  "Swap: Claim locked",
-  "Unshield: Claim locked",
-  "Strategy: Claim locked",
-  "Pay: Claim locked",
+  "Shield: Action: locked. Receipt: gate check",
+  "Send: Action: locked. Receipt: gate check",
+  "Swap: Action: locked. Receipt: gate check",
+  "Unshield: Action: locked. Receipt: gate check",
+  "Strategy: Action: locked. Receipt: gate check",
+  "Pay: Action: locked. Receipt: gate check",
 ] as const;
 
 export function SystemStatusStrip({ showBetaMode }: SystemStatusStripProps) {
@@ -33,16 +33,16 @@ export function SystemStatusStrip({ showBetaMode }: SystemStatusStripProps) {
       <div className="system-status-strip__topline">
         <strong>Trust status</strong>
         {showBetaMode ? (
-          <span>No funds move in test mode. Live private settlement stays blocked until evidence, approval, audit, replay, and operator-surface gates clear.</span>
+          <span>Action: Test mode. Receipt: beta gates pending.</span>
         ) : (
-          <span>Beta · receipts where available · {lockedLaneCount} claim locks active.</span>
+          <span>Action: Beta status. Receipt: {lockedLaneCount} locks active.</span>
         )}
       </div>
 
       <details className="system-status-strip__details">
         <summary>
           <span className="system-status-strip__count">
-            Beta · receipts where available · {lockedLaneCount} claim locks active
+            Action: Beta status. Receipt: {lockedLaneCount} locks active
           </span>
           <span className="system-status-strip__summary">
             {visibleSummary}

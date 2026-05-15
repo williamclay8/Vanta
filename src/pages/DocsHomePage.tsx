@@ -88,18 +88,12 @@ export function DocsHomePage() {
         <span className="docs-home__eyebrow product-intro__eyebrow">Vanta Docs</span>
         <h1 className="docs-home__title">Vanta is private settlement for Solana stablecoin flows.</h1>
         <p className="docs-home__lede">
-          Vanta is building policy-safe privacy for payments and settlement:
-          move selected stablecoin flows into Vanta, use the current lanes,
-          and give counterparties enough proof to trust the result without
-          exposing the whole wallet trail.
+          Shield selected stablecoins. Use current lanes. Produce a receipt the counterparty can verify.
         </p>
         <div className="docs-home__hero-note">
           <strong>The beta truth is part of the product.</strong>
           <p>
-            Production privacy is not enabled. These docs explain the useful
-            pattern first, then label what is live, what is preview-only, and
-            what still needs proof, operator, audit, and mainnet gates before
-            stronger claims are fair.
+            Production privacy is not enabled. Shield now, verify receipts, and check operator status before stronger claims.
           </p>
         </div>
       </section>
@@ -139,8 +133,7 @@ export function DocsHomePage() {
           <span className="docs-path-card__label">{portalPage.title}</span>
           <strong>{portalPage.summary}</strong>
           <p>
-            Start here for the wallet path: shield selected stablecoins, use a
-            current lane, and understand the exit boundary.
+            Shield selected stablecoins, use a current lane, verify the receipt.
           </p>
         </Link>
         <Link className="docs-path-card docs-path-card--pay" to={payPage.slug}>
@@ -152,9 +145,7 @@ export function DocsHomePage() {
           <span className="docs-path-card__label">{payPage.title}</span>
           <strong>{payPage.summary}</strong>
           <p>
-            Follow the merchant path: test checkout only matters when the
-            merchant gets a receipt, status, and reconciliation trail they can
-            actually inspect.
+            Test checkout. Get receipt-backed status. Reconcile with verification commands.
           </p>
         </Link>
       </section>

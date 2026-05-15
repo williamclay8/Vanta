@@ -3,24 +3,24 @@ import { BrandMark } from "@/components/BrandMark";
 
 const manifestoPrinciples = [
   {
-    title: "Privacy should be useful to someone else.",
+    title: "Shield now. Merchant verifies later.",
     copy:
-      "A private action matters when a merchant, customer, reviewer, or counterparty can verify enough to trust it without seeing everything.",
+      "Privacy is useful when the merchant or counterparty gets a receipt they can inspect without learning your full history. Receipt is the growth artifact.",
   },
   {
-    title: "Receipts carry the work.",
+    title: "Every action leaves a receipt.",
     copy:
-      "Vanta should leave behind proof-backed letters, packets, and status surfaces that explain what happened, what stayed private, and what still needs review.",
+      "Shield, Send, Swap, Unshield — each produces a verifiable packet. Merchants open it, reviewers audit it, you stay private.",
   },
   {
-    title: "Truth beats theater.",
+    title: "Beta truth, no theater.",
     copy:
-      "The current beta must say what is implemented, what is blocked, and which operator or reviewer surface backs each claim.",
+      "We state exactly what works today, what is preview, and what receipts prove. No anonymous, untraceable, or production-private claims until gates pass.",
   },
   {
-    title: "The operator stays visible.",
+    title: "Operator visible. Merchant first.",
     copy:
-      "Until Vanta retires operator trust, the public surfaces should name the current boundaries, blocked gates, and the path toward stronger settlement guarantees.",
+      "Boundaries are named in public surfaces. Receipts invite the next use. Distribution grows from one receipt to invited private settlement.",
   },
 ];
 
@@ -56,10 +56,10 @@ export function ManifestoPage() {
 
         <aside className="manifesto-letter" aria-label="Manifesto truth boundary">
           <span>Public letter</span>
-          <strong>Beta truth first.</strong>
+          <strong>Beta truth first. Receipt as proof.</strong>
           <p>
-            Production privacy is not enabled. This is not an audit report. Use the public audit
-            alias and local verification commands for current reviewer evidence.
+            Production privacy is not enabled. Receipts are the only growth artifact. Open the app,
+            shield once, and hand a merchant the first verifiable receipt today.
           </p>
           <div className="manifesto-letter__actions">
             <a href="/.well-known/audit">/.well-known/audit</a>

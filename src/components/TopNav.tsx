@@ -13,7 +13,7 @@ export function TopNav() {
         <BrandMark />
         <div>
           <strong>Vanta</strong>
-          <span>Private movement on Solana (v1 beta preview)</span>
+          <span>Shield. Settle privately. Share receipts.</span>
         </div>
       </Link>
 
@@ -27,7 +27,7 @@ export function TopNav() {
 
       <div className="nav-actions">
         <NavLink className="button button-ghost" to="/app/shield">
-          Open app
+          Shield now — get receipt
         </NavLink>
       </div>
     </header>

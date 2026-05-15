@@ -8,22 +8,22 @@ type LandingGlyph = "exit" | "private-rails" | "receipt" | "shield";
 
 const productPoints = [
   {
-    copy: "Move selected Solana assets into Vanta before sending, swapping, or exiting. (v1 beta: narrow lanes only)",
+    copy: "Shield selected assets into Vanta before Send, Swap, or Unshield. Beta: narrow lanes, verifiable receipts.",
     icon: "shield",
     title: "Shield assets",
   },
   {
-    copy: "Test Shield, Send, Swap, and Unshield with receipts that show what can be verified.",
+    copy: "Run Shield, Send, Swap, Unshield — each step produces a receipt a merchant can verify.",
     icon: "private-rails",
     title: "Use current lanes",
   },
   {
-    copy: "Create payment requests and local receipt-backed records merchants can inspect.",
+    copy: "Create payment requests with receipt-backed records merchants can inspect on the spot.",
     icon: "receipt",
     title: "Accept payments",
   },
   {
-    copy: "Move balances back to a public wallet when you choose to leave Vanta.",
+    copy: "Unshield balances back to any public wallet on your schedule. Full exit control.",
     icon: "exit",
     title: "Exit on your terms",
   },
@@ -32,25 +32,25 @@ const productPoints = [
 const primaryAppActions = [
   {
     label: "Shield funds",
-    outcome: "Move selected assets into Vanta before Send, Swap, or Unshield.",
+    outcome: "Shield now — first receipt generated on entry.",
     path: "shield",
     status: "Wallet lane",
   },
   {
     label: "Send from shielded state",
-    outcome: "Create receipt-backed transfers from shielded state.",
+    outcome: "Receipt-backed private transfer. Merchant sees only what you share.",
     path: "send",
     status: "Wallet lane",
   },
   {
     label: "Swap from shielded state",
-    outcome: "Preview swap routing from shielded state with proof and route context.",
+    outcome: "Shielded swap with verifiable route proof and receipt.",
     path: "swap",
     status: "Wallet lane",
   },
   {
     label: "Unshield funds",
-    outcome: "Exit selected balances back to a public wallet.",
+    outcome: "Exit with final receipt. Full settlement proof.",
     path: "unshield",
     status: "Wallet lane",
   },
@@ -58,14 +58,14 @@ const primaryAppActions = [
 
 const previewAppActions = [
   {
-    copy: "Create payment requests and local receipt-backed records for merchant review.",
+    copy: "Create payment requests with receipt-backed records merchants verify instantly.",
     eyebrow: "Pay preview",
     label: "Collect payments",
     path: "pay",
     status: "Preview",
   },
   {
-    copy: "Preview private-rail execution planning before live routing is enabled.",
+    copy: "Plan shielded execution and preview receipt output before live lanes.",
     eyebrow: "Strategy preview",
     label: "Plan execution",
     path: "strategy",
@@ -186,7 +186,7 @@ export function HomePage() {
             X
           </a>
           <Link className="landing-nav__cta" to="/app">
-            Open App
+            Shield now
           </Link>
         </div>
       </nav>
@@ -196,20 +196,20 @@ export function HomePage() {
           <div className="landing-minimal__hero-copy">
             <div className="landing-minimal__kicker">Receipt-backed Solana settlement</div>
             <h1>
-              Make Solana settlement
-              <span> less public.</span>
+              Shield now and get
+              <span> your first verifiable receipt.</span>
             </h1>
             <p>
-              Move selected assets into Vanta, test Shield, Send, Swap, and
-              Unshield, and share receipts that show what can be verified.
+              Open app to start private settlement. Shield assets, transact on
+              shielded rails, and leave behind merchant-inspectable receipts.
             </p>
 
             <div className="landing-minimal__actions">
               <Link className="landing-btn landing-btn--primary" to="/app">
-                Enter App
+                Shield now — get receipt
               </Link>
-              <a className="landing-btn landing-btn--ghost" href="#what">
-                Learn More
+              <a className="landing-btn landing-btn--ghost" href="#use">
+                See open actions
               </a>
             </div>
           </div>
@@ -287,7 +287,7 @@ export function HomePage() {
                 <strong>{action.label}</strong>
                 <small data-vanta-landing-action-outcome>{action.copy}</small>
                 <span className="landing-minimal__action-arrow" data-vanta-landing-action-arrow aria-hidden="true">
-                  -&gt;
+                  Open app to preview receipt
                 </span>
               </Link>
             ))}

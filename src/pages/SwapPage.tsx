@@ -1715,7 +1715,7 @@ export function SwapPage() {
     }
   }
 
-  let validationMessage = "Enter an amount to continue.";
+  let validationMessage = "Enter amount to swap & receive receipt.";
 
   if (!walletConnected) {
     validationMessage = "Connect a wallet to swap.";
@@ -1889,7 +1889,7 @@ export function SwapPage() {
               <div className="swap-route-card" aria-label="Swap route">
                 <div className="swap-route-card__row">
                   <div className="swap-choice-group" role="group" aria-label="From shielded asset">
-                    <span>From</span>
+                    <span>From (shielded)</span>
                     <AssetPickerGrid
                       ariaLabel="From shielded asset"
                       disabled={availableSourceAssetOptions.length === 0}

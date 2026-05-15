@@ -42,7 +42,7 @@ export type DocsSidebarGroup = {
 
 const docsSidebarGroupLabels: Record<DocsSidebarGroupId, string> = {
   "start-here": "Start here",
-  "shared-truth": "Shared truth",
+  "shared-truth": "Verify & trust",
 };
 
 export const docsPages: DocsPageMeta[] = [
@@ -50,7 +50,7 @@ export const docsPages: DocsPageMeta[] = [
     slug: "/docs",
     title: "Vanta Docs",
     summary:
-      "Start here to understand Vanta as beta, policy-safe private settlement for Solana stablecoin flows: what is useful, what can be verified, and what is still unfinished.",
+      "Shield selected stablecoins, use current lanes, and produce a receipt the counterparty can verify.",
     track: "shared",
     section: "home",
     badge: "design-partner-surface",
@@ -58,16 +58,16 @@ export const docsPages: DocsPageMeta[] = [
       sidebarGroup: "start-here",
     },
     nextStep: {
-      label: "Start with Vanta Portal",
+      label: "Shield now in Portal",
       href: "/docs/portal",
-      description: "See how selected stablecoin flows enter Vanta.",
+      description: "Shield selected flows and verify the receipt.",
     },
   },
   {
     slug: "/docs/portal",
     title: "Vanta Portal",
     summary:
-      "Portal is the wallet path for selected Solana stablecoin flows: shield into Vanta, use current lanes, and unshield when needed.",
+      "Shield selected stablecoins into Vanta, use current private lanes, unshield when needed, and verify the receipt.",
     track: "portal",
     section: "portal",
     badge: "preview",
@@ -76,16 +76,16 @@ export const docsPages: DocsPageMeta[] = [
       topNavLabel: "Portal",
     },
     nextStep: {
-      label: "See how Vanta Pay builds on Portal",
+      label: "Test merchant checkout",
       href: "/docs/pay",
-      description: "Follow how the same private-settlement rails become useful to merchants.",
+      description: "See live lanes and operator status for Pay.",
     },
   },
   {
     slug: "/docs/pay",
     title: "Vanta Pay",
     summary:
-      "Pay is the merchant preview: test checkout, settlement records, receipt-backed test records, status, refunds, withdrawals, and reconciliation in plain business language.",
+      "Test checkout, inspect settlement status, issue refunds, and verify receipt-backed records in merchant language.",
     track: "pay",
     section: "pay",
     badge: "forward-looking",
@@ -94,17 +94,16 @@ export const docsPages: DocsPageMeta[] = [
       topNavLabel: "Pay",
     },
     nextStep: {
-      label: "Review trust surfaces",
+      label: "Inspect trust & receipts",
       href: "/docs/trust",
-      description:
-        "See receipt, approval, operator, and verification boundaries.",
+      description: "See live receipt, operator, and verification surfaces.",
     },
   },
   {
     slug: "/docs/trust",
     title: "Trust",
     summary:
-      "Trust means the product says plainly what happened, what remains private, who can verify it, what is live, and what is still preview-only.",
+      "Verify what happened, what stayed private, who can check the receipt, and what remains preview-only.",
     track: "shared",
     section: "trust",
     badge: "live-now",
@@ -113,16 +112,16 @@ export const docsPages: DocsPageMeta[] = [
       topNavLabel: "Trust",
     },
     nextStep: {
-      label: "Read the security limits",
+      label: "Check security limits",
       href: "/docs/security",
-      description: "Keep the current privacy and readiness constraints in view.",
+      description: "See current beta constraints and verification commands.",
     },
   },
   {
     slug: "/docs/security",
     title: "Security",
     summary:
-      "Security explains the current beta limits in normal language, including that production privacy is not enabled.",
+      "Production privacy is not enabled. See current beta limits and verification commands.",
     track: "shared",
     section: "security",
     badge: "live-now",
@@ -131,16 +130,16 @@ export const docsPages: DocsPageMeta[] = [
       topNavLabel: "Security",
     },
     nextStep: {
-      label: "See the shared roadmap",
+      label: "Follow the roadmap",
       href: "/docs/roadmap",
-      description: "Follow how Portal and Pay connect in the roadmap.",
+      description: "See how Portal and Pay connect with receipt verification.",
     },
   },
   {
     slug: "/docs/roadmap",
     title: "Roadmap",
     summary:
-      "The roadmap shows how today's wallet and merchant previews can grow into counterparty-useful private settlement without pretending it is finished.",
+      "See the merchant-first path from preview lanes to verified private settlement.",
     track: "shared",
     section: "roadmap",
     badge: "forward-looking",

@@ -12,23 +12,14 @@ export function DocsPortalPage() {
     <DocsPageTemplate
       title={page.title}
       summary={page.summary}
-      readFirst="Vanta privacy starts when selected stablecoins are shielded into Vanta. Before that, a normal Solana wallet flow is still public."
+      readFirst="Shield selected stablecoins into Vanta to start private lanes. Verify the receipt."
       badge={page.badge}
       nextStep={page.nextStep}
     >
       <section className="docs-page-section">
         <h2>What Vanta Portal is</h2>
         <p>
-          Vanta Portal is the wallet side of Vanta&apos;s private-settlement
-          system. It helps a user move selected Solana stablecoins out of a
-          normal public trail and into Vanta before using current private
-          lanes.
-        </p>
-        <p>
-          The plain version: a normal wallet flow is public. Vanta starts after
-          a shield action. From there, the app can show current private lanes
-          and produce clearer settlement evidence. Swap and other lanes
-          remain constrained until their production-status blockers clear.
+          Shield now. Use current private lanes. Verify the receipt. Lanes stay constrained until production gates clear.
         </p>
       </section>
 

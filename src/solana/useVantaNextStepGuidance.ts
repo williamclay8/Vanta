@@ -30,7 +30,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: null,
         ctaLabel: null,
         emphasisLabel: "Wallet connection required",
-        message: `Connect a wallet to begin the live constrained ${summary.liveAsset} lifecycle.`,
+        message: `Action: Connect wallet. Receipt: operator session verified.`,
       };
     }
 
@@ -39,7 +39,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isShieldPage ? null : "/app/shield",
         ctaLabel: isShieldPage ? null : "Open Shield",
         emphasisLabel: `Shield ${summary.liveAsset} to begin`,
-        message: `Public ${summary.liveAsset} is available. Shield it into Vanta to create the first spendable note.`,
+        message: `Action: Shield ${summary.liveAsset}. Receipt: first spendable note.`,
       };
     }
 
@@ -48,7 +48,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isSwapPage ? "/app/send" : "/app/swap",
         ctaLabel: isSwapPage ? "Open Send" : "Open Swap",
         emphasisLabel: "Spendable note ready",
-        message: `Shielded ${summary.liveAsset} is available from the latest Shield action and can continue into Send, Swap, or Unshield.`,
+        message: `Action: Spend note. Receipt: Send/Swap/Unshield available.`,
       };
     }
 
@@ -57,7 +57,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isSwapPage ? "/app/unshield" : "/app/swap",
         ctaLabel: isSwapPage ? "Open Unshield" : "Open Swap",
         emphasisLabel: "Change note ready",
-        message: "Residual shielded value remains available. It can be sent again, swapped into SOL, or returned to Public Wallet.",
+        message: `Action: Use change note. Receipt: Send/Swap/Unshield ready.`,
       };
     }
 
@@ -66,7 +66,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isUnshieldPage ? "/app" : "/app/unshield",
         ctaLabel: isUnshieldPage ? "Open Home" : "Open Unshield",
         emphasisLabel: "Shielded SOL resolved",
-        message: "The first constrained swap path completed inside Vanta. Shielded SOL output is now present and can be returned to Public Wallet through the new SOL unshield lane.",
+        message: `Action: Unshield SOL. Receipt: public wallet restored.`,
       };
     }
 
@@ -75,7 +75,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isShieldPage ? null : "/app/shield",
         ctaLabel: isShieldPage ? null : "Shield again",
         emphasisLabel: "SOL lane completed",
-        message: "A shielded SOL note has been authenticated, consumed, and returned to Public Wallet through the constrained operator-backed exit path.",
+        message: `Action: SOL unshield complete. Receipt: public balance updated.`,
       };
     }
 
@@ -84,7 +84,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isSwapPage ? "/app/unshield" : "/app/swap",
         ctaLabel: isSwapPage ? "Open Unshield" : "Open Swap",
         emphasisLabel: "Next constrained action available",
-        message: `Spendable ${summary.liveAsset} is live in shielded state and can continue through Send, Swap, or Unshield.`,
+        message: `Action: Next spend. Receipt: Send/Swap/Unshield lanes open.`,
       };
     }
 
@@ -93,7 +93,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isShieldPage ? null : "/app/shield",
         ctaLabel: isShieldPage ? null : "Shield again",
         emphasisLabel: "Public wallet restored",
-        message: `${summary.liveAsset} has returned to Public Wallet. Shield can restart the constrained lifecycle when needed.`,
+        message: `Action: Public restored. Receipt: Shield to restart.`,
       };
     }
 
@@ -102,7 +102,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isUnshieldPage ? null : "/app/unshield",
         ctaLabel: isUnshieldPage ? null : "Open Unshield",
         emphasisLabel: "Shielded state present",
-        message: `Shielded ${summary.liveAsset} is present, but there is no currently spendable note to move forward from this state.`,
+        message: `Action: Check notes. Receipt: no spendable note yet.`,
       };
     }
 
@@ -110,7 +110,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
       ctaHref: isShieldPage ? null : "/app/shield",
       ctaLabel: isShieldPage ? null : "Open Shield",
       emphasisLabel: `Awaiting live ${summary.liveAsset}`,
-      message: `No constrained ${summary.liveAsset} action is available yet. Public Wallet needs live ${summary.liveAsset} to begin the loop.`,
+        message: `Action: Acquire ${summary.liveAsset}. Receipt: Shield to start.`,
     };
   }, [
     account?.lifecycleActivities,
