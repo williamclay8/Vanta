@@ -133,6 +133,7 @@ export async function migrateLegacyVantaShieldedSolNoteToV2(args: {
   commitment?: string;
   responseStatus?: number;
   phase1MigrationNote?: string;
+  isTransientNetworkError?: boolean;
 }> {
   const { legacyNote, operatorBaseUrl, owner, vaultOwner } = args;
 
@@ -182,21 +183,41 @@ export async function migrateLegacyVantaShieldedSolNoteToV2(args: {
     const defaultBase = "https://vanta-prod-private-pool-v2-indexer.onrender.com";
     const base = (operatorBaseUrl || defaultBase).replace(/\/+$/, "");
 
-    const resp = await fetch(`${base}/v1/ingest-native-sol-shield-deposit`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({
-        depositMemo,
-        depositSignature: legacyNote.depositSignature,
-        commitment,
-        owner: resolvedOwner,
-        vaultOwner: resolvedVaultOwner,
-        amount: legacyNote.amount.toString(),
-        treeId: "vanta-private-pool-v2-unified-tree-v1",
-        isLegacyMigration: true,
-        originalAssetId: VANTA_NATIVE_SOL_ASSET_ID, // WSOL for audit trail only; normalized to sentinel server-side
-      }),
-    });
+    // Simple retry for transient network errors (indexer cold starts are common on Render during Phase 2)
+    let resp: Response | null = null;
+    let lastError: any = null;
+    const maxRetries = 3;
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        resp = await fetch(`${base}/v1/ingest-native-sol-shield-deposit`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            depositMemo,
+            depositSignature: legacyNote.depositSignature,
+            commitment,
+            owner: resolvedOwner,
+            vaultOwner: resolvedVaultOwner,
+            amount: legacyNote.amount.toString(),
+            treeId: "vanta-private-pool-v2-unified-tree-v1",
+            isLegacyMigration: true,
+            originalAssetId: VANTA_NATIVE_SOL_ASSET_ID, // WSOL for audit trail only; normalized to sentinel server-side
+          }),
+        });
+        break; // success
+      } catch (fetchErr: any) {
+        lastError = fetchErr;
+        if (attempt < maxRetries - 1) {
+          const delay = 800 * Math.pow(2, attempt); // 800ms, 1.6s, 3.2s
+          await new Promise((r) => setTimeout(r, delay));
+        }
+      }
+    }
+
+    if (!resp) {
+      throw lastError || new Error("Failed to fetch after retries");
+    }
 
     let phase1MigrationNote: string | undefined;
     if (!resp.ok) {
@@ -227,9 +248,20 @@ export async function migrateLegacyVantaShieldedSolNoteToV2(args: {
       phase1MigrationNote: phase1MigrationNote || json?.message || "Legacy note migrated to v2 sentinel tree",
     };
   } catch (e: any) {
+    const msg = e?.message || String(e);
+
+    // Special handling for transient network / "Failed to fetch" errors (common while indexer is cold or Phase 2 endpoint is stabilizing)
+    if (msg.includes("Failed to fetch") || msg.includes("network") || msg.includes("ECONNRESET")) {
+      return {
+        success: false,
+        error: "Indexer service is waking up or temporarily unreachable (normal during native SOL Phase 2 rollout). Retrying automatically is recommended. Re-shield is the fully reliable fallback right now.",
+        isTransientNetworkError: true,
+      };
+    }
+
     return {
       success: false,
-      error: `Migration helper exception: ${e?.message || String(e)} (see design doc Phase 2 for re-shield fallback)`,
+      error: `Migration helper exception: ${msg} (see design doc Phase 2 for re-shield fallback)`,
     };
   }
 }

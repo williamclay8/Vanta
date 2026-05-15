@@ -618,10 +618,15 @@ export function ShieldPage(_props: ShieldPageProps) {
         designDoc: "2026-05-14-native-sol-private-pool-v2-integration.md Phase 2 + §9",
       });
 
-      const result = await migrateLegacyVantaShieldedSolNoteToV2({
+      let result = await migrateLegacyVantaShieldedSolNoteToV2({
         legacyNote: note,
-        // operatorBaseUrl can be overridden from env/config in future; defaults to prod v2 operator
       });
+
+      // Automatic one retry for transient "Failed to fetch" / indexer cold-start cases (very common in Phase 2)
+      if (!result.success && result.isTransientNetworkError) {
+        await new Promise((r) => setTimeout(r, 1200));
+        result = await migrateLegacyVantaShieldedSolNoteToV2({ legacyNote: note });
+      }
 
       if (result.success) {
         // Remove from legacy quarantine store (now in v2 unified tree via sentinel commitment)
@@ -645,9 +650,15 @@ export function ShieldPage(_props: ShieldPageProps) {
         }, 1500);
       } else {
         setLegacyMigrationStatus((prev) => ({ ...prev, [noteKey]: "error" }));
+        const isTransient = result.isTransientNetworkError;
         const errMsg = result.error || "Migration failed (see console). Re-shield recommended as fallback per design doc.";
         setLegacyMigrationError(errMsg);
-        console.warn("[Phase 2 Migration] Failed (fail-closed, legacy note preserved)", result);
+
+        if (isTransient) {
+          console.warn("[Phase 2 Migration] Transient indexer network error (will keep offering retry + re-shield)", result);
+        } else {
+          console.warn("[Phase 2 Migration] Failed (fail-closed, legacy note preserved)", result);
+        }
       }
     },
     [loadLegacyNativeSolNotesForMigration, legacySolNotes.length, refreshNativeSolShieldState],
@@ -677,7 +688,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         }
       } catch (err) {
         console.error("[Bulk Migration] One note failed, continuing with the rest", err);
-        // continue — fail-closed per note
+        // continue — fail-closed per note (the per-note handler already does one retry on transient network errors)
       }
     }
 
@@ -2264,7 +2275,13 @@ export function ShieldPage(_props: ShieldPageProps) {
                   )}
 
                   {legacyMigrationError && (
-                    <p style={{ color: "#b91c1c", fontSize: "0.8em", margin: "8px 0 0" }}>Migration error: {legacyMigrationError} (re-shield works as fallback)</p>
+                    <p style={{ color: "#b91c1c", fontSize: "0.82em", margin: "10px 0 4px", lineHeight: 1.35 }}>
+                      {legacyMigrationError.includes("waking up") || legacyMigrationError.includes("unreachable") ? (
+                        <>Indexer service is waking up or still stabilizing for native SOL (expected in current Phase 2). <strong>Re-shield is the safest option right now.</strong></>
+                      ) : (
+                        <>Migration error: {legacyMigrationError}</>
+                      )}
+                    </p>
                   )}
 
                   <div style={{ marginTop: "8px" }}>
@@ -2284,7 +2301,28 @@ export function ShieldPage(_props: ShieldPageProps) {
                           >
                             {status === "migrating" ? "Migrating..." : status === "success" ? "✓ Done" : "Migrate to v2"}
                           </button>
-                          {status === "error" && <span className="legacy-note-status">Failed — re-shield ok</span>}
+                          {status === "error" && (
+                            <span className="legacy-note-status" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                              Failed — 
+                              <button
+                                type="button"
+                                className="button button-ghost"
+                                style={{ fontSize: "0.7em", padding: "1px 6px" }}
+                                onClick={() => {
+                                  // Quick re-shield fallback: prefill the amount and trigger normal shield flow
+                                  setSelectedSourceAssetId("SOL");
+                                  setAmount(formatEditableAmount(note.amount, 9));
+                                  setStatus("idle");
+                                  setLegacyMigrationError(null);
+                                  // Scroll user attention to the main shield button
+                                  const actions = document.querySelector(".shield-form__actions");
+                                  actions?.scrollIntoView({ behavior: "smooth", block: "center" });
+                                }}
+                              >
+                                Re-shield instead (recommended)
+                              </button>
+                            </span>
+                          )}
                         </div>
                       );
                     })}
