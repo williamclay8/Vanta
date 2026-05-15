@@ -3093,12 +3093,8 @@ select:focus {
   display: flex;
   flex-direction: column;
   gap: 8px;                      /* explicit, predictable internal rhythm */
-  border: 1px solid rgba(0, 229, 200, 0.15);
-  border-radius: 12px;
-  background: rgba(0, 229, 200, 0.02);
-  padding: 10px 12px;
-  box-sizing: border-box;
   min-width: 0;                  /* allow inner grid to shrink, never overflow */
+  /* Removed the outer bordered box so the From and To pickers sit directly in the choose asset area with only the outer container's buffer */
 }
 
 /* Both pickers' footers should occupy the same vertical slot.
@@ -4121,6 +4117,11 @@ select:focus {
 .shield-from-to-row .shield-picker-column .asset-picker-grid__options {
   grid-template-columns: repeat(auto-fill, minmax(200px, 220px));
   justify-content: start;
+}
+
+/* Push the entire To AssetPickerGrid to the right within its column so the right edge of the "To" box aligns with the right edge of the choose asset box (with the outer buffer). The arrow remains centered in the middle. */
+.shield-from-to-row .shield-picker-column:last-child .asset-picker-grid {
+  margin-left: auto;
 }
 
 .asset-picker-grid__option,
