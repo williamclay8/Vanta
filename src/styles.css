@@ -4124,6 +4124,11 @@ select:focus {
   margin-left: auto;
 }
 
+/* Move the "To" label so it is left-aligned with the left edge of the (right-aligned) picker box below it. */
+.shield-from-to-row .shield-picker-column:last-child .swap-module__label-row {
+  margin-left: auto;
+}
+
 .asset-picker-grid__option,
 .asset-picker-grid__empty {
   height: 96px;                  /* fixed, not min-height */
