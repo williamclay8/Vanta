@@ -2133,9 +2133,9 @@ export function ShieldPage(_props: ShieldPageProps) {
                 </div>
               </div>
 
-              {/* Crisp 2-column From / To layout for better visual weight and inviting picker boxes */}
+              {/* Balanced From → To layout with visual connector for better human perception */}
               <div className="shield-from-to-row">
-                {/* LEFT: From */}
+                {/* From column */}
                 <div className="swap-module__field shield-picker-column">
                   <div className="swap-module__label-row">
                     <span>From</span>
@@ -2153,11 +2153,15 @@ export function ShieldPage(_props: ShieldPageProps) {
                     options={sourceAssetPickerOptions}
                     selectedOptionId={sourceSelectValue}
                   />
-                  {/* Spacer to match height of To's extra balance lines */}
                   <div className="shield-picker-footer-spacer" />
                 </div>
 
-                {/* RIGHT: To */}
+                {/* Visual connector (arrow) between From and To */}
+                <div className="shield-from-to-arrow" aria-hidden="true">
+                  →
+                </div>
+
+                {/* To column */}
                 <div className="swap-module__field shield-picker-column">
                   <div className="swap-module__label-row">
                     <span>To</span>
@@ -2179,11 +2183,13 @@ export function ShieldPage(_props: ShieldPageProps) {
                       </div>
                     )}
                   </div>
-                  <p className="shield-helper shield-helper--route">
-                    Route: {selectedSourceAsset?.symbol ?? "Asset"} → {capability.targetShieldAsset?.label ?? "Shielded asset"}
-                  </p>
                 </div>
               </div>
+
+              {/* Route text below the From/To pair for clean visual balance */}
+              <p className="shield-helper shield-helper--route shield-route-below-pickers">
+                Route: {selectedSourceAsset?.symbol ?? "Asset"} → {capability.targetShieldAsset?.label ?? "Shielded asset"}
+              </p>
 
               <p className="shield-helper shield-helper--meta">{routeLabel}</p>
               <p className="shield-helper shield-helper--meta">
