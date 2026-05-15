@@ -1186,8 +1186,9 @@ export function ShieldPage(_props: ShieldPageProps) {
       // Polished WIP: uses same default as migrateLegacy helper. See design doc Phase 2.
       void (async () => {
         try {
-          const defaultBase = "https://vanta-prod-private-pool-v2-operator.onrender.com";
-          const baseUrl = defaultBase; // TODO: wire from env/config or privatePoolV2ProtocolSettlementClient in future
+          // Use indexer for native SOL ingestion (operator URL was wrong → caused "Failed to fetch")
+          const defaultBase = "https://vanta-prod-private-pool-v2-indexer.onrender.com";
+          const baseUrl = defaultBase; // TODO: centralize via privatePoolV2ProtocolSettlementClient or env
           await fetch(`${baseUrl.replace(/\/+$/, "")}/v1/ingest-native-sol-shield-deposit`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },

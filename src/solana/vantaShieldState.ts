@@ -177,9 +177,9 @@ export async function migrateLegacyVantaShieldedSolNoteToV2(args: {
     };
     const depositMemo = `${VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX_V2}${JSON.stringify(depositMemoPayload)}`;
 
-    // Resolve operator base (production default; local dev can pass e.g. http://localhost:8787 or from config).
-    // Matches the URL used by privatePoolV2ProtocolSettlementClient for v2 paths.
-    const defaultBase = "https://vanta-prod-private-pool-v2-operator.onrender.com";
+    // Use the indexer service for native SOL ingestion (the route only exists on the indexer role).
+    // This was previously incorrectly pointing at the operator, causing "Failed to fetch".
+    const defaultBase = "https://vanta-prod-private-pool-v2-indexer.onrender.com";
     const base = (operatorBaseUrl || defaultBase).replace(/\/+$/, "");
 
     const resp = await fetch(`${base}/v1/ingest-native-sol-shield-deposit`, {
