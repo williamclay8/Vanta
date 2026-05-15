@@ -199,18 +199,7 @@ function formatAvailableLaneOptionLabel(option: {
   lane: UnshieldLane;
   pendingAmount?: number;
 }) {
-  const spendableLabel =
-    `${formatShieldedLaneLabel(option.lane)} - ${formatUnshieldAmount(option.amount, option.lane)} ledger spendable`;
-
-  if (option.lane !== "SOL" || !option.pendingAmount || option.pendingAmount <= 0) {
-    return spendableLabel;
-  }
-
-  const pendingLabel = "local SOL evidence pending ledger sync";
-
-  return option.amount > 0
-    ? `${spendableLabel}, ${pendingLabel}`
-    : `${formatShieldedLaneLabel(option.lane)} - ${pendingLabel}`;
+  return `${formatShieldedLaneLabel(option.lane)} - ${formatUnshieldAmount(option.amount, option.lane)} ledger spendable`;
 }
 
 function formatEditableAmount(value: number, decimals: number) {
@@ -2041,8 +2030,7 @@ export function UnshieldPage() {
   } else if (selectedLane !== "SOL" && selectedShieldEntry?.error) {
     validationMessage = selectedShieldEntry.error;
   } else if (selectedLane === "SOL" && !selectedSolNote && selectedSolPendingAmount > 0) {
-    validationMessage =
-      "Local SOL evidence is pending ledger sync; wait for ledger reconciliation before unshielding.";
+    validationMessage = "SOL pending ledger reconciliation. Please wait before unshielding.";
   } else if (selectedLane === "SOL" && !liveSwapPair.solUnshieldOperatorUrl) {
     validationMessage = "Configure the SOL unshield operator endpoint before shielded SOL can exit.";
   } else if (selectedLane === "SOL" && solUnshieldOperatorHealth === "checking") {
@@ -2830,9 +2818,7 @@ export function UnshieldPage() {
               <h3>Send {selectedLane} to your wallet</h3>
             </div>
             <small>
-              {selectedLane === "SOL" && !selectedSolNote && selectedSolPendingAmount > 0
-                ? "Local SOL evidence pending ledger sync"
-                : `${formatUnshieldAmount(selectedFullAmount, selectedLane)} selected note`}
+              {`${formatUnshieldAmount(selectedFullAmount, selectedLane)} selected note`}
             </small>
           </div>
 
@@ -2882,9 +2868,7 @@ export function UnshieldPage() {
                     aria-label="Ledger spendable shielded balances"
                     className="send-balance-line shield-helper shield-helper--meta"
                   >
-                    {selectedLane === "SOL" && !selectedSolNote && selectedSolPendingAmount > 0
-                      ? "Local SOL evidence pending ledger sync"
-                      : `Spendable note: ${formatUnshieldAmount(selectedFullAmount, selectedLane)}`}
+                    {`Spendable note: ${formatUnshieldAmount(selectedFullAmount, selectedLane)}`}
                   </div>
                 </div>
                 <div className="send-asset-field">
