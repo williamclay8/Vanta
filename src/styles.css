@@ -3085,6 +3085,8 @@ select:focus {
   grid-template-columns: 1fr auto 1fr;
   gap: 12px;
   align-items: start;
+  padding: 0 16px; /* buffer on left and right to match the rest of the choose asset box */
+  box-sizing: border-box;
 }
 
 .shield-from-to-row .shield-picker-column {
@@ -3105,6 +3107,8 @@ select:focus {
   flex-direction: column;
   justify-content: flex-start;
   font-size: 0.82rem;
+  text-align: right; /* right align the balance and shielded balance text */
+  align-items: flex-end; /* push the footer content to the right edge of the To box */
 }
 
 /* Nice centered arrow between From and To pickers */
