@@ -3092,6 +3092,16 @@ select:focus {
 .shield-from-to-row .shield-picker-column {
   display: flex;
   flex-direction: column;
+  border: 1px solid rgba(0, 229, 200, 0.15);
+  border-radius: 12px;
+  background: rgba(0, 229, 200, 0.02);
+  padding: 10px 12px;
+  box-sizing: border-box;
+}
+
+/* Right-align the To picker box and its footer to the right side of the choose asset area (right edge matches the container's right with buffer), while the "To" label stays left and the arrow stays centered in the middle */
+.shield-from-to-row .shield-picker-column:last-child > *:not(:first-child) {
+  align-self: flex-end;
 }
 
 .shield-from-to-row .shield-picker-footer-spacer {
