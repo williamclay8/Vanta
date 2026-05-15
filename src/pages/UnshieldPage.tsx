@@ -2177,9 +2177,9 @@ export function UnshieldPage() {
         </div>
 
         <div className="module-state">
-          <strong>Beta — get your assets out</strong>
+          <strong>Beta</strong>
           <details className="module-state__details">
-            <summary>Technical status</summary>
+            <summary>Moving assets from shielded to unshielded</summary>
             <p>
               {unshieldTrustContract.claimControls.productionPrivacyClaimsLocked
                 ? unshieldTrustContract.visibleStatusCopy
