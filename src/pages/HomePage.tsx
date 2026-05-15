@@ -8,7 +8,7 @@ type LandingGlyph = "exit" | "private-rails" | "receipt" | "shield";
 
 const productPoints = [
   {
-    copy: "Move selected Solana assets into Vanta before sending, swapping, or exiting.",
+    copy: "Move selected Solana assets into Vanta before sending, swapping, or exiting. (v1 beta: narrow lanes only)",
     icon: "shield",
     title: "Shield assets",
   },

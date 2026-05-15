@@ -119,12 +119,8 @@ async function recordPrivatePoolV2ProtocolSettlement(args: {
   settlementId: string;
   shieldCapability?: VantaProtocolShieldCapability | null;
 } | VantaProtocolSettlementRequest) {
-  try {
-    return await requestVantaPrivatePoolV2ProtocolSettlement(args);
-  } catch {
-    // The shared Private Pool v2 operator is optional in local UI sessions.
-    return null;
-  }
+  // Settlement is now mandatory for v1; failure blocks the flow (no silent fallback).
+  return await requestVantaPrivatePoolV2ProtocolSettlement(args);
 }
 
 function hashPrivatePoolV2CommittedTerm(...parts: readonly string[]) {
@@ -341,7 +337,7 @@ export type RecentShieldContext = {
 
 type PrivacyFlowContextValue = {
   privatePoolV2ProtocolSettlementStatus: VantaPrivatePoolV2ProtocolSettlementState;
-  privateCoreOwner: VantaPrivateCoreOwnerKeypair;
+  privateCoreOwner: { publicKey: string };
   privateCoreRecentShield: VantaPrivateCoreShieldState | null;
   privateCoreHoldState: VantaPrivateCoreHoldState | null;
   privateCoreSendState: VantaPrivateCoreSendState | null;
@@ -3024,7 +3020,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         });
       return {
       privatePoolV2ProtocolSettlementStatus,
-      privateCoreOwner,
+      privateCoreOwner: { publicKey: privateCoreOwner.publicKey },
       privateCoreRecentShield,
       privateCoreHoldState,
       privateCoreSendState,

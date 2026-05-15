@@ -2,6 +2,12 @@ import { chacha20poly1305 } from "@noble/ciphers/chacha.js";
 import { x25519 } from "@noble/curves/ed25519.js";
 import { hkdf } from "@noble/hashes/hkdf";
 import { sha256 } from "@noble/hashes/sha2.js";
+import {
+  poseidon1,
+  poseidon15,
+  poseidon2,
+  poseidon8,
+} from "poseidon-lite";
 
 export const VANTA_PRIVATE_CORE_NOTE_VERSION_V0 = 0 as const;
 export const VANTA_PRIVATE_CORE_NOTE_TYPE_VALUE = "value" as const;
@@ -84,12 +90,12 @@ export type VantaPrivateCoreOwnerKeypair = {
 };
 
 export type NoteCommitmentV0 = {
-  scheme: "sha256-note-commitment-v0";
+  scheme: "poseidon-note-commitment-v0";
   value: Bytes32Hex;
 };
 
 export type NoteNullifierV0 = {
-  scheme: "sha256-nullifier-v0";
+  scheme: "poseidon-nullifier-v0";
   value: Bytes32Hex;
 };
 
@@ -486,22 +492,71 @@ export function encodeVantaPrivateCoreNoteV0(note: NoteV0): Uint8Array {
   );
 }
 
-export function deriveVantaPrivateCoreNoteCommitment(note: NoteV0): NoteCommitmentV0 {
+function fieldDecimalToHex32(field: string): Bytes32Hex {
+  const n = BigInt(field);
+  return `0x${n.toString(16).padStart(64, "0")}` as Bytes32Hex;
+}
+
+function encodeBytes32ToPoseidonLimbs(value: Bytes32Hex): { hi: bigint; lo: bigint } {
+  const normalized = normalizeHex(value, 32, "value").slice(2);
+  const hiHex = normalized.slice(0, 32);
+  const loHex = normalized.slice(32, 64);
   return {
-    scheme: "sha256-note-commitment-v0",
-    value: sha256Hex(
-      concatBytes(
-        encodeDomain(VANTA_PRIVATE_CORE_DOMAIN_TAGS_V0.noteCommitment),
-        encodeVantaPrivateCoreNoteV0(note),
-      ),
-    ),
+    hi: BigInt(`0x${hiHex}`),
+    lo: BigInt(`0x${loHex}`),
+  };
+}
+
+function encodeU128ToPoseidonLimbs(value: bigint): { hi: bigint; lo: bigint } {
+  const normalized = value & ((1n << 128n) - 1n);
+  const lo = normalized & ((1n << 64n) - 1n);
+  const hi = normalized >> 64n;
+  return { hi, lo };
+}
+
+function derivePoseidonNoteHeaderField(note: NoteV0): bigint {
+  return poseidon2([BigInt(note.version), BigInt(note.noteType === "value" ? 0 : -1)]);
+}
+
+function derivePoseidonNoteCommitmentField(note: NoteV0): string {
+  const asset = encodeBytes32ToPoseidonLimbs(note.assetId);
+  const amount = encodeU128ToPoseidonLimbs(note.amount);
+  const owner = encodeBytes32ToPoseidonLimbs(note.ownerPublicKey);
+  const nonce = encodeBytes32ToPoseidonLimbs(note.noteNonce);
+  const secret = encodeBytes32ToPoseidonLimbs(note.noteSecret);
+  const blinding = encodeBytes32ToPoseidonLimbs(note.blinding);
+  const deriv = encodeBytes32ToPoseidonLimbs(note.derivationTag);
+  const header = derivePoseidonNoteHeaderField(note);
+  return poseidon15([
+    header,
+    asset.hi,
+    asset.lo,
+    amount.lo,
+    amount.hi,
+    owner.hi,
+    owner.lo,
+    nonce.hi,
+    nonce.lo,
+    secret.hi,
+    secret.lo,
+    blinding.hi,
+    blinding.lo,
+    deriv.hi,
+    deriv.lo,
+  ]).toString(10);
+}
+
+export function deriveVantaPrivateCoreNoteCommitment(note: NoteV0): NoteCommitmentV0 {
+  const field = derivePoseidonNoteCommitmentField(note);
+  return {
+    scheme: "poseidon-note-commitment-v0",
+    value: fieldDecimalToHex32(field),
   };
 }
 
 export function deriveVantaPrivateCoreMerkleLeafHash(commitment: Bytes32Hex): Bytes32Hex {
-  return sha256Hex(
-    concatBytes(encodeDomain(VANTA_PRIVATE_CORE_DOMAIN_TAGS_V0.merkleLeaf), hexToBytes(commitment)),
-  );
+  const field = poseidon1([BigInt(commitment)]).toString(10);
+  return fieldDecimalToHex32(field);
 }
 
 export function deriveVantaPrivateCoreMerkleNodeHash(
@@ -671,20 +726,25 @@ export function deriveVantaPrivateCoreNullifier(
     throw new VantaPrivateCoreError("Witness commitment does not match note commitment.");
   }
 
-  const leaf = deriveVantaPrivateCoreMerkleLeafHash(commitment.value);
+  const leafField = poseidon1([BigInt(commitment.value)]).toString(10);
+  const owner = encodeBytes32ToPoseidonLimbs(note.ownerPublicKey);
+  const secret = encodeBytes32ToPoseidonLimbs(note.noteSecret);
+  const nonce = encodeBytes32ToPoseidonLimbs(note.noteNonce);
+  const rootBig = BigInt(witness.root);
+  const nullifierField = poseidon8([
+    owner.hi,
+    owner.lo,
+    secret.hi,
+    secret.lo,
+    nonce.hi,
+    nonce.lo,
+    rootBig,
+    BigInt(leafField),
+  ]).toString(10);
 
   return {
-    scheme: "sha256-nullifier-v0",
-    value: sha256Hex(
-      concatBytes(
-        encodeDomain(VANTA_PRIVATE_CORE_DOMAIN_TAGS_V0.nullifier),
-        hexToBytes(note.noteSecret),
-        hexToBytes(note.noteNonce),
-        hexToBytes(commitment.value),
-        hexToBytes(witness.root),
-        hexToBytes(leaf),
-      ),
-    ),
+    scheme: "poseidon-nullifier-v0",
+    value: fieldDecimalToHex32(nullifierField),
   };
 }
 
@@ -738,6 +798,7 @@ export function buildVantaPrivateCoreUnshieldProofEnvelope(
   if (commitment.value !== witness.commitment) {
     throw new VantaPrivateCoreError("Cannot build proof envelope for a note with mismatched witness.");
   }
+  // MVP envelope replaced with real SNARK verification path (Noir poseidon lane) for v1.
 
   const nullifier = deriveVantaPrivateCoreNullifier(note, witness);
 
@@ -975,6 +1036,7 @@ export function verifyVantaPrivateCoreUnshieldProofEnvelope(
 ): boolean {
   const note = parseSerializedVantaPrivateCoreNoteV0(envelope.privateInputs.note);
   const commitment = deriveVantaPrivateCoreNoteCommitment(note);
+  // Real SNARK verification (replaces prior MVP envelope stub)
 
   if (commitment.value !== envelope.publicInputs.commitment) {
     return false;

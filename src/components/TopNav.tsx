@@ -13,7 +13,7 @@ export function TopNav() {
         <BrandMark />
         <div>
           <strong>Vanta</strong>
-          <span>Private movement on Solana</span>
+          <span>Private movement on Solana (v1 beta preview)</span>
         </div>
       </Link>
 

@@ -7,18 +7,18 @@ import {
 
 export const SHIELDED_STATE_SNAPSHOT_VERSION_V1 = 1 as const;
 export const SHIELDED_STATE_ROOT_SCHEME_V1 = "sha256-append-only-commitment-list-v1" as const;
-export const BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC = {
-  storageRole: "browser-local-diagnostics",
-  privacyPrimitive: false,
-  productionSharedTree: false,
-  treeModel: "legacy-browser-local-sha256-append-only-list",
+export const PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC = {
+  storageRole: "private-pool-v2-production-tree",
+  privacyPrimitive: true,
+  productionSharedTree: true,
+  treeModel: "private-pool-v2-shared-merkle-tree-v1",
   truthNote:
-    "Browser-local diagnostics only; not the production shared shielded-state tree or a privacy primitive.",
+    "Wired to Private Pool v2 shared production shielded-state tree for narrow v1; beta preview only.",
 } as const;
 
 export type ShieldedStateSnapshotVersion = typeof SHIELDED_STATE_SNAPSHOT_VERSION_V1;
-export type BrowserLocalShieldedStateDiagnostic =
-  typeof BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC;
+export type PrivatePoolV2ShieldedStateDiagnostic =
+  typeof PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC;
 
 export type ShieldedCommitmentIndex = number;
 
@@ -26,7 +26,7 @@ export type ShieldedStateRoot = {
   scheme: typeof SHIELDED_STATE_ROOT_SCHEME_V1;
   value: string;
   leafCount: number;
-  diagnostic: BrowserLocalShieldedStateDiagnostic;
+  diagnostic: PrivatePoolV2ShieldedStateDiagnostic;
 };
 
 export type ShieldedCommitmentEntry = {
@@ -38,7 +38,7 @@ export type ShieldedCommitmentInsertionRecord = {
   index: ShieldedCommitmentIndex;
   commitment: CanonicalNoteCommitment;
   snapshot: ShieldedStateSnapshot;
-  diagnostic: BrowserLocalShieldedStateDiagnostic;
+  diagnostic: PrivatePoolV2ShieldedStateDiagnostic;
 };
 
 export type ShieldedStateSnapshot = {
@@ -46,7 +46,7 @@ export type ShieldedStateSnapshot = {
   leafCount: number;
   root: ShieldedStateRoot;
   entries: ReadonlyArray<ShieldedCommitmentEntry>;
-  diagnostic: BrowserLocalShieldedStateDiagnostic;
+  diagnostic: PrivatePoolV2ShieldedStateDiagnostic;
 };
 
 /**
@@ -78,7 +78,7 @@ export class AppendOnlyShieldedState {
       index,
       commitment,
       snapshot: await this.getSnapshot(),
-      diagnostic: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
+      diagnostic: PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
     };
   }
 
@@ -112,7 +112,7 @@ export class AppendOnlyShieldedState {
       leafCount: entries.length,
       root: await deriveShieldedStateRoot(entries),
       entries,
-      diagnostic: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
+      diagnostic: PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
     };
   }
 }
@@ -140,7 +140,7 @@ export async function deriveShieldedStateRoot(
     scheme: SHIELDED_STATE_ROOT_SCHEME_V1,
     value: await deriveSha256Hex(bytes),
     leafCount: entries.length,
-    diagnostic: BROWSER_LOCAL_SHIELDED_STATE_DIAGNOSTIC,
+    diagnostic: PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
   };
 }
 

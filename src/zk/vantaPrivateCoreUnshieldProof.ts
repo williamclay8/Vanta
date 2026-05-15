@@ -372,7 +372,7 @@ export function buildVantaPrivateCoreUnshieldProofBoundary(
     readiness: blockers.length === 0 ? "ready" : "blocked",
     blockers,
     compatibilityNotes: [
-      "Current app-side note commitment, Merkle leaf, Merkle node, and nullifier derivations use SHA-256 semantics.",
+      "Source-layer note commitment, Merkle leaf and nullifier now delegate to Poseidon proving lane as canonical (unified hash domain).",
       "The public consumeContextTag is intentionally the Poseidon proving-lane field encoded as a 32-byte hex tag; it is not the legacy SHA-derived source consume context.",
       "The Noir Merkle root uses a v0 Poseidon proving-tree contract with projected source siblings and standard left/right parent hashing.",
       "The source-layer owner key remains X25519-prechecked for payload compatibility; the Noir proving lane now binds a Poseidon proof-owner key derived from the supplied owner secret.",
