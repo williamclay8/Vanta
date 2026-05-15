@@ -37,6 +37,7 @@ import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
 import { isSolanaRpcHttpAccessError, isSolanaRpcRateLimitError } from "@/solana/rpcErrors";
 import { recordRecoveredNativeSolShieldNote } from "@/solana/recoveredNativeSolShieldNotes";
 import {
+  clearAllNativeSolShieldNotes,
   hasVerifiedNativeSolShieldNote,
   loadVerifiedNativeSolShieldDepositSignatures,
   recordVerifiedNativeSolShieldNote,
@@ -2330,6 +2331,30 @@ export function ShieldPage(_props: ShieldPageProps) {
                   <p className="legacy-footer">
                     One-time sentinel commitment + ingest. After migrate, v2 indexer handles your SOL balance.
                   </p>
+
+                  {/* User-requested reset: clear all legacy migration prompts when the flow is stuck */}
+                  <div style={{ marginTop: "12px", paddingTop: "8px", borderTop: "1px solid rgba(0,229,200,0.15)" }}>
+                    <button
+                      type="button"
+                      className="button button-ghost"
+                      style={{ fontSize: "0.72em", opacity: 0.85 }}
+                      onClick={() => {
+                        if (!confirm("This will clear all legacy pre-v2 SOL migration prompts from your browser. You can always re-shield SOL normally later. Continue?")) {
+                          return;
+                        }
+                        clearAllNativeSolShieldNotes();
+                        setLegacySolNotes([]);
+                        setShowLegacyMigrationPanel(false);
+                        setLegacyMigrationError(null);
+                        setLegacyMigrationStatus({});
+                      }}
+                    >
+                      Having trouble? Reset / clear all legacy migration prompts (safe – just stops the nagging)
+                    </button>
+                    <div style={{ fontSize: "0.65em", opacity: 0.6, marginTop: "4px" }}>
+                      This removes the 18 legacy notes from local tracking. Fresh SOL shielding will create proper v2 notes.
+                    </div>
+                  </div>
                 </div>
               )}
 

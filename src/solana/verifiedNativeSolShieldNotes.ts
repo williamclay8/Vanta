@@ -207,6 +207,24 @@ export function getVantaLegacyNativeSolWsolMigrationPolicy() {
   } as const;
 }
 
+/**
+ * Nuclear reset for the user: clears ALL tracked native SOL notes (legacy + any v2).
+ * Use when migration flow is stuck (e.g. indexer not ready in Phase 2).
+ * After this, the "Legacy SOL notes" / migration panel will disappear.
+ * User can always create fresh v2 native SOL notes by normal Shielding SOL.
+ */
+export function clearAllNativeSolShieldNotes() {
+  if (!canUseLocalStorage()) return;
+
+  try {
+    localStorage.removeItem(VERIFIED_NATIVE_SOL_SHIELD_NOTES_STORAGE_KEY);
+    notifyVerifiedNativeSolShieldNotesChanged({} as any);
+    console.info("[Native SOL] Cleared all legacy + v2 native SOL note tracking from localStorage (user reset)");
+  } catch (e) {
+    console.warn("Failed to clear native SOL notes storage", e);
+  }
+}
+
 export function removeLegacyNativeSolShieldNoteAfterMigration(args: {
   depositSignature: string;
   owner: string;
