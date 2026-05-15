@@ -1625,7 +1625,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         steps={[
           { id: "shield", label: "Shield" },
           { id: "send", label: "Send" },
-          { id: "hold-change", label: "Hold change" },
+          { id: "hold-change", label: "Change" },
         ]}
       />
 
@@ -1649,7 +1649,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             <p>Start with Shield.</p>
           </div>
           <Link className="button button-ghost" to="/app/shield">
-            Shield funds first
+            Shield first
           </Link>
         </div>
       )}

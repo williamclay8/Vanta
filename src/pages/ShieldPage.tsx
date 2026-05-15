@@ -91,8 +91,8 @@ type ShieldStatus =
 
 const NATIVE_SOL_SHIELD_FEE_RESERVE_SOL = 0.00001;
 const SHIELD_STATE_HYDRATION_RETRY_DELAYS_MS = [400, 1_200, 3_000, 6_000] as const;
-const VANTA_SHIELD_REQUIRED_ACCOUNT_NOT_FOUND_MESSAGE =
-  "Solana could not find one of the required mainnet accounts for this Shield transaction. This does not mean your wallet has no SOL; refresh Vanta balances or try another browser-compatible mainnet RPC, then try Shield again.";
+  const VANTA_SHIELD_REQUIRED_ACCOUNT_NOT_FOUND_MESSAGE =
+  "Required account not found. Refresh balances or try another RPC.";
 
 function isConfirmedSignatureStage(stage: RealtimeSignatureStage) {
   return stage === "confirmed" || stage === "finalized";
@@ -123,11 +123,11 @@ function toErrorMessage(error: unknown, fallback: string) {
   }
 
   if (isSolanaRpcRateLimitError(error)) {
-    return "The public Solana RPC is rate-limited while checking this Shield transaction. Vanta did not ask for another transfer; wait a moment or use recovery if the deposit already landed.";
+    return "RPC rate-limited. Wait or use recovery.";
   }
 
   if (isSolanaRpcHttpAccessError(error)) {
-    return "The browser RPC endpoint blocked access while checking this Shield transaction. Vanta did not ask for another transfer; try a browser-compatible mainnet RPC or use recovery if the deposit already landed.";
+    return "RPC blocked. Try compatible mainnet RPC or recovery.";
   }
 
   if (code === 8100002 || message.includes("Solana error #8100002")) {
@@ -1897,9 +1897,9 @@ export function ShieldPage(_props: ShieldPageProps) {
         ariaLabel="Shield flow"
         activeStepIndex={shieldFlowActiveIndex}
         steps={[
-          { id: "choose-asset", label: "Choose asset" },
+          { id: "choose-asset", label: "Choose" },
           { id: "approve", label: "Approve" },
-          { id: "private-note", label: "Private note" },
+          { id: "private-note", label: "Note" },
         ]}
       />
 
@@ -1907,7 +1907,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         <article className="send-card send-card--workspace">
           <div className="shield-card__header">
             <div>
-              <span>Choose what to shield</span>
+              <span>Choose asset</span>
             </div>
           </div>
 
@@ -1915,7 +1915,7 @@ export function ShieldPage(_props: ShieldPageProps) {
             <div className="swap-module">
               <div className="swap-module__field">
                 <div className="swap-module__label-row">
-                  <span>Amount to shield</span>
+                  <span>Amount</span>
                   <div className="send-balance-line shield-helper shield-helper--meta">
                     Balance: {sourceBalanceLabel}
                   </div>
@@ -2018,7 +2018,7 @@ export function ShieldPage(_props: ShieldPageProps) {
               {isNativeSolShield && (
                 <div className="shield-recovery-panel">
                   <div>
-                    <strong>Recover SOL already sent to the vault</strong>
+                    <strong>Recover SOL vault deposit</strong>
                     <p>
                       {latestRecoverableSolDeposit
                         ? `${latestRecoverableSolDeposit.amountDisplay} SOL reached the Vanta vault but has no matching shield-state record yet.`
@@ -2071,7 +2071,7 @@ export function ShieldPage(_props: ShieldPageProps) {
                     status === "entering_shielded_state"
                   }
                 >
-                  {isBetaMode ? "Beta mode" : "Shield & receive receipt"}
+                  {isBetaMode ? "Beta mode" : "Shield"}
                 </button>
               </div>
             </div>
@@ -2106,19 +2106,19 @@ export function ShieldPage(_props: ShieldPageProps) {
                 }
                 title={
                   status === "awaiting_wallet_confirmation"
-                    ? "Awaiting wallet confirmation"
+                    ? "Confirm in wallet"
                     : status === "routing_public_swap"
-                      ? "Preparing shield route"
+                      ? "Routing to shield"
                       : status === "shielding_in_progress"
-                        ? "Shielding in progress"
+                        ? "Shielding"
                         : status === "entering_shielded_state"
-                          ? "Recording local shield state"
+                          ? "Recording state"
                           : status === "recovery_recorded"
-                            ? "SOL recovery recorded"
+                            ? "Recovery recorded"
                             : status === "complete"
                               ? recentShield?.claimTier === "proof_receipt_verified"
-                                ? "Shield proof receipt verified"
-                                : "Shield complete — receipt ready"
+                                ? "Receipt verified"
+                                : "Complete"
                               : "Shield failed"
                 }
                 message={

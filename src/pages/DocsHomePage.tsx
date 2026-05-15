@@ -91,10 +91,8 @@ export function DocsHomePage() {
           Shield selected stablecoins. Use current lanes. Produce a receipt the counterparty can verify.
         </p>
         <div className="docs-home__hero-note">
-          <strong>The beta truth is part of the product.</strong>
-          <p>
-            Production privacy is not enabled. Shield now, verify receipts, and check operator status before stronger claims.
-          </p>
+          <strong>Beta truth is the product.</strong>
+          <p>Privacy not enabled yet. Shield, verify receipts, check status first.</p>
         </div>
       </section>
 

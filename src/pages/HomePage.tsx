@@ -8,22 +8,22 @@ type LandingGlyph = "exit" | "private-rails" | "receipt" | "shield";
 
 const productPoints = [
   {
-    copy: "Shield selected assets into Vanta before Send, Swap, or Unshield. Beta: narrow lanes, verifiable receipts.",
+    copy: "Shield assets. Get verifiable receipts for Send, Swap, Unshield.",
     icon: "shield",
     title: "Shield assets",
   },
   {
-    copy: "Run Shield, Send, Swap, Unshield — each step produces a receipt a merchant can verify.",
+    copy: "Shield, Send, Swap, Unshield — each leaves a merchant-verifiable receipt.",
     icon: "private-rails",
     title: "Use current lanes",
   },
   {
-    copy: "Create payment requests with receipt-backed records merchants can inspect on the spot.",
+    copy: "Create receipt-backed payment requests merchants verify instantly.",
     icon: "receipt",
     title: "Accept payments",
   },
   {
-    copy: "Unshield balances back to any public wallet on your schedule. Full exit control.",
+    copy: "Unshield to any wallet. Full exit control.",
     icon: "exit",
     title: "Exit on your terms",
   },
@@ -32,19 +32,19 @@ const productPoints = [
 const primaryAppActions = [
   {
     label: "Shield funds",
-    outcome: "Shield now — first receipt generated on entry.",
+    outcome: "Shield now. First receipt on entry.",
     path: "shield",
     status: "Wallet lane",
   },
   {
     label: "Send from shielded state",
-    outcome: "Receipt-backed private transfer. Merchant sees only what you share.",
+    outcome: "Private transfer with receipt. Merchant sees only what you share.",
     path: "send",
     status: "Wallet lane",
   },
   {
     label: "Swap from shielded state",
-    outcome: "Shielded swap with verifiable route proof and receipt.",
+    outcome: "Shielded swap with receipt and route proof.",
     path: "swap",
     status: "Wallet lane",
   },
@@ -58,14 +58,14 @@ const primaryAppActions = [
 
 const previewAppActions = [
   {
-    copy: "Create payment requests with receipt-backed records merchants verify instantly.",
+    copy: "Receipt-backed payments merchants verify on the spot.",
     eyebrow: "Pay preview",
     label: "Collect payments",
     path: "pay",
     status: "Preview",
   },
   {
-    copy: "Plan shielded execution and preview receipt output before live lanes.",
+    copy: "Preview shielded execution and receipt output.",
     eyebrow: "Strategy preview",
     label: "Plan execution",
     path: "strategy",
@@ -206,7 +206,7 @@ export function HomePage() {
 
             <div className="landing-minimal__actions">
               <Link className="landing-btn landing-btn--primary" to="/app">
-                Shield now — get receipt
+                Shield now
               </Link>
               <a className="landing-btn landing-btn--ghost" href="#use">
                 See open actions

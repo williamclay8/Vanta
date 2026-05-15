@@ -57,7 +57,7 @@ export function SendReceiptModal({
         <div className="send-receipt-modal__header">
           <div>
             <span>✓ Send receipt</span>
-            <h3 id="send-receipt-modal-title">Latest send receipt</h3>
+            <h3 id="send-receipt-modal-title">Send receipt</h3>
           </div>
           <button
             className="send-receipt-modal__close"
@@ -70,7 +70,7 @@ export function SendReceiptModal({
         </div>
 
         <p id="send-receipt-modal-boundary" className="send-receipt-modal__boundary">
-          Trust packet: local send evidence + operator proof status. Inspect &amp; share this receipt to invite next private action.
+          Trust packet • local evidence + proof. Share to invite next action.
         </p>
 
         <dl className="send-receipt-modal__grid">

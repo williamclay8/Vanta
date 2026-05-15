@@ -5,7 +5,7 @@ const manifestoPrinciples = [
   {
     title: "Shield now. Merchant verifies later.",
     copy:
-      "Privacy is useful when the merchant or counterparty gets a receipt they can inspect without learning your full history. Receipt is the growth artifact.",
+      "Privacy is useful when merchants get a receipt they can inspect. Receipt is the growth artifact.",
   },
   {
     title: "Every action leaves a receipt.",

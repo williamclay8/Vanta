@@ -49,8 +49,7 @@ export const docsPages: DocsPageMeta[] = [
   {
     slug: "/docs",
     title: "Vanta Docs",
-    summary:
-      "Shield selected stablecoins, use current lanes, and produce a receipt the counterparty can verify.",
+    summary: "Shield stablecoins. Use lanes. Produce verifiable receipts.",
     track: "shared",
     section: "home",
     badge: "design-partner-surface",
@@ -58,16 +57,15 @@ export const docsPages: DocsPageMeta[] = [
       sidebarGroup: "start-here",
     },
     nextStep: {
-      label: "Shield now in Portal",
+      label: "Shield in Portal",
       href: "/docs/portal",
-      description: "Shield selected flows and verify the receipt.",
+      description: "Shield flows. Verify receipt.",
     },
   },
   {
     slug: "/docs/portal",
     title: "Vanta Portal",
-    summary:
-      "Shield selected stablecoins into Vanta, use current private lanes, unshield when needed, and verify the receipt.",
+    summary: "Shield into Vanta. Use lanes. Unshield or verify receipt.",
     track: "portal",
     section: "portal",
     badge: "preview",
@@ -76,16 +74,15 @@ export const docsPages: DocsPageMeta[] = [
       topNavLabel: "Portal",
     },
     nextStep: {
-      label: "Test merchant checkout",
+      label: "Test checkout",
       href: "/docs/pay",
-      description: "See live lanes and operator status for Pay.",
+      description: "Check Pay lanes and operator status.",
     },
   },
   {
     slug: "/docs/pay",
     title: "Vanta Pay",
-    summary:
-      "Test checkout, inspect settlement status, issue refunds, and verify receipt-backed records in merchant language.",
+    summary: "Test checkout. Inspect settlement. Verify receipt records.",
     track: "pay",
     section: "pay",
     badge: "forward-looking",
@@ -94,16 +91,15 @@ export const docsPages: DocsPageMeta[] = [
       topNavLabel: "Pay",
     },
     nextStep: {
-      label: "Inspect trust & receipts",
+      label: "Inspect trust",
       href: "/docs/trust",
-      description: "See live receipt, operator, and verification surfaces.",
+      description: "View receipts, operator status, verification.",
     },
   },
   {
     slug: "/docs/trust",
     title: "Trust",
-    summary:
-      "Verify what happened, what stayed private, who can check the receipt, and what remains preview-only.",
+    summary: "Verify actions, privacy, and receipt checks. Spot preview limits.",
     track: "shared",
     section: "trust",
     badge: "live-now",
@@ -112,16 +108,15 @@ export const docsPages: DocsPageMeta[] = [
       topNavLabel: "Trust",
     },
     nextStep: {
-      label: "Check security limits",
+      label: "Check security",
       href: "/docs/security",
-      description: "See current beta constraints and verification commands.",
+      description: "Review beta limits and verification commands.",
     },
   },
   {
     slug: "/docs/security",
     title: "Security",
-    summary:
-      "Production privacy is not enabled. See current beta limits and verification commands.",
+    summary: "Privacy is beta. Check limits and verification commands.",
     track: "shared",
     section: "security",
     badge: "live-now",
@@ -130,16 +125,15 @@ export const docsPages: DocsPageMeta[] = [
       topNavLabel: "Security",
     },
     nextStep: {
-      label: "Follow the roadmap",
+      label: "See roadmap",
       href: "/docs/roadmap",
-      description: "See how Portal and Pay connect with receipt verification.",
+      description: "How Portal and Pay connect via receipts.",
     },
   },
   {
     slug: "/docs/roadmap",
     title: "Roadmap",
-    summary:
-      "See the merchant-first path from preview lanes to verified private settlement.",
+    summary: "Merchant path from preview lanes to verified settlement.",
     track: "shared",
     section: "roadmap",
     badge: "forward-looking",

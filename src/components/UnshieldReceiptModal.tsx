@@ -56,7 +56,7 @@ export function UnshieldReceiptModal({
         <div className="unshield-receipt-modal__header">
           <div>
             <span>✓ Unshield receipt</span>
-            <h3 id="unshield-receipt-modal-title">Latest unshield receipt</h3>
+            <h3 id="unshield-receipt-modal-title">Unshield receipt</h3>
           </div>
           <button
             className="unshield-receipt-modal__close"
@@ -69,7 +69,7 @@ export function UnshieldReceiptModal({
         </div>
 
         <p id="unshield-receipt-modal-boundary" className="unshield-receipt-modal__boundary">
-          Trust packet: verify exit on operator before claiming. Share this receipt to grow the private set.
+          Trust packet • verify exit before claim. Share to grow private set.
         </p>
 
         <dl className="unshield-receipt-modal__grid">

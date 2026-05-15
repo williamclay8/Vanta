@@ -61,7 +61,7 @@ export function SwapReceiptModal({
         <div className="swap-receipt-modal__header">
           <div>
             <span>✓ Swap receipt</span>
-            <h3 id="swap-receipt-modal-title">Latest swap receipt</h3>
+            <h3 id="swap-receipt-modal-title">Swap receipt</h3>
           </div>
           <button
             className="swap-receipt-modal__close"
@@ -74,7 +74,7 @@ export function SwapReceiptModal({
         </div>
 
         <p id="swap-receipt-modal-boundary" className="swap-receipt-modal__boundary">
-          Trust packet boundary: operator-visible route settlement. View receipt to verify &amp; share the trust packet.
+          Trust packet • route settlement. Verify &amp; share.
         </p>
 
         <dl className="swap-receipt-modal__grid">

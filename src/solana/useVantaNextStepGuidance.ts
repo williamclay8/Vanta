@@ -30,7 +30,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: null,
         ctaLabel: null,
         emphasisLabel: "Wallet connection required",
-        message: `Action: Connect wallet. Receipt: operator session verified.`,
+        message: `Connect wallet to verify operator session`,
       };
     }
 
@@ -39,7 +39,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isShieldPage ? null : "/app/shield",
         ctaLabel: isShieldPage ? null : "Open Shield",
         emphasisLabel: `Shield ${summary.liveAsset} to begin`,
-        message: `Action: Shield ${summary.liveAsset}. Receipt: first spendable note.`,
+        message: `Shield ${summary.liveAsset} for first spendable note`,
       };
     }
 
@@ -48,7 +48,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isSwapPage ? "/app/send" : "/app/swap",
         ctaLabel: isSwapPage ? "Open Send" : "Open Swap",
         emphasisLabel: "Spendable note ready",
-        message: `Action: Spend note. Receipt: Send/Swap/Unshield available.`,
+        message: `Spend note — Send/Swap/Unshield available`,
       };
     }
 
@@ -57,7 +57,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isSwapPage ? "/app/unshield" : "/app/swap",
         ctaLabel: isSwapPage ? "Open Unshield" : "Open Swap",
         emphasisLabel: "Change note ready",
-        message: `Action: Use change note. Receipt: Send/Swap/Unshield ready.`,
+        message: `Use change note — Send/Swap/Unshield ready`,
       };
     }
 
@@ -66,7 +66,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isUnshieldPage ? "/app" : "/app/unshield",
         ctaLabel: isUnshieldPage ? "Open Home" : "Open Unshield",
         emphasisLabel: "Shielded SOL resolved",
-        message: `Action: Unshield SOL. Receipt: public wallet restored.`,
+        message: `Unshield SOL to restore public wallet`,
       };
     }
 
@@ -75,7 +75,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isShieldPage ? null : "/app/shield",
         ctaLabel: isShieldPage ? null : "Shield again",
         emphasisLabel: "SOL lane completed",
-        message: `Action: SOL unshield complete. Receipt: public balance updated.`,
+        message: `SOL unshield complete — public balance updated`,
       };
     }
 
@@ -84,7 +84,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isSwapPage ? "/app/unshield" : "/app/swap",
         ctaLabel: isSwapPage ? "Open Unshield" : "Open Swap",
         emphasisLabel: "Next constrained action available",
-        message: `Action: Next spend. Receipt: Send/Swap/Unshield lanes open.`,
+        message: `Next spend — Send/Swap/Unshield lanes open`,
       };
     }
 
@@ -93,7 +93,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isShieldPage ? null : "/app/shield",
         ctaLabel: isShieldPage ? null : "Shield again",
         emphasisLabel: "Public wallet restored",
-        message: `Action: Public restored. Receipt: Shield to restart.`,
+        message: `Public restored — shield to restart`,
       };
     }
 
@@ -102,7 +102,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
         ctaHref: isUnshieldPage ? null : "/app/unshield",
         ctaLabel: isUnshieldPage ? null : "Open Unshield",
         emphasisLabel: "Shielded state present",
-        message: `Action: Check notes. Receipt: no spendable note yet.`,
+        message: `Check notes — no spendable note yet`,
       };
     }
 
@@ -110,7 +110,7 @@ export function useVantaNextStepGuidance(): VantaNextStepGuidance {
       ctaHref: isShieldPage ? null : "/app/shield",
       ctaLabel: isShieldPage ? null : "Open Shield",
       emphasisLabel: `Awaiting live ${summary.liveAsset}`,
-        message: `Action: Acquire ${summary.liveAsset}. Receipt: Shield to start.`,
+        message: `Acquire ${summary.liveAsset} — shield to start`,
     };
   }, [
     account?.lifecycleActivities,

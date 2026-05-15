@@ -8,12 +8,12 @@ type SystemStatusStripProps = {
 };
 
 const laneStatusPreviewMarkers = [
-  "Shield: Action: locked. Receipt: gate check",
-  "Send: Action: locked. Receipt: gate check",
-  "Swap: Action: locked. Receipt: gate check",
-  "Unshield: Action: locked. Receipt: gate check",
-  "Strategy: Action: locked. Receipt: gate check",
-  "Pay: Action: locked. Receipt: gate check",
+  "Shield: Locked — gate check",
+  "Send: Locked — gate check",
+  "Swap: Locked — gate check",
+  "Unshield: Locked — gate check",
+  "Strategy: Locked — gate check",
+  "Pay: Locked — gate check",
 ] as const;
 
 export function SystemStatusStrip({ showBetaMode }: SystemStatusStripProps) {
@@ -33,16 +33,16 @@ export function SystemStatusStrip({ showBetaMode }: SystemStatusStripProps) {
       <div className="system-status-strip__topline">
         <strong>Trust status</strong>
         {showBetaMode ? (
-          <span>Action: Test mode. Receipt: beta gates pending.</span>
+          <span>Test mode — beta gates pending</span>
         ) : (
-          <span>Action: Beta status. Receipt: {lockedLaneCount} locks active.</span>
+          <span>Beta status — {lockedLaneCount} locks active</span>
         )}
       </div>
 
       <details className="system-status-strip__details">
         <summary>
           <span className="system-status-strip__count">
-            Action: Beta status. Receipt: {lockedLaneCount} locks active
+            Beta status — {lockedLaneCount} locks active
           </span>
           <span className="system-status-strip__summary">
             {visibleSummary}

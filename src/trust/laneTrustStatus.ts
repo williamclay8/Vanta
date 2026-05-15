@@ -5,7 +5,7 @@ import { getShieldTrustContract } from "@/solana/shieldTrustContract";
 import { getSwapTrustContract } from "@/solana/swapTrustContract";
 import { getUnshieldTrustContract } from "@/solana/unshieldTrustContract";
 
-export const LANE_TRUST_STATUS_LOCKED_LABEL = "Action: locked. Receipt: gate check" as const;
+export const LANE_TRUST_STATUS_LOCKED_LABEL = "Locked — gate check" as const;
 
 export type LaneTrustStatusId =
   | "shield"
@@ -146,7 +146,7 @@ function buildLaneTrustStatuses(): readonly LaneTrustStatus[] {
       contractVersion: strategy.version,
       currentTruth: strategy.currentTruth,
       claimControls: normalizeStandardClaimControls(strategy.claimControls),
-      visibleStatusCopy: "Action: Strategy rail. Receipt: hash-bound evidence only.",
+      visibleStatusCopy: "Strategy rail — hash-bound evidence only",
       verificationSurfaces: strategy.verificationSurfaces,
     }),
     buildLaneTrustStatus({
@@ -155,7 +155,7 @@ function buildLaneTrustStatuses(): readonly LaneTrustStatus[] {
       contractVersion: pay.version,
       currentTruth: pay.currentTruth,
       claimControls: normalizePayClaimControls(pay.claimControls),
-      visibleStatusCopy: `Action: Pay. Receipt: ${pay.currentTruth}.`,
+      visibleStatusCopy: `Pay — ${pay.currentTruth}`,
       verificationSurfaces: pay.verificationSurfaces,
     }),
   ] as const;

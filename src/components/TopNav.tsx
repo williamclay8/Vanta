@@ -13,7 +13,7 @@ export function TopNav() {
         <BrandMark />
         <div>
           <strong>Vanta</strong>
-          <span>Shield. Settle privately. Share receipts.</span>
+          <span>Shield. Settle. Share receipts.</span>
         </div>
       </Link>
 
@@ -27,7 +27,7 @@ export function TopNav() {
 
       <div className="nav-actions">
         <NavLink className="button button-ghost" to="/app/shield">
-          Shield now — get receipt
+          Shield now
         </NavLink>
       </div>
     </header>

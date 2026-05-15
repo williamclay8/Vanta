@@ -57,7 +57,7 @@ export function PayReceiptPacketCard({
           <div data-vanta-pay-receipt-merchant>
           <small>{merchantName}</small>
           <span>✓ Receipt packet</span>
-          <strong>Receipt packet ready — share trust packet</strong>
+          <strong>Share trust packet</strong>
         </div>
         <div className="pay-receipt-packet-card__actions" aria-label="Receipt packet actions">
           <a
@@ -66,7 +66,7 @@ export function PayReceiptPacketCard({
             href={shareHref}
             style={{ color: '#34d399', fontWeight: 600 }}
           >
-            Verify on operator
+            Verify
           </a>
           <button
             className="button button-primary pay-receipt-packet-card__copy"
@@ -74,7 +74,7 @@ export function PayReceiptPacketCard({
             onClick={onCopyShareLink}
             type="button"
           >
-            {copied ? "Share link copied" : "Copy share link"}
+            {copied ? "Copied" : "Copy link"}
           </button>
           <button
             className="button button-ghost pay-receipt-packet-card__print"
@@ -82,14 +82,13 @@ export function PayReceiptPacketCard({
             onClick={() => window.print()}
             type="button"
           >
-            Print receipt
+            Print
           </button>
         </div>
       </div>
 
       <p className="pay-receipt-packet-card__boundary" data-vanta-pay-receipt-printable>
-        {privacyContract.currentTruth}; {privacyContract.claimSummary}. No production funds moved.
-        Test receipt only. Printable receipt packet for local review.
+        {privacyContract.currentTruth}; {privacyContract.claimSummary}. Test receipt • printable artifact.
       </p>
 
       <div className="pay-receipt-packet-card__summary">
@@ -156,7 +155,7 @@ export function PayReceiptPacketCard({
       </dl>
 
       <div className="pay-receipt-packet-card__qr" data-vanta-pay-receipt-qr aria-label="Receipt packet QR preview">
-        <span>Receipt QR preview</span>
+        <span>Receipt QR</span>
         <strong>{publicView.receiptId.slice(0, 12)}</strong>
         <small>Redacted local test share packet: {shareHref}</small>
       </div>

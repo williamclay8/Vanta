@@ -9,8 +9,8 @@ export const capabilities: Capability[] = [
   {
     title: "Shield",
     status: "Beta",
-    summary: "Shield funds to start private settlement.",
-    details: "Commit shielded-state evidence and receive a verifiable beta receipt.",
+    summary: "Shield funds. Start private settlement.",
+    details: "Commit shielded state. Receive verifiable receipt.",
   },
   {
     title: "Shielded Send",
