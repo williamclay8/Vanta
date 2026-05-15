@@ -4632,6 +4632,16 @@ select:focus {
   padding: 9px 14px;
 }
 
+/* Ensure the select in the shielded asset box doesn't force the parent taller; center it like the other fields */
+.unshield-ticket__field .send-asset-field {
+  display: flex;
+  align-items: center;
+}
+
+.unshield-ticket__field .send-asset-field select {
+  min-height: 36px;  /* fits inside the 54px field with padding */
+}
+
 .unshield-fixed-field strong {
   min-width: 0;
   overflow: hidden;
