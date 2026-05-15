@@ -365,6 +365,7 @@ export function ShieldPage(_props: ShieldPageProps) {
   const [legacyMigrationStatus, setLegacyMigrationStatus] = useState<Record<string, "idle" | "migrating" | "success" | "error">>({});
   const [legacyMigrationError, setLegacyMigrationError] = useState<string | null>(null);
   const [showLegacyMigrationPanel, setShowLegacyMigrationPanel] = useState(true);
+  const [isMigratingAll, setIsMigratingAll] = useState(false);
 
   useEffect(() => {
     if (pendingShieldAsset === null) {
@@ -651,6 +652,37 @@ export function ShieldPage(_props: ShieldPageProps) {
     },
     [loadLegacyNativeSolNotesForMigration, legacySolNotes.length, refreshNativeSolShieldState],
   );
+
+  // Bulk "Migrate all" for users with many legacy notes (e.g. 18 pre-v2)
+  // Sequentially calls the per-note handler with small delay to be polite to the operator.
+  // Updates happen live via the status map and list refresh inside the per-note handler.
+  const handleMigrateAllLegacyNotes = useCallback(async () => {
+    if (!walletConnected || legacySolNotes.length === 0 || isMigratingAll) return;
+
+    setIsMigratingAll(true);
+    setLegacyMigrationError(null);
+
+    const pendingNotes = legacySolNotes.filter((note) => {
+      const key = note.depositSignature || note.noteId;
+      const st = legacyMigrationStatus[key];
+      return st !== "success" && st !== "migrating";
+    });
+
+    for (let i = 0; i < pendingNotes.length; i++) {
+      const note = pendingNotes[i];
+      try {
+        await handleMigrateLegacySolNote(note);
+        if (i < pendingNotes.length - 1) {
+          await new Promise((r) => setTimeout(r, 300)); // be nice to the ingestion endpoint
+        }
+      } catch (err) {
+        console.error("[Bulk Migration] One note failed, continuing with the rest", err);
+        // continue — fail-closed per note
+      }
+    }
+
+    setIsMigratingAll(false);
+  }, [walletConnected, legacySolNotes, legacyMigrationStatus, handleMigrateLegacySolNote, isMigratingAll]);
 
   useEffect(() => {
     if (!isNativeSolShield || !walletAddress || !selectedShieldAsset?.vaultOwner) {
@@ -2209,6 +2241,23 @@ export function ShieldPage(_props: ShieldPageProps) {
                     </button>
                   </div>
 
+                  {/* Bulk migrate button for users with many legacy notes (e.g. 18) */}
+                  {legacySolNotes.length > 1 && (
+                    <div style={{ marginTop: "10px" }}>
+                      <button
+                        type="button"
+                        className="button button-primary"
+                        onClick={handleMigrateAllLegacyNotes}
+                        disabled={isMigratingAll || !walletConnected}
+                      >
+                        {isMigratingAll ? "Migrating all..." : `Migrate all ${legacySolNotes.length} to v2`}
+                      </button>
+                      <span style={{ marginLeft: "10px", fontSize: "0.75em", color: "var(--muted-strong)" }}>
+                        (recommended for many notes)
+                      </span>
+                    </div>
+                  )}
+
                   {legacyMigrationError && (
                     <p style={{ color: "#b91c1c", fontSize: "0.8em", margin: "8px 0 0" }}>Migration error: {legacyMigrationError} (re-shield works as fallback)</p>
                   )}
@@ -2225,7 +2274,7 @@ export function ShieldPage(_props: ShieldPageProps) {
                           <button
                             type="button"
                             className="button button-primary legacy-note-btn"
-                            disabled={status === "migrating" || status === "success" || !walletConnected}
+                            disabled={isMigratingAll || status === "migrating" || status === "success" || !walletConnected}
                             onClick={() => handleMigrateLegacySolNote(note)}
                           >
                             {status === "migrating" ? "Migrating..." : status === "success" ? "✓ Done" : "Migrate to v2"}
