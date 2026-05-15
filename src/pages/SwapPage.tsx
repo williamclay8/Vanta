@@ -1846,14 +1846,14 @@ export function SwapPage() {
         <div>
           <span className="eyebrow product-intro__eyebrow">Operator-visible swap beta</span>
           <h2>Swap</h2>
-          <p>{swapTrustContract.visibleStatusCopy}</p>
+          <p>Swap shielded assets privately using constrained routes in beta.</p>
         </div>
 
         <div className="module-state">
           <strong>{swapTrustContract.currentTruth}</strong>
           <p>
             {swapTrustContract.claimControls.productionPrivacyClaimsLocked
-              ? swapTrustContract.visibleStatusCopy
+              ? "Swap is in beta with constrained routes. Full private routing not yet live."
               : "Production Swap privacy claims are unlocked by current evidence."}
           </p>
         </div>
@@ -1956,18 +1956,26 @@ export function SwapPage() {
                 <div className="swap-route-card__row">
                   <div className="swap-choice-group" role="group" aria-label="To shielded asset">
                     <span>To</span>
-                    <AssetPickerGrid
-                      ariaLabel="To shielded asset"
-                      onSelectOption={(nextTargetAsset) => {
-                        setSelectedTargetAsset(nextTargetAsset as ShieldedSwapAssetKey);
+                    <select
+                      className="swap-asset-select"
+                      value={selectedTargetAsset}
+                      onChange={(e) => {
+                        const next = e.target.value as ShieldedSwapAssetKey;
+                        setSelectedTargetAsset(next);
                         setStatus("idle");
                         setFlowError(null);
                         setQuote(null);
                         setQuoteError(null);
                       }}
-                      options={swapTargetAssetPickerOptions}
-                      selectedOptionId={selectedTargetAsset}
-                    />
+                    >
+                      {swapTargetAssetPickerOptions.map((opt) => (
+                        <option key={opt.id} value={opt.id} disabled={opt.disabled}>
+                          {opt.symbol}
+                          {opt.label ? ` — ${opt.label}` : ''}
+                          {opt.disabled ? ' (unavailable)' : ''}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="swap-quote-line">

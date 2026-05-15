@@ -21,8 +21,8 @@ export const capabilities: Capability[] = [
   {
     title: "Swap",
     status: "Beta",
-    summary: "Swap shielded assets and receive operator-verifiable settlement proof.",
-    details: "Operator-visible rails today; full private rebalance after readiness gates.",
+    summary: "Privately swap shielded assets using constrained routes.",
+    details: "Guarded beta with operator-visible settlement. Full private rebalancing after readiness gates.",
   },
   {
     title: "Pay",
@@ -47,7 +47,7 @@ export const roadmap = [
   {
     phase: "Phase 02",
     title: "Programmatic Swap",
-    description: "Private execution from shielded state after route contracts, verifier evidence, and custody gates are ready.",
+    description: "Guarded beta with constrained routes. Full private execution after route contracts, verifier evidence, and custody gates.",
   },
   {
     phase: "Phase 03",

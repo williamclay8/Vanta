@@ -73,11 +73,10 @@ const requiredPageMarkers = [
 ];
 
 const requiredDataSiteMarkers = [
-  "Swap routing beta",
-  "Target C beta",
-  "Route from shielded state with operator-visible settlement.",
+  "Guarded beta",
+  "constrained routes",
   "Programmatic Swap",
-  "Private execution from shielded state after route contracts, verifier evidence, and custody gates are ready.",
+  "Privately swap shielded assets using constrained routes",
 ];
 
 const forbiddenDataSiteMarkers = [
@@ -88,8 +87,8 @@ const forbiddenDataSiteMarkers = [
 const requiredSwapTrustMarkers = [
   "Target C operator-visible Swap beta",
   "programmaticPrivateSwapClaim: false",
-  "operator-visible/custodial",
-  "Production privacy is not enabled for programmatic Swap",
+  "Privately swap shielded assets using constrained routes",
+  "Swap is in guarded beta",
 ];
 
 const forbiddenPageMarkers = [

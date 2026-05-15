@@ -111,7 +111,7 @@ for (const marker of [
 
 for (const marker of [
   "Swap receipt",
-  "Route settlement remains operator-visible",
+  "Trust packet • route settlement",
   "data-vanta-swap-receipt-modal",
 ]) {
   if (!swapReceiptModalSource.includes(marker)) {
