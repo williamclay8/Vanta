@@ -3079,6 +3079,21 @@ select:focus {
   margin-top: 16px;
 }
 
+/* Improved Shield layout: Amount on top, then crisp 2-column From | To pickers (more inviting, wider effective boxes) */
+.shield-from-to-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .shield-from-to-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
 .shield-form__section {
   display: grid;
   gap: 12px;

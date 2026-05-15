@@ -2088,51 +2088,52 @@ export function ShieldPage(_props: ShieldPageProps) {
                 </div>
               </div>
 
-              <div className="swap-module__field">
-                <div className="swap-module__label-row">
-                  <span>From</span>
-                </div>
-                <AssetPickerGrid
-                  ariaLabel="Shield source asset"
-                  disabled={sourceSelectDisabled}
-                  emptyLabel={sourcePlaceholderLabel}
-                  onSelectOption={(nextSourceAssetId) => {
-                    setSelectedSourceAssetId(nextSourceAssetId);
-                    setStatus("idle");
-                    setRecentShield(null);
-                    setFlowError(null);
-                  }}
-                  options={sourceAssetPickerOptions}
-                  selectedOptionId={sourceSelectValue}
-                />
-              </div>
-
-              <div className="swap-module__divider" aria-hidden="true" />
-
-              <div className="swap-module__field">
-                <div className="swap-module__label-row">
-                  <span>To</span>
-                  <div className="shield-balance-stack">
-                    <div className="send-balance-line shield-helper shield-helper--meta">
-                      Shielded balance: {targetShieldedBalanceLabel}
-                    </div>
-                    {hasPendingNativeSolShieldEvidence && (
-                      <div className="send-balance-line shield-helper shield-helper--meta">
-                        Local SOL evidence pending ledger sync
-                      </div>
-                    )}
+              {/* Crisp 2-column From / To layout for better visual weight and inviting picker boxes */}
+              <div className="shield-from-to-row">
+                <div className="swap-module__field">
+                  <div className="swap-module__label-row">
+                    <span>From</span>
                   </div>
+                  <AssetPickerGrid
+                    ariaLabel="Shield source asset"
+                    disabled={sourceSelectDisabled}
+                    emptyLabel={sourcePlaceholderLabel}
+                    onSelectOption={(nextSourceAssetId) => {
+                      setSelectedSourceAssetId(nextSourceAssetId);
+                      setStatus("idle");
+                      setRecentShield(null);
+                      setFlowError(null);
+                    }}
+                    options={sourceAssetPickerOptions}
+                    selectedOptionId={sourceSelectValue}
+                  />
                 </div>
-                <AssetPickerGrid
-                  ariaLabel="Shield target asset"
-                  options={shieldTargetAssetPickerOptions}
-                  onSelectOption={() => undefined}
-                  readOnly
-                  selectedOptionId={shieldTargetAssetPickerOptions[0]?.id ?? ""}
-                />
-                <p className="shield-helper shield-helper--route">
-                  Route: {selectedSourceAsset?.symbol ?? "Asset"} {"->"} {capability.targetShieldAsset?.label ?? "Shielded asset"}
-                </p>
+
+                <div className="swap-module__field">
+                  <div className="swap-module__label-row">
+                    <span>To</span>
+                    <div className="shield-balance-stack">
+                      <div className="send-balance-line shield-helper shield-helper--meta">
+                        Shielded balance: {targetShieldedBalanceLabel}
+                      </div>
+                      {hasPendingNativeSolShieldEvidence && (
+                        <div className="send-balance-line shield-helper shield-helper--meta">
+                          Local SOL evidence pending ledger sync
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <AssetPickerGrid
+                    ariaLabel="Shield target asset"
+                    options={shieldTargetAssetPickerOptions}
+                    onSelectOption={() => undefined}
+                    readOnly
+                    selectedOptionId={shieldTargetAssetPickerOptions[0]?.id ?? ""}
+                  />
+                  <p className="shield-helper shield-helper--route">
+                    Route: {selectedSourceAsset?.symbol ?? "Asset"} → {capability.targetShieldAsset?.label ?? "Shielded asset"}
+                  </p>
+                </div>
               </div>
 
               <p className="shield-helper shield-helper--meta">{routeLabel}</p>

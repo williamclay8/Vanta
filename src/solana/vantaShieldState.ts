@@ -3,7 +3,7 @@ import {
   type SolanaClient,
   type TransactionInstructionInput,
 } from "@solana/client";
-import { Connection } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { xchacha20poly1305 } from "@noble/ciphers/chacha.js";
 import { sha256 } from "@noble/hashes/sha256";
 import { utf8ToBytes } from "@noble/hashes/utils";
@@ -85,9 +85,18 @@ export function computeNativeSolShieldPoseidonCommitment(args: {
   const amountLo = amountLamports & 0xffffffffffffffffn;
   const amountHi = amountLamports >> 64n;
 
-  // Owner as field (simplified 32-byte pubkey handling; real impl uses full field derivation from canonicalNote)
-  const ownerHex = owner.replace(/^0x/, "").slice(0, 64).padStart(64, "0");
-  const ownerField = BigInt("0x" + ownerHex);
+  // Owner as field: robustly handle base58 Solana pubkey (used in legacy notes + walletAddress) or 0x-hex.
+  // Converts 32-byte pubkey to 256-bit BigInt for the placeholder XOR commitment.
+  let ownerField: bigint;
+  try {
+    const ownerBytes = new PublicKey(owner).toBytes(); // 32 bytes, works for base58
+    const ownerHex = Buffer.from(ownerBytes).toString("hex").padStart(64, "0");
+    ownerField = BigInt("0x" + ownerHex);
+  } catch {
+    // Fallback for any hex-like input during transition
+    const ownerHex = String(owner).replace(/^0x/, "").slice(0, 64).padStart(64, "0");
+    ownerField = BigInt("0x" + ownerHex);
+  }
 
   // Placeholder (XOR for local determinism during Phase 2 migration window).
   // Real v2 path: poseidon( version, assetIdHi/Lo from sentinel, amountLo/Hi, ownerField, nonce, secret, blinding )
