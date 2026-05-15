@@ -3097,6 +3097,16 @@ select:focus {
   /* Removed the outer bordered box so the From and To pickers sit directly in the choose asset area with only the outer container's buffer */
 }
 
+/* Bring both From and To boxes a little toward the center (split the difference).
+   Left column gets left padding (pushes From content right), right column gets right padding (pulls To content left). */
+.shield-from-to-row .shield-picker-column:first-child {
+  padding-left: 20px;
+}
+
+.shield-from-to-row .shield-picker-column:last-child {
+  padding-right: 20px;
+}
+
 /* Both pickers' footers should occupy the same vertical slot.
    The From column's footer is conceptually empty — keep the slot, hide the content. */
 .shield-from-to-row .shield-picker-footer,
