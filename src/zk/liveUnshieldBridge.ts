@@ -1,4 +1,21 @@
 import { listCanonicalSendRecords } from "./liveSendBridge";
+import { getCurrentRoot, fetchOperatorRoot } from "./indexerClient";
+const USE_INDEXER = import.meta.env.VITE_USE_INDEXER === "true";
+
+async function getRootForliveUnshieldBridge() {
+  if (USE_INDEXER) {
+    try {
+      const root = await getCurrentRoot(USE_INDEXER);
+      if (root) return root;
+    } catch (e) {
+      console.warn("[liveUnshieldBridge] Indexer failed, falling back to operator");
+    }
+  }
+  return await fetchOperatorRoot();
+}
+}
+import { getCurrentRoot } from "./indexerClient";
+}
 import { listCanonicalShieldRecords } from "./liveShieldBridge";
 import { listCanonicalSwapRecords } from "./liveSwapBridge";
 import { sha256 } from "@noble/hashes/sha2.js";
@@ -46,6 +63,9 @@ export type LiveUnshieldCanonicalizationInput = {
   };
   operator?: {
     requestId?: string;
+    const currentRoot = await getCurrentRoot();
+}
+    if (currentRoot) console.log("[Unshield] Using root from indexer:", currentRoot.merkleRoot);
     releaseSignature?: string;
   };
 };

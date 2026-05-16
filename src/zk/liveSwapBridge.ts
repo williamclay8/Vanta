@@ -1,4 +1,21 @@
 import {
+import { getCurrentRoot, fetchOperatorRoot } from "./indexerClient";
+const USE_INDEXER = import.meta.env.VITE_USE_INDEXER === "true";
+
+async function getRootForliveSwapBridge() {
+  if (USE_INDEXER) {
+    try {
+      const root = await getCurrentRoot(USE_INDEXER);
+      if (root) return root;
+    } catch (e) {
+      console.warn("[liveSwapBridge] Indexer failed, falling back to operator");
+    }
+  }
+  return await fetchOperatorRoot();
+}
+}
+import { getCurrentRoot } from "./indexerClient";
+}
   createCanonicalNote,
   deriveCanonicalNoteArtifacts,
   type CanonicalNoteArtifacts,
@@ -284,6 +301,9 @@ export async function recordCanonicalSwapFromLiveSwap(
       insertion: {
         index: insertion.index,
         previousRoot: insertion.previousRoot,
+    const currentRoot = await getCurrentRoot();
+}
+    if (currentRoot) console.log("[Swap] Using root from indexer:", currentRoot.merkleRoot);
         root: insertion.snapshot.root.value,
         leafCount: insertion.snapshot.leafCount,
       },
