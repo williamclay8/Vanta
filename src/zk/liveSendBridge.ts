@@ -1,21 +1,4 @@
 import {
-import { getCurrentRoot, fetchOperatorRoot } from "./indexerClient";
-const USE_INDEXER = import.meta.env.VITE_USE_INDEXER === "true";
-
-async function getRootForliveSendBridge() {
-  if (USE_INDEXER) {
-    try {
-      const root = await getCurrentRoot(USE_INDEXER);
-      if (root) return root;
-    } catch (e) {
-      console.warn("[liveSendBridge] Indexer failed, falling back to operator");
-    }
-  }
-  return await fetchOperatorRoot();
-}
-}
-import { getCurrentRoot } from "./indexerClient";
-}
   createCanonicalNote,
   deriveCanonicalNoteArtifacts,
   type CanonicalNoteArtifacts,
@@ -445,9 +428,6 @@ async function createSuccessorRecord(args: {
     }),
     insertion: {
       index: insertion.index,
-    const currentRoot = await getCurrentRoot();
-}
-    if (currentRoot) console.log("[Send] Using root from indexer:", currentRoot.merkleRoot);
       root: insertion.snapshot.root.value,
       leafCount: insertion.snapshot.leafCount,
     },

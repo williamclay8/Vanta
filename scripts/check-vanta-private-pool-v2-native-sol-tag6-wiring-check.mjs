@@ -117,16 +117,17 @@ assert.ok(
   "process_unshield must contain SOL kind==2 branch (test helper wiring in progress per Rust Deepening lane; demonstrates TAG6 path in Vanta copy)."
 );
 assert.ok(
-  programSource.includes("system_instruction::transfer(vault_authority.key, destination_token_account.key, exit_lamports)"),
-  "SOL branch must contain system_instruction::transfer CPI (from program-owned vault PDA, not SPL token::transfer_checked)."
+  programSource.includes("system_instruction::transfer(sol_vault_holding.key, destination.key, exit_amount)"),
+  "SOL branch must contain system_instruction::transfer CPI from the dedicated SOL vault PDA to the destination system account."
 );
 assert.ok(
   programSource.includes("invoke_signed("),
   "SOL branch must use invoke_signed for PDA-signed system transfer (no operator keypair signer on funds movement)."
 );
 assert.ok(
-  programSource.includes("VAULT_AUTHORITY_SEED, pool_state.key.as_ref(), exit_asset_id"),
-  "PDA derivation in SOL branch uses authority seed + sentinel (exit_asset_id) per current test helper; production will use SOL_VAULT_SEED + sentinel."
+  programSource.includes("SOL_VAULT_SEED, pool_state.key.as_ref(), &NATIVE_SOL_ASSET_ID_SENTINEL") &&
+    programSource.includes("sol_vault_holding.clone()"),
+  "PDA derivation and CPI accounts in SOL branch must use SOL_VAULT_SEED + sentinel with the dedicated sol_vault_holding account."
 );
 assert.ok(
   programSource.includes("nullifier_marker"),
@@ -145,8 +146,8 @@ assert.ok(
   "program must have UnshieldEvent scaffolding / emit for indexer (test helper per Rust Deepening + design §11)."
 );
 assert.ok(
-  programSource.includes("SOL TAG6 wired"),
-  "SPL else path must note 'SOL TAG6 wired' in test helper message."
+  programSource.includes("unshield success (asset_kind=SOL=2, sentinel, program-owned PDA CPI, nullifier consumed)"),
+  "SOL branch must emit the current test-helper success message for sentinel SOL, program-owned PDA CPI, and nullifier consume."
 );
 
 // === Status / Trust surfaces for native SOL TAG6 ===

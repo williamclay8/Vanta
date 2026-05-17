@@ -2077,7 +2077,7 @@ export function ShieldPage(_props: ShieldPageProps) {
         steps={[
           { id: "choose-asset", label: "Choose" },
           { id: "approve", label: "Approve" },
-          { id: "private-note", label: "Note" },
+          { id: "private-note", label: "Private note" },
         ]}
       />
 
@@ -2432,13 +2432,13 @@ export function ShieldPage(_props: ShieldPageProps) {
                         ? "Shielding"
                         : status === "entering_shielded_state"
                           ? "Recording state"
-                          : status === "recovery_recorded"
-                            ? "Recovery recorded"
-                            : status === "complete"
-                              ? recentShield?.claimTier === "proof_receipt_verified"
-                                ? "Receipt verified"
-                                : "Complete"
-                              : "Shield failed"
+	                          : status === "recovery_recorded"
+	                            ? "SOL recovery recorded"
+	                            : status === "complete"
+	                              ? recentShield?.claimTier === "proof_receipt_verified"
+	                                ? "Shield proof receipt verified"
+	                                : "Shield deposit recorded"
+	                              : "Shield failed"
                 }
                 message={
                   status === "complete"

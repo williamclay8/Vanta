@@ -91,7 +91,7 @@ for (const marker of [
   "asset_data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] != 0",
   "data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] = 0;",
   // Updated post Rust Deepening + Verification Commands (test helper now wires SOL TAG6; SPL path updated message)
-  "vanta_private_pool_v2_spend: proof-verified unshield release ABI passed preflight for SPL; SPL token CPI release not wired in test helper (SOL TAG6 wired)",
+  "vanta_private_pool_v2_spend: proof-shaped unshield release ABI passed verifier-key preflight for SPL; SPL token CPI release not wired in test helper (SOL TAG6 wired)",
   "if asset_kind == VAULT_ASSET_KIND_SOL {",
   "system_instruction::transfer(vault_authority.key, destination_token_account.key, exit_lamports)",
   "SOL_VAULT_SEED",
@@ -122,7 +122,7 @@ for (const marker of [
 }
 
 for (const marker of [
-  "### `6` (TAG_UNSHIELD) - proof-verified unshield release preflight (TAG6 native SOL wired in test helper via system CPI; SPL path still reserved/not-wired. Per design doc §11 + VANTA_ZK_REVIEW U2.1 + 2026-05-14 status note)",
+  "### `6` (TAG_UNSHIELD) - proof-shaped unshield release preflight (TAG6 native SOL wired in test helper via system CPI; SPL path still reserved/not-wired. Per design doc §11 + VANTA_ZK_REVIEW U2.1 + 2026-05-14 status note)",
   "### `7` - register Unshield vault asset (source-only, release disabled)",
   "Unshield preflight accounts:",
   "`root_record` read-only program-owned PDA derived from `[\"vanta2root\", pool_state, acceptedRoot]`",

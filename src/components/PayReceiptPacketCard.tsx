@@ -57,7 +57,8 @@ export function PayReceiptPacketCard({
           <div data-vanta-pay-receipt-merchant>
           <small>{merchantName}</small>
           <span>✓ Receipt packet</span>
-          <strong>Share trust packet</strong>
+          <strong>Receipt packet ready</strong>
+          <small>Share trust packet</small>
         </div>
         <div className="pay-receipt-packet-card__actions" aria-label="Receipt packet actions">
           <a
@@ -82,13 +83,14 @@ export function PayReceiptPacketCard({
             onClick={() => window.print()}
             type="button"
           >
-            Print
+            Print receipt
           </button>
         </div>
       </div>
 
       <p className="pay-receipt-packet-card__boundary" data-vanta-pay-receipt-printable>
-        {privacyContract.currentTruth}; {privacyContract.claimSummary}. Test receipt • printable artifact.
+        {privacyContract.currentTruth}; {privacyContract.claimSummary}. Test receipt only.
+        Printable receipt packet.
       </p>
 
       <div className="pay-receipt-packet-card__summary">

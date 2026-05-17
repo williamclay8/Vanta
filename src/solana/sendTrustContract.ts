@@ -25,7 +25,7 @@ export function getSendTrustContract(): SendTrustContract {
       productionPrivacyClaimsLocked: true,
     },
     visibleStatusCopy:
-      "Send is in guarded beta. You can send shielded assets privately to other Vanta users via direct key exchange. Full private recipient discovery is not yet live. All sends are proof-verified by the operator.",
+      "Send is in guarded beta. Fresh v2 Send memos put ciphertext, signer, and timing on chain. The local dual-AEAD scaffold can separately seal recipient and change discovery memos with ciphertext body hashes. Private Pool v2 Send proof-request/circuit lane locally binds those body-hash fields. Full private recipient discovery is not yet live; direct key exchange remains the current beta path. External Send remains fail-closed until recipient viewing-key exchange. Operator/status surfaces still see transition and proof metadata. Send production privacy is not enabled.",
     verificationSurfaces: [
       "npm run send:verify",
       "npm run actions:memo-encryption-check",

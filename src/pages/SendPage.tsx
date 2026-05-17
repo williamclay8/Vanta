@@ -1604,16 +1604,17 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         <div>
           <span className="eyebrow product-intro__eyebrow">{dashboard ? "Dashboard" : "Send shielded"}</span>
           <h2>Send</h2>
-          <p>Send shielded assets privately to other Vanta users.</p>
+          <p>Send shielded assets with guarded beta receipts and direct key exchange.</p>
         </div>
 
-        <div className="module-state">
+        <div
+          className="module-state"
+          data-production-privacy-claims-locked={
+            sendTrustContract.claimControls.productionPrivacyClaimsLocked
+          }
+        >
           <strong>{sendTrustContract.currentTruth}</strong>
-          <p>
-            {sendTrustContract.claimControls.productionPrivacyClaimsLocked
-              ? "Send is in guarded beta. Private recipient discovery is not yet available."
-              : "Production Send privacy claims are unlocked by current evidence."}
-          </p>
+          <p>{sendTrustContract.visibleStatusCopy}</p>
         </div>
       </div>
 
@@ -1623,7 +1624,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         steps={[
           { id: "shield", label: "Shield" },
           { id: "send", label: "Send" },
-          { id: "hold-change", label: "Change" },
+          { id: "hold-change", label: "Hold change" },
         ]}
       />
 

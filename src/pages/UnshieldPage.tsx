@@ -3179,12 +3179,12 @@ export function UnshieldPage() {
 
           {status === "complete" && lastCompletion && (
             <TransactionStatusToast
-              tone="success"
-              phase="complete"
-              title={`Done — sent ${formatUnshieldAmount(lastCompletion.amount, lastCompletion.asset)} ${lastCompletion.asset} to ${walletAddressShort ?? "wallet"}`}
-              message="Beta — operator-assisted release. Verify the public exit transaction."
-              floating
-            >
+	              tone="success"
+	              phase="complete"
+	              title={`Done — sent ${formatUnshieldAmount(lastCompletion.amount, lastCompletion.asset)} ${lastCompletion.asset} to ${walletAddressShort ?? "wallet"}`}
+	              message="Beta: public operator release reported. Verify the public exit transaction."
+	              floating
+	            >
               <div className="preview-grid unshield-evidence-grid">
                 <div className="preview-card preview-card--accent">
                   <span>Transaction evidence</span>

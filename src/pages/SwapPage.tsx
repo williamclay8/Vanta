@@ -1846,16 +1846,17 @@ export function SwapPage() {
         <div>
           <span className="eyebrow product-intro__eyebrow">Guarded beta</span>
           <h2>Swap</h2>
-          <p>Swap shielded assets privately using constrained routes.</p>
+          <p>Swap shielded assets through constrained beta routes.</p>
         </div>
 
-        <div className="module-state">
-          <strong>Guarded beta</strong>
-          <p>
-            {swapTrustContract.claimControls.productionPrivacyClaimsLocked
-              ? "Swap is in guarded beta. Privately swap shielded assets using constrained routes."
-              : "Production Swap privacy claims are unlocked by current evidence."}
-          </p>
+        <div
+          className="module-state"
+          data-production-privacy-claims-locked={
+            swapTrustContract.claimControls.productionPrivacyClaimsLocked
+          }
+        >
+          <strong>{swapTrustContract.currentTruth}</strong>
+          <p>{swapTrustContract.visibleStatusCopy}</p>
         </div>
       </div>
 

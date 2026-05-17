@@ -9,8 +9,24 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
-const INDEXER_URL = import.meta.env.VITE_INDEXER_URL || 'https://vanta-light-public-indexer.onrender.com';
-const OPERATOR_URL = import.meta.env.VITE_OPERATOR_URL || '';
+function getEnv(key: string, fallback: string): string {
+  try {
+    if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
+      return (import.meta as any).env[key] || fallback;
+    }
+  } catch (_) {}
+
+  // @ts-ignore
+  if (typeof process !== 'undefined' && process.env) {
+    // @ts-ignore
+    return process.env[key] || fallback;
+  }
+
+  return fallback;
+}
+
+const INDEXER_URL = getEnv('VITE_INDEXER_URL', 'https://vanta-light-public-indexer.onrender.com');
+const OPERATOR_URL = getEnv('VITE_OPERATOR_URL', '');
 
 export interface RootData {
   merkleRoot: string;

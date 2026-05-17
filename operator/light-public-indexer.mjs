@@ -4,12 +4,12 @@ import helmet from 'helmet';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const OPERATOR_URL = process.env.OPERATOR_URL || '';
 
 app.use(helmet());
 app.use(cors());
 app.use(express.json({ limit: '10kb' }));
 
-// Simple structured logger
 function log(level, message, meta = {}) {
   console.log(JSON.stringify({
     timestamp: new Date().toISOString(),
@@ -19,7 +19,6 @@ function log(level, message, meta = {}) {
   }));
 }
 
-// Request logger + timing
 app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
@@ -35,7 +34,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Rate limiting (simple in-memory)
 const requestLog = new Map();
 const RATE_LIMIT = 120;
 const WINDOW_MS = 60 * 1000;
@@ -59,15 +57,21 @@ function rateLimit(req, res, next) {
 
 app.use(rateLimit);
 
-// Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Get current roots
 app.get('/root', async (req, res) => {
   try {
-    // In production, this would come from a real data source
+    if (OPERATOR_URL) {
+      const response = await fetch(`${OPERATOR_URL}/root`);
+      if (response.ok) {
+        const data = await response.json();
+        log('info', 'Served root from operator');
+        return res.json(data);
+      }
+    }
+    // Fallback placeholder
     const rootData = {
       merkleRoot: "0x0000000000000000000000000000000000000000000000000000000000000000",
       nullifierRoot: "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -80,10 +84,16 @@ app.get('/root', async (req, res) => {
   }
 });
 
-// Get recent nullifiers
 app.get('/nullifiers', async (req, res) => {
   try {
     const since = req.query.since || '0';
+    if (OPERATOR_URL) {
+      const response = await fetch(`${OPERATOR_URL}/nullifiers?since=${since}`);
+      if (response.ok) {
+        const data = await response.json();
+        return res.json(data);
+      }
+    }
     res.json({ nullifiers: [], since });
   } catch (error) {
     log('error', 'Failed to fetch nullifiers', { error: error.message });
@@ -91,7 +101,6 @@ app.get('/nullifiers', async (req, res) => {
   }
 });
 
-// Metrics
 app.get('/metrics', (req, res) => {
   res.json({
     uptime: process.uptime(),
@@ -100,12 +109,10 @@ app.get('/metrics', (req, res) => {
   });
 });
 
-// 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-// Error handler
 app.use((err, req, res, next) => {
   log('error', 'Unhandled error', { error: err.message });
   res.status(500).json({ error: 'Internal server error' });

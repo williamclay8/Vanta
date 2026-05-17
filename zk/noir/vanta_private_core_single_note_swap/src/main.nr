@@ -68,8 +68,6 @@ fn compute_root(
         let sibling = membership_path[i];
         let is_current_right = membership_path_direction_bits[i];
 
-        assert_direction_bit(is_current_right);
-
         if is_current_right == 1 {
             current = hash_merkle_node(sibling, current);
         } else {

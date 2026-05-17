@@ -1,11 +1,17 @@
 services:
   - type: web
-    name: vanta-light-public-indexer
+    name: vanta-prod-private-pool-v2-indexer
     env: node
-    buildCommand: npm install
+    plan: starter
+    region: oregon
+    buildCommand: npm ci
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
+      - key: OPERATOR_URL
+        value: https://vanta-prod-private-pool-v2-operator.onrender.com
+      - key: NODE_VERSION
+        value: 20

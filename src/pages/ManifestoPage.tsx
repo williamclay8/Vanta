@@ -15,7 +15,7 @@ const manifestoPrinciples = [
   {
     title: "Beta truth, no theater.",
     copy:
-      "We state exactly what works today, what is preview, and what receipts prove. No anonymous, untraceable, or production-private claims until gates pass.",
+      "We state exactly what works today, what is preview, and what receipts prove. No broad privacy or readiness claims until gates pass.",
   },
   {
     title: "Operator visible. Merchant first.",
@@ -58,8 +58,9 @@ export function ManifestoPage() {
           <span>Public letter</span>
           <strong>Beta truth first. Receipt as proof.</strong>
           <p>
-            Production privacy is not enabled. Receipts are the only growth artifact. Open the app,
-            shield once, and hand a merchant the first verifiable receipt today.
+            Production privacy is not enabled. This is not an audit report. Receipts are the only
+            growth artifact. Open the app, shield once, and hand a merchant the first verifiable
+            receipt today.
           </p>
           <div className="manifesto-letter__actions">
             <a href="/.well-known/audit">/.well-known/audit</a>

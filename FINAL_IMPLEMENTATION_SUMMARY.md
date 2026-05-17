@@ -1,7 +1,7 @@
 # Vanta Final Implementation Summary
 
 ## Goal
-Achieve full programmatic privacy across all lanes (Shield, Send, Swap, Unshield, Pay).
+Advance Vanta toward programmatic privacy across all lanes (Shield, Send, Swap, Unshield, Pay) without claiming production-private readiness before the verified gates allow it.
 
 ## Completed Work
 
@@ -33,36 +33,28 @@ Achieve full programmatic privacy across all lanes (Shield, Send, Swap, Unshield
 - Verification scripts
 
 ### 6. Documentation & Readiness
-- Production Readiness Checklist created and completed
+- Readiness checklist created for tracking local progress
 - Architecture and integration documentation updated
 - Deployment and operations guides written
+- Production sign-off is still blocked on live settlement evidence, custody review, and external/audit acceptance
 
 ## Production Sign-off
-- [x] Engineering
-- [x] Security
-- [x] Operations
-
-**Sign-off Date**: $(date)
+- [ ] Engineering production sign-off
+- [ ] Security production sign-off
+- [ ] Operations production sign-off
 
 ## Current State
 - All core privacy lanes support client-side proving
 - Operator dependency significantly reduced
 - Public indexer live with multi-indexer support
-- System is production hardened and documented
+- Local hardening and documentation are in place, but production privacy is not enabled
 
 ## Next Improvement Cycle
-
-**Primary Goals**:
-1. Move Swap to full client-side proving (remove hybrid dependency)
-2. Expand public indexer network (more independent operators + geographic distribution)
-3. Further mobile/low-power device optimizations
-4. Improve developer tooling and debugging experience
-
-**Secondary Goals**:
-- Add client-side proving for any remaining flows
-- Strengthen monitoring and alerting
-- Reduce remaining operator surface to pure availability/relaying
+1. Move Swap to full client-side proving
+2. Expand public indexer network
+3. Further mobile optimizations
+4. Developer SDK polish
 
 ---
-**Cycle Status**: Complete
-**Next Cycle**: Full Client-Side Swap + Indexer Network Expansion
+**Status**: Local implementation progress only; not production-ready
+**Date**: $(date)

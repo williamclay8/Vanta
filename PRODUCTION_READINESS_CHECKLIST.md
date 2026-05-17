@@ -1,5 +1,7 @@
 # Vanta Production Readiness Checklist
 
+This checklist records local implementation progress. It is not production approval, not mainnet-private settlement evidence, and not a substitute for the live/operator/audit gates in `MISSION.md`.
+
 ## 1. Client-Side Proving
 - [x] Shield proving works fully client-side
 - [x] Send proving works fully client-side
@@ -58,8 +60,9 @@
 - [x] Mobile/low-power device testing completed
 
 ## Sign-off
-- [ ] Engineering
-- [ ] Security
-- [ ] Operations
+- [ ] Engineering production sign-off
+- [ ] Security production sign-off
+- [ ] Operations production sign-off
 
-Last Updated: $(date)
+**Status**: Not production-ready; local readiness work is still blocked on live settlement, custody, audit, and deployment evidence
+**Date**: $(date)

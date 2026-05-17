@@ -28,9 +28,8 @@ import {
   type OwnerContextRecoveryEvidence,
 } from "./ownerContextRecoveryEvidence";
 import type { LiveShieldTokenAssetKey } from "@/solana/shieldConfig";
-import { getCurrentRoot, fetchOperatorRoot } from "./indexerClient";
-const USE_INDEXER = import.meta.env.VITE_USE_INDEXER === "true";
 
+const LIVE_SHIELD_RECORDS_STORAGE_KEY = "vanta.zk.phase1.live-shield-records.v1";
 const DEFAULT_SHIELD_TOKEN_DECIMALS = 6;
 
 export type LiveShieldCanonicalizationInput = {
@@ -144,10 +143,17 @@ export async function recordCanonicalShieldFromLiveShield(
       owner: input.owner,
       stateSignature: input.stateSignature,
       tokenDecimals: resolveTokenDecimals(input.tokenDecimals),
-    const currentRoot = await getCurrentRoot(USE_INDEXER);
-    if (currentRoot) {
-      console.log("[Shield] Using root from:", USE_INDEXER ? "indexer" : "operator");
-    }
+      vaultOwner: input.vaultOwner,
+    },
+    ownerContext,
+    ownerContextEvidence: createOwnerContextRecoveryEvidence({ ownerContext }),
+    canonicalNote: toSerializedCanonicalNote(canonicalNote),
+    artifacts,
+    insertion: {
+      index: insertion.index,
+      root: insertion.snapshot.root.value,
+      leafCount: insertion.snapshot.leafCount,
+    },
     diagnosticStorage: PRIVATE_POOL_V2_SHIELDED_STATE_DIAGNOSTIC,
   };
 

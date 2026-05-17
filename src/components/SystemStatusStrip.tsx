@@ -1,25 +1,22 @@
-import {
-  getLaneTrustStatuses,
-  LANE_TRUST_STATUS_LOCKED_LABEL,
-} from "@/trust/laneTrustStatus";
+import { getLaneTrustStatuses } from "@/trust/laneTrustStatus";
 
 type SystemStatusStripProps = {
   showBetaMode: boolean;
 };
 
 const laneStatusPreviewMarkers = [
-  "Shield: Locked — gate check",
-  "Send: Locked — gate check",
-  "Swap: Locked — gate check",
-  "Unshield: Locked — gate check",
-  "Strategy: Locked — gate check",
-  "Pay: Locked — gate check",
+  "Shield: Claim locked",
+  "Send: Claim locked",
+  "Swap: Claim locked",
+  "Unshield: Claim locked",
+  "Strategy: Claim locked",
+  "Pay: Claim locked",
 ] as const;
 
 export function SystemStatusStrip({ showBetaMode }: SystemStatusStripProps) {
   const laneStatuses = getLaneTrustStatuses();
   const visibleSummary = laneStatuses
-    .map((status) => `${status.label}: ${status.statusLabel}`)
+    .map((status) => `${status.label}: ${status.claimLocked ? "Claim locked" : status.statusLabel}`)
     .join(" · ");
   const lockedLaneCount = laneStatuses.filter((status) => status.claimLocked).length;
 
@@ -33,16 +30,16 @@ export function SystemStatusStrip({ showBetaMode }: SystemStatusStripProps) {
       <div className="system-status-strip__topline">
         <strong>Trust status</strong>
         {showBetaMode ? (
-          <span>Test mode — beta gates pending</span>
+          <span>Beta · receipts where available · {lockedLaneCount} claim locks active</span>
         ) : (
-          <span>Beta status — {lockedLaneCount} locks active</span>
+          <span>Beta · receipts where available · {lockedLaneCount} claim locks active</span>
         )}
       </div>
 
       <details className="system-status-strip__details">
         <summary>
           <span className="system-status-strip__count">
-            Beta status — {lockedLaneCount} locks active
+            Beta · receipts where available · {lockedLaneCount} claim locks active
           </span>
           <span className="system-status-strip__summary">
             {visibleSummary}

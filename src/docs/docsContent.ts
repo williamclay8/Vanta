@@ -82,7 +82,8 @@ export const docsPages: DocsPageMeta[] = [
   {
     slug: "/docs/pay",
     title: "Vanta Pay",
-    summary: "Test checkout. Inspect settlement. Verify receipt records.",
+    summary:
+      "Run a test checkout. Inspect settlement and verify receipt records; production privacy is not enabled.",
     track: "pay",
     section: "pay",
     badge: "forward-looking",
