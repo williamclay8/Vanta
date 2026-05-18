@@ -4,8 +4,11 @@
 .env.operator.local
 .env.render.local
 env*.local
+doppler.env
+doppler.json
 wallet/
 *.keypair.json
+.DS_Store
 node_modules/
 dist/
 *.tsbuildinfo

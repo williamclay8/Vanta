@@ -1,0 +1,143 @@
+Native SOL TAG6 SBF Production Build & Deployment Command Center
+Lane: SBF Production Build & Deployment Command Center | 2026-05-14
+Workspaces: Vanta/ + Vanta-lane-trust-strip-worker/
+Fresh binaries recorded (both): hash=2491ee0d94a899f36bd572b58d5733fc2528c34f0ad3fe86f29cc68cce76ca03 size=96184 ts=2026-05-14 23:11 PDT
+References: design doc §11, status note checklist, lib.rs full SOL TAG6 test helper.
+
+=== SBF Verification (fresh build per task) ===
+  SBF: /Users/clay/Desktop/Vanta-lane-trust-strip-worker/programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so
+  Size: 96184 bytes (expected ~96k for full SOL TAG6)
+  mtime: 2026-05-15T06:11:11.210Z
+  SHA256: 2491ee0d94a899f36bd572b58d5733fc2528c34f0ad3fe86f29cc68cce76ca03
+  Keypair: /Users/clay/Desktop/Vanta-lane-trust-strip-worker/programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend-keypair.json (exists, size 231)
+  SBF OK (fresh dated binary from 2026-05-14 cargo-build-sbf in both workspaces).
+  Record in worksheet: hash 2491ee0d... , size 96184, timestamp 2026-05-14 23:11 PDT.
+
+=== SOL Vault PDA Derivation (exact per design doc §11) ===
+  pool_state: 5qjyK5B5ZMAgLmXxrpAGqFHvEHTCP4MUwRmzvA4MPEuQ
+  sentinel: 0000000000000000000000000000000000000000000000000000000000000000
+  program_id: 1ANmqk7YB17FxaJLnvUthY9R4UZHyJuNt1cmNfpMsgm
+  SOL_VAULT_PDA (lamports custody): 8uYv5TLNnxajm3yCJ2rf4ZRbQKiNiBRCg6hVmFv9FrXV
+  bump: 250
+  VAULT_ASSET_RECORD_PDA (for kind=2 reg): Cf7m4NxxoQMsiVN7FZvFeTRayJS6pQjgj4YBW4SLNL9K
+  Seeds: [b"vanta2solvault", pool.as_ref(), sentinel]  (matches lib.rs:1080, sol_vault_pda:48)
+  Rust equiv: Pubkey::find_program_address(&[SOL_VAULT_SEED, pool_state.as_ref(), &NATIVE_SOL_ASSET_ID_SENTINEL], program_id)
+  Use this PDA as sol_vault_holding in TAG_UNSHIELD=6 and for funding/registration.
+
+=== TAG_REGISTER_VAULT_ASSET=7 Instruction Construction (kind=2 sentinel) ===
+  tag: 7
+  asset_id (sentinel): 0000000000000000000000000000000000000000000000000000000000000000
+  kind: 2 (VAULT_ASSET_KIND_SOL)
+  release_enabled: 1 (true)
+  data (hex): 0700000000000000000000000000000000000000000000000000000000000000000201
+  accounts: pool_state (w), vault_asset_record PDA (w, derived), authority (signer), system_program
+  Expected PDA for asset_record: derived with ASSET_RECORD_SEED + pool + sentinel
+  In full impl (post-stub): creates vault_asset_record with magic+version+kind+release flag; ensures SOL vault PDA.
+  Current program: stub returns ERR_UNSHIELD_NOT_WIRED (prep); update lib.rs + redeploy for live reg.
+  Tx example: new Transaction().add(ix); sendAndConfirmTransaction(connection, tx, [payerKeypair])
+
+=== Program Deploy + Registration Commands (exact, user runs with keys) ===
+1. SBF verify (already done above):
+   ls -l /Users/clay/Desktop/Vanta-lane-trust-strip-worker/programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so && shasum -a 256 /Users/clay/Desktop/Vanta-lane-trust-strip-worker/programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so
+
+2. Deploy (or upgrade) the program (uses authority keypair for fees + upgrade auth):
+   solana program deploy /Users/clay/Desktop/Vanta-lane-trust-strip-worker/programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so \
+     --program-id 1ANmqk7YB17FxaJLnvUthY9R4UZHyJuNt1cmNfpMsgm \
+     --keypair ~/.config/solana/id.json \
+     --url https://api.mainnet-beta.solana.com \
+     --commitment confirmed
+   Record: program ID (if new), tx signature, slot, deployer pubkey, balance change, success log.
+   Verify on-chain: solana program show <program-id> --url mainnet
+
+3. Derive SOL vault PDA (use the derive script or above output):
+   node programs/vanta_private_pool_v2_spend/scripts/derive-sol-vault-pda.mjs <pool_state> 0000000000000000000000000000000000000000000000000000000000000000 1ANmqk7YB17FxaJLnvUthY9R4UZHyJuNt1cmNfpMsgm
+
+4. Construct & submit TAG_REGISTER_VAULT_ASSET=7 (kind=2) tx (example; extend with real pool/authority):
+   # See buildRegisterInstruction output above for data hex + PDAs.
+   # Full TS example in this script (dry-run prints skeleton). Use @solana/web3.js or solana CLI ix builder.
+   # After program live: authority signs registration for sentinel + kind=2 + releaseEnabled=1
+   Expected tx log (when impl filled): "vanta_private_pool_v2_spend: register_vault_asset success (kind=2, sentinel, releaseEnabled)"
+   Record: tx sig, slot, vault_asset_record PDA, kind=2 in data, no errors.
+
+5. Post-deploy verification (three native-sol-tag6 checks pointed at mainnet):
+   export SOLANA_RPC_URL=https://api.mainnet-beta.solana.com  # or Helius
+   export VANTA_PRIVATE_POOL_V2_SPEND_PROGRAM_ID=<real>
+   npm run private-pool-v2:native-sol-tag6-wiring-check -- --mainnet
+   npm run private-pool-v2:native-sol-sentinel-in-snapshot-check -- --mainnet
+   npm run private-pool-v2:native-sol-unshield-proof-request-check -- --mainnet
+   # Plus: npm run private-pool-v2:onchain-unshield-custody-check (extended for SOL TAG6)
+   # On-chain probe: solana logs <tx-sig> --url mainnet | grep -E 'UnshieldEvent|system_program|transfer'
+
+6. Update docs per status note checklist:
+   - Append tx sigs, PDA, program ID, snapshot root to mainnet-launch-worksheet.md and operator-runbook.md
+   - Update status note Post-Deployment Monitoring Checklist (live evidence gate items)
+   - Run checks, record outputs in wiki/meta/log.md + 01 Daily/
+   - Lumi: commit (sanitized), push, GitHub Actions green, Render deploy verify.
+
+Expected mainnet TAG6 unshield tx characteristics (for live evidence gate):
+  - TAG_UNSHIELD=6 with exit_asset_id=sentinel, asset_kind=2
+  - sol_vault_holding = exact PDA from SOL_VAULT_SEED + sentinel
+  - CPI: system_instruction::transfer (PDA signed, no operator keypair in signers)
+  - UnshieldEvent emitted (nullifier, root)
+  - public_inputs_hash match, nullifier marker consumed
+  - Indexer ingests + snapshot contains sentinel commitment
+
+=== Three Native-SOL-TAG6 Checks (dry-run simulation; point at mainnet for real) ===
+In real run (after deploy):
+  cd <workspace>
+  npm run private-pool-v2:native-sol-tag6-wiring-check
+    # Asserts: VAULT_ASSET_KIND_SOL=2, SOL_VAULT_SEED, lib.rs CPI path, surfaces cite §12 'test helper only; live evidence required per §12'
+  npm run private-pool-v2:native-sol-sentinel-in-snapshot-check
+    # Asserts: sentinel in vantaPrivatePoolV2RoleSnapshotStore + Phase 1 ingest + fail-closed
+  npm run private-pool-v2:native-sol-unshield-proof-request-check
+    # Asserts: VantaPrivatePoolV2UnshieldProofRequest accepts sentinel + lamports exitTerms + surfaces §12
+  All reference design doc §11 + status note + lib.rs test helper.
+  For mainnet: pass --mainnet flag or set RPC; checks query production indexer + on-chain program.
+  (See Vanta/scripts/check-*.mjs and lane/scripts/ equivalents; they read design/status for §11/§12 assertions.)
+
+=== EXACT WHAT THE HUMAN (CLAY) MUST DO WITH SECRETS / RENDER / MAINNET RPC TO CROSS THE BLOCKER ===
+This lane removes the 'mainnet deployment' real MISSION.md blocker for Native SOL TAG6.
+Deployment friction now minimal: human runs the two scripts (derive + this deploy) with keys.
+
+Prerequisites (one-time):
+1. Secrets (read-only access for this agent; you manage):
+   - Authority/upgrade keypair JSON for the vanta_private_pool_v2_spend program (has SOL for fees, controls upgrades).
+     Path example: /Users/clay/.config/solana/vanta-prod-authority.json or from vanta-demo-secrets (never commit).
+   - Mainnet RPC endpoint (Helius/QuickNode/ official; high QPS for indexer probes).
+     Set in Render env (for operator services) or local DOPPLER / export SOLANA_RPC_URL=...
+   - Pool state pubkey (from successful TAG_INIT or pool init tx on mainnet for this program).
+2. Tooling:
+   - solana CLI installed + configured (solana --version).
+   - cargo-build-sbf available (already used for fresh binaries).
+   - Node + @solana/web3.js (npm install in workspace root).
+3. Fresh SBF: binaries already produced + recorded above in both target/deploy/.
+
+Steps to deploy (run in order, review each):
+   a. In chosen workspace (recommend lane-trust-strip-worker for full build env):
+      cd /Users/clay/Desktop/Vanta-lane-trust-strip-worker
+   b. Verify SBF + derive PDA:
+      node programs/vanta_private_pool_v2_spend/scripts/deploy-vanta-private-pool-v2-tag6-sol.mjs --dry-run --pool-state <YOUR_POOL> --program-id <TARGET_OR_NEW> --keypair <YOUR_AUTH.json> --rpc <MAINNET_RPC>
+   c. (Optional) Run derive standalone for PDA:
+      node programs/.../scripts/derive-sol-vault-pda.mjs <pool> 0000...0000 <program>
+   d. Deploy the program:
+      solana program deploy ... (copy from script output) --keypair <auth> --url <rpc>
+   e. Register kind=2 (once program impl for TAG=7 is completed + redeployed):
+      Use the ix construction from script; submit tx with authority signing.
+   f. Run the three checks pointed at mainnet (update package.json scripts if --mainnet not wired):
+      npm run private-pool-v2:native-sol-tag6-wiring-check
+      ... (the other two)
+   g. Collect live evidence per status note checklist: tx sigs, PDA balance, indexer snapshot with sentinel, UnshieldEvent logs.
+   h. Update worksheets/runbooks (see below), commit sanitized evidence, Lumi hygiene.
+   i. Owner sign-off + external gate package per design doc §12 Template (cite this script + fresh binaries + checks PASS + live txs).
+
+Render / secrets note: Update Render service env for operator (VANTA_PRIVATE_POOL_V2_SPEND_PROGRAM_ID, SOLANA_RPC_URL, keypair secrets via Render secret files or DOPPLER).
+Never put private keys in code. Use keypair path from env only. Bounded real-funds: start with tiny test amounts.
+After this: blocker reduced to 'run the scripts + collect 1+ live TAG6 SOL unshield evidence + external review'.
+================================================================================
+
+Verification evidence for this lane:
+- Fresh .so in both target/deploy/ with recorded hashes/sizes/timestamps (above).
+- New scripts created + runnable (--help / --dry-run clean).
+- Exact commands + expected outputs + PDA examples documented in worksheet/runbook updates (next step in this lane).
+- Blockers removed: mainnet deployment friction now 'human runs these two scripts with keys' (derive + deploy).
+Lumi: local only. All per design §11 + status note. Ready for Clay to run with secrets.

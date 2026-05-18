@@ -1,0 +1,8 @@
+Error: Non-base58 character
+    at Object.decode (/Users/clay/Desktop/Vanta/node_modules/@solana/web3.js/node_modules/base-x/src/index.js:115:11)
+    at new PublicKey (/Users/clay/Desktop/Vanta/node_modules/@solana/web3.js/lib/index.cjs.js:170:47)
+    at main (file:///Users/clay/Desktop/Vanta/scripts/native-sol-tag6/derive-sol-vault-pdas.mjs:113:5)
+    at file:///Users/clay/Desktop/Vanta/scripts/native-sol-tag6/derive-sol-vault-pdas.mjs:184:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
