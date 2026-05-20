@@ -1,0 +1,156 @@
+version: 2
+
+goal:
+  title: "H08 Production Prover Unblock Path"
+  slug: "2026-05-20-h08-production-prover-unblock"
+  kind: implementation
+  tranche: "2026-05-20-h08-runtime-selection"
+  status: complete
+  completed_at: "2026-05-20T12:20:30Z"
+  intake:
+    original_request: "your /goal is to follow the recommended unblock path"
+    interpreted_outcome: "Advance H08 by formalizing the selected production prover runtime path and evidence contract without overclaiming production readiness."
+    input_shape: specific
+    audience: "Clay operating /Users/clay/Desktop/Vanta"
+    authority: requested
+    proof_type: "artifact + test + review"
+    completion_proof: "H08 evidence now names remote-service-production-prover as the selected local runtime direction, adds a secret-free production prover contract packet and guard, preserves selectedProverRuntime:null plus C01/proof-format/deployment/audit blockers, and canonical H08/C01/review/build checks pass."
+  oracle:
+    command_targets:
+      - "npm run zk:h08-production-prover-runtime-options-check"
+      - "npm run zk:h08-production-prover-candidate-check"
+      - "npm run zk:c01-verifier-backend-decision-check"
+      - "npm run zk:c01-verifier-backend-options-check"
+      - "npm run zk:review-guards-check"
+
+rules:
+  pm_owns_state: true
+  one_active_task: true
+  max_write_workers: 1
+  no_completion_without_pm_audit: true
+  planning_is_not_completion: true
+
+visual_board:
+  selected: none
+  local:
+    status: not_requested
+    url: null
+    command: "npx goalbuddy board docs/goals/2026-05-20-h08-production-prover-unblock"
+
+active_task: null
+
+receipt:
+  summary: "Selected remote-service-production-prover as H08's local intended production prover direction while keeping production runtime acceptance blocked."
+  new_evidence:
+    - "ops/mainnet/private-pool-v2-h08-remote-service-production-prover-contract.evidence.json"
+    - "scripts/check-vanta-private-pool-v2-h08-remote-service-prover-contract.mjs"
+  truth_boundary:
+    selectedRuntimeDirection: "remote-service-production-prover"
+    selectedRuntimeDirectionStatus: "local-architecture-direction-not-production-runtime-acceptance"
+    selectedProverRuntime: null
+    productionReady: false
+    mainnetReady: false
+    c01Compatibility: "blocked; no selected production verifier backend/proof format/VK/adapter/live/audit acceptance"
+  verification:
+    passed:
+      - "npm run zk:h08-remote-service-prover-contract-check"
+      - "npm run zk:h08-production-prover-runtime-options-check"
+      - "npm run zk:h08-production-prover-candidate-check"
+      - "npm run zk:c01-verifier-backend-decision-check"
+      - "npm run zk:c01-verifier-backend-options-check"
+      - "npm run zk:c01-production-verifier-backend-candidate-check"
+      - "npm run privacy-audit:tracker-check"
+      - "npm run security:limitations-check"
+      - "npm run zk:review-findings-ledger-check"
+      - "npm run private-pool-v2:browser-worker-prover-check"
+      - "npm run private-pool-v2:browser-worker-proof-result-adapter-check"
+      - "npm run private-pool-v2:proof-backend-boundary-check"
+      - "npm run zk:review-guards-check"
+      - "npm run zk:feedback-loop-check"
+      - "npm run build"
+      - "git diff --check"
+    notes:
+      - "Nargo/git dependency cache checks require non-sandbox cache access; sandboxed runs fail with a Nargo cache permission error."
+      - "A prior aggregate run exposed a post-pass ENOTEMPTY temp-cleanup failure in the browser-worker proof-result adapter check; cleanup retry options fixed the harness without changing proof behavior."
+  lumi:
+    app_changes: "local only"
+    committed: false
+    pushed: false
+    deployed_live: false
+    dirty_tree_note: "Repo remains broadly dirty from pre-existing audit/Grok/Claude work; H08 slice is not staged or committed."
+
+tasks:
+  - id: T001
+    type: pm
+    assignee: PM
+    status: complete
+    objective: "Inspect current dirty tree, H08 blockers, C01 coupling, and package-script guards before edits."
+    allowed_files:
+      - "docs/goals/2026-05-20-h08-production-prover-unblock/goal.md"
+      - "docs/goals/2026-05-20-h08-production-prover-unblock/state.yaml"
+    verify:
+      - "git status --short --branch"
+      - "npm run zk:h08-production-prover-runtime-options-check"
+      - "npm run zk:h08-production-prover-candidate-check"
+
+  - id: T002
+    type: worker
+    assignee: PM
+    status: complete
+    objective: "Implement the first safe H08 unblock slice: select remote-service-production-prover as the local intended runtime direction and add/update secret-free production contract evidence while keeping readiness blocked."
+    allowed_files:
+      - "ops/mainnet/private-pool-v2-h08-production-prover-runtime-options.evidence.json"
+      - "ops/mainnet/private-pool-v2-h08-production-prover-candidate.evidence.json"
+      - "docs/zk/prover-relay-privacy-tradeoffs.md"
+      - "docs/zk/c01-production-verifier-backend-decision.md"
+      - "VANTA_ZK_REVIEW.md"
+      - "SECURITY_LIMITATIONS.md"
+      - "README.md"
+      - "scripts/check-vanta-private-pool-v2-h08-production-prover-runtime-options.mjs"
+      - "scripts/check-vanta-private-pool-v2-h08-production-prover-candidate.mjs"
+      - "scripts/check-vanta-private-pool-v2-h08-remote-service-prover-contract.mjs"
+      - "ops/mainnet/private-pool-v2-h08-remote-service-production-prover-contract.evidence.json"
+      - "package.json"
+    verify:
+      - "npm run zk:h08-production-prover-runtime-options-check"
+      - "npm run zk:h08-production-prover-candidate-check"
+
+  - id: T003
+    type: worker
+    assignee: PM
+    status: complete
+    objective: "If needed, adjust C01 decision/evidence language so H08's selected remote-service direction remains blocked on explicit C01 compatibility rather than pretending tag-3 verifier readiness exists."
+    allowed_files:
+      - "docs/zk/c01-production-verifier-backend-decision.md"
+      - "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json"
+      - "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json"
+      - "scripts/check-vanta-private-pool-v2-c01-verifier-backend-options.mjs"
+      - "scripts/check-vanta-private-pool-v2-c01-production-verifier-backend-candidate.mjs"
+    verify:
+      - "npm run zk:c01-verifier-backend-decision-check"
+      - "npm run zk:c01-verifier-backend-options-check"
+      - "npm run zk:c01-production-verifier-backend-candidate-check"
+
+  - id: T004
+    type: judge
+    assignee: PM
+    status: complete
+    objective: "Run focused H08/C01/proof-boundary verification and inspect diffs for overclaiming or secret-bearing evidence."
+    allowed_files:
+      - "scripts/check-vanta-private-pool-v2-browser-worker-proof-result-adapter.mjs"
+    verify:
+      - "npm run zk:h08-production-prover-runtime-options-check"
+      - "npm run zk:h08-production-prover-candidate-check"
+      - "npm run private-pool-v2:proof-backend-boundary-check"
+      - "npm run zk:review-guards-check"
+      - "git diff --check"
+
+  - id: T005
+    type: pm
+    assignee: PM
+    status: complete
+    objective: "Write durable receipt, update vault memory if a decision lands, and report Lumi status."
+    allowed_files:
+      - "docs/goals/2026-05-20-h08-production-prover-unblock/state.yaml"
+      - "docs/goals/2026-05-20-h08-production-prover-unblock/notes/"
+      - "/Users/clay/Desktop/Vanta Vault"

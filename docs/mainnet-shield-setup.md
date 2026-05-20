@@ -30,10 +30,10 @@ Optional:
 
 ```bash
 VITE_VANTA_MAINNET_TOKEN_NAME=Vanta Mainnet Test Dollar
-VITE_SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
-VITE_SOLANA_WS_URL=wss://api.mainnet-beta.solana.com
 VANTA_UNSHIELD_OPERATOR_PORT=8789
 ```
+
+The browser app intentionally ignores `VITE_SOLANA_RPC_URL`, `VITE_SOLANA_BROWSER_RPC_URL`, and related browser RPC env values so paid/provider URLs are not inlined into the public bundle. Server/operator scripts should use the non-VITE `SOLANA_RPC_URL` when they need paid RPC.
 
 ## Suggested SPL CLI setup
 

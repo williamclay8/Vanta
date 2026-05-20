@@ -2030,7 +2030,8 @@ export function UnshieldPage() {
   } else if (selectedLane !== "SOL" && selectedShieldEntry?.error) {
     validationMessage = selectedShieldEntry.error;
   } else if (selectedLane === "SOL" && !selectedSolNote && selectedSolPendingAmount > 0) {
-    validationMessage = "SOL pending ledger reconciliation. Please wait before unshielding.";
+    validationMessage =
+      "Please wait for ledger reconciliation; local SOL evidence pending ledger sync.";
   } else if (selectedLane === "SOL" && !liveSwapPair.solUnshieldOperatorUrl) {
     validationMessage = "Configure the SOL unshield operator endpoint before shielded SOL can exit.";
   } else if (selectedLane === "SOL" && solUnshieldOperatorHealth === "checking") {
@@ -2832,7 +2833,7 @@ export function UnshieldPage() {
               <strong>{exitConsequenceDisplay}</strong>
               <small id="unshield-exit-preview-copy">
                 {walletAddressShort
-                  ? `to ${exitConsequenceDestination}`
+                  ? `after public exit to ${exitConsequenceDestination}`
                   : "connect wallet for destination"}
               </small>
             </div>
@@ -2895,9 +2896,22 @@ export function UnshieldPage() {
                   className="unshield-fixed-field unshield-destination-card"
                   title={walletAddress ?? undefined}
                 >
-                  <strong>{walletAddressShort ?? "Connect wallet"}</strong>
-                  <small>Exits go to your connected wallet.</small>
+                  <span className="unshield-destination-card__eyebrow">Own wallet</span>
+                  <div className="unshield-destination-card__row">
+                    <strong>{walletAddressShort ?? "Connect wallet"}</strong>
+                    <span className="unshield-destination-card__pill">Own wallet</span>
+                  </div>
+                  <small className="unshield-destination-card-copy">
+                    Public exit returns to your own wallet, the connected requester/depositor wallet.
+                  </small>
                 </div>
+                <label className="unshield-destination-toggle" aria-disabled="true">
+                  <input type="checkbox" disabled aria-disabled="true" />
+                  <span className="unshield-destination-toggle__body unshield-destination-toggle-copy">
+                    <strong>Send to a different wallet</strong>
+                    <small>Coming soon - needs unshield-to-fresh-wallet support</small>
+                  </span>
+                </label>
               </div>
 
               <div className="swap-module__field unshield-ticket__field unshield-ticket__field--amount">
@@ -2940,7 +2954,7 @@ export function UnshieldPage() {
                     <strong>{formatEditableAmount(selectedDisplayAmount, selectedLaneDecimals)}</strong>
                     <small>
                       {selectedLane === "SOL" && !selectedSolNote && selectedSolPendingAmount > 0
-                        ? "SOL pending ledger reconciliation"
+                        ? "Local SOL evidence pending ledger sync"
                         : `${selectedLane} fixed note exit`}
                     </small>
                   </div>
@@ -3182,18 +3196,21 @@ export function UnshieldPage() {
 	              tone="success"
 	              phase="complete"
 	              title={`Done — sent ${formatUnshieldAmount(lastCompletion.amount, lastCompletion.asset)} ${lastCompletion.asset} to ${walletAddressShort ?? "wallet"}`}
-	              message="Beta: public operator release reported. Verify the public exit transaction."
+	              message="Beta: public operator release reported. Verify the public exit transaction before treating funds as moved."
 	              floating
 	            >
               <div className="preview-grid unshield-evidence-grid">
                 <div className="preview-card preview-card--accent">
                   <span>Transaction evidence</span>
                   <strong>{completionEvidenceLabel}</strong>
+                  <small>public exit transition recorded</small>
                 </div>
                 <div className="preview-card unshield-success-signature-card">
                   <span>Operator release</span>
                   <strong>
-                    {operatorReleaseSignature ? abbreviate(operatorReleaseSignature) : "Pending"}
+                    {operatorReleaseSignature
+                      ? abbreviate(operatorReleaseSignature)
+                      : "Operator release is still pending"}
                   </strong>
                   {operatorReleaseSignature && (
                     <span className="unshield-success-pulse" aria-hidden="true" />
@@ -3201,6 +3218,7 @@ export function UnshieldPage() {
                 </div>
               </div>
               <p className="shield-helper">Settlement: {currentUnshieldTransactionEvidence.settlement.status}</p>
+              <p className="shield-helper">Exit visibility: public on-chain exit</p>
               <div className="status-actions unshield-success-actions">
                 <Link className="button button-primary" to="/app/shield">
                   Shield more
@@ -3208,6 +3226,7 @@ export function UnshieldPage() {
                 <button
                   className="button button-ghost"
                   type="button"
+                  aria-label="Vanta Unshield receipt details"
                   onClick={() => {
                     setUnshieldReceiptModalOpen(true);
                   }}

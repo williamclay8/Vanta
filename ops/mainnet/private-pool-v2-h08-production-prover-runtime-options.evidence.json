@@ -12,8 +12,11 @@
   "productionRemoteProverReady": false,
   "selectedProverRuntime": null,
   "selectedProverRuntimeStatus": "not-selected",
+  "selectedRuntimeDirection": "remote-service-production-prover",
+  "selectedRuntimeDirectionStatus": "local-architecture-direction-not-production-runtime-acceptance",
+  "selectedRuntimeDirectionRef": "ops/mainnet/private-pool-v2-h08-remote-service-production-prover-contract.evidence.json",
   "secretPolicy": "references-and-metadata-only-no-proof-bytes-no-witness-values-no-service-secrets",
-  "purpose": "Blocked options packet for choosing an H08 production prover runtime. It compares the remote-service and browser-worker candidates without selecting either path, and it records why local proof-artifact evidence remains intermediate only.",
+  "purpose": "Blocked options packet for choosing an H08 production prover runtime. It records remote-service-production-prover as the selected local implementation direction, keeps selectedProverRuntime null, and records why local proof-artifact evidence remains intermediate only.",
   "candidatePacketRef": "ops/mainnet/private-pool-v2-h08-production-prover-candidate.evidence.json",
   "c01VerifierCompatibilityRefs": {
     "status": "blocked-c01-backend-unselected",
@@ -31,6 +34,7 @@
       "id": "remote-service-production-prover",
       "status": "blocked",
       "selectsProductionRuntime": false,
+      "selectedAsLocalDirection": true,
       "runtimeBoundary": "Server-side prover service with an explicit production proof request, artifact, health, and operator-acceptance contract.",
       "supportedTargetsRequired": [
         "shield",
@@ -66,6 +70,7 @@
       "id": "browser-worker-production-runtime",
       "status": "blocked",
       "selectsProductionRuntime": false,
+      "selectedAsLocalDirection": false,
       "runtimeBoundary": "Client-side browser worker runtime that would need explicit product, security, distribution, timeout, and verifier-compatibility acceptance before production use.",
       "supportedTargetsRequired": [
         "shield",
@@ -148,9 +153,11 @@
     "browserWorkerProofExecution": true,
     "browserWorkerProofResultAdapter": true,
     "remoteServiceHandoffGuard": true,
+    "remoteServiceContract": true,
     "h08ProductionProverCandidate": true
   },
   "satisfiesRequiredPositiveEvidence": {
+    "localRuntimeDirectionSelected": true,
     "productionProverRuntimeSelection": false,
     "productionProofFormatContract": false,
     "productionVerifyingKeyEvidence": false,
@@ -179,6 +186,7 @@
   "canonicalCommands": [
     "npm run zk:h08-production-prover-runtime-options-check",
     "npm run zk:h08-production-prover-candidate-check",
+    "npm run zk:h08-remote-service-prover-contract-check",
     "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
     "npm run private-pool-v2:browser-worker-prover-check",
     "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
@@ -189,5 +197,5 @@
     "npm run zk:c01-verifier-backend-decision-check",
     "npm run zk:c01-verifier-backend-options-check"
   ],
-  "truthBoundary": "This packet is not production prover runtime selection, not production proof-format evidence, not production verifying-key evidence, not live route wiring, and not C01 verifier compatibility. It only records that neither remote-service-production-prover nor browser-worker-production-runtime has been selected for H08."
+  "truthBoundary": "This packet is not production prover runtime selection, not production proof-format evidence, not production verifying-key evidence, not live route wiring, and not C01 verifier compatibility. It records remote-service-production-prover as the selected local implementation direction while selectedProverRuntime remains null until production acceptance evidence exists."
 }

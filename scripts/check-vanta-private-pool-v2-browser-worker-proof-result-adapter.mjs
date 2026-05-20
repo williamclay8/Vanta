@@ -760,5 +760,5 @@ try {
 
   console.log("Vanta Private Pool v2 browser-worker proof-result adapter check passed.");
 } finally {
-  rmSync(tempRoot, { force: true, recursive: true });
+  rmSync(tempRoot, { force: true, maxRetries: 3, recursive: true, retryDelay: 100 });
 }

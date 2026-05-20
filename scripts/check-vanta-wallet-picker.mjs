@@ -9,6 +9,7 @@ function read(path) {
 
 const appLayout = read("src/components/AppLayout.tsx");
 const clientSource = read("src/solana/client.ts");
+const browserRpcEndpointSource = read("src/solana/browserRpcEndpoint.ts");
 const walletContext = read("src/data/context/WalletContext.tsx");
 const styles = read("src/styles.css");
 const mobileBrowserCheck = read("scripts/check-vanta-mobile-browser.mjs");
@@ -80,7 +81,7 @@ requireIncludes(
   "Wallet context SOL balance fallback must use the configurable browser read-RPC endpoint list.",
 );
 requireIncludes(
-  clientSource,
+  browserRpcEndpointSource,
   'const defaultSolanaRpcEndpoint = "https://solana-rpc.publicnode.com"',
   "Mainnet browser RPC defaults must use a browser-accessible public mainnet endpoint.",
 );
@@ -100,9 +101,9 @@ requireIncludes(
   "Wallet context SOL balance fallback must still return zero when every readable endpoint reports zero.",
 );
 requireIncludes(
-  clientSource,
-  "VITE_SOLANA_READ_RPC_FALLBACK_URLS",
-  "Wallet context SOL balance fallback must honor configured read-RPC fallback endpoints.",
+  browserRpcEndpointSource,
+  "browserRpcEnvContract",
+  "Wallet context SOL balance fallback must use the audited browser RPC contract.",
 );
 requireIncludes(
   clientSource,

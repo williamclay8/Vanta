@@ -104,6 +104,20 @@ assert(
   "H08 production prover packet must mark selected prover runtime as not-selected",
 );
 assert(
+  packet.selectedRuntimeDirection === "remote-service-production-prover",
+  "H08 production prover packet must record the selected local runtime direction",
+);
+assert(
+  packet.selectedRuntimeDirectionStatus ===
+    "local-architecture-direction-not-production-runtime-acceptance",
+  "H08 selected runtime direction must be local-only",
+);
+assert(
+  packet.selectedRuntimeDirectionRef ===
+    "ops/mainnet/private-pool-v2-h08-remote-service-production-prover-contract.evidence.json",
+  "H08 selected runtime direction must reference the remote-service contract packet",
+);
+assert(
   packet.secretPolicy === "references-and-metadata-only-no-proof-bytes-no-witness-values-no-service-secrets",
   "H08 production prover packet must forbid proof bytes, witness values, and secrets",
 );
@@ -121,6 +135,9 @@ assertAllowedKeys(packet, "H08 production prover packet", [
   "productionRemoteProverReady",
   "selectedProverRuntime",
   "selectedProverRuntimeStatus",
+  "selectedRuntimeDirection",
+  "selectedRuntimeDirectionStatus",
+  "selectedRuntimeDirectionRef",
   "secretPolicy",
   "purpose",
   "sourceReviewRefs",
@@ -423,6 +440,7 @@ for (const id of [
   "browser-worker-proof-execution",
   "browser-worker-proof-result-adapter",
   "blocked-production-prover-runtime-options-matrix",
+  "remote-service-production-prover-contract",
   "production-services-manifest",
   "production-smoke-template",
 ]) {
@@ -436,7 +454,6 @@ for (const id of [
 const requiredEvidence = packet.requiredPositiveEvidence ?? [];
 assert(Array.isArray(requiredEvidence), "requiredPositiveEvidence must be an array");
 for (const id of [
-  "production-prover-runtime-selection",
   "production-proof-format-contract",
   "production-verifying-key-evidence",
   "live-routing-evidence",
@@ -453,9 +470,37 @@ for (const id of [
   assert(entry.currentArtifactRef === null, `${id} currentArtifactRef must remain null`);
   includes(entry.truthBoundary, "not", `${id} truth boundary`);
 }
+const runtimeSelectionEvidence = findById(
+  requiredEvidence,
+  "production-prover-runtime-selection",
+  "requiredPositiveEvidence",
+);
 assert(
-  requiredEvidence.every((entry) => entry.status === "blocked" && entry.currentArtifactRef === null),
-  "all required positive evidence must remain blocked with null refs",
+  runtimeSelectionEvidence.status === "partial-local-contract-selected",
+  "production-prover-runtime-selection must record the local remote-service direction",
+);
+assert(
+  runtimeSelectionEvidence.currentArtifactRef ===
+    "ops/mainnet/private-pool-v2-h08-remote-service-production-prover-contract.evidence.json",
+  "production-prover-runtime-selection must point at the remote-service contract packet",
+);
+includes(
+  runtimeSelectionEvidence.truthBoundary,
+  "selectedProverRuntime remains null",
+  "production-prover-runtime-selection truth boundary",
+);
+assert(
+  requiredEvidence.every((entry) => {
+    if (entry.id === "production-prover-runtime-selection") {
+      return (
+        entry.status === "partial-local-contract-selected" &&
+        entry.currentArtifactRef ===
+          "ops/mainnet/private-pool-v2-h08-remote-service-production-prover-contract.evidence.json"
+      );
+    }
+    return entry.status === "blocked" && entry.currentArtifactRef === null;
+  }),
+  "required positive evidence must remain blocked except the local runtime-direction contract ref",
 );
 
 assertStringArray(packet.blockedBy, "blockedBy");
@@ -483,6 +528,7 @@ assertStringArray(packet.canonicalCommands, "canonicalCommands");
 for (const command of [
   "npm run zk:h08-production-prover-candidate-check",
   "npm run zk:h08-production-prover-runtime-options-check",
+  "npm run zk:h08-remote-service-prover-contract-check",
   "npm run private-pool-v2:local-bb-fixture-prover-check",
   "npm run private-pool-v2:claim-browser-worker-prover-check",
   "npm run private-pool-v2:swap-to-shielded-browser-worker-prover-check",
@@ -572,6 +618,7 @@ for (const marker of [
   packetPath,
   "npm run zk:h08-production-prover-candidate-check",
   "selectedProverRuntime: null",
+  "selectedRuntimeDirection: remote-service-production-prover",
   "not production prover runtime selection",
   "not live route wiring",
 ]) {

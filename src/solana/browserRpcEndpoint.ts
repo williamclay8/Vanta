@@ -1,6 +1,21 @@
 const defaultSolanaRpcEndpoint = "https://solana-rpc.publicnode.com";
 const defaultSolanaWebsocketEndpoint = "wss://solana-rpc.publicnode.com";
 const browserBlockedMainnetRpcHosts = new Set(["api.mainnet-beta.solana.com"]);
+const ignoredBrowserRpcEnvKeys = [
+  "VITE_SOLANA_BROWSER_RPC_URL",
+  "VITE_SOLANA_RPC_URL",
+  "VITE_SOLANA_BROWSER_WS_URL",
+  "VITE_SOLANA_WS_URL",
+  "VITE_SOLANA_READ_RPC_FALLBACK_URLS",
+] as const;
+
+export const browserRpcEnvContract = {
+  ignoredBrowserRpcEnvKeys,
+  reason:
+    "Browser RPC env values are intentionally ignored by the SPA build so paid/provider RPC URLs are not inlined into public JS bundles.",
+  runtimeConfigPath: "/config",
+  serverRpcEnvKey: "SOLANA_RPC_URL",
+} as const;
 
 export function isBrowserBlockedMainnetRpcEndpoint(value: string) {
   try {
@@ -44,28 +59,17 @@ export function resolveMainnetBrowserWebsocketEndpoint(value: string, rpcEndpoin
   return trimmed;
 }
 
-function parseMainnetReadRpcFallbackEndpoints(value: string | undefined) {
+export function parseMainnetReadRpcFallbackEndpoints(value: string | undefined) {
   return value?.split(",")
     .map((candidate) => candidate.trim())
     .filter((candidate) => candidate && !isForbiddenMainnetRpcEndpoint(candidate)) ?? [];
 }
 
-export const mainnetBrowserRpcEndpoint = resolveMainnetBrowserRpcEndpoint(
-  import.meta.env.VITE_SOLANA_BROWSER_RPC_URL?.trim() ||
-  import.meta.env.VITE_SOLANA_RPC_URL?.trim() ||
-  "",
-);
-
-export const mainnetBrowserWebsocketEndpoint = resolveMainnetBrowserWebsocketEndpoint(
-  import.meta.env.VITE_SOLANA_BROWSER_WS_URL?.trim() ||
-  import.meta.env.VITE_SOLANA_WS_URL?.trim() ||
-  "",
-  mainnetBrowserRpcEndpoint,
-);
+export const mainnetBrowserRpcEndpoint = defaultSolanaRpcEndpoint;
+export const mainnetBrowserWebsocketEndpoint = defaultSolanaWebsocketEndpoint;
 
 export const mainnetReadRpcFallbackEndpoints = [
   mainnetBrowserRpcEndpoint,
-  ...parseMainnetReadRpcFallbackEndpoints(import.meta.env.VITE_SOLANA_READ_RPC_FALLBACK_URLS),
 ].filter((value, index, values) => values.indexOf(value) === index);
 
 export const defaultMainnetBrowserWebsocketEndpoint = defaultSolanaWebsocketEndpoint;

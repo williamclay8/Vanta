@@ -27,7 +27,7 @@ export function getSwapTrustContract(): SwapTrustContract {
       productionPrivacyClaimsLocked: true,
     },
     visibleStatusCopy:
-      "Swap is in guarded beta. Constrained routes can create shielded output notes, but route settlement terms remain operator-visible. Swap production privacy is not enabled.",
+      "Swap shielded assets through constrained beta routes. Swap is in guarded beta. Constrained routes can create shielded output notes, but route settlement terms remain operator-visible. Swap production privacy is not enabled.",
     verificationSurfaces: [
       "npm run swap:capability-check",
       "npm run swap:trust-packet-check",

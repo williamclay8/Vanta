@@ -10,7 +10,7 @@ const manifestoPrinciples = [
   {
     title: "Every action leaves a receipt.",
     copy:
-      "Shield, Send, Swap, Unshield — each produces a verifiable packet. Merchants open it, reviewers audit it, you stay private.",
+      "Shield, Send, Swap, Unshield — each should point to a packet or status surface where the current beta lane supports it.",
   },
   {
     title: "Beta truth, no theater.",
@@ -46,11 +46,12 @@ export function ManifestoPage() {
       <section className="manifesto-hero" aria-labelledby="manifesto-title">
         <div className="manifesto-hero__copy">
           <span className="manifesto-eyebrow">Vanta Manifesto</span>
-          <h1 id="manifesto-title">Privacy should close the door, then prove what matters.</h1>
+          <h1 id="manifesto-title">Privacy should reduce exposure, then prove what matters.</h1>
           <p data-vanta-manifesto-credo>
             Vanta is built by people who think privacy is a precondition for being a person,
-            not a feature for being suspicious. We will close the door behind your transactions.
-            We will tell you when we cannot do that yet. We will not pretend to do it when we cannot.
+            not a feature for being suspicious. We are building toward private settlement with
+            proof-backed receipts. We will tell you when we cannot do that yet. We will not
+            pretend to do it when we cannot.
           </p>
         </div>
 
@@ -58,9 +59,9 @@ export function ManifestoPage() {
           <span>Public letter</span>
           <strong>Beta truth first. Receipt as proof.</strong>
           <p>
-            Production privacy is not enabled. This is not an audit report. Receipts are the only
-            growth artifact. Open the app, shield once, and hand a merchant the first verifiable
-            receipt today.
+            Production privacy is not enabled. This is not an audit report. Receipts are the
+            growth artifact where a lane can support them. Open the app, shield once, and inspect
+            the current beta status before sharing a receipt.
           </p>
           <div className="manifesto-letter__actions">
             <a href="/.well-known/audit">/.well-known/audit</a>

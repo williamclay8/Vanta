@@ -73,9 +73,9 @@ const requiredPageMarkers = [
 
 const requiredDataSiteMarkers = [
   "Guarded beta",
-  "constrained routes",
+  "constrained beta routes",
   "Programmatic Swap",
-  "Privately swap shielded assets using constrained routes",
+  "Swap shielded assets through constrained beta routes",
 ];
 
 const forbiddenDataSiteMarkers = [
@@ -86,7 +86,7 @@ const forbiddenDataSiteMarkers = [
 const requiredSwapTrustMarkers = [
   "Target C operator-visible Swap beta",
   "programmaticPrivateSwapClaim: false",
-  "Privately swap shielded assets using constrained routes",
+  "Swap shielded assets through constrained beta routes",
   "Swap is in guarded beta",
 ];
 

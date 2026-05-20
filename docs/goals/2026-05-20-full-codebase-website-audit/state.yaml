@@ -1,0 +1,123 @@
+version: 2
+
+goal:
+  title: "Full Codebase + Website Audit (2026-05-20)"
+  slug: "2026-05-20-full-codebase-website-audit"
+  kind: audit
+  tranche: "2026-05-20-full-blast"
+  status: complete
+  completed_at: "2026-05-20T00:00:00-05:00"
+  intake:
+    original_request: "use full blast subagents with the /goal of doing a full audit of this codebase and website. i added some kanbans with grok and then created an audit with claude. go over those and see what changes were made and what changes you should make and improve on"
+    interpreted_outcome: "A verified local audit pass that evaluates Grok/Claude work, keeps or revises safe changes, fixes the highest-leverage issues, and reports truthful code/site/Lumi status."
+    input_shape: audit
+    audience: "Clay operating /Users/clay/Desktop/Vanta"
+    authority: requested
+    proof_type: "review + commands + browser/local evidence"
+    completion_proof: "Scout findings integrated, safe fixes applied, targeted verification run, durable receipt written, and Lumi hygiene reported."
+
+rules:
+  pm_owns_state: true
+  one_active_task: true
+  max_write_workers: 1
+  no_completion_without_judge_or_pm_audit: true
+  planning_is_not_completion: true
+
+visual_board:
+  selected: none
+  local:
+    status: not_requested
+    url: null
+    command: "npx goalbuddy board docs/goals/2026-05-20-full-codebase-website-audit"
+
+active_task: null
+
+tasks:
+  - id: T001
+    type: pm
+    assignee: PM
+    status: complete
+    objective: "Map current dirty tree, Grok/Claude artifacts, recent changes, and audit claims before edits."
+    allowed_files:
+      - "docs/goals/2026-05-20-full-codebase-website-audit/goal.md"
+      - "docs/goals/2026-05-20-full-codebase-website-audit/state.yaml"
+    verify:
+      - "git status --short --branch"
+      - "git diff --name-status"
+
+  - id: T002
+    type: scout
+    assignee: Scout
+    status: complete
+    objective: "Audit protocol/security risks in the dirty tree and validate Claude findings H3/H4/M4/M5."
+    allowed_files: []
+
+  - id: T003
+    type: scout
+    assignee: Scout
+    status: complete
+    objective: "Evaluate Grok/Claude kanban and audit artifacts against current repo evidence."
+    allowed_files: []
+
+  - id: T004
+    type: scout
+    assignee: Scout
+    status: complete
+    objective: "Audit website/app shell for beta-truth, broken routes, runtime hazards, and UI issues."
+    allowed_files: []
+
+  - id: T005
+    type: scout
+    assignee: Scout
+    status: complete
+    objective: "Map targeted verification, CI/deploy proof, and proof-packet requirements."
+    allowed_files: []
+
+  - id: T006
+    type: worker
+    assignee: PM
+    status: complete
+    objective: "Implement the highest-leverage safe local fixes selected after Scout integration."
+    allowed_files: []
+    verify: []
+
+  - id: T007
+    type: judge
+    assignee: PM
+    status: complete
+    objective: "Run targeted verification and final audit against changed files and website surfaces."
+    allowed_files: []
+
+  - id: T008
+    type: pm
+    assignee: PM
+    status: complete
+    objective: "Write durable audit receipt and report Lumi status."
+    allowed_files:
+      - "docs/goals/2026-05-20-full-codebase-website-audit/state.yaml"
+      - "docs/goals/2026-05-20-full-codebase-website-audit/notes/"
+      - "/Users/clay/Desktop/Vanta Vault"
+
+receipt:
+  summary: "Full Blast codebase and website audit completed locally. Claude/Grok audit changes were reviewed, high-leverage fixes were applied, and canonical verification passed."
+  notes:
+    - "Detailed receipt: docs/goals/2026-05-20-full-codebase-website-audit/notes/final-receipt.md"
+    - "Changes remain local and dirty; they are not committed, pushed, deployed, or live-verified."
+    - "No mainnet-production readiness claim: H08 production prover runtime evidence remains blocked and ZK review liveVerifiedCount remains 0."
+  verification:
+    - "npm run private-core:verify"
+    - "npm run build"
+    - "npm run public:audit-discovery-check"
+    - "npm run solana:helius-rpc-config-check"
+    - "npm run public:manifesto-check"
+    - "npm run security:limitations-check"
+    - "npm run audit:package-check"
+    - "npm run privacy-audit:tracker-check"
+    - "npm run frontend:operator-env-exposure-check"
+    - "npm run truth:privacy-claim-gate"
+    - "npm run private-pool-v2:tag6-full-predeploy-checklist -- --json"
+    - "npm run private-pool-v2:sbf-abi-check"
+    - "npm run private-pool-v2:crucible-check"
+    - "cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml"
+    - "git diff --check"
+    - "git diff --cached --check"

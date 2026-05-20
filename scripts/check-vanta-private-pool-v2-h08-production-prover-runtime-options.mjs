@@ -79,6 +79,20 @@ assert(
   packet.selectedProverRuntimeStatus === "not-selected",
   "runtime options packet must mark selected runtime as not-selected",
 );
+assert(
+  packet.selectedRuntimeDirection === "remote-service-production-prover",
+  "runtime options packet must record the selected local runtime direction",
+);
+assert(
+  packet.selectedRuntimeDirectionStatus ===
+    "local-architecture-direction-not-production-runtime-acceptance",
+  "runtime options selected runtime direction must be local-only",
+);
+assert(
+  packet.selectedRuntimeDirectionRef ===
+    "ops/mainnet/private-pool-v2-h08-remote-service-production-prover-contract.evidence.json",
+  "runtime options selected runtime direction must reference the remote-service contract packet",
+);
 for (const field of [
   "productionReady",
   "mainnetReady",
@@ -108,6 +122,9 @@ assertAllowedKeys(packet, "runtime options packet", [
   "productionRemoteProverReady",
   "selectedProverRuntime",
   "selectedProverRuntimeStatus",
+  "selectedRuntimeDirection",
+  "selectedRuntimeDirectionStatus",
+  "selectedRuntimeDirectionRef",
   "secretPolicy",
   "purpose",
   "candidatePacketRef",
@@ -188,6 +205,7 @@ for (const [label, option] of [
     "id",
     "status",
     "selectsProductionRuntime",
+    "selectedAsLocalDirection",
     "runtimeBoundary",
     "supportedTargetsRequired",
     "currentCoverage",
@@ -203,6 +221,8 @@ for (const [label, option] of [
   }
   includes(option.truthBoundary, "not production prover readiness", `${label} truth boundary`);
 }
+assert(remoteService.selectedAsLocalDirection === true, "remote-service option must be selected locally");
+assert(browserRuntime.selectedAsLocalDirection === false, "browser runtime option must not be selected locally");
 
 assert(remoteService.proofBackendContract === "remote-service", "remote-service option must require remote-service proof backend");
 for (const required of [
@@ -266,11 +286,13 @@ for (const [field, expected] of [
   ["browserWorkerProofExecution", true],
   ["browserWorkerProofResultAdapter", true],
   ["remoteServiceHandoffGuard", true],
+  ["remoteServiceContract", true],
   ["h08ProductionProverCandidate", true],
 ]) {
   assert(packet.intermediateEvidenceOnly?.[field] === expected, `${field} must be intermediate-only`);
 }
 for (const [field, expected] of [
+  ["localRuntimeDirectionSelected", true],
   ["productionProverRuntimeSelection", false],
   ["productionProofFormatContract", false],
   ["productionVerifyingKeyEvidence", false],
@@ -305,6 +327,7 @@ for (const phrase of [
 for (const command of [
   "npm run zk:h08-production-prover-runtime-options-check",
   "npm run zk:h08-production-prover-candidate-check",
+  "npm run zk:h08-remote-service-prover-contract-check",
   "npm run private-pool-v2:browser-worker-proof-result-adapter-check",
   "npm run private-pool-v2:browser-worker-prover-check",
   "npm run private-pool-v2:actual-private-spend-browser-worker-prover-check",
@@ -357,6 +380,7 @@ includes(remoteServices, "offchain-remote-proof-artifact-only", "remote service 
 for (const marker of [
   "blocked production prover candidate packet",
   "selectedProverRuntime: null",
+  "selectedRuntimeDirection: remote-service-production-prover",
   "C01 verifier compatibility",
 ]) {
   includes(review, marker, "VANTA_ZK_REVIEW H08 status");
@@ -366,6 +390,7 @@ for (const marker of [
   "Prover Relay Privacy Trade-Offs",
   "Vanta production privacy is not enabled.",
   "`selectedProverRuntime` is `null`.",
+  "`selectedRuntimeDirection` is `remote-service-production-prover`.",
   "A remote prover or prover relay must be explicit opt-in.",
   "The product must not silently move witness generation or proof construction from the user's device to a remote service.",
   "A remote prover can receive sensitive proof inputs needed to construct the proof",

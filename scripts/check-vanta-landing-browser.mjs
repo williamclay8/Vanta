@@ -106,9 +106,9 @@ function checkLandingLiveStripSource() {
 
   const rpcResolverSource = readFileSync(path.join(process.cwd(), "src", "solana", "browserRpcEndpoint.ts"), "utf8");
   for (const snippet of [
-    "VITE_SOLANA_BROWSER_RPC_URL",
-    "VITE_SOLANA_RPC_URL",
-    "VITE_SOLANA_READ_RPC_FALLBACK_URLS",
+    "browserRpcEnvContract",
+    "ignoredBrowserRpcEnvKeys",
+    "SOLANA_RPC_URL",
     "api.mainnet-beta.solana.com",
     "https://solana-rpc.publicnode.com",
   ]) {
@@ -189,7 +189,7 @@ function checkLandingViewport(width, height) {
       `(async () => JSON.stringify({
         path: location.pathname,
         headline: document.querySelector("h1")?.innerText ?? "",
-        hasAppCta: [...document.querySelectorAll("a")].some((link) => link.textContent?.trim() === "Enter App" && link.getAttribute("href") === "/app"),
+        hasAppCta: [...document.querySelectorAll("a")].some((link) => link.textContent?.trim() === "Shield now" && link.getAttribute("href") === "/app"),
         hasSharedBrandWordmark: document.querySelector(".landing-nav__wordmark")?.textContent?.trim() === "VANTA",
         hasSharedAtmosphere: Boolean(
           document.querySelector(".landing-minimal__grid") &&
@@ -199,7 +199,7 @@ function checkLandingViewport(width, height) {
         hasDocsAndAppPrimaryPaths: ["/docs", "/app"].every((href) =>
           [...document.querySelectorAll("a")].some((link) => link.getAttribute("href") === href),
         ),
-        hasPaymentsCopy: document.body.innerText.includes("payment requests") && document.body.innerText.includes("receipt-backed records"),
+        hasPaymentsCopy: document.body.innerText.includes("payment requests") && document.body.innerText.includes("receipt/status surfaces"),
         hasShieldFirstHeading: document.body.innerText.includes("The actions Vanta can show honestly."),
         hasPublicDepthDisclosure: Boolean(document.querySelector(".landing-depth-disclosure")) &&
           document.body.innerText.toLowerCase().includes("anonymity readiness: blocked") &&
@@ -283,7 +283,7 @@ function checkLandingViewport(width, height) {
           [...document.querySelectorAll(".landing-minimal__preview-link")]
             .map((link) => link.textContent ?? "")
             .join(" ")
-            .includes("local receipt-backed records") &&
+            .includes("receipt/status surfaces") &&
           [...document.querySelectorAll(".landing-minimal__preview-link")]
             .map((link) => link.textContent ?? "")
             .join(" ")
@@ -339,7 +339,7 @@ function checkLandingViewport(width, height) {
     throw new Error(`Landing route should stay at /, got ${result.path}.`);
   }
 
-  if (!result.headline.includes("Make Solana settlement") || !result.headline.includes("less public")) {
+  if (!result.headline.includes("Shield now and see") || !result.headline.includes("the proof boundary")) {
     throw new Error(`Landing headline missing: ${result.headline}`);
   }
 

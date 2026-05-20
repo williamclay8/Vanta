@@ -12,6 +12,9 @@
   "productionRemoteProverReady": false,
   "selectedProverRuntime": null,
   "selectedProverRuntimeStatus": "not-selected",
+  "selectedRuntimeDirection": "remote-service-production-prover",
+  "selectedRuntimeDirectionStatus": "local-architecture-direction-not-production-runtime-acceptance",
+  "selectedRuntimeDirectionRef": "ops/mainnet/private-pool-v2-h08-remote-service-production-prover-contract.evidence.json",
   "secretPolicy": "references-and-metadata-only-no-proof-bytes-no-witness-values-no-service-secrets",
   "purpose": "Machine-readable blocked feasibility packet for H08 production prover evidence. This packet separates the current local bb.js, fixture, witness-input, and browser-worker progress from the missing production prover runtime selection and acceptance gates.",
   "sourceReviewRefs": [
@@ -235,6 +238,14 @@
       "truthBoundary": "This options matrix compares the remote-service and browser-worker production runtime candidates without selecting either runtime and is not production prover evidence."
     },
     {
+      "id": "remote-service-production-prover-contract",
+      "status": "local-contract-selected-not-production",
+      "artifactRef": "ops/mainnet/private-pool-v2-h08-remote-service-production-prover-contract.evidence.json",
+      "command": "npm run zk:h08-remote-service-prover-contract-check",
+      "satisfiesProductionProverEvidence": false,
+      "truthBoundary": "This selects remote-service-production-prover as the local implementation direction, but it is not production runtime acceptance, deployed health, C01 compatibility, or audit evidence."
+    },
+    {
       "id": "production-services-manifest",
       "status": "service-topology-ref-not-production-prover-acceptance",
       "artifactRef": "ops/mainnet/private-pool-v2-services.manifest.json",
@@ -254,10 +265,10 @@
   "requiredPositiveEvidence": [
     {
       "id": "production-prover-runtime-selection",
-      "status": "blocked",
+      "status": "partial-local-contract-selected",
       "requiredArtifactShape": "decision:<remote-service-production-prover-or-browser-worker-production-runtime-selected-with-rationale>",
-      "currentArtifactRef": null,
-      "truthBoundary": "This packet does not choose whether production proving runs in a browser-worker runtime, a remote service, or a different reviewed boundary."
+      "currentArtifactRef": "ops/mainnet/private-pool-v2-h08-remote-service-production-prover-contract.evidence.json",
+      "truthBoundary": "The local direction is remote-service-production-prover, but selectedProverRuntime remains null until production proof-format, C01 compatibility, deployed service evidence, valid/invalid proof evidence, and audit acceptance exist."
     },
     {
       "id": "production-proof-format-contract",
@@ -358,6 +369,7 @@
   "canonicalCommands": [
     "npm run zk:h08-production-prover-candidate-check",
     "npm run zk:h08-production-prover-runtime-options-check",
+    "npm run zk:h08-remote-service-prover-contract-check",
     "npm run private-pool-v2:local-bb-fixture-prover-check",
     "npm run private-pool-v2:actual-private-spend-witness-prover-check",
     "npm run private-pool-v2:send-witness-prover-check",
@@ -375,5 +387,5 @@
     "npm run private-pool-v2:service-network-check",
     "npm run mainnet:private-pool-v2-production-smoke-check"
   ],
-  "truthBoundary": "This is a blocked H08 production prover candidate packet only. It records that the current local bb.js, fixture-artifact, witness-input, browser-worker, proof-result adapter, and remote handoff guards are useful local evidence but do not satisfy production prover runtime selection, production proof-format, production verifying-key, live route wiring, runtime reliability, deployed prover health, artifact-store or job-log evidence, C01 verifier compatibility, SBF/live lineage, audit acceptance, production-private readiness, mainnet-private readiness, or real-funds readiness."
+  "truthBoundary": "This is a blocked H08 production prover candidate packet only. It records remote-service-production-prover as the selected local implementation direction while keeping selectedProverRuntime null. The current local bb.js, fixture-artifact, witness-input, browser-worker, proof-result adapter, remote handoff guards, and remote-service contract packet are useful local evidence but do not satisfy production prover runtime selection or acceptance, production proof-format, production verifying-key, live route wiring, runtime reliability, deployed prover health, artifact-store or job-log evidence, C01 verifier compatibility, SBF/live lineage, audit acceptance, production-private readiness, mainnet-private readiness, or real-funds readiness."
 }

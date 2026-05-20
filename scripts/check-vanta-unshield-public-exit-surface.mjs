@@ -151,7 +151,7 @@ for (const phrase of [
   "public exit transition recorded",
   "Exit visibility: public on-chain exit",
   "currentUnshieldTransactionEvidence.settlement.status",
-  "navigator.clipboard.writeText",
+  "copyUnshieldReceipt",
   "Vanta Unshield receipt",
   "operatorReleaseSignature &&",
   "getSolscanTransactionUrl(operatorReleaseSignature)",
@@ -165,6 +165,11 @@ for (const phrase of [
     `Unshield completion surface must preserve action/truth boundary phrase ${phrase}.`,
   );
 }
+
+assert.ok(
+  unshieldPageSource.includes("navigator.clipboard.writeText"),
+  "Unshield completion copy action must still write the receipt to the clipboard.",
+);
 
 const completionSurfaceWithoutFundsQualifier = completionSurface
   .toLowerCase()

@@ -1,0 +1,104 @@
+{
+  "version": "vanta-private-pool-v2-h08-remote-service-production-prover-contract-evidence-0.1",
+  "checkedAt": "2026-05-20T00:00:00.000Z",
+  "status": "local-runtime-direction-selected-production-evidence-blocked",
+  "findingId": "VANTA-ZK-2026-05-09-H08",
+  "selectedRuntimeDirection": "remote-service-production-prover",
+  "selectedRuntimeDirectionStatus": "local-architecture-direction-not-production-runtime-acceptance",
+  "productionReady": false,
+  "mainnetReady": false,
+  "privacyClaimAllowed": false,
+  "realFundsAllowed": false,
+  "h08ProductionProverReady": false,
+  "secretPolicy": "references-and-metadata-only-no-proof-bytes-no-witness-values-no-service-secrets",
+  "purpose": "Secret-free local contract packet for the selected H08 runtime direction. It makes remote-service-production-prover the next production prover path to implement while keeping selectedProverRuntime null until production proof-format, C01 compatibility, deployment, valid/invalid evidence, and audit acceptance exist.",
+  "candidatePacketRef": "ops/mainnet/private-pool-v2-h08-production-prover-candidate.evidence.json",
+  "runtimeOptionsPacketRef": "ops/mainnet/private-pool-v2-h08-production-prover-runtime-options.evidence.json",
+  "c01DecisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "proverRelayTradeoffRef": "docs/zk/prover-relay-privacy-tradeoffs.md",
+  "contract": {
+    "id": "remote-service-production-prover-contract-v0",
+    "proofBackend": "remote-service",
+    "supportedTargets": [
+      "shield",
+      "claim",
+      "swap-to-shielded",
+      "send",
+      "actual-private-spend"
+    ],
+    "publicInputLabels": [
+      "shield-public-input-hash",
+      "claim-public-input-hash",
+      "swap-public-input-hash",
+      "send-public-input-hash",
+      "private-spend-public-input-hash"
+    ],
+    "requestTranscriptMustBind": [
+      "target",
+      "circuit",
+      "proof-system",
+      "proof-backend",
+      "public-input-label",
+      "public-input-hash",
+      "prover-runtime-id",
+      "prover-runtime-version",
+      "production-verifying-key-hash-or-selected-backend-equivalent"
+    ],
+    "responseMustExpose": [
+      "artifact-store-ref",
+      "job-log-ref",
+      "service-health-ref",
+      "valid-proof-roundtrip-ref",
+      "invalid-proof-rejection-ref",
+      "operator-no-witness-acceptance-ref",
+      "c01-compatibility-ref",
+      "audit-or-reviewer-acceptance-ref"
+    ],
+    "witnessPolicy": "Witness material may only cross the selected remote-service production prover boundary after explicit opt-in and must never appear in operator receipts, evidence packets, application logs, artifact refs, job-log summaries, or repository fixtures.",
+    "operatorReceiptPolicy": "Operator-facing receipts must contain public-input commitments, service/job/artifact refs, verifier metadata, and status only; no witness material, no secret fields, and no user signing secrets."
+  },
+  "requiredBeforePromotion": [
+    "production-proof-format-contract",
+    "production-verifying-key-evidence-or-selected-backend-equivalent",
+    "c01-verifier-compatibility",
+    "deployed-prover-health",
+    "artifact-store-refs",
+    "job-log-refs",
+    "valid-proof-roundtrip",
+    "invalid-proof-rejection",
+    "live-route-wiring",
+    "operator-no-witness-production-acceptance",
+    "audit-or-reviewer-acceptance"
+  ],
+  "currentPositiveEvidence": {
+    "runtimeDirectionSelected": true,
+    "productionProofFormatContract": false,
+    "productionVerifyingKeyEvidence": false,
+    "c01VerifierCompatibility": false,
+    "deployedProverHealth": false,
+    "artifactStoreRefs": false,
+    "jobLogRefs": false,
+    "validProofRoundtrip": false,
+    "invalidProofRejection": false,
+    "liveRouteWiring": false,
+    "operatorNoWitnessProductionAcceptance": false,
+    "auditReviewerAcceptance": false
+  },
+  "forbiddenPromotions": [
+    "production prover ready",
+    "remote prover production ready",
+    "production-private",
+    "mainnet-private",
+    "real-funds-ready",
+    "proof-enforced spend"
+  ],
+  "canonicalCommands": [
+    "npm run zk:h08-remote-service-prover-contract-check",
+    "npm run zk:h08-production-prover-runtime-options-check",
+    "npm run zk:h08-production-prover-candidate-check",
+    "npm run zk:c01-verifier-backend-decision-check",
+    "npm run zk:c01-verifier-backend-options-check",
+    "npm run private-pool-v2:proof-backend-boundary-check"
+  ],
+  "truthBoundary": "This packet selects the local implementation direction, not a production prover runtime. H08 remains blocked because selectedProverRuntime is still null and production proof-format, production verifying-key or selected-backend equivalent evidence, C01 compatibility, live route wiring, deployed service evidence, valid/invalid proof evidence, operator no-witness production acceptance, and audit/reviewer acceptance are absent."
+}

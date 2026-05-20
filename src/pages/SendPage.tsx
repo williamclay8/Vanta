@@ -2117,7 +2117,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           </div>
 
           <p className="shield-review-note">
-            Private Send is in guarded beta. It uses zero-knowledge proofs and requires operator
+            Private send lane is in guarded beta. It uses zero-knowledge proofs and requires operator
             verification.
           </p>
 

@@ -8,17 +8,17 @@ type LandingGlyph = "exit" | "private-rails" | "receipt" | "shield";
 
 const productPoints = [
   {
-    copy: "Shield assets. Get verifiable receipts for Send, Swap, Unshield.",
+    copy: "Shield assets. Get beta receipts where the current lane supports them.",
     icon: "shield",
     title: "Shield assets",
   },
   {
-    copy: "Shield, Send, Swap, Unshield — each leaves a merchant-verifiable receipt.",
+    copy: "Shield, Send, Swap, Unshield — each keeps its beta boundary visible.",
     icon: "private-rails",
     title: "Use current lanes",
   },
   {
-    copy: "Create receipt-backed payment requests merchants verify instantly.",
+    copy: "Create payment requests with receipt/status surfaces merchants can inspect.",
     icon: "receipt",
     title: "Accept payments",
   },
@@ -32,25 +32,25 @@ const productPoints = [
 const primaryAppActions = [
   {
     label: "Shield funds",
-    outcome: "Shield now. First receipt on entry.",
+    outcome: "Shield now. Entry receipt where available.",
     path: "shield",
     status: "Wallet lane",
   },
   {
     label: "Send from shielded state",
-    outcome: "Private transfer with receipt. Merchant sees only what you share.",
+    outcome: "Constrained beta transfer with receipt/status where available.",
     path: "send",
     status: "Wallet lane",
   },
   {
     label: "Swap from shielded state",
-    outcome: "Shielded swap with receipt and route proof.",
+    outcome: "Constrained swap with route status and beta receipt where available.",
     path: "swap",
     status: "Wallet lane",
   },
   {
     label: "Unshield funds",
-    outcome: "Exit with final receipt. Full settlement proof.",
+    outcome: "Exit through the current beta lane with status you can inspect.",
     path: "unshield",
     status: "Wallet lane",
   },
@@ -58,14 +58,14 @@ const primaryAppActions = [
 
 const previewAppActions = [
   {
-    copy: "Receipt-backed payments merchants verify on the spot.",
+    copy: "Payment requests with receipt/status surfaces merchants inspect.",
     eyebrow: "Pay preview",
     label: "Collect payments",
     path: "pay",
     status: "Preview",
   },
   {
-    copy: "Preview shielded execution and receipt output.",
+    copy: "Preview shielded execution before live routing is enabled.",
     eyebrow: "Strategy preview",
     label: "Plan execution",
     path: "strategy",
@@ -196,12 +196,13 @@ export function HomePage() {
           <div className="landing-minimal__hero-copy">
             <div className="landing-minimal__kicker">Receipt-backed Solana settlement</div>
             <h1>
-              Shield now and get
-              <span> your first verifiable receipt.</span>
+              Shield now and see
+              <span> the proof boundary.</span>
             </h1>
             <p>
-              Open app to start private settlement. Shield assets, transact on
-              shielded rails, and leave behind merchant-inspectable receipts.
+              Open the app to use Vanta's constrained beta lanes. Shield assets,
+              inspect operator-visible status, and share receipts where the lane
+              supports them.
             </p>
 
             <div className="landing-minimal__actions">

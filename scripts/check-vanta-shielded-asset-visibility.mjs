@@ -10,6 +10,7 @@ function readRepoFile(path) {
 
 const registrySource = readRepoFile("src/solana/useVantaShieldAssetRegistryState.ts");
 const clientSource = readRepoFile("src/solana/client.ts");
+const browserRpcEndpointSource = readRepoFile("src/solana/browserRpcEndpoint.ts");
 const recentTokenNotesSource = readRepoFile("src/solana/recentShieldTokenNotes.ts");
 const verifiedSplTokenNotesSource = readRepoFile("src/solana/verifiedSplShieldNotes.ts");
 const shieldConfigSource = readRepoFile("src/solana/shieldConfig.ts");
@@ -217,17 +218,15 @@ for (const marker of [
 }
 
 assert.ok(
-  clientSource.includes('const defaultSolanaRpcEndpoint = "https://solana-rpc.publicnode.com"') &&
+  browserRpcEndpointSource.includes('const defaultSolanaRpcEndpoint = "https://solana-rpc.publicnode.com"') &&
     clientSource.includes("isBrowserBlockedMainnetRpcEndpoint") &&
-    clientSource.includes("api.mainnet-beta.solana.com") &&
-    clientSource.includes("VITE_SOLANA_BROWSER_RPC_URL") &&
-    clientSource.includes("VITE_SOLANA_RPC_URL") &&
-    clientSource.includes("VITE_SOLANA_BROWSER_WS_URL") &&
-    clientSource.includes("VITE_SOLANA_WS_URL") &&
+    browserRpcEndpointSource.includes("api.mainnet-beta.solana.com") &&
+    browserRpcEndpointSource.includes("browserRpcEnvContract") &&
+    browserRpcEndpointSource.includes("ignoredBrowserRpcEnvKeys") &&
     clientSource.includes("isForbiddenMainnetRpcEndpoint") &&
     clientSource.includes("resolveMainnetBrowserRpcEndpoint") &&
-    clientSource.includes("export const endpoint = configuredSolanaRpcEndpoint"),
-  "Browser Solana client must honor explicit mainnet browser RPC envs while rejecting devnet/testnet/local endpoints in production mainnet builds.",
+    clientSource.includes("export const endpoint = mainnetBrowserRpcEndpoint"),
+  "Browser Solana client must use the public browser resolver, reject devnet/testnet/local endpoints, and ignore VITE RPC envs so paid/provider URLs are not bundled.",
 );
 assert.ok(
   shieldStateSource.includes('import { endpoint, readRpcFallbackEndpoints } from "@/solana/client"') &&

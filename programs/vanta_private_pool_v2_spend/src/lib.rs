@@ -756,6 +756,14 @@ fn require_vault_asset_record(
     require_readonly_account(vault_asset_record)?;
 
     let asset_data = vault_asset_record.try_borrow_data()?;
+    // !! CFG(TEST) GATE !!
+    // The block below is a *compile-time* sentinel bypass that only fires under `cargo test`
+    // builds (and never in the SBF binary deployed to mainnet). A build that accidentally
+    // enables `--cfg test` for an artifact destined for upload would expose this bypass live.
+    // Reviewers: confirm at deploy time that the artifact you are uploading was built
+    // *without* the test feature set. Long-term we plan to migrate this gate to a runtime
+    // `pool_state.verifier_wired: bool` flag toggled only by an authority-signed instruction
+    // post-audit (architecture backlog item A1 / R7A).
     if cfg!(test)
         && *expected_asset_id == NATIVE_SOL_ASSET_ID_SENTINEL
         && asset_data.len() < VAULT_ASSET_ACCOUNT_LEN
@@ -763,8 +771,11 @@ fn require_vault_asset_record(
         // Sentinel bypass (per design doc): during prep / bootstrap allow minimal/uninit
         // registry record for NATIVE_SOL_ASSET_ID_SENTINEL (zero bytes) to enable
         // generalized preflights for kind=2 before full TAG_REGISTER_VAULT_ASSET wiring.
-        // Production: this path must require valid registered entry (kind=2, releaseEnabled).
-        // Explicit bypass documented to avoid zero-mint pitfalls in future SPL paths.
+        // Production semantics: a real release path requires (a) a valid registered entry
+        // (kind=2) and (b) the future `releaseEnabled` flag flipped to authorize release.
+        // Today the production check below requires releaseEnabled == 0 (the initial state
+        // written by TAG_REGISTER_VAULT_ASSET) because the actual release path is itself
+        // gated by ERR_UNSHIELD_NOT_WIRED until the verifier wires in.
         if asset_data.len() < 10 || &asset_data[0..8] != VAULT_ASSET_MAGIC || asset_data[8] != VERSION {
             return Ok(VAULT_ASSET_KIND_SOL);
         }
@@ -772,6 +783,14 @@ fn require_vault_asset_record(
     }
 
     require_vault_asset_record_data(&asset_data, pool_state, expected_asset_id)?;
+    // releaseEnabled semantics (current vs future):
+    //   - WRITE: TAG_REGISTER_VAULT_ASSET writes `releaseEnabled = 0` (see line ~933).
+    //   - READ (today): TAG_UNSHIELD requires `releaseEnabled == 0` here. Non-zero is
+    //     reserved as a future "release-authorized" flag once the verifier is wired in;
+    //     the production-private migration must invert this check at the same time it
+    //     replaces the cfg!(test) gate below with a runtime authority flag.
+    //   - Until then the entire TAG_UNSHIELD release path returns ERR_UNSHIELD_NOT_WIRED
+    //     after this check, so the inverted-looking comparison is intentionally fail-closed.
     if asset_data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] != 0 {
         return Err(ProgramError::Custom(ERR_VAULT_ASSET_MISMATCH));
     }
@@ -1968,6 +1987,22 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
     let public_inputs_hash = &rest[104..136]; // binds sentinel + amount + dest + nullifier + note asset_id
     // proof_bytes = &rest[136..]
 
+    // Reject zero-valued public inputs the same way TAG_SPEND_WITH_PROOF does.
+    // Native SOL is the exception for `exit_asset_id`: the all-zero sentinel is
+    // the canonical SOL asset id. Future SPL lanes must reject zero asset ids,
+    // while unsupported asset kinds should keep returning ERR_INVALID_ASSET_KIND.
+    // Without this guard a future Groth16 verifier that accepts a proof over (nullifier=0, root=0,
+    // public_inputs_hash=0) would derive a fixed nullifier marker PDA and unlock a double-spend
+    // vector. The fail-closed `cfg!(not(test))` gate below makes this defensive today; this check
+    // preserves the same invariant once the verifier is wired in.
+    if is_zero_hash(&nullifier)
+        || is_zero_hash(public_inputs_hash)
+        || (asset_kind == VAULT_ASSET_KIND_SPL && is_zero_hash(&exit_asset_id))
+        || exit_amount_bytes.iter().all(|byte| *byte == 0)
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
     if asset_kind == VAULT_ASSET_KIND_SOL {
         if exit_asset_id != NATIVE_SOL_ASSET_ID_SENTINEL {
             return Err(ProgramError::Custom(ERR_SENTINEL_ASSET_ID_MISMATCH));
@@ -1992,9 +2027,17 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
         // 3. Verify Groth16/UltraHonk proof vs public_inputs_hash (stub: fail-closed per status note)
         //    TODO: wire groth16-solana or Light verifier + vk hash from pool_state / vault_asset_record.
         //    if verifier acceptance fails { return Err(...) }
-        // Current: in non-test builds returns early to prevent lamports movement (fail-closed until verifier).
-        // In cargo test / test helper mode (cfg(test)): full path exercised for TAG6 validation + Crucible.
-        // (Production deployment remains gated; see §12.)
+        //
+        // !! CFG(NOT(TEST)) GATE — PRODUCTION FAIL-CLOSED !!
+        // This early `return Err(ERR_UNSHIELD_NOT_WIRED)` is the only thing preventing lamport
+        // movement in the absence of a real on-chain verifier. It is a *compile-time* gate:
+        // SBF artifacts deployed to mainnet must be built *without* the `test` cfg, otherwise
+        // the cargo-test SOL release helper path below executes against real funds.
+        //
+        // Anyone modifying TAG_UNSHIELD must keep this guard the first statement after the
+        // PDA/preflight block and must not predicate it on any callable input. The long-term
+        // plan (architecture backlog A1 / R7A) is to replace this with a runtime
+        // `pool_state.verifier_wired` flag and remove the cfg gating entirely.
         if cfg!(not(test)) {
             return Err(ProgramError::Custom(ERR_UNSHIELD_NOT_WIRED));
         }
@@ -3699,14 +3742,14 @@ mod tests {
         // Derive correct PDAs using the authoritative seeds + sentinel (now required for robust preflight pass)
         let (vault_asset_record, _asset_bump) = vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
         let (sol_vault_holding_key, _vault_bump) = sol_vault_pda(&program_id, &pool_state);
-        let test_nullifier = [0u8; 32];
+        let test_nullifier = [11u8; 32];
         let nullifier_marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &test_nullifier);
 
         let mut pool_lamports = 1_000_000u64;
         let mut tree_lamports = 1_000_000u64;
         let mut null_lamports = 1_000_000u64;
         let mut asset_rec_lamports = 1_000_000u64;
-        let mut vault_lamports = 1_000_000u64; // sufficient even for 0 amount
+        let mut vault_lamports = 1_000_000u64;
         let mut dest_lamports = 1_000_000u64;
         let mut cpi_lamports = 1_000_000u64;
         let mut signer_lamports = 2_000_000u64; // extra for rent funding in ensure_nullifier_marker
@@ -3747,14 +3790,94 @@ mod tests {
         unshield_data.extend_from_slice(&test_nullifier); // nullifier
         unshield_data.extend_from_slice(&[1u8; 32]); // exit_destination
         unshield_data.extend_from_slice(&NATIVE_SOL_ASSET_ID_SENTINEL); // exit_asset_id = sentinel
-        unshield_data.extend_from_slice(&0u64.to_le_bytes()); // exit_amount = 0 (test; transfer ok)
+        unshield_data.extend_from_slice(&1u64.to_le_bytes());
         unshield_data.extend_from_slice(&[9u8; 32]); // public_inputs_hash
         // no proof bytes
 
-        // In test mode: full path now succeeds (CPI 0-lamports + nullifier consumed + event emitted with real values)
+        // In test mode: full path now succeeds (CPI + nullifier consumed + event emitted with real values)
         let result = process_instruction(&program_id, &accounts, &unshield_data);
         assert_eq!(result, Ok(()));
         // (In SBF build: would be ERR_UNSHIELD_NOT_WIRED; test helper demonstrates the wired SOL TAG6 path.)
+    }
+
+    #[test]
+    fn unshield_sol_rejects_zero_nullifier_amount_or_public_hash() {
+        fn run_case(
+            nullifier: [u8; HASH_LEN],
+            exit_amount: u64,
+            public_inputs_hash: [u8; HASH_LEN],
+        ) -> ProgramResult {
+            let program_id = Pubkey::new_unique();
+            let pool_state = Pubkey::new_unique();
+            let tree_state = Pubkey::new_unique();
+            let nullifier_set = Pubkey::new_unique();
+            let destination = Pubkey::new_unique();
+            let signer = Pubkey::new_unique();
+            let system_program_id = system_program::ID;
+
+            let (vault_asset_record, _) =
+                vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
+            let (sol_vault_holding_key, _) = sol_vault_pda(&program_id, &pool_state);
+            let nullifier_marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &nullifier);
+
+            let mut pool_lamports = 1_000_000u64;
+            let mut tree_lamports = 1_000_000u64;
+            let mut null_lamports = 1_000_000u64;
+            let mut asset_rec_lamports = 1_000_000u64;
+            let mut vault_lamports = 1_000_000u64;
+            let mut dest_lamports = 1_000_000u64;
+            let mut cpi_lamports = 1_000_000u64;
+            let mut signer_lamports = 2_000_000u64;
+            let mut marker_lamports = 0u64;
+
+            let mut pool_data = vec![0u8; POOL_STATE_LEN];
+            pool_data[..8].copy_from_slice(POOL_MAGIC);
+            pool_data[8] = VERSION;
+            let mut tree_data = vec![0u8; 128];
+            let mut null_data = vec![0u8; 64];
+            let mut asset_rec_data = vec![0u8; 32];
+            asset_rec_data[..8].copy_from_slice(VAULT_ASSET_MAGIC);
+            asset_rec_data[8] = VERSION;
+            asset_rec_data[9] = VAULT_ASSET_KIND_SOL;
+            let mut vault_data: Vec<u8> = vec![0; 0];
+            let mut dest_data: Vec<u8> = vec![0; 0];
+            let mut cpi_data: Vec<u8> = vec![0; 0];
+            let mut signer_data: Vec<u8> = vec![0; 0];
+            let mut marker_data: Vec<u8> = vec![0; NULLIFIER_MARKER_LEN];
+
+            let pool = account_info(&pool_state, &program_id, true, false, &mut pool_lamports, &mut pool_data);
+            let tree = account_info(&tree_state, &program_id, true, false, &mut tree_lamports, &mut tree_data);
+            let nulls = account_info(&nullifier_set, &program_id, false, false, &mut null_lamports, &mut null_data);
+            let asset = account_info(&vault_asset_record, &program_id, false, false, &mut asset_rec_lamports, &mut asset_rec_data);
+            let vault = account_info(&sol_vault_holding_key, &program_id, true, false, &mut vault_lamports, &mut vault_data);
+            let dest = account_info(&destination, &system_program::ID, true, false, &mut dest_lamports, &mut dest_data);
+            let cpi = account_info(&system_program_id, &system_program_id, false, false, &mut cpi_lamports, &mut cpi_data);
+            let sig = account_info(&signer, &system_program::ID, true, true, &mut signer_lamports, &mut signer_data);
+            let marker = account_info(&nullifier_marker_key, &program_id, true, false, &mut marker_lamports, &mut marker_data);
+            let accounts = vec![pool, tree, nulls, asset, vault, dest, cpi, sig, marker];
+
+            let mut data = vec![TAG_UNSHIELD];
+            data.extend_from_slice(&nullifier);
+            data.extend_from_slice(&[1u8; HASH_LEN]);
+            data.extend_from_slice(&NATIVE_SOL_ASSET_ID_SENTINEL);
+            data.extend_from_slice(&exit_amount.to_le_bytes());
+            data.extend_from_slice(&public_inputs_hash);
+
+            process_instruction(&program_id, &accounts, &data)
+        }
+
+        assert_eq!(
+            run_case([0u8; HASH_LEN], 1, [9u8; HASH_LEN]),
+            Err(ProgramError::InvalidInstructionData),
+        );
+        assert_eq!(
+            run_case([12u8; HASH_LEN], 0, [9u8; HASH_LEN]),
+            Err(ProgramError::InvalidInstructionData),
+        );
+        assert_eq!(
+            run_case([12u8; HASH_LEN], 1, [0u8; HASH_LEN]),
+            Err(ProgramError::InvalidInstructionData),
+        );
     }
 
     // Additional Crucible/fuzz-ready SOL TAG6 preflight tests (per design doc §11 + status note checklist)
@@ -3776,7 +3899,8 @@ mod tests {
         let destination = Pubkey::new_unique();
         let system_program_id = system_program::ID;
         let signer = Pubkey::new_unique();
-        let marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &[0u8;32]);
+        let test_nullifier = [6u8; 32];
+        let marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &test_nullifier);
 
         let mut pool_lamports = 1_000_000u64; let mut pool_data = vec![0u8; POOL_STATE_LEN]; pool_data[..8].copy_from_slice(POOL_MAGIC); pool_data[8] = VERSION;
         let mut tree_lamports = 1u64; let mut tree_d = vec![0u8; 32];
@@ -3807,9 +3931,9 @@ mod tests {
         let accounts = vec![pool, tree, nulls, asset, vault, dest, cpi, sig, marker];
 
         let mut data = vec![TAG_UNSHIELD];
-        data.extend_from_slice(&[0u8;32]); data.extend_from_slice(&[1u8;32]);
+        data.extend_from_slice(&test_nullifier); data.extend_from_slice(&[1u8;32]);
         data.extend_from_slice(&bad_asset_id); // NOT the sentinel -> mismatch after kind extracted
-        data.extend_from_slice(&0u64.to_le_bytes()); data.extend_from_slice(&[9u8;32]);
+        data.extend_from_slice(&1u64.to_le_bytes()); data.extend_from_slice(&[9u8;32]);
 
         let res = process_instruction(&program_id, &accounts, &data);
         assert_eq!(res, Err(ProgramError::Custom(ERR_SENTINEL_ASSET_ID_MISMATCH)));
@@ -3828,7 +3952,8 @@ mod tests {
         let destination = Pubkey::new_unique();
         let system_program_id = system_program::ID;
         let signer = Pubkey::new_unique();
-        let marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &[0u8;32]);
+        let test_nullifier = [7u8; 32];
+        let marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &test_nullifier);
 
         let mut pool_lamports = 1_000_000u64;
         let mut tree_lamports = 1_000_000u64;
@@ -3862,9 +3987,9 @@ mod tests {
         let accounts = vec![pool, tree, nulls, asset, wrong_vault, dest, cpi, sig, marker];
 
         let mut data = vec![TAG_UNSHIELD];
-        data.extend_from_slice(&[0u8;32]); data.extend_from_slice(&[1u8;32]);
+        data.extend_from_slice(&test_nullifier); data.extend_from_slice(&[1u8;32]);
         data.extend_from_slice(&NATIVE_SOL_ASSET_ID_SENTINEL);
-        data.extend_from_slice(&0u64.to_le_bytes()); data.extend_from_slice(&[9u8;32]);
+        data.extend_from_slice(&1u64.to_le_bytes()); data.extend_from_slice(&[9u8;32]);
 
         let res = process_instruction(&program_id, &accounts, &data);
         assert_eq!(res, Err(ProgramError::Custom(ERR_VAULT_PDA_MISMATCH)));
@@ -3881,7 +4006,8 @@ mod tests {
 
         let (asset_rec_key, _) = vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
         let (sol_vault_key, _) = sol_vault_pda(&program_id, &pool_state);
-        let marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &[0u8;32]);
+        let test_nullifier = [8u8; 32];
+        let marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &test_nullifier);
 
         let mut tree_l = 1u64; let mut tree_d = vec![0u8; 32];
         let mut null_l = 1u64; let mut null_d = vec![0u8; 32];
@@ -3906,9 +4032,9 @@ mod tests {
         let accounts = vec![pool, tree, nulls, asset, vault, dest, cpi, sig, marker];
 
         let mut data = vec![TAG_UNSHIELD];
-        data.extend_from_slice(&[0u8;32]); data.extend_from_slice(&[1u8;32]);
+        data.extend_from_slice(&test_nullifier); data.extend_from_slice(&[1u8;32]);
         data.extend_from_slice(&NATIVE_SOL_ASSET_ID_SENTINEL);
-        data.extend_from_slice(&0u64.to_le_bytes()); data.extend_from_slice(&[9u8;32]);
+        data.extend_from_slice(&1u64.to_le_bytes()); data.extend_from_slice(&[9u8;32]);
 
         let res = process_instruction(&program_id, &accounts, &data);
         assert_eq!(res, Err(ProgramError::Custom(ERR_INVALID_ASSET_KIND)));

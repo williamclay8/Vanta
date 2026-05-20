@@ -466,8 +466,9 @@ try {
 
     if (tamperedRegisterRoot.ok || !tamperedRegisterRoot.text.includes(tamperCase.expectedMessage)) {
       throw new Error(
-        tamperedRegisterRoot.text ||
-          `operator root registration unexpectedly accepted mismatched ${tamperCase.label} source public input`,
+        `operator root registration unexpectedly accepted or misreported mismatched ${tamperCase.label} source public input (status ${tamperedRegisterRoot.status}): ${
+          tamperedRegisterRoot.text || "empty response"
+        }`,
       );
     }
     const rootStateAfterTamperedRegistration = await requestJson(baseUrl, "/state/private-core-roots", {
@@ -503,8 +504,9 @@ try {
     !tamperedRegisterRootSourceArtifacts.text.includes("mismatched note commitment")
   ) {
     throw new Error(
-      tamperedRegisterRootSourceArtifacts.text ||
-        "operator root registration unexpectedly accepted a mismatched note commitment",
+      `operator root registration unexpectedly accepted or misreported a mismatched note commitment (status ${tamperedRegisterRootSourceArtifacts.status}): ${
+        tamperedRegisterRootSourceArtifacts.text || "empty response"
+      }`,
     );
   }
 
@@ -555,8 +557,9 @@ try {
       !missingRegisterRootArtifacts.text.includes(missingFieldCase.expectedMessage)
     ) {
       throw new Error(
-        missingRegisterRootArtifacts.text ||
-          `operator root registration unexpectedly accepted ${missingFieldCase.expectedMessage}`,
+        `operator root registration unexpectedly accepted or misreported ${missingFieldCase.expectedMessage} (status ${missingRegisterRootArtifacts.status}): ${
+          missingRegisterRootArtifacts.text || "empty response"
+        }`,
       );
     }
   }
@@ -597,8 +600,9 @@ try {
       !tamperedRegisterRootArtifacts.text.includes(tamperCase.expectedMessage)
     ) {
       throw new Error(
-        tamperedRegisterRootArtifacts.text ||
-          `operator root registration unexpectedly accepted ${tamperCase.expectedMessage}`,
+        `operator root registration unexpectedly accepted or misreported ${tamperCase.expectedMessage} (status ${tamperedRegisterRootArtifacts.status}): ${
+          tamperedRegisterRootArtifacts.text || "empty response"
+        }`,
       );
     }
   }

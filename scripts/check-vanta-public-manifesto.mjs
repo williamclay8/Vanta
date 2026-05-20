@@ -18,6 +18,7 @@ const packageJson = readJson("package.json");
 const appSource = readRequired("src/App.tsx");
 const homeSource = readRequired("src/pages/HomePage.tsx");
 const manifestoSource = readRequired("src/pages/ManifestoPage.tsx");
+const normalizedManifestoSource = manifestoSource.replace(/\s+/gu, " ");
 const auditAlias = readJson("public/.well-known/audit");
 
 assert.equal(
@@ -56,7 +57,10 @@ for (const phrase of [
   "npm run public:manifesto-check",
   "/.well-known/audit",
 ]) {
-  assert.ok(manifestoSource.includes(phrase), `Manifesto page must include ${phrase}.`);
+  assert.ok(
+    normalizedManifestoSource.includes(phrase),
+    `Manifesto page must include ${phrase}.`,
+  );
 }
 
 for (const phrase of [
@@ -78,6 +82,7 @@ for (const phrase of [
 assert.equal(auditAlias.schemaVersion, "vanta-public-audit-alias-0.1");
 assert.equal(auditAlias.path, "/.well-known/audit");
 assert.equal(auditAlias.canonicalDiscovery, "/.well-known/vanta-audit.json");
+assert.equal(auditAlias.generatedAt, "2026-05-20");
 assert.equal(auditAlias.refsOnly, true);
 assert.equal(auditAlias.auditClaimAllowed, false);
 assert.equal(auditAlias.thirdPartyAuditAccepted, false);

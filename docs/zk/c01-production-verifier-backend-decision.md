@@ -4,6 +4,8 @@ Status: no production verifier backend selected yet.
 
 This packet exists so reviewers do not confuse local proof-artifact hardening with C01 closure. C01 remains partial until Vanta chooses a production verifier backend and wires positive verifier acceptance for the exact deployed lineage.
 
+H08 now has `selectedRuntimeDirection: remote-service-production-prover` as a local implementation direction, but that does not select or satisfy C01. The remote-service prover contract still needs a C01-compatible production proof format, production verifying-key or selected-backend equivalent evidence, verifier acceptance, valid/invalid proof evidence, SBF/live lineage where applicable, and audit/reviewer acceptance before any production prover or proof-enforced spend claim can promote.
+
 Current refs-only candidate evidence packet: `ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json`. It is intentionally blocked and exists to name the exact backend, proof-format, production verifying-key, verifier-adapter, positive/negative test, SBF/live-lineage, and audit/reviewer artifacts required before any `solana-c01-groth16-verifier-ready` claim can promote.
 
 Backend Options Evidence packet: `ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json`. It is checked by `npm run zk:c01-verifier-backend-options-check` and records the `groth16-tag3-solana-v0` and `noir-bb-ultrahonk-adaptation` paths as blocked options. This packet does not select a backend, does not satisfy production proof-format evidence, and does not promote local proof or verifier-key registry evidence.

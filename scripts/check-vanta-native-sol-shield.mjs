@@ -253,7 +253,8 @@ assert.ok(
     nativeSolShieldSource.includes("fetchNativeSolShieldLamports") &&
     nativeSolShieldSource.includes("getBalance(ownerPublicKey") &&
     nativeSolShieldSource.includes("readRpcFallbackEndpoints") &&
-    browserRpcEndpointSource.includes("VITE_SOLANA_READ_RPC_FALLBACK_URLS") &&
+    browserRpcEndpointSource.includes("browserRpcEnvContract") &&
+    browserRpcEndpointSource.includes("ignoredBrowserRpcEnvKeys") &&
     browserRpcEndpointSource.includes("isForbiddenMainnetRpcEndpoint") &&
     solanaClientSource.includes("readRpcFallbackEndpoints") &&
     nativeSolShieldSource.includes("VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE") &&

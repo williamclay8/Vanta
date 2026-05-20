@@ -21,7 +21,7 @@ export const capabilities: Capability[] = [
   {
     title: "Swap",
     status: "Beta",
-    summary: "Privately swap shielded assets using constrained routes.",
+    summary: "Swap shielded assets through constrained beta routes.",
     details: "Guarded beta with operator-visible settlement. Full private rebalancing after readiness gates.",
   },
   {

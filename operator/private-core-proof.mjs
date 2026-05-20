@@ -4,8 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Barretenberg, UltraHonkBackend } from "@aztec/bb.js";
 import { x25519 } from "@noble/curves/ed25519.js";
-import { sha256 } from "@noble/hashes/sha2.js";
-import { poseidon2, poseidon8 } from "poseidon-lite";
+import { poseidon1, poseidon2, poseidon8, poseidon15 } from "poseidon-lite";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
@@ -530,6 +529,8 @@ export function normalizeVantaPrivateCoreSwapWitnessPackage(input) {
 }
 
 export function assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts, witnessPackage) {
+  const normalizedWitnessPackage = normalizeVantaPrivateCoreWitnessPackage(witnessPackage);
+
   if (!sourceArtifacts || typeof sourceArtifacts !== "object") {
     throw new Error("Private-core source artifacts are required.");
   }
@@ -550,9 +551,10 @@ export function assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts,
     throw new Error("Private-core source artifacts are missing a nullifier.");
   }
 
-  const expectedNoteCommitment = deriveSourceNoteCommitmentFromWitnessPackage(witnessPackage);
+  const expectedNoteCommitment = deriveSourceNoteCommitmentFromWitnessPackage(normalizedWitnessPackage);
   const expectedMerkleLeaf = deriveSourceMerkleLeaf(expectedNoteCommitment);
-  const expectedWitnessRoot = normalizeHex32(witnessPackage.sourcePublicInputs.stateRoot);
+  const expectedWitnessRoot = normalizeHex32(normalizedWitnessPackage.sourcePublicInputs.stateRoot);
+  const expectedNullifier = deriveSourceNullifierFromUnshieldWitnessPackage(normalizedWitnessPackage);
 
   if (normalizeHex32(sourceArtifacts.noteCommitment) !== expectedNoteCommitment) {
     throw new Error("Private-core source artifacts have a mismatched note commitment.");
@@ -564,6 +566,10 @@ export function assertVantaPrivateCoreSourceArtifactConsistency(sourceArtifacts,
 
   if (normalizeHex32(sourceArtifacts.witnessRoot) !== expectedWitnessRoot) {
     throw new Error("Private-core source artifacts have a mismatched witness root.");
+  }
+
+  if (normalizeHex32(sourceArtifacts.nullifier) !== expectedNullifier) {
+    throw new Error("Private-core source artifacts have a mismatched source nullifier.");
   }
 }
 
@@ -634,44 +640,29 @@ export function deriveVantaPrivateCoreSendInputArtifactsFromWitnessPackage(witne
   const privateWitness = normalizedWitnessPackage.privateWitness;
   const inputAmount = BigInt(String(sourcePublicInputs.sendAmount)) + BigInt(String(sourcePublicInputs.changeAmount));
 
-  const encodedNote = concatBytes(
-    encodeDomain("vanta.private-core.note.v0"),
-    encodeU8(Number(publicInputs.note_version)),
-    encodeU8(Number(privateWitness.input_note_type_code)),
-    hexToBytes(normalizeHex32(sourcePublicInputs.assetId)),
-    encodeU128(inputAmount),
-    hexToBytes(
-      decodeBytes32FromTwoU128Be(
-        privateWitness.sender_public_key_hi,
-        privateWitness.sender_public_key_lo,
-      ),
+  const noteCommitment = derivePoseidonSourceNoteCommitment({
+    amount: inputAmount,
+    assetId: sourcePublicInputs.assetId,
+    blinding: decodeBytes32FromTwoU128Be(privateWitness.input_blinding_hi, privateWitness.input_blinding_lo),
+    derivationTag: decodeBytes32FromTwoU128Be(
+      privateWitness.input_derivation_tag_hi,
+      privateWitness.input_derivation_tag_lo,
     ),
-    hexToBytes(
-      decodeBytes32FromTwoU128Be(
-        privateWitness.input_note_nonce_hi,
-        privateWitness.input_note_nonce_lo,
-      ),
+    noteNonce: decodeBytes32FromTwoU128Be(
+      privateWitness.input_note_nonce_hi,
+      privateWitness.input_note_nonce_lo,
     ),
-    hexToBytes(
-      decodeBytes32FromTwoU128Be(
-        privateWitness.input_note_secret_hi,
-        privateWitness.input_note_secret_lo,
-      ),
+    noteSecret: decodeBytes32FromTwoU128Be(
+      privateWitness.input_note_secret_hi,
+      privateWitness.input_note_secret_lo,
     ),
-    hexToBytes(decodeBytes32FromTwoU128Be(privateWitness.input_blinding_hi, privateWitness.input_blinding_lo)),
-    hexToBytes(
-      decodeBytes32FromTwoU128Be(
-        privateWitness.input_derivation_tag_hi,
-        privateWitness.input_derivation_tag_lo,
-      ),
+    noteTypeCode: privateWitness.input_note_type_code,
+    noteVersion: publicInputs.note_version,
+    ownerPublicKey: decodeBytes32FromTwoU128Be(
+      privateWitness.sender_public_key_hi,
+      privateWitness.sender_public_key_lo,
     ),
-  );
-
-  const noteCommitment = normalizeHex32(
-    `0x${Buffer.from(
-      sha256(concatBytes(encodeDomain("vanta.private-core.note-commitment.v0"), encodedNote)),
-    ).toString("hex")}`,
-  );
+  });
   const merkleLeaf = deriveSourceMerkleLeaf(noteCommitment);
   const witnessRoot = normalizeHex32(sourcePublicInputs.stateRoot);
 
@@ -690,46 +681,29 @@ export function deriveVantaPrivateCoreSwapInputArtifactsFromWitnessPackage(witne
   const publicInputs = normalizedWitnessPackage.publicInputs;
   const privateWitness = normalizedWitnessPackage.privateWitness;
 
-  const encodedNote = concatBytes(
-    encodeDomain("vanta.private-core.note.v0"),
-    encodeU8(Number(publicInputs.input_note_version)),
-    encodeU8(Number(privateWitness.input_note_type_code)),
-    hexToBytes(normalizeHex32(sourcePublicInputs.inputAssetId)),
-    encodeU128(BigInt(String(sourcePublicInputs.inputAmount))),
-    hexToBytes(
-      decodeBytes32FromTwoU128Be(
-        privateWitness.sender_public_key_hi,
-        privateWitness.sender_public_key_lo,
-      ),
+  const noteCommitment = derivePoseidonSourceNoteCommitment({
+    amount: BigInt(String(sourcePublicInputs.inputAmount)),
+    assetId: sourcePublicInputs.inputAssetId,
+    blinding: decodeBytes32FromTwoU128Be(privateWitness.input_blinding_hi, privateWitness.input_blinding_lo),
+    derivationTag: decodeBytes32FromTwoU128Be(
+      privateWitness.input_derivation_tag_hi,
+      privateWitness.input_derivation_tag_lo,
     ),
-    hexToBytes(
-      decodeBytes32FromTwoU128Be(
-        privateWitness.input_note_nonce_hi,
-        privateWitness.input_note_nonce_lo,
-      ),
+    noteNonce: decodeBytes32FromTwoU128Be(
+      privateWitness.input_note_nonce_hi,
+      privateWitness.input_note_nonce_lo,
     ),
-    hexToBytes(
-      decodeBytes32FromTwoU128Be(
-        privateWitness.input_note_secret_hi,
-        privateWitness.input_note_secret_lo,
-      ),
+    noteSecret: decodeBytes32FromTwoU128Be(
+      privateWitness.input_note_secret_hi,
+      privateWitness.input_note_secret_lo,
     ),
-    hexToBytes(
-      decodeBytes32FromTwoU128Be(privateWitness.input_blinding_hi, privateWitness.input_blinding_lo),
+    noteTypeCode: privateWitness.input_note_type_code,
+    noteVersion: publicInputs.input_note_version,
+    ownerPublicKey: decodeBytes32FromTwoU128Be(
+      privateWitness.sender_public_key_hi,
+      privateWitness.sender_public_key_lo,
     ),
-    hexToBytes(
-      decodeBytes32FromTwoU128Be(
-        privateWitness.input_derivation_tag_hi,
-        privateWitness.input_derivation_tag_lo,
-      ),
-    ),
-  );
-
-  const noteCommitment = normalizeHex32(
-    `0x${Buffer.from(
-      sha256(concatBytes(encodeDomain("vanta.private-core.note-commitment.v0"), encodedNote)),
-    ).toString("hex")}`,
-  );
+  });
   const merkleLeaf = deriveSourceMerkleLeaf(noteCommitment);
   const witnessRoot = normalizeHex32(sourcePublicInputs.stateRoot);
 
@@ -1356,31 +1330,23 @@ function deriveSourceNoteCommitmentFromWitnessPackage(witnessPackage) {
     throw new Error("Private-core witness package is missing source owner public key metadata.");
   }
 
-  const encodedNote = concatBytes(
-    encodeDomain("vanta.private-core.note.v0"),
-    encodeU8(Number(publicInputs.note_version)),
-    encodeU8(Number(privateWitness.note_type_code)),
-    hexToBytes(normalizeHex32(sourcePublicInputs.assetId)),
-    encodeU128(BigInt(String(sourcePublicInputs.amount))),
-    hexToBytes(
-      decodeBytes32FromTwoU128Be(
-        privateWitness.source_owner_public_key_hi,
-        privateWitness.source_owner_public_key_lo,
-      ),
+  return derivePoseidonSourceNoteCommitment({
+    amount: BigInt(String(sourcePublicInputs.amount)),
+    assetId: sourcePublicInputs.assetId,
+    blinding: decodeBytes32FromTwoU128Be(privateWitness.blinding_hi, privateWitness.blinding_lo),
+    derivationTag: decodeBytes32FromTwoU128Be(
+      privateWitness.derivation_tag_hi,
+      privateWitness.derivation_tag_lo,
     ),
-    hexToBytes(decodeBytes32FromTwoU128Be(privateWitness.note_nonce_hi, privateWitness.note_nonce_lo)),
-    hexToBytes(decodeBytes32FromTwoU128Be(privateWitness.note_secret_hi, privateWitness.note_secret_lo)),
-    hexToBytes(decodeBytes32FromTwoU128Be(privateWitness.blinding_hi, privateWitness.blinding_lo)),
-    hexToBytes(
-      decodeBytes32FromTwoU128Be(privateWitness.derivation_tag_hi, privateWitness.derivation_tag_lo),
+    noteNonce: decodeBytes32FromTwoU128Be(privateWitness.note_nonce_hi, privateWitness.note_nonce_lo),
+    noteSecret: decodeBytes32FromTwoU128Be(privateWitness.note_secret_hi, privateWitness.note_secret_lo),
+    noteTypeCode: privateWitness.note_type_code,
+    noteVersion: publicInputs.note_version,
+    ownerPublicKey: decodeBytes32FromTwoU128Be(
+      privateWitness.source_owner_public_key_hi,
+      privateWitness.source_owner_public_key_lo,
     ),
-  );
-
-  return normalizeHex32(
-    `0x${Buffer.from(
-      sha256(concatBytes(encodeDomain("vanta.private-core.note-commitment.v0"), encodedNote)),
-    ).toString("hex")}`,
-  );
+  });
 }
 
 function deriveSourceNullifierFromUnshieldWitnessPackage(witnessPackage) {
@@ -1388,27 +1354,52 @@ function deriveSourceNullifierFromUnshieldWitnessPackage(witnessPackage) {
   const noteCommitment = deriveSourceNoteCommitmentFromWitnessPackage(witnessPackage);
   const merkleLeaf = deriveSourceMerkleLeaf(noteCommitment);
 
-  return normalizeHex32(
-    `0x${Buffer.from(
-      sha256(
-        concatBytes(
-          encodeDomain("vanta.private-core.nullifier.v0"),
-          hexToBytes(decodeBytes32FromTwoU128Be(privateWitness.note_secret_hi, privateWitness.note_secret_lo)),
-          hexToBytes(decodeBytes32FromTwoU128Be(privateWitness.note_nonce_hi, privateWitness.note_nonce_lo)),
-          hexToBytes(noteCommitment),
-          hexToBytes(normalizeHex32(witnessPackage.sourcePublicInputs.stateRoot)),
-          hexToBytes(merkleLeaf),
-        ),
-      ),
-    ).toString("hex")}`,
+  return fieldElementToHex32(
+    poseidon8([
+      BigInt(privateWitness.source_owner_public_key_hi),
+      BigInt(privateWitness.source_owner_public_key_lo),
+      BigInt(privateWitness.note_secret_hi),
+      BigInt(privateWitness.note_secret_lo),
+      BigInt(privateWitness.note_nonce_hi),
+      BigInt(privateWitness.note_nonce_lo),
+      BigInt(normalizeHex32(witnessPackage.sourcePublicInputs.stateRoot)),
+      BigInt(merkleLeaf),
+    ]).toString(10),
   );
 }
 
 function deriveSourceMerkleLeaf(noteCommitment) {
-  return normalizeHex32(
-    `0x${Buffer.from(
-      sha256(concatBytes(encodeDomain("vanta.private-core.merkle-leaf.v0"), hexToBytes(noteCommitment))),
-    ).toString("hex")}`,
+  return fieldElementToHex32(poseidon1([BigInt(normalizeHex32(noteCommitment))]).toString(10));
+}
+
+function derivePoseidonSourceNoteCommitment(args) {
+  const asset = encodeHex32ToPoseidonLimbs(args.assetId);
+  const amount = encodeU128ToPoseidonLimbs(args.amount);
+  const owner = encodeHex32ToPoseidonLimbs(args.ownerPublicKey);
+  const nonce = encodeHex32ToPoseidonLimbs(args.noteNonce);
+  const secret = encodeHex32ToPoseidonLimbs(args.noteSecret);
+  const blinding = encodeHex32ToPoseidonLimbs(args.blinding);
+  const derivationTag = encodeHex32ToPoseidonLimbs(args.derivationTag);
+  const header = poseidon2([BigInt(args.noteVersion), BigInt(args.noteTypeCode)]);
+
+  return fieldElementToHex32(
+    poseidon15([
+      header,
+      asset.hi,
+      asset.lo,
+      amount.lo,
+      amount.hi,
+      owner.hi,
+      owner.lo,
+      nonce.hi,
+      nonce.lo,
+      secret.hi,
+      secret.lo,
+      blinding.hi,
+      blinding.lo,
+      derivationTag.hi,
+      derivationTag.lo,
+    ]).toString(10),
   );
 }
 
@@ -1416,6 +1407,25 @@ function decodeBytes32FromTwoU128Be(hi, lo) {
   const hiHex = BigInt(hi).toString(16).padStart(32, "0");
   const loHex = BigInt(lo).toString(16).padStart(32, "0");
   return normalizeHex32(`0x${hiHex}${loHex}`);
+}
+
+function encodeHex32ToPoseidonLimbs(value) {
+  const normalized = normalizeHex32(value).slice(2);
+  return {
+    hi: BigInt(`0x${normalized.slice(0, 32)}`),
+    lo: BigInt(`0x${normalized.slice(32, 64)}`),
+  };
+}
+
+function encodeU128ToPoseidonLimbs(value) {
+  const normalized = BigInt(value);
+  if (normalized < 0n || normalized > (1n << 128n) - 1n) {
+    throw new Error(`Expected an unsigned 128-bit integer, received ${String(value)}.`);
+  }
+  return {
+    lo: normalized & ((1n << 64n) - 1n),
+    hi: normalized >> 64n,
+  };
 }
 
 function encodeHex32ToTwoU128Be(value) {

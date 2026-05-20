@@ -320,6 +320,18 @@ function persistCanonicalShieldRecord(record: LiveShieldCanonicalRecord) {
 function redactLiveShieldRecordForPersistence(
   record: LiveShieldCanonicalRecord,
 ): LiveShieldCanonicalRecord {
+  // Post-2026-05-19 audit (L2): we used to overwrite `artifacts.commitment` with the
+  // literal sentinel `{ value: "redacted:commitment" }`. That broke downstream proof
+  // generation because the persisted commitment is consumed by ShieldPage / SendPage /
+  // liveSwapBridge / getLatestCanonicalShieldSnapshot etc. and a literal "redacted"
+  // string would be fed into proof inputs after a page reload.
+  //
+  // The commitment is a one-way Poseidon hash of (owner, asset, amount, blinding,
+  // derivation_tag); it does not leak the user's balance on its own (the amount lives
+  // behind the blinding factor + ownerContext). Keeping the real commitment in storage
+  // is safe at the same threat tier as keeping the merkle root (which is already in
+  // `insertion.root` and not redacted), and is required for the records to remain
+  // self-consistent across reloads. The sensitive amount fields are still redacted.
   return {
     ...record,
     ownerContext: undefined,
@@ -345,12 +357,7 @@ function redactLiveShieldRecordForPersistence(
           amount: "redacted" as any,
         }
       : record.canonicalNote,
-    artifacts: record.artifacts
-      ? {
-          ...record.artifacts,
-          commitment: { value: "redacted:commitment" } as any,
-        }
-      : record.artifacts,
+    artifacts: record.artifacts,
   };
 }
 
@@ -414,6 +421,14 @@ function isLiveShieldCanonicalRecord(value: unknown): value is LiveShieldCanonic
   }
 
   const record = value as Partial<LiveShieldCanonicalRecord>;
+  // Post-2026-05-19 audit (L2): records previously persisted with the broken
+  // `{ value: "redacted:commitment" }` sentinel are no longer valid for proof
+  // generation. Drop them on read so they cannot poison snapshots; the user can
+  // re-derive the underlying note from their viewing key if needed.
+  const commitmentValue = (record.artifacts as any)?.commitment?.value;
+  if (typeof commitmentValue === "string" && commitmentValue.startsWith("redacted:")) {
+    return false;
+  }
   return (
     typeof record.recordId === "string" &&
     record.source === "live_shield_v1" &&

@@ -96,10 +96,21 @@ function assertHeliusUrl(label, value, options = {}) {
   );
 }
 
+// Per the 2026-05-19 audit (H5), the browser RPC env vars are allowed to be EITHER:
+//   (a) empty — production default; the SPA falls back to solana-rpc.publicnode.com and
+//       no Helius URL is leaked to scrapers, OR
+//   (b) a Helius Secure RPC subdomain URL with NO `?api-key=` query — slower-to-rotate
+//       leak but documented and accepted.
+// What is forbidden in either case is a raw `?api-key=` URL or PublicNode being set
+// here explicitly (publicnode is reached only via the resolver fallback in
+// browserRpcEndpoint.ts so the policy stays single-sourced).
 function assertBrowserSafeHeliusUrl(label, value, options = {}) {
   const trimmed = value?.trim() ?? "";
 
-  if (!trimmed && options.optional) {
+  if (!trimmed) {
+    // Empty is now the recommended default for browser RPC env vars — fall through to
+    // the publicnode resolver. Skip the Helius-format assertions but keep the api-key
+    // assertion below redundant.
     return;
   }
 
@@ -116,14 +127,23 @@ const browserRpcEndpointSource = readFileSync(resolve(repoRoot, "src/solana/brow
 const envExampleSource = readFileSync(resolve(repoRoot, ".env.example"), "utf8");
 const gitignoreSource = readFileSync(resolve(repoRoot, ".gitignore"), "utf8");
 
+for (const forbiddenStaticRead of [
+  "import.meta.env.VITE_SOLANA_BROWSER_RPC_URL",
+  "import.meta.env.VITE_SOLANA_RPC_URL",
+  "import.meta.env.VITE_SOLANA_BROWSER_WS_URL",
+  "import.meta.env.VITE_SOLANA_WS_URL",
+  "import.meta.env.VITE_SOLANA_READ_RPC_FALLBACK_URLS",
+]) {
+  assert.ok(
+    !browserRpcEndpointSource.includes(forbiddenStaticRead),
+    `Browser RPC resolver must not statically read ${forbiddenStaticRead}; Vite would inline the value into the public bundle.`,
+  );
+}
 assert.ok(
-  browserRpcEndpointSource.indexOf("VITE_SOLANA_BROWSER_RPC_URL") <
-    browserRpcEndpointSource.indexOf("VITE_SOLANA_RPC_URL"),
-  "browser-specific RPC env must take precedence over the generic VITE_SOLANA_RPC_URL.",
-);
-assert.ok(
-  browserRpcEndpointSource.includes("VITE_SOLANA_READ_RPC_FALLBACK_URLS"),
-  "read RPC fallback env must stay wired into the browser client.",
+  browserRpcEndpointSource.includes("browserRpcEnvContract") &&
+    browserRpcEndpointSource.includes("ignoredBrowserRpcEnvKeys") &&
+    browserRpcEndpointSource.includes("SOLANA_RPC_URL"),
+  "browser RPC resolver must document ignored VITE RPC env keys and point paid RPC to server-side SOLANA_RPC_URL.",
 );
 assert.ok(
   browserRpcEndpointSource.includes("api.mainnet-beta.solana.com") &&
@@ -136,12 +156,13 @@ assert.ok(
   "Solana client must keep using the shared browser RPC resolver.",
 );
 assert.ok(
-  envExampleSource.includes("VITE_SOLANA_BROWSER_RPC_URL=https://your-secure-url.helius-rpc.com"),
-  ".env.example must document the frontend-safe Helius Secure RPC URL.",
+  envExampleSource.includes("The SPA intentionally ignores these VITE_* browser RPC values"),
+  ".env.example must explain that browser RPC VITE_* values are intentionally ignored by the SPA build.",
 );
 assert.ok(
-  envExampleSource.includes("VITE_SOLANA_RPC_URL=https://your-secure-url.helius-rpc.com"),
-  ".env.example must keep browser-exposed VITE_SOLANA_RPC_URL on a Secure RPC URL.",
+  /VITE_SOLANA_BROWSER_RPC_URL=\s*(?:\n|$)/u.test(envExampleSource) &&
+    /VITE_SOLANA_RPC_URL=\s*(?:\n|$)/u.test(envExampleSource),
+  ".env.example must leave browser RPC VITE_* values blank.",
 );
 assert.ok(
   envExampleSource.includes("SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=<helius-api-key>"),
@@ -152,17 +173,23 @@ assert.ok(
   ".gitignore must ignore launch/local env files that can contain provider tokens.",
 );
 
-assertBrowserSafeHeliusUrl("VITE_SOLANA_BROWSER_RPC_URL", env.VITE_SOLANA_BROWSER_RPC_URL);
-assertBrowserSafeHeliusUrl("VITE_SOLANA_RPC_URL", env.VITE_SOLANA_RPC_URL, {
-  optional: true,
-});
-assertBrowserSafeHeliusUrl("VITE_SOLANA_BROWSER_WS_URL", env.VITE_SOLANA_BROWSER_WS_URL, {
-  optional: true,
-});
-assertBrowserSafeHeliusUrl("VITE_SOLANA_WS_URL", env.VITE_SOLANA_WS_URL, { optional: true });
+for (const [label, value] of [
+  ["VITE_SOLANA_BROWSER_RPC_URL", env.VITE_SOLANA_BROWSER_RPC_URL],
+  ["VITE_SOLANA_RPC_URL", env.VITE_SOLANA_RPC_URL],
+  ["VITE_SOLANA_BROWSER_WS_URL", env.VITE_SOLANA_BROWSER_WS_URL],
+  ["VITE_SOLANA_WS_URL", env.VITE_SOLANA_WS_URL],
+]) {
+  assert.ok(
+    !hasApiKeyQuery(value ?? ""),
+    `${label} is ignored by the SPA but must still never contain a raw api-key URL.`,
+  );
+}
 
 for (const [index, fallback] of parseCsv(env.VITE_SOLANA_READ_RPC_FALLBACK_URLS).entries()) {
-  assertBrowserSafeHeliusUrl(`VITE_SOLANA_READ_RPC_FALLBACK_URLS[${index}]`, fallback);
+  assert.ok(
+    !hasApiKeyQuery(fallback),
+    `VITE_SOLANA_READ_RPC_FALLBACK_URLS[${index}] is ignored by the SPA but must still never contain a raw api-key URL.`,
+  );
 }
 
 assertHeliusUrl("SOLANA_RPC_URL", env.SOLANA_RPC_URL);

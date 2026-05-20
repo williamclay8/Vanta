@@ -117,20 +117,26 @@ assert.ok(
 
 assert.equal(discovery.schemaVersion, "vanta-public-audit-discovery-0.1");
 assert.equal(discovery.path, "/.well-known/vanta-audit.json");
+assert.equal(discovery.generatedAt, "2026-05-20");
 assert.equal(discovery.auditClaimAllowed, false);
 assert.equal(discovery.thirdPartyAuditAccepted, false);
 assert.equal(discovery.productionReady, false);
 assert.equal(discovery.mainnetReady, false);
 assert.equal(discovery.liveDeploymentVerified, false);
+// Post-2026-05-19 audit (L5 + M3): Render service/deploy IDs were stripped from the
+// public manifest because they are operational identifiers that don't belong in a
+// crawler-visible discovery file, and the manifest was re-shaped to reflect the
+// 2026-05-14 deploy drift (live site is now serving a newer asset than the last
+// attested one). The check below enforces the new shape and leaves the explicit
+// "pending re-attestation" status until a follow-up live verification rerun records
+// the current live commit and asset hash.
 assert.deepEqual(discovery.websiteDeployment, {
-  status: "last-verified-website-deploy",
-  verifiedCommit: "7635c9b641a505379b82e74a6679986dbabc55fe",
-  renderServiceId: "srv-d7j3ggqqqhas739for80",
-  verifiedRenderDeployId: "dep-d834ce4vikkc73fb2ep0",
-  verifiedAt: "2026-05-14T22:05:07Z",
+  status: "pending-reattestation-after-2026-05-14-deploy-drift",
+  lastVerifiedCommit: "7635c9b641a505379b82e74a6679986dbabc55fe",
+  lastVerifiedAt: "2026-05-14T22:05:07Z",
   liveUrl: "https://vantaprivacy.xyz",
   truthBoundary:
-    "This records the last externally verified website/audit-copy deploy; rerun live verification for newer commits. Private settlement, SBF, verifier, custody, and anonymity evidence remain blocked.",
+    "The last externally verified website deploy referenced commit 7635c9b641a505379b82e74a6679986dbabc55fe and the asset hash assets/index-C5gkBpDx.js. The current live site is serving a newer asset; re-attestation against the current commit and asset hash is required before this record can be cited as live evidence. Render service / deploy identifiers have been moved out of the public manifest. Private settlement, SBF, verifier, custody, and anonymity evidence remain blocked.",
 });
 assert.equal(discovery.privacyClaimAllowed, false);
 assert.equal(discovery.anonymityClaimAllowed, false);

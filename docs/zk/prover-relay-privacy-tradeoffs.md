@@ -5,6 +5,10 @@ Vanta production privacy is not enabled. This note defines the disclosure bounda
 ## Current State
 
 - `selectedProverRuntime` is `null`.
+- `selectedRuntimeDirection` is `remote-service-production-prover`.
+- The selected runtime direction is a local architecture decision, not a selected production prover runtime.
+- It is not a production prover runtime.
+- deployed prover health, artifact-store refs, job-log refs, valid proof roundtrip, and invalid proof rejection are still absent.
 - Browser-worker proving is dev-only local evidence, not a production browser runtime.
 - Remote proof-artifact handoff evidence is off-chain handoff hardening, not production remote proving.
 - C01 on-chain verifier compatibility is absent.
@@ -34,6 +38,7 @@ A prover relay can reduce direct operator coupling only if it has a separate ser
 Do not present remote proving, prover relay, or browser-worker proving as production privacy until all of these are true:
 
 - the selected prover runtime is non-null and reviewed;
+- the remote-service contract packet has deployed service health, artifact-store refs, job-log refs, valid and invalid proof evidence, and operator no-witness production acceptance;
 - C01 verifier compatibility is selected and verified;
 - proof format and verifying-key evidence are production-bound;
 - live route wiring is verified without witness leakage;
