@@ -1,0 +1,128 @@
+version: 2
+
+goal:
+  title: "C01 and H08 Promotability Map"
+  slug: "2026-05-20-c01-h08-promotability"
+  kind: discovery
+  tranche: "2026-05-20-promotion-gates"
+  status: complete
+  completed_at: "2026-05-20T18:05:00Z"
+  intake:
+    original_request: "your /goal is to figure out how we can get c01 and h08 to be promotable"
+    interpreted_outcome: "Map the exact implementation, evidence, verification, live, and audit gates that would let C01 and H08 move from partial/local-only evidence to live-verified status without inflating privacy readiness."
+    input_shape: specific
+    audience: "Clay operating /Users/clay/Desktop/Vanta"
+    authority: requested
+    proof_type: "ledger analysis + repo-local promotion map + vault memory"
+    completion_proof: "Promotability map records that C01 is the upstream blocker, H08 depends on a production-compatible C01 verifier boundary, and both findings require positive live evidence plus audit/reviewer acceptance before any ledger status promotion."
+  oracle:
+    command_targets:
+      - "npm run zk:review-findings-ledger-check"
+      - "git diff --check"
+
+rules:
+  pm_owns_state: true
+  planning_is_not_completion: true
+  no_status_promotion_without_live_evidence: true
+  no_c01_promotion_without_production_verifier_backend: true
+  no_h08_promotion_without_c01_compatible_production_prover: true
+  no_production_or_mainnet_claims_from_local_artifacts: true
+
+ledger_baseline:
+  command: "npm run zk:review-findings-ledger-check"
+  observed_result: pass
+  findings: 13
+  live_verified_count: 0
+  accepted_closed_count: 0
+  c01_status: "partial"
+  h08_status: "partial"
+  promotion_status_required: "live-verified"
+  accepted_status_after_review: "accepted-closed"
+  promotion_guard:
+    status_rule: "liveVerifiedCount counts only findings whose status is exactly live-verified."
+    evidence_rule: "For live-verified or accepted-closed findings, truthBoundary, lumiHygiene.deployedLive, and verification.localResult must not contain local-only or not-live evidence wording."
+    hygiene_rule: "Promoted findings must pin exact commits, push refs, and live/deploy evidence rather than vague current-commit claims."
+
+recommended_order:
+  - id: P0
+    title: "Freeze the promotion contract"
+    status: complete
+    outcome: "This goal packet defines the evidence slots and prevents status-first promotion."
+  - id: P1
+    title: "Choose and prove the C01 backend"
+    status: pending
+    outcome: "Select the production verifier backend and produce the first positive proof-format and verifying-key evidence."
+  - id: P2
+    title: "Wire C01 verifier acceptance"
+    status: pending
+    outcome: "Add verifier adapter acceptance tests showing valid proof mutation and invalid/wrong-input/wrong-key no-mutation."
+  - id: P3
+    title: "Produce C01 live lineage"
+    status: pending
+    outcome: "Rebuild, redeploy, reinitialize, and capture live transaction/operator evidence for the proof-enforced path."
+  - id: P4
+    title: "Promote H08 runtime only after C01 compatibility"
+    status: pending
+    outcome: "Deploy the remote-service production prover, wire live routes, quarantine mock/local/browser-worker artifacts from production, and prove valid/invalid production proof roundtrips."
+  - id: P5
+    title: "Audit/reviewer acceptance and ledger promotion"
+    status: pending
+    outcome: "Only after live evidence and reviewer acceptance, update C01/H08 to live-verified with exact refs and rerun ledger guards."
+
+findings:
+  c01:
+    id: "VANTA-ZK-2026-05-09-C01"
+    current_status: "partial"
+    promotion_dependency: "Production verifier backend, proof format, verifying-key evidence, adapter acceptance, SBF/live lineage, and audit/reviewer acceptance."
+    first_high_leverage_next_step: "Select groth16-tag3-solana-v0 or a reviewed replacement backend, then produce a positive proof-format and production verifying-key artifact for actual private spend."
+    do_not_promote_from:
+      - "source-only tag 5 verifier-key registry scaffold"
+      - "blocked backend-options matrix"
+      - "blocked Groth16 proof-format candidate"
+      - "blocked production verifying-key candidate"
+      - "blocked verifier adapter acceptance-test candidate"
+      - "local proof-format observation"
+      - "reserved tag 3 custom-error-14 fail-closed behavior"
+  h08:
+    id: "VANTA-ZK-2026-05-09-H08"
+    current_status: "partial"
+    promotion_dependency: "C01-compatible production proof/verifier boundary, deployed remote-service prover, live route evidence, valid/invalid production proof roundtrip, production quarantine, health/job/artifact refs, and audit/reviewer acceptance."
+    first_high_leverage_next_step: "Keep remote-service-production-prover as the selected direction, but do not set selectedProverRuntime until the production service is deployed and proven against the C01-compatible verifier path."
+    do_not_promote_from:
+      - "mock prover"
+      - "local bb fixture artifacts"
+      - "browser-worker dev-only proof execution"
+      - "local remote-service mock verifier harness"
+      - "runtime-options packet with selectedProverRuntime: null"
+      - "production prover candidate packet without deployed health/job/live-route refs"
+
+lumi:
+  app_changes: "repo-local planning artifact only"
+  committed: false
+  pushed: false
+  deployed_live: false
+  deploy_required_for_this_goal: false
+  live_status_note: "No finding was promoted and no production/live privacy claim changed."
+
+tasks:
+  - id: T001
+    type: pm
+    assignee: PM
+    status: complete
+    objective: "Read C01/H08 ledger entries, prior H08 unblock receipt, C01 backend decision, and ledger promotion checker."
+    verify:
+      - "npm run zk:review-findings-ledger-check"
+  - id: T002
+    type: pm
+    assignee: PM
+    status: complete
+    objective: "Write a promotion map that separates C01 prerequisites, H08 prerequisites, ledger mechanics, and the shortest honest path."
+    verify:
+      - "git diff --check"
+  - id: T003
+    type: pm
+    assignee: PM
+    status: complete
+    objective: "Sync the durable conclusion into the external Vanta Vault."
+    allowed_files:
+      - "/Users/clay/Desktop/Vanta Vault"
