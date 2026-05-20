@@ -97,12 +97,12 @@ findings:
       - "production prover candidate packet without deployed health/job/live-route refs"
 
 lumi:
-  app_changes: "repo-local planning artifact only"
-  committed: false
-  pushed: false
+  app_changes: "repo-local planning artifact committed and pushed to main"
+  committed: true
+  pushed: true
   deployed_live: false
   deploy_required_for_this_goal: false
-  live_status_note: "No finding was promoted and no production/live privacy claim changed."
+  live_status_note: "No finding was promoted, no production/live privacy claim changed, and no website-visible deploy verification is required for this repo-internal goal packet."
 
 tasks:
   - id: T001
