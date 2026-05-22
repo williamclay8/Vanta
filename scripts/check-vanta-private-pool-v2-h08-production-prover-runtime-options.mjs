@@ -175,9 +175,15 @@ assertAllowedKeys(c01Refs, "runtime options C01 refs", [
   "solanaC01Groth16VerifierReady",
   "truthBoundary",
 ]);
-assert(c01Refs.status === "blocked-c01-backend-unselected", "runtime options C01 refs must stay blocked");
-assert(c01Refs.selectedBackend === null, "runtime options C01 refs must keep selectedBackend null");
-assert(c01Refs.selectedBackendStatus === "not-selected", "runtime options C01 refs must mark backend not-selected");
+assert(
+  c01Refs.status === "blocked-c01-selected-backend-positive-evidence-absent",
+  "runtime options C01 refs must stay blocked until selected-backend positive evidence exists",
+);
+assert(c01Refs.selectedBackend === "groth16-tag3-solana-v0", "runtime options C01 refs must record selectedBackend");
+assert(
+  c01Refs.selectedBackendStatus === "selected-pending-production-evidence",
+  "runtime options C01 refs must mark backend selected but evidence-blocked",
+);
 assert(c01Refs.c01VerifierReady === false, "runtime options C01 refs must keep c01VerifierReady false");
 assert(
   c01Refs.solanaC01Groth16VerifierReady === false,
@@ -185,11 +191,11 @@ assert(
 );
 includes(
   c01Refs.truthBoundary,
-  "H08 runtime selection cannot be production-compatible while C01 selectedBackend is null",
+  "H08 runtime selection cannot be production-compatible until the selected C01 backend has production proof-format",
   "runtime options C01 truth boundary",
 );
-assert(c01Candidate.selectedBackend === null, "C01 candidate must keep selectedBackend null");
-assert(c01Options.selectedBackend === null, "C01 options must keep selectedBackend null");
+assert(c01Candidate.selectedBackend === "groth16-tag3-solana-v0", "C01 candidate must keep selectedBackend");
+assert(c01Options.selectedBackend === "groth16-tag3-solana-v0", "C01 options must keep selectedBackend");
 
 const optionById = new Map((packet.runtimeOptions ?? []).map((entry) => [entry.id, entry]));
 const remoteService = optionById.get("remote-service-production-prover");
@@ -305,7 +311,7 @@ for (const [field, expected] of [
 }
 for (const blocker of [
   "selected-prover-runtime-null",
-  "c01-selected-backend-null",
+  "c01-selected-backend-positive-evidence-absent",
   "production-proof-format-absent",
   "production-verifying-key-evidence-absent",
   "live-route-wiring-absent",

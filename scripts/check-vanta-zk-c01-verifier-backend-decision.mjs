@@ -52,18 +52,19 @@ const ledger = JSON.parse(read("VANTA_ZK_REVIEW.findings.json"));
 const c01 = ledger.findings.find((finding) => finding.id === "VANTA-ZK-2026-05-09-C01");
 
 assert(c01, "missing C01 finding");
-assert(c01.status === "partial", "C01 must stay partial while no production verifier backend is selected");
+assert(c01.status === "partial", "C01 must stay partial while selected backend production evidence is absent");
 
 for (const marker of [
   "# C01 Production Verifier Backend Decision",
-  "Status: no production verifier backend selected yet",
+  "Status: `groth16-tag3-solana-v0` is selected as the C01 production verifier backend direction.",
   "Groth16 Tag-3 Solana Verifier Path",
   "Noir/bb.js/UltraHonk Adaptation Path",
   "offchain-remote-proof-artifact-only",
-  "solana-c01-groth16-verifier-ready",
+  "solana-c01-groth16-verifier-ready", // blocked promotion marker
   "solana-c01-tag3-groth16-v0",
   "verifierKeyHash:32",
-  "groth16Proof:256",
+  "gnarkProof:324",
+  "gnarkPublicWitness:44",
   "custom error `14`",
   "ERR_PROOF_VERIFIER_NOT_WIRED",
   "production-verifying-key-hash",
@@ -82,14 +83,73 @@ for (const marker of [
   "Groth16 Proof-Format Candidate packet",
   "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
   "blocked-no-groth16-production-proof-format-artifact",
+  "Production Groth16 Toolchain Preflight packet",
+  "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
+  "blocked-local-toolchain-no-groth16-scheme",
+  "npm run zk:c01-production-groth16-toolchain-preflight-check",
+  "Sunspot/Gnark Route packet",
+  "ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json",
+  "blocked-sunspot-toolchain-not-installed-and-no-production-trusted-setup",
+  "blocked-local-nargo-version-mismatch-and-sunspot-missing",
+  "Sunspot's upstream README requires Noir/Nargo `1.0.0-beta.18`",
+  "nargo 1.0.0-beta.19",
+  "compatible pinned/reviewed toolchain",
+  "npm run zk:c01-sunspot-groth16-route-check",
+  "C01 Sunspot/Gnark artifact acquisition packet",
+  "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json",
+  "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
+  "Production Artifact Acceptance Gate packet",
+  "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+  "npm run zk:c01-production-artifact-acceptance-gate-check",
+  "blocked-no-reviewed-production-artifact-bundle",
+  "C01 Sunspot/Gnark local dev probe",
+  "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
+  "npm run zk:c01-sunspot-groth16-dev-probe-check",
+  "local-dev-probe-succeeded-nonproduction-unsafe-setup-and-beta18-source-shim",
+  "generated standalone Solana verifier",
+  "324-byte proof plus 44-byte public witness",
+  "gnark-solana-native-proof-and-public-witness-v0",
+  "rejects the legacy 256-byte proof-only shape",
+  "one public input",
+  "zero public and zero secret inputs",
+  "C01 local public-witness binding observation",
+  "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
+  "npm run zk:c01-public-witness-binding-check",
+  "not production public-input binding evidence",
   "Production Verifying-Key Candidate packet",
   "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
   "blocked-no-production-verifying-key-hash-artifact",
   "Verifier Adapter Acceptance-Test Candidate packet",
   "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
   "blocked-no-verifier-adapter-acceptance-tests",
+  "local fail-closed verifier adapter seam harness",
+  "npm run zk:c01-verifier-adapter-seam-check",
+  "separate tag-3 preflight, default adapter rejection, and verified-commit helper boundaries",
+  "368-byte proof-plus-public-witness verifier instruction-data assembly",
+  "source public-witness binding precheck against `publicInputHash`",
+  "dedicated read-only executable verifier-program account",
+  "generated Solana verifier CPI instruction with no account metas",
+  "data equal to `gnarkProof || gnarkPublicWitness`",
+  "on-chain-only verifier CPI hook",
+  "host-side Solana syscall stubs remain fail-closed",
+  "test-only selected-Gnark valid-mutation / invalid-proof / wrong-public-input / wrong-verifying-key no-mutation shape coverage",
+  "324-byte proof plus 44-byte public-witness tuple",
+  "npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check",
+  "local unsafe generated-verifier CPI harness",
+  "accepts the local unsafe proof/public-witness tuple",
+  "rejects a tampered proof without mutation",
+  "rejects a wrong public input hash without mutation",
+  "rejects a wrong executable verifier program without mutation",
+  "not tag-3 production proof acceptance",
+  "local drift-prevention only",
+  "not verifier-adapter acceptance",
   "valid-proof mutation",
   "invalid-proof no-mutation",
+  "wrong-public-input no-mutation",
+  "wrong-verifying-key no-mutation",
+  "Positive Proof-Verified Claim Gate packet",
+  "ops/mainnet/private-pool-v2-c01-positive-proof-verified-claim-gate.evidence.json",
+  "npm run zk:c01-positive-proof-verified-claim-gate-check",
   "groth16-tag3-solana-v0",
   "noir-bb-ultrahonk-adaptation",
 ]) {
@@ -98,7 +158,7 @@ for (const marker of [
 
 for (const marker of [
   "docs/zk/c01-production-verifier-backend-decision.md",
-  "no production verifier backend is selected yet",
+  "groth16-tag3-solana-v0",
   "Groth16 tag-3 Solana verifier path",
   "Noir/bb.js/UltraHonk adaptation path",
   "npm run zk:c01-verifier-backend-decision-check",
@@ -122,14 +182,26 @@ const w6ReviewSection = sectionBetween(
   "VANTA_ZK_REVIEW W6 section",
 );
 for (const marker of [
-  "Groth16 + Light is now a blocked option, not a selected backend",
+  "Groth16 + Light is now the selected backend direction, not verifier readiness",
   "docs/zk/c01-production-verifier-backend-decision.md",
   "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
   "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
   "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
-  "selectedBackend: null",
+  "npm run zk:c01-verifier-adapter-seam-check",
+  "local fail-closed verifier adapter seam harness",
+  "not verifier-adapter acceptance",
+  "selectedBackend: \"groth16-tag3-solana-v0\"",
   "local-acir-bytecode-hash-not-production-vk",
   "not production proof-format evidence",
+  "blocked-local-toolchain-no-groth16-scheme",
+  "blocked-sunspot-toolchain-not-installed-and-no-production-trusted-setup",
+  "blocked-local-nargo-version-mismatch-and-sunspot-missing",
+  "local-dev-probe-succeeded-nonproduction-unsafe-setup-and-beta18-source-shim",
+  "Sunspot/Nargo compatibility blocker",
+  "nargo 1.0.0-beta.19",
 ]) {
   includes(w6ReviewSection, marker, "VANTA_ZK_REVIEW W6 C01 decision pointer");
 }
@@ -152,8 +224,67 @@ for (const source of [runbook, audit]) {
     "npm run zk:c01-verifier-adapter-test-candidate-check",
     "C01 verifier adapter-test candidate guard handoff",
   );
+  includes(
+    source,
+    "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
+    "C01 Sunspot/Gnark artifact acquisition guard handoff",
+  );
+  includes(
+    source,
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+    "C01 production artifact acceptance gate guard handoff",
+  );
+  includes(
+    source,
+    "npm run zk:c01-sunspot-groth16-dev-probe-check",
+    "C01 Sunspot/Gnark dev-probe guard handoff",
+  );
+  includes(source, "temporary beta18 source shim", "C01 Sunspot/Gnark dev-probe truth handoff");
+  includes(source, "324-byte proof plus 44-byte public witness", "C01 Sunspot/Gnark proof-length truth handoff");
+  includes(source, "rejects the legacy 256-byte proof-only shape", "C01 Sunspot/Gnark tag-3 shape truth handoff");
+  includes(
+    source,
+    "gnark-solana-native-proof-and-public-witness-v0",
+    "C01 selected Gnark-native proof format handoff",
+  );
+  includes(source, "zero public and zero secret inputs", "C01 Sunspot/Gnark input-binding truth handoff");
+  includes(source, "one public input", "C01 Sunspot/Gnark generated verifier input-count truth handoff");
+  includes(
+    source,
+    "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
+    "C01 public-witness binding observation handoff",
+  );
+  includes(
+    source,
+    "npm run zk:c01-public-witness-binding-check",
+    "C01 public-witness binding guard handoff",
+  );
+  includes(source, "not production public-input binding evidence", "C01 public-witness binding truth handoff");
+  includes(
+    source,
+    "npm run zk:c01-positive-proof-verified-claim-gate-check",
+    "C01 positive proof-verified claim gate handoff",
+  );
+  includes(
+    source,
+    "npm run zk:c01-verifier-adapter-seam-check",
+    "C01 local verifier adapter seam guard handoff",
+  );
+  includes(
+    source,
+    "npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check",
+    "C01 local unsafe generated verifier CPI guard handoff",
+  );
+  includes(source, "local fail-closed verifier adapter seam harness", "C01 local seam handoff");
+  includes(source, "not production", "C01 local seam truth handoff");
   includes(source, "offchain-remote-proof-artifact-only", "C01 offchain-only truth handoff");
   includes(source, "solana-c01-groth16-verifier-ready", "C01 verifier-ready overclaim handoff");
+  includes(
+    source,
+    "blocked-local-nargo-version-mismatch-and-sunspot-missing",
+    "C01 Sunspot/Nargo compatibility blocker handoff",
+  );
+  includes(source, "nargo 1.0.0-beta.19", "C01 local nargo compatibility handoff");
 }
 
 assert(
@@ -172,6 +303,36 @@ assert(
   "package.json must expose zk:c01-groth16-proof-format-candidate-check",
 );
 assert(
+  packageJson.scripts?.["zk:c01-production-groth16-toolchain-preflight-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-production-groth16-toolchain-preflight.mjs",
+  "package.json must expose zk:c01-production-groth16-toolchain-preflight-check",
+);
+assert(
+  packageJson.scripts?.["zk:c01-sunspot-groth16-route-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-sunspot-groth16-route.mjs",
+  "package.json must expose zk:c01-sunspot-groth16-route-check",
+);
+assert(
+  packageJson.scripts?.["zk:c01-sunspot-gnark-artifact-acquisition-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-sunspot-gnark-artifact-acquisition.mjs",
+  "package.json must expose zk:c01-sunspot-gnark-artifact-acquisition-check",
+);
+assert(
+  packageJson.scripts?.["zk:c01-production-artifact-acceptance-gate-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-production-artifact-acceptance-gate.mjs",
+  "package.json must expose zk:c01-production-artifact-acceptance-gate-check",
+);
+assert(
+  packageJson.scripts?.["zk:c01-sunspot-groth16-dev-probe-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-sunspot-groth16-dev-probe.mjs",
+  "package.json must expose zk:c01-sunspot-groth16-dev-probe-check",
+);
+assert(
+  packageJson.scripts?.["zk:c01-public-witness-binding-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-public-witness-binding.mjs",
+  "package.json must expose zk:c01-public-witness-binding-check",
+);
+assert(
   packageJson.scripts?.["zk:c01-production-verifying-key-candidate-check"] ===
     "node scripts/check-vanta-private-pool-v2-c01-production-verifying-key-candidate.mjs",
   "package.json must expose zk:c01-production-verifying-key-candidate-check",
@@ -180,6 +341,42 @@ assert(
   packageJson.scripts?.["zk:c01-verifier-adapter-test-candidate-check"] ===
     "node scripts/check-vanta-private-pool-v2-c01-verifier-adapter-test-candidate.mjs",
   "package.json must expose zk:c01-verifier-adapter-test-candidate-check",
+);
+assert(
+  packageJson.scripts?.["zk:c01-positive-proof-verified-claim-gate-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-positive-proof-verified-claim-gate.mjs",
+  "package.json must expose zk:c01-positive-proof-verified-claim-gate-check",
+);
+assert(
+  packageJson.scripts?.["zk:c01-verifier-adapter-seam-check"]?.includes(
+    "proof_carrying_spend_default_adapter_rejects_before_commit",
+  ) &&
+    packageJson.scripts?.["zk:c01-verifier-adapter-seam-check"]?.includes(
+      "proof_carrying_spend_preflights_accounts_before_fail_closed_verifier",
+    ) &&
+    packageJson.scripts?.["zk:c01-verifier-adapter-seam-check"]?.includes(
+      "proof_carrying_spend_verifier_instruction_data_matches_gnark_tuple",
+    ) &&
+    packageJson.scripts?.["zk:c01-verifier-adapter-seam-check"]?.includes(
+      "proof_carrying_spend_verifier_cpi_instruction_matches_generated_solana_verifier_shape",
+    ) &&
+    packageJson.scripts?.["zk:c01-verifier-adapter-seam-check"]?.includes(
+      "proof_carrying_spend_requires_readonly_executable_verifier_program_account",
+    ) &&
+    packageJson.scripts?.["zk:c01-verifier-adapter-seam-check"]?.includes(
+      "proof_carrying_spend_public_witness_binding_",
+    ) &&
+    packageJson.scripts?.["zk:c01-verifier-adapter-seam-check"]?.includes(
+      "verified_spend_commit_mutates_only_after_adapter_acceptance",
+    ) &&
+    packageJson.scripts?.["zk:c01-verifier-adapter-seam-check"]?.includes("selected_gnark_fixture_adapter_"),
+  "package.json must expose the C01 verifier adapter seam guard",
+);
+assert(
+  packageJson.scripts?.["private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check"]?.includes(
+    "spend_with_proof_local_unsafe_generated_verifier_cpi_acceptance_and_no_mutation",
+  ),
+  "package.json must expose the C01 local unsafe generated verifier CPI acceptance guard",
 );
 assert(
   packageJson.scripts?.["zk:review-guards-check"]?.includes("npm run zk:c01-verifier-backend-decision-check"),
@@ -197,6 +394,36 @@ assert(
 );
 assert(
   packageJson.scripts?.["zk:review-guards-check"]?.includes(
+    "npm run zk:c01-production-groth16-toolchain-preflight-check",
+  ),
+  "zk:review-guards-check must include the C01 production Groth16 toolchain preflight guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes("npm run zk:c01-sunspot-groth16-route-check"),
+  "zk:review-guards-check must include the C01 Sunspot Groth16 route guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes(
+    "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
+  ),
+  "zk:review-guards-check must include the C01 Sunspot/Gnark artifact acquisition guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes(
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+  ),
+  "zk:review-guards-check must include the C01 production artifact acceptance gate guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes("npm run zk:c01-sunspot-groth16-dev-probe-check"),
+  "zk:review-guards-check must include the C01 Sunspot Groth16 dev-probe guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes("npm run zk:c01-public-witness-binding-check"),
+  "zk:review-guards-check must include the C01 public-witness binding guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes(
     "npm run zk:c01-production-verifying-key-candidate-check",
   ),
   "zk:review-guards-check must include the C01 production verifying-key candidate guard",
@@ -206,6 +433,16 @@ assert(
     "npm run zk:c01-verifier-adapter-test-candidate-check",
   ),
   "zk:review-guards-check must include the C01 verifier adapter-test candidate guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes("npm run zk:c01-verifier-adapter-seam-check"),
+  "zk:review-guards-check must include the C01 verifier adapter seam guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes(
+    "npm run zk:c01-positive-proof-verified-claim-gate-check",
+  ),
+  "zk:review-guards-check must include the C01 positive proof-verified claim gate",
 );
 assert(
   packageJson.scripts?.["zk:feedback-loop-check"]?.includes("npm run zk:c01-verifier-backend-decision-check"),
@@ -223,6 +460,36 @@ assert(
 );
 assert(
   packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
+    "npm run zk:c01-production-groth16-toolchain-preflight-check",
+  ),
+  "zk:feedback-loop-check must include the C01 production Groth16 toolchain preflight guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes("npm run zk:c01-sunspot-groth16-route-check"),
+  "zk:feedback-loop-check must include the C01 Sunspot Groth16 route guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
+    "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
+  ),
+  "zk:feedback-loop-check must include the C01 Sunspot/Gnark artifact acquisition guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+  ),
+  "zk:feedback-loop-check must include the C01 production artifact acceptance gate guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes("npm run zk:c01-sunspot-groth16-dev-probe-check"),
+  "zk:feedback-loop-check must include the C01 Sunspot Groth16 dev-probe guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes("npm run zk:c01-public-witness-binding-check"),
+  "zk:feedback-loop-check must include the C01 public-witness binding guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
     "npm run zk:c01-production-verifying-key-candidate-check",
   ),
   "zk:feedback-loop-check must include the C01 production verifying-key candidate guard",
@@ -232,6 +499,16 @@ assert(
     "npm run zk:c01-verifier-adapter-test-candidate-check",
   ),
   "zk:feedback-loop-check must include the C01 verifier adapter-test candidate guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes("npm run zk:c01-verifier-adapter-seam-check"),
+  "zk:feedback-loop-check must include the C01 verifier adapter seam guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
+    "npm run zk:c01-positive-proof-verified-claim-gate-check",
+  ),
+  "zk:feedback-loop-check must include the C01 positive proof-verified claim gate",
 );
 
 console.log("Vanta ZK C01 verifier backend decision: PASS");

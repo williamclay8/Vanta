@@ -1,3 +1,21 @@
+// L8 note (2026-05-22): this service is currently internal-Bearer-authed and
+// fronted by Render. There is intentionally NO CORS middleware, NO
+// origin allowlist, and NO rate-limiting here today; access is gated by
+// (a) Render's network reachability rules and (b) the role-specific
+// VANTA_PRIVATE_POOL_V2_*_AUTH_TOKEN Bearer check in `requireAuth`. If
+// this role ever moves to a publicly addressable endpoint, the following
+// MUST land before the change:
+//   - cors({ origin: [VITE_SITE_ORIGIN] }) or equivalent allowlist;
+//   - express-rate-limit (Redis-backed across replicas) or Cloudflare edge
+//     rate-limit rules in front;
+//   - helmet() with explicit CSP / HSTS / Referrer-Policy /
+//     Permissions-Policy headers (see public/_headers and AUDIT_2026-05-22
+//     M9 for the policy values);
+//   - response-time + connection caps to prevent slow-loris abuse;
+//   - structured audit log of denied auth attempts.
+// Failing to land these before exposure is the kind of mistake that turns
+// a Bearer-authed JSON service into a reconnaissance surface.
+
 import { createServer } from "node:http";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -215,6 +233,43 @@ function assertNoPrivateSpendProofTerms(value, path = "transaction") {
 function sendJson(response, status, payload) {
   response.writeHead(status, { "Content-Type": "application/json" });
   response.end(`${JSON.stringify(normalizeForJson(payload), null, 2)}\n`);
+}
+
+/**
+ * M8 fix (2026-05-22): sanitize error responses.
+ *
+ * Returning a raw `err.message` (or `String(error)`) to the client lets a
+ * stack-trace-shaped message, file path, env-derived value, or internal
+ * field name escape into a response body. The client (or anyone who can
+ * read the response) then gets a reconnaissance signal. This is safe in
+ * the current internal-Bearer-authed deployment but should not be the
+ * shape we ship the day this role moves to a public endpoint.
+ *
+ * Use `sendSanitizedError(response, status, summary, context, error)` to
+ * return a generic `{ error, requestId }` payload while still emitting a
+ * full structured log to stderr (where redaction/CIO already strip secrets).
+ */
+function sendSanitizedError(response, status, summary, context = {}, error = null) {
+  const requestId = `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  const detail =
+    error instanceof Error
+      ? { message: error.message, name: error.name, stack: error.stack }
+      : error != null
+        ? { value: String(error) }
+        : null;
+  // Server-side structured log only; client never sees this.
+  console.error(
+    JSON.stringify({
+      kind: "service-network-error",
+      at: new Date().toISOString(),
+      requestId,
+      status,
+      summary,
+      context,
+      detail,
+    }),
+  );
+  sendJson(response, status, { error: summary, requestId, ok: false });
 }
 
 function parseCliPort(defaultPort) {
@@ -1675,7 +1730,13 @@ if (request.method === "POST" && url.pathname === "/v1/ingest-native-sol-shield-
     });
     return true;
   } catch (err) {
-    sendJson(response, 500, { error: "Ingestion failed", details: err.message });
+    sendSanitizedError(
+      response,
+      500,
+      "Ingestion failed",
+      { route: "native-sol-shield-ingestion" },
+      err,
+    );
     return true;
   }
 }
@@ -1966,10 +2027,19 @@ export async function startVantaPrivatePoolV2RoleService(role) {
 
       sendJson(response, 404, { error: "Not found.", ok: false });
     } catch (error) {
-      sendJson(response, 400, {
-        error: error instanceof Error ? error.message : String(error),
-        ok: false,
-      });
+      // M8 fix (2026-05-22): never return raw error.message — see
+      // sendSanitizedError docs above. Most thrown errors here are
+      // validation failures (assertNoPrivateSpendProofTerms, JSON parse,
+      // required-field assertions), so 400 + "Request validation failed"
+      // is the right shape for the client. Server-side log carries the
+      // full structured detail.
+      sendSanitizedError(
+        response,
+        400,
+        "Request validation failed",
+        { method: request.method, path: request.url ?? "" },
+        error,
+      );
     }
   });
 

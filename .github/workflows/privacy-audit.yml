@@ -34,3 +34,56 @@ jobs:
 
       - name: Check frontend operator env exposure
         run: npm run frontend:operator-env-exposure-check
+
+  build-and-verify:
+    # M10 fix (2026-05-22): the audit-tracker job above passes even when
+    # TypeScript fails to compile or when the privacy claim-gate / review
+    # guards drift, because it only runs two narrow checks. This job adds
+    # the build + claim-gate + review-guards aggregates so a PR that
+    # breaks the truth boundary or fails to compile cannot reach main.
+    #
+    # zk:review-guards-check is the aggregate that runs every C01 gate,
+    # truth:privacy-claim-gate is the source/copy guard for unguarded
+    # privacy-claim language, and `npm run build` makes sure the SPA
+    # still compiles. zk:review-findings-ledger-check confirms the
+    # ledger invariants (liveVerifiedCount, acceptedClosedCount,
+    # promotion hygiene).
+    #
+    # Skill scripts that require cargo (zk:c01-verifier-adapter-seam-check,
+    # the SBF / Crucible harnesses) are intentionally NOT in this job;
+    # they belong in a separate workflow with a Rust toolchain step. The
+    # day that workflow lands, fold these targets in too.
+    name: Build and verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build SPA
+        run: npm run build
+
+      - name: Privacy claim-gate (source/copy/findings)
+        run: npm run truth:privacy-claim-gate
+
+      - name: ZK review guards (C01 gates + adapter guards)
+        run: npm run zk:review-guards-check
+
+      - name: Findings ledger invariants
+        run: npm run zk:review-findings-ledger-check
+
+      - name: Operator keypair env lockdown
+        run: npm run operator:keypair-env-lockdown-check
+
+      - name: Public audit-discovery manifest
+        run: npm run public:audit-discovery-check

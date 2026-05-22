@@ -6,6 +6,12 @@ const packetPath = "ops/mainnet/private-pool-v2-c01-production-verifying-key-can
 const candidatePath = "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json";
 const optionsPath = "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json";
 const proofFormatPath = "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json";
+const productionGroth16ToolchainPreflightPath =
+  "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json";
+const localSunspotGnarkLocalArtifactInventoryPath =
+  "ops/mainnet/private-pool-v2-c01-sunspot-gnark-local-artifact-inventory.evidence.json";
+const acceptanceGatePath =
+  "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json";
 const registryPath = "ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json";
 const localProofPath = "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json";
 const decisionPath = "docs/zk/c01-production-verifier-backend-decision.md";
@@ -56,6 +62,11 @@ const packet = JSON.parse(packetText);
 const candidate = JSON.parse(read(candidatePath));
 const options = JSON.parse(read(optionsPath));
 const proofFormat = JSON.parse(read(proofFormatPath));
+const productionGroth16ToolchainPreflight = JSON.parse(read(productionGroth16ToolchainPreflightPath));
+const localSunspotGnarkLocalArtifactInventory = JSON.parse(
+  read(localSunspotGnarkLocalArtifactInventoryPath),
+);
+const acceptanceGate = JSON.parse(read(acceptanceGatePath));
 const registry = JSON.parse(read(registryPath));
 const localProof = JSON.parse(read(localProofPath));
 const decision = read(decisionPath);
@@ -70,6 +81,18 @@ for (const aggregate of ["zk:review-guards-check", "zk:feedback-loop-check"]) {
     scripts[aggregate]?.includes("npm run zk:c01-production-verifying-key-candidate-check"),
     `${aggregate} must include the production verifying-key candidate guard`,
   );
+  assert(
+    scripts[aggregate]?.includes("npm run zk:c01-production-groth16-toolchain-preflight-check"),
+    `${aggregate} must include the production Groth16 toolchain preflight guard`,
+  );
+  assert(
+    scripts[aggregate]?.includes("npm run zk:c01-sunspot-gnark-local-artifact-inventory-check"),
+    `${aggregate} must include the C01 local artifact inventory guard`,
+  );
+  assert(
+    scripts[aggregate]?.includes("npm run zk:c01-production-artifact-acceptance-gate-check"),
+    `${aggregate} must include the C01 production artifact acceptance gate guard`,
+  );
 }
 
 assert(
@@ -81,8 +104,11 @@ assert(
   "production verifying-key packet must stay blocked until the artifact exists",
 );
 assert(packet.backendOptionId === "groth16-tag3-solana-v0", "packet must bind to the Groth16 tag-3 option");
-assert(packet.selectedBackend === null, "packet must not select a backend");
-assert(packet.selectedBackendStatus === "not-selected", "packet backend status must remain not-selected");
+assert(packet.selectedBackend === "groth16-tag3-solana-v0", "packet must bind to the selected backend");
+assert(
+  packet.selectedBackendStatus === "selected-pending-production-evidence",
+  "packet backend status must remain selected but evidence-blocked",
+);
 for (const field of [
   "productionReady",
   "mainnetReady",
@@ -113,6 +139,9 @@ assertAllowedKeys(packet, "production verifying-key packet", [
   "candidatePacketRef",
   "backendOptionsRef",
   "groth16ProofFormatCandidateRef",
+  "productionGroth16ToolchainPreflightRef",
+  "localSunspotGnarkLocalArtifactInventoryRef",
+  "productionArtifactAcceptanceGateRef",
   "verifierKeyRegistryRef",
   "localProofFormatRef",
   "decisionPacketRef",
@@ -157,6 +186,96 @@ for (const [field, expected] of [
 ]) {
   assert(packet[field] === expected, `packet ${field} mismatch`);
 }
+assert(
+  packet.productionGroth16ToolchainPreflightRef?.artifactRef ===
+    productionGroth16ToolchainPreflightPath,
+  "packet must reference the production Groth16 toolchain preflight packet",
+);
+assert(
+  packet.productionGroth16ToolchainPreflightRef?.command ===
+    "npm run zk:c01-production-groth16-toolchain-preflight-check",
+  "packet must record the production Groth16 toolchain preflight guard",
+);
+assert(
+  packet.productionGroth16ToolchainPreflightRef?.status ===
+    "blocked-local-toolchain-no-groth16-scheme",
+  "packet production Groth16 toolchain preflight ref must stay blocked",
+);
+assert(
+  productionGroth16ToolchainPreflight.status === "blocked-local-toolchain-no-groth16-scheme",
+  "production Groth16 toolchain preflight packet must remain blocked",
+);
+assert(
+  productionGroth16ToolchainPreflight.satisfiesRequiredPositiveEvidence?.productionVerifyingKeyHash ===
+    false,
+  "production Groth16 toolchain preflight packet must not satisfy production verifying-key evidence",
+);
+assert(
+  packet.localSunspotGnarkLocalArtifactInventoryRef?.artifactRef ===
+    localSunspotGnarkLocalArtifactInventoryPath,
+  "packet must reference the local Sunspot/Gnark artifact inventory packet",
+);
+assert(
+  packet.localSunspotGnarkLocalArtifactInventoryRef?.command ===
+    "npm run zk:c01-sunspot-gnark-local-artifact-inventory-check",
+  "packet must record the local artifact inventory guard",
+);
+assert(
+  packet.localSunspotGnarkLocalArtifactInventoryRef?.status ===
+    "local-artifact-inventory-observed-nonproduction-unsafe-setup",
+  "packet local artifact inventory ref must stay nonproduction",
+);
+assert(
+  packet.localSunspotGnarkLocalArtifactInventoryRef?.verifyingKeySha256 ===
+    "sha256:fbd6ba8ce64cc0b0320a0d8080fca15d79ca6ca2f732381a9550092f645f0e1d",
+  "packet local unsafe VK hash mismatch",
+);
+assert(
+  packet.localSunspotGnarkLocalArtifactInventoryRef?.verifyingKeyHashKind ===
+    "local-unsafe-sunspot-vk-hash-not-production",
+  "packet local unsafe VK hash kind mismatch",
+);
+assert(
+  packet.localSunspotGnarkLocalArtifactInventoryRef?.satisfiesProductionVerifyingKeyEvidence ===
+    false,
+  "local artifact inventory ref must not satisfy production verifying-key evidence",
+);
+assert(
+  localSunspotGnarkLocalArtifactInventory.artifacts?.verifyingKey?.sha256 ===
+    "sha256:fbd6ba8ce64cc0b0320a0d8080fca15d79ca6ca2f732381a9550092f645f0e1d",
+  "local artifact inventory VK hash mismatch",
+);
+assert(
+  localSunspotGnarkLocalArtifactInventory.satisfiesRequiredPositiveEvidence
+    ?.productionVerifyingKeyHash === false,
+  "local artifact inventory must not satisfy production verifying-key evidence",
+);
+assert(
+  packet.productionArtifactAcceptanceGateRef?.artifactRef === acceptanceGatePath,
+  "packet must reference the production artifact acceptance gate packet",
+);
+assert(
+  packet.productionArtifactAcceptanceGateRef?.command ===
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+  "packet must record the production artifact acceptance gate guard",
+);
+assert(
+  packet.productionArtifactAcceptanceGateRef?.status === "blocked-no-reviewed-production-artifact-bundle",
+  "packet production artifact acceptance gate ref must stay blocked",
+);
+assert(
+  packet.productionArtifactAcceptanceGateRef?.satisfiesProductionVerifyingKeyEvidence === false,
+  "production artifact acceptance gate must not satisfy production verifying-key evidence",
+);
+assert(acceptanceGate.status === "blocked-no-reviewed-production-artifact-bundle", "acceptance gate status mismatch");
+assert(
+  acceptanceGate.productionVerifyingKeyCandidateRef === packetPath,
+  "acceptance gate must reference production verifying-key candidate packet",
+);
+assert(
+  acceptanceGate.satisfiesRequiredPositiveEvidence?.productionVerifyingKeyHash === false,
+  "acceptance gate must not satisfy production verifying-key evidence",
+);
 
 const required = packet.requiredVerifyingKeyShape ?? {};
 assertAllowedKeys(required, "required verifying-key shape", [
@@ -164,9 +283,18 @@ assertAllowedKeys(required, "required verifying-key shape", [
   "tag",
   "circuit",
   "proofSystem",
+  "proofFormatId",
   "proofByteLength",
+  "publicWitnessByteLength",
+  "verifierInstructionDataByteLength",
+  "generatedVerifierNrPubinputs",
+  "generatedVerifierCommitmentKeys",
   "publicInputLabel",
   "verifyingKeyHashKind",
+  "currentProgramReservedProofByteLength",
+  "currentProgramReservedPublicWitnessByteLength",
+  "currentProgramReservedVerifierInputByteLength",
+  "adapterBoundaryStatus",
   "status",
 ]);
 for (const [field, expected] of [
@@ -174,10 +302,22 @@ for (const [field, expected] of [
   ["tag", 3],
   ["circuit", "vanta_private_pool_v2_actual_private_spend_entry"],
   ["proofSystem", "groth16"],
-  ["proofByteLength", 256],
+  ["proofFormatId", "gnark-solana-native-proof-and-public-witness-v0"],
+  ["proofByteLength", 324],
+  ["publicWitnessByteLength", 44],
+  ["verifierInstructionDataByteLength", 368],
+  ["generatedVerifierNrPubinputs", 1],
+  ["generatedVerifierCommitmentKeys", 0],
   ["publicInputLabel", "private-spend-public-input-hash"],
   ["verifyingKeyHashKind", "production-verifying-key-hash"],
-  ["status", "required-before-groth16-tag3-selection"],
+  ["currentProgramReservedProofByteLength", 324],
+  ["currentProgramReservedPublicWitnessByteLength", 44],
+  ["currentProgramReservedVerifierInputByteLength", 368],
+  [
+    "adapterBoundaryStatus",
+    "spend-program-tag3-abi-reserves-selected-gnark-tuple-and-dedicated-verifier-cpi-account-fail-closed",
+  ],
+  ["status", "required-before-production-acceptance"],
 ]) {
   assert(required[field] === expected, `required verifying-key shape ${field} mismatch`);
 }
@@ -207,6 +347,8 @@ assertAllowedKeys(registryObservation, "current registry observation", [
   "artifactRef",
   "tag",
   "payloadLayout",
+  "recordByteLength",
+  "bindsVerifierProgramId",
   "pdaSeed",
   "recordMagic",
   "stillFailsClosedWith",
@@ -215,7 +357,12 @@ assertAllowedKeys(registryObservation, "current registry observation", [
 assert(registryObservation.status === "source-only-registry-metadata", "registry observation must stay source-only");
 assert(registryObservation.artifactRef === registryPath, "registry observation must reference registry evidence");
 assert(registryObservation.tag === 5, "registry observation must lock tag 5");
-assert(registryObservation.payloadLayout === "[5, verifierKeyHash:32]", "registry observation payload mismatch");
+assert(
+  registryObservation.payloadLayout === "[5, verifierKeyHash:32, verifierProgramId:32]",
+  "registry observation payload mismatch",
+);
+assert(registryObservation.recordByteLength === 112, "registry observation record length mismatch");
+assert(registryObservation.bindsVerifierProgramId === true, "registry observation must bind verifier program id");
 assert(
   registryObservation.pdaSeed === "[\"vanta2vkey\", pool_state, verifierKeyHash]",
   "registry observation PDA seed mismatch",
@@ -264,7 +411,7 @@ for (const marker of [
   "source-only tag 5 verifier-key registry metadata",
   "production verifying-key hash artifact",
   "local-acir-bytecode-hash-not-production-vk",
-  "Groth16 proof-format artifact is still absent",
+  "Gnark-native Groth16 proof/public-witness artifact is still absent",
 ]) {
   includes(JSON.stringify(packet.mismatch ?? {}), marker, "production verifying-key mismatch evidence");
 }
@@ -276,10 +423,11 @@ assertAllowedKeys(packet.mismatch, "production verifying-key mismatch evidence",
 ]);
 for (const blocker of [
   "no production verifying-key hash artifact exists for vanta_private_pool_v2_actual_private_spend_entry",
+  "local @aztec/bb.js 4.1.3 exposes chonk, avm, and ultra_honk schemes but no Groth16 scheme",
   "source-only tag 5 registry metadata is not production verifying-key evidence",
   "current local proof observation uses local-acir-bytecode-hash-not-production-vk metadata",
   "Groth16 proof-format candidate packet is blocked with no current artifact ref",
-  "reserved tag 3 still returns ERR_PROOF_VERIFIER_NOT_WIRED before proof verification or mutation",
+  "host-side reserved tag 3 still returns ERR_PROOF_VERIFIER_NOT_WIRED before mutation while SBF has an unaccepted verifier CPI hook",
 ]) {
   assert(packet.blockedBy?.includes(blocker), `packet missing blocker: ${blocker}`);
 }
@@ -296,7 +444,7 @@ assertAllowedKeys(packet.satisfiesRequiredPositiveEvidence, "required positive e
   "auditReviewerAcceptance",
 ]);
 for (const [field, expected] of [
-  ["backendSelection", false],
+  ["backendSelection", true],
   ["actualPrivateSpendProductionProofFormat", false],
   ["privateSpendPublicInputHashBinding", false],
   ["productionVerifyingKeyHash", false],
@@ -319,8 +467,11 @@ assertStringArray(packet.blockedBy, "packet blockedBy");
 assertStringArray(packet.forbiddenPromotions, "packet forbiddenPromotions");
 assertStringArray(packet.canonicalCommands, "packet canonicalCommands");
 
-assert(candidate.selectedBackend === null, "candidate packet must keep selectedBackend null");
-assert(candidate.selectedBackendStatus === "not-selected", "candidate packet must keep backend unselected");
+assert(candidate.selectedBackend === "groth16-tag3-solana-v0", "candidate packet must keep selectedBackend");
+assert(
+  candidate.selectedBackendStatus === "selected-pending-production-evidence",
+  "candidate packet must keep backend selected but evidence-blocked",
+);
 const productionVk = candidate.requiredPositiveEvidence?.find(
   (entry) => entry.id === "production-verifying-key-hash",
 );
@@ -349,7 +500,10 @@ includes(
 
 const groth16Option = options.backendOptions?.find((entry) => entry.id === "groth16-tag3-solana-v0");
 assert(groth16Option, "backend options must include the Groth16 tag-3 option");
-assert(groth16Option.status === "blocked", "Groth16 backend option must remain blocked");
+assert(
+  groth16Option.status === "selected-production-evidence-blocked",
+  "Groth16 backend option must remain selected but blocked",
+);
 assert(
   groth16Option.productionVerifyingKeyCandidateRef?.artifactRef === packetPath,
   "Groth16 option must reference production verifying-key packet",
@@ -378,6 +532,11 @@ assert(
   "proof-format packet must reference production verifying-key packet",
 );
 assert(
+  proofFormat.productionGroth16ToolchainPreflightRef?.artifactRef ===
+    productionGroth16ToolchainPreflightPath,
+  "proof-format packet must reference the production Groth16 toolchain preflight packet",
+);
+assert(
   proofFormat.satisfiesRequiredPositiveEvidence?.productionVerifyingKeyHash === false,
   "proof-format packet must not satisfy production verifying-key evidence",
 );
@@ -394,15 +553,18 @@ for (const marker of [
 
 for (const command of [
   "npm run zk:c01-production-verifying-key-candidate-check",
+  "npm run zk:c01-production-groth16-toolchain-preflight-check",
   "npm run zk:c01-groth16-proof-format-candidate-check",
+  "npm run zk:c01-sunspot-gnark-local-artifact-inventory-check",
+  "npm run zk:c01-production-artifact-acceptance-gate-check",
   "npm run zk:c01-verifier-key-registry-check",
   "npm run zk:c01-production-verifier-backend-candidate-check",
 ]) {
   assert(packet.canonicalCommands?.includes(command), `packet must record canonical command ${command}`);
 }
 for (const phrase of [
-  "blocked production verifying-key candidate packet only",
-  "not backend selection",
+  "blocked production verifying-key candidate packet for the selected C01 backend",
+  "selected C01 backend",
   "not production verifying-key evidence",
   "not tag-3 proof acceptance",
 ]) {

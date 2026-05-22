@@ -1,0 +1,192 @@
+{
+  "version": "vanta-private-pool-v2-c01-sunspot-gnark-artifact-acquisition-0.1",
+  "checkedAt": "2026-05-20T00:00:00.000Z",
+  "status": "blocked-awaiting-reviewed-external-artifact-intake",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "selectedBackendStatus": "selected-pending-production-evidence",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "productionReady": false,
+  "mainnetReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "externalArtifactsReady": false,
+  "secretPolicy": "refs-only-no-raw-proof-vk-witness-secret-or-signed-transaction-bytes",
+  "purpose": "Refs-only intake contract for returned Sunspot/Gnark production artifacts needed by C01. This packet records the exact artifacts reviewers must receive before the selected Groth16 tag-3 backend can move from selected direction to production verifier evidence.",
+  "routePacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json",
+  "localSunspotGroth16DevProbeRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
+  "localSunspotGnarkLocalArtifactInventoryRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-local-artifact-inventory.evidence.json",
+  "productionArtifactAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+  "localSunspotPublicWitnessBindingObservationRef": {
+    "status": "local-public-witness-binding-observed-not-production",
+    "artifactRef": "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
+    "command": "npm run zk:c01-public-witness-binding-check",
+    "truthBoundary": "The local public-witness binding observation decodes the /private/tmp public witness to private-spend-public-input-hash and matches the local proof receipt, but it does not satisfy production public-input binding evidence."
+  },
+  "productionGroth16ToolchainPreflightRef": "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
+  "productionVerifyingKeyCandidateRef": "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
+  "groth16ProofFormatCandidateRef": "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+  "verifierAdapterTestCandidateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+  "productionVerifierBackendCandidateRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "genericExternalArtifactAcquisitionRef": "ops/mainnet/actual-private-external-artifact-acquisition.packet.json",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "sourceCircuit": {
+    "path": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry",
+    "compiledAcirRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json",
+    "compiledAcirByteLength": 1840868,
+    "compiledAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
+    "compressedWitnessRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.gz",
+    "compressedWitnessByteLength": 546926,
+    "compressedWitnessHashStored": false,
+    "compressedWitnessValuesStored": false,
+    "publicInputLabel": "private-spend-public-input-hash"
+  },
+  "sunspotCompatibility": {
+    "sourceRef": "https://github.com/reilabs/sunspot",
+    "sourceRequirement": "Sunspot README requires Noir 1.0.0-beta.18",
+    "requiredNoirVersion": "1.0.0-beta.18",
+    "requiredNargoVersion": "1.0.0-beta.18",
+    "observedNargoVersion": "1.0.0-beta.19",
+    "status": "blocked-local-nargo-version-mismatch-and-sunspot-missing",
+    "sunspotInstalled": false,
+    "gnarkVerifierBinConfigured": false,
+    "satisfiesProductionArtifactGeneration": false,
+    "truthBoundary": "The Sunspot/Gnark artifact acquisition lane cannot accept production Groth16 proof/VK refs until the required Noir/Nargo version, Sunspot binary, GNARK verifier binary, reviewed setup, artifact pinning, and reviewer acceptance are present."
+  },
+  "requiredReturnedArtifacts": [
+    {
+      "id": "pinned-sunspot-gnark-toolchain-source",
+      "requiredRefShape": "source:<pinned-sunspot-gnark-source-or-release-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "reviewed-toolchain-build",
+      "requiredRefShape": "review:<reproducible-toolchain-build-review-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "trusted-setup-or-toxic-waste-mitigation",
+      "requiredRefShape": "setup:<reviewed-ceremony-or-toxic-waste-mitigation-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "deterministic-groth16-proof-format-artifact",
+      "requiredRefShape": "artifact:<actual-private-spend-groth16-proof-format-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-verifying-key-artifact",
+      "requiredRefShape": "artifact:<actual-private-spend-production-vk-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-verifying-key-hash",
+      "requiredRefShape": "sha256:<production-verifying-key-hash>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "public-witness-artifact",
+      "requiredRefShape": "artifact:<public-witness-values-ref-no-private-witness>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "solana-verifier-adapter-or-program",
+      "requiredRefShape": "adapter:<solana-groth16-verifier-adapter-or-program-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "valid-proof-mutation-test",
+      "requiredRefShape": "test:<valid-proof-mutates-nullifier-output-state-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "invalid-proof-no-mutation-test",
+      "requiredRefShape": "test:<invalid-proof-leaves-account-bytes-unchanged-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "wrong-public-input-no-mutation-test",
+      "requiredRefShape": "test:<wrong-public-input-hash-leaves-account-bytes-unchanged-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "wrong-verifying-key-no-mutation-test",
+      "requiredRefShape": "test:<wrong-verifying-key-leaves-account-bytes-unchanged-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "sbf-live-lineage",
+      "requiredRefShape": "lineage:<rebuilt-redeployed-reinitialized-sbf-and-account-evidence-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "audit-reviewer-acceptance",
+      "requiredRefShape": "audit-or-review:<selected-verifier-backend-accepted-for-c01-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    }
+  ],
+  "productionAcceptanceRequires": [
+    "pinned and reviewed Sunspot/Gnark source or release",
+    "reproducible toolchain build review",
+    "production trusted setup ceremony or equivalent toxic-waste mitigation",
+    "deterministic Groth16 proof-format artifact for vanta_private_pool_v2_actual_private_spend_entry",
+    "production verifying-key artifact and hash",
+    "public witness artifact separated from private witness values",
+    "Solana verifier adapter or verifier CPI acceptance",
+    "valid-proof mutation and invalid/wrong-public-input/wrong-verifying-key no-mutation tests",
+    "rebuilt SBF, redeploy/reinit/live lineage, and audit/reviewer acceptance"
+  ],
+  "forbiddenInRepo": [
+    "raw proof bytes",
+    "raw verifying-key bytes",
+    "raw witness values",
+    "private keys",
+    "seed phrases",
+    "signed transactions",
+    "auth tokens",
+    "database URLs"
+  ],
+  "satisfiesRequiredPositiveEvidence": {
+    "backendSelection": true,
+    "routeFeasibilityLocalDevProbe": true,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "canonicalCommands": [
+    "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
+    "npm run zk:c01-sunspot-groth16-route-check",
+    "npm run zk:c01-sunspot-groth16-dev-probe-check",
+    "npm run zk:c01-public-witness-binding-check",
+    "npm run zk:c01-sunspot-gnark-local-artifact-inventory-check",
+    "npm run zk:c01-production-groth16-toolchain-preflight-check",
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+    "npm run zk:c01-groth16-proof-format-candidate-check",
+    "npm run zk:c01-production-verifying-key-candidate-check",
+    "npm run zk:c01-verifier-adapter-test-candidate-check",
+    "npm run zk:c01-production-verifier-backend-candidate-check",
+    "npm run zk:review-guards-check"
+  ],
+  "truthBoundary": "This is a refs-only external artifact acquisition packet for the selected C01 Sunspot/Gnark route. It is not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not valid-proof mutation evidence, not invalid/wrong-input/wrong-key no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, not production privacy, and not mainnet readiness."
+}

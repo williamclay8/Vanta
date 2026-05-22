@@ -2,6 +2,7 @@ use solana_program::{
     account_info::{next_account_info, AccountInfo},
     entrypoint,
     entrypoint::ProgramResult,
+    instruction::Instruction,
     msg,
     program::invoke_signed,
     program_error::ProgramError,
@@ -57,7 +58,11 @@ const ASSET_RECORD_MAGIC: &[u8; 8] = VAULT_ASSET_MAGIC; // for vault_asset_recor
 // Used in process_unshield (TAG_UNSHIELD=6 SOL branch) and future TAG_REGISTER_VAULT_ASSET + TAG_SHIELD.
 fn sol_vault_pda(program_id: &Pubkey, pool_state: &Pubkey) -> (Pubkey, u8) {
     Pubkey::find_program_address(
-        &[SOL_VAULT_SEED, pool_state.as_ref(), &NATIVE_SOL_ASSET_ID_SENTINEL],
+        &[
+            SOL_VAULT_SEED,
+            pool_state.as_ref(),
+            &NATIVE_SOL_ASSET_ID_SENTINEL,
+        ],
         program_id,
     )
 }
@@ -87,12 +92,23 @@ const POOL_ROOT_HISTORY_OFFSET: usize = 152;
 const HASH_LEN: usize = 32;
 const EXIT_AMOUNT_LEN: usize = 8;
 const RESERVED_GROTH16_PROOF_LEN: usize = 256;
+const SPEND_WITH_PROOF_GNARK_PROOF_LEN: usize = 324;
+const SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN: usize = 44;
+const SPEND_WITH_PROOF_VERIFIER_INPUT_LEN: usize =
+    SPEND_WITH_PROOF_GNARK_PROOF_LEN + SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN;
+const GNARK_PUBLIC_WITNESS_HEADER_LEN: usize = 12;
+const GNARK_PUBLIC_WITNESS_VALUE_OFFSET: usize = GNARK_PUBLIC_WITNESS_HEADER_LEN;
+const GNARK_PUBLIC_WITNESS_ONE_PUBLIC_INPUT_HEADER: [u8; GNARK_PUBLIC_WITNESS_HEADER_LEN] =
+    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1];
 const SPEND_PAYLOAD_LEN: usize = 1 + HASH_LEN * 5;
 const REGISTER_ROOT_PAYLOAD_LEN: usize = 1 + HASH_LEN;
 const PROVENANCED_ROOT_PAYLOAD_LEN: usize = 1 + HASH_LEN * 3 + 8 + 4 + 1;
-const REGISTER_VERIFIER_KEY_PAYLOAD_LEN: usize = 1 + HASH_LEN;
+const REGISTER_VERIFIER_KEY_PAYLOAD_LEN: usize = 1 + HASH_LEN * 2;
 const REGISTER_VAULT_ASSET_PAYLOAD_LEN: usize = 1 + HASH_LEN * 4 + 1;
-const SPEND_WITH_PROOF_PAYLOAD_LEN: usize = 1 + HASH_LEN * 6 + RESERVED_GROTH16_PROOF_LEN;
+const SPEND_WITH_PROOF_PROOF_OFFSET: usize = HASH_LEN * 6;
+const SPEND_WITH_PROOF_PUBLIC_WITNESS_OFFSET: usize =
+    SPEND_WITH_PROOF_PROOF_OFFSET + SPEND_WITH_PROOF_GNARK_PROOF_LEN;
+const SPEND_WITH_PROOF_PAYLOAD_LEN: usize = 1 + HASH_LEN * 6 + SPEND_WITH_PROOF_VERIFIER_INPUT_LEN;
 const OUTPUT_RECORD_PDA_LEN: usize = HEADER_LEN + 8 + HASH_LEN * 4;
 const OUTPUT_RECORD_INDEX_OFFSET: usize = HEADER_LEN;
 const OUTPUT_RECORD_POOL_OFFSET: usize = HEADER_LEN + 8;
@@ -113,9 +129,11 @@ const ROOT_RECORD_LEAF_INDEX_BASE_OFFSET: usize =
     ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN;
 const ROOT_RECORD_LEAF_COUNT_OFFSET: usize = ROOT_RECORD_LEAF_INDEX_BASE_OFFSET + 8;
 const ROOT_RECORD_TRANSITION_KIND_OFFSET: usize = ROOT_RECORD_LEAF_COUNT_OFFSET + 4;
-const VERIFIER_KEY_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 2;
+const VERIFIER_KEY_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 3;
 const VERIFIER_KEY_POOL_OFFSET: usize = HEADER_LEN;
 const VERIFIER_KEY_HASH_OFFSET: usize = HEADER_LEN + HASH_LEN;
+const VERIFIER_KEY_PROGRAM_ID_OFFSET: usize = VERIFIER_KEY_HASH_OFFSET + HASH_LEN;
+const SPEND_WITH_PROOF_VERIFIER_PROGRAM_ACCOUNT_INDEX: usize = 8;
 const VAULT_ASSET_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 6 + 2;
 const VAULT_ASSET_POOL_OFFSET: usize = HEADER_LEN;
 const VAULT_ASSET_EXIT_ASSET_ID_OFFSET: usize = VAULT_ASSET_POOL_OFFSET + HASH_LEN;
@@ -137,8 +155,7 @@ const UNSHIELD_EXIT_AMOUNT_OFFSET: usize = UNSHIELD_EXIT_ASSET_ID_OFFSET + HASH_
 const UNSHIELD_PUBLIC_INPUT_HASH_OFFSET: usize = UNSHIELD_EXIT_AMOUNT_OFFSET + EXIT_AMOUNT_LEN;
 const UNSHIELD_VERIFIER_KEY_HASH_OFFSET: usize = UNSHIELD_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN;
 const UNSHIELD_PROOF_OFFSET: usize = UNSHIELD_VERIFIER_KEY_HASH_OFFSET + HASH_LEN;
-const UNSHIELD_PAYLOAD_LEN: usize =
-    1 + HASH_LEN * 6 + EXIT_AMOUNT_LEN + RESERVED_GROTH16_PROOF_LEN;
+const UNSHIELD_PAYLOAD_LEN: usize = 1 + HASH_LEN * 6 + EXIT_AMOUNT_LEN + RESERVED_GROTH16_PROOF_LEN;
 
 const ERR_DUPLICATE_NULLIFIER: u32 = 1;
 const ERR_OUTPUT_QUEUE_FULL: u32 = 3;
@@ -164,9 +181,39 @@ const ERR_VAULT_TOKEN_ACCOUNT_MISMATCH: u32 = 20;
 const ERR_DESTINATION_TOKEN_ACCOUNT_MISMATCH: u32 = 21;
 const ERR_TOKEN_PROGRAM_MISMATCH: u32 = 22;
 const ERR_INVALID_ASSET_KIND: u32 = 23;
+// M7 fix (2026-05-22): dedicated error so a re-registration of a vault-asset
+// record with mismatched mint/authority/token-account/token-program/kind is
+// distinguishable from the generic ERR_VAULT_ASSET_MISMATCH ("wrong PDA")
+// case. ensure_vault_asset_record() already rejects mismatched re-registration
+// today; this code makes the failure surface unambiguous to operators and to
+// any future Crucible test asserting idempotency.
+const ERR_VAULT_ASSET_ALREADY_REGISTERED_WITH_DIFFERENT_PARAMS: u32 = 24;
+const ERR_ROOT_TRANSITION_NOOP: u32 = 25; // L6 fix (2026-05-22): TAG_REGISTER_PROVENANCED_ROOT no-op rejection
 const ERR_VAULT_PDA_MISMATCH: u32 = ERR_VAULT_AUTHORITY_MISMATCH;
 const ERR_SENTINEL_ASSET_ID_MISMATCH: u32 = ERR_VAULT_ASSET_MISMATCH;
 const ERR_UNSHIELD_NOT_WIRED: u32 = ERR_UNSHIELD_RELEASE_NOT_WIRED; // placeholder until Groth16 + tree_state fully integrated for TAG6
+
+#[derive(Clone, Copy)]
+struct VerifiedSpendPreflight {
+    nullifier: [u8; HASH_LEN],
+    output0: [u8; HASH_LEN],
+    output1: [u8; HASH_LEN],
+    public_input_hash: [u8; HASH_LEN],
+    verifier_key_hash: [u8; HASH_LEN],
+    verifier_program_id: Pubkey,
+    gnark_proof: [u8; SPEND_WITH_PROOF_GNARK_PROOF_LEN],
+    gnark_public_witness: [u8; SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN],
+    output_index: u64,
+}
+
+impl VerifiedSpendPreflight {
+    fn verifier_instruction_data(&self) -> [u8; SPEND_WITH_PROOF_VERIFIER_INPUT_LEN] {
+        let mut data = [0u8; SPEND_WITH_PROOF_VERIFIER_INPUT_LEN];
+        data[..SPEND_WITH_PROOF_GNARK_PROOF_LEN].copy_from_slice(&self.gnark_proof);
+        data[SPEND_WITH_PROOF_GNARK_PROOF_LEN..].copy_from_slice(&self.gnark_public_witness);
+        data
+    }
+}
 
 pub fn process_instruction(
     program_id: &Pubkey,
@@ -345,8 +392,27 @@ fn process_spend_with_proof(
     accounts: &[AccountInfo],
     rest: &[u8],
 ) -> ProgramResult {
-    // proof-carrying spend ABI is reserved; verifier not wired after root/nullifier/output/verifier-key preflight
+    // proof-carrying spend ABI is reserved; verifier not wired after root/nullifier/output/verifier-key/verifier-program preflight
     // This path remains fail-closed with ERR_PROOF_VERIFIER_NOT_WIRED until full Groth16 verifier + TAG3 evidence is wired.
+    let verified = preflight_spend_with_proof(program_id, accounts, rest)?;
+    let verifier_program = spend_with_proof_verifier_program_account(accounts)?;
+    verify_spend_with_proof_adapter(&verified, verifier_program)?;
+    commit_verified_spend_from_spend_with_proof_accounts(program_id, accounts, &verified)
+}
+
+fn spend_with_proof_verifier_program_account<'a, 'b>(
+    accounts: &'a [AccountInfo<'b>],
+) -> Result<&'a AccountInfo<'b>, ProgramError> {
+    accounts
+        .get(SPEND_WITH_PROOF_VERIFIER_PROGRAM_ACCOUNT_INDEX)
+        .ok_or(ProgramError::NotEnoughAccountKeys)
+}
+
+fn preflight_spend_with_proof(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    rest: &[u8],
+) -> Result<VerifiedSpendPreflight, ProgramError> {
     if rest.len() + 1 != SPEND_WITH_PROOF_PAYLOAD_LEN {
         return Err(ProgramError::InvalidInstructionData);
     }
@@ -360,15 +426,23 @@ fn process_spend_with_proof(
     let nullifier_marker = next_account_info(&mut account_iter)?;
     let output_record = next_account_info(&mut account_iter)?;
     let verifier_key = next_account_info(&mut account_iter)?;
+    let verifier_program = next_account_info(&mut account_iter)?;
+    let authority = next_account_info(&mut account_iter)?;
+    let system_program_info = next_account_info(&mut account_iter)?;
 
-    require_readonly_program_account(program_id, pool_state)?;
+    require_writable_program_account(program_id, pool_state)?;
     require_readonly_program_account(program_id, nullifier_set)?;
-    require_readonly_program_account(program_id, output_queue)?;
+    require_writable_program_account(program_id, output_queue)?;
     require_readonly_program_account(program_id, root_history)?;
     require_readonly_program_account(program_id, root_record)?;
     require_writable_account(nullifier_marker)?;
     require_writable_account(output_record)?;
     require_readonly_program_account(program_id, verifier_key)?;
+    require_spend_with_proof_verifier_program(program_id, verifier_program)?;
+    if !authority.is_writable {
+        return Err(ProgramError::InvalidAccountData);
+    }
+    require_system_program(system_program_info)?;
 
     let nullifier = &rest[0..32];
     let output0 = &rest[32..64];
@@ -376,7 +450,9 @@ fn process_spend_with_proof(
     let accepted_root = &rest[96..128];
     let public_input_hash = &rest[128..160];
     let verifier_key_hash = &rest[160..192];
-    let proof = &rest[192..448];
+    let proof = &rest[SPEND_WITH_PROOF_PROOF_OFFSET..SPEND_WITH_PROOF_PUBLIC_WITNESS_OFFSET];
+    let public_witness = &rest[SPEND_WITH_PROOF_PUBLIC_WITNESS_OFFSET
+        ..SPEND_WITH_PROOF_PUBLIC_WITNESS_OFFSET + SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN];
 
     if is_zero_hash(nullifier)
         || is_zero_hash(output0)
@@ -385,6 +461,7 @@ fn process_spend_with_proof(
         || is_zero_hash(public_input_hash)
         || is_zero_hash(verifier_key_hash)
         || proof.iter().all(|byte| *byte == 0)
+        || public_witness.iter().all(|byte| *byte == 0)
     {
         return Err(ProgramError::InvalidInstructionData);
     }
@@ -424,9 +501,189 @@ fn process_spend_with_proof(
         output1,
         public_input_hash,
     )?;
-    require_verifier_key_hash(program_id, pool_state, verifier_key, verifier_key_hash)?;
+    require_verifier_key_hash_for_program(
+        program_id,
+        pool_state,
+        verifier_key,
+        verifier_key_hash,
+        verifier_program.key,
+    )?;
 
-    Err(ProgramError::Custom(ERR_PROOF_VERIFIER_NOT_WIRED))
+    let mut verified = VerifiedSpendPreflight {
+        nullifier: [0u8; HASH_LEN],
+        output0: [0u8; HASH_LEN],
+        output1: [0u8; HASH_LEN],
+        public_input_hash: [0u8; HASH_LEN],
+        verifier_key_hash: [0u8; HASH_LEN],
+        verifier_program_id: *verifier_program.key,
+        gnark_proof: [0u8; SPEND_WITH_PROOF_GNARK_PROOF_LEN],
+        gnark_public_witness: [0u8; SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN],
+        output_index: output_count as u64,
+    };
+    verified.nullifier.copy_from_slice(nullifier);
+    verified.output0.copy_from_slice(output0);
+    verified.output1.copy_from_slice(output1);
+    verified
+        .public_input_hash
+        .copy_from_slice(public_input_hash);
+    verified
+        .verifier_key_hash
+        .copy_from_slice(verifier_key_hash);
+    verified.gnark_proof.copy_from_slice(proof);
+    verified
+        .gnark_public_witness
+        .copy_from_slice(public_witness);
+    Ok(verified)
+}
+
+fn verify_spend_with_proof_adapter(
+    verified: &VerifiedSpendPreflight,
+    verifier_program: &AccountInfo,
+) -> ProgramResult {
+    if is_zero_hash(&verified.verifier_key_hash)
+        || verified.gnark_proof.iter().all(|byte| *byte == 0)
+        || verified.gnark_public_witness.iter().all(|byte| *byte == 0)
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+    require_spend_with_proof_public_witness_binding(verified)?;
+    let verifier_cpi_instruction = spend_with_proof_verifier_cpi_instruction(verified);
+
+    #[cfg(target_os = "solana")]
+    {
+        invoke_signed(&verifier_cpi_instruction, &[verifier_program.clone()], &[])?;
+        Ok(())
+    }
+
+    #[cfg(not(target_os = "solana"))]
+    {
+        let _ = verifier_program;
+        let _ = verifier_cpi_instruction;
+        Err(ProgramError::Custom(ERR_PROOF_VERIFIER_NOT_WIRED))
+    }
+}
+
+fn spend_with_proof_verifier_cpi_instruction(verified: &VerifiedSpendPreflight) -> Instruction {
+    Instruction {
+        program_id: verified.verifier_program_id,
+        accounts: Vec::new(),
+        data: verified.verifier_instruction_data().to_vec(),
+    }
+}
+
+fn commit_verified_spend_from_spend_with_proof_accounts(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    verified: &VerifiedSpendPreflight,
+) -> ProgramResult {
+    let mut account_iter = accounts.iter();
+    let pool_state = next_account_info(&mut account_iter)?;
+    let _nullifier_set = next_account_info(&mut account_iter)?;
+    let output_queue = next_account_info(&mut account_iter)?;
+    let _root_history = next_account_info(&mut account_iter)?;
+    let _root_record = next_account_info(&mut account_iter)?;
+    let nullifier_marker = next_account_info(&mut account_iter)?;
+    let output_record = next_account_info(&mut account_iter)?;
+    let _verifier_key = next_account_info(&mut account_iter)?;
+    let _verifier_program = next_account_info(&mut account_iter)?;
+    let authority = next_account_info(&mut account_iter)?;
+    let system_program_info = next_account_info(&mut account_iter)?;
+
+    commit_verified_spend(
+        program_id,
+        pool_state,
+        output_queue,
+        nullifier_marker,
+        output_record,
+        authority,
+        system_program_info,
+        verified,
+    )
+}
+
+fn require_spend_with_proof_public_witness_binding(
+    verified: &VerifiedSpendPreflight,
+) -> ProgramResult {
+    if verified.gnark_public_witness[..GNARK_PUBLIC_WITNESS_HEADER_LEN]
+        != GNARK_PUBLIC_WITNESS_ONE_PUBLIC_INPUT_HEADER[..]
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+    if verified.gnark_public_witness
+        [GNARK_PUBLIC_WITNESS_VALUE_OFFSET..GNARK_PUBLIC_WITNESS_VALUE_OFFSET + HASH_LEN]
+        != verified.public_input_hash
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+    Ok(())
+}
+
+fn require_spend_with_proof_verifier_program(
+    program_id: &Pubkey,
+    verifier_program: &AccountInfo,
+) -> ProgramResult {
+    if verifier_program.is_writable || verifier_program.is_signer {
+        return Err(ProgramError::InvalidAccountData);
+    }
+    if verifier_program.key == program_id || !verifier_program.executable {
+        return Err(ProgramError::IncorrectProgramId);
+    }
+    Ok(())
+}
+
+fn commit_verified_spend<'a>(
+    program_id: &Pubkey,
+    pool_state: &AccountInfo<'a>,
+    output_queue: &AccountInfo<'a>,
+    nullifier_marker: &AccountInfo<'a>,
+    output_record: &AccountInfo<'a>,
+    authority: &AccountInfo<'a>,
+    system_program_info: &AccountInfo<'a>,
+    verified: &VerifiedSpendPreflight,
+) -> ProgramResult {
+    require_writable_program_account(program_id, pool_state)?;
+    require_writable_program_account(program_id, output_queue)?;
+    require_writable_account(nullifier_marker)?;
+    require_writable_account(output_record)?;
+
+    let mut pool_data = pool_state.try_borrow_mut_data()?;
+    let mut output_data = output_queue.try_borrow_mut_data()?;
+    require_pool_header(&pool_data)?;
+    require_output_index_header(&output_data)?;
+
+    let spend_count = read_u64(&pool_data, POOL_SPEND_COUNT_OFFSET)?;
+    let output_count = read_count(&output_data)? as u64;
+    if spend_count != output_count || output_count != verified.output_index {
+        return Err(ProgramError::Custom(ERR_STATE_COUNT_MISMATCH));
+    }
+    if output_count == u32::MAX as u64 {
+        return Err(ProgramError::Custom(ERR_OUTPUT_QUEUE_FULL));
+    }
+
+    ensure_nullifier_marker(
+        program_id,
+        pool_state,
+        nullifier_marker,
+        authority,
+        system_program_info,
+        &verified.nullifier,
+    )?;
+    ensure_output_record(
+        program_id,
+        pool_state,
+        output_record,
+        authority,
+        system_program_info,
+        verified.output_index,
+        &verified.output0,
+        &verified.output1,
+        &verified.public_input_hash,
+    )?;
+    write_count(&mut output_data, (output_count + 1) as usize)?;
+    write_u64(&mut pool_data, POOL_SPEND_COUNT_OFFSET, spend_count + 1)?;
+    pool_data[POOL_LAST_PUBLIC_INPUT_HASH_OFFSET..POOL_LAST_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN]
+        .copy_from_slice(&verified.public_input_hash);
+    Ok(())
 }
 
 fn process_register_verifier_key(
@@ -439,7 +696,13 @@ fn process_register_verifier_key(
     }
 
     let verifier_key_hash = &rest[0..32];
-    if is_zero_hash(verifier_key_hash) {
+    let mut verifier_program_id_bytes = [0u8; HASH_LEN];
+    verifier_program_id_bytes.copy_from_slice(&rest[32..64]);
+    let verifier_program_id = Pubkey::new_from_array(verifier_program_id_bytes);
+    if is_zero_hash(verifier_key_hash)
+        || verifier_program_id == Pubkey::default()
+        || verifier_program_id == *program_id
+    {
         return Err(ProgramError::InvalidInstructionData);
     }
 
@@ -464,9 +727,10 @@ fn process_register_verifier_key(
         authority,
         system_program_info,
         verifier_key_hash,
+        &verifier_program_id,
     )?;
 
-    msg!("vanta_private_pool_v2_spend: registered verifier key hash");
+    msg!("vanta_private_pool_v2_spend: registered verifier key hash and verifier program");
     Ok(())
 }
 
@@ -504,6 +768,15 @@ fn process_register_provenanced_root(
         || transition_kind == 0
     {
         return Err(ProgramError::InvalidInstructionData);
+    }
+
+    // L6 fix (2026-05-22): reject `accepted_root == previous_root`. A
+    // no-op transition has no proof to attest and would only waste a
+    // history slot. The existing duplicate-root check below would catch
+    // this once the slot was full, but rejecting at the input boundary
+    // is clearer and matches the rest of the preflight discipline.
+    if accepted_root == previous_root {
+        return Err(ProgramError::Custom(ERR_ROOT_TRANSITION_NOOP));
     }
 
     let pool_data = pool_state.try_borrow_data()?;
@@ -776,7 +1049,10 @@ fn require_vault_asset_record(
         // Today the production check below requires releaseEnabled == 0 (the initial state
         // written by TAG_REGISTER_VAULT_ASSET) because the actual release path is itself
         // gated by ERR_UNSHIELD_NOT_WIRED until the verifier wires in.
-        if asset_data.len() < 10 || &asset_data[0..8] != VAULT_ASSET_MAGIC || asset_data[8] != VERSION {
+        if asset_data.len() < 10
+            || &asset_data[0..8] != VAULT_ASSET_MAGIC
+            || asset_data[8] != VERSION
+        {
             return Ok(VAULT_ASSET_KIND_SOL);
         }
         return Ok(asset_data[9]);
@@ -811,8 +1087,8 @@ fn require_vault_asset_record_data(
     }
     if &asset_data[VAULT_ASSET_POOL_OFFSET..VAULT_ASSET_POOL_OFFSET + HASH_LEN]
         != pool_state.key.as_ref()
-        || &asset_data[VAULT_ASSET_EXIT_ASSET_ID_OFFSET
-            ..VAULT_ASSET_EXIT_ASSET_ID_OFFSET + HASH_LEN]
+        || &asset_data
+            [VAULT_ASSET_EXIT_ASSET_ID_OFFSET..VAULT_ASSET_EXIT_ASSET_ID_OFFSET + HASH_LEN]
             != expected_asset_id
     {
         return Err(ProgramError::Custom(ERR_VAULT_ASSET_MISMATCH));
@@ -833,8 +1109,10 @@ fn ensure_vault_asset_record<'a>(
     token_program: &[u8],
     asset_kind: u8,
 ) -> ProgramResult {
-    let (expected_record, bump) =
-        Pubkey::find_program_address(&[VAULT_ASSET_SEED, pool_state.key.as_ref(), exit_asset_id], program_id);
+    let (expected_record, bump) = Pubkey::find_program_address(
+        &[VAULT_ASSET_SEED, pool_state.key.as_ref(), exit_asset_id],
+        program_id,
+    );
     if expected_record != *vault_asset_record.key {
         return Err(ProgramError::Custom(ERR_VAULT_ASSET_MISMATCH));
     }
@@ -943,8 +1221,7 @@ fn write_vault_asset_account(
     data[VAULT_ASSET_MINT_OFFSET..VAULT_ASSET_MINT_OFFSET + HASH_LEN].copy_from_slice(mint);
     data[VAULT_ASSET_VAULT_AUTHORITY_OFFSET..VAULT_ASSET_VAULT_AUTHORITY_OFFSET + HASH_LEN]
         .copy_from_slice(vault_authority);
-    data[VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET
-        ..VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET + HASH_LEN]
+    data[VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET..VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET + HASH_LEN]
         .copy_from_slice(vault_token_account);
     data[VAULT_ASSET_TOKEN_PROGRAM_OFFSET..VAULT_ASSET_TOKEN_PROGRAM_OFFSET + HASH_LEN]
         .copy_from_slice(token_program);
@@ -961,11 +1238,16 @@ fn require_vault_asset_record_payload(
     token_program: &[u8],
     asset_kind: u8,
 ) -> ProgramResult {
+    // M7 fix (2026-05-22): an already-initialized vault-asset record whose
+    // payload disagrees with the caller's supplied params is a re-registration
+    // attempt with mismatched data, not a PDA-derivation mismatch. Surface
+    // ERR_VAULT_ASSET_ALREADY_REGISTERED_WITH_DIFFERENT_PARAMS so operators
+    // see the difference between "wrong account" and "this asset is already
+    // registered with different params; refusing to overwrite."
     if data[VAULT_ASSET_KIND_OFFSET] != asset_kind
         || data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] != 0
         || &data[VAULT_ASSET_MINT_OFFSET..VAULT_ASSET_MINT_OFFSET + HASH_LEN] != mint
-        || &data[VAULT_ASSET_VAULT_AUTHORITY_OFFSET
-            ..VAULT_ASSET_VAULT_AUTHORITY_OFFSET + HASH_LEN]
+        || &data[VAULT_ASSET_VAULT_AUTHORITY_OFFSET..VAULT_ASSET_VAULT_AUTHORITY_OFFSET + HASH_LEN]
             != vault_authority
         || &data[VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET
             ..VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET + HASH_LEN]
@@ -973,7 +1255,9 @@ fn require_vault_asset_record_payload(
         || &data[VAULT_ASSET_TOKEN_PROGRAM_OFFSET..VAULT_ASSET_TOKEN_PROGRAM_OFFSET + HASH_LEN]
             != token_program
     {
-        return Err(ProgramError::Custom(ERR_VAULT_ASSET_MISMATCH));
+        return Err(ProgramError::Custom(
+            ERR_VAULT_ASSET_ALREADY_REGISTERED_WITH_DIFFERENT_PARAMS,
+        ));
     }
     Ok(())
 }
@@ -1002,8 +1286,8 @@ fn require_spl_release_accounts(
     let mint_key = &vault_asset_data[VAULT_ASSET_MINT_OFFSET..VAULT_ASSET_MINT_OFFSET + HASH_LEN];
     let vault_token_key = &vault_asset_data
         [VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET..VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET + HASH_LEN];
-    let token_program_key =
-        &vault_asset_data[VAULT_ASSET_TOKEN_PROGRAM_OFFSET..VAULT_ASSET_TOKEN_PROGRAM_OFFSET + HASH_LEN];
+    let token_program_key = &vault_asset_data
+        [VAULT_ASSET_TOKEN_PROGRAM_OFFSET..VAULT_ASSET_TOKEN_PROGRAM_OFFSET + HASH_LEN];
     let vault_authority_key = &vault_asset_data
         [VAULT_ASSET_VAULT_AUTHORITY_OFFSET..VAULT_ASSET_VAULT_AUTHORITY_OFFSET + HASH_LEN];
 
@@ -1018,7 +1302,8 @@ fn require_spl_release_accounts(
 
     let vault_data = vault_token_account.try_borrow_data()?;
     if vault_data.len() < TOKEN_ACCOUNT_LEN
-        || &vault_data[TOKEN_ACCOUNT_MINT_OFFSET..TOKEN_ACCOUNT_MINT_OFFSET + HASH_LEN] != mint.key.as_ref()
+        || &vault_data[TOKEN_ACCOUNT_MINT_OFFSET..TOKEN_ACCOUNT_MINT_OFFSET + HASH_LEN]
+            != mint.key.as_ref()
         || &vault_data[TOKEN_ACCOUNT_OWNER_OFFSET..TOKEN_ACCOUNT_OWNER_OFFSET + HASH_LEN]
             != vault_authority.key.as_ref()
     {
@@ -1405,6 +1690,14 @@ fn ensure_output_record<'a>(
     )
 }
 
+// L7 note (2026-05-22): The output record PDA is content-addressed via the
+// `public_input_hash` seed below — NOT just `output_index`. A given
+// public_input_hash binds (nullifier, output0, output1, accepted_root,
+// asset/amount preimage) via the future Groth16 verifier and the existing
+// Poseidon binding in `bind_private_spend_public_inputs` (see
+// `zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr`).
+// Two different spends therefore cannot collide on the same PDA, and the
+// init-or-match payload check below additionally rejects replays.
 fn require_output_record_available(
     program_id: &Pubkey,
     pool_state: &AccountInfo,
@@ -1555,8 +1848,10 @@ fn require_root_record_available(
     root_record: &AccountInfo,
     accepted_root: &[u8],
 ) -> ProgramResult {
-    let (expected_record, _) =
-        Pubkey::find_program_address(&[ROOT_RECORD_SEED, pool_state.key.as_ref(), accepted_root], program_id);
+    let (expected_record, _) = Pubkey::find_program_address(
+        &[ROOT_RECORD_SEED, pool_state.key.as_ref(), accepted_root],
+        program_id,
+    );
     if expected_record != *root_record.key {
         return Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH));
     }
@@ -1598,8 +1893,10 @@ fn ensure_root_record<'a>(
     leaf_count: u32,
     transition_kind: u8,
 ) -> ProgramResult {
-    let (expected_record, bump) =
-        Pubkey::find_program_address(&[ROOT_RECORD_SEED, pool_state.key.as_ref(), accepted_root], program_id);
+    let (expected_record, bump) = Pubkey::find_program_address(
+        &[ROOT_RECORD_SEED, pool_state.key.as_ref(), accepted_root],
+        program_id,
+    );
     if expected_record != *root_record.key {
         return Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH));
     }
@@ -1643,7 +1940,11 @@ fn ensure_root_record<'a>(
     );
     invoke_signed(
         &create_record,
-        &[authority.clone(), root_record.clone(), system_program_info.clone()],
+        &[
+            authority.clone(),
+            root_record.clone(),
+            system_program_info.clone(),
+        ],
         &[&[
             ROOT_RECORD_SEED,
             pool_state.key.as_ref(),
@@ -1672,8 +1973,10 @@ fn require_root_record(
     root_record: &AccountInfo,
     accepted_root: &[u8],
 ) -> ProgramResult {
-    let (expected_record, _) =
-        Pubkey::find_program_address(&[ROOT_RECORD_SEED, pool_state.key.as_ref(), accepted_root], program_id);
+    let (expected_record, _) = Pubkey::find_program_address(
+        &[ROOT_RECORD_SEED, pool_state.key.as_ref(), accepted_root],
+        program_id,
+    );
     if expected_record != *root_record.key {
         return Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH));
     }
@@ -1692,7 +1995,8 @@ fn require_root_record(
     }
     if &record_data[ROOT_RECORD_POOL_OFFSET..ROOT_RECORD_POOL_OFFSET + HASH_LEN]
         != pool_state.key.as_ref()
-        || &record_data[ROOT_RECORD_ACCEPTED_ROOT_OFFSET..ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN]
+        || &record_data
+            [ROOT_RECORD_ACCEPTED_ROOT_OFFSET..ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN]
             != accepted_root
     {
         return Err(ProgramError::Custom(ERR_ROOT_RECORD_MISMATCH));
@@ -1746,9 +2050,14 @@ fn ensure_verifier_key<'a>(
     authority: &AccountInfo<'a>,
     system_program_info: &AccountInfo<'a>,
     verifier_key_hash: &[u8],
+    verifier_program_id: &Pubkey,
 ) -> ProgramResult {
     let (expected_key, bump) = Pubkey::find_program_address(
-        &[VERIFIER_KEY_SEED, pool_state.key.as_ref(), verifier_key_hash],
+        &[
+            VERIFIER_KEY_SEED,
+            pool_state.key.as_ref(),
+            verifier_key_hash,
+        ],
         program_id,
     );
     if expected_key != *verifier_key.key {
@@ -1758,9 +2067,19 @@ fn ensure_verifier_key<'a>(
     if verifier_key.owner == program_id {
         let mut key_data = verifier_key.try_borrow_mut_data()?;
         if key_data.iter().all(|byte| *byte == 0) {
-            return write_verifier_key_account(&mut key_data, pool_state, verifier_key_hash);
+            return write_verifier_key_account(
+                &mut key_data,
+                pool_state,
+                verifier_key_hash,
+                verifier_program_id,
+            );
         }
-        return require_verifier_key_record_data(&key_data, pool_state, verifier_key_hash);
+        return require_verifier_key_record_data(
+            &key_data,
+            pool_state,
+            verifier_key_hash,
+            Some(verifier_program_id),
+        );
     }
 
     if verifier_key.owner != &system_program::ID {
@@ -1784,7 +2103,11 @@ fn ensure_verifier_key<'a>(
     );
     invoke_signed(
         &create_key,
-        &[authority.clone(), verifier_key.clone(), system_program_info.clone()],
+        &[
+            authority.clone(),
+            verifier_key.clone(),
+            system_program_info.clone(),
+        ],
         &[&[
             VERIFIER_KEY_SEED,
             pool_state.key.as_ref(),
@@ -1794,7 +2117,12 @@ fn ensure_verifier_key<'a>(
     )?;
 
     let mut key_data = verifier_key.try_borrow_mut_data()?;
-    write_verifier_key_account(&mut key_data, pool_state, verifier_key_hash)
+    write_verifier_key_account(
+        &mut key_data,
+        pool_state,
+        verifier_key_hash,
+        verifier_program_id,
+    )
 }
 
 fn require_verifier_key_hash(
@@ -1804,7 +2132,11 @@ fn require_verifier_key_hash(
     verifier_key_hash: &[u8],
 ) -> ProgramResult {
     let (expected_key, _) = Pubkey::find_program_address(
-        &[VERIFIER_KEY_SEED, pool_state.key.as_ref(), verifier_key_hash],
+        &[
+            VERIFIER_KEY_SEED,
+            pool_state.key.as_ref(),
+            verifier_key_hash,
+        ],
         program_id,
     );
     if expected_key != *verifier_key.key {
@@ -1812,13 +2144,42 @@ fn require_verifier_key_hash(
     }
 
     let key_data = verifier_key.try_borrow_data()?;
-    require_verifier_key_record_data(&key_data, pool_state, verifier_key_hash)
+    require_verifier_key_record_data(&key_data, pool_state, verifier_key_hash, None)
+}
+
+fn require_verifier_key_hash_for_program(
+    program_id: &Pubkey,
+    pool_state: &AccountInfo,
+    verifier_key: &AccountInfo,
+    verifier_key_hash: &[u8],
+    verifier_program_id: &Pubkey,
+) -> ProgramResult {
+    let (expected_key, _) = Pubkey::find_program_address(
+        &[
+            VERIFIER_KEY_SEED,
+            pool_state.key.as_ref(),
+            verifier_key_hash,
+        ],
+        program_id,
+    );
+    if expected_key != *verifier_key.key {
+        return Err(ProgramError::Custom(ERR_VERIFIER_KEY_MISMATCH));
+    }
+
+    let key_data = verifier_key.try_borrow_data()?;
+    require_verifier_key_record_data(
+        &key_data,
+        pool_state,
+        verifier_key_hash,
+        Some(verifier_program_id),
+    )
 }
 
 fn require_verifier_key_record_data(
     key_data: &[u8],
     pool_state: &AccountInfo,
     verifier_key_hash: &[u8],
+    verifier_program_id: Option<&Pubkey>,
 ) -> ProgramResult {
     if key_data.len() < VERIFIER_KEY_ACCOUNT_LEN
         || &key_data[..8] != VERIFIER_KEY_MAGIC
@@ -1834,6 +2195,12 @@ fn require_verifier_key_record_data(
     {
         return Err(ProgramError::Custom(ERR_VERIFIER_KEY_MISMATCH));
     }
+    if verifier_program_id.is_some_and(|program_id| {
+        &key_data[VERIFIER_KEY_PROGRAM_ID_OFFSET..VERIFIER_KEY_PROGRAM_ID_OFFSET + HASH_LEN]
+            != program_id.as_ref()
+    }) {
+        return Err(ProgramError::Custom(ERR_VERIFIER_KEY_MISMATCH));
+    }
     Ok(())
 }
 
@@ -1841,6 +2208,7 @@ fn write_verifier_key_account(
     data: &mut [u8],
     pool_state: &AccountInfo,
     verifier_key_hash: &[u8],
+    verifier_program_id: &Pubkey,
 ) -> ProgramResult {
     if data.len() < VERIFIER_KEY_ACCOUNT_LEN || verifier_key_hash.len() != HASH_LEN {
         return Err(ProgramError::InvalidInstructionData);
@@ -1854,6 +2222,8 @@ fn write_verifier_key_account(
         .copy_from_slice(pool_state.key.as_ref());
     data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN]
         .copy_from_slice(verifier_key_hash);
+    data[VERIFIER_KEY_PROGRAM_ID_OFFSET..VERIFIER_KEY_PROGRAM_ID_OFFSET + HASH_LEN]
+        .copy_from_slice(verifier_program_id.as_ref());
     Ok(())
 }
 
@@ -1942,7 +2312,7 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
         return process_unshield_reserved_release_preflight(program_id, accounts, rest);
     }
 
-    // Instruction data layout (after tag=6): 
+    // Instruction data layout (after tag=6):
     // nullifier[32], exit_destination[32], exit_asset_id[32], exit_amount[8 le u64],
     // public_inputs_hash[32], proof_bytes:...
     // For minimal SOL path we require at least the core fields before proof (proof size variable).
@@ -1973,19 +2343,19 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
     }
 
     // 1. Vault asset record + kind extraction (generalized preflight for kind=2, sentinel bypass inside)
-    let exit_asset_id: [u8; 32] = rest[64..96].try_into().map_err(|_| ProgramError::InvalidInstructionData)?;
-    let asset_kind = require_vault_asset_record(
-        program_id,
-        pool_state,
-        vault_asset_record,
-        &exit_asset_id,
-    )?;
+    let exit_asset_id: [u8; 32] = rest[64..96]
+        .try_into()
+        .map_err(|_| ProgramError::InvalidInstructionData)?;
+    let asset_kind =
+        require_vault_asset_record(program_id, pool_state, vault_asset_record, &exit_asset_id)?;
 
-    let nullifier: [u8; 32] = rest[0..32].try_into().map_err(|_| ProgramError::InvalidInstructionData)?;
+    let nullifier: [u8; 32] = rest[0..32]
+        .try_into()
+        .map_err(|_| ProgramError::InvalidInstructionData)?;
     let _exit_destination = &rest[32..64];
     let exit_amount_bytes = &rest[96..104];
     let public_inputs_hash = &rest[104..136]; // binds sentinel + amount + dest + nullifier + note asset_id
-    // proof_bytes = &rest[136..]
+                                              // proof_bytes = &rest[136..]
 
     // Reject zero-valued public inputs the same way TAG_SPEND_WITH_PROOF does.
     // Native SOL is the exception for `exit_asset_id`: the all-zero sentinel is
@@ -2012,7 +2382,11 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
         // SOL branch: *explicitly* derive holding PDA with dedicated SOL_VAULT_SEED + NATIVE_SOL_ASSET_ID_SENTINEL
         // (per task: use constants in SOL branch when kind==2; matches sol_vault_pda helper + design doc exact seeds).
         let (expected_sol_vault, bump) = Pubkey::find_program_address(
-            &[SOL_VAULT_SEED, pool_state.key.as_ref(), &NATIVE_SOL_ASSET_ID_SENTINEL],
+            &[
+                SOL_VAULT_SEED,
+                pool_state.key.as_ref(),
+                &NATIVE_SOL_ASSET_ID_SENTINEL,
+            ],
             program_id,
         );
         if *sol_vault_holding.key != expected_sol_vault {
@@ -2059,13 +2433,25 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
         //    Dedicated sol_vault_holding account required in accounts list. Core privacy: program-owned custody, zero operator keypair on funds.
         //    Matches design doc Phase 4 + "program-owned-sol-vault-pda-system-cpi".
         let exit_amount = u64::from_le_bytes(
-            exit_amount_bytes.try_into().map_err(|_| ProgramError::InvalidInstructionData)?,
+            exit_amount_bytes
+                .try_into()
+                .map_err(|_| ProgramError::InvalidInstructionData)?,
         );
-        let transfer_ix = system_instruction::transfer(sol_vault_holding.key, destination.key, exit_amount);
+        let transfer_ix =
+            system_instruction::transfer(sol_vault_holding.key, destination.key, exit_amount);
         invoke_signed(
             &transfer_ix,
-            &[sol_vault_holding.clone(), destination.clone(), cpi_program.clone()],
-            &[&[SOL_VAULT_SEED, pool_state.key.as_ref(), &NATIVE_SOL_ASSET_ID_SENTINEL, &[bump]]],
+            &[
+                sol_vault_holding.clone(),
+                destination.clone(),
+                cpi_program.clone(),
+            ],
+            &[&[
+                SOL_VAULT_SEED,
+                pool_state.key.as_ref(),
+                &NATIVE_SOL_ASSET_ID_SENTINEL,
+                &[bump],
+            ]],
         )?;
 
         // 6. Emit minimal UnshieldEvent scaffolding (msg! with actual nullifier + root for indexer consumption in tests).
@@ -2151,12 +2537,8 @@ fn process_unshield_reserved_release_preflight(
     let exit_asset_id_array: [u8; HASH_LEN] = exit_asset_id
         .try_into()
         .map_err(|_| ProgramError::InvalidInstructionData)?;
-    let asset_kind = require_vault_asset_record(
-        program_id,
-        pool_state,
-        vault_asset,
-        &exit_asset_id_array,
-    )?;
+    let asset_kind =
+        require_vault_asset_record(program_id, pool_state, vault_asset, &exit_asset_id_array)?;
     if asset_kind != VAULT_ASSET_KIND_SPL {
         return Err(ProgramError::Custom(ERR_INVALID_ASSET_KIND));
     }
@@ -2183,6 +2565,18 @@ fn process_unshield_reserved_release_preflight(
 mod tests {
     use super::*;
     use solana_program::clock::Epoch;
+
+    fn gnark_public_witness_for(
+        public_input_hash: &[u8; HASH_LEN],
+    ) -> [u8; SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN] {
+        let mut public_witness = [0u8; SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN];
+        public_witness[..GNARK_PUBLIC_WITNESS_HEADER_LEN]
+            .copy_from_slice(&GNARK_PUBLIC_WITNESS_ONE_PUBLIC_INPUT_HEADER);
+        public_witness
+            [GNARK_PUBLIC_WITNESS_VALUE_OFFSET..GNARK_PUBLIC_WITNESS_VALUE_OFFSET + HASH_LEN]
+            .copy_from_slice(public_input_hash);
+        public_witness
+    }
 
     #[test]
     fn spend_rejects_signer_that_is_not_the_initialized_authority() {
@@ -3332,8 +3726,8 @@ mod tests {
         write_count(&mut root_record_data, 1).unwrap();
         root_record_data[ROOT_RECORD_POOL_OFFSET..ROOT_RECORD_POOL_OFFSET + HASH_LEN]
             .copy_from_slice(pool_state.as_ref());
-        root_record_data[ROOT_RECORD_ACCEPTED_ROOT_OFFSET
-            ..ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN]
+        root_record_data
+            [ROOT_RECORD_ACCEPTED_ROOT_OFFSET..ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN]
             .copy_from_slice(&accepted_root);
 
         let pool = account_info(
@@ -3386,10 +3780,13 @@ mod tests {
         let accepted_root = [4u8; HASH_LEN];
         let public_input_hash = [5u8; HASH_LEN];
         let verifier_key_hash = [6u8; HASH_LEN];
+        let verifier_program = Pubkey::new_unique();
         let root_record = root_record_pubkey(&program_id, &pool_state, &accepted_root);
         let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &nullifier);
         let output_record = output_record_pubkey(&program_id, &pool_state, &public_input_hash);
         let verifier_key = verifier_key_pubkey(&program_id, &pool_state, &verifier_key_hash);
+        let authority = Pubkey::new_unique();
+        let system_program_id = system_program::ID;
 
         let mut pool_lamports = 1u64;
         let mut nullifier_lamports = 1u64;
@@ -3399,6 +3796,9 @@ mod tests {
         let mut marker_lamports = 0u64;
         let mut output_record_lamports = 0u64;
         let mut verifier_key_lamports = 1u64;
+        let mut verifier_program_lamports = 1u64;
+        let mut authority_lamports = 1u64;
+        let mut system_lamports = 1u64;
         let mut pool_data = vec![0u8; POOL_STATE_LEN];
         let mut nullifier_data = vec![0u8; HEADER_LEN + HASH_LEN];
         let mut output_data = vec![0u8; HEADER_LEN];
@@ -3407,6 +3807,9 @@ mod tests {
         let mut marker_data: Vec<u8> = vec![];
         let mut output_record_data: Vec<u8> = vec![];
         let mut verifier_key_data = vec![0u8; VERIFIER_KEY_ACCOUNT_LEN];
+        let mut verifier_program_data: Vec<u8> = vec![];
+        let mut authority_data: Vec<u8> = vec![];
+        let mut system_data: Vec<u8> = vec![];
 
         pool_data[..8].copy_from_slice(POOL_MAGIC);
         pool_data[8] = VERSION;
@@ -3432,8 +3835,8 @@ mod tests {
         write_u32(root_record_slice, ROOT_RECORD_LEAF_COUNT_OFFSET, 1).unwrap();
         root_record_slice[ROOT_RECORD_POOL_OFFSET..ROOT_RECORD_POOL_OFFSET + HASH_LEN]
             .copy_from_slice(pool_state.as_ref());
-        root_record_slice[ROOT_RECORD_ACCEPTED_ROOT_OFFSET
-            ..ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN]
+        root_record_slice
+            [ROOT_RECORD_ACCEPTED_ROOT_OFFSET..ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN]
             .copy_from_slice(&accepted_root);
         verifier_key_data[..8].copy_from_slice(VERIFIER_KEY_MAGIC);
         verifier_key_data[8] = VERSION;
@@ -3442,16 +3845,98 @@ mod tests {
             .copy_from_slice(pool_state.as_ref());
         verifier_key_data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN]
             .copy_from_slice(&verifier_key_hash);
+        verifier_key_data
+            [VERIFIER_KEY_PROGRAM_ID_OFFSET..VERIFIER_KEY_PROGRAM_ID_OFFSET + HASH_LEN]
+            .copy_from_slice(verifier_program.as_ref());
 
-        let pool = account_info(&pool_state, &program_id, false, false, &mut pool_lamports, &mut pool_data);
-        let nulls = account_info(&nullifier_set, &program_id, false, false, &mut nullifier_lamports, &mut nullifier_data);
-        let output = account_info(&output_queue, &program_id, false, false, &mut output_lamports, &mut output_data);
-        let roots = account_info(&root_history, &program_id, false, false, &mut root_lamports, &mut root_data);
-        let root_rec = account_info(&root_record, &program_id, false, false, &mut root_record_lamports, &mut root_record_data);
-        let marker = account_info(&nullifier_marker, &system_program::ID, true, false, &mut marker_lamports, &mut marker_data);
-        let out_rec = account_info(&output_record, &system_program::ID, true, false, &mut output_record_lamports, &mut output_record_data);
-        let vkey = account_info(&verifier_key, &program_id, false, false, &mut verifier_key_lamports, &mut verifier_key_data);
-        let accounts = vec![pool, nulls, output, roots, root_rec, marker, out_rec, vkey];
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            true,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
+        let nulls = account_info(
+            &nullifier_set,
+            &program_id,
+            false,
+            false,
+            &mut nullifier_lamports,
+            &mut nullifier_data,
+        );
+        let output = account_info(
+            &output_queue,
+            &program_id,
+            true,
+            false,
+            &mut output_lamports,
+            &mut output_data,
+        );
+        let roots = account_info(
+            &root_history,
+            &program_id,
+            false,
+            false,
+            &mut root_lamports,
+            &mut root_data,
+        );
+        let root_rec = account_info(
+            &root_record,
+            &program_id,
+            false,
+            false,
+            &mut root_record_lamports,
+            &mut root_record_data,
+        );
+        let marker = account_info(
+            &nullifier_marker,
+            &system_program::ID,
+            true,
+            false,
+            &mut marker_lamports,
+            &mut marker_data,
+        );
+        let out_rec = account_info(
+            &output_record,
+            &system_program::ID,
+            true,
+            false,
+            &mut output_record_lamports,
+            &mut output_record_data,
+        );
+        let vkey = account_info(
+            &verifier_key,
+            &program_id,
+            false,
+            false,
+            &mut verifier_key_lamports,
+            &mut verifier_key_data,
+        );
+        let vprogram = executable_account_info(
+            &verifier_program,
+            &mut verifier_program_lamports,
+            &mut verifier_program_data,
+        );
+        let auth = account_info(
+            &authority,
+            &system_program::ID,
+            true,
+            true,
+            &mut authority_lamports,
+            &mut authority_data,
+        );
+        let system = account_info(
+            &system_program_id,
+            &system_program_id,
+            false,
+            false,
+            &mut system_lamports,
+            &mut system_data,
+        );
+        let accounts = vec![
+            pool, nulls, output, roots, root_rec, marker, out_rec, vkey, vprogram, auth, system,
+        ];
         let mut data = vec![TAG_SPEND_WITH_PROOF];
         data.extend_from_slice(&nullifier);
         data.extend_from_slice(&output0);
@@ -3459,12 +3944,45 @@ mod tests {
         data.extend_from_slice(&accepted_root);
         data.extend_from_slice(&public_input_hash);
         data.extend_from_slice(&verifier_key_hash);
-        data.extend_from_slice(&[8u8; RESERVED_GROTH16_PROOF_LEN]);
+        data.extend_from_slice(&[8u8; SPEND_WITH_PROOF_GNARK_PROOF_LEN]);
+        data.extend_from_slice(&gnark_public_witness_for(&public_input_hash));
+
+        let pool_before = accounts[0].try_borrow_data().unwrap().to_vec();
+        let output_before = accounts[2].try_borrow_data().unwrap().to_vec();
+        let marker_before = accounts[5].try_borrow_data().unwrap().to_vec();
+        let output_record_before = accounts[6].try_borrow_data().unwrap().to_vec();
+        let verifier_key_before = accounts[7].try_borrow_data().unwrap().to_vec();
+        let marker_lamports_before = accounts[5].lamports();
+        let output_record_lamports_before = accounts[6].lamports();
+        let authority_lamports_before = accounts[9].lamports();
 
         assert_eq!(
             process_instruction(&program_id, &accounts, &data),
             Err(ProgramError::Custom(ERR_PROOF_VERIFIER_NOT_WIRED))
         );
+        assert_eq!(
+            accounts[0].try_borrow_data().unwrap().as_ref(),
+            pool_before.as_slice()
+        );
+        assert_eq!(
+            accounts[2].try_borrow_data().unwrap().as_ref(),
+            output_before.as_slice()
+        );
+        assert_eq!(
+            accounts[5].try_borrow_data().unwrap().as_ref(),
+            marker_before.as_slice()
+        );
+        assert_eq!(
+            accounts[6].try_borrow_data().unwrap().as_ref(),
+            output_record_before.as_slice()
+        );
+        assert_eq!(
+            accounts[7].try_borrow_data().unwrap().as_ref(),
+            verifier_key_before.as_slice()
+        );
+        assert_eq!(accounts[5].lamports(), marker_lamports_before);
+        assert_eq!(accounts[6].lamports(), output_record_lamports_before);
+        assert_eq!(accounts[9].lamports(), authority_lamports_before);
     }
 
     #[test]
@@ -3477,7 +3995,14 @@ mod tests {
         let mut marker_data = vec![0u8; NULLIFIER_MARKER_LEN];
         let mut pool_lamports = 1u64;
         let mut pool_data = vec![0u8; POOL_STATE_LEN];
-        let pool = account_info(&pool_state, &program_id, false, false, &mut pool_lamports, &mut pool_data);
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            false,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
         write_nullifier_marker(&mut marker_data, &pool, &nullifier).unwrap();
         let marker = account_info(
             &marker_key,
@@ -3495,10 +4020,1050 @@ mod tests {
     }
 
     #[test]
+    fn verified_spend_commit_mutates_only_after_adapter_acceptance() {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let nullifier = [1u8; HASH_LEN];
+        let output0 = [2u8; HASH_LEN];
+        let output1 = [3u8; HASH_LEN];
+        let public_input_hash = [5u8; HASH_LEN];
+        let verifier_key_hash = [6u8; HASH_LEN];
+        let output_queue = Pubkey::new_unique();
+        let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &nullifier);
+        let output_record = output_record_pubkey(&program_id, &pool_state, &public_input_hash);
+        let authority = Pubkey::new_unique();
+        let system_program_id = system_program::ID;
+
+        let mut pool_lamports = 1u64;
+        let mut output_lamports = 1u64;
+        let mut marker_lamports = 0u64;
+        let mut output_record_lamports = 0u64;
+        let mut authority_lamports = 1u64;
+        let mut system_lamports = 1u64;
+        let mut pool_data = vec![0u8; POOL_STATE_LEN];
+        let mut output_data = vec![0u8; HEADER_LEN];
+        let mut marker_data = vec![0u8; NULLIFIER_MARKER_LEN];
+        let mut output_record_data = vec![0u8; OUTPUT_RECORD_PDA_LEN];
+        let mut authority_data: Vec<u8> = vec![];
+        let mut system_data: Vec<u8> = vec![];
+
+        pool_data[..8].copy_from_slice(POOL_MAGIC);
+        pool_data[8] = VERSION;
+        output_data[..8].copy_from_slice(OUTPUT_MAGIC);
+        output_data[8] = VERSION;
+
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            true,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
+        let output = account_info(
+            &output_queue,
+            &program_id,
+            true,
+            false,
+            &mut output_lamports,
+            &mut output_data,
+        );
+        let marker = account_info(
+            &nullifier_marker,
+            &program_id,
+            true,
+            false,
+            &mut marker_lamports,
+            &mut marker_data,
+        );
+        let out_rec = account_info(
+            &output_record,
+            &program_id,
+            true,
+            false,
+            &mut output_record_lamports,
+            &mut output_record_data,
+        );
+        let auth = account_info(
+            &authority,
+            &system_program::ID,
+            true,
+            true,
+            &mut authority_lamports,
+            &mut authority_data,
+        );
+        let system = account_info(
+            &system_program_id,
+            &system_program_id,
+            false,
+            false,
+            &mut system_lamports,
+            &mut system_data,
+        );
+        let verified = VerifiedSpendPreflight {
+            nullifier,
+            output0,
+            output1,
+            public_input_hash,
+            verifier_key_hash,
+            verifier_program_id: Pubkey::new_unique(),
+            gnark_proof: [8u8; SPEND_WITH_PROOF_GNARK_PROOF_LEN],
+            gnark_public_witness: [9u8; SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN],
+            output_index: 0,
+        };
+
+        assert_eq!(
+            commit_verified_spend(
+                &program_id,
+                &pool,
+                &output,
+                &marker,
+                &out_rec,
+                &auth,
+                &system,
+                &verified,
+            ),
+            Ok(())
+        );
+        assert_eq!(read_u64(&pool_data, POOL_SPEND_COUNT_OFFSET).unwrap(), 1);
+        assert_eq!(read_count(&output_data).unwrap(), 1);
+        assert_eq!(
+            &pool_data
+                [POOL_LAST_PUBLIC_INPUT_HASH_OFFSET..POOL_LAST_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN],
+            &public_input_hash
+        );
+        assert_eq!(&marker_data[..8], NULLIFIER_MARKER_MAGIC);
+        assert_eq!(&output_record_data[..8], OUTPUT_RECORD_MAGIC);
+        assert_eq!(
+            &output_record_data[OUTPUT_RECORD_PUBLIC_INPUT_HASH_OFFSET
+                ..OUTPUT_RECORD_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN],
+            &public_input_hash
+        );
+    }
+
+    fn selected_gnark_fixture_adapter_accepts(
+        verified: &VerifiedSpendPreflight,
+        expected_public_input_hash: &[u8; HASH_LEN],
+        expected_verifier_key_hash: &[u8; HASH_LEN],
+    ) -> ProgramResult {
+        if verified.gnark_proof != [8u8; SPEND_WITH_PROOF_GNARK_PROOF_LEN]
+            || &verified.public_input_hash != expected_public_input_hash
+        {
+            return Err(ProgramError::InvalidInstructionData);
+        }
+        require_spend_with_proof_public_witness_binding(verified)?;
+        if &verified.verifier_key_hash != expected_verifier_key_hash {
+            return Err(ProgramError::Custom(ERR_VERIFIER_KEY_MISMATCH));
+        }
+        Ok(())
+    }
+
+    fn commit_after_selected_gnark_fixture_adapter<'a>(
+        program_id: &Pubkey,
+        pool_state: &AccountInfo<'a>,
+        output_queue: &AccountInfo<'a>,
+        nullifier_marker: &AccountInfo<'a>,
+        output_record: &AccountInfo<'a>,
+        authority: &AccountInfo<'a>,
+        system_program_info: &AccountInfo<'a>,
+        verified: &VerifiedSpendPreflight,
+        expected_public_input_hash: &[u8; HASH_LEN],
+        expected_verifier_key_hash: &[u8; HASH_LEN],
+    ) -> ProgramResult {
+        selected_gnark_fixture_adapter_accepts(
+            verified,
+            expected_public_input_hash,
+            expected_verifier_key_hash,
+        )?;
+        commit_verified_spend(
+            program_id,
+            pool_state,
+            output_queue,
+            nullifier_marker,
+            output_record,
+            authority,
+            system_program_info,
+            verified,
+        )
+    }
+
+    fn assert_selected_gnark_fixture_adapter_case(
+        proof_byte: u8,
+        public_witness_mode: u8,
+        verified_public_input_hash: [u8; HASH_LEN],
+        verified_verifier_key_hash: [u8; HASH_LEN],
+        expected_public_input_hash: [u8; HASH_LEN],
+        expected_verifier_key_hash: [u8; HASH_LEN],
+        expected_result: ProgramResult,
+        expect_mutation: bool,
+    ) {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let nullifier = [1u8; HASH_LEN];
+        let output0 = [2u8; HASH_LEN];
+        let output1 = [3u8; HASH_LEN];
+        let output_queue = Pubkey::new_unique();
+        let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &nullifier);
+        let output_record =
+            output_record_pubkey(&program_id, &pool_state, &verified_public_input_hash);
+        let authority = Pubkey::new_unique();
+        let system_program_id = system_program::ID;
+
+        let mut pool_lamports = 1u64;
+        let mut output_lamports = 1u64;
+        let mut marker_lamports = 0u64;
+        let mut output_record_lamports = 0u64;
+        let mut authority_lamports = 1u64;
+        let mut system_lamports = 1u64;
+        let mut pool_data = vec![0u8; POOL_STATE_LEN];
+        let mut output_data = vec![0u8; HEADER_LEN];
+        let mut marker_data = vec![0u8; NULLIFIER_MARKER_LEN];
+        let mut output_record_data = vec![0u8; OUTPUT_RECORD_PDA_LEN];
+        let mut authority_data: Vec<u8> = vec![];
+        let mut system_data: Vec<u8> = vec![];
+
+        pool_data[..8].copy_from_slice(POOL_MAGIC);
+        pool_data[8] = VERSION;
+        output_data[..8].copy_from_slice(OUTPUT_MAGIC);
+        output_data[8] = VERSION;
+
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            true,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
+        let output = account_info(
+            &output_queue,
+            &program_id,
+            true,
+            false,
+            &mut output_lamports,
+            &mut output_data,
+        );
+        let marker = account_info(
+            &nullifier_marker,
+            &program_id,
+            true,
+            false,
+            &mut marker_lamports,
+            &mut marker_data,
+        );
+        let out_rec = account_info(
+            &output_record,
+            &program_id,
+            true,
+            false,
+            &mut output_record_lamports,
+            &mut output_record_data,
+        );
+        let auth = account_info(
+            &authority,
+            &system_program::ID,
+            true,
+            true,
+            &mut authority_lamports,
+            &mut authority_data,
+        );
+        let system = account_info(
+            &system_program_id,
+            &system_program_id,
+            false,
+            false,
+            &mut system_lamports,
+            &mut system_data,
+        );
+        let mut gnark_public_witness = gnark_public_witness_for(&verified_public_input_hash);
+        if public_witness_mode != 0 {
+            gnark_public_witness = [public_witness_mode; SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN];
+        }
+        let verified = VerifiedSpendPreflight {
+            nullifier,
+            output0,
+            output1,
+            public_input_hash: verified_public_input_hash,
+            verifier_key_hash: verified_verifier_key_hash,
+            verifier_program_id: Pubkey::new_unique(),
+            gnark_proof: [proof_byte; SPEND_WITH_PROOF_GNARK_PROOF_LEN],
+            gnark_public_witness,
+            output_index: 0,
+        };
+
+        let before = (
+            pool.try_borrow_data().unwrap().to_vec(),
+            output.try_borrow_data().unwrap().to_vec(),
+            marker.try_borrow_data().unwrap().to_vec(),
+            out_rec.try_borrow_data().unwrap().to_vec(),
+            marker.lamports(),
+            out_rec.lamports(),
+        );
+
+        let result = commit_after_selected_gnark_fixture_adapter(
+            &program_id,
+            &pool,
+            &output,
+            &marker,
+            &out_rec,
+            &auth,
+            &system,
+            &verified,
+            &expected_public_input_hash,
+            &expected_verifier_key_hash,
+        );
+
+        assert_eq!(result, expected_result);
+        if expect_mutation {
+            let pool_after = pool.try_borrow_data().unwrap();
+            let output_after = output.try_borrow_data().unwrap();
+            let marker_after = marker.try_borrow_data().unwrap();
+            let output_record_after = out_rec.try_borrow_data().unwrap();
+            assert_eq!(read_u64(&pool_after, POOL_SPEND_COUNT_OFFSET).unwrap(), 1);
+            assert_eq!(read_count(&output_after).unwrap(), 1);
+            assert_eq!(
+                &pool_after[POOL_LAST_PUBLIC_INPUT_HASH_OFFSET
+                    ..POOL_LAST_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN],
+                &verified_public_input_hash
+            );
+            assert_eq!(&marker_after[..8], NULLIFIER_MARKER_MAGIC);
+            assert_eq!(&output_record_after[..8], OUTPUT_RECORD_MAGIC);
+            assert_eq!(
+                &output_record_after[OUTPUT_RECORD_PUBLIC_INPUT_HASH_OFFSET
+                    ..OUTPUT_RECORD_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN],
+                &verified_public_input_hash
+            );
+        } else {
+            assert_eq!(
+                pool.try_borrow_data().unwrap().as_ref(),
+                before.0.as_slice()
+            );
+            assert_eq!(
+                output.try_borrow_data().unwrap().as_ref(),
+                before.1.as_slice()
+            );
+            assert_eq!(
+                marker.try_borrow_data().unwrap().as_ref(),
+                before.2.as_slice()
+            );
+            assert_eq!(
+                out_rec.try_borrow_data().unwrap().as_ref(),
+                before.3.as_slice()
+            );
+            assert_eq!(marker.lamports(), before.4);
+            assert_eq!(out_rec.lamports(), before.5);
+        }
+    }
+
+    #[test]
+    fn selected_gnark_fixture_adapter_valid_proof_mutates_state() {
+        assert_selected_gnark_fixture_adapter_case(
+            8,
+            0,
+            [5u8; HASH_LEN],
+            [6u8; HASH_LEN],
+            [5u8; HASH_LEN],
+            [6u8; HASH_LEN],
+            Ok(()),
+            true,
+        );
+    }
+
+    #[test]
+    fn selected_gnark_fixture_adapter_invalid_proof_no_mutation() {
+        assert_selected_gnark_fixture_adapter_case(
+            10,
+            0,
+            [5u8; HASH_LEN],
+            [6u8; HASH_LEN],
+            [5u8; HASH_LEN],
+            [6u8; HASH_LEN],
+            Err(ProgramError::InvalidInstructionData),
+            false,
+        );
+    }
+
+    #[test]
+    fn selected_gnark_fixture_adapter_wrong_public_input_no_mutation() {
+        assert_selected_gnark_fixture_adapter_case(
+            8,
+            0,
+            [5u8; HASH_LEN],
+            [6u8; HASH_LEN],
+            [7u8; HASH_LEN],
+            [6u8; HASH_LEN],
+            Err(ProgramError::InvalidInstructionData),
+            false,
+        );
+    }
+
+    #[test]
+    fn selected_gnark_fixture_adapter_wrong_verifying_key_no_mutation() {
+        assert_selected_gnark_fixture_adapter_case(
+            8,
+            0,
+            [5u8; HASH_LEN],
+            [6u8; HASH_LEN],
+            [5u8; HASH_LEN],
+            [7u8; HASH_LEN],
+            Err(ProgramError::Custom(ERR_VERIFIER_KEY_MISMATCH)),
+            false,
+        );
+    }
+
+    #[test]
+    fn proof_carrying_spend_commit_capable_account_list_mutates_after_fixture_adapter_acceptance() {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let nullifier_set = Pubkey::new_unique();
+        let output_queue = Pubkey::new_unique();
+        let root_history = Pubkey::new_unique();
+        let nullifier = [1u8; HASH_LEN];
+        let output0 = [2u8; HASH_LEN];
+        let output1 = [3u8; HASH_LEN];
+        let accepted_root = [4u8; HASH_LEN];
+        let public_input_hash = [5u8; HASH_LEN];
+        let verifier_key_hash = [6u8; HASH_LEN];
+        let verifier_program = Pubkey::new_unique();
+        let root_record = root_record_pubkey(&program_id, &pool_state, &accepted_root);
+        let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &nullifier);
+        let output_record = output_record_pubkey(&program_id, &pool_state, &public_input_hash);
+        let verifier_key = verifier_key_pubkey(&program_id, &pool_state, &verifier_key_hash);
+        let authority = Pubkey::new_unique();
+        let system_program_id = system_program::ID;
+
+        let mut pool_lamports = 1u64;
+        let mut nullifier_lamports = 1u64;
+        let mut output_lamports = 1u64;
+        let mut root_lamports = 1u64;
+        let mut root_record_lamports = 1u64;
+        let mut marker_lamports = 0u64;
+        let mut output_record_lamports = 0u64;
+        let mut verifier_key_lamports = 1u64;
+        let mut verifier_program_lamports = 1u64;
+        let mut authority_lamports = 1u64;
+        let mut system_lamports = 1u64;
+        let mut pool_data = vec![0u8; POOL_STATE_LEN];
+        let mut nullifier_data = vec![0u8; HEADER_LEN + HASH_LEN];
+        let mut output_data = vec![0u8; HEADER_LEN];
+        let mut root_data = vec![0u8; HEADER_LEN + HASH_LEN];
+        let mut root_record_data = vec![0u8; ROOT_RECORD_ACCOUNT_LEN];
+        let mut marker_data = vec![0u8; NULLIFIER_MARKER_LEN];
+        let mut output_record_data = vec![0u8; OUTPUT_RECORD_PDA_LEN];
+        let mut verifier_key_data = vec![0u8; VERIFIER_KEY_ACCOUNT_LEN];
+        let mut verifier_program_data: Vec<u8> = vec![];
+        let mut authority_data: Vec<u8> = vec![];
+        let mut system_data: Vec<u8> = vec![];
+
+        pool_data[..8].copy_from_slice(POOL_MAGIC);
+        pool_data[8] = VERSION;
+        pool_data[POOL_NULLIFIER_SET_OFFSET..POOL_NULLIFIER_SET_OFFSET + HASH_LEN]
+            .copy_from_slice(nullifier_set.as_ref());
+        pool_data[POOL_OUTPUT_QUEUE_OFFSET..POOL_OUTPUT_QUEUE_OFFSET + HASH_LEN]
+            .copy_from_slice(output_queue.as_ref());
+        pool_data[POOL_ROOT_HISTORY_OFFSET..POOL_ROOT_HISTORY_OFFSET + HASH_LEN]
+            .copy_from_slice(root_history.as_ref());
+        nullifier_data[..8].copy_from_slice(NULLIFIER_MAGIC);
+        nullifier_data[8] = VERSION;
+        output_data[..8].copy_from_slice(OUTPUT_MAGIC);
+        output_data[8] = VERSION;
+        root_data[..8].copy_from_slice(ROOT_MAGIC);
+        root_data[8] = VERSION;
+        write_count(&mut root_data, 1).unwrap();
+        write_hash_slot(&mut root_data, 0, HASH_LEN, &accepted_root).unwrap();
+        root_record_data[..8].copy_from_slice(ROOT_RECORD_MAGIC);
+        root_record_data[8] = VERSION;
+        write_count(&mut root_record_data, 1).unwrap();
+        write_u32(&mut root_record_data, ROOT_RECORD_LEAF_COUNT_OFFSET, 1).unwrap();
+        root_record_data[ROOT_RECORD_POOL_OFFSET..ROOT_RECORD_POOL_OFFSET + HASH_LEN]
+            .copy_from_slice(pool_state.as_ref());
+        root_record_data
+            [ROOT_RECORD_ACCEPTED_ROOT_OFFSET..ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN]
+            .copy_from_slice(&accepted_root);
+        verifier_key_data[..8].copy_from_slice(VERIFIER_KEY_MAGIC);
+        verifier_key_data[8] = VERSION;
+        write_count(&mut verifier_key_data, 1).unwrap();
+        verifier_key_data[VERIFIER_KEY_POOL_OFFSET..VERIFIER_KEY_POOL_OFFSET + HASH_LEN]
+            .copy_from_slice(pool_state.as_ref());
+        verifier_key_data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN]
+            .copy_from_slice(&verifier_key_hash);
+        verifier_key_data
+            [VERIFIER_KEY_PROGRAM_ID_OFFSET..VERIFIER_KEY_PROGRAM_ID_OFFSET + HASH_LEN]
+            .copy_from_slice(verifier_program.as_ref());
+
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            true,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
+        let nulls = account_info(
+            &nullifier_set,
+            &program_id,
+            false,
+            false,
+            &mut nullifier_lamports,
+            &mut nullifier_data,
+        );
+        let output = account_info(
+            &output_queue,
+            &program_id,
+            true,
+            false,
+            &mut output_lamports,
+            &mut output_data,
+        );
+        let roots = account_info(
+            &root_history,
+            &program_id,
+            false,
+            false,
+            &mut root_lamports,
+            &mut root_data,
+        );
+        let root_rec = account_info(
+            &root_record,
+            &program_id,
+            false,
+            false,
+            &mut root_record_lamports,
+            &mut root_record_data,
+        );
+        let marker = account_info(
+            &nullifier_marker,
+            &program_id,
+            true,
+            false,
+            &mut marker_lamports,
+            &mut marker_data,
+        );
+        let out_rec = account_info(
+            &output_record,
+            &program_id,
+            true,
+            false,
+            &mut output_record_lamports,
+            &mut output_record_data,
+        );
+        let vkey = account_info(
+            &verifier_key,
+            &program_id,
+            false,
+            false,
+            &mut verifier_key_lamports,
+            &mut verifier_key_data,
+        );
+        let vprogram = executable_account_info(
+            &verifier_program,
+            &mut verifier_program_lamports,
+            &mut verifier_program_data,
+        );
+        let auth = account_info(
+            &authority,
+            &system_program::ID,
+            true,
+            true,
+            &mut authority_lamports,
+            &mut authority_data,
+        );
+        let system = account_info(
+            &system_program_id,
+            &system_program_id,
+            false,
+            false,
+            &mut system_lamports,
+            &mut system_data,
+        );
+        let accounts = vec![
+            pool, nulls, output, roots, root_rec, marker, out_rec, vkey, vprogram, auth, system,
+        ];
+        let mut data = vec![TAG_SPEND_WITH_PROOF];
+        data.extend_from_slice(&nullifier);
+        data.extend_from_slice(&output0);
+        data.extend_from_slice(&output1);
+        data.extend_from_slice(&accepted_root);
+        data.extend_from_slice(&public_input_hash);
+        data.extend_from_slice(&verifier_key_hash);
+        data.extend_from_slice(&[8u8; SPEND_WITH_PROOF_GNARK_PROOF_LEN]);
+        data.extend_from_slice(&gnark_public_witness_for(&public_input_hash));
+
+        let verified = preflight_spend_with_proof(&program_id, &accounts, &data[1..]).unwrap();
+        assert_eq!(verified.verifier_program_id, verifier_program);
+        selected_gnark_fixture_adapter_accepts(&verified, &public_input_hash, &verifier_key_hash)
+            .unwrap();
+        assert_eq!(
+            commit_verified_spend_from_spend_with_proof_accounts(&program_id, &accounts, &verified,),
+            Ok(())
+        );
+
+        assert_eq!(read_u64(&pool_data, POOL_SPEND_COUNT_OFFSET).unwrap(), 1);
+        assert_eq!(read_count(&output_data).unwrap(), 1);
+        assert_eq!(
+            &pool_data
+                [POOL_LAST_PUBLIC_INPUT_HASH_OFFSET..POOL_LAST_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN],
+            &public_input_hash
+        );
+        assert_eq!(&marker_data[..8], NULLIFIER_MARKER_MAGIC);
+        assert_eq!(&output_record_data[..8], OUTPUT_RECORD_MAGIC);
+        assert_eq!(
+            &output_record_data[OUTPUT_RECORD_PUBLIC_INPUT_HASH_OFFSET
+                ..OUTPUT_RECORD_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN],
+            &public_input_hash
+        );
+    }
+
+    #[test]
+    fn proof_carrying_spend_default_adapter_rejects_before_commit() {
+        let verifier_program_id = Pubkey::new_unique();
+        let mut verifier_program_lamports = 1u64;
+        let mut verifier_program_data: Vec<u8> = vec![];
+        let verifier_program = executable_account_info(
+            &verifier_program_id,
+            &mut verifier_program_lamports,
+            &mut verifier_program_data,
+        );
+        let verified = VerifiedSpendPreflight {
+            nullifier: [1u8; HASH_LEN],
+            output0: [2u8; HASH_LEN],
+            output1: [3u8; HASH_LEN],
+            public_input_hash: [5u8; HASH_LEN],
+            verifier_key_hash: [6u8; HASH_LEN],
+            verifier_program_id,
+            gnark_proof: [8u8; SPEND_WITH_PROOF_GNARK_PROOF_LEN],
+            gnark_public_witness: gnark_public_witness_for(&[5u8; HASH_LEN]),
+            output_index: 0,
+        };
+
+        assert_eq!(
+            verify_spend_with_proof_adapter(&verified, &verifier_program),
+            Err(ProgramError::Custom(ERR_PROOF_VERIFIER_NOT_WIRED))
+        );
+    }
+
+    #[test]
+    fn proof_carrying_spend_verifier_instruction_data_matches_gnark_tuple() {
+        let public_input_hash = [5u8; HASH_LEN];
+        let gnark_proof = [8u8; SPEND_WITH_PROOF_GNARK_PROOF_LEN];
+        let gnark_public_witness = gnark_public_witness_for(&public_input_hash);
+        let verified = VerifiedSpendPreflight {
+            nullifier: [1u8; HASH_LEN],
+            output0: [2u8; HASH_LEN],
+            output1: [3u8; HASH_LEN],
+            public_input_hash,
+            verifier_key_hash: [6u8; HASH_LEN],
+            verifier_program_id: Pubkey::new_unique(),
+            gnark_proof,
+            gnark_public_witness,
+            output_index: 0,
+        };
+
+        let verifier_instruction_data = verified.verifier_instruction_data();
+        assert_eq!(
+            verifier_instruction_data.len(),
+            SPEND_WITH_PROOF_VERIFIER_INPUT_LEN
+        );
+        assert_eq!(
+            &verifier_instruction_data[..SPEND_WITH_PROOF_GNARK_PROOF_LEN],
+            &gnark_proof
+        );
+        assert_eq!(
+            &verifier_instruction_data[SPEND_WITH_PROOF_GNARK_PROOF_LEN..],
+            &gnark_public_witness
+        );
+        assert_eq!(
+            &verifier_instruction_data[SPEND_WITH_PROOF_GNARK_PROOF_LEN
+                ..SPEND_WITH_PROOF_GNARK_PROOF_LEN + GNARK_PUBLIC_WITNESS_HEADER_LEN],
+            &GNARK_PUBLIC_WITNESS_ONE_PUBLIC_INPUT_HEADER
+        );
+        assert_eq!(
+            &verifier_instruction_data
+                [SPEND_WITH_PROOF_GNARK_PROOF_LEN + GNARK_PUBLIC_WITNESS_VALUE_OFFSET..],
+            &public_input_hash
+        );
+    }
+
+    #[test]
+    fn proof_carrying_spend_verifier_cpi_instruction_matches_generated_solana_verifier_shape() {
+        let public_input_hash = [5u8; HASH_LEN];
+        let verifier_program = Pubkey::new_unique();
+        let gnark_proof = [8u8; SPEND_WITH_PROOF_GNARK_PROOF_LEN];
+        let gnark_public_witness = gnark_public_witness_for(&public_input_hash);
+        let verified = VerifiedSpendPreflight {
+            nullifier: [1u8; HASH_LEN],
+            output0: [2u8; HASH_LEN],
+            output1: [3u8; HASH_LEN],
+            public_input_hash,
+            verifier_key_hash: [6u8; HASH_LEN],
+            verifier_program_id: verifier_program,
+            gnark_proof,
+            gnark_public_witness,
+            output_index: 0,
+        };
+
+        let verifier_cpi_instruction = spend_with_proof_verifier_cpi_instruction(&verified);
+        assert_eq!(verifier_cpi_instruction.program_id, verifier_program);
+        assert_eq!(verifier_cpi_instruction.accounts.len(), 0);
+        assert_eq!(
+            verifier_cpi_instruction.data.len(),
+            SPEND_WITH_PROOF_VERIFIER_INPUT_LEN
+        );
+        assert_eq!(
+            &verifier_cpi_instruction.data[..SPEND_WITH_PROOF_GNARK_PROOF_LEN],
+            &gnark_proof
+        );
+        assert_eq!(
+            &verifier_cpi_instruction.data[SPEND_WITH_PROOF_GNARK_PROOF_LEN..],
+            &gnark_public_witness
+        );
+    }
+
+    #[test]
+    fn proof_carrying_spend_requires_readonly_executable_verifier_program_account() {
+        let spend_program_id = Pubkey::new_unique();
+        let verifier_program = Pubkey::new_unique();
+        let mut lamports = 1u64;
+        let mut data: Vec<u8> = vec![];
+        let executable = executable_account_info(&verifier_program, &mut lamports, &mut data);
+        assert_eq!(
+            require_spend_with_proof_verifier_program(&spend_program_id, &executable),
+            Ok(())
+        );
+
+        let mut same_program_lamports = 1u64;
+        let mut same_program_data: Vec<u8> = vec![];
+        let same_program = executable_account_info(
+            &spend_program_id,
+            &mut same_program_lamports,
+            &mut same_program_data,
+        );
+        assert_eq!(
+            require_spend_with_proof_verifier_program(&spend_program_id, &same_program),
+            Err(ProgramError::IncorrectProgramId)
+        );
+
+        let mut non_executable_lamports = 1u64;
+        let mut non_executable_data: Vec<u8> = vec![];
+        let non_executable = account_info(
+            &verifier_program,
+            &system_program::ID,
+            false,
+            false,
+            &mut non_executable_lamports,
+            &mut non_executable_data,
+        );
+        assert_eq!(
+            require_spend_with_proof_verifier_program(&spend_program_id, &non_executable),
+            Err(ProgramError::IncorrectProgramId)
+        );
+
+        let mut writable_lamports = 1u64;
+        let mut writable_data: Vec<u8> = vec![];
+        let writable = executable_account_info_with_flags(
+            &verifier_program,
+            true,
+            false,
+            &mut writable_lamports,
+            &mut writable_data,
+        );
+        assert_eq!(
+            require_spend_with_proof_verifier_program(&spend_program_id, &writable),
+            Err(ProgramError::InvalidAccountData)
+        );
+    }
+
+    #[test]
+    fn proof_carrying_spend_rejects_wrong_registered_verifier_program_before_not_wired() {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let nullifier_set = Pubkey::new_unique();
+        let output_queue = Pubkey::new_unique();
+        let root_history = Pubkey::new_unique();
+        let nullifier = [1u8; HASH_LEN];
+        let output0 = [2u8; HASH_LEN];
+        let output1 = [3u8; HASH_LEN];
+        let accepted_root = [4u8; HASH_LEN];
+        let public_input_hash = [5u8; HASH_LEN];
+        let verifier_key_hash = [6u8; HASH_LEN];
+        let registered_verifier_program = Pubkey::new_unique();
+        let supplied_verifier_program = Pubkey::new_unique();
+        let root_record = root_record_pubkey(&program_id, &pool_state, &accepted_root);
+        let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &nullifier);
+        let output_record = output_record_pubkey(&program_id, &pool_state, &public_input_hash);
+        let verifier_key = verifier_key_pubkey(&program_id, &pool_state, &verifier_key_hash);
+        let authority = Pubkey::new_unique();
+        let system_program_id = system_program::ID;
+
+        let mut pool_lamports = 1u64;
+        let mut nullifier_lamports = 1u64;
+        let mut output_lamports = 1u64;
+        let mut root_lamports = 1u64;
+        let mut root_record_lamports = 1u64;
+        let mut marker_lamports = 0u64;
+        let mut output_record_lamports = 0u64;
+        let mut verifier_key_lamports = 1u64;
+        let mut verifier_program_lamports = 1u64;
+        let mut authority_lamports = 1u64;
+        let mut system_lamports = 1u64;
+        let mut pool_data = vec![0u8; POOL_STATE_LEN];
+        let mut nullifier_data = vec![0u8; HEADER_LEN + HASH_LEN];
+        let mut output_data = vec![0u8; HEADER_LEN];
+        let mut root_data = vec![0u8; HEADER_LEN + HASH_LEN];
+        let mut root_record_data = vec![0u8; ROOT_RECORD_ACCOUNT_LEN];
+        let mut marker_data: Vec<u8> = vec![];
+        let mut output_record_data: Vec<u8> = vec![];
+        let verifier_program_offset = VERIFIER_KEY_HASH_OFFSET + HASH_LEN;
+        let mut verifier_key_data = vec![0u8; verifier_program_offset + HASH_LEN];
+        let mut verifier_program_data: Vec<u8> = vec![];
+        let mut authority_data: Vec<u8> = vec![];
+        let mut system_data: Vec<u8> = vec![];
+
+        pool_data[..8].copy_from_slice(POOL_MAGIC);
+        pool_data[8] = VERSION;
+        pool_data[POOL_NULLIFIER_SET_OFFSET..POOL_NULLIFIER_SET_OFFSET + HASH_LEN]
+            .copy_from_slice(nullifier_set.as_ref());
+        pool_data[POOL_OUTPUT_QUEUE_OFFSET..POOL_OUTPUT_QUEUE_OFFSET + HASH_LEN]
+            .copy_from_slice(output_queue.as_ref());
+        pool_data[POOL_ROOT_HISTORY_OFFSET..POOL_ROOT_HISTORY_OFFSET + HASH_LEN]
+            .copy_from_slice(root_history.as_ref());
+        nullifier_data[..8].copy_from_slice(NULLIFIER_MAGIC);
+        nullifier_data[8] = VERSION;
+        output_data[..8].copy_from_slice(OUTPUT_MAGIC);
+        output_data[8] = VERSION;
+        root_data[..8].copy_from_slice(ROOT_MAGIC);
+        root_data[8] = VERSION;
+        write_count(&mut root_data, 1).unwrap();
+        write_hash_slot(&mut root_data, 0, HASH_LEN, &accepted_root).unwrap();
+        root_record_data[..8].copy_from_slice(ROOT_RECORD_MAGIC);
+        root_record_data[8] = VERSION;
+        write_count(&mut root_record_data, 1).unwrap();
+        write_u32(&mut root_record_data, ROOT_RECORD_LEAF_COUNT_OFFSET, 1).unwrap();
+        root_record_data[ROOT_RECORD_POOL_OFFSET..ROOT_RECORD_POOL_OFFSET + HASH_LEN]
+            .copy_from_slice(pool_state.as_ref());
+        root_record_data
+            [ROOT_RECORD_ACCEPTED_ROOT_OFFSET..ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN]
+            .copy_from_slice(&accepted_root);
+        verifier_key_data[..8].copy_from_slice(VERIFIER_KEY_MAGIC);
+        verifier_key_data[8] = VERSION;
+        write_count(&mut verifier_key_data, 1).unwrap();
+        verifier_key_data[VERIFIER_KEY_POOL_OFFSET..VERIFIER_KEY_POOL_OFFSET + HASH_LEN]
+            .copy_from_slice(pool_state.as_ref());
+        verifier_key_data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN]
+            .copy_from_slice(&verifier_key_hash);
+        verifier_key_data[verifier_program_offset..verifier_program_offset + HASH_LEN]
+            .copy_from_slice(registered_verifier_program.as_ref());
+
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            true,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
+        let nulls = account_info(
+            &nullifier_set,
+            &program_id,
+            false,
+            false,
+            &mut nullifier_lamports,
+            &mut nullifier_data,
+        );
+        let output = account_info(
+            &output_queue,
+            &program_id,
+            true,
+            false,
+            &mut output_lamports,
+            &mut output_data,
+        );
+        let roots = account_info(
+            &root_history,
+            &program_id,
+            false,
+            false,
+            &mut root_lamports,
+            &mut root_data,
+        );
+        let root_rec = account_info(
+            &root_record,
+            &program_id,
+            false,
+            false,
+            &mut root_record_lamports,
+            &mut root_record_data,
+        );
+        let marker = account_info(
+            &nullifier_marker,
+            &system_program::ID,
+            true,
+            false,
+            &mut marker_lamports,
+            &mut marker_data,
+        );
+        let out_rec = account_info(
+            &output_record,
+            &system_program::ID,
+            true,
+            false,
+            &mut output_record_lamports,
+            &mut output_record_data,
+        );
+        let vkey = account_info(
+            &verifier_key,
+            &program_id,
+            false,
+            false,
+            &mut verifier_key_lamports,
+            &mut verifier_key_data,
+        );
+        let vprogram = executable_account_info(
+            &supplied_verifier_program,
+            &mut verifier_program_lamports,
+            &mut verifier_program_data,
+        );
+        let auth = account_info(
+            &authority,
+            &system_program::ID,
+            true,
+            true,
+            &mut authority_lamports,
+            &mut authority_data,
+        );
+        let system = account_info(
+            &system_program_id,
+            &system_program_id,
+            false,
+            false,
+            &mut system_lamports,
+            &mut system_data,
+        );
+        let accounts = vec![
+            pool, nulls, output, roots, root_rec, marker, out_rec, vkey, vprogram, auth, system,
+        ];
+        let mut data = vec![TAG_SPEND_WITH_PROOF];
+        data.extend_from_slice(&nullifier);
+        data.extend_from_slice(&output0);
+        data.extend_from_slice(&output1);
+        data.extend_from_slice(&accepted_root);
+        data.extend_from_slice(&public_input_hash);
+        data.extend_from_slice(&verifier_key_hash);
+        data.extend_from_slice(&[8u8; SPEND_WITH_PROOF_GNARK_PROOF_LEN]);
+        data.extend_from_slice(&gnark_public_witness_for(&public_input_hash));
+
+        let pool_before = accounts[0].try_borrow_data().unwrap().to_vec();
+        let output_before = accounts[2].try_borrow_data().unwrap().to_vec();
+        let marker_before = accounts[5].try_borrow_data().unwrap().to_vec();
+        let output_record_before = accounts[6].try_borrow_data().unwrap().to_vec();
+
+        assert_eq!(
+            process_instruction(&program_id, &accounts, &data),
+            Err(ProgramError::Custom(ERR_VERIFIER_KEY_MISMATCH))
+        );
+        assert_eq!(
+            accounts[0].try_borrow_data().unwrap().as_ref(),
+            pool_before.as_slice()
+        );
+        assert_eq!(
+            accounts[2].try_borrow_data().unwrap().as_ref(),
+            output_before.as_slice()
+        );
+        assert_eq!(
+            accounts[5].try_borrow_data().unwrap().as_ref(),
+            marker_before.as_slice()
+        );
+        assert_eq!(
+            accounts[6].try_borrow_data().unwrap().as_ref(),
+            output_record_before.as_slice()
+        );
+    }
+
+    #[test]
+    fn proof_carrying_spend_public_witness_binding_rejects_wrong_hash_before_not_wired() {
+        let mut wrong_public_witness = gnark_public_witness_for(&[7u8; HASH_LEN]);
+        wrong_public_witness[SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN - 1] = 8;
+        let verifier_program_id = Pubkey::new_unique();
+        let mut verifier_program_lamports = 1u64;
+        let mut verifier_program_data: Vec<u8> = vec![];
+        let verifier_program = executable_account_info(
+            &verifier_program_id,
+            &mut verifier_program_lamports,
+            &mut verifier_program_data,
+        );
+        let verified = VerifiedSpendPreflight {
+            nullifier: [1u8; HASH_LEN],
+            output0: [2u8; HASH_LEN],
+            output1: [3u8; HASH_LEN],
+            public_input_hash: [5u8; HASH_LEN],
+            verifier_key_hash: [6u8; HASH_LEN],
+            verifier_program_id,
+            gnark_proof: [8u8; SPEND_WITH_PROOF_GNARK_PROOF_LEN],
+            gnark_public_witness: wrong_public_witness,
+            output_index: 0,
+        };
+
+        assert_eq!(
+            verify_spend_with_proof_adapter(&verified, &verifier_program),
+            Err(ProgramError::InvalidInstructionData)
+        );
+    }
+
+    #[test]
+    fn proof_carrying_spend_public_witness_binding_rejects_bad_header_before_not_wired() {
+        let mut gnark_public_witness = gnark_public_witness_for(&[5u8; HASH_LEN]);
+        gnark_public_witness[0] = 1;
+        let verifier_program_id = Pubkey::new_unique();
+        let mut verifier_program_lamports = 1u64;
+        let mut verifier_program_data: Vec<u8> = vec![];
+        let verifier_program = executable_account_info(
+            &verifier_program_id,
+            &mut verifier_program_lamports,
+            &mut verifier_program_data,
+        );
+        let verified = VerifiedSpendPreflight {
+            nullifier: [1u8; HASH_LEN],
+            output0: [2u8; HASH_LEN],
+            output1: [3u8; HASH_LEN],
+            public_input_hash: [5u8; HASH_LEN],
+            verifier_key_hash: [6u8; HASH_LEN],
+            verifier_program_id,
+            gnark_proof: [8u8; SPEND_WITH_PROOF_GNARK_PROOF_LEN],
+            gnark_public_witness,
+            output_index: 0,
+        };
+
+        assert_eq!(
+            verify_spend_with_proof_adapter(&verified, &verifier_program),
+            Err(ProgramError::InvalidInstructionData)
+        );
+    }
+
+    #[test]
+    fn proof_carrying_spend_rejects_legacy_256_byte_payload_shape() {
+        let program_id = Pubkey::new_unique();
+        let mut data = vec![TAG_SPEND_WITH_PROOF];
+        data.extend_from_slice(&[1u8; HASH_LEN]);
+        data.extend_from_slice(&[2u8; HASH_LEN]);
+        data.extend_from_slice(&[3u8; HASH_LEN]);
+        data.extend_from_slice(&[4u8; HASH_LEN]);
+        data.extend_from_slice(&[5u8; HASH_LEN]);
+        data.extend_from_slice(&[6u8; HASH_LEN]);
+        data.extend_from_slice(&[8u8; RESERVED_GROTH16_PROOF_LEN]);
+
+        assert_eq!(
+            process_instruction(&program_id, &[], &data),
+            Err(ProgramError::InvalidInstructionData)
+        );
+    }
+
+    #[test]
     fn zero_verifier_key_hash() {
         let program_id = Pubkey::new_unique();
+        let verifier_program_id = Pubkey::new_unique();
         let mut data = vec![TAG_REGISTER_VERIFIER_KEY];
         data.extend_from_slice(&[0u8; HASH_LEN]);
+        data.extend_from_slice(verifier_program_id.as_ref());
         assert_eq!(
             process_instruction(&program_id, &[], &data),
             Err(ProgramError::InvalidInstructionData)
@@ -3510,6 +5075,7 @@ mod tests {
         let program_id = Pubkey::new_unique();
         let pool_state = Pubkey::new_unique();
         let verifier_key_hash = [6u8; HASH_LEN];
+        let verifier_program_id = Pubkey::new_unique();
         let verifier_key = verifier_key_pubkey(&program_id, &pool_state, &verifier_key_hash);
         let authority = Pubkey::new_unique();
         let system_program_id = system_program::ID;
@@ -3526,26 +5092,67 @@ mod tests {
         pool_data[8] = VERSION;
         pool_data[POOL_AUTHORITY_OFFSET..POOL_AUTHORITY_OFFSET + HASH_LEN]
             .copy_from_slice(authority.as_ref());
-        let pool = account_info(&pool_state, &program_id, false, false, &mut pool_lamports, &mut pool_data);
-        let vkey = account_info(&verifier_key, &program_id, true, false, &mut verifier_lamports, &mut verifier_data);
-        let auth = account_info(&authority, &system_program::ID, true, true, &mut authority_lamports, &mut authority_data);
-        let system = account_info(&system_program_id, &system_program_id, false, false, &mut system_lamports, &mut system_data);
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            false,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
+        let vkey = account_info(
+            &verifier_key,
+            &program_id,
+            true,
+            false,
+            &mut verifier_lamports,
+            &mut verifier_data,
+        );
+        let auth = account_info(
+            &authority,
+            &system_program::ID,
+            true,
+            true,
+            &mut authority_lamports,
+            &mut authority_data,
+        );
+        let system = account_info(
+            &system_program_id,
+            &system_program_id,
+            false,
+            false,
+            &mut system_lamports,
+            &mut system_data,
+        );
         let mut data = vec![TAG_REGISTER_VERIFIER_KEY];
         data.extend_from_slice(&verifier_key_hash);
+        data.extend_from_slice(verifier_program_id.as_ref());
 
-        assert_eq!(process_instruction(&program_id, &[pool, vkey, auth, system], &data), Ok(()));
+        assert_eq!(
+            process_instruction(&program_id, &[pool, vkey, auth, system], &data),
+            Ok(())
+        );
         assert_eq!(&verifier_data[..8], VERIFIER_KEY_MAGIC);
-        assert_eq!(&verifier_data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN], &verifier_key_hash);
+        assert_eq!(
+            &verifier_data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN],
+            &verifier_key_hash
+        );
+        assert_eq!(
+            &verifier_data
+                [VERIFIER_KEY_PROGRAM_ID_OFFSET..VERIFIER_KEY_PROGRAM_ID_OFFSET + HASH_LEN],
+            verifier_program_id.as_ref()
+        );
     }
 
     #[test]
-    fn register_verifier_key_rejects_zero_hash_and_wrong_pda() {
+    fn register_verifier_key_records_verifier_program_id() {
         let program_id = Pubkey::new_unique();
         let pool_state = Pubkey::new_unique();
-        let wrong_verifier_key = Pubkey::new_unique();
+        let verifier_key_hash = [6u8; HASH_LEN];
+        let verifier_program_id = Pubkey::new_unique();
+        let verifier_key = verifier_key_pubkey(&program_id, &pool_state, &verifier_key_hash);
         let authority = Pubkey::new_unique();
         let system_program_id = system_program::ID;
-        let verifier_key_hash = [7u8; HASH_LEN];
         let mut pool_lamports = 1u64;
         let mut verifier_lamports = 1u64;
         let mut authority_lamports = 1u64;
@@ -3559,12 +5166,110 @@ mod tests {
         pool_data[8] = VERSION;
         pool_data[POOL_AUTHORITY_OFFSET..POOL_AUTHORITY_OFFSET + HASH_LEN]
             .copy_from_slice(authority.as_ref());
-        let pool = account_info(&pool_state, &program_id, false, false, &mut pool_lamports, &mut pool_data);
-        let vkey = account_info(&wrong_verifier_key, &program_id, true, false, &mut verifier_lamports, &mut verifier_data);
-        let auth = account_info(&authority, &system_program::ID, true, true, &mut authority_lamports, &mut authority_data);
-        let system = account_info(&system_program_id, &system_program_id, false, false, &mut system_lamports, &mut system_data);
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            false,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
+        let vkey = account_info(
+            &verifier_key,
+            &program_id,
+            true,
+            false,
+            &mut verifier_lamports,
+            &mut verifier_data,
+        );
+        let auth = account_info(
+            &authority,
+            &system_program::ID,
+            true,
+            true,
+            &mut authority_lamports,
+            &mut authority_data,
+        );
+        let system = account_info(
+            &system_program_id,
+            &system_program_id,
+            false,
+            false,
+            &mut system_lamports,
+            &mut system_data,
+        );
         let mut data = vec![TAG_REGISTER_VERIFIER_KEY];
         data.extend_from_slice(&verifier_key_hash);
+        data.extend_from_slice(verifier_program_id.as_ref());
+
+        assert_eq!(
+            process_instruction(&program_id, &[pool, vkey, auth, system], &data),
+            Ok(())
+        );
+        let verifier_program_offset = VERIFIER_KEY_HASH_OFFSET + HASH_LEN;
+        assert_eq!(
+            &verifier_data[verifier_program_offset..verifier_program_offset + HASH_LEN],
+            verifier_program_id.as_ref()
+        );
+    }
+
+    #[test]
+    fn register_verifier_key_rejects_zero_hash_and_wrong_pda() {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let wrong_verifier_key = Pubkey::new_unique();
+        let authority = Pubkey::new_unique();
+        let system_program_id = system_program::ID;
+        let verifier_key_hash = [7u8; HASH_LEN];
+        let verifier_program_id = Pubkey::new_unique();
+        let mut pool_lamports = 1u64;
+        let mut verifier_lamports = 1u64;
+        let mut authority_lamports = 1u64;
+        let mut system_lamports = 1u64;
+        let mut pool_data = vec![0u8; POOL_STATE_LEN];
+        let mut verifier_data = vec![0u8; VERIFIER_KEY_ACCOUNT_LEN];
+        let mut authority_data: Vec<u8> = vec![];
+        let mut system_data: Vec<u8> = vec![];
+
+        pool_data[..8].copy_from_slice(POOL_MAGIC);
+        pool_data[8] = VERSION;
+        pool_data[POOL_AUTHORITY_OFFSET..POOL_AUTHORITY_OFFSET + HASH_LEN]
+            .copy_from_slice(authority.as_ref());
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            false,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
+        let vkey = account_info(
+            &wrong_verifier_key,
+            &program_id,
+            true,
+            false,
+            &mut verifier_lamports,
+            &mut verifier_data,
+        );
+        let auth = account_info(
+            &authority,
+            &system_program::ID,
+            true,
+            true,
+            &mut authority_lamports,
+            &mut authority_data,
+        );
+        let system = account_info(
+            &system_program_id,
+            &system_program_id,
+            false,
+            false,
+            &mut system_lamports,
+            &mut system_data,
+        );
+        let mut data = vec![TAG_REGISTER_VERIFIER_KEY];
+        data.extend_from_slice(&verifier_key_hash);
+        data.extend_from_slice(verifier_program_id.as_ref());
 
         assert_eq!(
             process_instruction(&program_id, &[pool, vkey, auth, system], &data),
@@ -3589,7 +5294,14 @@ mod tests {
 
         pool_data[..8].copy_from_slice(POOL_MAGIC);
         pool_data[8] = VERSION;
-        let pool = account_info(&pool_state, &program_id, false, false, &mut pool_lamports, &mut pool_data);
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            false,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
         write_vault_asset_account(
             &mut asset_data,
             &pool,
@@ -3601,7 +5313,14 @@ mod tests {
             VAULT_ASSET_KIND_SPL,
         )
         .unwrap();
-        let asset = account_info(&asset_key, &program_id, true, false, &mut asset_lamports, &mut asset_data);
+        let asset = account_info(
+            &asset_key,
+            &program_id,
+            true,
+            false,
+            &mut asset_lamports,
+            &mut asset_data,
+        );
 
         assert_eq!(
             ensure_vault_asset_record(
@@ -3638,6 +5357,33 @@ mod tests {
             data,
             owner,
             false,
+            Epoch::default(),
+        )
+    }
+
+    fn executable_account_info<'a>(
+        key: &'a Pubkey,
+        lamports: &'a mut u64,
+        data: &'a mut [u8],
+    ) -> AccountInfo<'a> {
+        executable_account_info_with_flags(key, false, false, lamports, data)
+    }
+
+    fn executable_account_info_with_flags<'a>(
+        key: &'a Pubkey,
+        is_writable: bool,
+        is_signer: bool,
+        lamports: &'a mut u64,
+        data: &'a mut [u8],
+    ) -> AccountInfo<'a> {
+        AccountInfo::new(
+            key,
+            is_signer,
+            is_writable,
+            lamports,
+            data,
+            &solana_program::bpf_loader::ID,
+            true,
             Epoch::default(),
         )
     }
@@ -3740,10 +5486,12 @@ mod tests {
         let signer = Pubkey::new_unique();
 
         // Derive correct PDAs using the authoritative seeds + sentinel (now required for robust preflight pass)
-        let (vault_asset_record, _asset_bump) = vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
+        let (vault_asset_record, _asset_bump) =
+            vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
         let (sol_vault_holding_key, _vault_bump) = sol_vault_pda(&program_id, &pool_state);
         let test_nullifier = [11u8; 32];
-        let nullifier_marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &test_nullifier);
+        let nullifier_marker_key =
+            nullifier_marker_pubkey(&program_id, &pool_state, &test_nullifier);
 
         let mut pool_lamports = 1_000_000u64;
         let mut tree_lamports = 1_000_000u64;
@@ -3773,15 +5521,78 @@ mod tests {
         let mut signer_data: Vec<u8> = vec![0; 0];
         let mut marker_data: Vec<u8> = vec![0; NULLIFIER_MARKER_LEN];
 
-        let pool = account_info(&pool_state, &program_id, true, false, &mut pool_lamports, &mut pool_data);
-        let tree = account_info(&tree_state, &program_id, true, false, &mut tree_lamports, &mut tree_data);
-        let null = account_info(&nullifier_set, &program_id, false, false, &mut null_lamports, &mut null_data);
-        let asset_rec = account_info(&vault_asset_record, &program_id, false, false, &mut asset_rec_lamports, &mut asset_rec_data);
-        let vault = account_info(&sol_vault_holding_key, &program_id, true, false, &mut vault_lamports, &mut vault_data);
-        let dest = account_info(&destination, &system_program::ID, true, false, &mut dest_lamports, &mut dest_data);
-        let cpi = account_info(&system_program_id, &system_program_id, false, false, &mut cpi_lamports, &mut cpi_data);
-        let sig = account_info(&signer, &system_program::ID, true, true, &mut signer_lamports, &mut signer_data); // writable for marker rent
-        let marker = account_info(&nullifier_marker_key, &program_id, true, false, &mut marker_lamports, &mut marker_data);
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            true,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
+        let tree = account_info(
+            &tree_state,
+            &program_id,
+            true,
+            false,
+            &mut tree_lamports,
+            &mut tree_data,
+        );
+        let null = account_info(
+            &nullifier_set,
+            &program_id,
+            false,
+            false,
+            &mut null_lamports,
+            &mut null_data,
+        );
+        let asset_rec = account_info(
+            &vault_asset_record,
+            &program_id,
+            false,
+            false,
+            &mut asset_rec_lamports,
+            &mut asset_rec_data,
+        );
+        let vault = account_info(
+            &sol_vault_holding_key,
+            &program_id,
+            true,
+            false,
+            &mut vault_lamports,
+            &mut vault_data,
+        );
+        let dest = account_info(
+            &destination,
+            &system_program::ID,
+            true,
+            false,
+            &mut dest_lamports,
+            &mut dest_data,
+        );
+        let cpi = account_info(
+            &system_program_id,
+            &system_program_id,
+            false,
+            false,
+            &mut cpi_lamports,
+            &mut cpi_data,
+        );
+        let sig = account_info(
+            &signer,
+            &system_program::ID,
+            true,
+            true,
+            &mut signer_lamports,
+            &mut signer_data,
+        ); // writable for marker rent
+        let marker = account_info(
+            &nullifier_marker_key,
+            &program_id,
+            true,
+            false,
+            &mut marker_lamports,
+            &mut marker_data,
+        );
 
         let accounts = vec![pool, tree, null, asset_rec, vault, dest, cpi, sig, marker];
 
@@ -3792,7 +5603,7 @@ mod tests {
         unshield_data.extend_from_slice(&NATIVE_SOL_ASSET_ID_SENTINEL); // exit_asset_id = sentinel
         unshield_data.extend_from_slice(&1u64.to_le_bytes());
         unshield_data.extend_from_slice(&[9u8; 32]); // public_inputs_hash
-        // no proof bytes
+                                                     // no proof bytes
 
         // In test mode: full path now succeeds (CPI + nullifier consumed + event emitted with real values)
         let result = process_instruction(&program_id, &accounts, &unshield_data);
@@ -3818,7 +5629,8 @@ mod tests {
             let (vault_asset_record, _) =
                 vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
             let (sol_vault_holding_key, _) = sol_vault_pda(&program_id, &pool_state);
-            let nullifier_marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &nullifier);
+            let nullifier_marker_key =
+                nullifier_marker_pubkey(&program_id, &pool_state, &nullifier);
 
             let mut pool_lamports = 1_000_000u64;
             let mut tree_lamports = 1_000_000u64;
@@ -3845,15 +5657,78 @@ mod tests {
             let mut signer_data: Vec<u8> = vec![0; 0];
             let mut marker_data: Vec<u8> = vec![0; NULLIFIER_MARKER_LEN];
 
-            let pool = account_info(&pool_state, &program_id, true, false, &mut pool_lamports, &mut pool_data);
-            let tree = account_info(&tree_state, &program_id, true, false, &mut tree_lamports, &mut tree_data);
-            let nulls = account_info(&nullifier_set, &program_id, false, false, &mut null_lamports, &mut null_data);
-            let asset = account_info(&vault_asset_record, &program_id, false, false, &mut asset_rec_lamports, &mut asset_rec_data);
-            let vault = account_info(&sol_vault_holding_key, &program_id, true, false, &mut vault_lamports, &mut vault_data);
-            let dest = account_info(&destination, &system_program::ID, true, false, &mut dest_lamports, &mut dest_data);
-            let cpi = account_info(&system_program_id, &system_program_id, false, false, &mut cpi_lamports, &mut cpi_data);
-            let sig = account_info(&signer, &system_program::ID, true, true, &mut signer_lamports, &mut signer_data);
-            let marker = account_info(&nullifier_marker_key, &program_id, true, false, &mut marker_lamports, &mut marker_data);
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                true,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let tree = account_info(
+                &tree_state,
+                &program_id,
+                true,
+                false,
+                &mut tree_lamports,
+                &mut tree_data,
+            );
+            let nulls = account_info(
+                &nullifier_set,
+                &program_id,
+                false,
+                false,
+                &mut null_lamports,
+                &mut null_data,
+            );
+            let asset = account_info(
+                &vault_asset_record,
+                &program_id,
+                false,
+                false,
+                &mut asset_rec_lamports,
+                &mut asset_rec_data,
+            );
+            let vault = account_info(
+                &sol_vault_holding_key,
+                &program_id,
+                true,
+                false,
+                &mut vault_lamports,
+                &mut vault_data,
+            );
+            let dest = account_info(
+                &destination,
+                &system_program::ID,
+                true,
+                false,
+                &mut dest_lamports,
+                &mut dest_data,
+            );
+            let cpi = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut cpi_lamports,
+                &mut cpi_data,
+            );
+            let sig = account_info(
+                &signer,
+                &system_program::ID,
+                true,
+                true,
+                &mut signer_lamports,
+                &mut signer_data,
+            );
+            let marker = account_info(
+                &nullifier_marker_key,
+                &program_id,
+                true,
+                false,
+                &mut marker_lamports,
+                &mut marker_data,
+            );
             let accounts = vec![pool, tree, nulls, asset, vault, dest, cpi, sig, marker];
 
             let mut data = vec![TAG_UNSHIELD];
@@ -3902,41 +5777,122 @@ mod tests {
         let test_nullifier = [6u8; 32];
         let marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &test_nullifier);
 
-        let mut pool_lamports = 1_000_000u64; let mut pool_data = vec![0u8; POOL_STATE_LEN]; pool_data[..8].copy_from_slice(POOL_MAGIC); pool_data[8] = VERSION;
-        let mut tree_lamports = 1u64; let mut tree_d = vec![0u8; 32];
-        let mut null_lamports = 1u64; let mut null_d = vec![0u8; 32];
-        let mut asset_rec_lamports = 1u64; let mut asset_d = vec![0u8; VAULT_ASSET_ACCOUNT_LEN];
+        let mut pool_lamports = 1_000_000u64;
+        let mut pool_data = vec![0u8; POOL_STATE_LEN];
+        pool_data[..8].copy_from_slice(POOL_MAGIC);
+        pool_data[8] = VERSION;
+        let mut tree_lamports = 1u64;
+        let mut tree_d = vec![0u8; 32];
+        let mut null_lamports = 1u64;
+        let mut null_d = vec![0u8; 32];
+        let mut asset_rec_lamports = 1u64;
+        let mut asset_d = vec![0u8; VAULT_ASSET_ACCOUNT_LEN];
         asset_d[..8].copy_from_slice(VAULT_ASSET_MAGIC);
         asset_d[8] = VERSION;
         write_count(&mut asset_d, 1).unwrap();
-        asset_d[VAULT_ASSET_POOL_OFFSET..VAULT_ASSET_POOL_OFFSET + HASH_LEN].copy_from_slice(pool_state.as_ref());
-        asset_d[VAULT_ASSET_EXIT_ASSET_ID_OFFSET..VAULT_ASSET_EXIT_ASSET_ID_OFFSET + HASH_LEN].copy_from_slice(&bad_asset_id);
+        asset_d[VAULT_ASSET_POOL_OFFSET..VAULT_ASSET_POOL_OFFSET + HASH_LEN]
+            .copy_from_slice(pool_state.as_ref());
+        asset_d[VAULT_ASSET_EXIT_ASSET_ID_OFFSET..VAULT_ASSET_EXIT_ASSET_ID_OFFSET + HASH_LEN]
+            .copy_from_slice(&bad_asset_id);
         asset_d[VAULT_ASSET_KIND_OFFSET] = VAULT_ASSET_KIND_SOL;
         asset_d[VAULT_ASSET_RELEASE_ENABLED_OFFSET] = 0;
-        let mut vault_lamports = 1u64; let mut vault_d = vec![0u8; 32];
-        let mut dest_lamports = 1u64; let mut dest_d = vec![0u8; 32];
-        let mut cpi_lamports = 1u64; let mut cpi_d = vec![0u8; 32];
-        let mut signer_lamports = 1u64; let mut sig_d = vec![0u8; 32];
-        let mut marker_lamports = 1u64; let mut marker_d = vec![0u8; 32];
+        let mut vault_lamports = 1u64;
+        let mut vault_d = vec![0u8; 32];
+        let mut dest_lamports = 1u64;
+        let mut dest_d = vec![0u8; 32];
+        let mut cpi_lamports = 1u64;
+        let mut cpi_d = vec![0u8; 32];
+        let mut signer_lamports = 1u64;
+        let mut sig_d = vec![0u8; 32];
+        let mut marker_lamports = 1u64;
+        let mut marker_d = vec![0u8; 32];
 
-        let pool = account_info(&pool_state, &program_id, true, false, &mut pool_lamports, &mut pool_data);
-        let tree = account_info(&tree_state, &program_id, true, false, &mut tree_lamports, &mut tree_d);
-        let nulls = account_info(&nullifier_set, &program_id, false, false, &mut null_lamports, &mut null_d);
-        let asset = account_info(&asset_rec_key, &program_id, false, false, &mut asset_rec_lamports, &mut asset_d);
-        let vault = account_info(&sol_vault_key, &program_id, true, false, &mut vault_lamports, &mut vault_d);
-        let dest = account_info(&destination, &system_program::ID, true, false, &mut dest_lamports, &mut dest_d);
-        let cpi = account_info(&system_program_id, &system_program::ID, false, false, &mut cpi_lamports, &mut cpi_d);
-        let sig = account_info(&signer, &system_program::ID, true, true, &mut signer_lamports, &mut sig_d);
-        let marker = account_info(&marker_key, &system_program::ID, true, false, &mut marker_lamports, &mut marker_d);
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            true,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
+        let tree = account_info(
+            &tree_state,
+            &program_id,
+            true,
+            false,
+            &mut tree_lamports,
+            &mut tree_d,
+        );
+        let nulls = account_info(
+            &nullifier_set,
+            &program_id,
+            false,
+            false,
+            &mut null_lamports,
+            &mut null_d,
+        );
+        let asset = account_info(
+            &asset_rec_key,
+            &program_id,
+            false,
+            false,
+            &mut asset_rec_lamports,
+            &mut asset_d,
+        );
+        let vault = account_info(
+            &sol_vault_key,
+            &program_id,
+            true,
+            false,
+            &mut vault_lamports,
+            &mut vault_d,
+        );
+        let dest = account_info(
+            &destination,
+            &system_program::ID,
+            true,
+            false,
+            &mut dest_lamports,
+            &mut dest_d,
+        );
+        let cpi = account_info(
+            &system_program_id,
+            &system_program::ID,
+            false,
+            false,
+            &mut cpi_lamports,
+            &mut cpi_d,
+        );
+        let sig = account_info(
+            &signer,
+            &system_program::ID,
+            true,
+            true,
+            &mut signer_lamports,
+            &mut sig_d,
+        );
+        let marker = account_info(
+            &marker_key,
+            &system_program::ID,
+            true,
+            false,
+            &mut marker_lamports,
+            &mut marker_d,
+        );
         let accounts = vec![pool, tree, nulls, asset, vault, dest, cpi, sig, marker];
 
         let mut data = vec![TAG_UNSHIELD];
-        data.extend_from_slice(&test_nullifier); data.extend_from_slice(&[1u8;32]);
+        data.extend_from_slice(&test_nullifier);
+        data.extend_from_slice(&[1u8; 32]);
         data.extend_from_slice(&bad_asset_id); // NOT the sentinel -> mismatch after kind extracted
-        data.extend_from_slice(&1u64.to_le_bytes()); data.extend_from_slice(&[9u8;32]);
+        data.extend_from_slice(&1u64.to_le_bytes());
+        data.extend_from_slice(&[9u8; 32]);
 
         let res = process_instruction(&program_id, &accounts, &data);
-        assert_eq!(res, Err(ProgramError::Custom(ERR_SENTINEL_ASSET_ID_MISMATCH)));
+        assert_eq!(
+            res,
+            Err(ProgramError::Custom(ERR_SENTINEL_ASSET_ID_MISMATCH))
+        );
     }
 
     #[test]
@@ -3947,7 +5903,8 @@ mod tests {
         let pool_state = Pubkey::new_unique();
         let tree_state = Pubkey::new_unique();
         let nullifier_set = Pubkey::new_unique();
-        let (asset_rec_key, _) = vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
+        let (asset_rec_key, _) =
+            vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
         let wrong_vault_key = Pubkey::new_unique(); // not the derived one
         let destination = Pubkey::new_unique();
         let system_program_id = system_program::ID;
@@ -3965,31 +5922,111 @@ mod tests {
         let mut signer_lamports = 1_000_000u64;
         let mut marker_lamports = 1_000_000u64;
 
-        let mut pool_data = vec![0u8; POOL_STATE_LEN]; pool_data[..8].copy_from_slice(POOL_MAGIC); pool_data[8] = VERSION;
+        let mut pool_data = vec![0u8; POOL_STATE_LEN];
+        pool_data[..8].copy_from_slice(POOL_MAGIC);
+        pool_data[8] = VERSION;
         let mut tree_data = vec![0u8; 32];
         let mut null_data = vec![0u8; 32];
-        let mut asset_d = vec![0u8; 32]; asset_d[..8].copy_from_slice(b"VNTA2AST"); asset_d[8]=VERSION; asset_d[9]=VAULT_ASSET_KIND_SOL;
+        let mut asset_d = vec![0u8; 32];
+        asset_d[..8].copy_from_slice(b"VNTA2AST");
+        asset_d[8] = VERSION;
+        asset_d[9] = VAULT_ASSET_KIND_SOL;
         let mut vault_d = vec![0u8; 32];
         let mut dest_d = vec![0u8; 32];
         let mut cpi_d = vec![0u8; 32];
         let mut signer_d = vec![0u8; 32];
         let mut marker_d = vec![0u8; 32];
 
-        let pool = account_info(&pool_state, &program_id, true, false, &mut pool_lamports, &mut pool_data);
-        let tree = account_info(&tree_state, &program_id, true, false, &mut tree_lamports, &mut tree_data);
-        let nulls = account_info(&nullifier_set, &program_id, false, false, &mut null_lamports, &mut null_data);
-        let asset = account_info(&asset_rec_key, &program_id, false, false, &mut asset_rec_lamports, &mut asset_d);
-        let wrong_vault = account_info(&wrong_vault_key, &program_id, true, false, &mut vault_lamports, &mut vault_d);
-        let dest = account_info(&destination, &system_program::ID, true, false, &mut dest_lamports, &mut dest_d);
-        let cpi = account_info(&system_program_id, &system_program_id, false, false, &mut cpi_lamports, &mut cpi_d);
-        let sig = account_info(&signer, &system_program::ID, true, true, &mut signer_lamports, &mut signer_d);
-        let marker = account_info(&marker_key, &system_program::ID, true, false, &mut marker_lamports, &mut marker_d);
-        let accounts = vec![pool, tree, nulls, asset, wrong_vault, dest, cpi, sig, marker];
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            true,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
+        let tree = account_info(
+            &tree_state,
+            &program_id,
+            true,
+            false,
+            &mut tree_lamports,
+            &mut tree_data,
+        );
+        let nulls = account_info(
+            &nullifier_set,
+            &program_id,
+            false,
+            false,
+            &mut null_lamports,
+            &mut null_data,
+        );
+        let asset = account_info(
+            &asset_rec_key,
+            &program_id,
+            false,
+            false,
+            &mut asset_rec_lamports,
+            &mut asset_d,
+        );
+        let wrong_vault = account_info(
+            &wrong_vault_key,
+            &program_id,
+            true,
+            false,
+            &mut vault_lamports,
+            &mut vault_d,
+        );
+        let dest = account_info(
+            &destination,
+            &system_program::ID,
+            true,
+            false,
+            &mut dest_lamports,
+            &mut dest_d,
+        );
+        let cpi = account_info(
+            &system_program_id,
+            &system_program_id,
+            false,
+            false,
+            &mut cpi_lamports,
+            &mut cpi_d,
+        );
+        let sig = account_info(
+            &signer,
+            &system_program::ID,
+            true,
+            true,
+            &mut signer_lamports,
+            &mut signer_d,
+        );
+        let marker = account_info(
+            &marker_key,
+            &system_program::ID,
+            true,
+            false,
+            &mut marker_lamports,
+            &mut marker_d,
+        );
+        let accounts = vec![
+            pool,
+            tree,
+            nulls,
+            asset,
+            wrong_vault,
+            dest,
+            cpi,
+            sig,
+            marker,
+        ];
 
         let mut data = vec![TAG_UNSHIELD];
-        data.extend_from_slice(&test_nullifier); data.extend_from_slice(&[1u8;32]);
+        data.extend_from_slice(&test_nullifier);
+        data.extend_from_slice(&[1u8; 32]);
         data.extend_from_slice(&NATIVE_SOL_ASSET_ID_SENTINEL);
-        data.extend_from_slice(&1u64.to_le_bytes()); data.extend_from_slice(&[9u8;32]);
+        data.extend_from_slice(&1u64.to_le_bytes());
+        data.extend_from_slice(&[9u8; 32]);
 
         let res = process_instruction(&program_id, &accounts, &data);
         assert_eq!(res, Err(ProgramError::Custom(ERR_VAULT_PDA_MISMATCH)));
@@ -4001,40 +6038,120 @@ mod tests {
         // Tests wrong kind fail case (robust sentinel bypass only triggers for uninit/magic-missing in prep).
         let program_id = Pubkey::new_unique();
         let pool_state = Pubkey::new_unique();
-        let mut pool_lamports = 1_000_000u64; let mut pool_data = vec![0u8; POOL_STATE_LEN]; pool_data[..8].copy_from_slice(POOL_MAGIC); pool_data[8] = VERSION;
-        let pool = account_info(&pool_state, &program_id, true, false, &mut pool_lamports, &mut pool_data);
+        let mut pool_lamports = 1_000_000u64;
+        let mut pool_data = vec![0u8; POOL_STATE_LEN];
+        pool_data[..8].copy_from_slice(POOL_MAGIC);
+        pool_data[8] = VERSION;
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            true,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
 
-        let (asset_rec_key, _) = vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
+        let (asset_rec_key, _) =
+            vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
         let (sol_vault_key, _) = sol_vault_pda(&program_id, &pool_state);
         let test_nullifier = [8u8; 32];
         let marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &test_nullifier);
 
-        let mut tree_l = 1u64; let mut tree_d = vec![0u8; 32];
-        let mut null_l = 1u64; let mut null_d = vec![0u8; 32];
-        let mut asset_rec_l = 1u64; let mut asset_d = vec![0u8; 32]; asset_d[..8].copy_from_slice(b"VNTA2AST"); asset_d[8]=VERSION; asset_d[9]=99u8;
-        let mut vault_l = 1u64; let mut vault_d = vec![0u8; 32];
-        let mut dest_l = 1u64; let mut dest_d = vec![0u8; 32];
-        let mut cpi_l = 1u64; let mut cpi_d = vec![0u8; 32];
-        let mut sig_l = 1u64; let mut sig_d = vec![0u8; 32];
-        let mut marker_l = 1u64; let mut marker_d = vec![0u8; 32];
+        let mut tree_l = 1u64;
+        let mut tree_d = vec![0u8; 32];
+        let mut null_l = 1u64;
+        let mut null_d = vec![0u8; 32];
+        let mut asset_rec_l = 1u64;
+        let mut asset_d = vec![0u8; 32];
+        asset_d[..8].copy_from_slice(b"VNTA2AST");
+        asset_d[8] = VERSION;
+        asset_d[9] = 99u8;
+        let mut vault_l = 1u64;
+        let mut vault_d = vec![0u8; 32];
+        let mut dest_l = 1u64;
+        let mut dest_d = vec![0u8; 32];
+        let mut cpi_l = 1u64;
+        let mut cpi_d = vec![0u8; 32];
+        let mut sig_l = 1u64;
+        let mut sig_d = vec![0u8; 32];
+        let mut marker_l = 1u64;
+        let mut marker_d = vec![0u8; 32];
         let tree_state = Pubkey::new_unique();
         let nullifier_set = Pubkey::new_unique();
         let destination = Pubkey::new_unique();
         let signer = Pubkey::new_unique();
-        let tree = account_info(&tree_state, &program_id, true, false, &mut tree_l, &mut tree_d);
-        let nulls = account_info(&nullifier_set, &program_id, false, false, &mut null_l, &mut null_d);
-        let asset = account_info(&asset_rec_key, &program_id, false, false, &mut asset_rec_l, &mut asset_d);
-        let vault = account_info(&sol_vault_key, &program_id, true, false, &mut vault_l, &mut vault_d);
-        let dest = account_info(&destination, &system_program::ID, true, false, &mut dest_l, &mut dest_d);
-        let cpi = account_info(&system_program::ID, &system_program::ID, false, false, &mut cpi_l, &mut cpi_d);
-        let sig = account_info(&signer, &system_program::ID, true, true, &mut sig_l, &mut sig_d);
-        let marker = account_info(&marker_key, &system_program::ID, true, false, &mut marker_l, &mut marker_d);
+        let tree = account_info(
+            &tree_state,
+            &program_id,
+            true,
+            false,
+            &mut tree_l,
+            &mut tree_d,
+        );
+        let nulls = account_info(
+            &nullifier_set,
+            &program_id,
+            false,
+            false,
+            &mut null_l,
+            &mut null_d,
+        );
+        let asset = account_info(
+            &asset_rec_key,
+            &program_id,
+            false,
+            false,
+            &mut asset_rec_l,
+            &mut asset_d,
+        );
+        let vault = account_info(
+            &sol_vault_key,
+            &program_id,
+            true,
+            false,
+            &mut vault_l,
+            &mut vault_d,
+        );
+        let dest = account_info(
+            &destination,
+            &system_program::ID,
+            true,
+            false,
+            &mut dest_l,
+            &mut dest_d,
+        );
+        let cpi = account_info(
+            &system_program::ID,
+            &system_program::ID,
+            false,
+            false,
+            &mut cpi_l,
+            &mut cpi_d,
+        );
+        let sig = account_info(
+            &signer,
+            &system_program::ID,
+            true,
+            true,
+            &mut sig_l,
+            &mut sig_d,
+        );
+        let marker = account_info(
+            &marker_key,
+            &system_program::ID,
+            true,
+            false,
+            &mut marker_l,
+            &mut marker_d,
+        );
         let accounts = vec![pool, tree, nulls, asset, vault, dest, cpi, sig, marker];
 
         let mut data = vec![TAG_UNSHIELD];
-        data.extend_from_slice(&test_nullifier); data.extend_from_slice(&[1u8;32]);
+        data.extend_from_slice(&test_nullifier);
+        data.extend_from_slice(&[1u8; 32]);
         data.extend_from_slice(&NATIVE_SOL_ASSET_ID_SENTINEL);
-        data.extend_from_slice(&1u64.to_le_bytes()); data.extend_from_slice(&[9u8;32]);
+        data.extend_from_slice(&1u64.to_le_bytes());
+        data.extend_from_slice(&[9u8; 32]);
 
         let res = process_instruction(&program_id, &accounts, &data);
         assert_eq!(res, Err(ProgramError::Custom(ERR_INVALID_ASSET_KIND)));
@@ -4054,10 +6171,12 @@ mod tests {
         let signer = Pubkey::new_unique();
 
         // Authoritative derivations
-        let (vault_asset_record, _) = vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
+        let (vault_asset_record, _) =
+            vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
         let (sol_vault_holding_key, _) = sol_vault_pda(&program_id, &pool_state);
         let test_nullifier = [42u8; 32];
-        let nullifier_marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &test_nullifier);
+        let nullifier_marker_key =
+            nullifier_marker_pubkey(&program_id, &pool_state, &test_nullifier);
 
         let mut pool_lamports = 1_000_000u64;
         let mut tree_lamports = 1_000_000u64;
@@ -4086,15 +6205,78 @@ mod tests {
         let mut signer_data: Vec<u8> = vec![0; 0];
         let mut marker_data: Vec<u8> = vec![0; NULLIFIER_MARKER_LEN];
 
-        let pool = account_info(&pool_state, &program_id, true, false, &mut pool_lamports, &mut pool_data);
-        let tree = account_info(&tree_state, &program_id, true, false, &mut tree_lamports, &mut tree_data);
-        let null = account_info(&nullifier_set, &program_id, false, false, &mut null_lamports, &mut null_data);
-        let asset_rec = account_info(&vault_asset_record, &program_id, false, false, &mut asset_rec_lamports, &mut asset_rec_data);
-        let vault = account_info(&sol_vault_holding_key, &program_id, true, false, &mut vault_lamports, &mut vault_data);
-        let dest = account_info(&destination, &system_program::ID, true, false, &mut dest_lamports, &mut dest_data);
-        let cpi = account_info(&system_program_id, &system_program_id, false, false, &mut cpi_lamports, &mut cpi_data);
-        let sig = account_info(&signer, &system_program::ID, true, true, &mut signer_lamports, &mut signer_data);
-        let marker = account_info(&nullifier_marker_key, &program_id, true, false, &mut marker_lamports, &mut marker_data);
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            true,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
+        let tree = account_info(
+            &tree_state,
+            &program_id,
+            true,
+            false,
+            &mut tree_lamports,
+            &mut tree_data,
+        );
+        let null = account_info(
+            &nullifier_set,
+            &program_id,
+            false,
+            false,
+            &mut null_lamports,
+            &mut null_data,
+        );
+        let asset_rec = account_info(
+            &vault_asset_record,
+            &program_id,
+            false,
+            false,
+            &mut asset_rec_lamports,
+            &mut asset_rec_data,
+        );
+        let vault = account_info(
+            &sol_vault_holding_key,
+            &program_id,
+            true,
+            false,
+            &mut vault_lamports,
+            &mut vault_data,
+        );
+        let dest = account_info(
+            &destination,
+            &system_program::ID,
+            true,
+            false,
+            &mut dest_lamports,
+            &mut dest_data,
+        );
+        let cpi = account_info(
+            &system_program_id,
+            &system_program_id,
+            false,
+            false,
+            &mut cpi_lamports,
+            &mut cpi_data,
+        );
+        let sig = account_info(
+            &signer,
+            &system_program::ID,
+            true,
+            true,
+            &mut signer_lamports,
+            &mut signer_data,
+        );
+        let marker = account_info(
+            &nullifier_marker_key,
+            &program_id,
+            true,
+            false,
+            &mut marker_lamports,
+            &mut marker_data,
+        );
 
         let accounts = vec![pool, tree, null, asset_rec, vault, dest, cpi, sig, marker];
 
@@ -4124,15 +6306,24 @@ mod tests {
 
         let (sol_vault, bump) = sol_vault_pda(&program_id, &pool_state);
         let (expected_manual, manual_bump) = Pubkey::find_program_address(
-            &[SOL_VAULT_SEED, pool_state.as_ref(), &NATIVE_SOL_ASSET_ID_SENTINEL],
+            &[
+                SOL_VAULT_SEED,
+                pool_state.as_ref(),
+                &NATIVE_SOL_ASSET_ID_SENTINEL,
+            ],
             &program_id,
         );
         assert_eq!(sol_vault, expected_manual);
         assert_eq!(bump, manual_bump);
 
-        let (asset_rec, _b) = vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
+        let (asset_rec, _b) =
+            vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
         let (expected_asset, _) = Pubkey::find_program_address(
-            &[ASSET_RECORD_SEED, pool_state.as_ref(), &NATIVE_SOL_ASSET_ID_SENTINEL],
+            &[
+                ASSET_RECORD_SEED,
+                pool_state.as_ref(),
+                &NATIVE_SOL_ASSET_ID_SENTINEL,
+            ],
             &program_id,
         );
         assert_eq!(asset_rec, expected_asset);

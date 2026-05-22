@@ -65,6 +65,8 @@ for (const marker of [
   "const ROOT_RECORD_SEED",
   "const SPEND_PAYLOAD_LEN: usize = 1 + HASH_LEN * 5;",
   "const PROVENANCED_ROOT_PAYLOAD_LEN",
+  "const SPEND_WITH_PROOF_GNARK_PROOF_LEN: usize = 324;",
+  "const SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN: usize = 44;",
   "const SPEND_WITH_PROOF_PAYLOAD_LEN",
   "const ERR_PROOF_VERIFIER_NOT_WIRED: u32 = 14;",
   "const ERR_OUTPUT_QUEUE_FULL: u32 = 3;",
@@ -73,6 +75,13 @@ for (const marker of [
   "fn process_register_root",
   "fn process_register_provenanced_root",
   "fn process_spend_with_proof",
+  "fn preflight_spend_with_proof",
+  "fn verify_spend_with_proof_adapter",
+  "fn spend_with_proof_verifier_cpi_instruction",
+  "fn require_spend_with_proof_verifier_program",
+  "fn require_spend_with_proof_public_witness_binding",
+  "fn commit_verified_spend_from_spend_with_proof_accounts",
+  "fn commit_verified_spend",
   "fn require_previous_root_matches_history",
   "fn require_root_record",
   "fn ensure_root_record",
@@ -82,6 +91,19 @@ for (const marker of [
   "require_root_record(program_id, pool_state, root_record, accepted_root)?;",
   "ensure_nullifier_marker(",
   "proof_carrying_spend_preflights_accounts_before_fail_closed_verifier",
+  "proof_carrying_spend_default_adapter_rejects_before_commit",
+  "verified_spend_commit_mutates_only_after_adapter_acceptance",
+  "proof_carrying_spend_verifier_instruction_data_matches_gnark_tuple",
+  "proof_carrying_spend_verifier_cpi_instruction_matches_generated_solana_verifier_shape",
+  "proof_carrying_spend_requires_readonly_executable_verifier_program_account",
+  "proof_carrying_spend_public_witness_binding_rejects_wrong_hash_before_not_wired",
+  "proof_carrying_spend_public_witness_binding_rejects_bad_header_before_not_wired",
+  "proof_carrying_spend_commit_capable_account_list_mutates_after_fixture_adapter_acceptance",
+  "proof_carrying_spend_rejects_legacy_256_byte_payload_shape",
+  "selected_gnark_fixture_adapter_valid_proof_mutates_state",
+  "selected_gnark_fixture_adapter_invalid_proof_no_mutation",
+  "selected_gnark_fixture_adapter_wrong_public_input_no_mutation",
+  "selected_gnark_fixture_adapter_wrong_verifying_key_no_mutation",
   "proof_carrying_spend_rejects_duplicate_nullifier_before_fail_closed_verifier",
   "Err(ProgramError::Custom(ERR_OUTPUT_QUEUE_FULL))",
   "Err(ProgramError::Custom(ERR_DUPLICATE_NULLIFIER))",
@@ -89,9 +111,9 @@ for (const marker of [
   includes(program, marker, programPath);
 }
 
-const spendWithProofStart = program.indexOf("fn process_spend_with_proof");
-const spendWithProofEnd = program.indexOf("fn process_register_verifier_key", spendWithProofStart);
-assert(spendWithProofStart >= 0 && spendWithProofEnd > spendWithProofStart, "missing tag 3 spend-with-proof section");
+const spendWithProofStart = program.indexOf("fn preflight_spend_with_proof");
+const spendWithProofEnd = program.indexOf("fn verify_spend_with_proof_adapter", spendWithProofStart);
+assert(spendWithProofStart >= 0 && spendWithProofEnd > spendWithProofStart, "missing tag 3 spend-with-proof preflight section");
 const spendWithProofSection = program.slice(spendWithProofStart, spendWithProofEnd);
 for (const marker of [
   "if output_count == u32::MAX as usize",
@@ -99,8 +121,9 @@ for (const marker of [
   "require_nullifier_marker_available",
   "require_output_record_available",
   "require_verifier_key_hash",
+  "require_spend_with_proof_verifier_program",
 ]) {
-  includes(spendWithProofSection, marker, "tag 3 spend-with-proof capacity preflight");
+  includes(spendWithProofSection, marker, "tag 3 spend-with-proof preflight");
 }
 assert(
   spendWithProofSection.indexOf("ERR_OUTPUT_QUEUE_FULL") <
@@ -121,7 +144,12 @@ for (const marker of [
   "root_record",
   "nullifier_marker",
   "proof-carrying spend (reserved, fail closed)",
+  "verifier instruction-data tuple",
+  "commit-capable tag-3 account list",
+  "public witness against `publicInputHash`",
   "returns custom error `14`",
+  "npm run zk:c01-verifier-adapter-seam-check",
+  "local drift-prevention only",
   "full output-counter rejection with custom error `3`",
   "[\"vanta2vkey\", pool_state, verifierKeyHash]",
   "[\"vanta2root\", pool_state, acceptedRoot]",
@@ -134,7 +162,16 @@ for (const marker of [
   "no production verifying-key acceptance",
   "current 161-byte spend ABI carries no proof bytes",
   "returns custom error `14` before proof verification",
-  "proofCarryingSpendStatus: \"fail-closed-verifier-key-preflight-source-only\"",
+  "local fail-closed verifier adapter seam harness",
+  "dedicated read-only executable verifier-program account",
+  "generated Solana verifier CPI instruction",
+  "on-chain-only verifier CPI hook",
+  "host-side Solana syscall stubs remain fail-closed",
+  "not verifier-adapter acceptance",
+  "proofCarryingSpendStatus: \"sbf-verifier-cpi-hook-host-fail-closed-production-blocked\"",
+  "verifierKeyAccountLen: 112",
+  "registerVerifierKeyInstructionLen: 65",
+  "spendWithProofAccountCount: 11",
   "TAG_REGISTER_PROVENANCED_ROOT = 4",
   "program-owned root provenance record",
   "not proof that the root transition is correct",

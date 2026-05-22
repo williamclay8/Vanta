@@ -262,7 +262,10 @@ assertAllowedKeys(c01Refs, "C01 verifier compatibility refs", [
   "requiredBeforeH08Production",
   "truthBoundary",
 ]);
-assert(c01Refs.status === "blocked-c01-backend-unselected", "H08 C01 refs status must stay blocked");
+assert(
+  c01Refs.status === "blocked-c01-selected-backend-positive-evidence-absent",
+  "H08 C01 refs status must stay blocked until selected-backend positive evidence exists",
+);
 assert(
   c01Refs.decisionPacketRef === "docs/zk/c01-production-verifier-backend-decision.md",
   "H08 C01 refs must point at the decision packet",
@@ -275,8 +278,11 @@ assert(
   c01Refs.verifierCandidateRef === "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
   "H08 C01 refs must point at the verifier candidate packet",
 );
-assert(c01Refs.selectedBackend === null, "H08 C01 refs must keep selectedBackend null");
-assert(c01Refs.selectedBackendStatus === "not-selected", "H08 C01 refs backend status must be not-selected");
+assert(c01Refs.selectedBackend === "groth16-tag3-solana-v0", "H08 C01 refs must record selectedBackend");
+assert(
+  c01Refs.selectedBackendStatus === "selected-pending-production-evidence",
+  "H08 C01 refs backend status must be selected but evidence-blocked",
+);
 assert(c01Refs.c01VerifierReady === false, "H08 C01 refs must keep c01VerifierReady false");
 assert(
   c01Refs.solanaC01Groth16VerifierReady === false,
@@ -289,18 +295,18 @@ includes(
 );
 includes(
   c01Refs.truthBoundary,
-  "H08 cannot claim production prover compatibility while C01 selectedBackend is null",
+  "H08 cannot claim production prover compatibility until the selected C01 verifier backend accepts the same production proof format",
   "H08 C01 compatibility truth boundary",
 );
-assert(c01VerifierCandidate.selectedBackend === null, "C01 verifier candidate must keep selectedBackend null");
+assert(c01VerifierCandidate.selectedBackend === "groth16-tag3-solana-v0", "C01 verifier candidate must keep selectedBackend");
 assert(
-  c01VerifierCandidate.selectedBackendStatus === "not-selected",
-  "C01 verifier candidate must keep backend status not-selected",
+  c01VerifierCandidate.selectedBackendStatus === "selected-pending-production-evidence",
+  "C01 verifier candidate must keep backend selected but evidence-blocked",
 );
-assert(c01BackendOptions.selectedBackend === null, "C01 backend options must keep selectedBackend null");
+assert(c01BackendOptions.selectedBackend === "groth16-tag3-solana-v0", "C01 backend options must keep selectedBackend");
 assert(
-  c01BackendOptions.selectedBackendStatus === "not-selected",
-  "C01 backend options must keep backend status not-selected",
+  c01BackendOptions.selectedBackendStatus === "selected-pending-production-evidence",
+  "C01 backend options must keep backend selected but evidence-blocked",
 );
 
 const currentProductionArtifact = packet.currentProductionProverArtifact ?? {};

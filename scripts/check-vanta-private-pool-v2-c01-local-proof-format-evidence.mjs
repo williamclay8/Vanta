@@ -169,7 +169,10 @@ for (const [field, expected] of [
   ["target", "solana-c01-tag3-groth16-v0"],
   ["circuit", "vanta_private_pool_v2_actual_private_spend_entry"],
   ["proofSystem", "groth16"],
-  ["proofByteLength", 256],
+  ["proofFormatId", "gnark-solana-native-proof-and-public-witness-v0"],
+  ["proofByteLength", 324],
+  ["publicWitnessByteLength", 44],
+  ["verifierInstructionDataByteLength", 368],
   ["publicInputLabel", "private-spend-public-input-hash"],
   ["verifyingKeyHashKind", "production-verifying-key-hash"],
   ["status", "mismatch-blocked"],
@@ -206,10 +209,10 @@ for (const [field, expected] of [
   );
 }
 
-assert(candidate.selectedBackend === null, "candidate packet must keep selectedBackend null");
+assert(candidate.selectedBackend === "groth16-tag3-solana-v0", "candidate packet must keep selectedBackend");
 assert(
-  candidate.selectedBackendStatus === "not-selected",
-  "candidate packet must keep backend status not-selected",
+  candidate.selectedBackendStatus === "selected-pending-production-evidence",
+  "candidate packet must keep backend selected but evidence-blocked",
 );
 for (const field of [
   "productionReady",
@@ -220,13 +223,27 @@ for (const field of [
 ]) {
   assert(candidate[field] === false, `candidate packet ${field} must stay false`);
 }
+const backendSelectionEvidence = candidate.requiredPositiveEvidence.find((entry) => entry.id === "backend-selection");
 assert(
-  candidate.requiredPositiveEvidence.every((entry) => entry.status === "blocked"),
-  "candidate packet required positive evidence must remain blocked",
+  backendSelectionEvidence?.status === "satisfied-local-selection",
+  "candidate packet must keep backend selection satisfied as local direction evidence",
 );
 assert(
-  candidate.requiredPositiveEvidence.every((entry) => entry.currentArtifactRef === null),
-  "candidate packet required positive evidence must not attach local proof-format refs",
+  backendSelectionEvidence?.currentArtifactRef === decisionPath,
+  "candidate packet backend selection must point at the decision packet",
+);
+assert(
+  backendSelectionEvidence?.truthBoundary?.includes("does not satisfy production proof-format"),
+  "candidate packet backend selection must preserve the production proof-format boundary",
+);
+const nonSelectionPositiveEvidence = candidate.requiredPositiveEvidence.filter((entry) => entry.id !== "backend-selection");
+assert(
+  nonSelectionPositiveEvidence.every((entry) => entry.status === "blocked"),
+  "candidate packet required non-selection positive evidence must remain blocked",
+);
+assert(
+  nonSelectionPositiveEvidence.every((entry) => entry.currentArtifactRef === null),
+  "candidate packet required non-selection positive evidence must not attach local proof-format refs",
 );
 const intermediateRef = candidate.intermediateEvidenceRefs?.find(
   (entry) => entry.id === "local-actual-private-spend-proof-format-observation",
@@ -248,10 +265,10 @@ for (const marker of [
   "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
   "noir-bb / barretenberg-ultrahonk",
   "16000-byte local proof",
-  "256-byte Groth16 tag-3 proof",
+  "324-byte proof plus 44-byte public witness",
   "local-acir-bytecode-hash-not-production-vk",
   "production-verifying-key-hash",
-  "not backend selection",
+  "not production proof-format acceptance",
   "not production proof-format acceptance",
 ]) {
   includes(decisionPacket, marker, decisionPath);

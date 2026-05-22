@@ -1,0 +1,235 @@
+{
+  "version": "vanta-private-pool-v2-c01-production-groth16-toolchain-preflight-evidence-0.1",
+  "checkedAt": "2026-05-20T00:00:00.000Z",
+  "status": "blocked-local-toolchain-no-groth16-scheme",
+  "backendOptionId": "groth16-tag3-solana-v0",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "selectedBackendStatus": "selected-pending-production-evidence",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "secretPolicy": "references-and-metadata-only-no-proof-bytes-no-verifying-key-bytes-no-witness-values",
+  "purpose": "Machine-readable preflight for the selected C01 Groth16 tag-3 production artifact lane. This packet records that the current local Noir/bb toolchain can compile and prove UltraHonk artifacts but cannot generate the required Groth16 proof-format or production verifying-key hash artifact.",
+  "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "backendOptionsRef": "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
+  "groth16ProofFormatCandidateRef": "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+  "productionVerifyingKeyCandidateRef": "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
+  "localProofFormatRef": "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
+  "sunspotGroth16RouteRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json",
+  "localSunspotGroth16DevProbeRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "requiredProductionArtifactShape": {
+    "target": "solana-c01-tag3-groth16-v0",
+    "tag": 3,
+    "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+    "proofSystem": "groth16",
+    "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+    "proofByteLength": 324,
+    "publicWitnessByteLength": 44,
+    "verifierInstructionDataByteLength": 368,
+    "generatedVerifierNrPubinputs": 1,
+    "generatedVerifierCommitmentKeys": 0,
+    "publicInputLabel": "private-spend-public-input-hash",
+    "verifyingKeyHashKind": "production-verifying-key-hash",
+    "currentProgramReservedProofByteLength": 324,
+    "currentProgramReservedPublicWitnessByteLength": 44,
+    "currentProgramReservedVerifierInputByteLength": 368,
+    "adapterBoundaryStatus": "spend-program-tag3-abi-reserves-selected-gnark-tuple-and-dedicated-verifier-cpi-account-fail-closed",
+    "status": "required-before-verifier-adapter-acceptance"
+  },
+  "observedToolchain": {
+    "nargo": {
+      "command": "nargo --version",
+      "version": "nargo version = 1.0.0-beta.19",
+      "source": "local-cli"
+    },
+    "bb": {
+      "command": "./node_modules/.bin/bb --version",
+      "version": "4.1.3",
+      "package": "@aztec/bb.js",
+      "packageVersion": "^4.1.3",
+      "schemeHelpCommand": "./node_modules/.bin/bb prove --help-extended",
+      "availableSchemes": [
+        "chonk",
+        "avm",
+        "ultra_honk"
+      ],
+      "missingRequiredScheme": "groth16",
+      "satisfiesGroth16ProductionArtifactGeneration": false
+    }
+  },
+  "sunspotCompatibility": {
+    "sourceRef": "https://github.com/reilabs/sunspot",
+    "sourceRequirement": "Sunspot README requires Noir 1.0.0-beta.18",
+    "requiredNoirVersion": "1.0.0-beta.18",
+    "requiredNargoVersion": "1.0.0-beta.18",
+    "observedNargoVersion": "1.0.0-beta.19",
+    "status": "blocked-local-nargo-version-mismatch-and-sunspot-missing",
+    "sunspotInstalled": false,
+    "gnarkVerifierBinConfigured": false,
+    "satisfiesProductionArtifactGeneration": false,
+    "truthBoundary": "The Sunspot route cannot produce reviewed production Groth16 proof/VK artifacts from this local toolchain until the required Noir/Nargo version, Sunspot binary, GNARK verifier binary, reviewed setup, artifact pinning, and reviewer acceptance are present."
+  },
+  "candidateProductionArtifactLane": {
+    "id": "sunspot-noir-acir-gnark-groth16-solana-v0",
+    "status": "blocked-sunspot-toolchain-not-installed-and-no-production-trusted-setup",
+    "purpose": "Candidate route for turning the current Noir ACIR artifact into a Groth16 proof-format and verifying-key artifact that can target Solana BN254/Groth16 verification. This identifies the next artifact lane only; it does not accept the lane for production.",
+    "sourceCircuit": {
+      "path": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry",
+      "compiledAcirRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json",
+      "compressedWitnessRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.gz",
+      "poseidonDependency": "noir-lang/poseidon#v0.1.1",
+      "publicInputLabel": "private-spend-public-input-hash"
+    },
+    "observedLocalTools": {
+      "go": {
+        "command": "go version",
+        "version": "go version go1.26.2 darwin/arm64",
+        "available": true
+      },
+      "sunspot": {
+        "command": "sunspot --help",
+        "available": false,
+        "expectedCommands": [
+          "compile",
+          "setup",
+          "prove",
+          "verify",
+          "deploy"
+        ]
+      },
+      "gnarkVerifierBinEnv": {
+        "name": "GNARK_VERIFIER_BIN",
+        "configured": false,
+        "value": null
+      }
+    },
+    "requiredArtifactFlow": [
+      "nargo compile",
+      "nargo execute",
+      "sunspot compile <actual-private-spend-acir-json>",
+      "sunspot setup <actual-private-spend-ccs>",
+      "sunspot prove <actual-private-spend-acir-json> <compressed-witness> <ccs> <proving-key>",
+      "sunspot verify <verifying-key> <proof> <public-witness>",
+      "sunspot deploy <verifying-key>"
+    ],
+    "unsafeDefaultSetupBoundary": {
+      "status": "blocked-no-production-ceremony-or-toxic-waste-mitigation",
+      "unsafeCommandShape": "sunspot setup <actual-private-spend-ccs>",
+      "truthBoundary": "A single-operator Groth16 setup is not production verifying-key evidence for Vanta. Production acceptance requires a reviewed ceremony or equivalent toxic-waste mitigation, artifact pinning, and reviewer acceptance."
+    },
+    "verifierAdapterTarget": {
+      "kind": "dedicated-solana-groth16-verifier-program-or-in-program-light-style-adapter",
+      "expectedProofSystem": "groth16",
+      "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+      "expectedProofByteLength": 324,
+      "expectedPublicWitnessByteLength": 44,
+      "expectedVerifierInstructionDataByteLength": 368,
+      "expectedVerifierSurface": "Solana altbn254 Groth16 verifier",
+      "expectedVerifierKeyHashKind": "production-verifying-key-hash",
+      "satisfiesVerifierAdapterEvidence": false
+    },
+    "productionAcceptanceRequires": [
+      "pinned and reviewed Sunspot/Gnark toolchain source or release",
+      "production trusted setup ceremony or equivalent toxic-waste mitigation for the exact actual-private-spend circuit",
+      "deterministic production Groth16 proof-format artifact with public witness separated from private witness values",
+      "production verifying-key artifact hash and tag-5 registry commitment for the exact selected backend",
+      "Solana verifier adapter or verifier CPI acceptance for the exact proof/VK/public-input tuple",
+      "valid-proof mutation test and invalid/wrong-public-input/wrong-verifying-key no-mutation tests",
+      "rebuilt SBF, redeploy/reinit/live lineage, and audit/reviewer acceptance"
+    ],
+    "satisfiesRequiredPositiveEvidence": {
+      "actualPrivateSpendProductionProofFormat": false,
+      "privateSpendPublicInputHashBinding": false,
+      "productionVerifyingKeyHash": false,
+      "verifierAdapter": false,
+      "acceptedProofMutatesStateTest": false,
+      "invalidProofLeavesAccountsUnchangedTest": false,
+      "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+      "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+      "sbfLiveLineage": false,
+      "auditReviewerAcceptance": false
+    },
+    "sourceRefs": [
+      "https://github.com/reilabs/sunspot",
+      "https://github.com/solana-foundation/noir-examples",
+      "https://github.com/Lightprotocol/groth16-solana",
+      "https://docs.rs/groth16-solana/latest/groth16_solana/"
+    ]
+  },
+  "currentLocalGenerationCapability": {
+    "script": "npm run private-pool-v2:actual-private-spend-prove",
+    "proofSystem": "noir-bb",
+    "backend": "barretenberg-ultrahonk",
+    "proofBackend": "local-bb-fixture-artifact-or-local-bb-derived-artifact",
+    "proofByteLength": 16000,
+    "proofFieldCount": 500,
+    "publicInputLabel": "private-spend-public-input-hash",
+    "verifyingKeyHashKind": "local-acir-bytecode-hash-not-production-vk",
+    "canGenerateRequiredGroth16ProofFormat": false,
+    "canGenerateProductionVerifyingKeyHash": false,
+    "status": "local-ultrahonk-only"
+  },
+  "missingProductionArtifacts": {
+    "groth16ProofFormatArtifactRef": null,
+    "productionVerifyingKeyHashArtifactRef": null,
+    "verifierAdapterAcceptanceArtifactRef": null,
+    "validProofMutationArtifactRef": null,
+    "invalidProofNoMutationArtifactRef": null,
+    "wrongPublicInputNoMutationArtifactRef": null,
+    "wrongVerifyingKeyNoMutationArtifactRef": null
+  },
+  "blockedBy": [
+    "local @aztec/bb.js 4.1.3 exposes chonk, avm, and ultra_honk schemes but no Groth16 scheme",
+    "Sunspot README requires Noir/Nargo 1.0.0-beta.18 but local nargo is 1.0.0-beta.19",
+    "candidate Sunspot/Gnark Groth16 artifact lane is identified but not installed locally and not production-accepted",
+    "no production trusted setup ceremony or toxic-waste mitigation exists for the exact actual-private-spend circuit",
+    "current local actual-private-spend proof generation is noir-bb / barretenberg-ultrahonk / 16000 bytes",
+    "no Groth16 production proof-format artifact exists for vanta_private_pool_v2_actual_private_spend_entry",
+    "no production verifying-key hash artifact exists for vanta_private_pool_v2_actual_private_spend_entry",
+    "host-side reserved tag 3 still returns ERR_PROOF_VERIFIER_NOT_WIRED before mutation while SBF has an unaccepted verifier CPI hook"
+  ],
+  "localDevProbeSummary": {
+    "status": "local-dev-probe-succeeded-nonproduction-unsafe-setup-and-beta18-source-shim",
+    "artifactRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
+    "routeFeasibilityLocalDevProbe": true,
+    "truthBoundary": "The Sunspot route can produce local non-production Groth16 proof/VK/Solana-verifier-shaped artifacts from a temporary beta18 source shim, and the generated standalone Solana verifier accepts the selected Gnark-native 324-byte proof plus 44-byte public witness in local LiteSVM. This still does not satisfy production proof-format, production VK, Vanta spend-program verifier-adapter, public-input binding, live lineage, or reviewer acceptance."
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "backendSelection": true,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "forbiddenPromotions": [
+    "solana-c01-groth16-verifier-ready",
+    "production-private",
+    "mainnet-private",
+    "proof-enforced-spend",
+    "on-chain proof verified",
+    "production verifier accepted"
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-sunspot-groth16-route-check",
+    "npm run zk:c01-sunspot-groth16-dev-probe-check",
+    "npm run zk:c01-production-groth16-toolchain-preflight-check",
+    "npm run zk:c01-groth16-proof-format-candidate-check",
+    "npm run zk:c01-production-verifying-key-candidate-check",
+    "npm run zk:c01-verifier-backend-options-check",
+    "npm run zk:c01-production-verifier-backend-candidate-check",
+    "npm run zk:c01-verifier-backend-decision-check",
+    "npm run zk:c01-verifier-backend-contract-check",
+    "npm run zk:c01-local-proof-format-evidence-check",
+    "npm run zk:c01-onchain-proof-boundary-check"
+  ],
+  "truthBoundary": "This is a fail-closed local toolchain preflight for the selected C01 backend. It proves the current installed Noir/bb lane does not generate the required Groth16 proof-format or production verifying-key artifact. It is not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not tag-3 proof acceptance, not on-chain proof verification, not SBF/live redeploy or reinit evidence, not audit acceptance, not production-private readiness, and not real-funds readiness."
+}

@@ -1,0 +1,140 @@
+{
+  "version": "vanta-private-pool-v2-c01-sunspot-gnark-local-artifact-inventory-0.1",
+  "checkedAt": "2026-05-21T00:00:00.000Z",
+  "status": "local-artifact-inventory-observed-nonproduction-unsafe-setup",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "selectedBackendStatus": "selected-pending-production-evidence",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "productionReady": false,
+  "mainnetReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "externalArtifactsReady": false,
+  "secretPolicy": "metadata-hashes-and-local-path-refs-only-no-raw-proof-vk-witness-pk-keypair-or-signed-transaction-bytes",
+  "purpose": "Metadata-only inventory of the local Sunspot/Gnark artifacts observed for the selected C01 tag-3 route. This preserves exact byte lengths and safe hashes for reviewer comparison while keeping raw proof, verifying-key, witness, proving-key, keypair, and signed transaction bytes out of the repo.",
+  "routePacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json",
+  "localSunspotGroth16DevProbeRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
+  "publicWitnessBindingObservationRef": "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
+  "artifactAcquisitionPacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json",
+  "groth16ProofFormatCandidateRef": "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+  "productionVerifyingKeyCandidateRef": "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "artifactRoot": {
+    "envVar": "VANTA_C01_SUNSPOT_LOCAL_ARTIFACT_ROOT",
+    "observedDefaultPath": "/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/target",
+    "localPathRefsAreProductionEvidence": false,
+    "rawPathValidationCommand": "VANTA_C01_SUNSPOT_LOCAL_ARTIFACT_ROOT=/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/target npm run zk:c01-sunspot-gnark-local-artifact-inventory-check"
+  },
+  "toolchainBoundary": {
+    "sunspotSourceRef": "https://github.com/reilabs/sunspot",
+    "sunspotCommit": "3a260ebe4edb36ab52e497aa383a2bac71525577",
+    "sunspotWorktreeCleanAtObservation": true,
+    "requiredNargoVersion": "1.0.0-beta.18",
+    "repoNargoVersion": "1.0.0-beta.19",
+    "temporarySourceShimCommitted": false,
+    "setupBoundary": "unsafe-local-single-operator-setup-no-toxic-waste-mitigation",
+    "satisfiesProductionToolchainReview": false
+  },
+  "artifacts": {
+    "proof": {
+      "fileName": "vanta_private_pool_v2_actual_private_spend_entry.proof",
+      "localRef": "local-path:${VANTA_C01_SUNSPOT_LOCAL_ARTIFACT_ROOT}/vanta_private_pool_v2_actual_private_spend_entry.proof",
+      "byteLength": 324,
+      "sha256": "sha256:e76c6d47052ecdb743b894a5413de62dca556f25546c1dd4a842403532281a85",
+      "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+      "rawBytesStoredInRepo": false,
+      "satisfiesProductionProofFormatEvidence": false
+    },
+    "publicWitness": {
+      "fileName": "vanta_private_pool_v2_actual_private_spend_entry.pw",
+      "localRef": "local-path:${VANTA_C01_SUNSPOT_LOCAL_ARTIFACT_ROOT}/vanta_private_pool_v2_actual_private_spend_entry.pw",
+      "byteLength": 44,
+      "sha256": "sha256:885351f63518202c4fcd120af8ffc296a8706edae14ed4795c11795dfd7f90e3",
+      "encoding": "gnark public witness WriteTo",
+      "headerHex": "000000010000000000000001",
+      "decodedPublicInputLabel": "private-spend-public-input-hash",
+      "decodedPublicInputValue": "0x0421d1c89c8353818f26d6efcd44b4222a2de2b1f14b8287c59728573a90dd32",
+      "matchesLocalProofReceiptPublicInput": true,
+      "rawBytesStoredInRepo": false,
+      "satisfiesProductionPublicInputBindingEvidence": false
+    },
+    "verifyingKey": {
+      "fileName": "vanta_private_pool_v2_actual_private_spend_entry.vk",
+      "localRef": "local-path:${VANTA_C01_SUNSPOT_LOCAL_ARTIFACT_ROOT}/vanta_private_pool_v2_actual_private_spend_entry.vk",
+      "byteLength": 716,
+      "sha256": "sha256:fbd6ba8ce64cc0b0320a0d8080fca15d79ca6ca2f732381a9550092f645f0e1d",
+      "verifyingKeyHashKind": "local-unsafe-sunspot-vk-hash-not-production",
+      "rawBytesStoredInRepo": false,
+      "satisfiesProductionVerifyingKeyEvidence": false
+    },
+    "ccs": {
+      "fileName": "vanta_private_pool_v2_actual_private_spend_entry.ccs",
+      "localRef": "local-path:${VANTA_C01_SUNSPOT_LOCAL_ARTIFACT_ROOT}/vanta_private_pool_v2_actual_private_spend_entry.ccs",
+      "byteLength": 2565732,
+      "sha256": "sha256:9c4cdf4858a5b180c27a9343c767598b515f71ec0a2a1b78f8069d4e309ccd53",
+      "rawBytesStoredInRepo": false,
+      "satisfiesProductionProofFormatEvidence": false
+    },
+    "provingKey": {
+      "fileName": "vanta_private_pool_v2_actual_private_spend_entry.pk",
+      "localRef": "local-path:${VANTA_C01_SUNSPOT_LOCAL_ARTIFACT_ROOT}/vanta_private_pool_v2_actual_private_spend_entry.pk",
+      "byteLength": 15168269,
+      "sha256Stored": false,
+      "rawBytesStoredInRepo": false,
+      "satisfiesProductionEvidence": false
+    },
+    "solanaVerifierSbf": {
+      "fileName": "vanta_private_pool_v2_actual_private_spend_entry.so",
+      "localRef": "local-path:${VANTA_C01_SUNSPOT_LOCAL_ARTIFACT_ROOT}/vanta_private_pool_v2_actual_private_spend_entry.so",
+      "byteLength": 86216,
+      "sha256": "sha256:222ca0869212f455331933b5b6751a04449b5d7bd7387e72ae7f5702a3bf2e58",
+      "rawBytesStoredInRepo": false,
+      "satisfiesSbfLiveLineage": false
+    },
+    "solanaVerifierKeypair": {
+      "fileName": "vanta_private_pool_v2_actual_private_spend_entry-keypair.json",
+      "generatedInPrivateTmp": true,
+      "byteLength": 243,
+      "localRefStored": false,
+      "sha256Stored": false,
+      "rawBytesStoredInRepo": false,
+      "satisfiesLiveLineage": false
+    }
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "backendSelection": true,
+    "localNonproductionArtifactInventory": true,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "productionPromotionStillRequires": [
+    "reviewed compatible Noir/Sunspot/Gnark source and reproducible build",
+    "trusted setup ceremony or equivalent toxic-waste mitigation",
+    "production Groth16 proof-format artifact for the repo circuit, not a beta18 temporary source shim",
+    "production verifying-key artifact and production verifying-key hash",
+    "accepted verifier adapter or verifier CPI wired to Vanta tag 3",
+    "valid-proof mutation under the accepted verifier",
+    "invalid-proof, wrong-public-input, and wrong-verifying-key no-mutation under the accepted verifier",
+    "rebuilt, redeployed, reinitialized, and live-verified SBF lineage",
+    "audit/reviewer acceptance"
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-sunspot-gnark-local-artifact-inventory-check",
+    "VANTA_C01_SUNSPOT_LOCAL_ARTIFACT_ROOT=/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/target npm run zk:c01-sunspot-gnark-local-artifact-inventory-check",
+    "npm run zk:c01-sunspot-groth16-dev-probe-check",
+    "npm run zk:c01-public-witness-binding-check",
+    "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
+    "npm run zk:c01-groth16-proof-format-candidate-check",
+    "npm run zk:c01-production-verifying-key-candidate-check"
+  ],
+  "truthBoundary": "This is a local nonproduction artifact inventory only. It records the exact unsafe local Sunspot/Gnark proof, public-witness, verifying-key, CCS, proving-key, and verifier-SBF metadata without storing raw bytes. It is not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not valid-proof mutation evidence, not invalid/wrong-input/wrong-key no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, not production privacy, and not C01 closure."
+}

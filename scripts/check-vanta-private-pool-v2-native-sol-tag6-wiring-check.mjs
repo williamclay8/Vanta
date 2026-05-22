@@ -125,7 +125,7 @@ assert.ok(
   "SOL branch must use invoke_signed for PDA-signed system transfer (no operator keypair signer on funds movement)."
 );
 assert.ok(
-  programSource.includes("SOL_VAULT_SEED, pool_state.key.as_ref(), &NATIVE_SOL_ASSET_ID_SENTINEL") &&
+  /SOL_VAULT_SEED,\s*pool_state\.key\.as_ref\(\),\s*&NATIVE_SOL_ASSET_ID_SENTINEL/su.test(programSource) &&
     programSource.includes("sol_vault_holding.clone()"),
   "PDA derivation and CPI accounts in SOL branch must use SOL_VAULT_SEED + sentinel with the dedicated sol_vault_holding account."
 );

@@ -30,8 +30,14 @@ const localProofFormat = JSON.parse(read("ops/mainnet/private-pool-v2-c01-local-
 const groth16ProofFormatCandidate = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json"),
 );
+const productionGroth16ToolchainPreflight = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json"),
+);
 const productionVerifyingKeyCandidate = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json"),
+);
+const productionArtifactAcceptanceGate = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json"),
 );
 const verifierAdapterTestCandidate = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json"),
@@ -58,8 +64,16 @@ for (const aggregate of ["zk:review-guards-check", "zk:feedback-loop-check"]) {
     `${aggregate} must include the production verifying-key candidate guard`,
   );
   assert(
+    scripts[aggregate]?.includes("npm run zk:c01-production-groth16-toolchain-preflight-check"),
+    `${aggregate} must include the production Groth16 toolchain preflight guard`,
+  );
+  assert(
     scripts[aggregate]?.includes("npm run zk:c01-verifier-adapter-test-candidate-check"),
     `${aggregate} must include the verifier adapter-test candidate guard`,
+  );
+  assert(
+    scripts[aggregate]?.includes("npm run zk:c01-production-artifact-acceptance-gate-check"),
+    `${aggregate} must include the production artifact acceptance gate guard`,
   );
 }
 
@@ -67,9 +81,15 @@ assert(
   options.version === "vanta-private-pool-v2-c01-verifier-backend-options-evidence-0.1",
   "backend-options evidence must use the checked schema",
 );
-assert(options.status === "blocked-backend-options-unselected", "backend-options status must stay blocked");
-assert(options.selectedBackend === null, "backend-options must not select a backend");
-assert(options.selectedBackendStatus === "not-selected", "backend-options selectedBackendStatus must stay not-selected");
+assert(
+  options.status === "blocked-selected-groth16-tag3-solana-v0-production-evidence",
+  "backend-options status must stay blocked while selected-backend evidence is absent",
+);
+assert(options.selectedBackend === "groth16-tag3-solana-v0", "backend-options must select the tag-3 backend");
+assert(
+  options.selectedBackendStatus === "selected-pending-production-evidence",
+  "backend-options selectedBackendStatus must stay selected but evidence-blocked",
+);
 for (const [field, expected] of [
   ["productionReady", false],
   ["mainnetReady", false],
@@ -97,9 +117,19 @@ assert(
   "backend-options must reference the verifier-key registry evidence",
 );
 assert(
+  options.productionGroth16ToolchainPreflightRef ===
+    "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
+  "backend-options must reference the production Groth16 toolchain preflight evidence",
+);
+assert(
   options.productionVerifyingKeyCandidateRef ===
     "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
   "backend-options must reference the production verifying-key candidate evidence",
+);
+assert(
+  options.productionArtifactAcceptanceGateRef ===
+    "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+  "backend-options must reference the production artifact acceptance gate evidence",
 );
 assert(
   options.verifierAdapterTestCandidateRef ===
@@ -117,16 +147,45 @@ assert(
   "backend-options current target must stay Groth16-shaped",
 );
 assert(
-  options.currentTargetContract?.proofByteLength === 256,
-  "backend-options current target must stay 256-byte Groth16 proof shaped",
+  options.currentTargetContract?.proofFormatId === "gnark-solana-native-proof-and-public-witness-v0",
+  "backend-options current target must select the Gnark-native proof/public-witness tuple",
+);
+assert(
+  options.currentTargetContract?.proofByteLength === 324,
+  "backend-options current target must use the selected 324-byte Gnark proof",
+);
+assert(
+  options.currentTargetContract?.publicWitnessByteLength === 44,
+  "backend-options current target must use the selected 44-byte public witness",
+);
+assert(
+  options.currentTargetContract?.verifierInstructionDataByteLength === 368,
+  "backend-options current target must use the selected 368-byte verifier instruction data",
 );
 assert(
   options.currentTargetContract?.verifyingKeyHashKind === "production-verifying-key-hash",
   "backend-options current target must require production VK hash kind",
 );
 assert(
-  options.currentTargetContract?.status === "reserved-fail-closed",
-  "backend-options current target must remain fail closed",
+  options.currentTargetContract?.currentProgramReservedProofByteLength === 324,
+  "backend-options current target must record the current source ABI Gnark proof length",
+);
+assert(
+  options.currentTargetContract?.currentProgramReservedPublicWitnessByteLength === 44,
+  "backend-options current target must record the current source ABI public witness length",
+);
+assert(
+  options.currentTargetContract?.currentProgramReservedVerifierInputByteLength === 368,
+  "backend-options current target must record the current source ABI verifier input length",
+);
+assert(
+  options.currentTargetContract?.adapterBoundaryStatus ===
+    "spend-program-tag3-abi-reserves-selected-gnark-tuple-and-dedicated-verifier-cpi-account-fail-closed",
+  "backend-options current target must preserve the adapter boundary blocker",
+);
+assert(
+  options.currentTargetContract?.status === "selected-candidate-format-pending-production-evidence",
+  "backend-options current target must remain selected but production-evidence blocked",
 );
 
 assert(
@@ -148,7 +207,7 @@ assert(
 );
 assert(
   registry.status === "source-only-verifier-key-registry-scaffold",
-  "registry evidence must stay source-only while backend options are unselected",
+  "registry evidence must stay source-only while selected-backend production evidence is absent",
 );
 
 const optionById = new Map((options.backendOptions ?? []).map((entry) => [entry.id, entry]));
@@ -156,11 +215,23 @@ const groth16 = optionById.get("groth16-tag3-solana-v0");
 const ultrahonk = optionById.get("noir-bb-ultrahonk-adaptation");
 assert(groth16, "backend-options must include groth16-tag3-solana-v0");
 assert(ultrahonk, "backend-options must include noir-bb-ultrahonk-adaptation");
-assert(groth16.status === "blocked", "Groth16 option must stay blocked");
-assert(ultrahonk.status === "blocked", "UltraHonk option must stay blocked");
+assert(groth16.status === "selected-production-evidence-blocked", "Groth16 option must stay selected but blocked");
+assert(ultrahonk.status === "not-selected", "UltraHonk option must stay not selected");
 assert(groth16.selectsCurrentTag3Contract === true, "Groth16 option must select the current tag-3 contract");
 assert(ultrahonk.selectsCurrentTag3Contract === false, "UltraHonk option must require a new target or boundary");
 assert(groth16.proofSystem === "groth16", "Groth16 option must name Groth16");
+assert(groth16.proofFormatId === "gnark-solana-native-proof-and-public-witness-v0", "Groth16 option proof format mismatch");
+assert(groth16.proofByteLength === 324, "Groth16 option proof length mismatch");
+assert(groth16.publicWitnessByteLength === 44, "Groth16 option public witness length mismatch");
+assert(groth16.verifierInstructionDataByteLength === 368, "Groth16 option verifier instruction-data length mismatch");
+assert(groth16.currentProgramReservedProofByteLength === 324, "Groth16 option current proof length mismatch");
+assert(groth16.currentProgramReservedPublicWitnessByteLength === 44, "Groth16 option current public witness length mismatch");
+assert(groth16.currentProgramReservedVerifierInputByteLength === 368, "Groth16 option current verifier input length mismatch");
+assert(
+  groth16.adapterBoundaryStatus ===
+    "spend-program-tag3-abi-reserves-selected-gnark-tuple-and-dedicated-verifier-cpi-account-fail-closed",
+  "Groth16 option adapter boundary status mismatch",
+);
 assert(ultrahonk.proofSystem === "noir-bb", "UltraHonk option must name noir-bb");
 assert(ultrahonk.backend === "barretenberg-ultrahonk", "UltraHonk option must name barretenberg-ultrahonk");
 assert(
@@ -187,6 +258,55 @@ assert(
 assert(
   groth16ProofFormatCandidate.satisfiesRequiredPositiveEvidence?.actualPrivateSpendProductionProofFormat === false,
   "Groth16 proof-format candidate packet must not satisfy production proof-format evidence",
+);
+assert(
+  groth16.toolchainPreflightRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
+  "Groth16 option must reference the blocked production Groth16 toolchain preflight packet",
+);
+assert(
+  groth16.toolchainPreflightRef?.command ===
+    "npm run zk:c01-production-groth16-toolchain-preflight-check",
+  "Groth16 option must record the production Groth16 toolchain preflight guard",
+);
+assert(
+  groth16.toolchainPreflightRef?.status === "blocked-local-toolchain-no-groth16-scheme",
+  "Groth16 option production Groth16 toolchain preflight ref must remain blocked",
+);
+assert(
+  productionGroth16ToolchainPreflight.status === "blocked-local-toolchain-no-groth16-scheme",
+  "production Groth16 toolchain preflight packet must remain blocked",
+);
+assert(
+  productionGroth16ToolchainPreflight.satisfiesRequiredPositiveEvidence
+    ?.actualPrivateSpendProductionProofFormat === false,
+  "production Groth16 toolchain preflight packet must not satisfy production proof-format evidence",
+);
+assert(
+  groth16.productionArtifactAcceptanceGateRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+  "Groth16 option must reference the production artifact acceptance gate packet",
+);
+assert(
+  groth16.productionArtifactAcceptanceGateRef?.command ===
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+  "Groth16 option must record the production artifact acceptance gate guard",
+);
+assert(
+  groth16.productionArtifactAcceptanceGateRef?.status === "blocked-no-reviewed-production-artifact-bundle",
+  "Groth16 production artifact acceptance gate ref must remain blocked",
+);
+assert(
+  productionArtifactAcceptanceGate.status === "blocked-no-reviewed-production-artifact-bundle",
+  "production artifact acceptance gate packet must remain blocked",
+);
+assert(
+  productionArtifactAcceptanceGate.currentAcceptedProductionBundle?.bundleRef === null,
+  "production artifact acceptance gate must not carry a bundle ref",
+);
+assert(
+  productionArtifactAcceptanceGate.satisfiesRequiredPositiveEvidence?.productionArtifactAcceptance === false,
+  "production artifact acceptance gate must not satisfy production artifact acceptance",
 );
 assert(
   groth16.productionVerifyingKeyCandidateRef?.artifactRef ===
@@ -230,6 +350,25 @@ assert(
   "Groth16 verifier adapter-test candidate ref must remain blocked",
 );
 assert(
+  groth16.localFailClosedVerifierAdapterSeamHarnessRef?.status === "local-fail-closed-harness-only",
+  "Groth16 option must record the local fail-closed adapter seam harness",
+);
+assert(
+  groth16.localFailClosedVerifierAdapterSeamHarnessRef?.command ===
+    "npm run zk:c01-verifier-adapter-seam-check",
+  "Groth16 option must record the local adapter seam guard",
+);
+assert(
+  groth16.localFailClosedVerifierAdapterSeamHarnessRef?.sourceRef ===
+    "programs/vanta_private_pool_v2_spend/src/lib.rs",
+  "Groth16 option local adapter seam source ref mismatch",
+);
+includes(
+  groth16.localFailClosedVerifierAdapterSeamHarnessRef?.truthBoundary ?? "",
+  "does not satisfy verifier-adapter acceptance",
+  "Groth16 local seam truth boundary",
+);
+assert(
   verifierAdapterTestCandidate.status === "blocked-no-verifier-adapter-acceptance-tests",
   "verifier adapter-test candidate packet must remain blocked",
 );
@@ -241,13 +380,27 @@ assert(
   verifierAdapterTestCandidate.satisfiesRequiredPositiveEvidence?.verifierAdapter === false,
   "verifier adapter-test candidate packet must not satisfy verifier adapter evidence",
 );
+assert(
+  verifierAdapterTestCandidate.localFailClosedVerifierAdapterSeamHarness?.satisfiesVerifierAdapterAcceptance ===
+    false,
+  "local seam harness must not satisfy verifier adapter acceptance",
+);
+assert(
+  groth16.currentBlockedBy?.includes(
+    "local fail-closed verifier adapter seam harness exists with a reserved verifier-program CPI account, verifier-key/program binding, and instruction shape, but no production adapter acceptance or positive/negative proof evidence exists",
+  ),
+  "Groth16 option must keep local seam blocked-by language",
+);
 
 for (const required of [
   "actual-private-spend-groth16-production-proof-format",
+  "reviewed-production-artifact-bundle",
   "production-verifying-key-hash",
   "tag3-verifier-adapter-or-verifier-cpi",
   "valid-proof-mutates-nullifier-output-state",
   "invalid-proof-leaves-account-bytes-unchanged",
+  "wrong-public-input-hash-leaves-account-bytes-unchanged",
+  "wrong-verifying-key-leaves-account-bytes-unchanged",
   "rebuilt-redeployed-reinitialized-sbf-lineage",
   "audit-or-reviewer-acceptance",
 ]) {
@@ -273,26 +426,30 @@ for (const [field, expected] of [
   ["groth16ProofFormatCandidate", true],
   ["verifierKeyRegistryScaffold", true],
   ["productionVerifyingKeyCandidate", true],
+  ["productionArtifactAcceptanceGate", true],
   ["verifierAdapterTestCandidate", true],
+  ["localFailClosedVerifierAdapterSeamHarness", true],
   ["candidateEvidencePacket", true],
 ]) {
   assert(options.intermediateEvidenceOnly?.[field] === expected, `${field} must be intermediate-only`);
 }
 for (const [field, expected] of [
-  ["backendSelection", false],
+  ["backendSelection", true],
   ["actualPrivateSpendProductionProofFormat", false],
   ["privateSpendPublicInputHashBinding", false],
   ["productionVerifyingKeyHash", false],
   ["verifierAdapter", false],
   ["acceptedProofMutatesStateTest", false],
   ["invalidProofLeavesAccountsUnchangedTest", false],
+  ["wrongPublicInputHashLeavesAccountsUnchangedTest", false],
+  ["wrongVerifyingKeyLeavesAccountsUnchangedTest", false],
   ["sbfLiveLineage", false],
   ["auditReviewerAcceptance", false],
 ]) {
   assert(options.satisfiesRequiredPositiveEvidence?.[field] === expected, `${field} must be ${expected}`);
 }
 for (const phrase of [
-  "backend selection",
+  "selected C01 backend direction",
   "production proof-format acceptance",
   "production verifying-key evidence",
   "tag-3 proof acceptance",
@@ -315,6 +472,14 @@ assert(
   options.canonicalCommands?.includes("npm run zk:c01-verifier-adapter-test-candidate-check"),
   "backend-options must record the verifier adapter-test candidate guard",
 );
+assert(
+  options.canonicalCommands?.includes("npm run zk:c01-production-artifact-acceptance-gate-check"),
+  "backend-options must record the production artifact acceptance gate guard",
+);
+assert(
+  options.canonicalCommands?.includes("npm run zk:c01-verifier-adapter-seam-check"),
+  "backend-options must record the verifier adapter seam guard",
+);
 
 const optionsRef = candidate.intermediateEvidenceRefs?.find(
   (entry) => entry.id === "blocked-verifier-backend-options-matrix",
@@ -327,14 +492,20 @@ assert(
   optionsRef?.command === "npm run zk:c01-verifier-backend-options-check",
   "candidate packet must record the backend-options guard",
 );
-includes(optionsRef?.truthBoundary ?? "", "does not select a backend", "candidate backend-options truth boundary");
+includes(optionsRef?.truthBoundary ?? "", "selected backend direction", "candidate backend-options truth boundary");
 assert(
-  candidate.selectedBackend === null && candidate.selectedBackendStatus === "not-selected",
-  "candidate packet must remain backend-unselected",
+  candidate.selectedBackend === "groth16-tag3-solana-v0" &&
+    candidate.selectedBackendStatus === "selected-pending-production-evidence",
+  "candidate packet must record selected backend while evidence stays blocked",
 );
 assert(
-  candidate.requiredPositiveEvidence?.every((entry) => entry.status === "blocked" && entry.currentArtifactRef === null),
-  "candidate packet positive evidence must remain blocked and unreferenced",
+  candidate.requiredPositiveEvidence?.every((entry) =>
+    entry.id === "backend-selection"
+      ? entry.status === "satisfied-local-selection" &&
+        entry.currentArtifactRef === "docs/zk/c01-production-verifier-backend-decision.md"
+      : entry.status === "blocked" && entry.currentArtifactRef === null,
+  ),
+  "candidate packet must satisfy only backend selection while production evidence remains blocked",
 );
 
 for (const marker of [
@@ -346,7 +517,7 @@ for (const marker of [
   "npm run zk:c01-verifier-adapter-test-candidate-check",
   "groth16-tag3-solana-v0",
   "noir-bb-ultrahonk-adaptation",
-  "does not select a backend",
+  "records `groth16-tag3-solana-v0` as the selected direction",
 ]) {
   includes(decision, marker, "C01 backend decision docs");
 }

@@ -1,0 +1,212 @@
+{
+  "version": "vanta-private-pool-v2-c01-sunspot-groth16-dev-probe-evidence-0.1",
+  "checkedAt": "2026-05-20T22:49:31.000Z",
+  "status": "local-dev-probe-succeeded-nonproduction-unsafe-setup-and-beta18-source-shim",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "selectedBackendStatus": "selected-pending-production-evidence",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "externalArtifactsReady": false,
+  "secretPolicy": "metadata-and-hashes-only-no-raw-proof-vk-witness-keypair-or-signed-transaction-bytes",
+  "purpose": "Local route-feasibility probe for C01's selected Sunspot/Gnark Groth16 path. This proves a temporary beta18-compatible actual-private-spend circuit copy can traverse Sunspot compile/setup/prove/verify and build a Solana verifier SBF artifact, while preserving all production acceptance blockers.",
+  "routePacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json",
+  "productionGroth16ToolchainPreflightRef": "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
+  "artifactAcquisitionPacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "sourceCircuit": {
+    "repoPath": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry",
+    "repoNargoVersion": "1.0.0-beta.19",
+    "repoPoseidonImport": "use ::poseidon::poseidon::bn254;",
+    "beta18ProbePath": "/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit",
+    "temporarySourceShim": "use dep::poseidon::poseidon::bn254;",
+    "temporarySourceShimCommitted": false,
+    "truthBoundary": "The probe used a temporary source copy and import shim only. The repo source was not migrated to beta18, and the observed artifacts are not accepted production circuit artifacts."
+  },
+  "sunspotSource": {
+    "sourceRef": "https://github.com/reilabs/sunspot",
+    "clonedCommit": "3a260ebe4edb36ab52e497aa383a2bac71525577",
+    "requiredNoirVersion": "1.0.0-beta.18",
+    "securityBoundary": "Sunspot README says the project is unaudited and provided as-is; its setup command is unsafe because it performs trusted setup without toxic-waste mitigation."
+  },
+  "observedProbeFlow": [
+    {
+      "step": "build-sunspot-cli",
+      "command": "go build -o /private/tmp/vanta-c01-sunspot-lane/bin/sunspot .",
+      "status": "passed"
+    },
+    {
+      "step": "current-beta19-acir-through-sunspot",
+      "command": "/private/tmp/vanta-c01-sunspot-lane/bin/sunspot compile current-beta19-acir.json",
+      "status": "failed-expected",
+      "failure": "panic: runtime error: makeslice: len out of range"
+    },
+    {
+      "step": "beta18-repo-source-compile",
+      "command": "nargo compile",
+      "status": "failed-expected-before-temp-shim",
+      "failure": "Could not resolve use ::poseidon::poseidon::bn254 under Noir/Nargo 1.0.0-beta.18"
+    },
+    {
+      "step": "beta18-temp-shim-compile",
+      "command": "nargo compile",
+      "status": "passed"
+    },
+    {
+      "step": "beta18-temp-shim-witness",
+      "command": "nargo execute",
+      "status": "passed"
+    },
+    {
+      "step": "sunspot-compile",
+      "command": "sunspot compile vanta_private_pool_v2_actual_private_spend_entry.json",
+      "status": "passed",
+      "nbConstraints": 26794,
+      "sunspotReportedPublicInputs": 0,
+      "sunspotReportedSecretInputs": 0,
+      "truthBoundary": "The zero public/secret input report needs reviewer/toolchain investigation before any public-input binding claim."
+    },
+    {
+      "step": "sunspot-setup",
+      "command": "sunspot setup vanta_private_pool_v2_actual_private_spend_entry.ccs",
+      "status": "passed-nonproduction-unsafe"
+    },
+    {
+      "step": "sunspot-prove",
+      "command": "sunspot prove vanta_private_pool_v2_actual_private_spend_entry.json vanta_private_pool_v2_actual_private_spend_entry.gz vanta_private_pool_v2_actual_private_spend_entry.ccs vanta_private_pool_v2_actual_private_spend_entry.pk",
+      "status": "passed"
+    },
+    {
+      "step": "sunspot-verify",
+      "command": "sunspot verify vanta_private_pool_v2_actual_private_spend_entry.vk vanta_private_pool_v2_actual_private_spend_entry.proof vanta_private_pool_v2_actual_private_spend_entry.pw",
+      "status": "passed"
+    },
+    {
+      "step": "sunspot-build-solana-verifier-sbf",
+      "command": "GNARK_VERIFIER_BIN=/private/tmp/vanta-c01-sunspot-lane/sunspot/gnark-solana/crates/verifier-bin sunspot deploy vanta_private_pool_v2_actual_private_spend_entry.vk",
+      "status": "passed-local-build-only",
+      "warning": "cargo-build-sbf reported deprecated alt_bn128 constants and undefined functions listed as known runtime-error risks by the build tool."
+    },
+    {
+      "step": "sunspot-generated-verifier-litesvm-positive",
+      "command": "VK_PATH=/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/target/vanta_private_pool_v2_actual_private_spend_entry.vk cargo test --manifest-path /private/tmp/vanta-c01-sunspot-lane/sunspot/gnark-solana/crates/verifier-bin/Cargo.toml --lib -- --exact tests::test::test_solana_verification --nocapture",
+      "status": "passed-local-svm-only",
+      "generatedVerifierNrPubinputs": 1,
+      "generatedVerifierCommitmentKeys": 0,
+      "instructionDataByteLength": 368,
+      "proofByteLength": 324,
+      "publicWitnessByteLength": 44,
+      "computeUnitsConsumed": 163841,
+      "truthBoundary": "The generated standalone Solana verifier accepted the proof and public witness tuple in local LiteSVM. This is not Vanta spend-program adapter acceptance, not live deploy/reinit lineage, and not production reviewer acceptance."
+    },
+    {
+      "step": "restore-global-nargo",
+      "command": "noirup -v 1.0.0-beta.19 && nargo --version",
+      "status": "passed",
+      "restoredVersion": "nargo version = 1.0.0-beta.19"
+    }
+  ],
+  "observedArtifacts": {
+    "beta18Acir": {
+      "byteLength": 1828305,
+      "sha256": "sha256:5e0e27752ff1c0f01d318323083b168c1309c0c84521401531b42d07033c68bf",
+      "satisfiesProductionProofFormatEvidence": false
+    },
+    "ccs": {
+      "byteLength": 2565732,
+      "sha256": "sha256:9c4cdf4858a5b180c27a9343c767598b515f71ec0a2a1b78f8069d4e309ccd53",
+      "satisfiesProductionProofFormatEvidence": false
+    },
+    "provingKey": {
+      "byteLength": 15168269,
+      "hashStored": false,
+      "satisfiesProductionEvidence": false
+    },
+    "verifyingKey": {
+      "byteLength": 716,
+      "sha256": "sha256:fbd6ba8ce64cc0b0320a0d8080fca15d79ca6ca2f732381a9550092f645f0e1d",
+      "satisfiesProductionVerifyingKeyEvidence": false
+    },
+    "proof": {
+      "byteLength": 324,
+      "sha256": "sha256:e76c6d47052ecdb743b894a5413de62dca556f25546c1dd4a842403532281a85",
+      "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+      "selectedCandidateProofByteLength": 324,
+      "expectedTag3ProofByteLength": 324,
+      "expectedTag3PublicWitnessByteLength": 44,
+      "expectedTag3VerifierInputByteLength": 368,
+      "satisfiesProductionProofFormatEvidence": false
+    },
+    "publicWitness": {
+      "byteLength": 44,
+      "sha256": "sha256:885351f63518202c4fcd120af8ffc296a8706edae14ed4795c11795dfd7f90e3",
+      "encoding": "gnark public witness WriteTo",
+      "layout": "12-byte header + 1 * 32-byte big-endian BN254 field",
+      "headerHex": "000000010000000000000001",
+      "decodedPublicInputLabel": "private-spend-public-input-hash",
+      "decodedPublicInputValue": "0x0421d1c89c8353818f26d6efcd44b4222a2de2b1f14b8287c59728573a90dd32",
+      "matchesLocalProofReceiptPublicInput": true,
+      "matchesGeneratedVerifierNrPubinputs": true,
+      "satisfiesPublicInputBindingEvidence": false
+    },
+    "generatedVerifierInstructionData": {
+      "proofByteLength": 324,
+      "publicWitnessByteLength": 44,
+      "totalByteLength": 368,
+      "generatedVerifierNrPubinputs": 1,
+      "generatedVerifierCommitmentKeys": 0,
+      "standaloneLocalSvmAccepted": true,
+      "computeUnitsConsumed": 163841,
+      "satisfiesVerifierAdapterEvidence": false,
+      "satisfiesSbfLiveLineage": false
+    },
+    "solanaVerifierSbf": {
+      "byteLength": 86216,
+      "sha256": "sha256:222ca0869212f455331933b5b6751a04449b5d7bd7387e72ae7f5702a3bf2e58",
+      "satisfiesSbfLiveLineage": false
+    },
+    "solanaVerifierKeypair": {
+      "generatedInPrivateTmp": true,
+      "storedInRepo": false,
+      "hashStored": false,
+      "satisfiesLiveLineage": false
+    }
+  },
+  "remainingBlockers": [
+    "repo source still targets Noir/Nargo 1.0.0-beta.19 and required a beta18-only temporary import shim for this probe",
+    "current beta19 ACIR panics Sunspot compile with makeslice len out of range",
+    "Sunspot setup used the unsafe local single-operator setup path with no toxic-waste mitigation",
+    "Sunspot reported zero public and zero secret inputs for the compiled circuit, so private-spend-public-input-hash binding is not accepted",
+    "observed Groth16 proof is the selected Gnark-native 324-byte proof plus 44-byte public witness; the spend-program tag-3 ABI now reserves that selected tuple fail-closed and rejects the legacy 256-byte proof-only shape",
+    "the generated standalone Solana verifier accepts the 324-byte proof plus 44-byte public witness as 368 bytes of instruction data, so Vanta tag-3 still needs an accepted Gnark-native adapter shape",
+    "local Solana verifier SBF was built in /private/tmp only and was not wired into the spend program, redeployed, reinitialized, or live verified",
+    "no valid-proof mutation, invalid-proof no-mutation, wrong-public-input no-mutation, or wrong-verifying-key no-mutation tests ran against a production verifier",
+    "no audit or reviewer accepted the Sunspot/Gnark route, setup, proof format, VK, adapter, or SBF lineage"
+  ],
+  "satisfiesRequiredPositiveEvidence": {
+    "backendSelection": true,
+    "routeFeasibilityLocalDevProbe": true,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "canonicalCommands": [
+    "npm run zk:c01-sunspot-groth16-dev-probe-check",
+    "npm run zk:c01-sunspot-groth16-route-check",
+    "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
+    "npm run zk:c01-public-witness-binding-check",
+    "npm run zk:c01-production-groth16-toolchain-preflight-check",
+    "npm run zk:c01-production-verifier-backend-candidate-check"
+  ],
+  "truthBoundary": "This is local dev-probe evidence only. It is not production proof-format evidence, not production verifying-key evidence, not private-spend-public-input-hash binding acceptance, not verifier-adapter acceptance, not valid-proof mutation evidence, not invalid/wrong-input/wrong-key no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, not production privacy, and not C01 closure."
+}

@@ -135,7 +135,7 @@ assert.equal(
 );
 assert.equal(
   packet.solanaSpendSbfAbiStatus.sourceOnlyReservedSpendStatus,
-  "fail-closed-verifier-key-preflight-source-only",
+  "sbf-verifier-cpi-hook-host-fail-closed-production-blocked",
 );
 assert.equal(packet.solanaSpendSbfAbiStatus.sourceOnlyRootProvenanceReserved, true);
 assert.equal(packet.solanaSpendSbfAbiStatus.rootRecordSeed, "vanta2root");

@@ -37,6 +37,7 @@ if (
   witnessJsonPath === null &&
   fixtureMode !== "valid" &&
   fixtureMode !== "invalid-binding" &&
+  fixtureMode !== "invalid-context-hash-preimage" && // H6 fix (2026-05-22)
   fixtureMode !== "invalid-direction-bit" &&
   fixtureMode !== "invalid-input-commitment-preimage" &&
   fixtureMode !== "invalid-leaf-index" &&
@@ -44,7 +45,7 @@ if (
   fixtureMode !== "invalid-nullifier"
 ) {
   console.error(
-    'Expected fixture mode "valid", "invalid-binding", "invalid-direction-bit", "invalid-input-commitment-preimage", "invalid-leaf-index", "invalid-membership-root", or "invalid-nullifier".',
+    'Expected fixture mode "valid", "invalid-binding", "invalid-context-hash-preimage", "invalid-direction-bit", "invalid-input-commitment-preimage", "invalid-leaf-index", "invalid-membership-root", or "invalid-nullifier".',
   );
   process.exit(1);
 }

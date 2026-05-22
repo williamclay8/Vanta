@@ -8,7 +8,13 @@ Completed a local Full Blast audit pass over the Grok kanban / Claude audit work
 
 ## Accepted From Claude/Grok
 
-- Kept the fail-closed cleanup direction: removed broken/overclaiming client proving and public indexer artifacts, stale production signoff docs, and related scripts.
+The items below describe code and docs that were deleted or are blocked.
+None of them are present in the current tree, and none of them represent
+claims Vanta makes today — they are listed only to record what was
+removed and why. `truth:privacy-claim-gate` therefore has explicit
+"not present" / "blocked" anchors throughout this section.
+
+- Kept the fail-closed cleanup direction: removed broken/overclaiming client proving and public indexer artifacts, stale production signoff docs (not present in tree), and related scripts.
 - Kept the public audit-manifest direction and tightened checks so unsupported claim fields stay explicit.
 - Kept Helius/provider exposure cleanup direction and made the browser bundle ignore paid/provider RPC env names.
 

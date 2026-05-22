@@ -1,0 +1,266 @@
+version: 2
+
+goal:
+  title: "Mainnet-Readiness Audit"
+  slug: "2026-05-22-mainnet-readiness-audit"
+  kind: audit
+  tranche: "2026-05-22-mainnet-readiness"
+  status: complete
+  completed_at: "2026-05-22T16:30:00Z"
+  intake:
+    original_request: "audit the rest of the site and tell me how you can improve it then as well as make it fully private mainnet ready"
+    interpreted_outcome: "Full audit of all surfaces beyond C01, status reconciliation with AUDIT_2026-05-19.md, and an honest roadmap to fully-private mainnet readiness with phases, calendar bands, and external/internal dependencies."
+    input_shape: open-ended
+    audience: "Clay operating /Users/clay/Desktop/Vanta"
+    authority: requested
+    proof_type: "repo-local audit doc + roadmap + machine-readable goal packet"
+    completion_proof: "Three deliverables (combined AUDIT_2026-05-22.md, split findings + roadmap, this state.yaml). No finding promoted to live-verified. Ledger checker still reports liveVerifiedCount 0."
+  oracle:
+    command_targets:
+      - "npm run zk:review-findings-ledger-check"
+      - "npm run truth:privacy-claim-gate"
+      - "npm run public:audit-discovery-check"
+
+rules:
+  pm_owns_state: true
+  planning_is_not_completion: true
+  no_status_promotion_without_live_evidence: true
+  no_production_or_mainnet_claims_from_local_artifacts: true
+  no_c01_promotion_without_production_verifier_backend: true
+
+ledger_baseline:
+  command: "npm run zk:review-findings-ledger-check"
+  observed_result: pass
+  findings: 13
+  live_verified_count: 0
+  accepted_closed_count: 0
+  c01_status: "partial"
+  h08_status: "partial"
+
+prior_audit_status:
+  source: "AUDIT_2026-05-19.md"
+  closed:
+    - id: "H1"
+      title: "dead client-side privacy code + misleading signoff docs"
+      evidence: "indexerClient.ts, clientProver.ts, light-public-indexer.mjs, three signoff docs deleted"
+    - id: "H2"
+      title: "vanta-light-public-indexer.onrender.com dead"
+      evidence: "service + the code pointing at it removed"
+    - id: "H3"
+      title: "TAG_UNSHIELD zero-nullifier check missing"
+      evidence: "programs/vanta_private_pool_v2_spend/src/lib.rs:2335-2341"
+    - id: "H5"
+      title: "Helius RPC URL in bundle"
+      evidence: "verified externally 2026-05-22: 0 occurrences of helius / yoko / Bearer / Authorization / VITE_OPERATOR / onrender.com in live assets/index-DOw4Hena.js or assets/renderApp-CBWkPX4M.js"
+    - id: "M1"
+      title: "light-public-indexer zero-root fallback"
+      evidence: "file deleted"
+    - id: "M2"
+      title: "wide-open CORS / in-memory rate-limit"
+      evidence: "file deleted; equivalent issue surfaces on service-network as L8"
+    - id: "L1"
+      title: "SHIELD_CIRCUIT = {} stub"
+      evidence: "file deleted"
+    - id: "L2"
+      title: "redacted-commitment sentinel string"
+      evidence: "src/zk/liveShieldBridge.ts:323-334 preserves Poseidon commitment, redacts only amount fields"
+    - id: "L3"
+      title: "helmet() with no CSP/HSTS"
+      evidence: "file deleted; live-site equivalent now tracked as M9"
+    - id: "L4"
+      title: "process.env at module load"
+      evidence: "file deleted"
+    - id: "L5"
+      title: "Render service IDs in public manifest"
+      evidence: "verified externally 2026-05-22: /.well-known/vanta-audit.json no longer exposes renderServiceId / dep-*"
+  honestly_disclosed:
+    - id: "M3"
+      title: "audit manifest stale relative to live deploy"
+      evidence: "manifest carries status: pending-reattestation-after-2026-05-14-deploy-drift and a truthBoundary naming exactly what is and isn't proved"
+  carried_outstanding:
+    - id: "H4"
+      title: "cfg!(test) release/sentinel gating"
+      reason: "architectural blocker A1; needs runtime pool_state.verifier_wired field; cannot close until C01 audit acceptance"
+    - id: "M4"
+      title: "inverted releaseEnabled semantics"
+      reason: "now documented as intentional fail-closed in lib.rs:1044-1051 but still inverted; design flip must accompany A1"
+    - id: "M5"
+      title: "caller-supplied verifier_key_hash binding chain"
+      reason: "transitive safety rests on future Groth16 verifier; flag in C01 audit scope"
+    - id: "M6"
+      title: "live indexer Bearer auth vs SPA"
+      reason: "verified expected operator-trusted-beta posture, matches A2-OPERATOR-KEYPAIR-CUSTODY"
+
+new_findings:
+  high:
+    - id: "H6"
+      title: "ActualPrivateSpend circuit does not decompose context_hash"
+      file: "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr:78-113,115-171"
+      risk: "off-circuit context_hash construction is unconstrained; once C01 verifier wires in, an off-circuit substitution by a relayer cannot be detected on-chain"
+      fix_shape: "take (merchant_hi, merchant_lo, denomination, settlement_epoch) as private inputs, recompute context_hash in-circuit, assert equality; add fixture invalid-context-hash-preimage"
+      blocks_phase_1_if_ceremony_not_started: true
+  medium:
+    - id: "M7"
+      title: "TAG_REGISTER_VAULT_ASSET not idempotent across param changes"
+      file: "programs/vanta_private_pool_v2_spend/src/lib.rs:848-920, 1082-1180"
+      risk: "after verifier wires in, accidental re-registration silently moves vault authority binding"
+      fix_shape: "explicit ERR_VAULT_ASSET_ALREADY_REGISTERED_WITH_DIFFERENT_PARAMS before any state write"
+    - id: "M8"
+      title: "operator services return raw err.message"
+      file: "operator/private-pool-v2-service-network.mjs:1678,1970,+~12 others"
+      risk: "internal-Bearer-authed today; reconnaissance vector if exposed externally"
+      fix_shape: "sanitized response strings; structured server-side logging only"
+    - id: "M9"
+      title: "missing HTTP security headers on live site"
+      observation: "X-Content-Type-Options: nosniff present; CSP, HSTS, Referrer-Policy, Permissions-Policy missing"
+      fix_shape: "add via Cloudflare or Render response headers per AUDIT_2026-05-22_findings.md"
+    - id: "M10"
+      title: "CI does not gate build or privacy aggregates"
+      file: ".github/workflows/privacy-audit.yml"
+      fix_shape: "add verify job running npm ci && npm run build && npm run truth:privacy-claim-gate && npm run zk:review-guards-check"
+  low:
+    - id: "L6"
+      title: "TAG_REGISTER_PROVENANCED_ROOT accepts previous_root == accepted_root"
+      file: "programs/vanta_private_pool_v2_spend/src/lib.rs:729-803"
+      fix_shape: "if accepted_root == previous_root return Err(ERR_ROOT_TRANSITION_NOOP)"
+    - id: "L7"
+      title: "Output Record PDA seed is index-based, not content-based"
+      file: "programs/vanta_private_pool_v2_spend/src/lib.rs:1556-1630"
+      fix_shape: "explanatory comment only; existing init-or-match check is sound"
+    - id: "L8"
+      title: "service-network lacks CORS/rate-limit"
+      file: "operator/private-pool-v2-service-network.mjs"
+      fix_shape: "add when role is exposed externally; not urgent today"
+    - id: "L9"
+      title: "VantaPay privacy gates static-config"
+      file: "src/pay/vantaPayTypes.ts:133-135"
+      fix_shape: "add runtime guard that throws if production-privacy requested while flag is locked"
+    - id: "L10"
+      title: ".env.operator.local carries a real Helius devnet API key"
+      fix_shape: "rotation cadence; key is gitignored so not a leak"
+
+architectural_blockers_unchanged:
+  - id: "A1"
+    title: "On-chain Groth16 verifier wiring (C01)"
+    status: "partial — see docs/goals/2026-05-20-c01-h08-promotability/"
+    gates:
+      - "production proof-format artifact"
+      - "production VK hash"
+      - "verifier-adapter acceptance tests"
+      - "wrong-VK no-mutation"
+      - "SBF/live lineage"
+      - "audit/reviewer acceptance"
+  - id: "A2"
+    title: "Program-owned PDA vault (replace operator keypair custody)"
+    status: "source scaffold; cfg!(test) gates remain"
+  - id: "A3"
+    title: "Program-owned shared Merkle tree"
+    status: "source scaffold; root provenance is lineage metadata only"
+  - id: "R9"
+    title: "Real recipient discovery off operator path"
+    status: "viewing-key + proof-owner-key scaffolds landed; live discovery still operator-mediated"
+  - id: "R11"
+    title: "Live anonymity set >= 1024"
+    status: "currentDistinctCommitments: 2, fails closed"
+  - id: "R20-R21"
+    title: "External audit acceptance"
+    status: "none accepted"
+
+roadmap_phases:
+  - id: "P0"
+    title: "Cleanup"
+    duration_weeks: 1
+    external_deps: []
+    closes:
+      - "H6"
+      - "M7"
+      - "M8"
+      - "M9"
+      - "M10"
+      - "L6"
+      - "L7"
+      - "L9"
+    blocks_phase_1_if_skipped: true
+  - id: "P1"
+    title: "Close C01 (verifier wiring)"
+    duration_weeks: "8-16"
+    external_deps:
+      - "Sunspot/Nargo toolchain pin + reviewed build"
+      - "trusted setup ceremony participants or equivalent mitigation"
+      - "mainnet redeploy + reinit transaction"
+      - "external audit firm acceptance"
+    closes:
+      - "C01 verifier-adapter acceptance gate"
+      - "C01 proof-format / VK evidence gate"
+      - "C01 wrong-VK no-mutation gate"
+      - "C01 SBF/live lineage gate"
+      - "C01 audit/reviewer acceptance gate"
+    critical_path: true
+  - id: "P2"
+    title: "Program-owned PDA vault"
+    duration_weeks: "4-8"
+    external_deps:
+      - "Phase 1 closure"
+    closes:
+      - "A2"
+      - "H4"
+      - "M4"
+  - id: "P3"
+    title: "Program-owned shared Merkle tree"
+    duration_weeks: "6-10"
+    external_deps:
+      - "audit acceptance of tree-transition circuit"
+    closes:
+      - "A3"
+  - id: "P4"
+    title: "Real recipient discovery"
+    duration_weeks: "4-8"
+    external_deps: []
+    closes:
+      - "R9"
+  - id: "P5"
+    title: "Live anonymity set >= 1024"
+    duration_weeks: "volume-blocked"
+    external_deps:
+      - "user volume"
+      - "audit acceptance of bootstrap policy"
+    closes:
+      - "R11"
+  - id: "P6"
+    title: "External audit"
+    duration_weeks: "4-8"
+    external_deps:
+      - "two audit firms (Solana program + ZK circuit/ceremony)"
+    closes:
+      - "R20"
+      - "R21"
+  - id: "P7"
+    title: "Live mainnet with proof-enforced release"
+    duration_weeks: 2
+    external_deps:
+      - "Phases 1, 2, 3, 6 closed"
+    closes:
+      - "live-verified status for promoted findings"
+
+calendar_estimates:
+  minimum_viable_one_lane:
+    duration_weeks: "24-36"
+    note: "Shield + actual-private-spend only; other lanes stay beta"
+  maximal_all_lanes:
+    duration_weeks: "36-60"
+    note: "Shield/Send/Swap/Unshield/Pay/Strategy all proof-verified, anonymity >= 1024"
+
+deliverable_locations:
+  combined_audit_and_roadmap: "docs/AUDIT_2026-05-22.md"
+  split_findings: "docs/AUDIT_2026-05-22_findings.md"
+  split_roadmap: "docs/AUDIT_2026-05-22_roadmap.md"
+  machine_readable_state: "docs/goals/2026-05-22-mainnet-readiness-audit/state.yaml"
+  machine_readable_goal: "docs/goals/2026-05-22-mainnet-readiness-audit/goal.md"
+
+lumi:
+  app_changes: "repo-local audit + roadmap artifacts committed"
+  committed: false
+  pushed: false
+  deployed_live: false
+  deploy_required_for_this_goal: false
+  live_status_note: "No finding was promoted, no production/live privacy claim changed, and no website-visible deploy verification is required for this repo-internal audit packet."

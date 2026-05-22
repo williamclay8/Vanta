@@ -8,7 +8,7 @@
   "c01VerifierReady": false,
   "solanaC01Groth16VerifierReady": false,
   "secretPolicy": "references-and-metadata-only-no-proof-bytes-no-witness-values",
-  "purpose": "Local proof-format observation for the C01 actual-private-spend verifier decision. This records the current local bb.js/UltraHonk proof receipt shape and the remaining tag-3 Groth16/Solana verifier mismatch without selecting a backend or claiming verifier readiness.",
+  "purpose": "Local proof-format observation for the C01 actual-private-spend verifier decision. This records the current local bb.js/UltraHonk proof receipt shape and the remaining selected tag-3 Groth16/Solana verifier mismatch without claiming verifier readiness.",
   "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
   "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
   "proofGenerationCommand": "npm run private-pool-v2:actual-private-spend-prove",
@@ -39,7 +39,10 @@
     "target": "solana-c01-tag3-groth16-v0",
     "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
     "proofSystem": "groth16",
-    "proofByteLength": 256,
+    "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+    "proofByteLength": 324,
+    "publicWitnessByteLength": 44,
+    "verifierInstructionDataByteLength": 368,
     "publicInputLabel": "private-spend-public-input-hash",
     "verifyingKeyHashKind": "production-verifying-key-hash",
     "status": "mismatch-blocked"
@@ -56,8 +59,8 @@
     "auditReviewerAcceptance": false
   },
   "currentCandidatePacketMustRemain": {
-    "selectedBackend": null,
-    "selectedBackendStatus": "not-selected",
+    "selectedBackend": "groth16-tag3-solana-v0",
+    "selectedBackendStatus": "selected-pending-production-evidence",
     "allRequiredPositiveEvidenceStatus": "blocked",
     "allRequiredPositiveEvidenceCurrentArtifactRef": null
   },

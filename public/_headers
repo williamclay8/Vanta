@@ -1,0 +1,52 @@
+# M9 fix (2026-05-22): HTTP security headers for the Vanta SPA served via
+# Render's static-site hosting. Render honors a `_headers` file in the
+# build output root; Vite copies `public/_headers` to `dist/_headers`
+# during `vite build`, so these apply to the deployed site automatically.
+#
+# If you front this with Cloudflare Pages instead of Render, the same
+# file format works there. If you front with a Cloudflare Worker /
+# Transform Rule, mirror these values in the Worker — do not just rely
+# on the origin headers, because Cloudflare's "Auto Minify" and similar
+# transforms can strip or override.
+#
+# Header rationale and exact values are documented in
+# `docs/AUDIT_2026-05-22_findings.md` under M9.
+
+/*
+  # Force HTTPS for one year; allow preload-list inclusion.
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+
+  # Never leak the source URL on cross-origin navigation. The SPA does not
+  # need referer for any of its connect-src targets.
+  Referrer-Policy: no-referrer
+
+  # Disable browser feature APIs the SPA does not use. Re-enable any
+  # explicitly required surface in a more specific rule below.
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()
+
+  # MIME-sniff defense (already set by Render, restated for explicitness).
+  X-Content-Type-Options: nosniff
+
+  # Clickjacking defense. CSP frame-ancestors below is the authoritative
+  # version; X-Frame-Options stays for older browsers.
+  X-Frame-Options: DENY
+
+  # Tight CSP. The Vite HTML at / is plain (no inline scripts, no inline
+  # styles), and the SPA connects only to the public RPC, the operator
+  # service network roles, and same-origin assets. Hash-pin any inline
+  # script you add in the future; do not relax to 'unsafe-inline'.
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://solana-rpc.publicnode.com https://vanta-prod-private-pool-v2-indexer.onrender.com https://vanta-prod-private-pool-v2-operator.onrender.com; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; manifest-src 'self'
+
+  # Cross-Origin isolation: not strictly required for this SPA today, but
+  # leaving COOP/CORP/COEP at safe defaults keeps spectre-class
+  # cross-process side-channels closed off.
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+
+# Allow the audit manifest and audit pointer to be cross-origin readable.
+# These are designed for external attestation tools that may fetch from
+# arbitrary origins.
+/.well-known/*
+  Cross-Origin-Resource-Policy: cross-origin
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300, must-revalidate

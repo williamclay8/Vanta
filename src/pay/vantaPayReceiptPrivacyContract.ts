@@ -65,3 +65,65 @@ export function getVantaPayReceiptPrivacyContract(): VantaPayReceiptPrivacyContr
     ],
   };
 }
+
+/**
+ * L9 fix (2026-05-22): runtime privacy-flag guard.
+ *
+ * The privacy contract's `claimControls.production_privacy_claims_locked`
+ * field is currently static (it is `true` in the contract type literal and
+ * `true` in the live contract above). That made any code path that asserts
+ * "production-privacy is allowed" a TypeScript guarantee but NOT a runtime
+ * guarantee — a future refactor that elevates the static literal (or that
+ * imports the contract from a service that returns a mutated copy) would
+ * silently allow a production-privacy claim with no defensive check.
+ *
+ * This guard is the runtime version. Any pay code path about to surface
+ * "production-private" / "fully-private" / "mainnet-private" copy or to
+ * accept a `fully_private_pay_claim` request must call this first. The
+ * guard throws — it does not return a status code — because failing
+ * silently on a privacy claim is exactly the kind of drift the truth
+ * boundary is designed to prevent.
+ */
+export class VantaPayProductionPrivacyClaimLockedError extends Error {
+  readonly code = "vanta-pay-production-privacy-claim-locked";
+  readonly attemptedClaim: string;
+  constructor(attemptedClaim: string) {
+    super(
+      `Vanta Pay production-privacy claim "${attemptedClaim}" is locked by ` +
+        `the receipt privacy contract. Promote the contract via the audited ` +
+        `claim-gate flow before this code path can run. See ` +
+        `docs/AUDIT_2026-05-22_findings.md L9.`,
+    );
+    this.name = "VantaPayProductionPrivacyClaimLockedError";
+    this.attemptedClaim = attemptedClaim;
+  }
+}
+
+/**
+ * Throws VantaPayProductionPrivacyClaimLockedError if any caller asks to
+ * make a production-privacy claim while the static contract says claims
+ * are locked. Returns the validated contract when allowed.
+ *
+ * Usage:
+ *   assertVantaPayProductionPrivacyClaimAllowed("fully_private_pay_claim");
+ *   // ... proceed with production-privacy code path ...
+ */
+export function assertVantaPayProductionPrivacyClaimAllowed(
+  attemptedClaim:
+    | "fully_private_pay_claim"
+    | "production_private_pay_claim"
+    | "mainnet_private_pay_claim",
+  contract: VantaPayReceiptPrivacyContract = getVantaPayReceiptPrivacyContract(),
+): VantaPayReceiptPrivacyContract {
+  const claimControls = contract.claimControls as Readonly<Record<string, unknown>>;
+  if (claimControls.production_privacy_claims_locked === true) {
+    throw new VantaPayProductionPrivacyClaimLockedError(attemptedClaim);
+  }
+  if (
+    attemptedClaim === "fully_private_pay_claim" &&
+    claimControls.fully_private_pay_claim !== true
+  ) {
+    throw new VantaPayProductionPrivacyClaimLockedError(attemptedClaim);
+  }
+  return contract;
+}

@@ -1,14 +1,14 @@
 {
   "version": "vanta-private-pool-v2-c01-verifier-candidate-evidence-0.1",
   "checkedAt": "2026-05-13T00:00:00.000Z",
-  "status": "blocked-no-production-verifier-backend-selected",
+  "status": "blocked-selected-groth16-tag3-solana-v0-production-evidence",
   "mainnetReady": false,
   "productionReady": false,
   "privacyClaimAllowed": false,
   "c01VerifierReady": false,
   "solanaC01Groth16VerifierReady": false,
   "secretPolicy": "references-only-no-secret-values",
-  "purpose": "Refs-only packet for C01 production verifier candidate evidence. This packet makes the backend/proof/verifying-key/test gates explicit without selecting a backend or claiming on-chain verifier readiness.",
+  "purpose": "Refs-only packet for C01 production verifier candidate evidence. This packet records groth16-tag3-solana-v0 as the selected backend direction while keeping proof-format, verifying-key, adapter, mutation-test, SBF/live-lineage, and audit/reviewer gates blocked.",
   "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
   "currentOnChainVerifierTarget": "solana-c01-tag3-groth16-v0",
   "currentReservedProofLayout": {
@@ -16,7 +16,10 @@
     "target": "solana-c01-tag3-groth16-v0",
     "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
     "proofSystem": "groth16",
-    "proofByteLength": 256,
+    "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+    "proofByteLength": 324,
+    "publicWitnessByteLength": 44,
+    "verifierInstructionDataByteLength": 368,
     "publicInputLabel": "private-spend-public-input-hash",
     "verifyingKeyHashKind": "production-verifying-key-hash",
     "status": "reserved-fail-closed"
@@ -42,13 +45,13 @@
       "satisfiesProductionVerifyingKeyEvidence": false
     },
     "productionVerifierReadiness": {
-      "selectedBackend": null,
-      "selectedBackendStatus": "not-selected",
+      "selectedBackend": "groth16-tag3-solana-v0",
+      "selectedBackendStatus": "selected-pending-production-evidence",
       "c01VerifierReady": false,
       "solanaC01Groth16VerifierReady": false,
-      "requiredPositiveEvidenceStatus": "blocked-with-null-artifact-refs"
+      "requiredPositiveEvidenceStatus": "blocked-with-selected-backend-and-null-positive-artifact-refs"
     },
-    "truthBoundary": "The local proof-format observation is not production verifier readiness. It records the current local Noir/bb.js UltraHonk receipt shape and its mismatch with the reserved tag-3 Groth16 target, while production verifier readiness remains blocked until backend selection, production proof-format evidence, production verifying-key evidence, verifier adapter acceptance, positive/negative tests, SBF/live lineage, and audit/reviewer acceptance exist."
+    "truthBoundary": "The local proof-format observation is not production verifier readiness. It records the current local Noir/bb.js UltraHonk receipt shape and its mismatch with the selected tag-3 Groth16 target, while production verifier readiness remains blocked until production proof-format evidence, production verifying-key evidence, verifier adapter acceptance, positive/negative tests, SBF/live lineage, and audit/reviewer acceptance exist."
   },
   "intermediateEvidenceRefs": [
     {
@@ -56,35 +59,49 @@
       "status": "local-observed-not-production",
       "artifactRef": "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
       "command": "npm run zk:c01-local-proof-format-evidence-check",
-      "truthBoundary": "This records the current local noir-bb / barretenberg-ultrahonk actual-private-spend proof receipt shape and its mismatch with the reserved tag-3 Groth16 format. It does not satisfy required production proof-format evidence."
+      "truthBoundary": "This records the current local noir-bb / barretenberg-ultrahonk actual-private-spend proof receipt shape and its mismatch with the reserved tag-3 Gnark-native Groth16 proof plus public-witness format. It does not satisfy required production proof-format evidence."
     },
     {
       "id": "source-only-verifier-key-registry-scaffold",
       "status": "source-only-not-production",
       "artifactRef": "ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json",
       "command": "npm run zk:c01-verifier-key-registry-check",
-      "truthBoundary": "This records that tag 5 can create or idempotently verify the program-owned verifier-key PDA required by reserved tag 3 preflight. It does not satisfy production verifying-key evidence, backend selection, verifier adapter evidence, or proof acceptance."
+      "truthBoundary": "This records that tag 5 can create or idempotently verify the program-owned verifier-key PDA and bound verifier program id required by reserved tag 3 preflight. It does not satisfy production verifying-key evidence, verifier adapter evidence, or proof acceptance."
     },
     {
       "id": "blocked-production-verifying-key-candidate",
       "status": "blocked-no-production-verifying-key-hash-artifact",
       "artifactRef": "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
       "command": "npm run zk:c01-production-verifying-key-candidate-check",
-      "truthBoundary": "This records the absence of the exact production verifying-key hash artifact required by the current reserved contract. It does not select a backend and does not satisfy production verifying-key evidence."
+      "truthBoundary": "This records the absence of the exact production verifying-key hash artifact required by the selected tag-3 Groth16 contract. It does not satisfy production verifying-key evidence."
     },
     {
       "id": "blocked-verifier-backend-options-matrix",
-      "status": "blocked-options-not-selected",
+      "status": "selected-groth16-tag3-solana-v0-production-evidence-blocked",
       "artifactRef": "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
       "command": "npm run zk:c01-verifier-backend-options-check",
-      "truthBoundary": "This records the Groth16 tag-3 Solana verifier path and Noir/bb.js/UltraHonk adaptation path as blocked options. It does not select a backend or satisfy production proof-format, verifying-key, verifier-adapter, test, live-lineage, or audit evidence."
+      "truthBoundary": "This records groth16-tag3-solana-v0 as the selected backend direction and Noir/bb.js/UltraHonk adaptation as not selected. It does not satisfy production proof-format, verifying-key, verifier-adapter, test, live-lineage, or audit evidence."
     },
     {
       "id": "blocked-groth16-proof-format-candidate",
       "status": "blocked-no-groth16-production-proof-format-artifact",
       "artifactRef": "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
       "command": "npm run zk:c01-groth16-proof-format-candidate-check",
-      "truthBoundary": "This records the absence of the exact Groth16 tag-3 proof-format artifact required by the current reserved contract. It does not select a backend and does not satisfy production proof-format evidence."
+      "truthBoundary": "This records the absence of the exact Groth16 tag-3 proof-format artifact required by the selected backend. It does not satisfy production proof-format evidence."
+    },
+    {
+      "id": "blocked-production-groth16-toolchain-preflight",
+      "status": "blocked-local-toolchain-no-groth16-scheme",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
+      "command": "npm run zk:c01-production-groth16-toolchain-preflight-check",
+      "truthBoundary": "This records that the current local Noir/bb toolchain exposes UltraHonk generation but not the required Groth16 production artifact lane, and that the candidate Sunspot/Gnark route is not installed or production-setup accepted. It does not satisfy production proof-format evidence, production verifying-key evidence, verifier-adapter evidence, or tag-3 proof acceptance."
+    },
+    {
+      "id": "blocked-production-artifact-acceptance-gate",
+      "status": "blocked-no-reviewed-production-artifact-bundle",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+      "command": "npm run zk:c01-production-artifact-acceptance-gate-check",
+      "truthBoundary": "This records the refs-only production artifact acceptance gate for returned Sunspot/Gnark source/build/setup/proof-format/VK/public-witness/adapter/test/SBF/live/audit artifacts. It does not satisfy production proof-format, production verifying-key, verifier-adapter, mutation/no-mutation, SBF/live-lineage, or audit evidence."
     },
     {
       "id": "blocked-verifier-adapter-acceptance-test-candidate",
@@ -92,17 +109,32 @@
       "artifactRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
       "command": "npm run zk:c01-verifier-adapter-test-candidate-check",
       "truthBoundary": "This records the absence of verifier adapter acceptance, private-spend public-input hash binding, valid-proof mutation, and invalid-proof no-mutation evidence. It does not satisfy verifier-adapter evidence, verifier-adapter acceptance, or tag-3 proof acceptance."
+    },
+    {
+      "id": "local-sunspot-public-witness-binding-observation",
+      "status": "local-public-witness-binding-observed-not-production",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
+      "command": "npm run zk:c01-public-witness-binding-check",
+      "truthBoundary": "This records that the local nonproduction Sunspot/Gnark public witness decodes to the local receipt's private-spend-public-input-hash. It does not satisfy production private-spend-public-input-hash binding evidence, verifier-adapter acceptance, tag-3 proof acceptance, or production proof-format evidence."
+    },
+    {
+      "id": "local-fail-closed-verifier-adapter-seam-harness",
+      "status": "local-fail-closed-harness-only",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+      "sourceRef": "programs/vanta_private_pool_v2_spend/src/lib.rs",
+      "command": "npm run zk:c01-verifier-adapter-seam-check",
+      "truthBoundary": "This records a source-only preflight/default-adapter/verified-commit seam, default adapter rejection before mutation, 368-byte proof-plus-public-witness verifier instruction-data assembly, one-field Gnark public-witness precheck against private-spend-public-input-hash, a dedicated readonly executable verifier-program account bound through the verifier-key record, generated Solana verifier CPI instruction shape, an on-chain-only verifier CPI hook that passes the verifier-program account while host-side Solana syscall stubs remain fail-closed, and a commit-capable public tag-3 account list after test-only adapter acceptance. It does not satisfy verifier-adapter evidence, does not satisfy verifier-adapter acceptance, does not satisfy tag-3 proof acceptance, and does not satisfy production proof-format or production verifying-key evidence."
     }
   ],
-  "selectedBackend": null,
-  "selectedBackendStatus": "not-selected",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "selectedBackendStatus": "selected-pending-production-evidence",
   "requiredPositiveEvidence": [
     {
       "id": "backend-selection",
-      "status": "blocked",
-      "requiredArtifactShape": "decision:<groth16-tag3-or-ultrahonk-adaptation-selected-with-rationale>",
-      "currentArtifactRef": null,
-      "truthBoundary": "Choosing the backend is a production architecture decision; this packet does not choose it."
+      "status": "satisfied-local-selection",
+      "requiredArtifactShape": "decision:<groth16-tag3-solana-v0-selected-with-rationale>",
+      "currentArtifactRef": "docs/zk/c01-production-verifier-backend-decision.md",
+      "truthBoundary": "The selected backend direction is groth16-tag3-solana-v0 because it matches the reserved tag-3 Solana ABI and the available Solana BN254/Groth16 verifier surface. This selection does not satisfy production proof-format, production verifying-key, adapter, mutation-test, SBF/live-lineage, or audit/reviewer evidence."
     },
     {
       "id": "actual-private-spend-production-proof-format",
@@ -116,7 +148,7 @@
       "status": "blocked",
       "requiredArtifactShape": "test:<verifier-binds-private-spend-public-input-hash>",
       "currentArtifactRef": null,
-      "truthBoundary": "A proof must verify the exact public input hash for the spend transcript before it can become C01 evidence."
+      "truthBoundary": "A local nonproduction public-witness observation now decodes to the local receipt's private-spend-public-input-hash, but a production verifier adapter must verify the exact public input hash for the spend transcript before this can become C01 evidence."
     },
     {
       "id": "production-verifying-key-hash",
@@ -130,7 +162,7 @@
       "status": "blocked",
       "requiredArtifactShape": "adapter:<in-program-verifier-or-dedicated-verifier-cpi-for-selected-backend>",
       "currentArtifactRef": null,
-      "truthBoundary": "Tag 3 still returns ERR_PROOF_VERIFIER_NOT_WIRED before mutation."
+      "truthBoundary": "Host-side tag 3 still returns ERR_PROOF_VERIFIER_NOT_WIRED before mutation so Solana syscall stubs cannot fake proof acceptance; SBF has an on-chain verifier CPI hook, but no accepted production verifier artifact or mutation/no-mutation evidence exists."
     },
     {
       "id": "accepted-proof-mutates-state-test",
@@ -145,6 +177,20 @@
       "requiredArtifactShape": "test:<invalid-proof-rejects-and-leaves-account-bytes-unchanged>",
       "currentArtifactRef": null,
       "truthBoundary": "No invalid-proof no-mutation verifier test exists."
+    },
+    {
+      "id": "wrong-public-input-hash-leaves-accounts-unchanged-test",
+      "status": "blocked",
+      "requiredArtifactShape": "test:<wrong-public-input-hash-rejects-and-leaves-account-bytes-unchanged>",
+      "currentArtifactRef": null,
+      "truthBoundary": "No wrong-public-input-hash no-mutation verifier test exists."
+    },
+    {
+      "id": "wrong-verifying-key-leaves-accounts-unchanged-test",
+      "status": "blocked",
+      "requiredArtifactShape": "test:<wrong-verifying-key-rejects-and-leaves-account-bytes-unchanged>",
+      "currentArtifactRef": null,
+      "truthBoundary": "No wrong-verifying-key no-mutation verifier test exists."
     },
     {
       "id": "sbf-live-lineage",
@@ -177,10 +223,14 @@
     "npm run zk:c01-verifier-key-registry-check",
     "npm run zk:c01-verifier-backend-options-check",
     "npm run zk:c01-groth16-proof-format-candidate-check",
+    "npm run zk:c01-production-groth16-toolchain-preflight-check",
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+    "npm run zk:c01-public-witness-binding-check",
     "npm run zk:c01-production-verifying-key-candidate-check",
     "npm run zk:c01-verifier-adapter-test-candidate-check",
+    "npm run zk:c01-verifier-adapter-seam-check",
     "npm run private-pool-v2:sbf-abi-check",
     "npm run private-pool-v2:verify"
   ],
-  "truthBoundary": "This packet is a blocked evidence contract for the next C01 verifier candidate. It is not backend selection, production proof format evidence, production verifying-key evidence, on-chain verifier execution, live deployment evidence, audit acceptance, or real-funds readiness."
+  "truthBoundary": "This packet records groth16-tag3-solana-v0 as the selected C01 backend direction. It is not production proof format evidence, production verifying-key evidence, verifier-adapter acceptance, on-chain verifier execution, live deployment evidence, audit acceptance, production-private readiness, or real-funds readiness."
 }

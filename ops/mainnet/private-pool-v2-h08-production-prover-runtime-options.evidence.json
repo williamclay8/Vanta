@@ -19,15 +19,15 @@
   "purpose": "Blocked options packet for choosing an H08 production prover runtime. It records remote-service-production-prover as the selected local implementation direction, keeps selectedProverRuntime null, and records why local proof-artifact evidence remains intermediate only.",
   "candidatePacketRef": "ops/mainnet/private-pool-v2-h08-production-prover-candidate.evidence.json",
   "c01VerifierCompatibilityRefs": {
-    "status": "blocked-c01-backend-unselected",
+    "status": "blocked-c01-selected-backend-positive-evidence-absent",
     "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
     "backendOptionsRef": "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
     "verifierCandidateRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
-    "selectedBackend": null,
-    "selectedBackendStatus": "not-selected",
+    "selectedBackend": "groth16-tag3-solana-v0",
+    "selectedBackendStatus": "selected-pending-production-evidence",
     "c01VerifierReady": false,
     "solanaC01Groth16VerifierReady": false,
-    "truthBoundary": "H08 runtime selection cannot be production-compatible while C01 selectedBackend is null. This packet is not C01 verifier compatibility evidence."
+    "truthBoundary": "H08 runtime selection cannot be production-compatible until the selected C01 backend has production proof-format, production verifying-key, verifier-adapter, positive/negative mutation-test, SBF/live-lineage, and audit/reviewer evidence. This packet is not C01 verifier compatibility evidence."
   },
   "runtimeOptions": [
     {
@@ -61,7 +61,7 @@
         "no artifact-store refs exist",
         "no job-log refs exist",
         "production proof-format contract is absent",
-        "C01 verifier compatibility is absent",
+        "C01 selected-backend positive verifier evidence is absent",
         "audit-or-reviewer acceptance is absent"
       ],
       "truthBoundary": "The remote service option is not production prover readiness until the deployed service, proof-format, C01 verifier compatibility, and acceptance evidence exist."
@@ -100,7 +100,7 @@
         "current browser-worker evidence is dev-only",
         "no production browser runtime contract exists",
         "live route wiring is absent",
-        "C01 verifier compatibility is absent",
+        "C01 selected-backend positive verifier evidence is absent",
         "audit-or-reviewer acceptance is absent"
       ],
       "truthBoundary": "The browser-worker option is not production prover readiness; current evidence is dev-only Shield, Claim, Swap-to-shielded, Send, and actual-private-spend execution without production route wiring."
@@ -168,7 +168,7 @@
   },
   "blockedBy": [
     "selected-prover-runtime-null",
-    "c01-selected-backend-null",
+    "c01-selected-backend-positive-evidence-absent",
     "production-proof-format-absent",
     "production-verifying-key-evidence-absent",
     "live-route-wiring-absent",

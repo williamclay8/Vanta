@@ -1,4 +1,4 @@
-import { poseidon1, poseidon2, poseidon3, poseidon5, poseidon11 } from "poseidon-lite";
+import { poseidon1, poseidon2, poseidon3, poseidon5, poseidon6, poseidon11 } from "poseidon-lite";
 import {
   buildVantaPrivatePoolV2SparseMerkleTree,
   directionBitsForLeafIndex,
@@ -14,6 +14,14 @@ export type VantaPrivatePoolV2ActualPrivateSpendCircuitWitness = {
   accepted_root: bigint;
   asset_cohort: bigint;
   context_hash: bigint;
+  // H6 fix (2026-05-22): context_hash preimage components. The circuit
+  // recomputes the Poseidon6 hash from these and asserts equality with
+  // context_hash. See zk/noir/.../main.nr `derive_actual_private_spend_context_tag`.
+  context_preimage_merchant_address_hi: bigint;
+  context_preimage_merchant_address_lo: bigint;
+  context_preimage_denomination: bigint;
+  context_preimage_settlement_epoch_hi: bigint;
+  context_preimage_settlement_epoch_lo: bigint;
   input_blinding: bigint;
   input_commitment: bigint;
   input_derivation_tag: bigint;
@@ -37,6 +45,7 @@ export type VantaPrivatePoolV2ActualPrivateSpendCircuitFixture = {
 export type VantaPrivatePoolV2ActualPrivateSpendCircuitFixtureMode =
   | "valid"
   | "invalid-binding"
+  | "invalid-context-hash-preimage" // H6 fix (2026-05-22)
   | "invalid-direction-bit"
   | "invalid-input-commitment-preimage"
   | "invalid-leaf-index"
@@ -47,6 +56,11 @@ export type VantaPrivatePoolV2ActualPrivateSpendCircuitWitnessInput = {
   accepted_root: bigint | string;
   asset_cohort: bigint | string;
   context_hash: bigint | string;
+  context_preimage_merchant_address_hi: bigint | string;
+  context_preimage_merchant_address_lo: bigint | string;
+  context_preimage_denomination: bigint | string;
+  context_preimage_settlement_epoch_hi: bigint | string;
+  context_preimage_settlement_epoch_lo: bigint | string;
   input_blinding: bigint | string;
   input_commitment: bigint | string;
   input_derivation_tag: bigint | string;
@@ -65,6 +79,11 @@ export type VantaPrivatePoolV2ActualPrivateSpendCircuitNoirInputs = {
   accepted_root: string;
   asset_cohort: string;
   context_hash: string;
+  context_preimage_merchant_address_hi: string;
+  context_preimage_merchant_address_lo: string;
+  context_preimage_denomination: string;
+  context_preimage_settlement_epoch_hi: string;
+  context_preimage_settlement_epoch_lo: string;
   input_blinding: string;
   input_commitment: string;
   input_derivation_tag: string;
@@ -82,7 +101,15 @@ export type VantaPrivatePoolV2ActualPrivateSpendCircuitNoirInputs = {
 
 const DEFAULT_WITNESS_BASE = {
   asset_cohort: 202n,
-  context_hash: 909n,
+  // H6 (2026-05-22): default preimage components for the fixture. The
+  // circuit recomputes context_hash from these and asserts equality, so
+  // both the preimage and the derived hash must move together. Helper at
+  // scripts/_compute_context.mjs prints the matching context_hash.
+  context_preimage_merchant_address_hi: 0n,
+  context_preimage_merchant_address_lo: 7700n,
+  context_preimage_denomination: 100n,
+  context_preimage_settlement_epoch_hi: 0n,
+  context_preimage_settlement_epoch_lo: 42n,
   input_blinding: 404n,
   input_derivation_tag: 405n,
   leaf_index: 5n,
@@ -95,7 +122,7 @@ const DEFAULT_WITNESS_BASE = {
   request_version: 701n,
 } satisfies Omit<
   VantaPrivatePoolV2ActualPrivateSpendCircuitWitness,
-  "accepted_root" | "input_commitment" | "nullifier"
+  "accepted_root" | "context_hash" | "input_commitment" | "nullifier"
 >;
 
 const DEFAULT_WITH_INPUT_COMMITMENT = {
@@ -123,9 +150,18 @@ const DEFAULT_WITH_ROOT = {
   ),
 };
 
-const DEFAULT_WITNESS = {
+const DEFAULT_WITH_NULLIFIER = {
   ...DEFAULT_WITH_ROOT,
   nullifier: computeVantaPrivatePoolV2ActualPrivateSpendNullifier(DEFAULT_WITH_ROOT),
+};
+
+// H6 (2026-05-22): context_hash now derives from the preimage components
+// plus the nullifier. We must compute it AFTER the nullifier is known,
+// otherwise the circuit's `derive_actual_private_spend_context_tag`
+// constraint will reject the witness.
+const DEFAULT_WITNESS = {
+  ...DEFAULT_WITH_NULLIFIER,
+  context_hash: computeVantaPrivatePoolV2ActualPrivateSpendContextHash(DEFAULT_WITH_NULLIFIER),
 } satisfies VantaPrivatePoolV2ActualPrivateSpendCircuitWitness;
 
 const BN254_SCALAR_FIELD =
@@ -135,6 +171,12 @@ const ACTUAL_PRIVATE_SPEND_WITNESS_FIELDS = [
   "accepted_root",
   "asset_cohort",
   "context_hash",
+  // H6 (2026-05-22): preimage components for in-circuit context_hash binding
+  "context_preimage_merchant_address_hi",
+  "context_preimage_merchant_address_lo",
+  "context_preimage_denomination",
+  "context_preimage_settlement_epoch_hi",
+  "context_preimage_settlement_epoch_lo",
   "input_blinding",
   "input_commitment",
   "input_derivation_tag",
@@ -276,6 +318,36 @@ export function computeVantaPrivatePoolV2ActualPrivateSpendInputCommitment(
   ]);
 }
 
+/**
+ * H6 fix (2026-05-22): in-circuit context_hash binding.
+ *
+ * Mirrors `derive_actual_private_spend_context_tag` in
+ * `zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr`.
+ * Any change here must match the circuit byte-for-byte, otherwise the
+ * `assert(computed_context_hash == context_hash)` constraint will fail
+ * at proving time.
+ */
+export function computeVantaPrivatePoolV2ActualPrivateSpendContextHash(
+  witness: Pick<
+    VantaPrivatePoolV2ActualPrivateSpendCircuitWitness,
+    | "context_preimage_merchant_address_hi"
+    | "context_preimage_merchant_address_lo"
+    | "context_preimage_denomination"
+    | "context_preimage_settlement_epoch_hi"
+    | "context_preimage_settlement_epoch_lo"
+    | "nullifier"
+  >,
+) {
+  return poseidon6([
+    witness.context_preimage_merchant_address_hi,
+    witness.context_preimage_merchant_address_lo,
+    witness.context_preimage_denomination,
+    witness.context_preimage_settlement_epoch_hi,
+    witness.context_preimage_settlement_epoch_lo,
+    witness.nullifier,
+  ]);
+}
+
 export function computeVantaPrivatePoolV2ActualPrivateSpendPublicInputHash(
   witness: VantaPrivatePoolV2ActualPrivateSpendCircuitWitness,
 ) {
@@ -314,6 +386,27 @@ export function normalizeVantaPrivatePoolV2ActualPrivateSpendCircuitWitnessInput
     accepted_root: normalizeWitnessField(input.accepted_root, "accepted_root"),
     asset_cohort: normalizeWitnessField(input.asset_cohort, "asset_cohort"),
     context_hash: normalizeWitnessField(input.context_hash, "context_hash"),
+    // H6 preimage fields
+    context_preimage_merchant_address_hi: normalizeWitnessField(
+      input.context_preimage_merchant_address_hi,
+      "context_preimage_merchant_address_hi",
+    ),
+    context_preimage_merchant_address_lo: normalizeWitnessField(
+      input.context_preimage_merchant_address_lo,
+      "context_preimage_merchant_address_lo",
+    ),
+    context_preimage_denomination: normalizeWitnessField(
+      input.context_preimage_denomination,
+      "context_preimage_denomination",
+    ),
+    context_preimage_settlement_epoch_hi: normalizeWitnessField(
+      input.context_preimage_settlement_epoch_hi,
+      "context_preimage_settlement_epoch_hi",
+    ),
+    context_preimage_settlement_epoch_lo: normalizeWitnessField(
+      input.context_preimage_settlement_epoch_lo,
+      "context_preimage_settlement_epoch_lo",
+    ),
     input_blinding: normalizeWitnessField(input.input_blinding, "input_blinding"),
     input_commitment: normalizeWitnessField(input.input_commitment, "input_commitment"),
     input_derivation_tag: normalizeWitnessField(
@@ -366,6 +459,20 @@ export function normalizeVantaPrivatePoolV2ActualPrivateSpendCircuitWitnessInput
     throw new Error("Actual-private-spend witness nullifier must match the note secret.");
   }
 
+  // H6: context_hash must derive from the supplied preimage components +
+  // the nullifier. This mirrors the in-circuit assertion in
+  // `derive_actual_private_spend_context_tag`. A normalized witness whose
+  // context_hash does not match the preimage will reject here rather than
+  // failing later at proving time, which would have been confusing.
+  if (
+    witness.context_hash !==
+    computeVantaPrivatePoolV2ActualPrivateSpendContextHash(witness)
+  ) {
+    throw new Error(
+      "Actual-private-spend witness context_hash must match the preimage components.",
+    );
+  }
+
   if (witness.output_commitment_0 === witness.output_commitment_1) {
     throw new Error("Actual-private-spend witness output commitments must be unique.");
   }
@@ -397,6 +504,17 @@ export function createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture({
             ? { ...witness, input_blinding: witness.input_blinding + 1n }
           : mode === "invalid-leaf-index"
             ? { ...witness, leaf_index: witness.leaf_index + 1n }
+          // H6 fix (2026-05-22): the preimage merchant address is tweaked by
+          // one Field unit, but the `context_hash` field stays at the
+          // original Poseidon6 value. The in-circuit assertion
+          // `assert(derive_actual_private_spend_context_tag(...) == context_hash)`
+          // must reject this witness, demonstrating the new binding.
+          : mode === "invalid-context-hash-preimage"
+            ? {
+                ...witness,
+                context_preimage_merchant_address_lo:
+                  witness.context_preimage_merchant_address_lo + 1n,
+              }
             : witness;
   const validPublicHash =
     computeVantaPrivatePoolV2ActualPrivateSpendPublicInputHash(circuitWitness);
@@ -438,6 +556,20 @@ export function createVantaPrivatePoolV2ActualPrivateSpendCircuitNoirInputs(
     accepted_root: toCircuitString(witness.accepted_root),
     asset_cohort: toCircuitString(witness.asset_cohort),
     context_hash: toCircuitString(witness.context_hash),
+    // H6 preimage fields
+    context_preimage_merchant_address_hi: toCircuitString(
+      witness.context_preimage_merchant_address_hi,
+    ),
+    context_preimage_merchant_address_lo: toCircuitString(
+      witness.context_preimage_merchant_address_lo,
+    ),
+    context_preimage_denomination: toCircuitString(witness.context_preimage_denomination),
+    context_preimage_settlement_epoch_hi: toCircuitString(
+      witness.context_preimage_settlement_epoch_hi,
+    ),
+    context_preimage_settlement_epoch_lo: toCircuitString(
+      witness.context_preimage_settlement_epoch_lo,
+    ),
     input_blinding: toCircuitString(witness.input_blinding),
     input_commitment: toCircuitString(witness.input_commitment),
     input_derivation_tag: toCircuitString(witness.input_derivation_tag),
@@ -474,6 +606,14 @@ export function serializeVantaPrivatePoolV2ActualPrivateSpendCircuitFixtureToTom
     `note_secret = "${witness.note_secret.toString(10)}"`,
     `input_blinding = "${witness.input_blinding.toString(10)}"`,
     `input_derivation_tag = "${witness.input_derivation_tag.toString(10)}"`,
+    // H6: context_hash preimage fields must follow context_hash in the Noir
+    // input ordering. See `main` parameter list in
+    // zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr.
+    `context_preimage_merchant_address_hi = "${witness.context_preimage_merchant_address_hi.toString(10)}"`,
+    `context_preimage_merchant_address_lo = "${witness.context_preimage_merchant_address_lo.toString(10)}"`,
+    `context_preimage_denomination = "${witness.context_preimage_denomination.toString(10)}"`,
+    `context_preimage_settlement_epoch_hi = "${witness.context_preimage_settlement_epoch_hi.toString(10)}"`,
+    `context_preimage_settlement_epoch_lo = "${witness.context_preimage_settlement_epoch_lo.toString(10)}"`,
     `membership_path = [${witness.membership_path.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
     `membership_path_direction_bits = [${witness.membership_path_direction_bits.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
     "",

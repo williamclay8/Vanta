@@ -1,0 +1,103 @@
+{
+  "version": "vanta-private-pool-v2-c01-public-witness-binding-evidence-0.1",
+  "checkedAt": "2026-05-21T00:37:14.000Z",
+  "status": "local-public-witness-binding-observed-not-production",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "selectedBackendStatus": "selected-pending-production-evidence",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "secretPolicy": "metadata-and-public-input-binding-only-no-raw-proof-vk-private-witness-keypair-or-signed-transaction-bytes",
+  "purpose": "Machine-checkable local observation that the nonproduction Sunspot/Gnark public-witness file decodes to the same private-spend-public-input-hash as the local actual-private-spend receipt, while preserving the production public-input binding blocker.",
+  "devProbePacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
+  "proofFormatCandidateRef": "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+  "artifactAcquisitionPacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json",
+  "verifierCandidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "localProofReceiptRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.proof.json",
+  "observedPublicWitness": {
+    "artifactRef": "/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/target/vanta_private_pool_v2_actual_private_spend_entry.pw",
+    "storedInRepo": false,
+    "byteLength": 44,
+    "sha256": "sha256:885351f63518202c4fcd120af8ffc296a8706edae14ed4795c11795dfd7f90e3",
+    "encoding": "gnark public witness WriteTo",
+    "layout": "12-byte header + 1 * 32-byte big-endian BN254 field",
+    "header": {
+      "hex": "000000010000000000000001",
+      "byteLength": 12,
+      "publicInputs": 1,
+      "privateInputs": 0,
+      "vectorEntries": 1
+    },
+    "decodedPublicInputs": [
+      {
+        "index": 0,
+        "label": "private-spend-public-input-hash",
+        "value": "0x0421d1c89c8353818f26d6efcd44b4222a2de2b1f14b8287c59728573a90dd32",
+        "byteOffset": 12,
+        "byteLength": 32,
+        "endian": "big"
+      }
+    ],
+    "matchesLocalProofReceiptPublicInput": true,
+    "matchesGeneratedVerifierNrPubinputs": true,
+    "satisfiesProductionPublicInputBinding": false
+  },
+  "localProofReceiptObservation": {
+    "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+    "proofSystem": "noir-bb",
+    "proofBackend": "local-bb-fixture-artifact",
+    "publicInputLabel": "private-spend-public-input-hash",
+    "publicInputValue": "0x0421d1c89c8353818f26d6efcd44b4222a2de2b1f14b8287c59728573a90dd32",
+    "publicInputCommitment": "sha256:c809ccff8c9f8549463fa0d635953adbffd63b58f2d8d74f8f397cec50d6cf26",
+    "verified": true,
+    "satisfiesProductionPublicInputBinding": false
+  },
+  "sourcePublicWitnessBindingPrecheck": {
+    "status": "source-preadapter-guard-local-only",
+    "sourceRef": "programs/vanta_private_pool_v2_spend/src/lib.rs",
+    "command": "npm run zk:c01-verifier-adapter-seam-check",
+    "publicWitnessHeaderHex": "000000010000000000000001",
+    "publicWitnessByteLength": 44,
+    "verifierInstructionDataByteLength": 368,
+    "publicInputLabel": "private-spend-public-input-hash",
+    "rejectsWrongPublicWitnessBeforeNotWired": true,
+    "rejectsBadPublicWitnessHeaderBeforeNotWired": true,
+    "satisfiesProductionPublicInputBinding": false,
+    "satisfiesVerifierAdapterAcceptance": false,
+    "truthBoundary": "The spend program source now has a local preadapter guard that checks the 44-byte Gnark public witness header and requires its one 32-byte field to equal publicInputHash before assembling proof-plus-public-witness verifier instruction data. This is source-level drift prevention only; it is not production public-input binding evidence and not verifier-adapter acceptance."
+  },
+  "optionalRawArtifactValidation": {
+    "envVar": "VANTA_C01_GNARK_PUBLIC_WITNESS_PATH",
+    "status": "optional-not-required-for-default-guard",
+    "command": "VANTA_C01_GNARK_PUBLIC_WITNESS_PATH=/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/target/vanta_private_pool_v2_actual_private_spend_entry.pw npm run zk:c01-public-witness-binding-check",
+    "truthBoundary": "The default guard validates refs and decoded metadata only. When the env var is set, it additionally hashes and decodes the local /private/tmp public-witness file without storing the file in the repo."
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "backendSelection": true,
+    "routeFeasibilityLocalDevProbe": true,
+    "localPublicWitnessBindingObserved": true,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "canonicalCommands": [
+    "npm run zk:c01-public-witness-binding-check",
+    "npm run zk:c01-verifier-adapter-seam-check",
+    "npm run zk:c01-sunspot-groth16-dev-probe-check",
+    "npm run zk:c01-groth16-proof-format-candidate-check",
+    "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
+    "npm run zk:c01-production-verifier-backend-candidate-check"
+  ],
+  "truthBoundary": "This is a local nonproduction public-witness binding observation only. It proves the observed /private/tmp Gnark public-witness bytes decode to the expected private-spend-public-input-hash from the local Noir/bb receipt, but it is not production proof-format evidence, not production private-spend-public-input-hash binding evidence, not production verifying-key evidence, not verifier-adapter acceptance, not valid-proof mutation evidence, not invalid/wrong-input/wrong-key no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, not production privacy, and not C01 closure."
+}

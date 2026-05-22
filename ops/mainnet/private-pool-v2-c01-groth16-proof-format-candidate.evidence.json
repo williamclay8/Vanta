@@ -3,15 +3,15 @@
   "checkedAt": "2026-05-13T00:00:00.000Z",
   "status": "blocked-no-groth16-production-proof-format-artifact",
   "backendOptionId": "groth16-tag3-solana-v0",
-  "selectedBackend": null,
-  "selectedBackendStatus": "not-selected",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "selectedBackendStatus": "selected-pending-production-evidence",
   "mainnetReady": false,
   "productionReady": false,
   "privacyClaimAllowed": false,
   "c01VerifierReady": false,
   "solanaC01Groth16VerifierReady": false,
   "secretPolicy": "references-and-metadata-only-no-proof-bytes-no-witness-values",
-  "purpose": "Machine-readable blocked feasibility packet for the C01 Groth16 tag-3 proof-format path. This packet records the exact production proof-format candidate shape required by the reserved tag-3 contract and the current absence of that artifact.",
+  "purpose": "Machine-readable blocked feasibility packet for the selected C01 Groth16 tag-3 proof-format path. This packet records the exact production proof-format candidate shape now selected for the Sunspot/Gnark verifier input tuple and the current absence of that production artifact.",
   "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
   "backendOptionsRef": "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
   "productionVerifyingKeyCandidateRef": {
@@ -20,6 +20,31 @@
     "command": "npm run zk:c01-production-verifying-key-candidate-check",
     "truthBoundary": "This packet records that the exact production verifying-key hash artifact for the reserved Groth16 tag-3 path is absent; it does not satisfy production verifying-key evidence."
   },
+  "productionGroth16ToolchainPreflightRef": {
+    "status": "blocked-local-toolchain-no-groth16-scheme",
+    "artifactRef": "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
+    "command": "npm run zk:c01-production-groth16-toolchain-preflight-check",
+    "truthBoundary": "This packet records that the current local Noir/bb toolchain exposes UltraHonk generation but not the required Groth16 production artifact lane, and that the candidate Sunspot/Gnark route is not installed or production-setup accepted; it does not satisfy production proof-format or production verifying-key evidence."
+  },
+  "localSunspotGroth16DevProbeRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
+  "localSunspotGnarkLocalArtifactInventoryRef": {
+    "status": "local-artifact-inventory-observed-nonproduction-unsafe-setup",
+    "artifactRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-local-artifact-inventory.evidence.json",
+    "command": "npm run zk:c01-sunspot-gnark-local-artifact-inventory-check",
+    "proofByteLength": 324,
+    "publicWitnessByteLength": 44,
+    "verifierInstructionDataByteLength": 368,
+    "verifyingKeyHashKind": "local-unsafe-sunspot-vk-hash-not-production",
+    "satisfiesProductionProofFormatEvidence": false,
+    "truthBoundary": "The local artifact inventory records exact metadata for the unsafe local Sunspot/Gnark proof and public witness, but it does not satisfy production proof-format evidence."
+  },
+  "productionArtifactAcceptanceGateRef": {
+    "status": "blocked-no-reviewed-production-artifact-bundle",
+    "artifactRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+    "command": "npm run zk:c01-production-artifact-acceptance-gate-check",
+    "satisfiesProductionProofFormatEvidence": false,
+    "truthBoundary": "The production artifact acceptance gate keeps returned Sunspot/Gnark production bundle refs null until reviewed source/build/setup/proof-format/VK/public-witness/adapter/test/SBF/live/audit artifacts exist; it does not satisfy production proof-format evidence."
+  },
   "localProofFormatRef": "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
   "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
   "requiredCandidateShape": {
@@ -27,16 +52,30 @@
     "tag": 3,
     "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
     "proofSystem": "groth16",
-    "proofByteLength": 256,
+    "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+    "proofEncoding": "gnark WriteRawTo proof",
+    "proofByteLength": 324,
+    "publicWitnessEncoding": "gnark public witness WriteTo",
+    "publicWitnessByteLength": 44,
+    "verifierInstructionDataByteLength": 368,
+    "generatedVerifierNrPubinputs": 1,
+    "generatedVerifierCommitmentKeys": 0,
     "publicInputLabel": "private-spend-public-input-hash",
     "verifyingKeyHashKind": "production-verifying-key-hash",
-    "status": "required-before-groth16-tag3-selection"
+    "currentProgramReservedProofByteLength": 324,
+    "currentProgramReservedPublicWitnessByteLength": 44,
+    "currentProgramReservedVerifierInputByteLength": 368,
+    "adapterBoundaryStatus": "spend-program-tag3-abi-reserves-selected-gnark-tuple-and-dedicated-verifier-cpi-account-fail-closed",
+    "status": "selected-candidate-format-pending-production-artifact-and-adapter-acceptance"
   },
   "currentCandidateArtifact": {
     "status": "absent",
     "artifactRef": null,
+    "proofFormatId": null,
     "proofSystem": null,
     "proofByteLength": null,
+    "publicWitnessByteLength": null,
+    "verifierInstructionDataByteLength": null,
     "verifyingKeyHashKind": null,
     "satisfiesProductionProofFormat": false
   },
@@ -49,22 +88,76 @@
     "verifyingKeyHashKind": "local-acir-bytecode-hash-not-production-vk",
     "status": "local-observation-only"
   },
+  "localSunspotPublicWitnessBindingObservation": {
+    "status": "local-public-witness-binding-observed-not-production",
+    "artifactRef": "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
+    "command": "npm run zk:c01-public-witness-binding-check",
+    "publicWitnessByteLength": 44,
+    "publicWitnessHeaderHex": "000000010000000000000001",
+    "decodedPublicInputLabel": "private-spend-public-input-hash",
+    "publicInputValueRef": "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
+    "matchesLocalProofReceiptPublicInput": true,
+    "matchesGeneratedVerifierNrPubinputs": true,
+    "satisfiesPrivateSpendPublicInputHashBinding": false,
+    "satisfiesProductionProofFormatEvidence": false,
+    "truthBoundary": "The local public-witness file decodes to the local receipt's private-spend-public-input-hash, but this observation is local/nonproduction and does not satisfy production private-spend-public-input-hash binding evidence."
+  },
+  "localSunspotGroth16DevProbeObservation": {
+    "status": "local-dev-probe-succeeded-nonproduction-unsafe-setup-and-beta18-source-shim",
+    "artifactRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
+    "command": "npm run zk:c01-sunspot-groth16-dev-probe-check",
+    "proofSystem": "groth16",
+    "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+    "proofByteLength": 324,
+    "selectedCandidateProofByteLength": 324,
+    "currentTag3ProofByteLength": 324,
+    "currentTag3PublicWitnessByteLength": 44,
+    "legacyRejectedTag3ProofByteLength": 256,
+    "publicWitnessByteLength": 44,
+    "generatedVerifierInstructionDataByteLength": 368,
+    "generatedVerifierExpectedProofByteLength": 324,
+    "generatedVerifierNrPubinputs": 1,
+    "generatedVerifierCommitmentKeys": 0,
+    "standaloneLocalSvmVerificationPassed": true,
+    "standaloneLocalSvmComputeUnits": 163841,
+    "sunspotReportedPublicInputs": 0,
+    "sunspotReportedSecretInputs": 0,
+    "setupBoundary": "unsafe-local-single-operator-setup-no-toxic-waste-mitigation",
+    "temporarySourceShimCommitted": false,
+    "localVerifierSbfBuilt": true,
+    "satisfiesProductionProofFormatEvidence": false,
+    "satisfiesPrivateSpendPublicInputHashBinding": false,
+    "satisfiesProductionVerifyingKeyEvidence": false,
+    "satisfiesVerifierAdapterEvidence": false,
+    "satisfiesSbfLiveLineage": false,
+    "truthBoundary": "The local Sunspot/Gnark dev probe proves route feasibility only. The generated standalone verifier accepted the selected Gnark-native verifier tuple: 324-byte proof plus 44-byte public witness as 368 bytes of instruction data. The spend-program tag-3 ABI now reserves that selected tuple fail-closed and rejects the legacy 256-byte proof-only shape, but Vanta still needs an accepted adapter before it can consume this tuple. The probe used unsafe local setup and a beta18 source shim, Sunspot reported zero public and zero secret inputs despite the generated verifier recording one public input, and the verifier SBF was local-build-only. This does not satisfy production proof-format evidence."
+  },
   "mismatch": {
     "proofSystem": "current local proof is noir-bb; required candidate proof system is groth16",
-    "proofByteLength": "current local proof is 16000 bytes; required candidate proof length is 256 bytes",
+    "proofByteLength": "current local proof is 16000 bytes; selected Gnark-native candidate proof length is 324 bytes plus a 44-byte public witness",
+    "currentSpendProgramReservedAbi": "current spend-program tag 3 now reserves the selected 324-byte proof plus 44-byte public-witness tuple fail-closed, rejects the legacy 256-byte proof-only payload shape, and still needs an accepted Gnark-native adapter shape",
+    "localSunspotDevProbeProofByteLength": "local Sunspot/Gnark dev probe produced the selected Gnark-native 324-byte proof plus 44-byte public witness accepted by its generated standalone verifier",
+    "localSunspotDevProbePublicWitnessShape": "local Sunspot/Gnark generated verifier expects one public input and 44-byte public witness; required Vanta evidence must bind private-spend-public-input-hash through an accepted adapter shape",
+    "localSunspotDevProbePublicInputBinding": "local public-witness bytes decode to private-spend-public-input-hash and match the local proof receipt, while Sunspot compile output still reported zero public and zero secret inputs; required production evidence must bind private-spend-public-input-hash through an accepted adapter shape",
     "verifyingKeyHashKind": "current local metadata is local-acir-bytecode-hash-not-production-vk; required candidate key evidence is production-verifying-key-hash"
   },
   "blockedBy": [
     "no Groth16 production proof artifact exists for vanta_private_pool_v2_actual_private_spend_entry",
+    "local @aztec/bb.js 4.1.3 exposes chonk, avm, and ultra_honk schemes but no Groth16 scheme",
+    "candidate Sunspot/Gnark route is identified but not installed locally and not accepted for production setup",
+    "local Sunspot/Gnark dev probe used unsafe local setup and a beta18-only temporary source shim",
+    "local Sunspot/Gnark dev probe produced the selected Gnark-native 324-byte proof plus 44-byte public witness accepted by a generated standalone verifier",
+    "current spend-program tag 3 now reserves the selected Gnark-native 324-byte proof plus 44-byte public-witness tuple fail-closed and rejects the legacy 256-byte proof-only shape, but still needs an accepted adapter shape",
+    "local Sunspot/Gnark public-witness bytes decode to private-spend-public-input-hash and match the local proof receipt, but the observation is local/nonproduction, Sunspot compile output still reported zero public and zero secret inputs, and production private-spend-public-input-hash binding is not accepted",
     "current local proof observation is noir-bb / barretenberg-ultrahonk / 16000 bytes",
     "no production verifying-key hash artifact exists",
     "source-only tag 5 registry metadata is not production verifying-key evidence",
-    "reserved tag 3 still returns ERR_PROOF_VERIFIER_NOT_WIRED before proof verification or mutation",
+    "host-side reserved tag 3 still returns ERR_PROOF_VERIFIER_NOT_WIRED before mutation while SBF has an unaccepted verifier CPI hook",
     "no valid-proof mutation or invalid-proof no-mutation test exists",
     "no live redeploy/reinit lineage or audit/reviewer acceptance exists"
   ],
   "satisfiesRequiredPositiveEvidence": {
-    "backendSelection": false,
+    "backendSelection": true,
     "actualPrivateSpendProductionProofFormat": false,
     "privateSpendPublicInputHashBinding": false,
     "productionVerifyingKeyHash": false,
@@ -75,8 +168,8 @@
     "auditReviewerAcceptance": false
   },
   "candidatePacketMustRemain": {
-    "selectedBackend": null,
-    "selectedBackendStatus": "not-selected",
+    "selectedBackend": "groth16-tag3-solana-v0",
+    "selectedBackendStatus": "selected-pending-production-evidence",
     "actualPrivateSpendProductionProofFormatCurrentArtifactRef": null,
     "allRequiredPositiveEvidenceStatus": "blocked"
   },
@@ -90,6 +183,11 @@
   ],
   "canonicalCommands": [
     "npm run zk:c01-groth16-proof-format-candidate-check",
+    "npm run zk:c01-sunspot-groth16-dev-probe-check",
+    "npm run zk:c01-public-witness-binding-check",
+    "npm run zk:c01-sunspot-gnark-local-artifact-inventory-check",
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+    "npm run zk:c01-production-groth16-toolchain-preflight-check",
     "npm run zk:c01-production-verifying-key-candidate-check",
     "npm run zk:c01-verifier-backend-options-check",
     "npm run zk:c01-production-verifier-backend-candidate-check",
@@ -99,5 +197,5 @@
     "npm run zk:c01-verifier-key-registry-check",
     "npm run zk:c01-onchain-proof-boundary-check"
   ],
-  "truthBoundary": "This is a blocked Groth16 tag-3 proof-format candidate packet only. It records that the exact production proof-format artifact required by the reserved tag-3 contract is absent. It is not backend selection, not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not tag-3 proof acceptance, not on-chain proof verification, not SBF/live redeploy or reinit evidence, not audit acceptance, not production-private readiness, and not real-funds readiness."
+  "truthBoundary": "This is a blocked Groth16 tag-3 proof-format candidate packet for the selected C01 backend. It records that the exact production proof-format artifact required by the selected tag-3 contract is absent. It is not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not tag-3 proof acceptance, not on-chain proof verification, not SBF/live redeploy or reinit evidence, not audit acceptance, not production-private readiness, and not real-funds readiness."
 }

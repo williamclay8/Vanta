@@ -60,6 +60,8 @@ const POOL_ROOT_HISTORY_OFFSET: usize = 152;
 const HASH_LEN: usize = 32;
 const EXIT_AMOUNT_LEN: usize = 8;
 const RESERVED_GROTH16_PROOF_LEN: usize = 256;
+const SPEND_WITH_PROOF_GNARK_PROOF_LEN: usize = 324;
+const SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN: usize = 44;
 const OUTPUT_RECORD_PDA_LEN: usize = HEADER_LEN + 8 + HASH_LEN * 4;
 const OUTPUT_RECORD_INDEX_OFFSET: usize = HEADER_LEN;
 const OUTPUT_RECORD_POOL_OFFSET: usize = HEADER_LEN + 8;
@@ -80,9 +82,10 @@ const ROOT_RECORD_LEAF_INDEX_BASE_OFFSET: usize =
     ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN;
 const ROOT_RECORD_LEAF_COUNT_OFFSET: usize = ROOT_RECORD_LEAF_INDEX_BASE_OFFSET + 8;
 const ROOT_RECORD_TRANSITION_KIND_OFFSET: usize = ROOT_RECORD_LEAF_COUNT_OFFSET + 4;
-const VERIFIER_KEY_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 2;
+const VERIFIER_KEY_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 3;
 const VERIFIER_KEY_POOL_OFFSET: usize = HEADER_LEN;
 const VERIFIER_KEY_HASH_OFFSET: usize = HEADER_LEN + HASH_LEN;
+const VERIFIER_KEY_PROGRAM_ID_OFFSET: usize = VERIFIER_KEY_HASH_OFFSET + HASH_LEN;
 const VAULT_ASSET_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 6 + 2;
 const VAULT_ASSET_POOL_OFFSET: usize = HEADER_LEN;
 const VAULT_ASSET_EXIT_ASSET_ID_OFFSET: usize = VAULT_ASSET_POOL_OFFSET + HASH_LEN;
@@ -159,6 +162,7 @@ struct VantaPrivatePoolV2Spend {
     nullifier_set: Pubkey,
     output_queue: Pubkey,
     root_history: Pubkey,
+    c01_verifier_program: Pubkey,
     wrong_pool_state: Pubkey,
     wrong_nullifier_set: Pubkey,
     wrong_output_queue: Pubkey,
@@ -180,11 +184,17 @@ struct VantaPrivatePoolV2Spend {
 #[fuzz_fixture]
 impl VantaPrivatePoolV2Spend {
     pub fn setup() -> Self {
-        let mut ctx = TestContext::new();
+        let mut ctx = TestContext::new().with_compute_budget(600_000);
         let program_id = Pubkey::new_unique();
 
         ctx.add_program(
             &program_id,
+            "../../programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so",
+        )
+        .unwrap();
+        let c01_verifier_program = Pubkey::new_unique();
+        ctx.add_program(
+            &c01_verifier_program,
             "../../programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so",
         )
         .unwrap();
@@ -235,6 +245,7 @@ impl VantaPrivatePoolV2Spend {
             nullifier_set,
             output_queue,
             root_history,
+            c01_verifier_program,
             wrong_pool_state,
             wrong_nullifier_set,
             wrong_output_queue,
@@ -430,7 +441,7 @@ impl VantaPrivatePoolV2Spend {
             self.ensure_verifier_key_placeholder(&verifier_key_hash);
         }
         let before = self.snapshot_account_metas(&accounts);
-        let data = register_verifier_key_data(verifier_key_hash);
+        let data = register_verifier_key_data(verifier_key_hash, self.c01_verifier_program);
         let outcome = match mode {
             4 => self.call_wrong_authority(data, accounts.clone()),
             5 => self.call_unsigned(data, accounts.clone()),
@@ -455,7 +466,7 @@ impl VantaPrivatePoolV2Spend {
                 self.register_verifier_key_for_hash(&verifier_key_hash);
                 let replay_before = self.snapshot_account_metas(&accounts);
                 let replay = self.call_authorized(
-                    register_verifier_key_data(verifier_key_hash),
+                    register_verifier_key_data(verifier_key_hash, self.c01_verifier_program),
                     accounts.clone(),
                 );
                 fuzz_assert!(replay.as_ref().is_some_and(TxOutcome::is_success));
@@ -722,7 +733,7 @@ impl VantaPrivatePoolV2Spend {
 
             let accounts = self.spend_with_proof_accounts_for_payload(&payload);
             let before = self.snapshot_account_metas(&accounts);
-            let outcome = self.call_unsigned(payload.data.clone(), accounts.clone());
+            let outcome = self.call_authorized(payload.data.clone(), accounts.clone());
             fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
             fuzz_assert_eq!(
                 outcome.as_ref().and_then(TxOutcome::error_code),
@@ -805,7 +816,7 @@ impl VantaPrivatePoolV2Spend {
         };
 
         let before = self.snapshot_account_metas(&accounts);
-        let outcome = self.call_unsigned(data, accounts.clone());
+        let outcome = self.call_authorized(data, accounts.clone());
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
         if let Some(code) = expected_code {
             fuzz_assert_eq!(outcome.as_ref().and_then(TxOutcome::error_code), Some(code));
@@ -820,6 +831,35 @@ impl VantaPrivatePoolV2Spend {
             before,
             self.snapshot_account_metas(&accounts),
             "spend-with-proof preflight mutated account bytes or lamports"
+        );
+    }
+
+    pub fn action_spend_with_proof_sbf_verifier_cpi_rejects_before_commit(&mut self, seed: u64) {
+        if !self.initialized || self.state_error_code.is_some() {
+            return;
+        }
+
+        self.ensure_provenanced_root(seed.wrapping_add(505));
+        let Some(record) = self.root_records.last().cloned() else {
+            return;
+        };
+        let payload = spend_with_proof_payload(seed, record.accepted_root);
+        self.register_verifier_key_for_hash(&payload.verifier_key_hash);
+        self.ensure_spend_with_proof_placeholders(&payload);
+
+        let accounts = self.spend_with_proof_accounts_for_payload(&payload);
+        let before = self.snapshot_existing_account_metas(&accounts);
+        let outcome = self.call_authorized(payload.data.clone(), accounts.clone());
+
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+        fuzz_assert!(
+            outcome.as_ref().and_then(TxOutcome::error_code) != Some(ERR_PROOF_VERIFIER_NOT_WIRED),
+            "SBF verifier CPI rejection must not be the host-only not-wired boundary"
+        );
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_existing_account_metas(&accounts),
+            "SBF verifier CPI rejection mutated account bytes or lamports"
         );
     }
 
@@ -1228,7 +1268,250 @@ fn invariant_test(fixture: &mut VantaPrivatePoolV2Spend) {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{env, fs, path::Path};
+
+    #[test]
+    fn spend_with_proof_sbf_verifier_cpi_rejection_no_mutation() {
+        let mut fixture = VantaPrivatePoolV2Spend::setup();
+        fixture.action_init_standard();
+        fixture.action_spend_with_proof_sbf_verifier_cpi_rejects_before_commit(9_001);
+    }
+
+    #[test]
+    fn spend_with_proof_local_unsafe_generated_verifier_cpi_acceptance_and_no_mutation() {
+        let target_dir = env::var("VANTA_C01_LOCAL_GNARK_TARGET_DIR").unwrap_or_else(|_| {
+            "/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/target".to_string()
+        });
+        let verifier_sbf = env::var("VANTA_C01_LOCAL_GNARK_VERIFIER_SBF")
+            .unwrap_or_else(|_| format!("{target_dir}/vanta_private_pool_v2_actual_private_spend_entry.so"));
+        let proof = fs::read(Path::new(&target_dir).join("vanta_private_pool_v2_actual_private_spend_entry.proof"))
+            .expect("local unsafe C01 Gnark proof artifact must exist");
+        let public_witness =
+            fs::read(Path::new(&target_dir).join("vanta_private_pool_v2_actual_private_spend_entry.pw"))
+                .expect("local unsafe C01 Gnark public-witness artifact must exist");
+        assert_eq!(proof.len(), SPEND_WITH_PROOF_GNARK_PROOF_LEN);
+        assert_eq!(public_witness.len(), SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN);
+
+        let mut invalid_proof = proof.clone();
+        invalid_proof[0] ^= 0x01;
+        let verifier_key_hash = local_unsafe_sunspot_vk_sha256();
+
+        let mut fixture = VantaPrivatePoolV2Spend::setup();
+        fixture.install_c01_verifier_program_from_path(&verifier_sbf);
+        let wrong_verifier_program = fixture.add_c01_verifier_program_from_path(&verifier_sbf);
+        fixture.action_init_standard();
+        fixture.action_spend_with_proof_local_unsafe_generated_verifier_accepts_and_mutates(
+            9_002,
+            &proof,
+            &public_witness,
+            verifier_key_hash,
+        );
+        fixture.action_spend_with_proof_local_unsafe_generated_verifier_rejects_without_mutation(
+            9_003,
+            &invalid_proof,
+            &public_witness,
+            verifier_key_hash,
+        );
+        fixture.action_spend_with_proof_local_unsafe_wrong_public_input_rejects_without_mutation(
+            9_004,
+            &proof,
+            &public_witness,
+            verifier_key_hash,
+            make_hash(9_004, 99),
+        );
+        fixture.action_spend_with_proof_local_unsafe_wrong_verifier_program_rejects_without_mutation(
+            9_005,
+            &proof,
+            &public_witness,
+            verifier_key_hash,
+            wrong_verifier_program,
+        );
+    }
+}
+
 impl VantaPrivatePoolV2Spend {
+    #[cfg(test)]
+    fn add_c01_verifier_program_from_path(&mut self, verifier_program_path: &str) -> Pubkey {
+        let verifier_program = Pubkey::new_unique();
+        self.ctx
+            .add_program(&verifier_program, verifier_program_path)
+            .unwrap();
+        verifier_program
+    }
+
+    #[cfg(test)]
+    fn install_c01_verifier_program_from_path(&mut self, verifier_program_path: &str) {
+        self.c01_verifier_program = self.add_c01_verifier_program_from_path(verifier_program_path);
+    }
+
+    #[cfg(test)]
+    fn action_spend_with_proof_local_unsafe_generated_verifier_accepts_and_mutates(
+        &mut self,
+        seed: u64,
+        proof: &[u8],
+        public_witness: &[u8],
+        verifier_key_hash: [u8; HASH_LEN],
+    ) {
+        if !self.initialized || self.state_error_code.is_some() {
+            return;
+        }
+
+        self.ensure_provenanced_root(seed.wrapping_add(606));
+        let Some(record) = self.root_records.last().cloned() else {
+            return;
+        };
+        let payload = spend_with_proof_payload_with_gnark_artifacts(
+            seed,
+            record.accepted_root,
+            verifier_key_hash,
+            proof,
+            public_witness,
+        );
+        self.register_verifier_key_for_hash(&payload.verifier_key_hash);
+        self.ensure_spend_with_proof_placeholders(&payload);
+
+        let outcome = self.call_authorized(
+            payload.data.clone(),
+            self.spend_with_proof_accounts_for_payload(&payload),
+        );
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_success));
+        if outcome.is_some_and(|o| o.is_success()) {
+            let output_index = self.expected_count as u64;
+            self.expected_count += 1;
+            self.accepted_nullifiers.push(payload.nullifier);
+            self.output_records.push(OutputRecord {
+                output_index,
+                output0: payload_output0(&payload),
+                output1: payload_output1(&payload),
+                public_input_hash: payload.public_input_hash,
+            });
+            self.latest_public_input_hash = payload.public_input_hash;
+            self.assert_nullifier_marker(&payload.nullifier);
+            self.assert_output_record(self.output_records.last().unwrap());
+        }
+    }
+
+    #[cfg(test)]
+    fn action_spend_with_proof_local_unsafe_generated_verifier_rejects_without_mutation(
+        &mut self,
+        seed: u64,
+        proof: &[u8],
+        public_witness: &[u8],
+        verifier_key_hash: [u8; HASH_LEN],
+    ) {
+        if !self.initialized || self.state_error_code.is_some() {
+            return;
+        }
+
+        self.ensure_provenanced_root(seed.wrapping_add(707));
+        let Some(record) = self.root_records.last().cloned() else {
+            return;
+        };
+        let payload = spend_with_proof_payload_with_gnark_artifacts(
+            seed,
+            record.accepted_root,
+            verifier_key_hash,
+            proof,
+            public_witness,
+        );
+        self.register_verifier_key_for_hash(&payload.verifier_key_hash);
+        self.ensure_spend_with_proof_placeholders(&payload);
+
+        let accounts = self.spend_with_proof_accounts_for_payload(&payload);
+        let before = self.snapshot_existing_account_metas(&accounts);
+        let outcome = self.call_authorized(payload.data.clone(), accounts.clone());
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_existing_account_metas(&accounts),
+            "local unsafe generated verifier rejection mutated account bytes or lamports"
+        );
+    }
+
+    #[cfg(test)]
+    fn action_spend_with_proof_local_unsafe_wrong_public_input_rejects_without_mutation(
+        &mut self,
+        seed: u64,
+        proof: &[u8],
+        public_witness: &[u8],
+        verifier_key_hash: [u8; HASH_LEN],
+        wrong_public_input_hash: [u8; HASH_LEN],
+    ) {
+        if !self.initialized || self.state_error_code.is_some() {
+            return;
+        }
+
+        self.ensure_provenanced_root(seed.wrapping_add(808));
+        let Some(record) = self.root_records.last().cloned() else {
+            return;
+        };
+        let payload = spend_with_proof_payload_with_gnark_artifacts_and_public_input_hash(
+            seed,
+            record.accepted_root,
+            wrong_public_input_hash,
+            verifier_key_hash,
+            proof,
+            public_witness,
+        );
+        self.register_verifier_key_for_hash(&payload.verifier_key_hash);
+        self.ensure_spend_with_proof_placeholders(&payload);
+
+        let accounts = self.spend_with_proof_accounts_for_payload(&payload);
+        let before = self.snapshot_existing_account_metas(&accounts);
+        let outcome = self.call_authorized(payload.data.clone(), accounts.clone());
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_existing_account_metas(&accounts),
+            "local unsafe wrong-public-input rejection mutated account bytes or lamports"
+        );
+    }
+
+    #[cfg(test)]
+    fn action_spend_with_proof_local_unsafe_wrong_verifier_program_rejects_without_mutation(
+        &mut self,
+        seed: u64,
+        proof: &[u8],
+        public_witness: &[u8],
+        verifier_key_hash: [u8; HASH_LEN],
+        wrong_verifier_program: Pubkey,
+    ) {
+        if !self.initialized || self.state_error_code.is_some() {
+            return;
+        }
+
+        self.ensure_provenanced_root(seed.wrapping_add(909));
+        let Some(record) = self.root_records.last().cloned() else {
+            return;
+        };
+        let payload = spend_with_proof_payload_with_gnark_artifacts(
+            seed,
+            record.accepted_root,
+            verifier_key_hash,
+            proof,
+            public_witness,
+        );
+        self.register_verifier_key_for_hash(&payload.verifier_key_hash);
+        self.ensure_spend_with_proof_placeholders(&payload);
+
+        let accounts = self
+            .spend_with_proof_accounts_for_payload_with_verifier_program(
+                &payload,
+                wrong_verifier_program,
+            );
+        let before = self.snapshot_existing_account_metas(&accounts);
+        let outcome = self.call_authorized(payload.data.clone(), accounts.clone());
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_existing_account_metas(&accounts),
+            "local unsafe wrong-verifier-program rejection mutated account bytes or lamports"
+        );
+    }
+
     fn reset_accounts(&mut self, nullifier_capacity: usize, root_capacity: usize) {
         create_program_accounts(
             &mut self.ctx,
@@ -1363,8 +1646,10 @@ impl VantaPrivatePoolV2Spend {
         }
         self.ensure_verifier_key_placeholder(verifier_key_hash);
         let accounts = self.verifier_key_registration_accounts_for_hash(verifier_key_hash);
-        let outcome =
-            self.call_authorized(register_verifier_key_data(*verifier_key_hash), accounts);
+        let outcome = self.call_authorized(
+            register_verifier_key_data(*verifier_key_hash, self.c01_verifier_program),
+            accounts,
+        );
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_success));
         if outcome.is_some_and(|o| o.is_success()) {
             if !self
@@ -1550,15 +1835,29 @@ impl VantaPrivatePoolV2Spend {
         &self,
         payload: &SpendWithProofPayload,
     ) -> Vec<AccountMeta> {
+        self.spend_with_proof_accounts_for_payload_with_verifier_program(
+            payload,
+            self.c01_verifier_program,
+        )
+    }
+
+    fn spend_with_proof_accounts_for_payload_with_verifier_program(
+        &self,
+        payload: &SpendWithProofPayload,
+        verifier_program: Pubkey,
+    ) -> Vec<AccountMeta> {
         vec![
-            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new(self.pool_state, false),
             AccountMeta::new_readonly(self.nullifier_set, false),
-            AccountMeta::new_readonly(self.output_queue, false),
+            AccountMeta::new(self.output_queue, false),
             AccountMeta::new_readonly(self.root_history, false),
             AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
             AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
             AccountMeta::new(self.output_record_pubkey(&payload.public_input_hash), false),
             AccountMeta::new_readonly(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
+            AccountMeta::new_readonly(verifier_program, false),
+            AccountMeta::new(self.operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
         ]
     }
 
@@ -1567,14 +1866,17 @@ impl VantaPrivatePoolV2Spend {
         payload: &SpendWithProofPayload,
     ) -> Vec<AccountMeta> {
         vec![
-            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new(self.pool_state, false),
             AccountMeta::new_readonly(self.nullifier_set, false),
-            AccountMeta::new_readonly(self.output_queue, false),
+            AccountMeta::new(self.output_queue, false),
             AccountMeta::new_readonly(self.root_history, false),
             AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
             AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
             AccountMeta::new(self.output_record_pubkey(&payload.public_input_hash), false),
             AccountMeta::new_readonly(self.wrong_root_history, false),
+            AccountMeta::new_readonly(self.c01_verifier_program, false),
+            AccountMeta::new(self.operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
         ]
     }
 
@@ -1583,14 +1885,17 @@ impl VantaPrivatePoolV2Spend {
         payload: &SpendWithProofPayload,
     ) -> Vec<AccountMeta> {
         vec![
-            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new(self.pool_state, false),
             AccountMeta::new_readonly(self.nullifier_set, false),
-            AccountMeta::new_readonly(self.output_queue, false),
+            AccountMeta::new(self.output_queue, false),
             AccountMeta::new_readonly(self.root_history, false),
             AccountMeta::new_readonly(self.wrong_root_history, false),
             AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
             AccountMeta::new(self.output_record_pubkey(&payload.public_input_hash), false),
             AccountMeta::new_readonly(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
+            AccountMeta::new_readonly(self.c01_verifier_program, false),
+            AccountMeta::new(self.operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
         ]
     }
 
@@ -1599,14 +1904,17 @@ impl VantaPrivatePoolV2Spend {
         payload: &SpendWithProofPayload,
     ) -> Vec<AccountMeta> {
         vec![
-            AccountMeta::new_readonly(self.pool_state, false),
+            AccountMeta::new(self.pool_state, false),
             AccountMeta::new_readonly(self.nullifier_set, false),
-            AccountMeta::new_readonly(self.output_queue, false),
+            AccountMeta::new(self.output_queue, false),
             AccountMeta::new_readonly(self.root_history, false),
             AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
             AccountMeta::new(self.nullifier_marker_pubkey(&payload.nullifier), false),
             AccountMeta::new(self.output_record_pubkey(&payload.public_input_hash), false),
             AccountMeta::new(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
+            AccountMeta::new_readonly(self.c01_verifier_program, false),
+            AccountMeta::new(self.operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
         ]
     }
 
@@ -1903,9 +2211,26 @@ impl VantaPrivatePoolV2Spend {
     fn snapshot_account_metas(&self, accounts: &[AccountMeta]) -> Vec<(u64, Vec<u8>)> {
         accounts
             .iter()
-            .map(|meta| {
-                let account = self.ctx.get_account(&meta.pubkey).unwrap();
-                (account.lamports, account.data)
+            .filter_map(|meta| {
+                self.ctx
+                    .get_account(&meta.pubkey)
+                    .ok()
+                    .map(|account| (account.lamports, account.data))
+            })
+            .collect()
+    }
+
+    fn snapshot_existing_account_metas(
+        &self,
+        accounts: &[AccountMeta],
+    ) -> Vec<(Pubkey, u64, Vec<u8>)> {
+        accounts
+            .iter()
+            .filter_map(|meta| {
+                self.ctx
+                    .get_account(&meta.pubkey)
+                    .ok()
+                    .map(|account| (meta.pubkey, account.lamports, account.data))
             })
             .collect()
     }
@@ -2185,8 +2510,11 @@ impl VantaPrivatePoolV2Spend {
             .size(VERIFIER_KEY_ACCOUNT_LEN)
             .create()
             .unwrap();
-        let account_data =
-            verifier_key_account_data(&self.pool_state.to_bytes(), verifier_key_hash);
+        let account_data = verifier_key_account_data(
+            &self.pool_state.to_bytes(),
+            verifier_key_hash,
+            &self.c01_verifier_program,
+        );
         self.ctx
             .update_account(&verifier_key, |data| {
                 data.copy_from_slice(&account_data);
@@ -2325,6 +2653,10 @@ impl VantaPrivatePoolV2Spend {
         fuzz_assert_eq!(
             &key_data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN],
             verifier_key_hash
+        );
+        fuzz_assert_eq!(
+            &key_data[VERIFIER_KEY_PROGRAM_ID_OFFSET..VERIFIER_KEY_PROGRAM_ID_OFFSET + HASH_LEN],
+            &self.c01_verifier_program.to_bytes()
         );
     }
 
@@ -2518,6 +2850,53 @@ fn spend_with_proof_payload_with_nullifier(
     }
 }
 
+fn spend_with_proof_payload_with_gnark_artifacts(
+    seed: u64,
+    accepted_root: [u8; HASH_LEN],
+    verifier_key_hash: [u8; HASH_LEN],
+    proof: &[u8],
+    public_witness: &[u8],
+) -> SpendWithProofPayload {
+    let public_input_hash = gnark_public_witness_input_hash(public_witness);
+    spend_with_proof_payload_with_gnark_artifacts_and_public_input_hash(
+        seed,
+        accepted_root,
+        public_input_hash,
+        verifier_key_hash,
+        proof,
+        public_witness,
+    )
+}
+
+fn spend_with_proof_payload_with_gnark_artifacts_and_public_input_hash(
+    seed: u64,
+    accepted_root: [u8; HASH_LEN],
+    public_input_hash: [u8; HASH_LEN],
+    verifier_key_hash: [u8; HASH_LEN],
+    proof: &[u8],
+    public_witness: &[u8],
+) -> SpendWithProofPayload {
+    let nullifier = make_hash(seed, 71);
+    let output0 = make_hash(seed, 72);
+    let output1 = make_hash(seed, 73);
+    SpendWithProofPayload {
+        data: spend_with_proof_data_with_gnark_artifacts(
+            nullifier,
+            output0,
+            output1,
+            accepted_root,
+            public_input_hash,
+            verifier_key_hash,
+            proof,
+            public_witness,
+        ),
+        nullifier,
+        accepted_root,
+        public_input_hash,
+        verifier_key_hash,
+    }
+}
+
 fn unshield_payload(seed: u64, accepted_root: [u8; HASH_LEN]) -> UnshieldPayload {
     unshield_payload_with_nullifier(seed, accepted_root, make_hash(seed, 61))
 }
@@ -2586,8 +2965,75 @@ fn spend_with_proof_data(
     );
     data[0] = TAG_SPEND_WITH_PROOF;
     data.extend_from_slice(&verifier_key_hash);
-    data.extend_from_slice(&[7; RESERVED_GROTH16_PROOF_LEN]);
+    data.extend_from_slice(&[7; SPEND_WITH_PROOF_GNARK_PROOF_LEN]);
+    data.extend_from_slice(&gnark_public_witness_for(&public_input_hash));
     data
+}
+
+fn spend_with_proof_data_with_gnark_artifacts(
+    nullifier: [u8; HASH_LEN],
+    output0: [u8; HASH_LEN],
+    output1: [u8; HASH_LEN],
+    accepted_root: [u8; HASH_LEN],
+    public_input_hash: [u8; HASH_LEN],
+    verifier_key_hash: [u8; HASH_LEN],
+    proof: &[u8],
+    public_witness: &[u8],
+) -> Vec<u8> {
+    assert_eq!(proof.len(), SPEND_WITH_PROOF_GNARK_PROOF_LEN);
+    assert_eq!(public_witness.len(), SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN);
+    let mut data = spend_data(
+        nullifier,
+        output0,
+        output1,
+        accepted_root,
+        public_input_hash,
+    );
+    data[0] = TAG_SPEND_WITH_PROOF;
+    data.extend_from_slice(&verifier_key_hash);
+    data.extend_from_slice(proof);
+    data.extend_from_slice(public_witness);
+    data
+}
+
+fn gnark_public_witness_input_hash(
+    public_witness: &[u8],
+) -> [u8; HASH_LEN] {
+    assert_eq!(public_witness.len(), SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN);
+    assert_eq!(
+        &public_witness[..12],
+        &[0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1]
+    );
+    public_witness[12..].try_into().unwrap()
+}
+
+fn payload_output0(payload: &SpendWithProofPayload) -> [u8; HASH_LEN] {
+    payload.data[1 + HASH_LEN..1 + HASH_LEN * 2]
+        .try_into()
+        .unwrap()
+}
+
+fn payload_output1(payload: &SpendWithProofPayload) -> [u8; HASH_LEN] {
+    payload.data[1 + HASH_LEN * 2..1 + HASH_LEN * 3]
+        .try_into()
+        .unwrap()
+}
+
+fn local_unsafe_sunspot_vk_sha256() -> [u8; HASH_LEN] {
+    [
+        0xfb, 0xd6, 0xba, 0x8c, 0xe6, 0x4c, 0xc0, 0xb0, 0x32, 0x0a, 0x0d, 0x80, 0x80, 0xfc,
+        0xa1, 0x5d, 0x79, 0xca, 0x6c, 0xa2, 0xf7, 0x32, 0x38, 0x1a, 0x95, 0x50, 0x09, 0x2f,
+        0x64, 0x5f, 0x0e, 0x1d,
+    ]
+}
+
+fn gnark_public_witness_for(
+    public_input_hash: &[u8; HASH_LEN],
+) -> [u8; SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN] {
+    let mut public_witness = [0u8; SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN];
+    public_witness[..12].copy_from_slice(&[0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1]);
+    public_witness[12..].copy_from_slice(public_input_hash);
+    public_witness
 }
 
 fn unshield_data(
@@ -2615,6 +3061,7 @@ fn unshield_data(
 fn verifier_key_account_data(
     pool_state: &[u8; HASH_LEN],
     verifier_key_hash: &[u8; HASH_LEN],
+    verifier_program_id: &Pubkey,
 ) -> Vec<u8> {
     let mut data = vec![0; VERIFIER_KEY_ACCOUNT_LEN];
     data[..8].copy_from_slice(VERIFIER_KEY_MAGIC);
@@ -2623,6 +3070,8 @@ fn verifier_key_account_data(
     data[VERIFIER_KEY_POOL_OFFSET..VERIFIER_KEY_POOL_OFFSET + HASH_LEN].copy_from_slice(pool_state);
     data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN]
         .copy_from_slice(verifier_key_hash);
+    data[VERIFIER_KEY_PROGRAM_ID_OFFSET..VERIFIER_KEY_PROGRAM_ID_OFFSET + HASH_LEN]
+        .copy_from_slice(verifier_program_id.as_ref());
     data
 }
 
@@ -2649,10 +3098,14 @@ fn register_root_data(accepted_root: [u8; HASH_LEN]) -> Vec<u8> {
     data
 }
 
-fn register_verifier_key_data(verifier_key_hash: [u8; HASH_LEN]) -> Vec<u8> {
-    let mut data = Vec::with_capacity(1 + HASH_LEN);
+fn register_verifier_key_data(
+    verifier_key_hash: [u8; HASH_LEN],
+    verifier_program_id: Pubkey,
+) -> Vec<u8> {
+    let mut data = Vec::with_capacity(1 + HASH_LEN * 2);
     data.push(TAG_REGISTER_VERIFIER_KEY);
     data.extend_from_slice(&verifier_key_hash);
+    data.extend_from_slice(verifier_program_id.as_ref());
     data
 }
 

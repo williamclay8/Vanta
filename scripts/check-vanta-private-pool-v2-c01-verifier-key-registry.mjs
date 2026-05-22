@@ -45,16 +45,20 @@ for (const aggregate of ["zk:review-guards-check", "zk:feedback-loop-check"]) {
 
 for (const marker of [
   "const TAG_REGISTER_VERIFIER_KEY: u8 = 5;",
-  "const REGISTER_VERIFIER_KEY_PAYLOAD_LEN: usize = 1 + HASH_LEN;",
+  "const REGISTER_VERIFIER_KEY_PAYLOAD_LEN: usize = 1 + HASH_LEN * 2;",
+  "const VERIFIER_KEY_PROGRAM_ID_OFFSET: usize = VERIFIER_KEY_HASH_OFFSET + HASH_LEN;",
   "TAG_REGISTER_VERIFIER_KEY => process_register_verifier_key(program_id, accounts, rest)",
   "fn process_register_verifier_key",
   "fn ensure_verifier_key",
   "fn require_verifier_key_record_data",
+  "fn require_verifier_key_hash_for_program",
   "fn write_verifier_key_account",
   "VERIFIER_KEY_SEED",
   "VERIFIER_KEY_MAGIC",
   "zero_verifier_key_hash",
   "register_verifier_key_writes_source_only_key_registry_record",
+  "register_verifier_key_records_verifier_program_id",
+  "proof_carrying_spend_rejects_wrong_registered_verifier_program_before_not_wired",
   "register_verifier_key_rejects_zero_hash_and_wrong_pda",
 ]) {
   includes(program, marker, "spend program verifier-key registry source");
@@ -65,6 +69,7 @@ for (const marker of [
   "action_register_verifier_key",
   "register_verifier_key_data",
   "verifier_key_registration_accounts_for_hash",
+  "VERIFIER_KEY_PROGRAM_ID_OFFSET",
   "registered_verifier_keys",
   "assert_verifier_key_account",
   "idempotent verifier-key replay mutated state",
@@ -75,7 +80,7 @@ for (const marker of [
 
 for (const marker of [
   "`5` - register verifier key",
-  "[5, verifierKeyHash:32]",
+  "[5, verifierKeyHash:32, verifierProgramId:32]",
   "[\"vanta2vkey\", pool_state, verifierKeyHash]",
   "source-only verifier-key registry scaffold",
   "not production verifying-key evidence",
@@ -113,12 +118,16 @@ for (const [field, expected] of [
 }
 assert(registryEvidence.instruction?.tag === 5, "registry evidence must lock tag 5");
 assert(
-  registryEvidence.instruction?.payloadLayout === "[5, verifierKeyHash:32]",
+  registryEvidence.instruction?.payloadLayout === "[5, verifierKeyHash:32, verifierProgramId:32]",
   "registry evidence must lock the tag-5 payload layout",
 );
 assert(
-  registryEvidence.instruction?.payloadByteLength === 33,
+  registryEvidence.instruction?.payloadByteLength === 65,
   "registry evidence must lock the tag-5 byte length",
+);
+assert(
+  registryEvidence.instruction?.recordByteLength === 112,
+  "registry evidence must lock the verifier-key record byte length",
 );
 assert(
   registryEvidence.instruction?.pdaSeed === "[\"vanta2vkey\", pool_state, verifierKeyHash]",
@@ -129,8 +138,24 @@ assert(
   "registry evidence must require zero verifier-key hash rejection",
 );
 assert(
+  registryEvidence.instruction?.zeroVerifierProgramIdRejected === true,
+  "registry evidence must require zero verifier-program id rejection",
+);
+assert(
+  registryEvidence.instruction?.spendProgramIdAsVerifierProgramRejected === true,
+  "registry evidence must reject the spend program id as verifier program id",
+);
+assert(
   registryEvidence.instruction?.wrongVerifierKeyPdaRejected === true,
   "registry evidence must require wrong verifier-key PDA rejection",
+);
+assert(
+  registryEvidence.instruction?.wrongVerifierProgramRejectedBeforeAdapter === true,
+  "registry evidence must require wrong verifier-program rejection before adapter",
+);
+assert(
+  registryEvidence.reservedTag3Relationship?.requiresBoundVerifierProgramId === true,
+  "registry evidence must require tag-3 verifier-program binding",
 );
 assert(
   registryEvidence.instruction?.idempotentSameRecordReplay === true,

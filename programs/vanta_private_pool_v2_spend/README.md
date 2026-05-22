@@ -112,17 +112,18 @@ Register-verifier-key accounts:
 3. `operator_authority` writable signer when verifier-key record creation is needed; must match the pubkey stored during init and funds verifier-key record creation when needed
 4. `system_program` read-only
 
-Register-verifier-key instruction data is exactly 33 bytes:
+Register-verifier-key instruction data is exactly 65 bytes:
 
 ```text
-[5, verifierKeyHash:32]
+[5, verifierKeyHash:32, verifierProgramId:32]
 ```
 
 Behavior:
 
 - verifies the stored operator authority signed the registration
-- rejects zero verifier-key hashes
+- rejects zero verifier-key hashes, zero verifier program ids, and the spend program id as the verifier program id
 - verifies the supplied verifier-key PDA matches `["vanta2vkey", pool_state, verifierKeyHash]`
+- stores the verifier program id in the verifier-key record so reserved tag `3` can reject a different executable verifier program before the fail-closed adapter boundary
 - creates or verifies a program-owned verifier-key record containing `pool_state` and `verifierKeyHash`
 - permits idempotent replay when the existing verifier-key record already matches the same pool and hash
 
@@ -166,36 +167,42 @@ Behavior:
 
 Reserves the future proof-carrying verifier ABI. It is intentionally not accepted yet.
 
-Instruction data is exactly 449 bytes:
+Instruction data is exactly 561 bytes:
 
 ```text
-[3, nullifier:32, output0:32, output1:32, acceptedRoot:32, publicInputHash:32, verifierKeyHash:32, groth16Proof:256]
+[3, nullifier:32, output0:32, output1:32, acceptedRoot:32, publicInputHash:32, verifierKeyHash:32, gnarkProof:324, gnarkPublicWitness:44]
 ```
 
 Behavior today:
 
 - checks the reserved payload length and rejects all-zero public transcript / verifier placeholders
-- requires eight preflight accounts:
-  1. `pool_state` (read-only, program-owned)
+- requires eleven commit-capable preflight accounts:
+  1. `pool_state` (writable, program-owned)
   2. `nullifier_set` (read-only, program-owned, bound in `pool_state`)
-  3. `output_queue` (read-only, program-owned, bound in `pool_state`)
+  3. `output_queue` (writable, program-owned, bound in `pool_state`)
   4. `root_history` (read-only, program-owned, bound in `pool_state`)
   5. `root_record` (read-only program-owned PDA derived from `["vanta2root", pool_state, acceptedRoot]`)
   6. `nullifier_marker` (writable PDA derived from `["vanta2nul", pool_state, nullifier]`)
   7. `output_record` (writable PDA derived from `["vanta2out", pool_state, publicInputHash]`)
   8. `verifier_key` (read-only program-owned PDA derived from `["vanta2vkey", pool_state, verifierKeyHash]`)
-- validates account headers, registered `acceptedRoot`, root-record provenance, output-index/spend-count consistency, full output-counter rejection with custom error `3`, unused nullifier marker, unused output record, and the verifier-key hash account
-- the verifier-key hash account can now be created or idempotently verified by tag `5`, but that registry record is source-only metadata and not production verifying-key evidence
-- returns custom error `14` after preflight and before proof verification, nullifier/output mutation, account creation, or proof-enforced spend acceptance
+  9. `verifier_program` (read-only executable Solana verifier program account for the future dedicated verifier CPI)
+  10. `authority` / payer (writable signer for future PDA creation after verifier acceptance)
+  11. `system_program` (read-only)
+- validates account headers, registered `acceptedRoot`, root-record provenance, output-index/spend-count consistency, full output-counter rejection with custom error `3`, unused nullifier marker, unused output record, the verifier-key hash account, and the bound read-only executable verifier-program account
+- the verifier-key hash account can now be created or idempotently verified by tag `5`, including its bound verifier program id, but that registry record is source-only metadata and not production verifying-key evidence
+- source now separates tag `3` preflight, default adapter rejection, and a verified-commit helper; the default adapter assembles `gnarkProof || gnarkPublicWitness` as the 368-byte verifier instruction-data tuple, prechecks the one-field Gnark public witness against `publicInputHash`, constructs the generated Solana verifier CPI instruction with no account metas and data equal to `gnarkProof || gnarkPublicWitness`, and has an on-chain-only verifier CPI hook that passes the verifier-program account while host-side Solana syscall stubs remain fail-closed; `npm run zk:c01-verifier-adapter-seam-check` guards this plus a commit-capable tag-3 account list and test-only selected-Gnark valid-mutation / invalid-proof / wrong-public-input / wrong-verifying-key no-mutation shape coverage as local drift-prevention only
+- rejects the legacy 449-byte / 256-byte-proof-only payload shape before account inspection; the reserved source ABI now matches the selected Sunspot/Gnark verifier input tuple but remains fail-closed
+- returns custom error `14` after preflight and public-witness binding precheck, and before proof verification, nullifier/output mutation, account creation, or proof-enforced spend acceptance
 - must not be used as proof-enforced spend evidence until the actual Groth16 verifier, verifying-key commitment, fresh post-verifier SBF rebuild, redeploy/reinit, and live/audit evidence exist
 
 C01 verifier backend contract:
 
-- the reserved tag `3` target is a Groth16-compatible Solana verifier path with `verifierKeyHash:32` and `groth16Proof:256`
-- tag `5` registers the source-only verifier-key PDA scaffold for that target, but does not satisfy production verifying-key evidence
+- the reserved tag `3` target is a Groth16-compatible Solana verifier path with `verifierKeyHash:32`, `gnarkProof:324`, and `gnarkPublicWitness:44`
+- tag `5` registers the source-only verifier-key PDA scaffold and bound verifier program id for that target, but does not satisfy production verifying-key evidence
 - current local bb.js/UltraHonk artifacts are not on-chain verifier evidence
 - current remote proof-artifact receipts are only `offchain-remote-proof-artifact-only` verifier-handoff evidence with `onChainVerifierTarget: "none"`
-- a future `solana-c01-groth16-verifier-ready` receipt must be a tag `3` candidate with proofSystem: `groth16`, `proofBackend: "remote-service"`, circuit `vanta_private_pool_v2_actual_private_spend_entry`, `private-spend-public-input-hash`, `groth16Proof:256`, and `production-verifying-key-hash` evidence
+- the local fail-closed verifier adapter seam harness, including verifier instruction-data assembly, source public-witness binding precheck, and test-only selected-Gnark valid-mutation / no-mutation shape coverage, is not verifier-adapter acceptance, not tag `3` proof acceptance, not production proof-format evidence, and not production verifying-key evidence
+- a future `solana-c01-groth16-verifier-ready` receipt must be a tag `3` candidate with proofSystem: `groth16`, `proofBackend: "remote-service"`, circuit `vanta_private_pool_v2_actual_private_spend_entry`, `private-spend-public-input-hash`, `gnarkProof:324`, `gnarkPublicWitness:44`, and `production-verifying-key-hash` evidence
 - `local-acir-bytecode-hash-not-production-vk` is local fixture metadata and must not be accepted as a production verifying key
 - a future positive verifier lane must use `production-verifying-key-hash` evidence and replace the fail-closed custom error `14` boundary with reviewed verifier tests
 - guard: `npm run zk:c01-production-verifier-backend-candidate-check`

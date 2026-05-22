@@ -42,7 +42,7 @@ Current state:
 C01 promotion gates:
 
 1. Select a production verifier backend.
-   - Default shortest path is `groth16-tag3-solana-v0`, because the existing tag-3 ABI already expects `groth16Proof:256` plus `production-verifying-key-hash`.
+   - Default shortest path is `groth16-tag3-solana-v0`, because the source tag-3 ABI now reserves the selected Gnark-native tuple, `gnarkProof:324` plus `gnarkPublicWitness:44`, while still failing closed until `production-verifying-key-hash` and accepted adapter evidence exist.
    - If Vanta chooses the Noir/bb/UltraHonk path instead, the on-chain target and proof layout must be explicitly redesigned and reviewed.
 
 2. Produce production proof-format evidence.

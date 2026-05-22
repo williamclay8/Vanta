@@ -235,7 +235,7 @@ const browserOption = runtimeOptions.runtimeOptions?.find(
 );
 assert(remoteOption?.selectedAsLocalDirection === true, "remote option must be selected locally");
 assert(browserOption?.selectedAsLocalDirection === false, "browser option must not be selected locally");
-assert(c01Options.selectedBackend === null, "C01 backend must remain unselected");
+assert(c01Options.selectedBackend === "groth16-tag3-solana-v0", "C01 backend must remain selected to tag-3");
 
 for (const command of [
   "npm run zk:h08-remote-service-prover-contract-check",

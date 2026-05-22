@@ -1,3 +1,27 @@
+// H6 fix follow-up (2026-05-22): the in-circuit `derive_actual_private_spend_context_tag`
+// constraint in `zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr`
+// now requires that `context_hash` be a Poseidon6 hash of
+// `(merchant_address_hi, merchant_address_lo, denomination,
+//   settlement_epoch_hi, settlement_epoch_lo, nullifier)`. The
+// SHA-256-based `receiptCommitment` constructed below is the legacy
+// transcript value; live proof flows must pass a Poseidon-derived
+// `contextHash` plus the matching preimage components to the prover.
+// The fixture in `privatePoolV2ActualPrivateSpendCircuitFixture.ts`
+// already uses the Poseidon shape; this rail file still computes the
+// receiptCommitment via SHA-256 for backwards-compatible transcript
+// emission. Before live tag-3 proof flows can run end-to-end:
+//   1. Replace `contextHash: receiptCommitment` in the proof-request
+//      construction below with a Poseidon6-computed value over the same
+//      preimage components the circuit expects.
+//   2. Pass `context_preimage_*` fields through into the prover witness
+//      so the in-circuit assertion can succeed.
+//   3. Keep `receiptCommitment` (SHA-256) as a separate transcript
+//      output for the merchant disclosure key only — it no longer feeds
+//      the on-chain proof.
+// Until those three steps land, this file still emits scenario data
+// that exercises the rail's transcript-leakage analysis but does NOT
+// produce a valid witness for the new circuit. Track in
+// docs/AUDIT_2026-05-22_findings.md H6 follow-up.
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import { poseidon2, poseidon3, poseidon11 } from "poseidon-lite";

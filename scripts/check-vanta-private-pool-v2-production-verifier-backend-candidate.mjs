@@ -44,8 +44,17 @@ const backendOptionsEvidence = JSON.parse(
 const groth16ProofFormatCandidateEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json"),
 );
+const publicWitnessBindingEvidence = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json"),
+);
+const productionGroth16ToolchainPreflightEvidence = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json"),
+);
 const productionVerifyingKeyCandidateEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json"),
+);
+const productionArtifactAcceptanceGateEvidence = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json"),
 );
 const verifierAdapterTestCandidateEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json"),
@@ -67,8 +76,8 @@ assert(
   "C01 verifier candidate evidence must use the checked v0.1 schema",
 );
 assert(
-  verifierCandidateEvidence.status === "blocked-no-production-verifier-backend-selected",
-  "C01 verifier candidate evidence must remain blocked until a backend is selected",
+  verifierCandidateEvidence.status === "blocked-selected-groth16-tag3-solana-v0-production-evidence",
+  "C01 verifier candidate evidence must remain blocked until selected-backend production evidence exists",
 );
 for (const [field, expected] of [
   ["productionReady", false],
@@ -83,12 +92,12 @@ for (const [field, expected] of [
   );
 }
 assert(
-  verifierCandidateEvidence.selectedBackend === null,
-  "C01 verifier candidate evidence must not select a backend before the decision gate",
+  verifierCandidateEvidence.selectedBackend === "groth16-tag3-solana-v0",
+  "C01 verifier candidate evidence must select the Groth16 tag-3 backend direction",
 );
 assert(
-  verifierCandidateEvidence.selectedBackendStatus === "not-selected",
-  "C01 verifier candidate evidence must mark backend status not-selected before the decision gate",
+  verifierCandidateEvidence.selectedBackendStatus === "selected-pending-production-evidence",
+  "C01 verifier candidate evidence must mark backend status selected but evidence-blocked",
 );
 assert(
   verifierCandidateEvidence.currentOnChainVerifierTarget === "solana-c01-tag3-groth16-v0",
@@ -112,8 +121,16 @@ assert(
   "C01 verifier candidate evidence must name Groth16 only as the reserved tag-3 target system",
 );
 assert(
-  verifierCandidateEvidence.currentReservedProofLayout?.proofByteLength === 256,
-  "C01 verifier candidate evidence must keep the reserved Groth16 proof byte length at 256",
+  verifierCandidateEvidence.currentReservedProofLayout?.proofByteLength === 324,
+  "C01 verifier candidate evidence must keep the reserved Gnark proof byte length at 324",
+);
+assert(
+  verifierCandidateEvidence.currentReservedProofLayout?.publicWitnessByteLength === 44,
+  "C01 verifier candidate evidence must keep the reserved Gnark public witness byte length at 44",
+);
+assert(
+  verifierCandidateEvidence.currentReservedProofLayout?.verifierInstructionDataByteLength === 368,
+  "C01 verifier candidate evidence must keep the reserved Gnark verifier input length at 368",
 );
 assert(
   verifierCandidateEvidence.currentReservedProofLayout?.publicInputLabel ===
@@ -159,12 +176,13 @@ assert(
   "C01 local proof-format observation must not satisfy production verifying-key evidence",
 );
 assert(
-  proofFormatReadinessBoundary.productionVerifierReadiness?.selectedBackend === null,
-  "C01 production verifier readiness boundary must keep selectedBackend null",
+  proofFormatReadinessBoundary.productionVerifierReadiness?.selectedBackend === "groth16-tag3-solana-v0",
+  "C01 production verifier readiness boundary must record the selected backend",
 );
 assert(
-  proofFormatReadinessBoundary.productionVerifierReadiness?.selectedBackendStatus === "not-selected",
-  "C01 production verifier readiness boundary must keep backend status not-selected",
+  proofFormatReadinessBoundary.productionVerifierReadiness?.selectedBackendStatus ===
+    "selected-pending-production-evidence",
+  "C01 production verifier readiness boundary must keep backend selected but evidence-blocked",
 );
 assert(
   proofFormatReadinessBoundary.productionVerifierReadiness?.c01VerifierReady === false,
@@ -176,7 +194,7 @@ assert(
 );
 assert(
   proofFormatReadinessBoundary.productionVerifierReadiness?.requiredPositiveEvidenceStatus ===
-    "blocked-with-null-artifact-refs",
+    "blocked-with-selected-backend-and-null-positive-artifact-refs",
   "C01 production verifier readiness boundary must keep positive evidence blocked with null refs",
 );
 includes(
@@ -213,7 +231,7 @@ assert(
 );
 includes(
   backendOptionsRef?.truthBoundary ?? "",
-  "does not select a backend",
+  "selected backend direction",
   "C01 verifier candidate backend-options truth boundary",
 );
 const groth16ProofFormatRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
@@ -233,6 +251,24 @@ includes(
   "does not satisfy production proof-format evidence",
   "C01 verifier candidate Groth16 proof-format truth boundary",
 );
+const productionGroth16ToolchainPreflightRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
+  (entry) => entry.id === "blocked-production-groth16-toolchain-preflight",
+);
+assert(
+  productionGroth16ToolchainPreflightRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
+  "C01 verifier candidate evidence must reference the blocked production Groth16 toolchain preflight packet",
+);
+assert(
+  productionGroth16ToolchainPreflightRef?.command ===
+    "npm run zk:c01-production-groth16-toolchain-preflight-check",
+  "C01 verifier candidate evidence must record the blocked production Groth16 toolchain preflight guard",
+);
+includes(
+  productionGroth16ToolchainPreflightRef?.truthBoundary ?? "",
+  "does not satisfy production proof-format evidence",
+  "C01 verifier candidate production Groth16 toolchain truth boundary",
+);
 const productionVerifyingKeyRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
   (entry) => entry.id === "blocked-production-verifying-key-candidate",
 );
@@ -249,6 +285,24 @@ includes(
   productionVerifyingKeyRef?.truthBoundary ?? "",
   "does not satisfy production verifying-key evidence",
   "C01 verifier candidate production verifying-key truth boundary",
+);
+const productionArtifactAcceptanceGateRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
+  (entry) => entry.id === "blocked-production-artifact-acceptance-gate",
+);
+assert(
+  productionArtifactAcceptanceGateRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+  "C01 verifier candidate evidence must reference the blocked production artifact acceptance gate packet",
+);
+assert(
+  productionArtifactAcceptanceGateRef?.command ===
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+  "C01 verifier candidate evidence must record the production artifact acceptance gate guard",
+);
+includes(
+  productionArtifactAcceptanceGateRef?.truthBoundary ?? "",
+  "does not satisfy production proof-format",
+  "C01 verifier candidate production artifact acceptance gate truth boundary",
 );
 const verifierAdapterTestRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
   (entry) => entry.id === "blocked-verifier-adapter-acceptance-test-candidate",
@@ -267,13 +321,64 @@ includes(
   "does not satisfy verifier-adapter evidence",
   "C01 verifier candidate adapter-test truth boundary",
 );
-assert(
-  backendOptionsEvidence.status === "blocked-backend-options-unselected",
-  "C01 backend-options evidence must remain blocked while candidate backend is unselected",
+const publicWitnessBindingRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
+  (entry) => entry.id === "local-sunspot-public-witness-binding-observation",
 );
 assert(
-  backendOptionsEvidence.selectedBackend === null,
-  "C01 backend-options evidence must not select a backend",
+  publicWitnessBindingRef?.status === "local-public-witness-binding-observed-not-production",
+  "C01 verifier candidate evidence must record the local public-witness binding observation",
+);
+assert(
+  publicWitnessBindingRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
+  "C01 verifier candidate public-witness binding ref mismatch",
+);
+assert(
+  publicWitnessBindingRef?.command === "npm run zk:c01-public-witness-binding-check",
+  "C01 verifier candidate public-witness binding command mismatch",
+);
+for (const marker of [
+  "local nonproduction Sunspot/Gnark public witness",
+  "private-spend-public-input-hash",
+  "does not satisfy production private-spend-public-input-hash binding evidence",
+]) {
+  includes(publicWitnessBindingRef?.truthBoundary ?? "", marker, "C01 public-witness binding truth boundary");
+}
+const localAdapterSeamRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
+  (entry) => entry.id === "local-fail-closed-verifier-adapter-seam-harness",
+);
+assert(
+  localAdapterSeamRef?.status === "local-fail-closed-harness-only",
+  "C01 verifier candidate evidence must record the local fail-closed adapter seam harness",
+);
+assert(
+  localAdapterSeamRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+  "C01 verifier candidate local seam must reference the adapter-test candidate packet",
+);
+assert(
+  localAdapterSeamRef?.sourceRef === "programs/vanta_private_pool_v2_spend/src/lib.rs",
+  "C01 verifier candidate local seam source ref mismatch",
+);
+assert(
+  localAdapterSeamRef?.command === "npm run zk:c01-verifier-adapter-seam-check",
+  "C01 verifier candidate evidence must record the local adapter seam guard",
+);
+for (const marker of [
+  "source-only preflight/default-adapter/verified-commit seam",
+  "does not satisfy verifier-adapter evidence",
+  "does not satisfy verifier-adapter acceptance",
+  "does not satisfy tag-3 proof acceptance",
+]) {
+  includes(localAdapterSeamRef?.truthBoundary ?? "", marker, "C01 verifier candidate local seam truth boundary");
+}
+assert(
+  backendOptionsEvidence.status === "blocked-selected-groth16-tag3-solana-v0-production-evidence",
+  "C01 backend-options evidence must remain blocked while selected-backend evidence is absent",
+);
+assert(
+  backendOptionsEvidence.selectedBackend === "groth16-tag3-solana-v0",
+  "C01 backend-options evidence must record the selected backend",
 );
 assert(
   backendOptionsEvidence.backendOptions?.some((entry) => entry.id === "groth16-tag3-solana-v0"),
@@ -288,9 +393,19 @@ assert(
   "C01 backend-options evidence must reference the Groth16 proof-format candidate packet",
 );
 assert(
+  groth16BackendOption?.toolchainPreflightRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
+  "C01 backend-options evidence must reference the production Groth16 toolchain preflight packet",
+);
+assert(
   groth16BackendOption?.productionVerifyingKeyCandidateRef?.artifactRef ===
     "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
   "C01 backend-options evidence must reference the production verifying-key candidate packet",
+);
+assert(
+  groth16BackendOption?.productionArtifactAcceptanceGateRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+  "C01 backend-options evidence must reference the production artifact acceptance gate packet",
 );
 assert(
   groth16BackendOption?.verifierAdapterTestCandidateRef?.artifactRef ===
@@ -315,6 +430,42 @@ assert(
   "C01 Groth16 proof-format candidate evidence must not satisfy production proof-format evidence",
 );
 assert(
+  publicWitnessBindingEvidence.status === "local-public-witness-binding-observed-not-production",
+  "C01 public-witness binding evidence status mismatch",
+);
+assert(
+  publicWitnessBindingEvidence.observedPublicWitness?.decodedPublicInputs?.[0]?.label ===
+    "private-spend-public-input-hash",
+  "C01 public-witness binding evidence must decode the private spend public input label",
+);
+assert(
+  publicWitnessBindingEvidence.observedPublicWitness?.matchesLocalProofReceiptPublicInput === true,
+  "C01 public-witness binding evidence must match the local receipt public input",
+);
+assert(
+  publicWitnessBindingEvidence.satisfiesRequiredPositiveEvidence?.privateSpendPublicInputHashBinding === false,
+  "C01 public-witness binding evidence must not satisfy production public-input binding",
+);
+assert(
+  productionGroth16ToolchainPreflightEvidence.status === "blocked-local-toolchain-no-groth16-scheme",
+  "C01 production Groth16 toolchain preflight evidence must remain blocked",
+);
+assert(
+  productionGroth16ToolchainPreflightEvidence.observedToolchain?.bb?.missingRequiredScheme ===
+    "groth16",
+  "C01 production Groth16 toolchain preflight evidence must record the missing Groth16 scheme",
+);
+assert(
+  productionGroth16ToolchainPreflightEvidence.satisfiesRequiredPositiveEvidence
+    ?.actualPrivateSpendProductionProofFormat === false,
+  "C01 production Groth16 toolchain preflight evidence must not satisfy production proof-format evidence",
+);
+assert(
+  productionGroth16ToolchainPreflightEvidence.satisfiesRequiredPositiveEvidence
+    ?.productionVerifyingKeyHash === false,
+  "C01 production Groth16 toolchain preflight evidence must not satisfy production verifying-key evidence",
+);
+assert(
   productionVerifyingKeyCandidateEvidence.status === "blocked-no-production-verifying-key-hash-artifact",
   "C01 production verifying-key candidate evidence must remain blocked",
 );
@@ -330,6 +481,19 @@ assert(
 assert(
   productionVerifyingKeyCandidateEvidence.satisfiesRequiredPositiveEvidence?.productionVerifyingKeyHash === false,
   "C01 production verifying-key candidate evidence must not satisfy production verifying-key evidence",
+);
+assert(
+  productionArtifactAcceptanceGateEvidence.status === "blocked-no-reviewed-production-artifact-bundle",
+  "C01 production artifact acceptance gate evidence must remain blocked",
+);
+assert(
+  productionArtifactAcceptanceGateEvidence.currentAcceptedProductionBundle?.bundleRef === null,
+  "C01 production artifact acceptance gate evidence must not attach a production bundle ref",
+);
+assert(
+  productionArtifactAcceptanceGateEvidence.satisfiesRequiredPositiveEvidence?.productionArtifactAcceptance ===
+    false,
+  "C01 production artifact acceptance gate evidence must not satisfy production artifact acceptance",
 );
 assert(
   verifierAdapterTestCandidateEvidence.status === "blocked-no-verifier-adapter-acceptance-tests",
@@ -350,6 +514,16 @@ assert(
   "C01 verifier adapter-test candidate evidence must not attach an invalid-proof no-mutation test ref",
 );
 assert(
+  verifierAdapterTestCandidateEvidence.currentAcceptanceTests?.wrongPublicInputHashLeavesAccountsUnchanged
+    ?.artifactRef === null,
+  "C01 verifier adapter-test candidate evidence must not attach a wrong-public-input no-mutation test ref",
+);
+assert(
+  verifierAdapterTestCandidateEvidence.currentAcceptanceTests?.wrongVerifyingKeyLeavesAccountsUnchanged
+    ?.artifactRef === null,
+  "C01 verifier adapter-test candidate evidence must not attach a wrong-verifying-key no-mutation test ref",
+);
+assert(
   verifierAdapterTestCandidateEvidence.satisfiesRequiredPositiveEvidence?.verifierAdapter === false,
   "C01 verifier adapter-test candidate evidence must not satisfy verifier adapter evidence",
 );
@@ -364,8 +538,28 @@ assert(
 );
 assert(
   verifierAdapterTestCandidateEvidence.satisfiesRequiredPositiveEvidence
+    ?.wrongPublicInputHashLeavesAccountsUnchangedTest === false,
+  "C01 verifier adapter-test candidate evidence must not satisfy wrong-public-input no-mutation evidence",
+);
+assert(
+  verifierAdapterTestCandidateEvidence.satisfiesRequiredPositiveEvidence
+    ?.wrongVerifyingKeyLeavesAccountsUnchangedTest === false,
+  "C01 verifier adapter-test candidate evidence must not satisfy wrong-verifying-key no-mutation evidence",
+);
+assert(
+  verifierAdapterTestCandidateEvidence.satisfiesRequiredPositiveEvidence
     ?.privateSpendPublicInputHashBinding === false,
   "C01 verifier adapter-test candidate evidence must not satisfy public input binding evidence",
+);
+assert(
+  verifierAdapterTestCandidateEvidence.localFailClosedVerifierAdapterSeamHarness?.status ===
+    "local-fail-closed-harness-only",
+  "C01 verifier adapter-test candidate evidence must record local seam harness as local-only",
+);
+assert(
+  verifierAdapterTestCandidateEvidence.localFailClosedVerifierAdapterSeamHarness
+    ?.satisfiesVerifierAdapterAcceptance === false,
+  "C01 local seam harness must not satisfy adapter acceptance",
 );
 assert(
   localProofFormatEvidence.status === "local-proof-format-observed-not-production",
@@ -393,8 +587,12 @@ assert(
   "C01 local proof-format evidence must compare the local proof to the reserved Groth16 target",
 );
 assert(
-  localProofFormatEvidence.reservedTag3FormatComparison?.proofByteLength === 256,
-  "C01 local proof-format evidence must preserve the reserved Groth16 proof byte length",
+  localProofFormatEvidence.reservedTag3FormatComparison?.proofByteLength === 324,
+  "C01 local proof-format evidence must preserve the selected Gnark proof byte length",
+);
+assert(
+  localProofFormatEvidence.reservedTag3FormatComparison?.publicWitnessByteLength === 44,
+  "C01 local proof-format evidence must preserve the selected Gnark public witness byte length",
 );
 assert(
   localProofFormatEvidence.satisfiesRequiredPositiveEvidence?.actualPrivateSpendProductionProofFormat === false,
@@ -411,18 +609,26 @@ for (const id of [
   "verifier-adapter",
   "accepted-proof-mutates-state-test",
   "invalid-proof-leaves-accounts-unchanged-test",
+  "wrong-public-input-hash-leaves-accounts-unchanged-test",
+  "wrong-verifying-key-leaves-accounts-unchanged-test",
   "sbf-live-lineage",
   "audit-reviewer-acceptance",
 ]) {
   assert(requiredEvidenceIds.has(id), `C01 verifier candidate evidence missing required evidence id ${id}`);
 }
 assert(
-  verifierCandidateEvidence.requiredPositiveEvidence.every((entry) => entry.status === "blocked"),
-  "C01 verifier candidate evidence must mark every positive evidence item blocked while backend is unselected",
+  verifierCandidateEvidence.requiredPositiveEvidence.every((entry) =>
+    entry.id === "backend-selection" ? entry.status === "satisfied-local-selection" : entry.status === "blocked",
+  ),
+  "C01 verifier candidate evidence must only satisfy backend selection while all production evidence stays blocked",
 );
 assert(
-  verifierCandidateEvidence.requiredPositiveEvidence.every((entry) => entry.currentArtifactRef === null),
-  "C01 verifier candidate evidence must not attach current artifact refs before backend selection",
+  verifierCandidateEvidence.requiredPositiveEvidence.every((entry) =>
+    entry.id === "backend-selection"
+      ? entry.currentArtifactRef === "docs/zk/c01-production-verifier-backend-decision.md"
+      : entry.currentArtifactRef === null,
+  ),
+  "C01 verifier candidate evidence must attach only the backend-selection decision ref",
 );
 assert(
   verifierCandidateEvidence.requiredPositiveEvidence.every((entry) =>
@@ -463,6 +669,22 @@ assert(
 );
 assert(
   verifierCandidateEvidence.canonicalCommands?.includes(
+    "npm run zk:c01-production-groth16-toolchain-preflight-check",
+  ),
+  "C01 verifier candidate evidence must record the production Groth16 toolchain preflight guard",
+);
+assert(
+  verifierCandidateEvidence.canonicalCommands?.includes(
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+  ),
+  "C01 verifier candidate evidence must record the production artifact acceptance gate guard",
+);
+assert(
+  verifierCandidateEvidence.canonicalCommands?.includes("npm run zk:c01-public-witness-binding-check"),
+  "C01 verifier candidate evidence must record the public-witness binding guard",
+);
+assert(
+  verifierCandidateEvidence.canonicalCommands?.includes(
     "npm run zk:c01-production-verifying-key-candidate-check",
   ),
   "C01 verifier candidate evidence must record the production verifying-key candidate guard",
@@ -472,6 +694,10 @@ assert(
     "npm run zk:c01-verifier-adapter-test-candidate-check",
   ),
   "C01 verifier candidate evidence must record the verifier adapter-test candidate guard",
+);
+assert(
+  verifierCandidateEvidence.canonicalCommands?.includes("npm run zk:c01-verifier-adapter-seam-check"),
+  "C01 verifier candidate evidence must record the verifier adapter seam guard",
 );
 assert(
   localProofFormatEvidence.canonicalCommands?.includes(
@@ -498,7 +724,8 @@ for (const marker of [
   "VANTA_PRIVATE_POOL_V2_SOLANA_C01_TAG3_GROTH16_TARGET",
   "VANTA_PRIVATE_POOL_V2_C01_ACTUAL_PRIVATE_SPEND_CIRCUIT",
   "VANTA_PRIVATE_POOL_V2_C01_PRIVATE_SPEND_PUBLIC_INPUT_LABEL",
-  "VANTA_PRIVATE_POOL_V2_C01_GROTH16_PROOF_BYTE_LENGTH = 256",
+  "VANTA_PRIVATE_POOL_V2_C01_GNARK_PROOF_BYTE_LENGTH = 324",
+  "VANTA_PRIVATE_POOL_V2_C01_GNARK_PUBLIC_WITNESS_BYTE_LENGTH = 44",
   "normalizeOnChainVerifierEvidenceFields",
   "assertNoC01VerifierReadyOverclaim",
   "proofSystem=groth16, proofBackend=remote-service, circuit=vanta_private_pool_v2_actual_private_spend_entry",
@@ -549,8 +776,12 @@ for (const marker of [
   "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json",
   "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
   "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
   "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
-  "backend, proof-format, production verifying-key, verifier-adapter, positive/negative test",
+  "proof-format, production verifying-key, verifier-adapter, positive/negative test",
+  "blocked-local-toolchain-no-groth16-scheme",
   "groth16-tag3-solana-v0",
   "noir-bb-ultrahonk-adaptation",
   "solana-c01-groth16-verifier-ready",
@@ -563,7 +794,8 @@ for (const marker of [
   "offchain-remote-proof-artifact-only",
   "solana-c01-groth16-verifier-ready",
   "proofSystem: `groth16`",
-  "groth16Proof:256",
+  "gnarkProof:324",
+  "gnarkPublicWitness:44",
   "custom error `14`",
   "npm run zk:c01-production-verifier-backend-candidate-check",
 ]) {
@@ -617,6 +849,21 @@ assert(
   "package.json must expose zk:c01-groth16-proof-format-candidate-check",
 );
 assert(
+  scripts["zk:c01-production-groth16-toolchain-preflight-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-production-groth16-toolchain-preflight.mjs",
+  "package.json must expose zk:c01-production-groth16-toolchain-preflight-check",
+);
+assert(
+  scripts["zk:c01-production-artifact-acceptance-gate-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-production-artifact-acceptance-gate.mjs",
+  "package.json must expose zk:c01-production-artifact-acceptance-gate-check",
+);
+assert(
+  scripts["zk:c01-public-witness-binding-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-public-witness-binding.mjs",
+  "package.json must expose zk:c01-public-witness-binding-check",
+);
+assert(
   scripts["zk:c01-production-verifying-key-candidate-check"] ===
     "node scripts/check-vanta-private-pool-v2-c01-production-verifying-key-candidate.mjs",
   "package.json must expose zk:c01-production-verifying-key-candidate-check",
@@ -643,6 +890,18 @@ assert(
   "zk:review-guards-check must include the C01 Groth16 proof-format candidate guard",
 );
 assert(
+  scripts["zk:review-guards-check"]?.includes("npm run zk:c01-production-groth16-toolchain-preflight-check"),
+  "zk:review-guards-check must include the C01 production Groth16 toolchain preflight guard",
+);
+assert(
+  scripts["zk:review-guards-check"]?.includes("npm run zk:c01-production-artifact-acceptance-gate-check"),
+  "zk:review-guards-check must include the C01 production artifact acceptance gate guard",
+);
+assert(
+  scripts["zk:review-guards-check"]?.includes("npm run zk:c01-public-witness-binding-check"),
+  "zk:review-guards-check must include the C01 public-witness binding guard",
+);
+assert(
   scripts["zk:review-guards-check"]?.includes("npm run zk:c01-production-verifying-key-candidate-check"),
   "zk:review-guards-check must include the C01 production verifying-key candidate guard",
 );
@@ -665,6 +924,18 @@ assert(
 assert(
   scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-groth16-proof-format-candidate-check"),
   "zk:feedback-loop-check must include the C01 Groth16 proof-format candidate guard",
+);
+assert(
+  scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-production-groth16-toolchain-preflight-check"),
+  "zk:feedback-loop-check must include the C01 production Groth16 toolchain preflight guard",
+);
+assert(
+  scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-production-artifact-acceptance-gate-check"),
+  "zk:feedback-loop-check must include the C01 production artifact acceptance gate guard",
+);
+assert(
+  scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-public-witness-binding-check"),
+  "zk:feedback-loop-check must include the C01 public-witness binding guard",
 );
 assert(
   scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-production-verifying-key-candidate-check"),

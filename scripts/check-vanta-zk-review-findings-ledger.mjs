@@ -263,6 +263,19 @@ walkLedger(ledger, (value, path) => {
     assert(!pattern.test(value), `ledger uses forbidden secret/report/witness key at ${path}`);
   }
 });
+walkLedger(ledger, (value, path) => {
+  if (typeof value !== "string" || path.endsWith("#key")) {
+    return;
+  }
+  assert(
+    !value.includes("C01 selectedBackend is null"),
+    `ledger contains stale C01 selectedBackend=null wording at ${path}`,
+  );
+  assert(
+    !value.includes("not a selected verifier backend"),
+    `ledger contains stale selected-backend truth boundary at ${path}`,
+  );
+});
 
 const activeFeedbackLoopIds = new Set();
 for (const loop of ledger.activeFeedbackLoops) {
@@ -353,7 +366,10 @@ assert(
   c01VerifierBackendDecisionLoopText.includes("docs/zk/c01-production-verifier-backend-decision.md"),
   `${c01VerifierBackendDecisionLoopId} must record the decision packet path`,
 );
-assert(c01VerifierBackendDecisionLoopText.includes("no production verifier backend is selected yet"), `${c01VerifierBackendDecisionLoopId} must preserve the decision boundary`);
+assert(
+  c01VerifierBackendDecisionLoopText.includes("selected production verifier backend direction"),
+  `${c01VerifierBackendDecisionLoopId} must preserve the selected backend direction boundary`,
+);
 assert(c01VerifierBackendDecisionLoopText.includes("Groth16 tag-3 Solana verifier path"), `${c01VerifierBackendDecisionLoopId} must record the Groth16 option`);
 assert(c01VerifierBackendDecisionLoopText.includes("Noir/bb.js/UltraHonk adaptation path"), `${c01VerifierBackendDecisionLoopId} must record the UltraHonk option`);
 assert(c01VerifierBackendDecisionLoopText.includes("0e1ca25"), `${c01VerifierBackendDecisionLoopId} must pin the implementation commit`);
@@ -385,8 +401,9 @@ assert(
   `${c01VerifierCandidateEvidenceLoopId} must record the evidence packet path`,
 );
 assert(
-  c01VerifierCandidateEvidenceLoopText.includes("selectedBackend: null"),
-  `${c01VerifierCandidateEvidenceLoopId} must preserve no backend selected`,
+  c01VerifierCandidateEvidenceLoopText.includes("selectedBackend:") &&
+    c01VerifierCandidateEvidenceLoopText.includes("groth16-tag3-solana-v0"),
+  `${c01VerifierCandidateEvidenceLoopId} must preserve selected backend direction`,
 );
 assert(
   c01VerifierCandidateEvidenceLoopText.includes("offchain-remote-proof-artifact-only"),
@@ -435,7 +452,8 @@ for (const phrase of [
   "500-field",
   "private-spend-public-input-hash",
   "local-acir-bytecode-hash-not-production-vk",
-  "256 proof bytes",
+  "324 proof bytes",
+  "44 public-witness bytes",
   "production-verifying-key-hash",
   "not production proof-format acceptance",
   "not tag-3 proof acceptance",
@@ -644,8 +662,8 @@ for (const phrase of [
   "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
   "groth16-tag3-solana-v0",
   "noir-bb-ultrahonk-adaptation",
-  "selectedBackend: null",
-  "does not select a backend",
+  "backend direction",
+  "not selected",
   "1153f4e",
 ]) {
   assert(
@@ -681,7 +699,10 @@ for (const phrase of [
   "blocked-no-groth16-production-proof-format-artifact",
   "groth16-tag3-solana-v0",
   "solana-c01-tag3-groth16-v0",
-  "groth16Proof:256",
+  "proofFormatId: \\\"gnark-solana-native-proof-and-public-witness-v0\\\"",
+  "324 proof bytes",
+  "44 public-witness bytes",
+  "tag-3 ABI now reserves the selected Gnark tuple fail-closed",
   "private-spend-public-input-hash",
   "production-verifying-key-hash",
   "noir-bb / barretenberg-ultrahonk / 16000 bytes / 500 fields",
@@ -727,7 +748,9 @@ for (const phrase of [
   "blocked-no-production-verifying-key-hash-artifact",
   "groth16-tag3-solana-v0",
   "solana-c01-tag3-groth16-v0",
-  "groth16Proof:256",
+  "proofFormatId: \\\"gnark-solana-native-proof-and-public-witness-v0\\\"",
+  "324 proof bytes",
+  "44 public-witness bytes",
   "private-spend-public-input-hash",
   "production-verifying-key-hash",
   "tag 5 registry metadata remains source-only",
@@ -753,6 +776,7 @@ const c01VerifierAdapterTestCandidateLoop = ledger.activeFeedbackLoops.find(
 const c01VerifierAdapterTestCandidateLoopText = JSON.stringify(c01VerifierAdapterTestCandidateLoop);
 for (const command of [
   "npm run zk:c01-verifier-adapter-test-candidate-check",
+  "npm run zk:c01-verifier-adapter-seam-check",
   "npm run zk:c01-production-verifier-backend-candidate-check",
   "npm run zk:c01-verifier-backend-options-check",
   "npm run zk:c01-groth16-proof-format-candidate-check",
@@ -761,6 +785,7 @@ for (const command of [
   "npm run zk:c01-verifier-backend-decision-check",
   "npm run zk:c01-verifier-backend-contract-check",
   "npm run zk:c01-onchain-proof-boundary-check",
+  "npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check",
   "npm run zk:review-findings-ledger-check",
   "npm run zk:review-guards-check",
   "git diff --check",
@@ -775,7 +800,9 @@ for (const phrase of [
   "blocked-no-verifier-adapter-acceptance-tests",
   "groth16-tag3-solana-v0",
   "solana-c01-tag3-groth16-v0",
-  "groth16Proof:256",
+  "proofFormatId: \\\"gnark-solana-native-proof-and-public-witness-v0\\\"",
+  "324 proof bytes",
+  "44 public-witness bytes",
   "private-spend-public-input-hash",
   "production-verifying-key-hash",
   "in-program verifier or dedicated verifier CPI adapter",
@@ -784,6 +811,23 @@ for (const phrase of [
   "invalid-proof no-mutation",
   "wrong-public-input-hash no-mutation",
   "wrong-verifying-key no-mutation",
+  "local fail-closed verifier adapter seam harness",
+  "368-byte proof-plus-public-witness verifier instruction-data assembly",
+  "source public-witness binding precheck",
+  "dedicated read-only executable verifier-program account",
+  "generated Solana verifier CPI instruction shape",
+  "data equal to proof||publicWitness",
+  "on-chain-only verifier CPI hook",
+  "host-side Solana syscall stubs",
+  "verified-commit helper",
+  "local unsafe generated-verifier CPI harness",
+  "/private/tmp Sunspot verifier SBF",
+  "tampered proof without mutation",
+  "wrong public input hash without mutation",
+  "wrong executable verifier program without mutation",
+  "test-only selected-Gnark",
+  "valid-mutation / invalid-proof / wrong-public-input / wrong-verifying-key no-mutation shape coverage",
+  "invalid/wrong-input/wrong-key no-mutation shape coverage",
   "reserved tag 3",
   "ERR_PROOF_VERIFIER_NOT_WIRED",
   "not verifier-adapter acceptance",
@@ -807,6 +851,8 @@ const c01PositiveProofVerifiedClaimGateLoop = ledger.activeFeedbackLoops.find(
 const c01PositiveProofVerifiedClaimGateLoopText = JSON.stringify(c01PositiveProofVerifiedClaimGateLoop);
 for (const command of [
   "npm run zk:c01-positive-proof-verified-claim-gate-check",
+  "npm run zk:c01-verifier-adapter-seam-check",
+  "npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check",
   "npm run privacy-audit:tracker-check",
   "npm run audit:package-check",
   "npm run public:audit-discovery-check",
@@ -834,6 +880,18 @@ for (const phrase of [
   "wrong-verifying-key no-mutation",
   "SBF/live lineage",
   "audit/reviewer acceptance",
+  "local fail-closed verifier adapter seam harness",
+  "source verifier-input assembly",
+  "source public-witness binding precheck",
+  "dedicated read-only executable verifier-program account",
+  "generated Solana verifier CPI instruction",
+  "local unsafe generated-verifier CPI harness",
+  "wrong public input hash without mutation",
+  "wrong executable verifier program without mutation",
+  "test-only selected-Gnark",
+  "valid-mutation and no-mutation shape coverage",
+  "invalid/wrong-input/wrong-key no-mutation shape coverage",
+  "cannot unlock proof-verified wording",
   "not tag-3 valid-proof success evidence",
   "not proof-verified spend evidence",
   "d5a5ba3",
@@ -2260,12 +2318,36 @@ assert(
   "C01 must record the Groth16 proof-format candidate guard",
 );
 assert(
+  c01Text.includes("zk:c01-production-groth16-toolchain-preflight-check"),
+  "C01 must record the production Groth16 toolchain preflight guard",
+);
+assert(
+  c01Text.includes("zk:c01-sunspot-groth16-route-check"),
+  "C01 must record the Sunspot/Gnark route guard",
+);
+assert(
+  c01Text.includes("zk:c01-sunspot-groth16-dev-probe-check"),
+  "C01 must record the Sunspot/Gnark local dev-probe guard",
+);
+assert(
+  c01Text.includes("zk:c01-sunspot-gnark-artifact-acquisition-check"),
+  "C01 must record the Sunspot/Gnark artifact acquisition guard",
+);
+assert(
   c01Text.includes("zk:c01-production-verifying-key-candidate-check"),
   "C01 must record the production verifying-key candidate guard",
 );
 assert(
   c01Text.includes("zk:c01-verifier-backend-decision-check"),
   "C01 must record the verifier backend decision guard",
+);
+assert(
+  c01Text.includes("zk:c01-verifier-adapter-seam-check"),
+  "C01 must record the local verifier adapter seam guard",
+);
+assert(
+  c01Text.includes("zk:c01-positive-proof-verified-claim-gate-check"),
+  "C01 must record the positive proof-verified claim gate guard",
 );
 assert(
   c01Text.includes("docs/zk/c01-production-verifier-backend-decision.md"),
@@ -2292,6 +2374,22 @@ assert(
   "C01 must record the Groth16 proof-format candidate evidence packet path",
 );
 assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json"),
+  "C01 must record the production Groth16 toolchain preflight evidence packet path",
+);
+assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json"),
+  "C01 must record the Sunspot/Gnark route evidence packet path",
+);
+assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json"),
+  "C01 must record the Sunspot/Gnark local dev-probe evidence packet path",
+);
+assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json"),
+  "C01 must record the Sunspot/Gnark artifact acquisition packet path",
+);
+assert(
   c01Text.includes("ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json"),
   "C01 must record the production verifying-key candidate evidence packet path",
 );
@@ -2299,17 +2397,43 @@ assert(
   c01Text.includes("ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json"),
   "C01 must record the verifier adapter acceptance-test candidate evidence packet path",
 );
+assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-positive-proof-verified-claim-gate.evidence.json"),
+  "C01 must record the positive proof-verified claim gate evidence packet path",
+);
 assert(c01Text.includes("groth16-tag3-solana-v0"), "C01 must record the Groth16 tag-3 backend option");
 assert(c01Text.includes("solana-c01-tag3-groth16-v0"), "C01 must record the Groth16 candidate target");
 assert(c01Text.includes("noir-bb-ultrahonk-adaptation"), "C01 must record the UltraHonk adaptation backend option");
-assert(c01Text.includes("selectedBackend"), "C01 must record backend selection remains blocked");
 assert(
-  c01Text.includes("backend-options matrix as backend selection"),
-  "C01 must preserve that backend-options matrix is not backend selection",
+  c01Text.includes("selectedBackend:") && c01Text.includes("groth16-tag3-solana-v0"),
+  "C01 must record the selected Groth16 tag-3 backend direction",
+);
+assert(
+  c01Text.includes("backend-options matrix selects the Groth16 tag-3 direction"),
+  "C01 must preserve that backend-options matrix is only selected-backend direction evidence",
 );
 assert(
   c01Text.includes("blocked-no-groth16-production-proof-format-artifact"),
   "C01 must record the blocked Groth16 proof-format candidate status",
+);
+assert(
+  c01Text.includes("blocked-local-toolchain-no-groth16-scheme"),
+  "C01 must record the blocked production Groth16 toolchain preflight status",
+);
+assert(
+  c01Text.includes("blocked-local-nargo-version-mismatch-and-sunspot-missing"),
+  "C01 must record the Sunspot/Nargo compatibility blocker",
+);
+assert(
+  c01Text.includes("local dev probe") &&
+    c01Text.includes("temporary beta18 source shim") &&
+    c01Text.includes("324-byte proof") &&
+    c01Text.includes("zero public and zero secret inputs"),
+  "C01 must record the Sunspot/Gnark local dev-probe limitations",
+);
+assert(
+  c01Text.includes("nargo 1.0.0-beta.19"),
+  "C01 must record the observed local nargo version blocker",
 );
 assert(
   c01Text.includes("blocked-no-production-verifying-key-hash-artifact"),
@@ -2319,6 +2443,52 @@ assert(
   c01Text.includes("blocked-no-verifier-adapter-acceptance-tests"),
   "C01 must record the blocked verifier adapter acceptance-test candidate status",
 );
+assert(
+  c01Text.includes("blocked-no-tag3-valid-proof-success"),
+  "C01 must record the blocked positive proof-verified claim gate status",
+);
+assert(
+  c01Text.includes("local fail-closed verifier adapter seam harness"),
+  "C01 must record the local fail-closed verifier adapter seam harness",
+);
+assert(
+  c01Text.includes("proof_carrying_spend_default_adapter_rejects_before_commit"),
+  "C01 must record the default adapter rejects before commit Rust test",
+);
+assert(
+  c01Text.includes("verified_spend_commit_mutates_only_after_adapter_acceptance"),
+  "C01 must record the verified commit after adapter acceptance Rust test",
+);
+assert(
+  c01Text.includes("proof_carrying_spend_verifier_instruction_data_matches_gnark_tuple"),
+  "C01 must record the verifier instruction-data Rust test",
+);
+assert(
+  c01Text.includes("proof_carrying_spend_verifier_cpi_instruction_matches_generated_solana_verifier_shape"),
+  "C01 must record the generated verifier CPI instruction-shape Rust test",
+);
+assert(
+  c01Text.includes("proof_carrying_spend_requires_readonly_executable_verifier_program_account"),
+  "C01 must record the readonly executable verifier-program account Rust test",
+);
+assert(
+  c01Text.includes("proof_carrying_spend_public_witness_binding_rejects_wrong_hash_before_not_wired"),
+  "C01 must record the wrong public-witness binding Rust test",
+);
+assert(
+  c01Text.includes("proof_carrying_spend_public_witness_binding_rejects_bad_header_before_not_wired"),
+  "C01 must record the bad public-witness header Rust test",
+);
+for (const marker of [
+  "selected_gnark_fixture_adapter_valid_proof_mutates_state",
+  "selected_gnark_fixture_adapter_invalid_proof_no_mutation",
+  "selected_gnark_fixture_adapter_wrong_public_input_no_mutation",
+  "selected_gnark_fixture_adapter_wrong_verifying_key_no_mutation",
+  "test-only selected-Gnark",
+  "invalid-proof / wrong-public-input / wrong-verifying-key no-mutation shape tests",
+]) {
+  assert(c01Text.includes(marker), `C01 must record the selected-Gnark adapter shape marker: ${marker}`);
+}
 assert(c01Text.includes("full output-counter rejection"), "C01 must record the tag-3 full output-counter rejection");
 assert(c01Text.includes("custom error 3"), "C01 must record the tag-3 output capacity error code");
 assert(c01Text.includes("output-capacity preflight"), "C01 must preserve the tag-3 output-capacity truth boundary");
@@ -2348,6 +2518,10 @@ assert(
 assert(
   c01Text.includes("blocked verifier adapter acceptance-test packet as verifier adapter acceptance or proof acceptance evidence"),
   "C01 must preserve that the verifier adapter acceptance-test packet is not verifier adapter acceptance or proof acceptance evidence",
+);
+assert(
+  c01Text.includes("local fail-closed verifier adapter seam harness as verifier adapter acceptance"),
+  "C01 must preserve that the local seam harness is not verifier adapter acceptance",
 );
 assert(
   c01.codexRemediation.commits.some((commitRef) => commitRef.includes("c0831fe")),
@@ -2380,8 +2554,8 @@ assert(
 assert(c01Text.includes("16000-byte"), "C01 must record the current local proof byte length");
 assert(c01Text.includes("500 fields"), "C01 must record the current local proof field count");
 assert(
-  c01Text.includes("reserved 256-byte Groth16 tag-3"),
-  "C01 must record the reserved Groth16 tag-3 mismatch",
+  c01Text.includes("reserved Gnark-native Groth16 tag-3"),
+  "C01 must record the reserved Gnark-native Groth16 tag-3 mismatch",
 );
 assert(
   c01Text.includes("not satisfy production proof-format evidence"),
@@ -2979,6 +3153,11 @@ for (const phrase of [
   "browser-worker-production-runtime",
   "selectedProverRuntime: null",
   "C01 verifier compatibility",
+  "C01 selectedBackend:",
+  "groth16-tag3-solana-v0",
+  "selectedBackendStatus:",
+  "selected-pending-production-evidence",
+  "solanaC01Groth16VerifierReady: false",
   "not production prover runtime selection",
   "6e4f478",
   "f379c50",
@@ -3036,14 +3215,14 @@ for (const file of [
 for (const phrase of [
   "proofFormatVsProductionReadinessBoundary",
   "groth16ProofFormatCandidate as intermediate-only",
-  "Groth16 + Light is a blocked option",
+  "Groth16 + Light is the selected backend direction",
   "c01VerifierCompatibilityRefs",
-  "selectedBackend: null",
+  "selectedBackend:",
   "selectedBackendStatus",
-  "not-selected",
+  "selected-pending-production-evidence",
   "c01VerifierReady: false",
   "solanaC01Groth16VerifierReady: false",
-  "not backend selection",
+  "selected-backend direction",
   "not production proof-format evidence",
   "not production verifying-key evidence",
   "not H08 production prover runtime selection",

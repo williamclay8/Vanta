@@ -13,9 +13,23 @@ npm run private-pool-v2:verify
 npm run pay:verify
 ```
 
-For the current C01 verifier boundary, read `docs/zk/c01-production-verifier-backend-decision.md` before treating local proof artifacts as verifier evidence. Current proof-artifact receipts remain `offchain-remote-proof-artifact-only`; any `solana-c01-groth16-verifier-ready` claim must stay fail-closed until the chosen production verifier backend, verifier-key commitment, positive verifier tests, SBF/live evidence, and reviewer acceptance exist.
+For the current C01 verifier boundary, read `docs/zk/c01-production-verifier-backend-decision.md` before treating local proof artifacts as verifier evidence. Current proof-artifact receipts remain `offchain-remote-proof-artifact-only`; any `solana-c01-groth16-verifier-ready` claim must stay fail-closed until the selected `groth16-tag3-solana-v0` backend has production proof format, verifier-key commitment, valid mutation, invalid/wrong-input/wrong-key no-mutation tests, SBF/live evidence, and reviewer acceptance.
 
-The local C01 verifier-adapter acceptance-test packet is `ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json`, checked by `npm run zk:c01-verifier-adapter-test-candidate-check`. It records missing adapter acceptance, `private-spend-public-input-hash` binding, valid-proof mutation, and invalid-proof no-mutation evidence, and must stay blocked until those artifacts exist.
+The C01 Sunspot/Gnark artifact acquisition packet is `ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json`, checked by `npm run zk:c01-sunspot-gnark-artifact-acquisition-check`. It records missing refs-only returned artifacts for source/build/setup/proof-format/verifying-key/public-witness/adapter/test/SBF/live/audit evidence and must stay blocked until reviewed artifacts exist.
+
+The C01 production artifact acceptance gate is `ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json`, checked by `npm run zk:c01-production-artifact-acceptance-gate-check`. It keeps the reviewed production bundle absent and prevents local unsafe Sunspot/Gnark metadata from being promoted into production proof-format, verifying-key, adapter, mutation/no-mutation, SBF/live, or audit evidence.
+
+The C01 Sunspot/Gnark local dev probe is `ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json`, checked by `npm run zk:c01-sunspot-groth16-dev-probe-check`. It records local non-production route feasibility only: a temporary beta18 source shim traversed Sunspot compile/setup/prove/verify, built a local verifier SBF artifact, and passed the generated standalone Solana verifier in local LiteSVM with the selected `gnark-solana-native-proof-and-public-witness-v0` tuple: a 324-byte proof plus 44-byte public witness. The current spend-program tag-3 ABI now reserves the selected tuple fail-closed and rejects the legacy 256-byte proof-only shape, but still needs an accepted adapter; Sunspot compile output reported zero public and zero secret inputs while the generated verifier records one public input, and the artifact is not wired into the Vanta spend program, deployed, live, audited, or accepted.
+
+The C01 local public-witness binding observation is `ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json`, checked by `npm run zk:c01-public-witness-binding-check`. It records that the local 44-byte public witness decodes to `private-spend-public-input-hash` matching the local proof receipt, and that tag `3` now has a source-level public-witness binding precheck before the not-wired verifier boundary. It is not production public-input binding evidence, not production proof-format evidence, and not verifier-adapter acceptance.
+
+The selected Sunspot route also has `blocked-local-nargo-version-mismatch-and-sunspot-missing`: upstream Sunspot requires Noir/Nargo `1.0.0-beta.18`, but this workspace has `nargo 1.0.0-beta.19`. Treat Sunspot install, `GNARK_VERIFIER_BIN`, compatible pinned toolchain, reviewed setup, artifact pinning, and reviewer acceptance as separate prerequisites before accepting C01 proof/VK artifacts.
+
+The local C01 verifier-adapter acceptance-test packet is `ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json`, checked by `npm run zk:c01-verifier-adapter-test-candidate-check`. It records missing adapter acceptance, `private-spend-public-input-hash` binding, valid-proof mutation, invalid-proof no-mutation, wrong-public-input no-mutation, and wrong-verifying-key no-mutation evidence, and must stay blocked until those artifacts exist.
+
+The local fail-closed verifier adapter seam harness is checked by `npm run zk:c01-verifier-adapter-seam-check`. It prevents tag-3 drift by proving the default adapter rejects before mutation, assembles the 368-byte proof-plus-public-witness verifier instruction-data tuple, prechecks the one-field Gnark public witness against `publicInputHash`, reserves a dedicated read-only executable verifier-program account, constructs the generated Solana verifier CPI instruction shape with no account metas and data equal to `gnarkProof || gnarkPublicWitness`, includes an on-chain-only verifier CPI hook that passes the verifier-program account while host-side Solana syscall stubs remain fail-closed, keeps the public tag-3 account list commit-capable after adapter success, and keeps mutation behind an explicit accepted-adapter handoff. It is not production adapter acceptance, not proof acceptance, and not production proof-format or verifying-key evidence.
+
+The local unsafe generated-verifier CPI harness is checked by `npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check`. It uses the `/private/tmp` Sunspot/Gnark proof, public witness, and generated verifier SBF to prove local Vanta tag `3` can CPI into the generated verifier, accept the local unsafe proof/public-witness tuple, mutate nullifier/output state after verifier success, reject a tampered proof without mutation, reject a wrong public input hash without mutation, and reject a wrong executable verifier program without mutation when the verifier-key record is bound to the correct generated verifier program id. It is not production adapter acceptance, not production proof-format or verifying-key evidence, not wrong-verifying-key production no-mutation evidence, not SBF/live lineage, and not reviewer acceptance.
 
 ## Readiness Truth
 
@@ -74,8 +88,16 @@ npm run pay:production-readiness-contract-check
 npm run audit:package-check
 npm run zk:feedback-loop-check
 npm run zk:c01-production-verifier-backend-candidate-check
+npm run zk:c01-groth16-proof-format-candidate-check
+npm run zk:c01-production-groth16-toolchain-preflight-check
+npm run zk:c01-sunspot-groth16-route-check
+npm run zk:c01-sunspot-groth16-dev-probe-check
+npm run zk:c01-sunspot-gnark-artifact-acquisition-check
+npm run zk:c01-production-artifact-acceptance-gate-check
 npm run zk:c01-production-verifying-key-candidate-check
 npm run zk:c01-verifier-adapter-test-candidate-check
+npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check
+npm run zk:c01-positive-proof-verified-claim-gate-check
 npm run zk:c01-verifier-backend-decision-check
 npm run truth:transaction-check
 npm run truth:privacy-claim-gate

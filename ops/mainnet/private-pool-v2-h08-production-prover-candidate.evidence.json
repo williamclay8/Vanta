@@ -69,16 +69,16 @@
     "auditRequirement": "external reviewer or audit acceptance required before production-private, mainnet-private, or real-funds readiness claims"
   },
   "c01VerifierCompatibilityRefs": {
-    "status": "blocked-c01-backend-unselected",
+    "status": "blocked-c01-selected-backend-positive-evidence-absent",
     "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
     "backendOptionsRef": "ops/mainnet/private-pool-v2-c01-verifier-backend-options.evidence.json",
     "verifierCandidateRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
-    "selectedBackend": null,
-    "selectedBackendStatus": "not-selected",
+    "selectedBackend": "groth16-tag3-solana-v0",
+    "selectedBackendStatus": "selected-pending-production-evidence",
     "c01VerifierReady": false,
     "solanaC01Groth16VerifierReady": false,
-    "requiredBeforeH08Production": "H08 production prover evidence needs a selected C01 verifier backend, production proof format, production verifying-key evidence, verifier adapter/test acceptance, SBF/live lineage, and audit/reviewer acceptance.",
-    "truthBoundary": "H08 cannot claim production prover compatibility while C01 selectedBackend is null. Current browser-worker, local bb.js, and remote handoff evidence remain local or handoff-only until the selected C01 verifier backend accepts the same production proof format and verifying-key evidence."
+    "requiredBeforeH08Production": "H08 production prover evidence needs the selected C01 verifier backend to have production proof format, production verifying-key evidence, verifier adapter/test acceptance, SBF/live lineage, and audit/reviewer acceptance.",
+    "truthBoundary": "H08 cannot claim production prover compatibility until the selected C01 verifier backend accepts the same production proof format and verifying-key evidence. Current browser-worker, local bb.js, and remote handoff evidence remain local or handoff-only."
   },
   "currentProductionProverArtifact": {
     "status": "absent",

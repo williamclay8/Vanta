@@ -32,7 +32,8 @@ const VANTA_PRIVATE_POOL_V2_C01_ACTUAL_PRIVATE_SPEND_CIRCUIT =
   "vanta_private_pool_v2_actual_private_spend_entry" as const;
 const VANTA_PRIVATE_POOL_V2_C01_PRIVATE_SPEND_PUBLIC_INPUT_LABEL =
   "private-spend-public-input-hash" as const;
-const VANTA_PRIVATE_POOL_V2_C01_GROTH16_PROOF_BYTE_LENGTH = 256;
+const VANTA_PRIVATE_POOL_V2_C01_GNARK_PROOF_BYTE_LENGTH = 324;
+const VANTA_PRIVATE_POOL_V2_C01_GNARK_PUBLIC_WITNESS_BYTE_LENGTH = 44;
 const VANTA_PRIVATE_POOL_V2_LOCAL_PROOF_ARTIFACT_VERIFYING_KEY_ID_PREFIX =
   "local-acir-bytecode:";
 const VANTA_PRIVATE_POOL_V2_REMOTE_PROOF_ARTIFACT_TRANSCRIPT_FIELDS = [
@@ -302,12 +303,14 @@ function assertNoC01VerifierReadyOverclaim(value: Record<string, unknown>, label
     String(value.circuit ?? "") === VANTA_PRIVATE_POOL_V2_C01_ACTUAL_PRIVATE_SPEND_CIRCUIT &&
     JSON.stringify(publicInputLabels) ===
       JSON.stringify([VANTA_PRIVATE_POOL_V2_C01_PRIVATE_SPEND_PUBLIC_INPUT_LABEL]) &&
-    Number(value.proofByteLength) === VANTA_PRIVATE_POOL_V2_C01_GROTH16_PROOF_BYTE_LENGTH &&
+    Number(value.proofByteLength) === VANTA_PRIVATE_POOL_V2_C01_GNARK_PROOF_BYTE_LENGTH &&
+    Number(value.publicWitnessByteLength) ===
+      VANTA_PRIVATE_POOL_V2_C01_GNARK_PUBLIC_WITNESS_BYTE_LENGTH &&
     value.verifyingKeyHashKind === VANTA_PRIVATE_POOL_V2_REMOTE_PRODUCTION_VERIFYING_KEY_HASH_KIND;
 
   if (!hasC01Groth16Shape) {
     throw new Error(
-      `${label} C01 on-chain verifier-ready evidence requires proofSystem=groth16, proofBackend=remote-service, circuit=vanta_private_pool_v2_actual_private_spend_entry, publicInputLabels=["private-spend-public-input-hash"], proofByteLength=256, verifyingKeyHashKind=production-verifying-key-hash, and onChainVerifierTarget=solana-c01-tag3-groth16-v0.`,
+      `${label} C01 on-chain verifier-ready evidence requires proofSystem=groth16, proofBackend=remote-service, circuit=vanta_private_pool_v2_actual_private_spend_entry, publicInputLabels=["private-spend-public-input-hash"], proofByteLength=324, publicWitnessByteLength=44, verifyingKeyHashKind=production-verifying-key-hash, and onChainVerifierTarget=solana-c01-tag3-groth16-v0.`,
     );
   }
 
