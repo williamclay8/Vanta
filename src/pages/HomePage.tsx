@@ -8,65 +8,65 @@ type LandingGlyph = "exit" | "private-rails" | "receipt" | "shield";
 
 const productPoints = [
   {
-    copy: "Shield assets. Get beta receipts where the current lane supports them.",
+    copy: "Move assets into a private balance.",
     icon: "shield",
-    title: "Shield assets",
+    title: "Shield",
   },
   {
-    copy: "Shield, Send, Swap, Unshield — each keeps its beta boundary visible.",
+    copy: "Send, swap, and exit from that balance.",
     icon: "private-rails",
-    title: "Use current lanes",
+    title: "Use",
   },
   {
-    copy: "Create payment requests with receipt/status surfaces merchants can inspect.",
+    copy: "Accept payments. Receipts merchants can verify.",
     icon: "receipt",
-    title: "Accept payments",
+    title: "Get paid",
   },
   {
-    copy: "Unshield to any wallet. Full exit control.",
+    copy: "Unshield back to a wallet, anytime.",
     icon: "exit",
-    title: "Exit on your terms",
+    title: "Exit",
   },
 ] satisfies Array<{ copy: string; icon: LandingGlyph; title: string }>;
 
 const primaryAppActions = [
   {
-    label: "Shield funds",
-    outcome: "Shield now. Entry receipt where available.",
+    label: "Shield",
+    outcome: "Move assets into your private balance.",
     path: "shield",
-    status: "Wallet lane",
+    status: "Beta",
   },
   {
-    label: "Send from shielded state",
-    outcome: "Constrained beta transfer with receipt/status where available.",
+    label: "Send",
+    outcome: "Send from your private balance to another wallet.",
     path: "send",
-    status: "Wallet lane",
+    status: "Beta",
   },
   {
-    label: "Swap from shielded state",
-    outcome: "Constrained swap with route status and beta receipt where available.",
+    label: "Swap",
+    outcome: "Swap inside your private balance.",
     path: "swap",
-    status: "Wallet lane",
+    status: "Beta",
   },
   {
-    label: "Unshield funds",
-    outcome: "Exit through the current beta lane with status you can inspect.",
+    label: "Unshield",
+    outcome: "Withdraw your private balance back to a wallet.",
     path: "unshield",
-    status: "Wallet lane",
+    status: "Beta",
   },
 ];
 
 const previewAppActions = [
   {
-    copy: "Payment requests with receipt/status surfaces merchants inspect.",
-    eyebrow: "Pay preview",
+    copy: "Create payment requests. Settle privately.",
+    eyebrow: "Pay",
     label: "Collect payments",
     path: "pay",
     status: "Preview",
   },
   {
-    copy: "Preview shielded execution before live routing is enabled.",
-    eyebrow: "Strategy preview",
+    copy: "Plan trades before live routing is enabled.",
+    eyebrow: "Strategy",
     label: "Plan execution",
     path: "strategy",
     status: "Preview",
@@ -115,8 +115,8 @@ function LandingHeroFlowVisual() {
       data-vanta-landing-flow-visual
     >
       <div className="landing-minimal__flow-header">
-        <span>Local preview</span>
-        <strong>Wallet to shielded state</strong>
+        <span>Preview</span>
+        <strong>Wallet to private balance</strong>
       </div>
 
       <div className="landing-minimal__flow-map" aria-hidden="true">
@@ -136,12 +136,12 @@ function LandingHeroFlowVisual() {
         </div>
         <div className="landing-minimal__flow-node" data-vanta-landing-flow-node="shielded-state">
           <span />
-          <strong>Shielded state</strong>
-          <small>Receipts where available</small>
+          <strong>Private balance</strong>
+          <small>Send, swap, exit</small>
         </div>
       </div>
 
-      <p>Illustrates the intended flow; production privacy is not enabled.</p>
+      <p>Preview only. Production privacy is not enabled yet.</p>
     </aside>
   );
 }
@@ -194,15 +194,14 @@ export function HomePage() {
       <section className="landing-minimal__hero">
         <div className="landing-minimal__hero-shell">
           <div className="landing-minimal__hero-copy">
-            <div className="landing-minimal__kicker">Receipt-backed Solana settlement</div>
+            <div className="landing-minimal__kicker">Private Solana, in beta</div>
             <h1>
-              Shield now and see
-              <span> the proof boundary.</span>
+              Shield, send, and exit.
+              <span> Privately.</span>
             </h1>
             <p>
-              Open the app to use Vanta's constrained beta lanes. Shield assets,
-              inspect operator-visible status, and share receipts where the lane
-              supports them.
+              Open the app to shield assets and use the beta lanes. Operator-trusted,
+              not yet audited, no production-privacy claim made.
             </p>
 
             <div className="landing-minimal__actions">
@@ -230,7 +229,7 @@ export function HomePage() {
       >
         <div className="landing-minimal__section-header">
           <span>What it does</span>
-          <h2>Shield first. Simple on the surface.</h2>
+          <h2>Four things.</h2>
         </div>
 
         <div className="landing-minimal__points landing-minimal__points--features">
@@ -250,7 +249,7 @@ export function HomePage() {
       >
         <div className="landing-minimal__section-header">
           <span>Inside the app</span>
-          <h2>The actions Vanta can show honestly.</h2>
+          <h2>Open actions.</h2>
         </div>
 
         <div className="landing-minimal__action-group">

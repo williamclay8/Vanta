@@ -1720,11 +1720,11 @@ export function SwapPage() {
   if (!walletConnected) {
     validationMessage = "Connect a wallet to swap.";
   } else if (isBetaMode) {
-    validationMessage = "Beta mode keeps Swap visible but prevents live route execution while production services are offline.";
+    validationMessage = "Beta mode — Swap is visible but live routes are paused.";
   } else if (sourcePairCapability.status !== "live") {
     validationMessage =
       sourcePairCapability.blockers[0] ??
-      "This shielded pair needs a route adapter with committed settlement evidence before it can execute.";
+      "This pair has no live route adapter yet.";
   } else if (!selectedShieldAsset.configured) {
     validationMessage = `Shielded ${selectedSourceAsset} is not configured yet.`;
   } else if (requiresPrivateSwap && usesLegacyUsdcSolOperator && !liveSwapPair.configured) {
@@ -1846,7 +1846,7 @@ export function SwapPage() {
         <div>
           <span className="eyebrow product-intro__eyebrow">Guarded beta</span>
           <h2>Swap</h2>
-          <p>Swap shielded assets through constrained beta routes.</p>
+          <p>Swap inside your private balance.</p>
         </div>
 
         <div
@@ -1855,8 +1855,12 @@ export function SwapPage() {
             swapTrustContract.claimControls.productionPrivacyClaimsLocked
           }
         >
-          <strong>{swapTrustContract.currentTruth}</strong>
-          <p>{swapTrustContract.visibleStatusCopy}</p>
+          <strong>Beta — routes are constrained</strong>
+          <details>
+            <summary>Technical status</summary>
+            <p>Current truth: {swapTrustContract.currentTruth}.</p>
+            <p>{swapTrustContract.visibleStatusCopy}</p>
+          </details>
         </div>
       </div>
 
@@ -2003,7 +2007,7 @@ export function SwapPage() {
 
               <PrivacySummary
                 items={SWAP_PRIVACY_SUMMARY_ITEMS}
-                note="Production Swap privacy remains claim-locked until private route adapters, verifier-backed settlement, audit evidence, and operator gates pass."
+                note="Swap production privacy is locked until route adapters, verifier-backed settlement, audit, and operator gates pass."
               />
 
               <SwapAdvancedPanel
@@ -2186,8 +2190,8 @@ export function SwapPage() {
                           : "Exact-note match required",
                       },
                     ]}
-                    note="Approve only if the wallet prompt matches the selected route, asset, amount, and destination."
-                    truthBoundary="This is a local wallet approval review. Swap is in guarded beta with constrained routes; full production privacy is not yet enabled."
+                    note="Approve only if the wallet shows the same route, asset, amount, and destination."
+                    truthBoundary="Local review. Swap is in beta with constrained routes; production privacy is not enabled."
                   />
                 )}
                 {swapBridgeError && status === "complete" && (

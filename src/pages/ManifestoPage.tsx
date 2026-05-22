@@ -3,24 +3,20 @@ import { BrandMark } from "@/components/BrandMark";
 
 const manifestoPrinciples = [
   {
-    title: "Shield now. Merchant verifies later.",
-    copy:
-      "Privacy is useful when merchants get a receipt they can inspect. Receipt is the growth artifact.",
+    title: "Shield now. Verify later.",
+    copy: "Privacy is useful when the receipt is inspectable.",
   },
   {
-    title: "Every action leaves a receipt.",
-    copy:
-      "Shield, Send, Swap, Unshield — each should point to a packet or status surface where the current beta lane supports it.",
+    title: "Every action has a receipt.",
+    copy: "Shield, Send, Swap, Unshield — each one points to a packet you can check.",
   },
   {
-    title: "Beta truth, no theater.",
-    copy:
-      "We state exactly what works today, what is preview, and what receipts prove. No broad privacy or readiness claims until gates pass.",
+    title: "Beta truth. No theater.",
+    copy: "What works today, what's preview, what's blocked — stated on the page.",
   },
   {
-    title: "Operator visible. Merchant first.",
-    copy:
-      "Boundaries are named in public surfaces. Receipts invite the next use. Distribution grows from one receipt to invited private settlement.",
+    title: "Boundaries are named.",
+    copy: "Limits go in the open. Distribution grows from honest receipts.",
   },
 ];
 
@@ -59,9 +55,8 @@ export function ManifestoPage() {
           <span>Public letter</span>
           <strong>Beta truth first. Receipt as proof.</strong>
           <p>
-            Production privacy is not enabled. This is not an audit report. Receipts are the
-            growth artifact where a lane can support them. Open the app, shield once, and inspect
-            the current beta status before sharing a receipt.
+            Production privacy is not enabled. This is not an audit report. Open the
+            app, shield once, and read the beta status before sharing a receipt.
           </p>
           <div className="manifesto-letter__actions">
             <a href="/.well-known/audit">/.well-known/audit</a>
@@ -82,14 +77,11 @@ export function ManifestoPage() {
 
       <section className="manifesto-proof" aria-label="Reviewer commands">
         <div>
-          <span className="manifesto-eyebrow">Current reviewer command</span>
-          <h2>Check the surface, then check the claims.</h2>
+          <span className="manifesto-eyebrow">Reviewer command</span>
+          <h2>Check the claims for yourself.</h2>
         </div>
         <code>npm run public:manifesto-check</code>
-        <p>
-          This guard keeps the manifesto route, the audit alias, and the beta claim boundary
-          tied to the same local truth surface.
-        </p>
+        <p>This guard ties the manifesto, the audit alias, and the beta boundary together.</p>
       </section>
     </main>
   );

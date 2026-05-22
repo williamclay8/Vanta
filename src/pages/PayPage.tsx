@@ -372,14 +372,10 @@ export function PayPage() {
           <div>
             <span className="pay-kicker product-intro__eyebrow">Vanta Pay</span>
             <h1 id="pay-title">Pay</h1>
-            <p>
-              Create a buyer preview, generate a local receipt-backed settlement record, and show
-              what each party can verify.
-            </p>
+            <p>Create a payment request. Show the receipt each party can verify.</p>
             <div className="pay-hero-badges pay-hero-badges--compact" aria-label="Pay beta status">
               <span>
-                {isBetaMode ? "Test mode" : "Test harness"} - no production funds moved - test
-                receipt only
+                {isBetaMode ? "Test mode" : "Test harness"} — no production funds, test receipt only
               </span>
             </div>
           </div>
@@ -412,7 +408,7 @@ export function PayPage() {
                 </header>
                 <div className="pay-builder-intro">
                   <h2 id="pay-details-title">Payment details</h2>
-                  <p>Create a test payment request before live approval or production settlement.</p>
+                  <p>Create a test request. Not for production settlement yet.</p>
                 </div>
 
                 <form
@@ -779,11 +775,11 @@ export function PayPage() {
               <div className="pay-suite-plain-rows" aria-label="More payment records">
                 <p>
                   <span>Buyer preview links</span>
-                  Create a payment request, then copy the buyer preview link.
+                  Create a request, then copy the preview link.
                 </p>
                 <p>
                   <span>Settlement lifecycle</span>
-                  Preview, approve, execute, and settle stay separate.
+                  Preview → approve → execute → settle.
                 </p>
                 <p>
                   <span>Privacy readiness</span>
@@ -791,32 +787,31 @@ export function PayPage() {
                 </p>
                 <p>
                   <span>Operator status</span>
-                  Pay status and merchant API checks remain the source of truth.
+                  Pay status + merchant API checks are the source of truth.
                 </p>
                 <p>
                   <span>Settlement queue</span>
                   Awaiting approval packet.
                 </p>
                 <p>
-                  <span>Refunds: merchant-visible</span>
-                  Refund actions preserve idempotency and receipt-adjusted balances.
+                  <span>Refunds</span>
+                  Idempotent, receipt-adjusted.
                 </p>
                 <p>
-                  <span>Withdrawals: merchant-visible</span>
-                  Withdrawals require a private-exit receipt before completed status.
+                  <span>Withdrawals</span>
+                  Require a private-exit receipt to complete.
                 </p>
                 <p>
-                  <span>Reconciliation: merchant-visible</span>
-                  Payments, receipts, refunds, withdrawals, and private receipts share stable IDs.
+                  <span>Reconciliation</span>
+                  Payments, receipts, refunds, withdrawals share stable IDs.
                 </p>
                 <p>
                   <span>Invoices</span>
-                  Invoice records use the same customer, amount, asset, and receipt path.
+                  Same customer, amount, asset, and receipt path.
                 </p>
                 <p>
                   <span>Operations</span>
-                  Refunds and withdrawals can be prepared as local test records after settlement;
-                  reconciliation and subscriptions remain outside this UI.
+                  Refunds + withdrawals prepare as local test records. Reconciliation and subscriptions live outside this UI.
                 </p>
                 <p>
                   <span>Trust rail</span>
@@ -828,8 +823,7 @@ export function PayPage() {
             <div className="pay-success-card pay-success-card--truth">
               <strong>Vanta Pay is in test mode.</strong>
               <span>
-                It is not a production payment processor, live mainnet settlement system, or final
-                privacy guarantee. No production funds moved.
+                Not a production payment processor. No production funds moved.
               </span>
             </div>
           </article>

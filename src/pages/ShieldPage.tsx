@@ -2058,16 +2058,20 @@ export function ShieldPage(_props: ShieldPageProps) {
         <div>
           <span className="eyebrow product-intro__eyebrow">Add privacy</span>
           <h2>Shield</h2>
-          <p>{shieldTrustContract.visibleStatusCopy}</p>
+          <p>Move assets into a private balance.</p>
         </div>
 
         <div className="module-state">
-          <strong>{shieldTrustContract.currentTruth}</strong>
-          <p>
-            {shieldTrustContract.claimControls.productionPrivacyClaimsLocked
-              ? shieldTrustContract.visibleStatusCopy
-              : "Production Shield privacy claims are unlocked by current evidence."}
-          </p>
+          <strong>Beta — operator-trusted</strong>
+          <details>
+            <summary>Technical status</summary>
+            <p>
+              {shieldTrustContract.claimControls.productionPrivacyClaimsLocked
+                ? shieldTrustContract.visibleStatusCopy
+                : "Production Shield privacy claims are unlocked by current evidence."}
+            </p>
+            <p>Current truth: {shieldTrustContract.currentTruth}.</p>
+          </details>
         </div>
       </div>
 
@@ -2200,13 +2204,11 @@ export function ShieldPage(_props: ShieldPageProps) {
 
               <p className="shield-helper shield-helper--meta">{routeLabel}</p>
               <p className="shield-helper shield-helper--meta">
-                Shielding uses public transfers to an operator-controlled vault (beta). Full
-                program-owned private custody is coming.
+                Beta. Vault is operator-controlled; program-owned custody is not yet wired.
               </p>
               {targetShieldedBalanceReadUnavailable && (
                 <p className="shield-helper shield-helper--meta">
-                  Shielded balance read is delayed by the RPC endpoint; new Shield actions can
-                  still proceed through wallet approval and state recording.
+                  Balance read delayed by RPC. Shield can still proceed.
                 </p>
               )}
               <p className="shield-helper">{validationMessage}</p>
@@ -2216,14 +2218,14 @@ export function ShieldPage(_props: ShieldPageProps) {
                     <strong>Recover SOL vault deposit</strong>
                     <p>
                       {latestRecoverableSolDeposit
-                        ? `${latestRecoverableSolDeposit.amountDisplay} SOL reached the Vanta vault but has no matching shield-state record yet.`
+                        ? `${latestRecoverableSolDeposit.amountDisplay} SOL reached the vault but isn't in your shield state yet.`
                         : hasPendingNativeSolShieldEvidence
-                          ? "Local SOL evidence is saved and waiting for ledger sync. No recovery action or second transfer is needed."
+                          ? "Saved locally, waiting on ledger sync. No second transfer needed."
                         : recoverableSolDepositsLoading
-                          ? "Checking recent wallet-to-vault SOL deposits."
+                          ? "Checking recent vault deposits…"
                           : recoverableSolDepositsError
                             ? recoverableSolDepositsError
-                            : "No unrecorded SOL vault deposit found in recent wallet activity."}
+                            : "No unrecorded vault deposit found."}
                     </p>
                   </div>
                   <button
@@ -2257,9 +2259,9 @@ export function ShieldPage(_props: ShieldPageProps) {
                 <div className="shield-legacy-migration-panel">
                   <div className="legacy-header">
                     <div>
-                      <strong>Legacy SOL notes (pre-v2) — migrate for full support</strong>
+                      <strong>Legacy SOL notes — migrate</strong>
                       <p>
-                        {legacySolNotes.length} note(s) from old WSOL path. Migrate to sentinel + v2 tree for canonical balances and future features. (One-time, unshield still works.)
+                        {legacySolNotes.length} note(s) from the old WSOL path. One-time migration to v2 for full balance support. Unshield works without it.
                       </p>
                     </div>
                     <button
@@ -2470,18 +2472,16 @@ export function ShieldPage(_props: ShieldPageProps) {
                     walletPrompt={pendingUmbraApprovalDisplay.walletPrompt}
                     signingMode={pendingUmbraApprovalDisplay.signingMode}
                     rows={pendingUmbraApprovalDisplay.rows}
-                    note="Approve only if your wallet shows the same asset, amount, cluster, and Vanta vault destination."
-                    truthBoundary="Local approval review only; it does not prove production privacy or mainnet readiness."
+                    note="Approve only if your wallet shows the same asset, amount, cluster, and destination."
+                    truthBoundary="Local review. Does not prove production privacy or mainnet readiness."
                   />
                 )}
                 {status === "awaiting_wallet_confirmation" && (
                   <div className="shield-wallet-warning-note" role="note">
-                    <strong>Phantom safety check</strong>
+                    <strong>If your wallet warns you</strong>
                     <p>
-                      Phantom can show a malicious-site warning when its own preview cannot
-                      confidently simulate a transaction. Vanta already simulated this request
-                      before opening the wallet. Continue only if Phantom shows the same asset,
-                      amount, cluster, and Vanta vault destination.
+                      Phantom sometimes can't simulate this; we already did. Confirm only if
+                      the asset, amount, cluster, and destination match what you see here.
                     </p>
                   </div>
                 )}

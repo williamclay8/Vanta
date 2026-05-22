@@ -1604,7 +1604,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         <div>
           <span className="eyebrow product-intro__eyebrow">{dashboard ? "Dashboard" : "Send shielded"}</span>
           <h2>Send</h2>
-          <p>Send shielded assets with guarded beta receipts and direct key exchange.</p>
+          <p>Send from your private balance to another wallet.</p>
         </div>
 
         <div
@@ -1613,8 +1613,12 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             sendTrustContract.claimControls.productionPrivacyClaimsLocked
           }
         >
-          <strong>{sendTrustContract.currentTruth}</strong>
-          <p>{sendTrustContract.visibleStatusCopy}</p>
+          <strong>Beta — recipient discovery is not yet live</strong>
+          <details>
+            <summary>Technical status</summary>
+            <p>Current truth: {sendTrustContract.currentTruth}.</p>
+            <p>{sendTrustContract.visibleStatusCopy}</p>
+          </details>
         </div>
       </div>
 
@@ -1633,7 +1637,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           <div>
             <span>Syncing</span>
             <h3>{formatBalance(recentShield.amount, recentShield.asset)} deposit recorded.</h3>
-            <p>Wait for ledger reconciliation before sending.</p>
+            <p>Wait for ledger sync before sending.</p>
           </div>
           <div className="send-context-banner__meta">
             <strong>Pending</strong>
@@ -1765,7 +1769,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
 
               <PrivacySummary
                 items={SEND_PRIVACY_SUMMARY_ITEMS}
-                note="Beta truth: production Send privacy remains claim-locked until live evidence, approval, audit, replay, and operator gates pass."
+                note="Send production privacy is locked until live evidence, approval, audit, replay, and operator gates pass."
               />
 
               <details
@@ -1800,13 +1804,13 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   <div className="send-advanced-panel__field">
                     <span>Encrypted recipient memo</span>
                     <strong>Automatic v2 AEAD packet</strong>
-                    <small>Plaintext memo contents stay out of the operator packet.</small>
+                    <small>Memo contents stay out of the operator packet.</small>
                   </div>
 
                   <div className="send-advanced-panel__field">
                     <span>Spent marker</span>
                     <strong>Automatic</strong>
-                    <small>The marker is attached after wallet confirmation.</small>
+                    <small>Attached after wallet confirmation.</small>
                   </div>
                 </div>
               </details>
@@ -1863,8 +1867,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                     value: abbreviate(selectedSpendableNote?.noteId) ?? "Automatic best note",
                   },
                 ]}
-                note="Approve this shielded-state send only after the wallet prompt matches the selected recipient, asset, and amount."
-                truthBoundary="This is a local wallet approval review. Production privacy is not enabled for Send, and this does not prove live private settlement."
+                note="Confirm only if the wallet shows the same recipient, asset, and amount."
+                truthBoundary="Local review. Production privacy is not enabled for Send."
               />
             </TransactionStatusToast>
           )}
@@ -1995,7 +1999,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           {shieldStateRefreshing && status === "idle" && (
             <div className="status-panel status-panel--processing">
               <span>Refreshing state</span>
-              <p>Loading the latest spendable shield notes and residual change notes from the active cluster.</p>
+              <p>Loading your latest notes from the active cluster…</p>
             </div>
           )}
         </article>
@@ -2141,7 +2145,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           {privateCoreSendExecution.status === "running" && (
             <div className="status-panel status-panel--processing">
               <span>Verifying send proof</span>
-              <p>Submitting the current private-core send witness package to the operator.</p>
+              <p>Submitting witness package to the operator…</p>
               <div className="status-bar">
                 <div className="status-bar__fill" />
               </div>
@@ -2151,7 +2155,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           {privateCoreSendExecution.status === "failed" && (
             <div className="status-panel status-panel--failed">
               <span>Send proof failed</span>
-              <p>The operator did not accept the current private-core send witness package.</p>
+              <p>Operator rejected the witness package.</p>
               {privateCoreSendExecution.errorMessage && (
                 <p className="shield-helper shield-helper--error">
                   {privateCoreSendExecution.errorMessage}

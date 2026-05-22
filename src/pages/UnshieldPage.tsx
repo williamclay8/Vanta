@@ -1303,34 +1303,34 @@ export function UnshieldPage() {
 
   const operatorReleaseDisabledReason = useMemo(() => {
     if (!pendingSpentMarker) {
-      return "Prepare an Unshield note before releasing through the operator.";
+      return "Prepare an Unshield note first.";
     }
 
     if (!walletAddress) {
-      return "Connect the shield owner wallet before releasing through the operator.";
+      return "Connect the shield owner wallet.";
     }
 
     if (walletAddress !== pendingSpentMarker.owner) {
-      return "Reconnect the wallet that owns this shielded note before releasing through the operator.";
+      return "Connect the wallet that owns this note.";
     }
 
     if (operatorAuthorizationStarted) {
-      return "The operator release request is already in progress.";
+      return "Release already in progress.";
     }
 
     if (operatorAuthorizationLockRef.current === pendingSpentMarker.transitionNoteId) {
-      return "The operator release request is already locked for this note.";
+      return "Release already requested for this note.";
     }
 
     if (
       pendingSpentMarker.asset !== "SOL" &&
       !getLiveShieldTokenAsset(pendingSpentMarker.asset).unshieldOperatorUrl
     ) {
-      return `Configure the ${pendingSpentMarker.asset} unshield operator endpoint before release.`;
+      return `${pendingSpentMarker.asset} release endpoint isn't configured.`;
     }
 
     if (pendingSpentMarker.asset === "SOL" && !liveSwapPair.solUnshieldOperatorUrl) {
-      return "Configure the SOL unshield operator endpoint before release.";
+      return "SOL release endpoint isn't configured.";
     }
 
     return null;
@@ -1343,7 +1343,7 @@ export function UnshieldPage() {
 
   const authorizePendingOperatorRelease = useCallback(async () => {
     if (operatorReleaseDisabledReason || !pendingSpentMarker || !walletAddress) {
-      setFlowError(operatorReleaseDisabledReason ?? "Prepare an Unshield note before releasing through the operator.");
+      setFlowError(operatorReleaseDisabledReason ?? "Prepare an Unshield note first.");
       return;
     }
 
@@ -1646,12 +1646,12 @@ export function UnshieldPage() {
             setUnshieldBridgeError(
               error instanceof Error
                 ? error.message
-                : "Unshield completed, but canonical exit diagnostics could not be retained.",
+                : "Unshield done, but exit diagnostics didn't save.",
             );
           }
         } else {
           setUnshieldBridgeError(
-            "Unshield completed, but the canonical exit bridge context was unavailable for retention.",
+            "Unshield done, but exit bridge context wasn't available.",
           );
         }
 
@@ -1667,7 +1667,7 @@ export function UnshieldPage() {
         setFlowError(
           error instanceof Error
             ? error.message
-            : "Unshield completed, but wallet or Vanta state could not be refreshed.",
+            : "Unshield done, but wallet or Vanta state didn't refresh.",
         );
         setOperatorAuthorizationStarted(false);
         operatorAuthorizationLockRef.current = null;
@@ -2992,7 +2992,7 @@ export function UnshieldPage() {
 
               <PrivacySummary
                 items={UNSHIELD_PRIVACY_SUMMARY_ITEMS}
-                note="Beta — funds remain visible to the operator until the program-owned release path ships."
+                note="Beta. Operator can see funds until program-owned release ships."
               />
 
               <details className="unshield-advanced-toggle">
@@ -3028,8 +3028,8 @@ export function UnshieldPage() {
                   signingMode={pendingUmbraApprovalDisplay.signingMode}
                   rows={pendingUmbraApprovalDisplay.rows}
                   maxRows={4}
-                  note="Approve only if your wallet shows the same asset, amount, cluster, and destination."
-                  truthBoundary="Local approval review only; it does not prove production privacy or mainnet readiness."
+                  note="Approve only if the wallet shows the same asset, amount, cluster, and destination."
+                  truthBoundary="Local review. Does not prove production privacy or mainnet readiness."
                 />
               )}
             </TransactionStatusToast>
