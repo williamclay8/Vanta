@@ -12824,3 +12824,278 @@ select:focus {
     min-height: 0;
   }
 }
+
+/* ============================================================================
+   Mobile optimization (2026-05-22)
+   Consolidated mobile rules covering the gaps identified in the
+   AUDIT_2026-05-22 mobile pass. Two breakpoints:
+   - 640px: small tablets + large phones in landscape
+   - 480px: typical phone portrait (iPhone 12-14 = 390px CSS)
+   Earlier @media blocks above remain authoritative; these are additive
+   fixes targeting components that previously only had 1120px / 720px
+   rules.
+   ============================================================================ */
+
+@media (max-width: 640px) {
+  /* Tap-target floor for all primary buttons/links. */
+  .button,
+  .button-primary,
+  .button-ghost,
+  .landing-btn {
+    min-height: 44px;
+    padding-inline: 16px;
+  }
+
+  /* Nav: keep only logo + CTA visible at <=640px.
+     The 720px block already hides .landing-nav__links non-CTA items, but
+     restate explicitly so this works on pages that override the 720px rule. */
+  .landing-nav {
+    padding: 14px 16px;
+  }
+  .landing-nav__links a:not(.landing-nav__cta) {
+    display: none;
+  }
+  .landing-nav__cta {
+    padding: 10px 14px;
+    font-size: 0.84rem;
+  }
+
+  /* Lane page hero: copy stacks above module-state, both full-width. */
+  .module-page__hero,
+  .send-page__hero,
+  .product-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 16px;
+  }
+  .module-page__hero > div,
+  .send-page__hero > div,
+  .product-intro > div {
+    width: 100%;
+  }
+  .module-page__hero h2,
+  .send-page__hero h2,
+  .product-intro h2 {
+    font-size: 1.6rem;
+    line-height: 1.15;
+  }
+  .module-page__hero h1,
+  .send-page__hero h1,
+  .product-intro h1 {
+    font-size: 1.8rem;
+    line-height: 1.15;
+  }
+  .module-page__hero p,
+  .send-page__hero p,
+  .product-intro p {
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+  .module-state {
+    max-width: none;
+    width: 100%;
+    padding: 14px 16px;
+  }
+  .module-state__details summary {
+    cursor: pointer;
+    padding: 6px 0;
+  }
+
+  /* Lane workspace: single column so cards never sit side-by-side. */
+  .send-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 0 16px;
+  }
+  .send-card,
+  .send-card--workspace {
+    padding: 14px;
+    border-radius: 14px;
+  }
+  .shield-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  /* Lane flow indicator: allow label wrap, smaller font, tighter gap. */
+  .lane-flow-indicator {
+    grid-auto-rows: auto;
+    gap: 4px;
+    font-size: 0.7rem;
+  }
+  .lane-flow-indicator [data-vanta-lane-flow-step] {
+    padding: 6px 4px;
+    min-height: 36px;
+    line-height: 1.1;
+  }
+
+  /* Forms: full-width inputs, larger touch areas, label/value reflow. */
+  .swap-module__field,
+  .send-entry-grid,
+  .swap-entry-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .amount-field {
+    width: 100%;
+  }
+  .amount-field input,
+  .shield-form input[type="text"],
+  .shield-form input[inputmode="decimal"],
+  .send-form input,
+  .swap-form input {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+  .amount-field .button-ghost {
+    min-height: 44px;
+  }
+
+  /* From -> To picker stack (640px block already exists at line 3131,
+     but ensure column-grid override defeats higher-specificity tile rules). */
+  .shield-from-to-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    row-gap: 12px;
+  }
+
+  /* Approval sheet rows: stack at narrow widths so labels never crush. */
+  .wallet-approval-sheet {
+    padding: 14px;
+  }
+  .wallet-approval-sheet__row {
+    grid-template-columns: 1fr;
+    row-gap: 4px;
+  }
+  .wallet-approval-sheet__row > strong {
+    font-size: 0.95rem;
+    word-break: break-word;
+  }
+
+  /* Status panels: tighter padding, smaller heading. */
+  .status-panel {
+    padding: 12px 14px;
+  }
+  .status-panel h3,
+  .status-panel strong {
+    font-size: 1rem;
+  }
+
+  /* Pay trust-rail rows: stack label above value. */
+  .pay-suite-plain-rows {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .pay-suite-plain-rows > p {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+  .pay-suite-plain-rows > p > span {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+  }
+
+  /* Pay hero badges: stack vertically and let each badge use full width. */
+  .pay-hero-badges {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pay-hero-badges > span {
+    text-align: center;
+  }
+
+  /* Manifesto: stack hero + letter, principles already single-column at 720. */
+  .manifesto-hero {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 24px 16px 16px;
+  }
+  .manifesto-letter {
+    padding: 16px;
+  }
+  .manifesto-letter p {
+    font-size: 0.95rem;
+  }
+  .manifesto-principles {
+    padding: 0 16px;
+  }
+  .manifesto-principles article h2 {
+    font-size: 1.15rem;
+  }
+
+  /* Receipt/transaction modal: full-width with tap-friendly close. */
+  .transaction-status-toast {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  /* Recovery / migration panels on Shield page. */
+  .shield-recovery-panel,
+  .shield-legacy-migration-panel {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  /* Privacy summary + truth-boundary card padding. */
+  .privacy-summary,
+  .pay-success-card {
+    padding: 14px;
+  }
+
+  /* Eyebrows / kickers don't need to dominate vertical space. */
+  .eyebrow,
+  .product-intro__eyebrow,
+  .pay-kicker {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Trim a notch more for typical phone portrait (390-414px). */
+  .landing-nav {
+    padding: 12px 14px;
+  }
+  .landing-nav__wordmark {
+    font-size: 1rem;
+  }
+
+  /* Hero h1 already uses clamp(2.9rem, 14vw, 4rem) — fine here. */
+  .landing-minimal__kicker {
+    font-size: 0.72rem;
+  }
+  .landing-minimal__hero p {
+    font-size: 0.95rem;
+  }
+
+  /* Lane page hero h2 a hair smaller on small phones. */
+  .module-page__hero h2,
+  .send-page__hero h2,
+  .product-intro h2 {
+    font-size: 1.45rem;
+  }
+
+  /* Side padding tightens so content uses every pixel. */
+  .send-layout {
+    padding: 0 12px;
+  }
+  .send-card,
+  .send-card--workspace {
+    padding: 12px;
+  }
+
+  /* Footer / live-strip metrics: 2-up grid with tighter gaps. */
+  .landing-minimal__live-strip {
+    padding: 12px;
+  }
+}
