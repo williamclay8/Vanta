@@ -11,7 +11,7 @@
   "c01VerifierReady": false,
   "solanaC01Groth16VerifierReady": false,
   "secretPolicy": "metadata-and-public-input-binding-only-no-raw-proof-vk-private-witness-keypair-or-signed-transaction-bytes",
-  "purpose": "Machine-checkable local observation that the nonproduction Sunspot/Gnark public-witness file decodes as one private-spend-public-input-hash field but is stale against the current H6 actual-private-spend local proof receipt, while preserving the production public-input binding blocker.",
+  "purpose": "Machine-checkable local observation that the older nonproduction Sunspot/Gnark public-witness file decodes as one private-spend-public-input-hash field but is stale against the current H6 actual-private-spend local proof receipt, while the H6-preserving local probe public witness matches the current receipt as comparison-only evidence. Production public-input binding remains blocked.",
   "devProbePacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
   "proofFormatCandidateRef": "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
   "artifactAcquisitionPacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json",
@@ -57,6 +57,39 @@
     "verified": true,
     "satisfiesProductionPublicInputBinding": false
   },
+  "localH6ProbePublicWitness": {
+    "artifactRef": "/private/tmp/vanta-c01-sunspot-lane/work/beta18-h6-circuit/target/vanta_private_pool_v2_actual_private_spend_entry.pw",
+    "storedInRepo": false,
+    "byteLength": 44,
+    "sha256": "sha256:19e42b6e34a5861d8804565476d72f8835c81d30cfc66bd598a236d26e1baa60",
+    "encoding": "gnark public witness WriteTo",
+    "layout": "12-byte header + 1 * 32-byte big-endian BN254 field",
+    "header": {
+      "hex": "000000010000000000000001",
+      "byteLength": 12,
+      "publicInputs": 1,
+      "privateInputs": 0,
+      "vectorEntries": 1
+    },
+    "decodedPublicInputs": [
+      {
+        "index": 0,
+        "label": "private-spend-public-input-hash",
+        "value": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+        "byteOffset": 12,
+        "byteLength": 32,
+        "endian": "big"
+      }
+    ],
+    "matchesLocalProofReceiptPublicInput": true,
+    "matchesGeneratedVerifierNrPubinputs": true,
+    "staleAgainstCurrentProofReceipt": false,
+    "comparisonOnly": true,
+    "sourcePacketRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-migration-probe.evidence.json",
+    "localArtifactInventoryRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-local-artifact-inventory.evidence.json",
+    "satisfiesProductionPublicInputBinding": false,
+    "truthBoundary": "The H6-preserving local probe public witness matches the current H6 actual-private-spend local proof receipt public input and commitment, but it is local unsafe comparison evidence only. It is not reviewed production public-input binding evidence, not verifier-adapter acceptance, not production proof-format evidence, not production verifying-key evidence, not SBF/live lineage, and not audit/reviewer acceptance."
+  },
   "sourcePublicWitnessBindingPrecheck": {
     "status": "source-preadapter-guard-local-only",
     "sourceRef": "programs/vanta_private_pool_v2_spend/src/lib.rs",
@@ -80,8 +113,11 @@
   "satisfiesRequiredPositiveEvidence": {
     "backendSelection": true,
     "routeFeasibilityLocalDevProbe": true,
-    "localPublicWitnessDecoded": true,
-    "localPublicWitnessBindingObserved": false,
+    "localPreH6PublicWitnessDecoded": true,
+    "localPreH6PublicWitnessBindingObserved": false,
+    "localH6ProbePublicWitnessDecoded": true,
+    "localH6ProbePublicWitnessBindingObserved": true,
+    "localH6ProbeComparisonOnly": true,
     "actualPrivateSpendProductionProofFormat": false,
     "privateSpendPublicInputHashBinding": false,
     "productionVerifyingKeyHash": false,
@@ -101,5 +137,5 @@
     "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
     "npm run zk:c01-production-verifier-backend-candidate-check"
   ],
-  "truthBoundary": "This is a local nonproduction public-witness decoding observation only. It proves the observed /private/tmp Gnark public-witness bytes decode as one private-spend-public-input-hash field, but the decoded beta18 value is stale against the current H6 actual-private-spend Noir/bb receipt and does not match the current local proof receipt public input. It is not production proof-format evidence, not production private-spend-public-input-hash binding evidence, not production verifying-key evidence, not verifier-adapter acceptance, not valid-proof mutation evidence, not invalid/wrong-input/wrong-key no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, not production privacy, and not C01 closure."
+  "truthBoundary": "This is a local nonproduction public-witness decoding observation only. It proves the older /private/tmp Gnark public-witness bytes decode as one private-spend-public-input-hash field but are stale against the current H6 actual-private-spend Noir/bb receipt, and it records that the H6-preserving local probe public witness matches the current local proof receipt public input as comparison-only evidence. It is not production proof-format evidence, not production private-spend-public-input-hash binding evidence, not production verifying-key evidence, not verifier-adapter acceptance, not valid-proof mutation evidence, not invalid/wrong-input/wrong-key no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, not production privacy, and not C01 closure."
 }

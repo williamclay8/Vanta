@@ -47,6 +47,12 @@ const groth16ProofFormatCandidateEvidence = JSON.parse(
 const publicWitnessBindingEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json"),
 );
+const beta18H6MigrationProbeEvidence = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-beta18-h6-migration-probe.evidence.json"),
+);
+const localArtifactInventoryEvidence = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-sunspot-gnark-local-artifact-inventory.evidence.json"),
+);
 const productionGroth16ToolchainPreflightEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json"),
 );
@@ -473,6 +479,41 @@ for (const marker of [
 ]) {
   includes(publicWitnessBindingRef?.truthBoundary ?? "", marker, "C01 public-witness binding truth boundary");
 }
+const h6PublicWitnessBindingRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
+  (entry) => entry.id === "local-h6-public-witness-binding-probe",
+);
+assert(
+  h6PublicWitnessBindingRef?.status ===
+    "local-h6-public-witness-matches-current-proof-receipt-comparison-only",
+  "C01 verifier candidate evidence must record the local H6 public-witness binding probe",
+);
+assert(
+  h6PublicWitnessBindingRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
+  "C01 verifier candidate H6 public-witness binding ref mismatch",
+);
+assert(
+  h6PublicWitnessBindingRef?.sourceProbeRef ===
+    "ops/mainnet/private-pool-v2-c01-beta18-h6-migration-probe.evidence.json",
+  "C01 verifier candidate H6 public-witness source probe ref mismatch",
+);
+assert(
+  h6PublicWitnessBindingRef?.localArtifactInventoryRef ===
+    "ops/mainnet/private-pool-v2-c01-sunspot-gnark-local-artifact-inventory.evidence.json",
+  "C01 verifier candidate H6 public-witness local artifact inventory ref mismatch",
+);
+assert(
+  h6PublicWitnessBindingRef?.command === "npm run zk:c01-public-witness-binding-check",
+  "C01 verifier candidate H6 public-witness binding command mismatch",
+);
+for (const marker of [
+  "H6-preserving local beta18 probe public witness",
+  "matches the current H6 local proof receipt public input and commitment",
+  "local unsafe comparison-only evidence",
+  "does not satisfy production private-spend-public-input-hash binding evidence",
+]) {
+  includes(h6PublicWitnessBindingRef?.truthBoundary ?? "", marker, "C01 H6 public-witness binding truth boundary");
+}
 const localAdapterSeamRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
   (entry) => entry.id === "local-fail-closed-verifier-adapter-seam-harness",
 );
@@ -579,6 +620,36 @@ assert(
 assert(
   publicWitnessBindingEvidence.satisfiesRequiredPositiveEvidence?.privateSpendPublicInputHashBinding === false,
   "C01 public-witness binding evidence must not satisfy production public-input binding",
+);
+assert(
+  publicWitnessBindingEvidence.localH6ProbePublicWitness?.decodedPublicInputs?.[0]?.label ===
+    "private-spend-public-input-hash",
+  "C01 public-witness binding evidence must decode the H6 probe private spend public input label",
+);
+assert(
+  publicWitnessBindingEvidence.localH6ProbePublicWitness?.decodedPublicInputs?.[0]?.value ===
+    "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+  "C01 public-witness binding evidence H6 probe public input mismatch",
+);
+assert(
+  publicWitnessBindingEvidence.localH6ProbePublicWitness?.matchesLocalProofReceiptPublicInput === true,
+  "C01 public-witness binding evidence must record H6 probe/current receipt match",
+);
+assert(
+  publicWitnessBindingEvidence.localH6ProbePublicWitness?.comparisonOnly === true,
+  "C01 public-witness binding evidence H6 probe must remain comparison-only",
+);
+assert(
+  publicWitnessBindingEvidence.localH6ProbePublicWitness?.satisfiesProductionPublicInputBinding === false,
+  "C01 public-witness binding evidence H6 probe must not satisfy production binding",
+);
+assert(
+  beta18H6MigrationProbeEvidence.observedArtifacts?.publicWitness?.matchesCurrentH6ProofReceiptPublicInput === true,
+  "C01 beta18 H6 migration probe must record current H6 proof receipt public input match",
+);
+assert(
+  localArtifactInventoryEvidence.artifacts?.publicWitness?.matchesLocalProofReceiptPublicInput === true,
+  "C01 local artifact inventory must record current H6 proof receipt public input match",
 );
 assert(
   productionGroth16ToolchainPreflightEvidence.status === "blocked-local-toolchain-no-groth16-scheme",

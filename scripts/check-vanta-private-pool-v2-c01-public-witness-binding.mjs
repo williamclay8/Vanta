@@ -10,6 +10,9 @@ const proofFormatCandidatePath =
 const artifactAcquisitionPath =
   "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json";
 const verifierCandidatePath = "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json";
+const beta18H6MigrationProbePath = "ops/mainnet/private-pool-v2-c01-beta18-h6-migration-probe.evidence.json";
+const localArtifactInventoryPath =
+  "ops/mainnet/private-pool-v2-c01-sunspot-gnark-local-artifact-inventory.evidence.json";
 const decisionPath = "docs/zk/c01-production-verifier-backend-decision.md";
 const localProofReceiptPath =
   "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.proof.json";
@@ -23,6 +26,8 @@ const currentLocalProofReceiptPublicInputValue =
 const decodedPublicInputLabel = "private-spend-public-input-hash";
 const publicWitnessSha256 =
   "sha256:885351f63518202c4fcd120af8ffc296a8706edae14ed4795c11795dfd7f90e3";
+const h6PublicWitnessSha256 =
+  "sha256:19e42b6e34a5861d8804565476d72f8835c81d30cfc66bd598a236d26e1baa60";
 const publicInputCommitment =
   "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2";
 
@@ -83,6 +88,8 @@ const devProbe = readJson(devProbePath);
 const proofFormatCandidate = readJson(proofFormatCandidatePath);
 const artifactAcquisition = readJson(artifactAcquisitionPath);
 const verifierCandidate = readJson(verifierCandidatePath);
+const beta18H6MigrationProbe = readJson(beta18H6MigrationProbePath);
+const localArtifactInventory = readJson(localArtifactInventoryPath);
 const localProofReceipt = readJson(localProofReceiptPath);
 const decision = read(decisionPath);
 
@@ -228,6 +235,90 @@ assert(localProofReceipt.publicInputCommitment === publicInputCommitment, "local
 assert(localProofReceipt.publicInputCount === 1, "local proof receipt public input count mismatch");
 assert(localProofReceipt.verified === true, "local proof receipt must remain verified");
 
+const h6PublicWitness = packet.localH6ProbePublicWitness ?? {};
+assert(h6PublicWitness.storedInRepo === false, "H6 public witness must not be stored in the repo");
+assert(h6PublicWitness.byteLength === publicWitnessByteLength, "H6 public witness byte length mismatch");
+assert(h6PublicWitness.sha256 === h6PublicWitnessSha256, "H6 public witness hash mismatch");
+assert(h6PublicWitness.encoding === "gnark public witness WriteTo", "H6 public witness encoding mismatch");
+assert(
+  h6PublicWitness.layout === "12-byte header + 1 * 32-byte big-endian BN254 field",
+  "H6 public witness layout mismatch",
+);
+assert(h6PublicWitness.header?.hex === publicWitnessHeaderHex, "H6 public witness header mismatch");
+assert(h6PublicWitness.header?.byteLength === 12, "H6 public witness header byte length mismatch");
+assert(h6PublicWitness.header?.publicInputs === 1, "H6 public witness header public input count mismatch");
+assert(h6PublicWitness.header?.privateInputs === 0, "H6 public witness header private input count mismatch");
+assert(h6PublicWitness.header?.vectorEntries === 1, "H6 public witness header vector entry count mismatch");
+assert(Array.isArray(h6PublicWitness.decodedPublicInputs), "H6 decoded public inputs must be an array");
+assert(h6PublicWitness.decodedPublicInputs.length === 1, "H6 decoded public input count mismatch");
+const h6Decoded = h6PublicWitness.decodedPublicInputs[0] ?? {};
+assert(h6Decoded.index === 0, "H6 decoded public input index mismatch");
+assert(h6Decoded.label === decodedPublicInputLabel, "H6 decoded public input label mismatch");
+assert(
+  h6Decoded.value === currentLocalProofReceiptPublicInputValue,
+  "H6 decoded public input value mismatch",
+);
+assert(h6Decoded.byteOffset === 12, "H6 decoded public input byte offset mismatch");
+assert(h6Decoded.byteLength === 32, "H6 decoded public input byte length mismatch");
+assert(h6Decoded.endian === "big", "H6 decoded public input endian mismatch");
+assert(
+  h6PublicWitness.matchesLocalProofReceiptPublicInput === true,
+  "H6 public witness must match the current local proof receipt public input",
+);
+assert(
+  h6PublicWitness.matchesGeneratedVerifierNrPubinputs === true,
+  "H6 public witness must match generated verifier public input count",
+);
+assert(
+  h6PublicWitness.staleAgainstCurrentProofReceipt === false,
+  "H6 public witness must not be stale against the current proof receipt",
+);
+assert(h6PublicWitness.comparisonOnly === true, "H6 public witness must remain comparison-only");
+assert(
+  h6PublicWitness.sourcePacketRef === beta18H6MigrationProbePath,
+  "H6 public witness source packet ref mismatch",
+);
+assert(
+  h6PublicWitness.localArtifactInventoryRef === localArtifactInventoryPath,
+  "H6 public witness local artifact inventory ref mismatch",
+);
+assert(
+  h6PublicWitness.satisfiesProductionPublicInputBinding === false,
+  "H6 public witness must not satisfy production binding",
+);
+for (const marker of [
+  "matches the current H6 actual-private-spend local proof receipt",
+  "local unsafe comparison evidence only",
+  "not reviewed production public-input binding evidence",
+  "not verifier-adapter acceptance",
+  "not SBF/live lineage",
+]) {
+  includes(h6PublicWitness.truthBoundary ?? "", marker, "H6 public witness truth boundary");
+}
+const inventoryPublicWitness = localArtifactInventory.artifacts?.publicWitness ?? {};
+assert(inventoryPublicWitness.sha256 === h6PublicWitnessSha256, "inventory H6 public witness hash mismatch");
+assert(
+  inventoryPublicWitness.decodedPublicInputValue === currentLocalProofReceiptPublicInputValue,
+  "inventory H6 public witness decoded value mismatch",
+);
+assert(
+  inventoryPublicWitness.matchesLocalProofReceiptPublicInput === true,
+  "inventory H6 public witness must match the current proof receipt",
+);
+assert(
+  inventoryPublicWitness.staleAgainstCurrentProofReceipt === false,
+  "inventory H6 public witness must not be stale",
+);
+assert(
+  inventoryPublicWitness.satisfiesProductionPublicInputBindingEvidence === false,
+  "inventory H6 public witness must not satisfy production binding",
+);
+assert(
+  beta18H6MigrationProbe.localArtifacts?.publicWitness?.sha256 === h6PublicWitnessSha256 ||
+    beta18H6MigrationProbe.observedArtifacts?.publicWitness?.sha256 === h6PublicWitnessSha256,
+  "H6 migration probe must reference the H6 public witness hash",
+);
+
 const sourcePrecheck = packet.sourcePublicWitnessBindingPrecheck ?? {};
 assert(sourcePrecheck.status === "source-preadapter-guard-local-only", "source precheck status mismatch");
 assert(
@@ -302,12 +393,24 @@ assert(
   "route feasibility must stay true",
 );
 assert(
-  packet.satisfiesRequiredPositiveEvidence?.localPublicWitnessDecoded === true,
-  "local public witness decoding observation must be true",
+  packet.satisfiesRequiredPositiveEvidence?.localPreH6PublicWitnessDecoded === true,
+  "local pre-H6 public witness decoding observation must be true",
 );
 assert(
-  packet.satisfiesRequiredPositiveEvidence?.localPublicWitnessBindingObserved === false,
+  packet.satisfiesRequiredPositiveEvidence?.localPreH6PublicWitnessBindingObserved === false,
   "stale beta18 public witness must not satisfy local proof-receipt binding observation",
+);
+assert(
+  packet.satisfiesRequiredPositiveEvidence?.localH6ProbePublicWitnessDecoded === true,
+  "local H6 probe public witness decoding observation must be true",
+);
+assert(
+  packet.satisfiesRequiredPositiveEvidence?.localH6ProbePublicWitnessBindingObserved === true,
+  "local H6 probe public witness must match the current proof receipt as comparison evidence",
+);
+assert(
+  packet.satisfiesRequiredPositiveEvidence?.localH6ProbeComparisonOnly === true,
+  "local H6 probe public witness must remain comparison-only",
 );
 assertFalseProductionEvidence(packet.satisfiesRequiredPositiveEvidence, "satisfiesRequiredPositiveEvidence");
 for (const command of [
@@ -330,7 +433,7 @@ for (const marker of [
   "local nonproduction public-witness decoding observation",
   "private-spend-public-input-hash",
   "stale against the current H6 actual-private-spend Noir/bb receipt",
-  "does not match the current local proof receipt public input",
+  "H6-preserving local probe public witness matches the current local proof receipt public input as comparison-only evidence",
   "not production proof-format evidence",
   "not production private-spend-public-input-hash binding evidence",
   "not verifier-adapter acceptance",

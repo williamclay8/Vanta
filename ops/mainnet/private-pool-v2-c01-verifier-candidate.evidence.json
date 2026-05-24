@@ -146,6 +146,15 @@
       "truthBoundary": "This records that the local nonproduction Sunspot/Gnark beta18 public witness decodes as private-spend-public-input-hash but is stale against the current H6 local proof receipt. It does not satisfy production private-spend-public-input-hash binding evidence, verifier-adapter acceptance, tag-3 proof acceptance, or production proof-format evidence."
     },
     {
+      "id": "local-h6-public-witness-binding-probe",
+      "status": "local-h6-public-witness-matches-current-proof-receipt-comparison-only",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
+      "sourceProbeRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-migration-probe.evidence.json",
+      "localArtifactInventoryRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-local-artifact-inventory.evidence.json",
+      "command": "npm run zk:c01-public-witness-binding-check",
+      "truthBoundary": "This records that the H6-preserving local beta18 probe public witness decodes as private-spend-public-input-hash and matches the current H6 local proof receipt public input and commitment, but remains local unsafe comparison-only evidence. It does not satisfy production private-spend-public-input-hash binding evidence, verifier-adapter acceptance, tag-3 proof acceptance, production proof-format evidence, SBF/live lineage, or audit/reviewer acceptance."
+    },
+    {
       "id": "local-fail-closed-verifier-adapter-seam-harness",
       "status": "local-fail-closed-harness-only",
       "artifactRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
