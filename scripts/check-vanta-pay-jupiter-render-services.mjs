@@ -120,6 +120,8 @@ for (const blocker of [
   assert.ok(jupiter.blockers.includes(blocker), `Jupiter manifest missing blocker ${blocker}.`);
 }
 for (const ref of [
+  "VANTA_SOLANA_RPC_URL_REF",
+  "VANTA_SOL_TO_SHIELDED_ADAPTER_AUTH_TOKEN_REF",
   "VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF",
   "VANTA_SOL_TO_SHIELDED_LIQUIDITY_PUBLIC_KEY_REF",
   "VANTA_SOL_TO_SHIELDED_TURNKEY_REVIEW_PACKET_REF",

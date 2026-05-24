@@ -1,0 +1,88 @@
+{
+  "version": "vanta-turnkey-liquidity-signer-dry-run-review-evidence-0.1",
+  "capturedAt": "2026-05-24T20:45:00Z",
+  "command": "npm run swap:turnkey-liquidity-signer-dry-run-check",
+  "reviewPacket": {
+    "version": "vanta-turnkey-liquidity-signer-dry-run-review-0.1",
+    "mode": "dry-run-no-live-call",
+    "routeProvider": "Jupiter",
+    "signer": {
+      "signerRef": "test-ref:VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF",
+      "signWithRef": "test-ref:VANTA_TURNKEY_SIGN_WITH_REF",
+      "policyIdRef": "test-ref:VANTA_TURNKEY_POLICY_ID_REF",
+      "liquidityPublicKey": "k7FaK87WHGVXzkaoHb7CdVPgkKDQhZ29VLDeBVbDfYn",
+      "keyMaterialObserved": false
+    },
+    "transaction": {
+      "fixture": "offline-jupiter-versioned-transaction-v0",
+      "fingerprint": "sha256:f67d6ff16ec96262f2701a2ffad521ed3d61e6433c8bfeb38a219aba5017484f",
+      "instructionSummary": [
+        {
+          "dataFingerprint": "sha256:239d9e062a5610881f88bdbafad210df1df1b8e96e8e434334d87625f4e7eb86",
+          "index": 0,
+          "label": "jupiter-swap-fixture",
+          "programId": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+          "signerCount": 1,
+          "writableAccountCount": 2
+        }
+      ]
+    },
+    "simulation": {
+      "simulationRef": "test-ref:offline-jupiter-fixture-simulation-no-rpc",
+      "status": "fixture-reviewed-no-live-rpc"
+    },
+    "amount": {
+      "input": "0.025",
+      "inputAtomic": "25000000",
+      "maxInput": "0.025",
+      "minOutput": "3.40",
+      "slippageBps": 50
+    },
+    "asset": {
+      "input": "SOL",
+      "inputMint": "So11111111111111111111111111111111111111112",
+      "output": "USDC",
+      "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+    },
+    "destination": {
+      "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "publicSettlementDestination": "p2Yicb86aZig616Eav2VWG9vuXR5mEqhtzshZYBxzsV",
+      "shieldedOutputCommitmentRef": "test-ref:private-pool-v2-output-commitment-fixture"
+    },
+    "gate": {
+      "command": "npm run swap:turnkey-liquidity-signer-dry-run-check",
+      "requiredBeforeLiveMode": true
+    },
+    "approval": {
+      "state": "review-required-not-approved",
+      "liveModeAllowed": false
+    },
+    "serverOnlyAdapter": {
+      "browserExposureAllowed": false,
+      "clientBundleAllowed": false,
+      "signerRefSource": "server-secret-manager-reference",
+      "turnkeyClient": "mock-injected-server-client"
+    },
+    "controls": {
+      "broadcastCalls": 0,
+      "liveTurnkeyCalls": 0,
+      "networkCalls": 0,
+      "broadcastAttempted": false,
+      "fixtureOnly": true,
+      "liquiditySignerMode": "wrapped-external-signer",
+      "liveCallsAttempted": false,
+      "mockedTurnkeyClient": true,
+      "movesFunds": false,
+      "noBroadcast": true,
+      "noLiveCall": true,
+      "noNetwork": true,
+      "noSecretValueReads": true,
+      "noSecretValuePrints": true,
+      "rawProductionKeypairAccepted": false,
+      "signedPayloadProduced": false,
+      "turnkeyActivityCreated": false,
+      "mockTurnkeyClientCalls": 1
+    }
+  },
+  "truthBoundary": "This is an offline fixture dry-run review packet. It proves the no-live-call gate shape and does not approve live Turnkey signing, real Jupiter execution, Solana RPC calls, transaction broadcast, custody claims, or production readiness."
+}

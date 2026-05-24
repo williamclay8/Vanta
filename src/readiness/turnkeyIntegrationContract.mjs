@@ -38,6 +38,8 @@ export function createVantaTurnkeyIntegrationContract() {
       "docs/jupiter-sol-to-shielded-route-adapter.md",
       "operator/turnkey-sol-to-shielded-liquidity-signer.mjs",
       "operator/turnkey-sol-to-shielded-live-signer.mjs",
+      "ops/mainnet/turnkey-liquidity-signer-dry-run-review.evidence.json",
+      "ops/mainnet/turnkey-liquidity-live-signing-approval.evidence.json",
     ],
     secretRefs: [
       "VANTA_TURNKEY_ORGANIZATION_ID_REF",

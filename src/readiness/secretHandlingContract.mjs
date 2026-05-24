@@ -22,6 +22,7 @@ const scopes = [
     allowedSecretRefs: [
       "VANTA_PAY_SECRET_KEY_REF",
       "VANTA_PAY_WEBHOOK_SECRET_REF",
+      "VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN_REF",
       "VANTA_PAY_DATABASE_URL_REF",
       "VANTA_PAY_PRIVATE_POOL_OPERATOR_TOKEN_REF",
     ],
@@ -64,6 +65,18 @@ const scopes = [
       "VANTA_STRATEGY_JUPITER_API_KEY_REF",
       "VANTA_STRATEGY_JITO_AUTH_TOKEN_REF",
       "VANTA_STRATEGY_OPERATOR_TOKEN_REF",
+    ],
+    forbiddenValues,
+    rotationRequirements: sharedRotationRequirements,
+  },
+  {
+    id: "swap",
+    label: "SOL-to-Shielded Swap Adapter",
+    status: "contracted-not-provisioned",
+    allowedSecretRefs: [
+      "VANTA_SOLANA_RPC_URL_REF",
+      "VANTA_SOL_TO_SHIELDED_ADAPTER_AUTH_TOKEN_REF",
+      "VANTA_SOL_TO_SHIELDED_JUPITER_API_KEY_REF",
     ],
     forbiddenValues,
     rotationRequirements: sharedRotationRequirements,

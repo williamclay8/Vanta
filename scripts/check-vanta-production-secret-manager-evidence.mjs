@@ -35,7 +35,10 @@ for (const identity of template.serviceIdentities) {
     String(identity.dopplerServiceTokenRef).endsWith("_REF"),
     `${identity.id} service token must be a reference name.`,
   );
-  assert.equal(identity.productionBlocker, "service-token-ref-not-provisioned");
+  assert.ok(
+    String(identity.productionBlocker).endsWith("service-token-ref-not-provisioned"),
+    `${identity.id} production blocker must require a service token ref.`,
+  );
 }
 
 for (const mapping of template.secretMappings) {

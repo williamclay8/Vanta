@@ -1,0 +1,22 @@
+{
+  "version": "vanta-turnkey-liquidity-live-signing-approval-0.1",
+  "recordedAt": "2026-05-24T20:45:00Z",
+  "routeProvider": "Jupiter",
+  "scope": "SOL-to-shielded liquidity signer",
+  "requiredDryRunReviewRef": "ref:ops/mainnet/turnkey-liquidity-signer-dry-run-review.evidence.json",
+  "requiredGate": "npm run swap:turnkey-liquidity-signer-dry-run-check",
+  "approval": {
+    "state": "review-required-not-approved",
+    "liveModeAllowed": false,
+    "approvedByRef": "none",
+    "approvalRef": "ref:ops/mainnet/turnkey-liquidity-live-signing-approval.evidence.json"
+  },
+  "controls": {
+    "rawProductionKeypairAllowed": false,
+    "serverOnlyTurnkeyAdapterRequired": true,
+    "adapterAuthProxyRequired": true,
+    "liveTurnkeyCredentialValuesRequiredFromSecretManager": true,
+    "manualOperatorApprovalRequiredBeforeTrue": true
+  },
+  "truthBoundary": "This file is a negative approval record. It gives Render and reviewers a concrete approval ref while keeping VANTA_SOL_TO_SHIELDED_TURNKEY_LIVE_SIGNING_APPROVED=false until a human operator accepts the dry-run review and records a scoped live-signing approval."
+}

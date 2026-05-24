@@ -18,7 +18,7 @@ assert.equal(
   "Secret handling contract must point at the checked references-only manifest.",
 );
 
-const requiredScopes = ["pay", "privatePoolV2", "strategy", "operator", "turnkey", "wallet"];
+const requiredScopes = ["pay", "privatePoolV2", "strategy", "swap", "operator", "turnkey", "wallet"];
 for (const scopeId of requiredScopes) {
   const scope = contract.scopes.find((candidate) => candidate.id === scopeId);
   assert.ok(scope, `Missing secret handling scope: ${scopeId}.`);
@@ -158,6 +158,7 @@ for (const secret of manifest.secrets) {
 for (const requiredRef of [
   "VANTA_PAY_SECRET_KEY_REF",
   "VANTA_PAY_WEBHOOK_SECRET_REF",
+  "VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN_REF",
   "VANTA_PAY_DATABASE_URL_REF",
   "VANTA_PAY_PRIVATE_POOL_OPERATOR_TOKEN_REF",
   "VANTA_PRIVATE_POOL_V2_OPERATOR_TOKEN_REF",
@@ -166,11 +167,17 @@ for (const requiredRef of [
   "VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL_REF",
   "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL_REF",
   "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL_REF",
+  "VANTA_SOLANA_RPC_URL_REF",
+  "VANTA_SOL_TO_SHIELDED_ADAPTER_AUTH_TOKEN_REF",
+  "VANTA_SOL_TO_SHIELDED_JUPITER_API_KEY_REF",
   "VANTA_TURNKEY_ORGANIZATION_ID_REF",
   "VANTA_TURNKEY_API_PUBLIC_KEY_REF",
   "VANTA_TURNKEY_API_PRIVATE_KEY_REF",
   "VANTA_TURNKEY_SIGN_WITH_REF",
   "VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF",
+  "VANTA_SOL_TO_SHIELDED_LIQUIDITY_PUBLIC_KEY_REF",
+  "VANTA_SOL_TO_SHIELDED_TURNKEY_REVIEW_PACKET_REF",
+  "VANTA_SOL_TO_SHIELDED_TURNKEY_LIVE_SIGNING_APPROVAL_REF",
   "VANTA_TURNKEY_POLICY_ID_REF",
 ]) {
   assert.ok(

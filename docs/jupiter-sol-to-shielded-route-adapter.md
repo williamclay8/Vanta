@@ -58,7 +58,7 @@ Optional:
 
 ```bash
 JUPITER_API_KEY=<jupiter-api-key>
-VANTA_SOL_TO_SHIELDED_STATE_PATH=/var/data/vanta-sol-to-shielded-state.json
+VANTA_SOL_TO_SHIELDED_ADAPTER_STATE_PATH=/var/data/vanta-sol-to-shielded-state.json
 VANTA_SOL_TO_SHIELDED_SLIPPAGE_BPS=50
 ```
 
