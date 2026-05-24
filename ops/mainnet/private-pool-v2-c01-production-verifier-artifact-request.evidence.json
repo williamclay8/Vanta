@@ -21,6 +21,7 @@
   "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
   "sourceReviewPacketRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-migration-review.evidence.json",
   "sourceReviewAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
+  "productionOutputManifestPreflightRef": "ops/mainnet/private-pool-v2-c01-production-output-manifest-preflight.evidence.json",
   "deterministicProductionArtifactBuildGateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
   "productionArtifactAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
   "verifierAdapterAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
@@ -68,6 +69,7 @@
   },
   "artifactBuildInputs": {
     "sourceReviewAcceptanceTemplateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance.template.json",
+    "productionOutputManifestPreflightRef": "ops/mainnet/private-pool-v2-c01-production-output-manifest-preflight.evidence.json",
     "deterministicBuildTemplateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build.template.json",
     "productionArtifactBundleTemplateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-bundle.template.json",
     "verifierAdapterAcceptanceTemplateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance.template.json",
@@ -91,6 +93,12 @@
     {
       "id": "deterministic-production-artifact-build-receipt",
       "requiredRefShape": "build:<reviewed-deterministic-production-artifact-build-receipt-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-output-manifest-preflight",
+      "requiredRefShape": "manifest:<refs-only-production-output-manifest-preflight-ref>",
       "currentRef": null,
       "satisfiesC01PositiveEvidence": false
     },
@@ -199,6 +207,10 @@
       "command": "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH=<reviewed-refs-only-json> npm run zk:c01-deterministic-production-artifact-build-check"
     },
     {
+      "id": "production-output-manifest-preflight",
+      "command": "VANTA_C01_PRODUCTION_OUTPUT_MANIFEST_ROOT=<returned-artifact-dir> npm run zk:c01-production-output-manifest-check"
+    },
+    {
       "id": "production-artifact-bundle",
       "command": "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check"
     },
@@ -247,6 +259,7 @@
   ],
   "promotionOrder": [
     "source-review-acceptance",
+    "production-output-manifest-preflight",
     "deterministic-production-artifact-build",
     "production-artifact-bundle",
     "verifier-adapter-acceptance",
@@ -268,6 +281,7 @@
   ],
   "remainingBlockers": [
     "no external source-review acceptance",
+    "no reviewed production output manifest",
     "no deterministic reviewed production artifact build receipt",
     "no reviewed production artifact bundle",
     "no production verifier-adapter acceptance",
@@ -281,6 +295,7 @@
     "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
     "npm run zk:c01-external-review-handoff-check",
     "npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
+    "npm run zk:c01-production-output-manifest-check",
     "npm run zk:c01-deterministic-production-artifact-build-check",
     "npm run zk:c01-production-artifact-acceptance-gate-check",
     "npm run zk:c01-verifier-adapter-acceptance-gate-check",

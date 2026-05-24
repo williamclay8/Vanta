@@ -56,6 +56,16 @@
       "truthBoundary": "Deterministic artifact build acceptance is a prerequisite for artifact bundle review, but it is not verifier-adapter acceptance, SBF/live lineage, audit acceptance, or C01 closure."
     },
     {
+      "id": "production-output-manifest-preflight",
+      "status": "artifact-producer-preflight-required",
+      "templateRef": null,
+      "gateRef": "ops/mainnet/private-pool-v2-c01-production-output-manifest-preflight.evidence.json",
+      "envVar": "VANTA_C01_PRODUCTION_OUTPUT_MANIFEST_ROOT|VANTA_C01_PRODUCTION_OUTPUT_MANIFEST_PATH",
+      "validationCommand": "VANTA_C01_PRODUCTION_OUTPUT_MANIFEST_ROOT=<returned-artifact-dir> npm run zk:c01-production-output-manifest-check",
+      "requiredReturn": "refs-only output manifest for returned proof, public witness, production VK, source ACIR, and generated verifier SBF artifacts; raw proof, VK, witness, proving-key, keypair, and signed transaction bytes must stay out of repo evidence",
+      "truthBoundary": "Output-manifest preflight can hash and shape-check returned artifacts before deterministic build review, but it is not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not SBF/live lineage, not audit acceptance, and not C01 closure."
+    },
+    {
       "id": "production-artifact-bundle",
       "status": "external-review-required",
       "templateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-bundle.template.json",
@@ -140,6 +150,7 @@
   ],
   "remainingBlockers": [
     "no external source-review acceptance",
+    "no reviewed production output manifest",
     "no deterministic reviewed production artifact build receipt",
     "no reviewed production artifact bundle",
     "no production verifier-adapter acceptance",
@@ -152,6 +163,7 @@
     "npm run zk:c01-external-review-handoff-check",
     "npm run zk:c01-production-verifier-artifact-request-check",
     "npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
+    "npm run zk:c01-production-output-manifest-check",
     "npm run zk:c01-deterministic-production-artifact-build-check",
     "npm run zk:c01-production-artifact-acceptance-gate-check",
     "npm run zk:c01-verifier-adapter-acceptance-gate-check",

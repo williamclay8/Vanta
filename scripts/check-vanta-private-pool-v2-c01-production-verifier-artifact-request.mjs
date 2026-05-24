@@ -7,6 +7,8 @@ const acquisitionPath = "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-
 const handoffPath = "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json";
 const candidatePath = "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json";
 const sourceReviewPath = "ops/mainnet/private-pool-v2-c01-beta18-h6-source-migration-review.evidence.json";
+const outputManifestPreflightPath =
+  "ops/mainnet/private-pool-v2-c01-production-output-manifest-preflight.evidence.json";
 const decisionPath = "docs/zk/c01-production-verifier-backend-decision.md";
 const auditPackagePath = "docs/audit-package.md";
 const runbookPath = "docs/operator-runbook.md";
@@ -131,6 +133,7 @@ for (const [field, expected] of [
   ["candidatePacketRef", candidatePath],
   ["sourceReviewPacketRef", sourceReviewPath],
   ["sourceReviewAcceptanceGateRef", "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json"],
+  ["productionOutputManifestPreflightRef", outputManifestPreflightPath],
   [
     "deterministicProductionArtifactBuildGateRef",
     "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
@@ -232,6 +235,7 @@ for (const ref of [
 const buildInputs = packet.artifactBuildInputs ?? {};
 for (const [field, expected] of [
   ["sourceReviewAcceptanceTemplateRef", "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance.template.json"],
+  ["productionOutputManifestPreflightRef", outputManifestPreflightPath],
   ["deterministicBuildTemplateRef", "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build.template.json"],
   ["productionArtifactBundleTemplateRef", "ops/mainnet/private-pool-v2-c01-production-artifact-bundle.template.json"],
   ["verifierAdapterAcceptanceTemplateRef", "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance.template.json"],
@@ -255,6 +259,7 @@ const outputs = mapById(packet.requiredProductionOutputs, "requiredProductionOut
 for (const [id, shape] of [
   ["source-review-acceptance", "review:<external-beta18-h6-source-migration-acceptance-ref>"],
   ["deterministic-production-artifact-build-receipt", "build:<reviewed-deterministic-production-artifact-build-receipt-ref>"],
+  ["production-output-manifest-preflight", "manifest:<refs-only-production-output-manifest-preflight-ref>"],
   [
     "deterministic-build-artifact-producer-attestation",
     "review:<artifact-producer-and-reviewer-identity-scope-attestation-ref>",
@@ -293,6 +298,10 @@ for (const [id, command] of [
     "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH=<reviewed-refs-only-json> npm run zk:c01-deterministic-production-artifact-build-check",
   ],
   [
+    "production-output-manifest-preflight",
+    "VANTA_C01_PRODUCTION_OUTPUT_MANIFEST_ROOT=<returned-artifact-dir> npm run zk:c01-production-output-manifest-check",
+  ],
+  [
     "production-artifact-bundle",
     "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check",
   ],
@@ -318,6 +327,7 @@ for (const [id, command] of [
 
 const expectedPromotionOrder = [
   "source-review-acceptance",
+  "production-output-manifest-preflight",
   "deterministic-production-artifact-build",
   "production-artifact-bundle",
   "verifier-adapter-acceptance",
@@ -344,6 +354,7 @@ for (const marker of [
 assertStringArray(packet.remainingBlockers, "remainingBlockers");
 for (const blocker of [
   "no external source-review acceptance",
+  "no reviewed production output manifest",
   "no deterministic reviewed production artifact build receipt",
   "no reviewed production artifact bundle",
   "no production verifier-adapter acceptance",
@@ -359,6 +370,7 @@ for (const command of [
   "npm run zk:c01-production-verifier-artifact-request-check",
   "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
   "npm run zk:c01-external-review-handoff-check",
+  "npm run zk:c01-production-output-manifest-check",
   "npm run zk:c01-production-artifact-acceptance-gate-check",
   "npm run zk:c01-verifier-adapter-acceptance-gate-check",
   "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
@@ -402,6 +414,7 @@ for (const marker of [
   "npm run zk:c01-production-verifier-artifact-request-check",
   "artifact producer",
   "production proof-format/VK/public-witness",
+  "npm run zk:c01-production-output-manifest-check",
   "verifier-adapter acceptance",
   "mutation/no-mutation",
   "SBF/live lineage",

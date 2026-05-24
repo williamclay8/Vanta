@@ -123,6 +123,7 @@ for (const [field, expected] of [
 const expectedReviewOrder = [
   [
     "source-review-acceptance",
+    "external-review-required",
     "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance.template.json",
     "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
     "VANTA_C01_BETA18_H6_SOURCE_REVIEW_ACCEPTANCE_PATH",
@@ -130,13 +131,23 @@ const expectedReviewOrder = [
   ],
   [
     "deterministic-production-artifact-build",
+    "external-review-required",
     "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build.template.json",
     "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
     "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH",
     "npm run zk:c01-deterministic-production-artifact-build-check",
   ],
   [
+    "production-output-manifest-preflight",
+    "artifact-producer-preflight-required",
+    null,
+    "ops/mainnet/private-pool-v2-c01-production-output-manifest-preflight.evidence.json",
+    "VANTA_C01_PRODUCTION_OUTPUT_MANIFEST_ROOT|VANTA_C01_PRODUCTION_OUTPUT_MANIFEST_PATH",
+    "npm run zk:c01-production-output-manifest-check",
+  ],
+  [
     "production-artifact-bundle",
+    "external-review-required",
     "ops/mainnet/private-pool-v2-c01-production-artifact-bundle.template.json",
     "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
     "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH",
@@ -144,6 +155,7 @@ const expectedReviewOrder = [
   ],
   [
     "verifier-adapter-acceptance",
+    "external-review-required",
     "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance.template.json",
     "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
     "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH",
@@ -151,6 +163,7 @@ const expectedReviewOrder = [
   ],
   [
     "sbf-live-lineage-acceptance",
+    "external-review-required",
     "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance.template.json",
     "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance-gate.evidence.json",
     "VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH",
@@ -158,6 +171,7 @@ const expectedReviewOrder = [
   ],
   [
     "audit-reviewer-acceptance",
+    "external-review-required",
     "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance.template.json",
     "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance-gate.evidence.json",
     "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH",
@@ -165,6 +179,7 @@ const expectedReviewOrder = [
   ],
   [
     "composite-evidence-closure",
+    "external-review-required",
     null,
     "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json",
     "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH+VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH+VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH+VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH",
@@ -174,10 +189,10 @@ const expectedReviewOrder = [
 
 assert(Array.isArray(packet.reviewOrder), "reviewOrder must be an array");
 assert(packet.reviewOrder.length === expectedReviewOrder.length, "reviewOrder length mismatch");
-for (const [index, [id, templateRef, gateRef, envVar, command]] of expectedReviewOrder.entries()) {
+for (const [index, [id, status, templateRef, gateRef, envVar, command]] of expectedReviewOrder.entries()) {
   const entry = packet.reviewOrder[index];
   assert(entry.id === id, `reviewOrder[${index}].id mismatch`);
-  assert(entry.status === "external-review-required", `reviewOrder[${index}].status mismatch`);
+  assert(entry.status === status, `reviewOrder[${index}].status mismatch`);
   assert(entry.templateRef === templateRef, `reviewOrder[${index}].templateRef mismatch`);
   if (templateRef) {
     assertRefPath(templateRef, `${id} template`);
@@ -206,6 +221,7 @@ for (const marker of [
 }
 assertStringArray(packet.remainingBlockers, "remainingBlockers");
 for (const blocker of [
+  "no reviewed production output manifest",
   "no reviewed production artifact bundle",
   "no production verifier-adapter acceptance",
   "no SBF/live lineage acceptance",
@@ -218,6 +234,7 @@ assertStringArray(packet.canonicalCommands, "canonicalCommands");
 for (const command of [
   "npm run zk:c01-external-review-handoff-check",
   "npm run zk:c01-production-verifier-artifact-request-check",
+  "npm run zk:c01-production-output-manifest-check",
   "npm run zk:c01-production-artifact-acceptance-gate-check",
   "npm run zk:c01-verifier-adapter-acceptance-gate-check",
   "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
@@ -255,8 +272,10 @@ for (const marker of [
   "C01 production verifier artifact request packet",
   "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
   "npm run zk:c01-production-verifier-artifact-request-check",
+  "npm run zk:c01-production-output-manifest-check",
   "source-review acceptance",
   "deterministic production artifact build",
+  "production output-manifest preflight",
   "production artifact bundle",
   "verifier-adapter acceptance",
   "SBF/live lineage acceptance",

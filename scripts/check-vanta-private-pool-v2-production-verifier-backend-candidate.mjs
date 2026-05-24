@@ -65,6 +65,9 @@ const externalReviewHandoffEvidence = JSON.parse(
 const productionVerifierArtifactRequestEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json"),
 );
+const productionOutputManifestPreflightEvidence = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-production-output-manifest-preflight.evidence.json"),
+);
 const verifierAdapterTestCandidateEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json"),
 );
@@ -277,6 +280,11 @@ includes(
   "does not satisfy production proof-format evidence",
   "C01 verifier candidate production verifier artifact request truth boundary",
 );
+includes(
+  productionVerifierArtifactRequestRef?.truthBoundary ?? "",
+  "production output-manifest preflight",
+  "C01 verifier candidate production verifier artifact request truth boundary",
+);
 assert(
   productionVerifierArtifactRequestEvidence.status ===
     "ready-for-external-production-verifier-artifact-request-blocked",
@@ -290,6 +298,35 @@ assert(
   externalReviewHandoffEvidence.productionVerifierArtifactRequestRef ===
     "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
   "C01 external review handoff must reference the production verifier artifact request packet",
+);
+const productionOutputManifestPreflightRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
+  (entry) => entry.id === "production-output-manifest-preflight",
+);
+assert(
+  productionOutputManifestPreflightRef?.status === "blocked-no-reviewed-production-output-manifest",
+  "C01 verifier candidate evidence must record the blocked production output-manifest preflight status",
+);
+assert(
+  productionOutputManifestPreflightRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-production-output-manifest-preflight.evidence.json",
+  "C01 verifier candidate evidence must reference the production output-manifest preflight packet",
+);
+assert(
+  productionOutputManifestPreflightRef?.command === "npm run zk:c01-production-output-manifest-check",
+  "C01 verifier candidate evidence must record the production output-manifest preflight guard",
+);
+includes(
+  productionOutputManifestPreflightRef?.truthBoundary ?? "",
+  "does not satisfy production proof-format evidence",
+  "C01 verifier candidate production output-manifest truth boundary",
+);
+assert(
+  productionOutputManifestPreflightEvidence.status === "blocked-no-reviewed-production-output-manifest",
+  "C01 production output-manifest preflight must remain blocked",
+);
+assert(
+  productionOutputManifestPreflightEvidence.c01VerifierReady === false,
+  "C01 production output-manifest preflight must not set c01VerifierReady",
 );
 const productionGroth16ToolchainPreflightRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
   (entry) => entry.id === "blocked-production-groth16-toolchain-preflight",
@@ -362,6 +399,7 @@ assert(
 );
 for (const marker of [
   "source-review acceptance",
+  "production output-manifest preflight",
   "deterministic production artifact build",
   "production artifact bundle",
   "verifier-adapter acceptance",
@@ -596,7 +634,7 @@ assert(
   "C01 external review handoff evidence must remain blocked until reviewed refs are returned",
 );
 assert(
-  externalReviewHandoffEvidence.reviewOrder?.length === 7,
+  externalReviewHandoffEvidence.reviewOrder?.length === 8,
   "C01 external review handoff evidence must enumerate the full reviewer evidence order",
 );
 assert(
@@ -837,6 +875,12 @@ assert(
     "npm run zk:c01-external-review-handoff-check",
   ),
   "C01 verifier candidate evidence must record the external review handoff guard",
+);
+assert(
+  verifierCandidateEvidence.canonicalCommands?.includes(
+    "npm run zk:c01-production-output-manifest-check",
+  ),
+  "C01 verifier candidate evidence must record the production output-manifest preflight guard",
 );
 assert(
   verifierCandidateEvidence.canonicalCommands?.includes("npm run zk:c01-public-witness-binding-check"),

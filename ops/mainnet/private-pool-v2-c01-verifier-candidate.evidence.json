@@ -108,14 +108,21 @@
       "status": "ready-for-external-c01-verifier-review-handoff-blocked",
       "artifactRef": "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json",
       "command": "npm run zk:c01-external-review-handoff-check",
-      "truthBoundary": "This records the refs-only external reviewer handoff order for source-review acceptance, deterministic production artifact build, production artifact bundle, verifier-adapter acceptance, SBF/live lineage acceptance, audit/reviewer acceptance, and composite evidence-chain closure. It does not satisfy production proof-format, production verifying-key, verifier-adapter acceptance, valid mutation, invalid/wrong-input/wrong-key no-mutation, SBF/live lineage, audit/reviewer acceptance, or C01 closure."
+      "truthBoundary": "This records the refs-only external reviewer handoff order for source-review acceptance, production output-manifest preflight, deterministic production artifact build, production artifact bundle, verifier-adapter acceptance, SBF/live lineage acceptance, audit/reviewer acceptance, and composite evidence-chain closure. It does not satisfy production proof-format, production verifying-key, verifier-adapter acceptance, valid mutation, invalid/wrong-input/wrong-key no-mutation, SBF/live lineage, audit/reviewer acceptance, or C01 closure."
     },
     {
       "id": "production-verifier-artifact-request",
       "status": "ready-for-external-production-verifier-artifact-request-blocked",
       "artifactRef": "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
       "command": "npm run zk:c01-production-verifier-artifact-request-check",
-      "truthBoundary": "This records the refs-only artifact producer request for production proof-format/VK/public-witness, verifier-adapter acceptance, mutation/no-mutation, SBF/live lineage, audit/reviewer acceptance, and composite closure refs. It is not production proof-format evidence and does not satisfy production proof-format evidence, production verifying-key evidence, verifier-adapter acceptance, mutation/no-mutation evidence, SBF/live lineage, audit/reviewer acceptance, or C01 closure."
+      "truthBoundary": "This records the refs-only artifact producer request for production proof-format/VK/public-witness, production output-manifest preflight, verifier-adapter acceptance, mutation/no-mutation, SBF/live lineage, audit/reviewer acceptance, and composite closure refs. It is not production proof-format evidence and does not satisfy production proof-format evidence, production verifying-key evidence, verifier-adapter acceptance, mutation/no-mutation evidence, SBF/live lineage, audit/reviewer acceptance, or C01 closure."
+    },
+    {
+      "id": "production-output-manifest-preflight",
+      "status": "blocked-no-reviewed-production-output-manifest",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-production-output-manifest-preflight.evidence.json",
+      "command": "npm run zk:c01-production-output-manifest-check",
+      "truthBoundary": "This records the refs-only output-manifest preflight for returned proof, public-witness, VK, source-ACIR, and generated verifier-SBF artifacts. It can shape-check and hash returned artifacts but does not satisfy production proof-format evidence, production verifying-key evidence, deterministic build acceptance, verifier-adapter acceptance, mutation/no-mutation evidence, SBF/live lineage, audit/reviewer acceptance, or C01 closure."
     },
     {
       "id": "blocked-sbf-live-lineage-candidate",
@@ -248,6 +255,7 @@
     "npm run zk:c01-production-artifact-acceptance-gate-check",
     "npm run zk:c01-external-review-handoff-check",
     "npm run zk:c01-production-verifier-artifact-request-check",
+    "npm run zk:c01-production-output-manifest-check",
     "npm run zk:c01-public-witness-binding-check",
     "npm run zk:c01-production-verifying-key-candidate-check",
     "npm run zk:c01-sbf-live-lineage-candidate-check",
