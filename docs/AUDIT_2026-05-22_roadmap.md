@@ -53,9 +53,11 @@ Inside the program, against the production (proof, public_witness, VK) tuple:
 - **Wrong public-input hash → state byte-identical.**
 - **Wrong VK hash → state byte-identical.**
 
-The local-unsafe Sunspot harness already covers four cases (valid / invalid / wrong-public-input / wrong-verifier-program), all running against `/private/tmp` artifacts. The wrong-VK leg is explicitly open: `provesWrongVerifyingKeyNoMutation: false` in `private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json`.
+The local-unsafe Sunspot harness now covers valid mutation plus invalid-proof, wrong-public-input, wrong-verifier-program, and wrong generated-verifier/key-hash no-mutation cases, all running against `/private/tmp` artifacts. The current command is `npm run private-pool-v2:c01-local-unsafe-h6-verifier-cpi-acceptance-check`, and the metadata lives in `private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json`.
 
-**Immediate work Vanta can do today:** add the wrong-VK no-mutation leg to `fuzz/vanta_private_pool_v2_spend/src/main.rs::spend_with_proof_local_unsafe_generated_verifier_cpi_acceptance_and_no_mutation`. Register a second `verifier_key` PDA bound to the same correct verifier program id but a different `verifierKeyHash`; run the same valid (proof, public-witness) tuple; assert the CPI rejects (or the registry binding rejects before CPI) with zero byte-level mutation. Flip the packet's `provesWrongVerifyingKeyNoMutation` from `false` to `true`; keep `satisfies*` flags at `false` (it remains local-unsafe evidence, not production acceptance).
+That local lane still does **not** satisfy production adapter acceptance. The production acceptance gate deliberately requires refs for the reviewed production proof/VK/public-witness tuple and states that wrong-verifying-key no-mutation must bind to production verifying-key hash semantics, not only a wrong verifier-program id or a local unsafe generated verifier artifact.
+
+**Next work Vanta can do before external review returns:** keep the local H6 unsafe harness green and keep the acceptance gate strict. The remaining C01 verifier-adapter promotion work is to run the same valid/invalid/wrong-input/wrong-key mutation matrix under the reviewed production verifier boundary after the deterministic production artifact build, production proof format, and production VK/hash refs exist.
 
 ### 1.4 SBF / live lineage
 
