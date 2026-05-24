@@ -2338,6 +2338,22 @@ assert(
   "C01 must record the production verifying-key candidate guard",
 );
 assert(
+  c01Text.includes("zk:c01-sbf-live-lineage-candidate-check"),
+  "C01 must record the SBF/live lineage candidate guard",
+);
+assert(
+  c01Text.includes("zk:c01-sbf-live-lineage-acceptance-gate-check"),
+  "C01 must record the SBF/live lineage acceptance gate guard",
+);
+assert(
+  c01Text.includes("zk:c01-verifier-evidence-closure-gate-check"),
+  "C01 must record the verifier evidence closure gate guard",
+);
+assert(
+  c01Text.includes("zk:c01-external-review-handoff-check"),
+  "C01 must record the external reviewer handoff guard",
+);
+assert(
   c01Text.includes("zk:c01-verifier-backend-decision-check"),
   "C01 must record the verifier backend decision guard",
 );
@@ -2394,6 +2410,26 @@ assert(
   "C01 must record the production verifying-key candidate evidence packet path",
 );
 assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-sbf-live-lineage-candidate.evidence.json"),
+  "C01 must record the SBF/live lineage candidate evidence packet path",
+);
+assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance-gate.evidence.json"),
+  "C01 must record the SBF/live lineage acceptance gate evidence packet path",
+);
+assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance.template.json"),
+  "C01 must record the SBF/live lineage acceptance template path",
+);
+assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json"),
+  "C01 must record the verifier evidence closure gate path",
+);
+assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json"),
+  "C01 must record the external reviewer handoff path",
+);
+assert(
   c01Text.includes("ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json"),
   "C01 must record the verifier adapter acceptance-test candidate evidence packet path",
 );
@@ -2440,12 +2476,24 @@ assert(
   "C01 must record the blocked production verifying-key candidate status",
 );
 assert(
+  c01Text.includes("blocked-no-rebuilt-redeployed-reinitialized-live-lineage"),
+  "C01 must record the blocked SBF/live lineage candidate status",
+);
+assert(
   c01Text.includes("blocked-no-verifier-adapter-acceptance-tests"),
   "C01 must record the blocked verifier adapter acceptance-test candidate status",
 );
 assert(
   c01Text.includes("blocked-no-tag3-valid-proof-success"),
   "C01 must record the blocked positive proof-verified claim gate status",
+);
+assert(
+  c01Text.includes("blocked-no-complete-c01-verifier-evidence-chain"),
+  "C01 must record the blocked verifier evidence closure gate status",
+);
+assert(
+  c01Text.includes("ready-for-external-c01-verifier-review-handoff-blocked"),
+  "C01 must record the external reviewer handoff status",
 );
 assert(
   c01Text.includes("local fail-closed verifier adapter seam harness"),
@@ -2514,6 +2562,11 @@ assert(
 assert(
   c01Text.includes("blocked production verifying-key candidate packet as production verifying-key evidence"),
   "C01 must preserve that the production verifying-key candidate is not production verifying-key evidence",
+);
+assert(
+  c01Text.includes("SBF/live lineage candidate packet") &&
+    c01Text.includes("not SBF/live lineage"),
+  "C01 must preserve that the SBF/live lineage candidate is not SBF/live lineage",
 );
 assert(
   c01Text.includes("blocked verifier adapter acceptance-test packet as verifier adapter acceptance or proof acceptance evidence"),

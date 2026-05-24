@@ -18,11 +18,13 @@ const publicWitnessByteLength = 44;
 const publicWitnessHeaderHex = "000000010000000000000001";
 const decodedPublicInputValue =
   "0x0421d1c89c8353818f26d6efcd44b4222a2de2b1f14b8287c59728573a90dd32";
+const currentLocalProofReceiptPublicInputValue =
+  "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b";
 const decodedPublicInputLabel = "private-spend-public-input-hash";
 const publicWitnessSha256 =
   "sha256:885351f63518202c4fcd120af8ffc296a8706edae14ed4795c11795dfd7f90e3";
 const publicInputCommitment =
-  "sha256:c809ccff8c9f8549463fa0d635953adbffd63b58f2d8d74f8f397cec50d6cf26";
+  "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2";
 
 function read(relativePath) {
   const path = resolve(repoRoot, relativePath);
@@ -101,7 +103,10 @@ for (const aggregate of ["zk:review-guards-check", "zk:feedback-loop-check"]) {
 }
 
 assert(packet.version === "vanta-private-pool-v2-c01-public-witness-binding-evidence-0.1", "schema mismatch");
-assert(packet.status === "local-public-witness-binding-observed-not-production", "status mismatch");
+assert(
+  packet.status === "local-public-witness-decoded-stale-against-current-proof-receipt",
+  "status mismatch",
+);
 assert(packet.selectedBackend === "groth16-tag3-solana-v0", "selected backend mismatch");
 assert(packet.selectedBackendStatus === "selected-pending-production-evidence", "selected backend status mismatch");
 assert(packet.routeId === "sunspot-noir-acir-gnark-groth16-solana-v0", "route id mismatch");
@@ -190,8 +195,12 @@ assert(decoded.value === decodedPublicInputValue, "decoded public input value mi
 assert(decoded.byteOffset === 12, "decoded public input byte offset mismatch");
 assert(decoded.byteLength === 32, "decoded public input byte length mismatch");
 assert(decoded.endian === "big", "decoded public input endian mismatch");
-assert(observed.matchesLocalProofReceiptPublicInput === true, "must match local proof receipt public input");
+assert(
+  observed.matchesLocalProofReceiptPublicInput === false,
+  "stale beta18 public witness must not claim it matches the current local proof receipt public input",
+);
 assert(observed.matchesGeneratedVerifierNrPubinputs === true, "must match generated verifier public input count");
+assert(observed.staleAgainstCurrentProofReceipt === true, "public witness must record stale receipt boundary");
 assert(observed.satisfiesProductionPublicInputBinding === false, "must not satisfy production binding");
 
 const receiptObservation = packet.localProofReceiptObservation ?? {};
@@ -199,7 +208,10 @@ assert(receiptObservation.circuit === "vanta_private_pool_v2_actual_private_spen
 assert(receiptObservation.proofSystem === "noir-bb", "receipt proof system mismatch");
 assert(receiptObservation.proofBackend === "local-bb-fixture-artifact", "receipt proof backend mismatch");
 assert(receiptObservation.publicInputLabel === decodedPublicInputLabel, "receipt public input label mismatch");
-assert(receiptObservation.publicInputValue === decodedPublicInputValue, "receipt public input value mismatch");
+assert(
+  receiptObservation.publicInputValue === currentLocalProofReceiptPublicInputValue,
+  "receipt public input value mismatch",
+);
 assert(receiptObservation.publicInputCommitment === publicInputCommitment, "receipt public input commitment mismatch");
 assert(receiptObservation.verified === true, "receipt must be verified");
 assert(receiptObservation.satisfiesProductionPublicInputBinding === false, "receipt must not satisfy production binding");
@@ -208,7 +220,10 @@ assert(localProofReceipt.circuit === receiptObservation.circuit, "local proof re
 assert(localProofReceipt.proofSystem === receiptObservation.proofSystem, "local proof receipt proof system mismatch");
 assert(localProofReceipt.proofBackend === receiptObservation.proofBackend, "local proof receipt proof backend mismatch");
 assert(localProofReceipt.publicInputLabels?.[0] === decodedPublicInputLabel, "local proof receipt public input label mismatch");
-assert(localProofReceipt.publicInputs?.[0] === decodedPublicInputValue, "local proof receipt public input mismatch");
+assert(
+  localProofReceipt.publicInputs?.[0] === currentLocalProofReceiptPublicInputValue,
+  "local proof receipt public input mismatch",
+);
 assert(localProofReceipt.publicInputCommitment === publicInputCommitment, "local proof receipt commitment mismatch");
 assert(localProofReceipt.publicInputCount === 1, "local proof receipt public input count mismatch");
 assert(localProofReceipt.verified === true, "local proof receipt must remain verified");
@@ -264,8 +279,8 @@ assert(
   "dev probe decoded public input label mismatch",
 );
 assert(
-  devProbe.observedArtifacts?.publicWitness?.matchesLocalProofReceiptPublicInput === true,
-  "dev probe must record local receipt match",
+  devProbe.observedArtifacts?.publicWitness?.matchesLocalProofReceiptPublicInput === false,
+  "dev probe must not claim the stale beta18 public witness matches the current local receipt",
 );
 assert(
   devProbe.observedArtifacts?.generatedVerifierInstructionData?.generatedVerifierNrPubinputs === 1,
@@ -287,8 +302,12 @@ assert(
   "route feasibility must stay true",
 );
 assert(
-  packet.satisfiesRequiredPositiveEvidence?.localPublicWitnessBindingObserved === true,
-  "local public witness binding observation must be true",
+  packet.satisfiesRequiredPositiveEvidence?.localPublicWitnessDecoded === true,
+  "local public witness decoding observation must be true",
+);
+assert(
+  packet.satisfiesRequiredPositiveEvidence?.localPublicWitnessBindingObserved === false,
+  "stale beta18 public witness must not satisfy local proof-receipt binding observation",
 );
 assertFalseProductionEvidence(packet.satisfiesRequiredPositiveEvidence, "satisfiesRequiredPositiveEvidence");
 for (const command of [
@@ -308,8 +327,10 @@ assert(optional.status === "optional-not-required-for-default-guard", "optional 
 includes(optional.command ?? "", "npm run zk:c01-public-witness-binding-check", "optional validation command");
 
 for (const marker of [
-  "local nonproduction public-witness binding observation",
+  "local nonproduction public-witness decoding observation",
   "private-spend-public-input-hash",
+  "stale against the current H6 actual-private-spend Noir/bb receipt",
+  "does not match the current local proof receipt public input",
   "not production proof-format evidence",
   "not production private-spend-public-input-hash binding evidence",
   "not verifier-adapter acceptance",

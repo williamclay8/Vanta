@@ -9,6 +9,8 @@ const proofFormatPath = "ops/mainnet/private-pool-v2-c01-groth16-proof-format-ca
 const productionVkPath = "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json";
 const acceptanceGatePath =
   "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json";
+const adapterAcceptanceGatePath =
+  "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json";
 const registryPath = "ops/mainnet/private-pool-v2-c01-verifier-key-registry.evidence.json";
 const localProofPath = "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json";
 const localSunspotGroth16DevProbePath =
@@ -71,6 +73,7 @@ const options = JSON.parse(read(optionsPath));
 const proofFormat = JSON.parse(read(proofFormatPath));
 const productionVk = JSON.parse(read(productionVkPath));
 const acceptanceGate = JSON.parse(read(acceptanceGatePath));
+const adapterAcceptanceGate = JSON.parse(read(adapterAcceptanceGatePath));
 const registry = JSON.parse(read(registryPath));
 const localProof = JSON.parse(read(localProofPath));
 const localSunspotGroth16DevProbe = JSON.parse(read(localSunspotGroth16DevProbePath));
@@ -116,6 +119,17 @@ assert(
   ),
   "package.json must expose the local unsafe C01 generated verifier CPI acceptance check",
 );
+for (const marker of [
+  "beta18-h6-circuit/target",
+  "VANTA_C01_LOCAL_GNARK_VK_SHA256=5e0a6f08503f534cbb462f43fbf0b247e8aa2ce75d1fa58c2350f815817948b4",
+  "VANTA_C01_LOCAL_GNARK_WRONG_VERIFIER_SBF=/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/target/vanta_private_pool_v2_actual_private_spend_entry.so",
+  "VANTA_C01_LOCAL_GNARK_WRONG_VK_SHA256=fbd6ba8ce64cc0b0320a0d8080fca15d79ca6ca2f732381a9550092f645f0e1d",
+]) {
+  assert(
+    scripts["private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check"]?.includes(marker),
+    `local unsafe C01 generated verifier CPI acceptance check must include ${marker}`,
+  );
+}
 assert(
   scripts["private-pool-v2:crucible-check"]?.includes(
     "npm run private-pool-v2:c01-sbf-verifier-cpi-rejection-check",
@@ -134,6 +148,10 @@ for (const aggregate of ["zk:review-guards-check", "zk:feedback-loop-check"]) {
   assert(
     scripts[aggregate]?.includes("npm run zk:c01-production-artifact-acceptance-gate-check"),
     `${aggregate} must include the C01 production artifact acceptance gate guard`,
+  );
+  assert(
+    scripts[aggregate]?.includes("npm run zk:c01-verifier-adapter-acceptance-gate-check"),
+    `${aggregate} must include the C01 verifier adapter acceptance gate guard`,
   );
 }
 
@@ -183,6 +201,7 @@ assertAllowedKeys(packet, "adapter-test packet", [
   "backendOptionsRef",
   "groth16ProofFormatCandidateRef",
   "productionVerifyingKeyCandidateRef",
+  "verifierAdapterAcceptanceGateRef",
   "verifierKeyRegistryRef",
   "localProofFormatRef",
   "localSunspotGroth16DevProbeRef",
@@ -227,6 +246,7 @@ for (const [field, expected] of [
   ["backendOptionsRef", optionsPath],
   ["groth16ProofFormatCandidateRef", proofFormatPath],
   ["productionVerifyingKeyCandidateRef", productionVkPath],
+  ["verifierAdapterAcceptanceGateRef", adapterAcceptanceGatePath],
   ["verifierKeyRegistryRef", registryPath],
   ["localProofFormatRef", localProofPath],
   ["localSunspotGroth16DevProbeRef", localSunspotGroth16DevProbePath],
@@ -486,6 +506,9 @@ for (const marker of [
   "action_spend_with_proof_local_unsafe_generated_verifier_rejects_without_mutation",
   "action_spend_with_proof_local_unsafe_wrong_public_input_rejects_without_mutation",
   "action_spend_with_proof_local_unsafe_wrong_verifier_program_rejects_without_mutation",
+  "action_spend_with_proof_local_unsafe_wrong_verifying_key_rejects_without_mutation",
+  "register_verifier_key_for_hash_with_program",
+  "env_hash_or",
 ]) {
   includes(crucibleHarness, marker, crucibleHarnessPath);
 }
@@ -561,9 +584,11 @@ assertAllowedKeys(localUnsafeAcceptance, "local unsafe generated verifier CPI ac
   "command",
   "artifactRoot",
   "verifierProgramSbf",
+  "wrongVerifierProgramSbf",
   "proofSha256",
   "publicWitnessSha256",
   "verifyingKeySha256",
+  "wrongVerifyingKeySha256",
   "verifyingKeyHashKind",
   "spendProgramCpiAcceptsLocalUnsafeProof",
   "validProofMutatesNullifierAndOutputState",
@@ -579,7 +604,7 @@ assertAllowedKeys(localUnsafeAcceptance, "local unsafe generated verifier CPI ac
   "truthBoundary",
 ]);
 assert(
-  localUnsafeAcceptance.status === "local-unsafe-generated-verifier-cpi-acceptance-and-no-mutation",
+  localUnsafeAcceptance.status === "local-unsafe-h6-generated-verifier-cpi-acceptance-and-no-mutation",
   "local unsafe generated verifier CPI harness status mismatch",
 );
 assert(localUnsafeAcceptance.harnessPath === crucibleHarnessPath, "local unsafe harness path mismatch");
@@ -595,19 +620,25 @@ assert(
 );
 assert(
   localUnsafeAcceptance.artifactRoot ===
-    "/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/target",
+    "/private/tmp/vanta-c01-sunspot-lane/work/beta18-h6-circuit/target",
   "local unsafe harness artifact root mismatch",
 );
 assert(
   localUnsafeAcceptance.verifierProgramSbf ===
-    "/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/target/vanta_private_pool_v2_actual_private_spend_entry.so",
+    "/private/tmp/vanta-c01-sunspot-lane/work/beta18-h6-circuit/target/vanta_private_pool_v2_actual_private_spend_entry.so",
   "local unsafe harness verifier SBF mismatch",
 );
+assert(
+  localUnsafeAcceptance.wrongVerifierProgramSbf ===
+    "/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/target/vanta_private_pool_v2_actual_private_spend_entry.so",
+  "local unsafe harness wrong verifier SBF mismatch",
+);
 for (const [field, expected] of [
-  ["proofSha256", "sha256:e76c6d47052ecdb743b894a5413de62dca556f25546c1dd4a842403532281a85"],
-  ["publicWitnessSha256", "sha256:885351f63518202c4fcd120af8ffc296a8706edae14ed4795c11795dfd7f90e3"],
-  ["verifyingKeySha256", "sha256:fbd6ba8ce64cc0b0320a0d8080fca15d79ca6ca2f732381a9550092f645f0e1d"],
-  ["verifyingKeyHashKind", "local-unsafe-sunspot-vk-hash-not-production"],
+  ["proofSha256", "sha256:afde2c07683c4262b5b9ae72c66e559e857a9fd7a529b980b34a45bf2374d186"],
+  ["publicWitnessSha256", "sha256:19e42b6e34a5861d8804565476d72f8835c81d30cfc66bd598a236d26e1baa60"],
+  ["verifyingKeySha256", "sha256:5e0a6f08503f534cbb462f43fbf0b247e8aa2ce75d1fa58c2350f815817948b4"],
+  ["wrongVerifyingKeySha256", "sha256:fbd6ba8ce64cc0b0320a0d8080fca15d79ca6ca2f732381a9550092f645f0e1d"],
+  ["verifyingKeyHashKind", "local-unsafe-h6-sunspot-vk-hash-not-production"],
 ]) {
   assert(localUnsafeAcceptance[field] === expected, `local unsafe harness ${field} mismatch`);
 }
@@ -617,13 +648,10 @@ for (const field of [
   "invalidProofLeavesAccountsUnchanged",
   "wrongPublicInputHashLeavesAccountsUnchanged",
   "wrongVerifierProgramLeavesAccountsUnchanged",
+  "wrongVerifyingKeyLeavesAccountsUnchanged",
 ]) {
   assert(localUnsafeAcceptance[field] === true, `local unsafe harness ${field} must be true`);
 }
-assert(
-  localUnsafeAcceptance.wrongVerifyingKeyLeavesAccountsUnchanged === false,
-  "local unsafe harness must not claim wrong-verifying-key no-mutation",
-);
 for (const field of [
   "satisfiesProductionVerifierAdapterEvidence",
   "satisfiesProductionProofFormatEvidence",
@@ -640,12 +668,13 @@ assert(
   "local unsafe harness canonical commands must include the npm command",
 );
 for (const marker of [
-  "local unsafe Sunspot/Gnark artifact lane only",
+  "local unsafe H6-preserving Sunspot/Gnark artifact lane only",
+  "wrong-verifying-key local unsafe no-mutation",
   "not production verifier-adapter acceptance",
   "not production proof-format evidence",
   "not production verifying-key evidence",
+  "not production wrong-verifying-key no-mutation evidence",
   "not SBF/live lineage",
-  "wrong-verifying-key production no-mutation remains missing",
 ]) {
   includes(localUnsafeAcceptance.truthBoundary ?? "", marker, "local unsafe harness truth boundary");
 }
@@ -807,6 +836,7 @@ for (const marker of [
 assertAllowedKeys(packet.blockedPrerequisiteRefs, "blocked prerequisite refs", [
   "groth16ProofFormatCandidate",
   "productionArtifactAcceptanceGate",
+  "verifierAdapterAcceptanceGate",
   "productionVerifyingKeyCandidate",
   "verifierKeyRegistry",
   "localSunspotGroth16DevProbe",
@@ -833,6 +863,28 @@ assert(
 assert(
   acceptanceGate.satisfiesRequiredPositiveEvidence?.productionArtifactAcceptance === false,
   "acceptance gate must not satisfy production artifact acceptance",
+);
+assert(
+  packet.blockedPrerequisiteRefs.verifierAdapterAcceptanceGate?.status ===
+    "blocked-no-production-verifier-adapter-acceptance",
+  "verifier adapter acceptance gate prerequisite must remain blocked",
+);
+assert(
+  packet.blockedPrerequisiteRefs.verifierAdapterAcceptanceGate?.artifactRef === adapterAcceptanceGatePath,
+  "verifier adapter acceptance gate prerequisite ref mismatch",
+);
+assert(
+  packet.blockedPrerequisiteRefs.verifierAdapterAcceptanceGate?.command ===
+    "npm run zk:c01-verifier-adapter-acceptance-gate-check",
+  "verifier adapter acceptance gate prerequisite command mismatch",
+);
+assert(
+  packet.blockedPrerequisiteRefs.verifierAdapterAcceptanceGate?.satisfiesVerifierAdapterAcceptance === false,
+  "verifier adapter acceptance gate prerequisite must not satisfy adapter acceptance",
+);
+assert(
+  adapterAcceptanceGate.satisfiesRequiredPositiveEvidence?.verifierAdapter === false,
+  "adapter acceptance gate must not satisfy verifier adapter evidence",
 );
 assert(
   packet.blockedPrerequisiteRefs.groth16ProofFormatCandidate?.status ===
@@ -1092,6 +1144,7 @@ for (const marker of [
 for (const command of [
   "npm run zk:c01-verifier-adapter-test-candidate-check",
   "npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check",
+  "npm run zk:c01-verifier-adapter-acceptance-gate-check",
   "npm run zk:c01-production-artifact-acceptance-gate-check",
   "npm run zk:c01-sunspot-groth16-dev-probe-check",
   "npm run zk:c01-verifier-adapter-seam-check",

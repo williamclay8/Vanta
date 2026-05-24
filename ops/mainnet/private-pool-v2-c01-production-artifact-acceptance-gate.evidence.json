@@ -17,6 +17,9 @@
   "artifactAcquisitionPacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json",
   "routePacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json",
   "productionGroth16ToolchainPreflightRef": "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
+  "sourceReviewAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
+  "deterministicProductionArtifactBuildGateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
+  "verifierAdapterAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
   "groth16ProofFormatCandidateRef": "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
   "productionVerifyingKeyCandidateRef": "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
   "verifierAdapterTestCandidateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
@@ -38,8 +41,18 @@
     "generatedVerifierNrPubinputs": 1,
     "generatedVerifierCommitmentKeys": 0,
     "publicInputLabel": "private-spend-public-input-hash",
+    "currentProofReceiptRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.proof.json",
+    "requiredPublicInputValue": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "requiredPublicInputCommitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2",
+    "requiresCurrentProofReceiptPublicInputBinding": true,
     "verifyingKeyHashKind": "production-verifying-key-hash",
     "sourceAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
+    "sourceReviewAcceptanceRequired": true,
+    "sourceReviewAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
+    "deterministicArtifactBuildRequired": true,
+    "deterministicArtifactBuildGateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
+    "verifierAdapterAcceptanceRequired": true,
+    "verifierAdapterAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
     "status": "required-before-production-acceptance"
   },
   "currentAcceptedProductionBundle": {
@@ -48,10 +61,13 @@
     "pinnedToolchainSourceRef": null,
     "reviewedToolchainBuildRef": null,
     "trustedSetupOrMitigationRef": null,
+    "sourceReviewAcceptanceRef": null,
+    "deterministicArtifactBuildRef": null,
     "proofFormatArtifactRef": null,
     "productionVerifyingKeyArtifactRef": null,
     "productionVerifyingKeyHash": null,
     "publicWitnessArtifactRef": null,
+    "verifierAdapterAcceptanceRef": null,
     "verifierAdapterOrProgramRef": null,
     "validProofMutationTestRef": null,
     "invalidProofNoMutationTestRef": null,
@@ -69,12 +85,68 @@
     "publicWitnessSha256": "sha256:885351f63518202c4fcd120af8ffc296a8706edae14ed4795c11795dfd7f90e3",
     "verifyingKeySha256": "sha256:fbd6ba8ce64cc0b0320a0d8080fca15d79ca6ca2f732381a9550092f645f0e1d",
     "verifyingKeyHashKind": "local-unsafe-sunspot-vk-hash-not-production",
+    "requiredSourceAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
+    "localBeta18CompiledAcirSha256": "sha256:5e0e27752ff1c0f01d318323083b168c1309c0c84521401531b42d07033c68bf",
+    "matchesRequiredSourceAcir": false,
+    "satisfiesProductionSourceLineage": false,
     "solanaVerifierSbfSha256": "sha256:222ca0869212f455331933b5b6751a04449b5d7bd7387e72ae7f5702a3bf2e58",
     "promotableToProductionEvidence": false,
     "comparisonOnly": true,
-    "truthBoundary": "The local inventory can be used only to compare expected C01 shapes. It cannot satisfy production proof-format, production verifying-key, verifier-adapter, mutation/no-mutation, SBF/live-lineage, or audit evidence."
+    "truthBoundary": "The local inventory can be used only to compare expected C01 shapes; its beta18 compiled ACIR does not match the required current source ACIR and its beta18 public witness is stale against the current H6 local proof receipt. It cannot satisfy production source lineage and cannot satisfy production proof-format, production verifying-key, verifier-adapter, mutation/no-mutation, SBF/live-lineage, or audit evidence."
+  },
+  "currentH6PublicInputBindingRequirement": {
+    "status": "blocked-local-sunspot-public-witness-stale-against-current-h6-receipt",
+    "publicWitnessBindingObservationRef": "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
+    "localProofReceiptRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.proof.json",
+    "requiredPublicInputLabel": "private-spend-public-input-hash",
+    "requiredPublicInputValue": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "requiredPublicInputCommitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2",
+    "observedLocalSunspotPublicWitnessValue": "0x0421d1c89c8353818f26d6efcd44b4222a2de2b1f14b8287c59728573a90dd32",
+    "observedLocalSunspotPublicWitnessSha256": "sha256:885351f63518202c4fcd120af8ffc296a8706edae14ed4795c11795dfd7f90e3",
+    "observedLocalSunspotPublicWitnessMatchesCurrentReceipt": false,
+    "acceptedProductionBundleMustBindCurrentReceipt": true,
+    "satisfiesProductionPublicInputBinding": false,
+    "truthBoundary": "A returned production bundle cannot promote by byte lengths alone. Its public witness must decode one private-spend-public-input-hash equal to the current H6 local proof receipt public input and commitment before production public-input binding, verifier-adapter, mutation/no-mutation, SBF/live-lineage, or audit evidence can promote."
+  },
+  "externalProductionBundleValidation": {
+    "status": "ready-for-reviewed-refs-only-bundle-validation",
+    "envVar": "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH",
+    "templateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-bundle.template.json",
+    "command": "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check",
+    "defaultGuardRequiresExternalBundle": false,
+    "validatedWhenEnvVarPresent": true,
+    "validates": [
+      "current source ACIR hash lineage",
+      "external source-review acceptance",
+      "deterministic production artifact build receipt",
+      "Groth16 production proof-format tuple",
+      "production verifying-key artifact and hash kind",
+      "current H6 private-spend-public-input-hash binding",
+      "production verifier-adapter acceptance receipt",
+      "accepted verifier adapter or verifier program",
+      "valid-proof mutation evidence",
+      "invalid-proof no-mutation evidence",
+      "wrong-public-input no-mutation evidence",
+      "wrong-verifying-key no-mutation evidence",
+      "SBF/live lineage evidence",
+      "audit/reviewer acceptance"
+    ],
+    "satisfiesProductionArtifactAcceptance": false,
+    "truthBoundary": "This makes the external reviewed-bundle intake executable but does not supply a bundle and does not promote the current gate. Without VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH, C01 remains blocked with accepted production refs null."
   },
   "acceptanceCriteria": [
+    {
+      "id": "external-source-review-acceptance",
+      "requiredRefShape": "review:<external-beta18-h6-source-migration-acceptance-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "deterministic-production-artifact-build-receipt",
+      "requiredRefShape": "build:<reviewed-deterministic-production-artifact-build-receipt-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
     {
       "id": "pinned-reviewed-toolchain-source",
       "requiredRefShape": "source:<pinned-reviewed-sunspot-gnark-source-or-release-ref>",
@@ -112,8 +184,20 @@
       "satisfiesC01PositiveEvidence": false
     },
     {
+      "id": "current-h6-public-input-binding",
+      "requiredRefShape": "artifact:<public-witness-values-ref-bound-to-current-h6-private-spend-public-input-hash>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
       "id": "accepted-verifier-adapter-or-program",
       "requiredRefShape": "adapter:<accepted-solana-groth16-verifier-adapter-or-program-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-verifier-adapter-acceptance-receipt",
+      "requiredRefShape": "adapter:<reviewed-production-verifier-adapter-acceptance-ref>",
       "currentRef": null,
       "satisfiesC01PositiveEvidence": false
     },
@@ -158,12 +242,18 @@
     "production bundle refs must be references only; raw proof, verifying-key, proving-key, witness, keypair, secret, and signed transaction bytes stay out of git",
     "local /private/tmp Sunspot/Gnark outputs are comparison metadata only and cannot fill production currentRef fields",
     "production proof-format and production verifying-key refs must agree on circuit, source ACIR hash, proof format id, proof byte length, public-witness byte length, generated verifier public input count, and public input label",
+    "production public-witness evidence must decode one private-spend-public-input-hash equal to the current H6 proof receipt public input and commitment before adapter or mutation evidence can promote",
+    "reviewed source migration acceptance is required before a beta18 source-migration production bundle can promote source lineage",
+    "reviewed deterministic production artifact build receipt is required before proof/VK/public-witness refs can promote into the production bundle",
+    "reviewed production verifier-adapter acceptance receipt is required before adapter and mutation/no-mutation refs can promote into the production bundle",
     "verifier adapter acceptance can promote only after production proof-format and production verifying-key evidence exist",
     "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence must run under the accepted verifier boundary",
     "SBF/live lineage and audit/reviewer acceptance remain separate required refs"
   ],
   "satisfiesRequiredPositiveEvidence": {
     "backendSelection": true,
+    "sourceReviewAcceptance": false,
+    "deterministicArtifactBuild": false,
     "productionArtifactAcceptance": false,
     "actualPrivateSpendProductionProofFormat": false,
     "privateSpendPublicInputHashBinding": false,
@@ -192,6 +282,10 @@
     "npm run zk:c01-production-verifying-key-candidate-check",
     "npm run zk:c01-verifier-adapter-test-candidate-check",
     "npm run zk:c01-production-verifier-backend-candidate-check",
+    "npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
+    "npm run zk:c01-deterministic-production-artifact-build-check",
+    "npm run zk:c01-verifier-adapter-acceptance-gate-check",
+    "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check",
     "npm run zk:review-guards-check"
   ],
   "truthBoundary": "This is a blocked production artifact acceptance gate for the selected C01 backend. It defines refs-only promotion criteria and proves local unsafe Sunspot/Gnark artifacts cannot be promoted. It is not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not tag-3 proof acceptance, not SBF/live lineage, not audit acceptance, not production-private readiness, and not C01 closure."

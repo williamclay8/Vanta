@@ -1,0 +1,110 @@
+{
+  "version": "vanta-private-pool-v2-c01-beta18-h6-source-review-acceptance-gate-0.1",
+  "checkedAt": "2026-05-24T03:10:00.000Z",
+  "status": "blocked-no-external-source-review-acceptance",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "selectedBackendStatus": "selected-pending-production-evidence",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "productionReady": false,
+  "mainnetReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "sourceReviewAcceptanceReady": false,
+  "reviewedSourceMigration": false,
+  "productionSourceLineage": false,
+  "secretPolicy": "refs-only-no-raw-proof-vk-witness-pk-keypair-secret-or-signed-transaction-bytes",
+  "purpose": "Machine-readable intake gate for external source-review acceptance of the C01 beta18 H6 source migration candidate. It validates reviewer refs when supplied while keeping production proof/VK, adapter, mutation/no-mutation, SBF/live-lineage, and audit acceptance blocked.",
+  "sourceReviewCandidateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-migration-review.evidence.json",
+  "sourceReviewAcceptanceTemplateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance.template.json",
+  "sourceMigrationCandidateRef": "ops/mainnet/private-pool-v2-c01-beta18-source-migration-candidate.evidence.json",
+  "productionArtifactAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "requiredAcceptanceShape": {
+    "candidateSourceRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry_sunspot_beta18_h6_candidate/src/main.nr",
+    "candidateSourceSha256": "sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430",
+    "currentSourceRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr",
+    "currentSourceSha256": "sha256:363d7dffa7ba03698a8bdbe2d48a6f13cf32ddeb7326fb997ff9cff63db8bf96",
+    "compatibilityDelta": "poseidon-import-path-only",
+    "requiredConclusions": [
+      "normalized source equals current H6 source after Poseidon import-path normalization",
+      "H6 context preimage fields and Poseidon6 assertion are preserved",
+      "Prover.toml fixture matches current H6 source fixture",
+      "beta18 nargo check was reviewed",
+      "source review did not inspect or require raw witness, proof, VK, PK, keypair, secret, or signed transaction bytes"
+    ],
+    "status": "required-before-production-source-lineage"
+  },
+  "currentAcceptedSourceReview": {
+    "status": "absent",
+    "acceptanceRef": null,
+    "reviewerRef": null,
+    "sourceReviewAcceptanceRef": null,
+    "reviewedSourceMigrationRef": null,
+    "satisfiesSourceReviewAcceptance": false,
+    "satisfiesReviewedSourceMigration": false,
+    "satisfiesProductionSourceLineage": false
+  },
+  "externalSourceReviewValidation": {
+    "status": "ready-for-reviewed-refs-only-source-review-validation",
+    "envVar": "VANTA_C01_BETA18_H6_SOURCE_REVIEW_ACCEPTANCE_PATH",
+    "templateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance.template.json",
+    "command": "VANTA_C01_BETA18_H6_SOURCE_REVIEW_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
+    "defaultGuardRequiresExternalAcceptance": false,
+    "validatedWhenEnvVarPresent": true,
+    "validates": [
+      "external reviewer acceptance ref",
+      "candidate source hash",
+      "current source hash",
+      "poseidon-import-path-only delta",
+      "H6 context preimage and Poseidon6 preservation",
+      "beta18 nargo check review",
+      "refs-only secret policy",
+      "downstream production blockers remain separate"
+    ],
+    "satisfiesSourceReviewAcceptance": false,
+    "truthBoundary": "This makes external source-review acceptance intake executable but does not supply acceptance and does not promote production source lineage. Without VANTA_C01_BETA18_H6_SOURCE_REVIEW_ACCEPTANCE_PATH, C01 remains blocked with accepted source-review refs null."
+  },
+  "promotionRules": [
+    "source-review acceptance refs must be references only; raw proof, verifying-key, proving-key, witness, keypair, secret, and signed transaction bytes stay out of git",
+    "source-review acceptance can cover only the beta18 H6 source migration delta, not production setup, proof-format, VK, adapter, mutation/no-mutation, SBF/live-lineage, or audit evidence",
+    "production artifact acceptance must require a sourceReviewAcceptanceRef before it can promote a beta18 source-migration bundle",
+    "reviewed source migration is a prerequisite to production source lineage but does not by itself close C01"
+  ],
+  "satisfiesRequiredPositiveEvidence": {
+    "backendSelection": true,
+    "reviewableSourceMigrationCandidate": true,
+    "sourceReviewAcceptance": false,
+    "reviewedSourceMigration": false,
+    "productionSourceLineage": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "remainingBlockers": [
+    "no external source reviewer acceptance",
+    "no reviewed compatible Sunspot/Noir beta18 toolchain provenance",
+    "no production setup or toxic-waste mitigation",
+    "no deterministic reviewed production artifact build",
+    "no reviewed production artifact bundle accepted",
+    "no production verifier adapter acceptance",
+    "no production valid mutation or invalid/wrong-input/wrong-key no-mutation evidence",
+    "no rebuilt/redeployed/reinitialized/live SBF lineage",
+    "no audit/reviewer acceptance"
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
+    "VANTA_C01_BETA18_H6_SOURCE_REVIEW_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
+    "npm run zk:c01-beta18-h6-source-migration-review-check",
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+    "npm run zk:review-guards-check"
+  ],
+  "truthBoundary": "This is a blocked external source-review acceptance gate for the C01 beta18 H6 source migration candidate. It defines refs-only validation for reviewer acceptance, but it is not reviewer acceptance, not production source lineage, not production setup, not production proof-format evidence, not production VK/hash evidence, not production verifier-adapter acceptance, not production mutation/no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure."
+}

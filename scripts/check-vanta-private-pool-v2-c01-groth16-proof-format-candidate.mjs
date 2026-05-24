@@ -390,6 +390,7 @@ assertAllowedKeys(publicWitnessBinding, "local Sunspot public-witness binding ob
   "publicInputValueRef",
   "matchesLocalProofReceiptPublicInput",
   "matchesGeneratedVerifierNrPubinputs",
+  "staleAgainstCurrentProofReceipt",
   "satisfiesPrivateSpendPublicInputHashBinding",
   "satisfiesProductionProofFormatEvidence",
   "truthBoundary",
@@ -420,12 +421,16 @@ assert(
   "local public-witness binding value ref mismatch",
 );
 assert(
-  publicWitnessBinding.matchesLocalProofReceiptPublicInput === true,
-  "local public-witness binding must match local proof receipt public input",
+  publicWitnessBinding.matchesLocalProofReceiptPublicInput === false,
+  "stale beta18 public-witness binding must not claim it matches the current local proof receipt public input",
 );
 assert(
   publicWitnessBinding.matchesGeneratedVerifierNrPubinputs === true,
   "local public-witness binding must match generated verifier public input count",
+);
+assert(
+  publicWitnessBinding.staleAgainstCurrentProofReceipt === true,
+  "local public-witness binding must record stale current-receipt boundary",
 );
 assert(
   publicWitnessBinding.satisfiesPrivateSpendPublicInputHashBinding === false,
@@ -436,8 +441,9 @@ assert(
   "local public-witness binding must not satisfy production proof-format evidence",
 );
 for (const marker of [
-  "local public-witness file decodes",
+  "local beta18 public-witness file decodes",
   "private-spend-public-input-hash",
+  "stale against the current H6 local proof receipt",
   "does not satisfy production private-spend-public-input-hash binding evidence",
 ]) {
   includes(publicWitnessBinding.truthBoundary ?? "", marker, "local public-witness binding truth boundary");
@@ -601,7 +607,8 @@ for (const marker of [
   "one public input",
   "zero public and zero secret inputs",
   "local-acir-bytecode-hash-not-production-vk",
-  "local public-witness bytes decode to private-spend-public-input-hash",
+  "local beta18 public-witness bytes decode to private-spend-public-input-hash",
+  "stale against the current H6 local proof receipt",
 ]) {
   includes(JSON.stringify(packet.mismatch ?? {}), marker, "Groth16 proof-format mismatch evidence");
 }
@@ -612,7 +619,7 @@ for (const blocker of [
   "local Sunspot/Gnark dev probe used unsafe local setup and a beta18-only temporary source shim",
   "local Sunspot/Gnark dev probe produced the selected Gnark-native 324-byte proof plus 44-byte public witness accepted by a generated standalone verifier",
   "current spend-program tag 3 now reserves the selected Gnark-native 324-byte proof plus 44-byte public-witness tuple fail-closed and rejects the legacy 256-byte proof-only shape, but still needs an accepted adapter shape",
-  "local Sunspot/Gnark public-witness bytes decode to private-spend-public-input-hash and match the local proof receipt, but the observation is local/nonproduction, Sunspot compile output still reported zero public and zero secret inputs, and production private-spend-public-input-hash binding is not accepted",
+  "local Sunspot/Gnark beta18 public-witness bytes decode to private-spend-public-input-hash but are stale against the current H6 local proof receipt; the observation is local/nonproduction, Sunspot compile output still reported zero public and zero secret inputs, and production private-spend-public-input-hash binding is not accepted",
   "current local proof observation is noir-bb / barretenberg-ultrahonk / 16000 bytes",
   "no production verifying-key hash artifact exists",
   "host-side reserved tag 3 still returns ERR_PROOF_VERIFIER_NOT_WIRED before mutation while SBF has an unaccepted verifier CPI hook",

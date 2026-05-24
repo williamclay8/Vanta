@@ -53,8 +53,14 @@ const productionGroth16ToolchainPreflightEvidence = JSON.parse(
 const productionVerifyingKeyCandidateEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json"),
 );
+const sbfLiveLineageCandidateEvidence = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-sbf-live-lineage-candidate.evidence.json"),
+);
 const productionArtifactAcceptanceGateEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json"),
+);
+const externalReviewHandoffEvidence = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json"),
 );
 const verifierAdapterTestCandidateEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json"),
@@ -304,6 +310,55 @@ includes(
   "does not satisfy production proof-format",
   "C01 verifier candidate production artifact acceptance gate truth boundary",
 );
+const externalReviewHandoffRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
+  (entry) => entry.id === "blocked-external-review-handoff",
+);
+assert(
+  externalReviewHandoffRef?.status === "ready-for-external-c01-verifier-review-handoff-blocked",
+  "C01 verifier candidate evidence must record the blocked external review handoff packet status",
+);
+assert(
+  externalReviewHandoffRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json",
+  "C01 verifier candidate evidence must reference the external review handoff packet",
+);
+assert(
+  externalReviewHandoffRef?.command === "npm run zk:c01-external-review-handoff-check",
+  "C01 verifier candidate evidence must record the external review handoff guard",
+);
+for (const marker of [
+  "source-review acceptance",
+  "deterministic production artifact build",
+  "production artifact bundle",
+  "verifier-adapter acceptance",
+  "SBF/live lineage acceptance",
+  "audit/reviewer acceptance",
+  "composite evidence-chain closure",
+  "does not satisfy production proof-format",
+]) {
+  includes(
+    externalReviewHandoffRef?.truthBoundary ?? "",
+    marker,
+    "C01 verifier candidate external review handoff truth boundary",
+  );
+}
+const sbfLiveLineageRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
+  (entry) => entry.id === "blocked-sbf-live-lineage-candidate",
+);
+assert(
+  sbfLiveLineageRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-candidate.evidence.json",
+  "C01 verifier candidate evidence must reference the blocked SBF/live lineage candidate packet",
+);
+assert(
+  sbfLiveLineageRef?.command === "npm run zk:c01-sbf-live-lineage-candidate-check",
+  "C01 verifier candidate evidence must record the SBF/live lineage candidate guard",
+);
+includes(
+  sbfLiveLineageRef?.truthBoundary ?? "",
+  "does not satisfy SBF/live lineage",
+  "C01 verifier candidate SBF/live lineage truth boundary",
+);
 const verifierAdapterTestRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
   (entry) => entry.id === "blocked-verifier-adapter-acceptance-test-candidate",
 );
@@ -325,7 +380,8 @@ const publicWitnessBindingRef = verifierCandidateEvidence.intermediateEvidenceRe
   (entry) => entry.id === "local-sunspot-public-witness-binding-observation",
 );
 assert(
-  publicWitnessBindingRef?.status === "local-public-witness-binding-observed-not-production",
+  publicWitnessBindingRef?.status ===
+    "local-public-witness-decoded-stale-against-current-proof-receipt",
   "C01 verifier candidate evidence must record the local public-witness binding observation",
 );
 assert(
@@ -338,8 +394,9 @@ assert(
   "C01 verifier candidate public-witness binding command mismatch",
 );
 for (const marker of [
-  "local nonproduction Sunspot/Gnark public witness",
+  "local nonproduction Sunspot/Gnark beta18 public witness",
   "private-spend-public-input-hash",
+  "stale against the current H6 local proof receipt",
   "does not satisfy production private-spend-public-input-hash binding evidence",
 ]) {
   includes(publicWitnessBindingRef?.truthBoundary ?? "", marker, "C01 public-witness binding truth boundary");
@@ -430,7 +487,8 @@ assert(
   "C01 Groth16 proof-format candidate evidence must not satisfy production proof-format evidence",
 );
 assert(
-  publicWitnessBindingEvidence.status === "local-public-witness-binding-observed-not-production",
+  publicWitnessBindingEvidence.status ===
+    "local-public-witness-decoded-stale-against-current-proof-receipt",
   "C01 public-witness binding evidence status mismatch",
 );
 assert(
@@ -439,8 +497,12 @@ assert(
   "C01 public-witness binding evidence must decode the private spend public input label",
 );
 assert(
-  publicWitnessBindingEvidence.observedPublicWitness?.matchesLocalProofReceiptPublicInput === true,
-  "C01 public-witness binding evidence must match the local receipt public input",
+  publicWitnessBindingEvidence.observedPublicWitness?.matchesLocalProofReceiptPublicInput === false,
+  "C01 public-witness binding evidence must not claim the stale beta18 witness matches the current local receipt public input",
+);
+assert(
+  publicWitnessBindingEvidence.observedPublicWitness?.staleAgainstCurrentProofReceipt === true,
+  "C01 public-witness binding evidence must record stale current-receipt boundary",
 );
 assert(
   publicWitnessBindingEvidence.satisfiesRequiredPositiveEvidence?.privateSpendPublicInputHashBinding === false,
@@ -494,6 +556,63 @@ assert(
   productionArtifactAcceptanceGateEvidence.satisfiesRequiredPositiveEvidence?.productionArtifactAcceptance ===
     false,
   "C01 production artifact acceptance gate evidence must not satisfy production artifact acceptance",
+);
+assert(
+  externalReviewHandoffEvidence.status === "ready-for-external-c01-verifier-review-handoff-blocked",
+  "C01 external review handoff evidence must remain blocked until reviewed refs are returned",
+);
+assert(
+  externalReviewHandoffEvidence.reviewOrder?.length === 7,
+  "C01 external review handoff evidence must enumerate the full reviewer evidence order",
+);
+assert(
+  externalReviewHandoffEvidence.c01VerifierReady === false,
+  "C01 external review handoff evidence must not mark C01 verifier readiness true",
+);
+assert(
+  sbfLiveLineageCandidateEvidence.status === "blocked-no-rebuilt-redeployed-reinitialized-live-lineage",
+  "C01 SBF/live lineage candidate evidence must remain blocked",
+);
+assert(
+  sbfLiveLineageCandidateEvidence.currentLiveLineage?.satisfiesSbfLiveLineage === false,
+  "C01 SBF/live lineage candidate evidence must not satisfy live lineage",
+);
+assert(
+  sbfLiveLineageCandidateEvidence.currentLiveLineage?.deploymentSignatureRef === null,
+  "C01 SBF/live lineage candidate evidence must not attach a deployment signature ref",
+);
+assert(
+  sbfLiveLineageCandidateEvidence.localSbfAbiStatusRef?.command ===
+    "npm run private-pool-v2:sbf-abi-check",
+  "C01 SBF/live lineage candidate evidence must reference the local SBF ABI guard",
+);
+assert(
+  sbfLiveLineageCandidateEvidence.localSbfAbiStatusRef?.satisfiesSbfLiveLineage === false,
+  "local SBF ABI freshness must not satisfy C01 SBF/live lineage",
+);
+assert(
+  sbfLiveLineageCandidateEvidence.localH6SbfLineageRehearsal?.status ===
+    "local-h6-sbf-lineage-rehearsal-only",
+  "C01 SBF/live lineage candidate evidence must record the local H6 SBF lineage rehearsal",
+);
+assert(
+  sbfLiveLineageCandidateEvidence.localH6SbfLineageRehearsal?.command ===
+    "npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check",
+  "C01 SBF/live lineage local rehearsal must reference the local unsafe verifier CPI command",
+);
+assert(
+  sbfLiveLineageCandidateEvidence.localH6SbfLineageRehearsal?.satisfiesSbfLiveLineage === false,
+  "C01 local H6 SBF lineage rehearsal must not satisfy SBF/live lineage",
+);
+assert(
+  sbfLiveLineageCandidateEvidence.sbfLiveLineageAcceptanceGateRef ===
+    "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance-gate.evidence.json",
+  "C01 SBF/live lineage candidate evidence must reference the SBF/live acceptance gate",
+);
+assert(
+  sbfLiveLineageCandidateEvidence.sbfLiveLineageAcceptanceTemplateRef ===
+    "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance.template.json",
+  "C01 SBF/live lineage candidate evidence must reference the SBF/live acceptance template",
 );
 assert(
   verifierAdapterTestCandidateEvidence.status === "blocked-no-verifier-adapter-acceptance-tests",
@@ -680,6 +799,12 @@ assert(
   "C01 verifier candidate evidence must record the production artifact acceptance gate guard",
 );
 assert(
+  verifierCandidateEvidence.canonicalCommands?.includes(
+    "npm run zk:c01-external-review-handoff-check",
+  ),
+  "C01 verifier candidate evidence must record the external review handoff guard",
+);
+assert(
   verifierCandidateEvidence.canonicalCommands?.includes("npm run zk:c01-public-witness-binding-check"),
   "C01 verifier candidate evidence must record the public-witness binding guard",
 );
@@ -688,6 +813,12 @@ assert(
     "npm run zk:c01-production-verifying-key-candidate-check",
   ),
   "C01 verifier candidate evidence must record the production verifying-key candidate guard",
+);
+assert(
+  verifierCandidateEvidence.canonicalCommands?.includes(
+    "npm run zk:c01-sbf-live-lineage-candidate-check",
+  ),
+  "C01 verifier candidate evidence must record the SBF/live lineage candidate guard",
 );
 assert(
   verifierCandidateEvidence.canonicalCommands?.includes(
@@ -779,8 +910,10 @@ for (const marker of [
   "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
   "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
   "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-candidate.evidence.json",
   "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
   "proof-format, production verifying-key, verifier-adapter, positive/negative test",
+  "blocked-no-rebuilt-redeployed-reinitialized-live-lineage",
   "blocked-local-toolchain-no-groth16-scheme",
   "groth16-tag3-solana-v0",
   "noir-bb-ultrahonk-adaptation",
@@ -869,6 +1002,16 @@ assert(
   "package.json must expose zk:c01-production-verifying-key-candidate-check",
 );
 assert(
+  scripts["zk:c01-sbf-live-lineage-candidate-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-sbf-live-lineage-candidate.mjs",
+  "package.json must expose zk:c01-sbf-live-lineage-candidate-check",
+);
+assert(
+  scripts["zk:c01-sbf-live-lineage-acceptance-gate-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-sbf-live-lineage-acceptance-gate.mjs",
+  "package.json must expose zk:c01-sbf-live-lineage-acceptance-gate-check",
+);
+assert(
   scripts["zk:c01-verifier-adapter-test-candidate-check"] ===
     "node scripts/check-vanta-private-pool-v2-c01-verifier-adapter-test-candidate.mjs",
   "package.json must expose zk:c01-verifier-adapter-test-candidate-check",
@@ -906,6 +1049,14 @@ assert(
   "zk:review-guards-check must include the C01 production verifying-key candidate guard",
 );
 assert(
+  scripts["zk:review-guards-check"]?.includes("npm run zk:c01-sbf-live-lineage-candidate-check"),
+  "zk:review-guards-check must include the C01 SBF/live lineage candidate guard",
+);
+assert(
+  scripts["zk:review-guards-check"]?.includes("npm run zk:c01-sbf-live-lineage-acceptance-gate-check"),
+  "zk:review-guards-check must include the C01 SBF/live lineage acceptance gate",
+);
+assert(
   scripts["zk:review-guards-check"]?.includes("npm run zk:c01-verifier-adapter-test-candidate-check"),
   "zk:review-guards-check must include the C01 verifier adapter-test candidate guard",
 );
@@ -940,6 +1091,14 @@ assert(
 assert(
   scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-production-verifying-key-candidate-check"),
   "zk:feedback-loop-check must include the C01 production verifying-key candidate guard",
+);
+assert(
+  scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-sbf-live-lineage-candidate-check"),
+  "zk:feedback-loop-check must include the C01 SBF/live lineage candidate guard",
+);
+assert(
+  scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-sbf-live-lineage-acceptance-gate-check"),
+  "zk:feedback-loop-check must include the C01 SBF/live lineage acceptance gate",
 );
 assert(
   scripts["zk:feedback-loop-check"]?.includes("npm run zk:c01-verifier-adapter-test-candidate-check"),

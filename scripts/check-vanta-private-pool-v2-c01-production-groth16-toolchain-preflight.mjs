@@ -12,6 +12,8 @@ const productionVkPath = "ops/mainnet/private-pool-v2-c01-production-verifying-k
 const localProofPath = "ops/mainnet/private-pool-v2-c01-local-proof-format.evidence.json";
 const sunspotRoutePath = "ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json";
 const devProbePath = "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json";
+const currentSourceCompileAttemptPath =
+  "ops/mainnet/private-pool-v2-c01-current-source-sunspot-compile-attempt.evidence.json";
 const decisionPath = "docs/zk/c01-production-verifier-backend-decision.md";
 const bbPath = resolve(repoRoot, "node_modules/.bin/bb");
 const circuitPath = "zk/noir/vanta_private_pool_v2_actual_private_spend_entry";
@@ -136,6 +138,7 @@ const proofFormat = readJson(proofFormatPath);
 const productionVk = readJson(productionVkPath);
 const localProof = readJson(localProofPath);
 const sunspotRoute = readJson(sunspotRoutePath);
+const currentSourceCompileAttempt = readJson(currentSourceCompileAttemptPath);
 const decision = read(decisionPath);
 
 assert(
@@ -153,6 +156,11 @@ assert(
     "node scripts/check-vanta-private-pool-v2-c01-sunspot-groth16-dev-probe.mjs",
   "package.json must expose zk:c01-sunspot-groth16-dev-probe-check",
 );
+assert(
+  scripts["zk:c01-current-source-sunspot-compile-attempt-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-current-source-sunspot-compile-attempt.mjs",
+  "package.json must expose zk:c01-current-source-sunspot-compile-attempt-check",
+);
 for (const aggregate of ["zk:review-guards-check", "zk:feedback-loop-check"]) {
   assert(
     scripts[aggregate]?.includes("npm run zk:c01-production-groth16-toolchain-preflight-check"),
@@ -165,6 +173,10 @@ for (const aggregate of ["zk:review-guards-check", "zk:feedback-loop-check"]) {
   assert(
     scripts[aggregate]?.includes("npm run zk:c01-sunspot-groth16-dev-probe-check"),
     `${aggregate} must include the Sunspot Groth16 dev-probe guard`,
+  );
+  assert(
+    scripts[aggregate]?.includes("npm run zk:c01-current-source-sunspot-compile-attempt-check"),
+    `${aggregate} must include the current-source Sunspot compile-attempt guard`,
   );
 }
 
@@ -244,6 +256,7 @@ for (const [field, expected] of [
   ["productionVerifyingKeyCandidateRef", productionVkPath],
   ["localProofFormatRef", localProofPath],
   ["sunspotGroth16RouteRef", sunspotRoutePath],
+  ["currentSourceSunspotCompileAttemptRef", currentSourceCompileAttemptPath],
   ["localSunspotGroth16DevProbeRef", devProbePath],
   ["decisionPacketRef", decisionPath],
 ]) {
@@ -302,6 +315,19 @@ assert(
 assert(sunspotRoute.routeId === lane.id, "Sunspot route packet route id must match the preflight lane");
 assert(sunspotRoute.status === lane.status, "Sunspot route packet status must match the preflight lane");
 assert(sunspotRoute.localSunspotGroth16DevProbeRef === devProbePath, "Sunspot route dev-probe ref mismatch");
+assert(
+  sunspotRoute.currentSourceSunspotCompileAttemptRef === currentSourceCompileAttemptPath,
+  "Sunspot route current-source compile-attempt ref mismatch",
+);
+assert(
+  currentSourceCompileAttempt.productionGroth16ToolchainPreflightRef === packetPath,
+  "current-source compile-attempt packet must reference the toolchain preflight",
+);
+assert(
+  currentSourceCompileAttempt.status ===
+    "blocked-current-beta19-acir-bytecode-format-unsupported-by-sunspot-beta18-reader",
+  "current-source compile-attempt status mismatch",
+);
 assert(
   sunspotRoute.productionGroth16ToolchainPreflightRef?.artifactRef === packetPath,
   "Sunspot route packet must reference the toolchain preflight",
@@ -517,6 +543,8 @@ for (const [field, expected] of [
 assertStringArray(packet.blockedBy, "packet blockedBy");
 for (const blocker of [
   "Sunspot README requires Noir/Nargo 1.0.0-beta.18 but local nargo is 1.0.0-beta.19",
+  "local Sunspot beta18 reader panics on the current beta19 source ACIR bytecode format before CCS generation",
+  "latest observed upstream Sunspot main e29fd6586f9a9f936ace0d71c103f5a4e9d9db76 still uses the beta18 function-count ACIR reader and panics on the current beta19 source ACIR before CCS generation",
   "candidate Sunspot/Gnark Groth16 artifact lane is identified but not installed locally and not production-accepted",
 ]) {
   assert(packet.blockedBy.includes(blocker), `packet missing blocker ${blocker}`);
@@ -552,6 +580,7 @@ for (const marker of [
   "ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json",
   "npm run zk:c01-production-groth16-toolchain-preflight-check",
   "npm run zk:c01-sunspot-groth16-route-check",
+  "npm run zk:c01-current-source-sunspot-compile-attempt-check",
   "blocked-local-toolchain-no-groth16-scheme",
 ]) {
   includes(decision, marker, decisionPath);
@@ -559,6 +588,8 @@ for (const marker of [
 
 for (const command of [
   "npm run zk:c01-sunspot-groth16-route-check",
+  "npm run zk:c01-current-source-sunspot-compile-attempt-check",
+  "VANTA_C01_SUNSPOT_BIN=/private/tmp/vanta-c01-sunspot-latest-e29fd658/go/sunspot VANTA_C01_SUNSPOT_COMPILE_ATTEMPT=latest VANTA_C01_SUNSPOT_COMPILE_LIVE=1 npm run zk:c01-current-source-sunspot-compile-attempt-check",
   "npm run zk:c01-production-groth16-toolchain-preflight-check",
   "npm run zk:c01-groth16-proof-format-candidate-check",
   "npm run zk:c01-production-verifying-key-candidate-check",

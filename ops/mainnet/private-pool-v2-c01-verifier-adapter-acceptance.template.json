@@ -1,0 +1,68 @@
+{
+  "version": "vanta-private-pool-v2-c01-verifier-adapter-acceptance-template-0.1",
+  "status": "template-not-verifier-adapter-acceptance",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "secretPolicy": "refs-only-no-raw-proof-vk-witness-pk-keypair-secret-or-signed-transaction-bytes",
+  "purpose": "Refs-only template for reviewed C01 production verifier-adapter acceptance. Copy this shape into an external reviewed acceptance file, fill only refs, hashes, and reviewer decisions, then validate it with VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-verifier-adapter-acceptance-gate-check.",
+  "prerequisites": {
+    "deterministicArtifactBuildRef": null,
+    "productionProofFormatArtifactRef": null,
+    "productionVerifyingKeyArtifactRef": null,
+    "productionVerifyingKeyHash": null,
+    "verifyingKeyHashKind": "production-verifying-key-hash",
+    "publicWitnessArtifactRef": null,
+    "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+    "proofByteLength": 324,
+    "publicWitnessByteLength": 44,
+    "verifierInstructionDataByteLength": 368,
+    "generatedVerifierNrPubinputs": 1,
+    "generatedVerifierCommitmentKeys": 0
+  },
+  "publicInputBinding": {
+    "publicWitnessArtifactRef": null,
+    "decodedPublicInputLabel": "private-spend-public-input-hash",
+    "decodedPublicInputValue": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "publicInputCommitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2",
+    "matchesCurrentH6ProofReceipt": false,
+    "satisfiesProductionPublicInputBinding": false
+  },
+  "adapterAcceptance": {
+    "verifierAdapterAcceptanceRef": null,
+    "verifierAdapterAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
+    "verifierAdapterOrProgramRef": null,
+    "acceptedVerifierBoundary": null,
+    "verifierProgramRef": null,
+    "adapterKind": "in-program-verifier-or-dedicated-verifier-cpi",
+    "satisfiesVerifierAdapterAcceptance": false
+  },
+  "mutationEvidence": {
+    "validProofMutationTestRef": null,
+    "invalidProofNoMutationTestRef": null,
+    "wrongPublicInputNoMutationTestRef": null,
+    "wrongVerifyingKeyNoMutationTestRef": null,
+    "validProofMutatesState": false,
+    "invalidProofLeavesAccountsUnchanged": false,
+    "wrongPublicInputLeavesAccountsUnchanged": false,
+    "wrongVerifyingKeyLeavesAccountsUnchanged": false
+  },
+  "downstreamRequired": {
+    "productionBundleRef": null,
+    "sbfLiveLineageRef": null,
+    "auditReviewerAcceptanceRef": null
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "deterministicArtifactBuild": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "truthBoundary": "This template is not verifier-adapter acceptance and does not close C01. It only defines the refs-only adapter acceptance and mutation/no-mutation evidence shape; SBF/live lineage, final production bundle acceptance, and audit acceptance remain separate."
+}

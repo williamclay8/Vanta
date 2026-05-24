@@ -9,6 +9,8 @@ const preflightPath =
   "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json";
 const acquisitionPath = "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json";
 const devProbePath = "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json";
+const currentSourceCompileAttemptPath =
+  "ops/mainnet/private-pool-v2-c01-current-source-sunspot-compile-attempt.evidence.json";
 const decisionPath = "docs/zk/c01-production-verifier-backend-decision.md";
 const circuitPath = "zk/noir/vanta_private_pool_v2_actual_private_spend_entry";
 const compiledAcirPath = `${circuitPath}/target/vanta_private_pool_v2_actual_private_spend_entry.json`;
@@ -135,6 +137,7 @@ const packetText = read(packetPath);
 const packet = JSON.parse(packetText);
 const preflight = readJson(preflightPath);
 const acquisition = readJson(acquisitionPath);
+const currentSourceCompileAttempt = readJson(currentSourceCompileAttemptPath);
 const decision = read(decisionPath);
 
 assert(
@@ -152,6 +155,11 @@ assert(
     "node scripts/check-vanta-private-pool-v2-c01-sunspot-groth16-dev-probe.mjs",
   "package.json must expose zk:c01-sunspot-groth16-dev-probe-check",
 );
+assert(
+  scripts["zk:c01-current-source-sunspot-compile-attempt-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-current-source-sunspot-compile-attempt.mjs",
+  "package.json must expose zk:c01-current-source-sunspot-compile-attempt-check",
+);
 for (const aggregate of ["zk:review-guards-check", "zk:feedback-loop-check"]) {
   assert(
     scripts[aggregate]?.includes("npm run zk:c01-sunspot-groth16-route-check"),
@@ -164,6 +172,10 @@ for (const aggregate of ["zk:review-guards-check", "zk:feedback-loop-check"]) {
   assert(
     scripts[aggregate]?.includes("npm run zk:c01-sunspot-groth16-dev-probe-check"),
     `${aggregate} must include the Sunspot Groth16 dev-probe guard`,
+  );
+  assert(
+    scripts[aggregate]?.includes("npm run zk:c01-current-source-sunspot-compile-attempt-check"),
+    `${aggregate} must include the current-source Sunspot compile-attempt guard`,
   );
 }
 
@@ -237,6 +249,10 @@ assert(
 );
 assert(packet.decisionPacketRef === decisionPath, "packet decision ref mismatch");
 assert(packet.artifactAcquisitionPacketRef === acquisitionPath, "packet acquisition ref mismatch");
+assert(
+  packet.currentSourceSunspotCompileAttemptRef === currentSourceCompileAttemptPath,
+  "packet current-source compile-attempt ref mismatch",
+);
 assert(packet.localSunspotGroth16DevProbeRef === devProbePath, "packet dev-probe ref mismatch");
 assert(
   preflight.sunspotGroth16RouteRef === packetPath,
@@ -244,7 +260,20 @@ assert(
 );
 assert(acquisition.routePacketRef === packetPath, "artifact acquisition packet must reference route packet");
 assert(acquisition.routeId === packet.routeId, "artifact acquisition route id must match route packet");
+assert(
+  acquisition.currentSourceSunspotCompileAttemptRef === currentSourceCompileAttemptPath,
+  "artifact acquisition current-source compile-attempt ref mismatch",
+);
 assert(acquisition.localSunspotGroth16DevProbeRef === devProbePath, "artifact acquisition dev-probe ref mismatch");
+assert(
+  currentSourceCompileAttempt.routePacketRef === packetPath,
+  "current-source compile-attempt packet must reference route packet",
+);
+assert(
+  currentSourceCompileAttempt.status ===
+    "blocked-current-beta19-acir-bytecode-format-unsupported-by-sunspot-beta18-reader",
+  "current-source compile-attempt status mismatch",
+);
 assert(
   acquisition.status === "blocked-awaiting-reviewed-external-artifact-intake",
   "artifact acquisition packet must remain blocked until reviewed artifacts are returned",
@@ -259,6 +288,10 @@ assert(
 );
 assert(preflight.localSunspotGroth16DevProbeRef === devProbePath, "preflight dev-probe ref mismatch");
 assert(
+  preflight.currentSourceSunspotCompileAttemptRef === currentSourceCompileAttemptPath,
+  "preflight current-source compile-attempt ref mismatch",
+);
+assert(
   packet.localDevProbeSummary?.status ===
     "local-dev-probe-succeeded-nonproduction-unsafe-setup-and-beta18-source-shim",
   "local dev-probe summary status mismatch",
@@ -268,6 +301,7 @@ for (const marker of [
   "temporary beta18 source shim",
   "generated standalone Solana verifier",
   "324-byte proof plus 44-byte public witness",
+  "stale against the current H6 local proof receipt",
   "rejects the legacy 256-byte proof-only shape",
   "spend-program adapter",
   "zero public/secret inputs",
@@ -432,6 +466,8 @@ for (const requirement of [
 }
 for (const blocker of [
   "Sunspot is not installed locally",
+  "local Sunspot beta18 reader panics on the current beta19 source ACIR bytecode format before CCS generation",
+  "latest observed upstream Sunspot main e29fd6586f9a9f936ace0d71c103f5a4e9d9db76 still uses the beta18 function-count ACIR reader and panics on the current beta19 source ACIR before CCS generation",
   "GNARK_VERIFIER_BIN is not configured",
   "Sunspot README requires Noir/Nargo 1.0.0-beta.18 but local nargo is 1.0.0-beta.19",
   "no production trusted setup ceremony or toxic-waste mitigation exists for the exact actual-private-spend circuit",
@@ -459,6 +495,8 @@ assertStringArray(packet.forbiddenPromotions, "packet forbiddenPromotions");
 assertStringArray(packet.canonicalCommands, "packet canonicalCommands");
 for (const command of [
   "npm run zk:c01-sunspot-groth16-route-check",
+  "npm run zk:c01-current-source-sunspot-compile-attempt-check",
+  "VANTA_C01_SUNSPOT_BIN=/private/tmp/vanta-c01-sunspot-latest-e29fd658/go/sunspot VANTA_C01_SUNSPOT_COMPILE_ATTEMPT=latest VANTA_C01_SUNSPOT_COMPILE_LIVE=1 npm run zk:c01-current-source-sunspot-compile-attempt-check",
   "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
   "npm run zk:c01-production-groth16-toolchain-preflight-check",
   "npm run zk:c01-groth16-proof-format-candidate-check",

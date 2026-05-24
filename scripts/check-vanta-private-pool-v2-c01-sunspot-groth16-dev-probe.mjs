@@ -203,8 +203,12 @@ assert(
   "public witness decoded public input value mismatch",
 );
 assert(
-  artifacts.publicWitness?.matchesLocalProofReceiptPublicInput === true,
-  "public witness must match local proof receipt public input",
+  artifacts.publicWitness?.matchesLocalProofReceiptPublicInput === false,
+  "stale beta18 public witness must not claim it matches the current local proof receipt public input",
+);
+assert(
+  artifacts.publicWitness?.staleAgainstCurrentProofReceipt === true,
+  "public witness must record stale current-receipt boundary",
 );
 assert(
   artifacts.publicWitness?.matchesGeneratedVerifierNrPubinputs === true,
@@ -265,6 +269,7 @@ for (const blocker of [
   "rejects the legacy 256-byte proof-only shape",
   "generated standalone Solana verifier accepts the 324-byte proof plus 44-byte public witness",
   "not wired into the spend program",
+  "stale against the current H6 actual-private-spend proof receipt",
   "no valid-proof mutation",
   "no audit or reviewer accepted",
 ]) {
@@ -276,6 +281,7 @@ assertFalseEvidence(packet.satisfiesRequiredPositiveEvidence, "satisfiesRequired
 for (const marker of [
   "not production proof-format evidence",
   "not production verifying-key evidence",
+  "stale against the current H6 local proof receipt",
   "not private-spend-public-input-hash binding acceptance",
   "not verifier-adapter acceptance",
   "not valid-proof mutation evidence",

@@ -1,0 +1,103 @@
+{
+  "version": "vanta-private-pool-v2-c01-production-artifact-bundle-template-0.1",
+  "status": "template-not-production-evidence",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "secretPolicy": "refs-only-no-raw-proof-vk-witness-pk-keypair-secret-or-signed-transaction-bytes",
+  "purpose": "Refs-only template for the reviewed C01 production artifact bundle. Copy this shape into a reviewed external bundle file, fill only artifact/review/test/lineage refs plus hashes and booleans, then validate it with VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check.",
+  "sourceLineage": {
+    "requiredCurrentSourceAcirRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json",
+    "requiredCurrentSourceAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
+    "sourceReviewAcceptanceRef": null,
+    "reviewedSourceMigrationAccepted": false,
+    "returnedSourceAcirRef": null,
+    "returnedSourceAcirSha256": null,
+    "matchesRequiredCurrentSourceAcir": false
+  },
+  "deterministicArtifactBuild": {
+    "buildReceiptRef": null,
+    "deterministicArtifactBuildGateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
+    "pinnedToolchainSourceRef": null,
+    "reviewedToolchainBuildRef": null,
+    "trustedSetupOrMitigationRef": null,
+    "outputManifestRef": null,
+    "reproducibilityReviewRef": null,
+    "satisfiesDeterministicArtifactBuild": false
+  },
+  "proofFormat": {
+    "target": "solana-c01-tag3-groth16-v0",
+    "tag": 3,
+    "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+    "proofSystem": "groth16",
+    "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+    "proofArtifactRef": null,
+    "proofByteLength": 324,
+    "publicWitnessByteLength": 44,
+    "verifierInstructionDataByteLength": 368,
+    "generatedVerifierNrPubinputs": 1,
+    "generatedVerifierCommitmentKeys": 0,
+    "satisfiesProductionProofFormatEvidence": false
+  },
+  "verifyingKey": {
+    "productionVerifyingKeyArtifactRef": null,
+    "productionVerifyingKeyHash": null,
+    "verifyingKeyHashKind": "production-verifying-key-hash",
+    "satisfiesProductionVerifyingKeyEvidence": false
+  },
+  "publicInputBinding": {
+    "publicWitnessArtifactRef": null,
+    "decodedPublicInputLabel": "private-spend-public-input-hash",
+    "decodedPublicInputValue": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "publicInputCommitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2",
+    "matchesCurrentH6ProofReceipt": false,
+    "satisfiesProductionPublicInputBinding": false
+  },
+  "adapterAcceptance": {
+    "verifierAdapterAcceptanceRef": null,
+    "verifierAdapterAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
+    "verifierAdapterOrProgramRef": null,
+    "acceptedVerifierBoundary": null,
+    "satisfiesVerifierAdapterAcceptance": false
+  },
+  "mutationEvidence": {
+    "validProofMutationTestRef": null,
+    "invalidProofNoMutationTestRef": null,
+    "wrongPublicInputNoMutationTestRef": null,
+    "wrongVerifyingKeyNoMutationTestRef": null,
+    "validProofMutatesState": false,
+    "invalidProofLeavesAccountsUnchanged": false,
+    "wrongPublicInputLeavesAccountsUnchanged": false,
+    "wrongVerifyingKeyLeavesAccountsUnchanged": false
+  },
+  "sbfLiveLineage": {
+    "sbfLiveLineageRef": null,
+    "rebuiltSpendSbfSha256": null,
+    "acceptedVerifierSbfSha256": null,
+    "deployedSpendProgramId": null,
+    "deployedVerifierProgramId": null,
+    "tag5ProductionVerifierKeyRegistrationRef": null,
+    "reinitializationOrMigrationReceiptRef": null,
+    "liveProofEnforcedTag3ReceiptRef": null,
+    "satisfiesSbfLiveLineage": false
+  },
+  "auditReviewerAcceptance": {
+    "auditReviewerAcceptanceRef": null,
+    "reviewerAccepted": false
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "sourceReviewAcceptance": false,
+    "deterministicArtifactBuild": false,
+    "productionArtifactAcceptance": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "truthBoundary": "This template is not production evidence and does not close C01. It only defines the refs-only reviewed bundle shape that an external production artifact bundle must satisfy before promotion."
+}

@@ -12,7 +12,7 @@
   "solanaC01Groth16VerifierReady": false,
   "externalArtifactsReady": false,
   "secretPolicy": "metadata-and-hashes-only-no-raw-proof-vk-witness-keypair-or-signed-transaction-bytes",
-  "purpose": "Local route-feasibility probe for C01's selected Sunspot/Gnark Groth16 path. This proves a temporary beta18-compatible actual-private-spend circuit copy can traverse Sunspot compile/setup/prove/verify and build a Solana verifier SBF artifact, while preserving all production acceptance blockers.",
+  "purpose": "Local route-feasibility probe for C01's selected Sunspot/Gnark Groth16 path. This proves a temporary beta18-compatible actual-private-spend circuit copy can traverse Sunspot compile/setup/prove/verify and build a Solana verifier SBF artifact, while preserving all production acceptance blockers and marking the beta18 public witness stale against the current H6 local proof receipt.",
   "routePacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json",
   "productionGroth16ToolchainPreflightRef": "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
   "artifactAcquisitionPacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json",
@@ -148,8 +148,9 @@
       "headerHex": "000000010000000000000001",
       "decodedPublicInputLabel": "private-spend-public-input-hash",
       "decodedPublicInputValue": "0x0421d1c89c8353818f26d6efcd44b4222a2de2b1f14b8287c59728573a90dd32",
-      "matchesLocalProofReceiptPublicInput": true,
+      "matchesLocalProofReceiptPublicInput": false,
       "matchesGeneratedVerifierNrPubinputs": true,
+      "staleAgainstCurrentProofReceipt": true,
       "satisfiesPublicInputBindingEvidence": false
     },
     "generatedVerifierInstructionData": {
@@ -183,6 +184,7 @@
     "observed Groth16 proof is the selected Gnark-native 324-byte proof plus 44-byte public witness; the spend-program tag-3 ABI now reserves that selected tuple fail-closed and rejects the legacy 256-byte proof-only shape",
     "the generated standalone Solana verifier accepts the 324-byte proof plus 44-byte public witness as 368 bytes of instruction data, so Vanta tag-3 still needs an accepted Gnark-native adapter shape",
     "local Solana verifier SBF was built in /private/tmp only and was not wired into the spend program, redeployed, reinitialized, or live verified",
+    "local beta18 public witness is stale against the current H6 actual-private-spend proof receipt and does not satisfy current public-input binding evidence",
     "no valid-proof mutation, invalid-proof no-mutation, wrong-public-input no-mutation, or wrong-verifying-key no-mutation tests ran against a production verifier",
     "no audit or reviewer accepted the Sunspot/Gnark route, setup, proof format, VK, adapter, or SBF lineage"
   ],
@@ -208,5 +210,5 @@
     "npm run zk:c01-production-groth16-toolchain-preflight-check",
     "npm run zk:c01-production-verifier-backend-candidate-check"
   ],
-  "truthBoundary": "This is local dev-probe evidence only. It is not production proof-format evidence, not production verifying-key evidence, not private-spend-public-input-hash binding acceptance, not verifier-adapter acceptance, not valid-proof mutation evidence, not invalid/wrong-input/wrong-key no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, not production privacy, and not C01 closure."
+  "truthBoundary": "This is local dev-probe evidence only. The beta18 public witness decodes as one private-spend-public-input-hash field but is stale against the current H6 local proof receipt. It is not production proof-format evidence, not production verifying-key evidence, not private-spend-public-input-hash binding acceptance, not verifier-adapter acceptance, not valid-proof mutation evidence, not invalid/wrong-input/wrong-key no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, not production privacy, and not C01 closure."
 }

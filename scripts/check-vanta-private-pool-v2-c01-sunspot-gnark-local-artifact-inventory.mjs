@@ -11,6 +11,12 @@ const acquisitionPath = "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-
 const proofFormatPath = "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json";
 const productionVkPath = "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json";
 const decisionPath = "docs/zk/c01-production-verifier-backend-decision.md";
+const currentSourceAcirRef =
+  "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json";
+const currentSourceAcirSha256 =
+  "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9";
+const localBeta18CompiledAcirSha256 =
+  "sha256:5e0e27752ff1c0f01d318323083b168c1309c0c84521401531b42d07033c68bf";
 
 function fail(message) {
   console.error(`private-pool-v2 C01 Sunspot/Gnark local artifact inventory: FAIL - ${message}`);
@@ -177,7 +183,48 @@ assert(packet.toolchainBoundary?.temporarySourceShimCommitted === false, "tempor
 includes(packet.toolchainBoundary?.setupBoundary ?? "", "unsafe-local-single-operator-setup", "setup boundary");
 assert(packet.toolchainBoundary?.satisfiesProductionToolchainReview === false, "toolchain review must remain false");
 
+const sourceLineage = packet.sourceLineageComparison ?? {};
+assert(
+  sourceLineage.status === "local-beta18-artifacts-do-not-match-current-source-acir",
+  "source lineage status mismatch",
+);
+assert(sourceLineage.requiredCurrentSourceAcirRef === currentSourceAcirRef, "source lineage ref mismatch");
+assert(
+  sourceLineage.requiredCurrentSourceAcirSha256 === currentSourceAcirSha256,
+  "source lineage current ACIR hash mismatch",
+);
+assert(sourceLineage.localBeta18CompiledAcirByteLength === 1828305, "source lineage beta18 ACIR byteLength mismatch");
+assert(
+  sourceLineage.localBeta18CompiledAcirSha256 === localBeta18CompiledAcirSha256,
+  "source lineage beta18 ACIR hash mismatch",
+);
+assert(sourceLineage.matchesCurrentSourceAcir === false, "source lineage must record beta18 mismatch");
+assert(
+  sourceLineage.productionBundleMustMatchCurrentSourceAcir === true,
+  "source lineage must require current source ACIR binding",
+);
+assert(
+  sourceLineage.satisfiesProductionSourceLineage === false,
+  "source lineage must not satisfy production source lineage",
+);
+for (const marker of [
+  "temporary beta18 source shim",
+  "does not match the current required source ACIR hash",
+  "cannot satisfy production source lineage",
+  "production proof-format",
+]) {
+  includes(sourceLineage.truthBoundary ?? "", marker, "source lineage truth boundary");
+}
+
 const artifacts = packet.artifacts ?? {};
+assert(artifacts.compiledAcir?.byteLength === 1828305, "compiled ACIR byteLength mismatch");
+assert(artifacts.compiledAcir?.sha256 === localBeta18CompiledAcirSha256, "compiled ACIR hash mismatch");
+assert(artifacts.compiledAcir?.matchesCurrentSourceAcir === false, "compiled ACIR must record source mismatch");
+assert(artifacts.compiledAcir?.rawBytesStoredInRepo === false, "compiled ACIR raw bytes must not be stored");
+assert(
+  artifacts.compiledAcir?.satisfiesProductionSourceLineage === false,
+  "compiled ACIR must not satisfy production source lineage",
+);
 for (const [field, expected] of [
   ["proof", 324],
   ["publicWitness", 44],
@@ -194,7 +241,14 @@ assert(artifacts.proof?.proofFormatId === "gnark-solana-native-proof-and-public-
 assert(artifacts.proof?.satisfiesProductionProofFormatEvidence === false, "proof must not satisfy production evidence");
 assert(artifacts.publicWitness?.sha256 === "sha256:885351f63518202c4fcd120af8ffc296a8706edae14ed4795c11795dfd7f90e3", "public witness hash mismatch");
 assert(artifacts.publicWitness?.headerHex === "000000010000000000000001", "public witness header mismatch");
-assert(artifacts.publicWitness?.matchesLocalProofReceiptPublicInput === true, "public witness must match local receipt");
+assert(
+  artifacts.publicWitness?.matchesLocalProofReceiptPublicInput === false,
+  "stale beta18 public witness must not claim it matches the current local receipt",
+);
+assert(
+  artifacts.publicWitness?.staleAgainstCurrentProofReceipt === true,
+  "public witness must record stale current-receipt boundary",
+);
 assert(
   artifacts.publicWitness?.satisfiesProductionPublicInputBindingEvidence === false,
   "public witness must not satisfy production binding",
@@ -228,6 +282,7 @@ assertFalsePositiveEvidence(packet.satisfiesRequiredPositiveEvidence, "satisfies
 assertStringArray(packet.productionPromotionStillRequires, "productionPromotionStillRequires");
 for (const requirement of [
   "trusted setup ceremony or equivalent toxic-waste mitigation",
+  "production artifacts generated from the current source ACIR hash, not stale beta18 temporary source output",
   "production verifying-key artifact and production verifying-key hash",
   "accepted verifier adapter or verifier CPI wired to Vanta tag 3",
   "invalid-proof, wrong-public-input, and wrong-verifying-key no-mutation under the accepted verifier",
@@ -248,6 +303,7 @@ for (const command of [
 }
 for (const marker of [
   "local nonproduction artifact inventory only",
+  "stale against the current H6 local proof receipt",
   "not production proof-format evidence",
   "not production verifying-key evidence",
   "not verifier-adapter acceptance",
@@ -270,7 +326,7 @@ includes(decision, "C01 Sunspot/Gnark artifact acquisition packet", "decision pa
 
 const rawRoot = process.env.VANTA_C01_SUNSPOT_LOCAL_ARTIFACT_ROOT;
 if (rawRoot) {
-  for (const field of ["proof", "publicWitness", "verifyingKey", "ccs", "solanaVerifierSbf"]) {
+  for (const field of ["compiledAcir", "proof", "publicWitness", "verifyingKey", "ccs", "solanaVerifierSbf"]) {
     verifyRawArtifact(rawRoot, artifacts[field], field);
   }
   verifyRawArtifact(rawRoot, artifacts.provingKey, "provingKey", { checkHash: false });

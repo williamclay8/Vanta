@@ -100,6 +100,19 @@ function actualPrivateSpendWitnessInputFromFixture(fixture) {
     accepted_root: stringify(witness.accepted_root),
     asset_cohort: stringify(witness.asset_cohort),
     context_hash: stringify(witness.context_hash),
+    context_preimage_merchant_address_hi: stringify(
+      witness.context_preimage_merchant_address_hi,
+    ),
+    context_preimage_merchant_address_lo: stringify(
+      witness.context_preimage_merchant_address_lo,
+    ),
+    context_preimage_denomination: stringify(witness.context_preimage_denomination),
+    context_preimage_settlement_epoch_hi: stringify(
+      witness.context_preimage_settlement_epoch_hi,
+    ),
+    context_preimage_settlement_epoch_lo: stringify(
+      witness.context_preimage_settlement_epoch_lo,
+    ),
     input_blinding: stringify(witness.input_blinding),
     input_commitment: stringify(witness.input_commitment),
     input_derivation_tag: stringify(witness.input_derivation_tag),

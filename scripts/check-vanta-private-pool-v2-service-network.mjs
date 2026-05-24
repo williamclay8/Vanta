@@ -1463,10 +1463,19 @@ try {
       `Expected service-network relayer to reject ${fieldName}.`,
     );
     assert(
-      String(forbiddenPrivateSpendSubmission.parsed?.error ?? forbiddenPrivateSpendSubmission.text).includes(
-        `forbids transaction.${fieldName}`,
-      ),
-      `Expected ${fieldName} rejection to name the forbidden field.`,
+      forbiddenPrivateSpendSubmission.parsed?.error === "Request validation failed",
+      `Expected ${fieldName} rejection to use the sanitized validation error.`,
+    );
+    assert(
+      typeof forbiddenPrivateSpendSubmission.parsed?.requestId === "string" &&
+        forbiddenPrivateSpendSubmission.parsed.requestId.startsWith("req_"),
+      `Expected ${fieldName} rejection to include a requestId for server-side log lookup.`,
+    );
+    assert(
+      !String(
+        forbiddenPrivateSpendSubmission.parsed?.error ?? forbiddenPrivateSpendSubmission.text,
+      ).includes(fieldName),
+      `Expected ${fieldName} rejection not to leak the forbidden field name.`,
     );
     const relayerSnapshot = JSON.parse(readFileSync(relayerStorePath, "utf8"));
     assert(

@@ -85,6 +85,15 @@ function toWitnessJson(witness) {
     accepted_root: witness.accepted_root.toString(10),
     asset_cohort: witness.asset_cohort.toString(10),
     context_hash: witness.context_hash.toString(10),
+    context_preimage_merchant_address_hi:
+      witness.context_preimage_merchant_address_hi.toString(10),
+    context_preimage_merchant_address_lo:
+      witness.context_preimage_merchant_address_lo.toString(10),
+    context_preimage_denomination: witness.context_preimage_denomination.toString(10),
+    context_preimage_settlement_epoch_hi:
+      witness.context_preimage_settlement_epoch_hi.toString(10),
+    context_preimage_settlement_epoch_lo:
+      witness.context_preimage_settlement_epoch_lo.toString(10),
     input_blinding: witness.input_blinding.toString(10),
     input_commitment: witness.input_commitment.toString(10),
     input_derivation_tag: witness.input_derivation_tag.toString(10),
@@ -168,6 +177,7 @@ try {
       directionBitsForLeafIndex,
     },
     {
+      computeVantaPrivatePoolV2ActualPrivateSpendContextHash,
       computeVantaPrivatePoolV2ActualPrivateSpendNullifier,
       computeVantaPrivatePoolV2ActualPrivateSpendInputCommitment,
       createVantaPrivatePoolV2ActualPrivateSpendCircuitFixture,
@@ -187,7 +197,11 @@ try {
 
   const witnessBase = {
     asset_cohort: 1202n,
-    context_hash: 1909n,
+    context_preimage_merchant_address_hi: 0n,
+    context_preimage_merchant_address_lo: 17700n,
+    context_preimage_denomination: 1909n,
+    context_preimage_settlement_epoch_hi: 0n,
+    context_preimage_settlement_epoch_lo: 84n,
     input_blinding: 9404n,
     input_derivation_tag: 9405n,
     leaf_index: 42n,
@@ -222,6 +236,7 @@ try {
     ...witnessWithRoot,
     nullifier: computeVantaPrivatePoolV2ActualPrivateSpendNullifier(witnessWithRoot),
   };
+  witness.context_hash = computeVantaPrivatePoolV2ActualPrivateSpendContextHash(witness);
   const witnessJson = toWitnessJson(witness);
   const fixture =
     createVantaPrivatePoolV2ActualPrivateSpendCircuitFixtureFromWitnessInput(witnessJson);
@@ -274,6 +289,16 @@ try {
         input_blinding: (BigInt(witnessJson.input_blinding) + 1n).toString(10),
       }),
     "input_commitment",
+  );
+  expectThrow(
+    () =>
+      createVantaPrivatePoolV2ActualPrivateSpendCircuitFixtureFromWitnessInput({
+        ...witnessJson,
+        context_preimage_merchant_address_lo: (
+          BigInt(witnessJson.context_preimage_merchant_address_lo) + 1n
+        ).toString(10),
+      }),
+    "context_hash",
   );
   expectThrow(
     () =>

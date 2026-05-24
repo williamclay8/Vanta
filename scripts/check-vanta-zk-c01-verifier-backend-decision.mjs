@@ -98,10 +98,81 @@ for (const marker of [
   "C01 Sunspot/Gnark artifact acquisition packet",
   "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json",
   "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
+  "C01 beta18 source-migration candidate packet",
+  "ops/mainnet/private-pool-v2-c01-beta18-source-migration-candidate.evidence.json",
+  "npm run zk:c01-beta18-source-migration-candidate-check",
+  "blocked-no-reviewed-beta18-source-migration",
+  "pre-H6 and comparison-only",
+  "reviewed source migration",
+  "computed_context_hash == context_hash",
+  "C01 beta18 H6 migration probe packet",
+  "ops/mainnet/private-pool-v2-c01-beta18-h6-migration-probe.evidence.json",
+  "npm run zk:c01-beta18-h6-migration-probe-check",
+  "local-h6-beta18-migration-probe-succeeded-nonproduction-unsafe-setup",
+  "public witness matches the current H6 proof receipt",
+  "C01 beta18 H6 source-migration review packet",
+  "ops/mainnet/private-pool-v2-c01-beta18-h6-source-migration-review.evidence.json",
+  "npm run zk:c01-beta18-h6-source-migration-review-check",
+  "reviewable-beta18-h6-source-migration-candidate-local-only",
+  "poseidon-import-path-only",
+  "C01 beta18 H6 source-review acceptance gate",
+  "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance.template.json",
+  "npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
+  "VANTA_C01_BETA18_H6_SOURCE_REVIEW_ACCEPTANCE_PATH=<reviewed-refs-only-json>",
+  "blocked-no-external-source-review-acceptance",
+  "C01 verifier-adapter acceptance gate",
+  "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance.template.json",
+  "npm run zk:c01-verifier-adapter-acceptance-gate-check",
+  "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-refs-only-json>",
+  "blocked-no-production-verifier-adapter-acceptance",
   "Production Artifact Acceptance Gate packet",
   "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-production-artifact-bundle.template.json",
+  "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check",
   "npm run zk:c01-production-artifact-acceptance-gate-check",
   "blocked-no-reviewed-production-artifact-bundle",
+  "current source ACIR hash",
+  "external source-review acceptance",
+  "current H6 proof receipt public input and commitment",
+  "rather than passing by byte lengths alone",
+  "C01 SBF/live lineage candidate packet",
+  "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-candidate.evidence.json",
+  "npm run zk:c01-sbf-live-lineage-candidate-check",
+  "blocked-no-rebuilt-redeployed-reinitialized-live-lineage",
+  "C01 SBF/live lineage acceptance gate",
+  "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance-gate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance.template.json",
+  "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
+  "VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH=<reviewed-refs-only-json>",
+  "blocked-no-sbf-live-lineage-acceptance",
+  "not SBF/live lineage",
+  "C01 audit/reviewer acceptance gate",
+  "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance-gate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance.template.json",
+  "npm run zk:c01-audit-reviewer-acceptance-gate-check",
+  "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-refs-only-json>",
+  "blocked-no-audit-reviewer-acceptance",
+  "C01 verifier evidence closure gate",
+  "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json",
+  "npm run zk:c01-verifier-evidence-closure-gate-check",
+  "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-bundle-json>",
+  "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-adapter-json>",
+  "VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH=<reviewed-lineage-json>",
+  "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-audit-json>",
+  "blocked-no-complete-c01-verifier-evidence-chain",
+  "C01 external reviewer handoff packet",
+  "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json",
+  "npm run zk:c01-external-review-handoff-check",
+  "ready-for-external-c01-verifier-review-handoff-blocked",
+  "source-review acceptance",
+  "deterministic production artifact build",
+  "production artifact bundle",
+  "verifier-adapter acceptance",
+  "SBF/live lineage acceptance",
+  "audit/reviewer acceptance",
+  "composite evidence-chain closure",
   "C01 Sunspot/Gnark local dev probe",
   "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
   "npm run zk:c01-sunspot-groth16-dev-probe-check",
@@ -115,6 +186,10 @@ for (const marker of [
   "C01 local public-witness binding observation",
   "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
   "npm run zk:c01-public-witness-binding-check",
+  "local-public-witness-decoded-stale-against-current-proof-receipt",
+  "stale against the current H6 Noir/bb receipt",
+  "local beta18 compiled ACIR does not match the current source ACIR hash",
+  "current H6 proof receipt public input and commitment before production public-input binding can promote",
   "not production public-input binding evidence",
   "Production Verifying-Key Candidate packet",
   "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
@@ -136,10 +211,11 @@ for (const marker of [
   "324-byte proof plus 44-byte public-witness tuple",
   "npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check",
   "local unsafe generated-verifier CPI harness",
-  "accepts the local unsafe proof/public-witness tuple",
+  "accepts the local unsafe H6 proof/public-witness tuple",
   "rejects a tampered proof without mutation",
   "rejects a wrong public input hash without mutation",
   "rejects a wrong executable verifier program without mutation",
+  "rejects a wrong-verifying-key local unsafe path",
   "not tag-3 production proof acceptance",
   "local drift-prevention only",
   "not verifier-adapter acceptance",
@@ -189,7 +265,12 @@ for (const marker of [
   "ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json",
   "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
   "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-candidate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance-gate.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance.template.json",
   "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+  "npm run zk:c01-sbf-live-lineage-candidate-check",
+  "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
   "npm run zk:c01-verifier-adapter-seam-check",
   "local fail-closed verifier adapter seam harness",
   "not verifier-adapter acceptance",
@@ -202,7 +283,60 @@ for (const marker of [
   "local-dev-probe-succeeded-nonproduction-unsafe-setup-and-beta18-source-shim",
   "Sunspot/Nargo compatibility blocker",
   "nargo 1.0.0-beta.19",
-]) {
+  "C01 production artifact H6 binding gate",
+    "current source ACIR hash",
+    "cannot promote by byte lengths alone",
+    "ops/mainnet/private-pool-v2-c01-beta18-source-migration-candidate.evidence.json",
+    "ops/mainnet/private-pool-v2-c01-beta18-h6-migration-probe.evidence.json",
+    "npm run zk:c01-beta18-h6-migration-probe-check",
+    "local-h6-beta18-migration-probe-succeeded-nonproduction-unsafe-setup",
+    "ops/mainnet/private-pool-v2-c01-beta18-h6-source-migration-review.evidence.json",
+    "npm run zk:c01-beta18-h6-source-migration-review-check",
+    "reviewable-beta18-h6-source-migration-candidate-local-only",
+    "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
+    "npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
+    "blocked-no-external-source-review-acceptance",
+    "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
+    "npm run zk:c01-deterministic-production-artifact-build-check",
+    "blocked-no-deterministic-production-artifact-build-receipt",
+    "C01 verifier-adapter acceptance gate",
+    "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
+    "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance.template.json",
+    "npm run zk:c01-verifier-adapter-acceptance-gate-check",
+    "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-refs-only-json>",
+    "blocked-no-production-verifier-adapter-acceptance",
+    "C01 SBF/live lineage acceptance gate",
+    "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance-gate.evidence.json",
+    "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance.template.json",
+    "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
+    "VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH=<reviewed-refs-only-json>",
+    "blocked-no-sbf-live-lineage-acceptance",
+    "C01 audit/reviewer acceptance gate",
+    "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance-gate.evidence.json",
+    "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance.template.json",
+    "npm run zk:c01-audit-reviewer-acceptance-gate-check",
+    "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-refs-only-json>",
+    "blocked-no-audit-reviewer-acceptance",
+    "C01 verifier evidence closure gate",
+    "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json",
+    "npm run zk:c01-verifier-evidence-closure-gate-check",
+    "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-bundle-json>",
+    "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-adapter-json>",
+    "VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH=<reviewed-lineage-json>",
+    "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-audit-json>",
+    "blocked-no-complete-c01-verifier-evidence-chain",
+    "C01 external reviewer handoff packet",
+    "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json",
+    "npm run zk:c01-external-review-handoff-check",
+    "ready-for-external-c01-verifier-review-handoff-blocked",
+    "source-review acceptance",
+    "deterministic production artifact build",
+    "production artifact bundle",
+    "verifier-adapter acceptance",
+    "SBF/live lineage acceptance",
+    "audit/reviewer acceptance",
+    "composite evidence-chain closure",
+  ]) {
   includes(w6ReviewSection, marker, "VANTA_ZK_REVIEW W6 C01 decision pointer");
 }
 
@@ -221,6 +355,16 @@ for (const source of [runbook, audit]) {
   );
   includes(
     source,
+    "npm run zk:c01-sbf-live-lineage-candidate-check",
+    "C01 SBF/live lineage candidate guard handoff",
+  );
+  includes(
+    source,
+    "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
+    "C01 SBF/live lineage acceptance gate handoff",
+  );
+  includes(
+    source,
     "npm run zk:c01-verifier-adapter-test-candidate-check",
     "C01 verifier adapter-test candidate guard handoff",
   );
@@ -233,6 +377,31 @@ for (const source of [runbook, audit]) {
     source,
     "npm run zk:c01-production-artifact-acceptance-gate-check",
     "C01 production artifact acceptance gate guard handoff",
+  );
+  includes(
+    source,
+    "npm run zk:c01-deterministic-production-artifact-build-check",
+    "C01 deterministic production artifact build guard handoff",
+  );
+  includes(
+    source,
+    "npm run zk:c01-verifier-adapter-acceptance-gate-check",
+    "C01 verifier-adapter acceptance gate guard handoff",
+  );
+  includes(
+    source,
+    "npm run zk:c01-audit-reviewer-acceptance-gate-check",
+    "C01 audit/reviewer acceptance gate guard handoff",
+  );
+  includes(
+    source,
+    "npm run zk:c01-verifier-evidence-closure-gate-check",
+    "C01 verifier evidence closure gate guard handoff",
+  );
+  includes(
+    source,
+    "npm run zk:c01-external-review-handoff-check",
+    "C01 external reviewer handoff guard handoff",
   );
   includes(
     source,
@@ -260,6 +429,53 @@ for (const source of [runbook, audit]) {
     "C01 public-witness binding guard handoff",
   );
   includes(source, "not production public-input binding evidence", "C01 public-witness binding truth handoff");
+  includes(
+    source,
+    "ops/mainnet/private-pool-v2-c01-beta18-source-migration-candidate.evidence.json",
+    "C01 beta18 source-migration candidate handoff",
+  );
+  includes(
+    source,
+    "npm run zk:c01-beta18-source-migration-candidate-check",
+    "C01 beta18 source-migration candidate guard handoff",
+  );
+  includes(
+    source,
+    "ops/mainnet/private-pool-v2-c01-beta18-h6-migration-probe.evidence.json",
+    "C01 beta18 H6 migration probe handoff",
+  );
+  includes(
+    source,
+    "npm run zk:c01-beta18-h6-migration-probe-check",
+    "C01 beta18 H6 migration probe guard handoff",
+  );
+  includes(
+    source,
+    "local-h6-beta18-migration-probe-succeeded-nonproduction-unsafe-setup",
+    "C01 beta18 H6 migration probe status handoff",
+  );
+  includes(
+    source,
+    "public witness matches the current H6 proof receipt",
+    "C01 beta18 H6 public-witness truth handoff",
+  );
+  includes(
+    source,
+    "ops/mainnet/private-pool-v2-c01-beta18-h6-source-migration-review.evidence.json",
+    "C01 beta18 H6 source-migration review handoff",
+  );
+  includes(
+    source,
+    "npm run zk:c01-beta18-h6-source-migration-review-check",
+    "C01 beta18 H6 source-migration review guard handoff",
+  );
+  includes(
+    source,
+    "reviewable-beta18-h6-source-migration-candidate-local-only",
+    "C01 beta18 H6 source-migration review status handoff",
+  );
+  includes(source, "poseidon-import-path-only", "C01 beta18 H6 source-migration delta handoff");
+  includes(source, "reviewed source migration", "C01 source-migration truth handoff");
   includes(
     source,
     "npm run zk:c01-positive-proof-verified-claim-gate-check",
@@ -318,9 +534,29 @@ assert(
   "package.json must expose zk:c01-sunspot-gnark-artifact-acquisition-check",
 );
 assert(
+  packageJson.scripts?.["zk:c01-beta18-source-migration-candidate-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-beta18-source-migration-candidate.mjs",
+  "package.json must expose zk:c01-beta18-source-migration-candidate-check",
+);
+assert(
+  packageJson.scripts?.["zk:c01-beta18-h6-migration-probe-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-beta18-h6-migration-probe.mjs",
+  "package.json must expose zk:c01-beta18-h6-migration-probe-check",
+);
+assert(
+  packageJson.scripts?.["zk:c01-beta18-h6-source-migration-review-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-beta18-h6-source-migration-review.mjs",
+  "package.json must expose zk:c01-beta18-h6-source-migration-review-check",
+);
+assert(
   packageJson.scripts?.["zk:c01-production-artifact-acceptance-gate-check"] ===
     "node scripts/check-vanta-private-pool-v2-c01-production-artifact-acceptance-gate.mjs",
   "package.json must expose zk:c01-production-artifact-acceptance-gate-check",
+);
+assert(
+  packageJson.scripts?.["zk:c01-verifier-adapter-acceptance-gate-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-verifier-adapter-acceptance-gate.mjs",
+  "package.json must expose zk:c01-verifier-adapter-acceptance-gate-check",
 );
 assert(
   packageJson.scripts?.["zk:c01-sunspot-groth16-dev-probe-check"] ===
@@ -338,6 +574,16 @@ assert(
   "package.json must expose zk:c01-production-verifying-key-candidate-check",
 );
 assert(
+  packageJson.scripts?.["zk:c01-sbf-live-lineage-candidate-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-sbf-live-lineage-candidate.mjs",
+  "package.json must expose zk:c01-sbf-live-lineage-candidate-check",
+);
+assert(
+  packageJson.scripts?.["zk:c01-sbf-live-lineage-acceptance-gate-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-sbf-live-lineage-acceptance-gate.mjs",
+  "package.json must expose zk:c01-sbf-live-lineage-acceptance-gate-check",
+);
+assert(
   packageJson.scripts?.["zk:c01-verifier-adapter-test-candidate-check"] ===
     "node scripts/check-vanta-private-pool-v2-c01-verifier-adapter-test-candidate.mjs",
   "package.json must expose zk:c01-verifier-adapter-test-candidate-check",
@@ -346,6 +592,21 @@ assert(
   packageJson.scripts?.["zk:c01-positive-proof-verified-claim-gate-check"] ===
     "node scripts/check-vanta-private-pool-v2-c01-positive-proof-verified-claim-gate.mjs",
   "package.json must expose zk:c01-positive-proof-verified-claim-gate-check",
+);
+assert(
+  packageJson.scripts?.["zk:c01-audit-reviewer-acceptance-gate-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-audit-reviewer-acceptance-gate.mjs",
+  "package.json must expose zk:c01-audit-reviewer-acceptance-gate-check",
+);
+assert(
+  packageJson.scripts?.["zk:c01-verifier-evidence-closure-gate-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-verifier-evidence-closure-gate.mjs",
+  "package.json must expose zk:c01-verifier-evidence-closure-gate-check",
+);
+assert(
+  packageJson.scripts?.["zk:c01-external-review-handoff-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-external-review-handoff.mjs",
+  "package.json must expose zk:c01-external-review-handoff-check",
 );
 assert(
   packageJson.scripts?.["zk:c01-verifier-adapter-seam-check"]?.includes(
@@ -410,9 +671,63 @@ assert(
 );
 assert(
   packageJson.scripts?.["zk:review-guards-check"]?.includes(
+    "npm run zk:c01-beta18-source-migration-candidate-check",
+  ),
+  "zk:review-guards-check must include the C01 beta18 source-migration candidate guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes(
+    "npm run zk:c01-beta18-h6-migration-probe-check",
+  ),
+  "zk:review-guards-check must include the C01 beta18 H6 migration probe guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes(
+    "npm run zk:c01-beta18-h6-source-migration-review-check",
+  ),
+  "zk:review-guards-check must include the C01 beta18 H6 source-migration review guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes(
+    "npm run zk:c01-deterministic-production-artifact-build-check",
+  ),
+  "zk:review-guards-check must include the C01 deterministic production artifact build guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes(
     "npm run zk:c01-production-artifact-acceptance-gate-check",
   ),
   "zk:review-guards-check must include the C01 production artifact acceptance gate guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes(
+    "npm run zk:c01-verifier-adapter-acceptance-gate-check",
+  ),
+  "zk:review-guards-check must include the C01 verifier-adapter acceptance gate guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes(
+    "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
+  ),
+  "zk:review-guards-check must include the C01 SBF/live lineage acceptance gate",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes(
+    "npm run zk:c01-audit-reviewer-acceptance-gate-check",
+  ),
+  "zk:review-guards-check must include the C01 audit/reviewer acceptance gate guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes(
+    "npm run zk:c01-verifier-evidence-closure-gate-check",
+  ),
+  "zk:review-guards-check must include the C01 verifier evidence closure gate guard",
+);
+assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes(
+    "npm run zk:c01-external-review-handoff-check",
+  ),
+  "zk:review-guards-check must include the C01 external reviewer handoff guard",
 );
 assert(
   packageJson.scripts?.["zk:review-guards-check"]?.includes("npm run zk:c01-sunspot-groth16-dev-probe-check"),
@@ -476,9 +791,63 @@ assert(
 );
 assert(
   packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
+    "npm run zk:c01-beta18-source-migration-candidate-check",
+  ),
+  "zk:feedback-loop-check must include the C01 beta18 source-migration candidate guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
+    "npm run zk:c01-beta18-h6-migration-probe-check",
+  ),
+  "zk:feedback-loop-check must include the C01 beta18 H6 migration probe guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
+    "npm run zk:c01-beta18-h6-source-migration-review-check",
+  ),
+  "zk:feedback-loop-check must include the C01 beta18 H6 source-migration review guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
+    "npm run zk:c01-deterministic-production-artifact-build-check",
+  ),
+  "zk:feedback-loop-check must include the C01 deterministic production artifact build guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
     "npm run zk:c01-production-artifact-acceptance-gate-check",
   ),
   "zk:feedback-loop-check must include the C01 production artifact acceptance gate guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
+    "npm run zk:c01-verifier-adapter-acceptance-gate-check",
+  ),
+  "zk:feedback-loop-check must include the C01 verifier-adapter acceptance gate guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
+    "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
+  ),
+  "zk:feedback-loop-check must include the C01 SBF/live lineage acceptance gate",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
+    "npm run zk:c01-audit-reviewer-acceptance-gate-check",
+  ),
+  "zk:feedback-loop-check must include the C01 audit/reviewer acceptance gate guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
+    "npm run zk:c01-verifier-evidence-closure-gate-check",
+  ),
+  "zk:feedback-loop-check must include the C01 verifier evidence closure gate guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
+    "npm run zk:c01-external-review-handoff-check",
+  ),
+  "zk:feedback-loop-check must include the C01 external reviewer handoff guard",
 );
 assert(
   packageJson.scripts?.["zk:feedback-loop-check"]?.includes("npm run zk:c01-sunspot-groth16-dev-probe-check"),

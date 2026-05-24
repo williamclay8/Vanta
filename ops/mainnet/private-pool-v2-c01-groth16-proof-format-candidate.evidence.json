@@ -89,18 +89,19 @@
     "status": "local-observation-only"
   },
   "localSunspotPublicWitnessBindingObservation": {
-    "status": "local-public-witness-binding-observed-not-production",
+    "status": "local-public-witness-decoded-stale-against-current-proof-receipt",
     "artifactRef": "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
     "command": "npm run zk:c01-public-witness-binding-check",
     "publicWitnessByteLength": 44,
     "publicWitnessHeaderHex": "000000010000000000000001",
     "decodedPublicInputLabel": "private-spend-public-input-hash",
     "publicInputValueRef": "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
-    "matchesLocalProofReceiptPublicInput": true,
+    "matchesLocalProofReceiptPublicInput": false,
     "matchesGeneratedVerifierNrPubinputs": true,
+    "staleAgainstCurrentProofReceipt": true,
     "satisfiesPrivateSpendPublicInputHashBinding": false,
     "satisfiesProductionProofFormatEvidence": false,
-    "truthBoundary": "The local public-witness file decodes to the local receipt's private-spend-public-input-hash, but this observation is local/nonproduction and does not satisfy production private-spend-public-input-hash binding evidence."
+    "truthBoundary": "The local beta18 public-witness file decodes as one private-spend-public-input-hash field, but it is stale against the current H6 local proof receipt and does not satisfy production private-spend-public-input-hash binding evidence."
   },
   "localSunspotGroth16DevProbeObservation": {
     "status": "local-dev-probe-succeeded-nonproduction-unsafe-setup-and-beta18-source-shim",
@@ -138,7 +139,7 @@
     "currentSpendProgramReservedAbi": "current spend-program tag 3 now reserves the selected 324-byte proof plus 44-byte public-witness tuple fail-closed, rejects the legacy 256-byte proof-only payload shape, and still needs an accepted Gnark-native adapter shape",
     "localSunspotDevProbeProofByteLength": "local Sunspot/Gnark dev probe produced the selected Gnark-native 324-byte proof plus 44-byte public witness accepted by its generated standalone verifier",
     "localSunspotDevProbePublicWitnessShape": "local Sunspot/Gnark generated verifier expects one public input and 44-byte public witness; required Vanta evidence must bind private-spend-public-input-hash through an accepted adapter shape",
-    "localSunspotDevProbePublicInputBinding": "local public-witness bytes decode to private-spend-public-input-hash and match the local proof receipt, while Sunspot compile output still reported zero public and zero secret inputs; required production evidence must bind private-spend-public-input-hash through an accepted adapter shape",
+    "localSunspotDevProbePublicInputBinding": "local beta18 public-witness bytes decode to private-spend-public-input-hash but are stale against the current H6 local proof receipt, while Sunspot compile output still reported zero public and zero secret inputs; required production evidence must bind private-spend-public-input-hash through an accepted adapter shape",
     "verifyingKeyHashKind": "current local metadata is local-acir-bytecode-hash-not-production-vk; required candidate key evidence is production-verifying-key-hash"
   },
   "blockedBy": [
@@ -148,7 +149,7 @@
     "local Sunspot/Gnark dev probe used unsafe local setup and a beta18-only temporary source shim",
     "local Sunspot/Gnark dev probe produced the selected Gnark-native 324-byte proof plus 44-byte public witness accepted by a generated standalone verifier",
     "current spend-program tag 3 now reserves the selected Gnark-native 324-byte proof plus 44-byte public-witness tuple fail-closed and rejects the legacy 256-byte proof-only shape, but still needs an accepted adapter shape",
-    "local Sunspot/Gnark public-witness bytes decode to private-spend-public-input-hash and match the local proof receipt, but the observation is local/nonproduction, Sunspot compile output still reported zero public and zero secret inputs, and production private-spend-public-input-hash binding is not accepted",
+    "local Sunspot/Gnark beta18 public-witness bytes decode to private-spend-public-input-hash but are stale against the current H6 local proof receipt; the observation is local/nonproduction, Sunspot compile output still reported zero public and zero secret inputs, and production private-spend-public-input-hash binding is not accepted",
     "current local proof observation is noir-bb / barretenberg-ultrahonk / 16000 bytes",
     "no production verifying-key hash artifact exists",
     "source-only tag 5 registry metadata is not production verifying-key evidence",

@@ -1,0 +1,61 @@
+{
+  "version": "vanta-private-pool-v2-c01-sbf-live-lineage-acceptance-template-0.1",
+  "status": "template-not-sbf-live-lineage",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "secretPolicy": "refs-only-no-keypairs-secrets-signed-transactions-or-live-private-data",
+  "purpose": "Refs-only template for reviewed C01 SBF/live lineage acceptance. Copy this shape into an external reviewed acceptance file, fill only refs, hashes, program ids, and reviewer decisions, then validate it with VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-sbf-live-lineage-acceptance-gate-check.",
+  "prerequisites": {
+    "productionArtifactBundleRef": null,
+    "productionArtifactAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+    "verifierAdapterAcceptanceRef": null,
+    "verifierAdapterAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
+    "productionProofFormatArtifactRef": null,
+    "productionVerifyingKeyArtifactRef": null,
+    "productionVerifyingKeyHash": null,
+    "verifyingKeyHashKind": "production-verifying-key-hash",
+    "currentH6PublicInputBindingRef": null
+  },
+  "programLineage": {
+    "sourceAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
+    "spendProgramSbfHash": null,
+    "acceptedVerifierProgramSbfHash": null,
+    "spendProgramId": null,
+    "verifierProgramId": null,
+    "verifierProgramKind": "dedicated-verifier-cpi-or-reviewed-in-program-verifier",
+    "acceptedVerifierProgramRef": null,
+    "verifierKeyRecordRef": null,
+    "verifierKeyRecordBindsProductionVkHash": false,
+    "verifierKeyRecordBindsVerifierProgramId": false
+  },
+  "liveEvidence": {
+    "spendProgramDeploymentRef": null,
+    "verifierProgramDeploymentRef": null,
+    "poolReinitializationOrMigrationRef": null,
+    "verifierKeyRegistrationRef": null,
+    "liveProofEnforcedSpendRef": null,
+    "reviewerAcceptedDryRunRef": null,
+    "evidenceKind": "tx-or-reviewer-accepted-dry-run",
+    "sameSourceVkAdapterLineage": false
+  },
+  "lineageAcceptance": {
+    "sbfLiveLineageRef": null,
+    "sbfLiveLineageAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance-gate.evidence.json",
+    "acceptedForC01": false,
+    "satisfiesSbfLiveLineage": false
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "productionArtifactAcceptance": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "truthBoundary": "This template is not SBF/live lineage and does not close C01. It only defines the refs-only lineage evidence shape; production artifact acceptance, verifier-adapter acceptance, mutation/no-mutation evidence, and audit acceptance remain separate."
+}

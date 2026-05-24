@@ -1,6 +1,6 @@
 {
   "version": "vanta-private-pool-v2-c01-sunspot-groth16-route-evidence-0.1",
-  "checkedAt": "2026-05-20T00:00:00.000Z",
+  "checkedAt": "2026-05-23T00:00:00.000Z",
   "status": "blocked-sunspot-toolchain-not-installed-and-no-production-trusted-setup",
   "backendOptionId": "groth16-tag3-solana-v0",
   "selectedBackend": "groth16-tag3-solana-v0",
@@ -20,6 +20,7 @@
     "truthBoundary": "The preflight records that local bb can produce UltraHonk artifacts but not the required Groth16 production artifact lane."
   },
   "artifactAcquisitionPacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json",
+  "currentSourceSunspotCompileAttemptRef": "ops/mainnet/private-pool-v2-c01-current-source-sunspot-compile-attempt.evidence.json",
   "localSunspotGroth16DevProbeRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
   "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
   "requiredProductionArtifactShape": {
@@ -47,7 +48,7 @@
     "compiledAcirByteLength": 1840868,
     "compiledAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
     "compressedWitnessRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.gz",
-    "compressedWitnessByteLength": 546926,
+    "compressedWitnessByteLength": 563801,
     "compressedWitnessHashStored": false,
     "compressedWitnessValuesStored": false,
     "poseidonDependency": "noir-lang/poseidon#v0.1.1",
@@ -157,6 +158,8 @@
   ],
   "blockedBy": [
     "Sunspot is not installed locally",
+    "local Sunspot beta18 reader panics on the current beta19 source ACIR bytecode format before CCS generation",
+    "latest observed upstream Sunspot main e29fd6586f9a9f936ace0d71c103f5a4e9d9db76 still uses the beta18 function-count ACIR reader and panics on the current beta19 source ACIR before CCS generation",
     "GNARK_VERIFIER_BIN is not configured",
     "Sunspot README requires Noir/Nargo 1.0.0-beta.18 but local nargo is 1.0.0-beta.19",
     "local @aztec/bb.js 4.1.3 exposes chonk, avm, and ultra_honk schemes but no Groth16 scheme",
@@ -169,7 +172,7 @@
     "status": "local-dev-probe-succeeded-nonproduction-unsafe-setup-and-beta18-source-shim",
     "artifactRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
     "routeFeasibilityLocalDevProbe": true,
-    "truthBoundary": "A temporary beta18 source shim could traverse Sunspot compile/setup/prove/verify, build a local verifier SBF artifact, and pass the generated standalone Solana verifier in local LiteSVM with the selected Gnark-native 324-byte proof plus 44-byte public witness. The setup was unsafe, the current spend-program tag-3 ABI now reserves that selected tuple fail-closed and rejects the legacy 256-byte proof-only shape, Sunspot compile output reported zero public/secret inputs while the generated verifier records one public input, and no production proof/VK/spend-program adapter/live/audit evidence is accepted."
+    "truthBoundary": "A temporary beta18 source shim could traverse Sunspot compile/setup/prove/verify, build a local verifier SBF artifact, and pass the generated standalone Solana verifier in local LiteSVM with the selected Gnark-native 324-byte proof plus 44-byte public witness. The setup was unsafe, the beta18 public witness is stale against the current H6 local proof receipt, the current spend-program tag-3 ABI now reserves that selected tuple fail-closed and rejects the legacy 256-byte proof-only shape, Sunspot compile output reported zero public/secret inputs while the generated verifier records one public input, and no production proof/VK/spend-program adapter/live/audit evidence is accepted."
   },
   "satisfiesRequiredPositiveEvidence": {
     "backendSelection": true,
@@ -194,6 +197,8 @@
   ],
   "canonicalCommands": [
     "npm run zk:c01-sunspot-groth16-route-check",
+    "npm run zk:c01-current-source-sunspot-compile-attempt-check",
+    "VANTA_C01_SUNSPOT_BIN=/private/tmp/vanta-c01-sunspot-latest-e29fd658/go/sunspot VANTA_C01_SUNSPOT_COMPILE_ATTEMPT=latest VANTA_C01_SUNSPOT_COMPILE_LIVE=1 npm run zk:c01-current-source-sunspot-compile-attempt-check",
     "npm run zk:c01-sunspot-groth16-dev-probe-check",
     "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
     "npm run zk:c01-production-groth16-toolchain-preflight-check",

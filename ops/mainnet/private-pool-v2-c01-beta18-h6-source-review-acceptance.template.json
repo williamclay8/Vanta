@@ -1,0 +1,58 @@
+{
+  "version": "vanta-private-pool-v2-c01-beta18-h6-source-review-acceptance-template-0.1",
+  "status": "template-not-review-acceptance",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "secretPolicy": "refs-only-no-raw-proof-vk-witness-pk-keypair-secret-or-signed-transaction-bytes",
+  "purpose": "Refs-only template for external reviewer acceptance of the C01 beta18 H6 source migration candidate. Copy this shape into an external reviewed acceptance file, fill only refs and reviewer decisions, then validate it with VANTA_C01_BETA18_H6_SOURCE_REVIEW_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-beta18-h6-source-review-acceptance-gate-check.",
+  "candidate": {
+    "sourceReviewPacketRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-migration-review.evidence.json",
+    "candidateSourceRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry_sunspot_beta18_h6_candidate/src/main.nr",
+    "candidateSourceSha256": "sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430",
+    "currentSourceRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr",
+    "currentSourceSha256": "sha256:363d7dffa7ba03698a8bdbe2d48a6f13cf32ddeb7326fb997ff9cff63db8bf96",
+    "compatibilityDelta": "poseidon-import-path-only",
+    "localValidationCommand": "noirup -v 1.0.0-beta.18 && nargo check"
+  },
+  "reviewerAcceptance": {
+    "acceptanceRef": null,
+    "reviewerRef": null,
+    "reviewerRole": null,
+    "acceptedAt": null,
+    "scope": "source-migration-only",
+    "reviewerAcceptedSourceMigration": false
+  },
+  "sourceFindings": {
+    "normalizedSourceMatchesCurrent": true,
+    "importPathOnlyDelta": true,
+    "h6SemanticsPreserved": true,
+    "proverFixtureMatchesCurrent": true,
+    "beta18NargoCheckObserved": true,
+    "noRawSecretsOrWitnessMaterial": true
+  },
+  "downstreamRequired": {
+    "toolchainReviewRef": null,
+    "trustedSetupOrMitigationRef": null,
+    "deterministicArtifactBuildRef": null,
+    "productionBundleRef": null,
+    "adapterAcceptanceRef": null,
+    "sbfLiveLineageRef": null,
+    "auditReviewerAcceptanceRef": null
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "sourceReviewAcceptance": false,
+    "reviewedSourceMigration": false,
+    "productionSourceLineage": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "truthBoundary": "This template is not reviewer acceptance and does not close C01. It only defines the refs-only source-review acceptance shape for the beta18 H6 source migration candidate; production proof/VK artifacts, setup mitigation, adapter evidence, SBF/live lineage, and audit acceptance remain separate."
+}

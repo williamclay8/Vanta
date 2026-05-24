@@ -1283,10 +1283,15 @@ mod tests {
     #[test]
     fn spend_with_proof_local_unsafe_generated_verifier_cpi_acceptance_and_no_mutation() {
         let target_dir = env::var("VANTA_C01_LOCAL_GNARK_TARGET_DIR").unwrap_or_else(|_| {
-            "/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/target".to_string()
+            "/private/tmp/vanta-c01-sunspot-lane/work/beta18-h6-circuit/target".to_string()
         });
         let verifier_sbf = env::var("VANTA_C01_LOCAL_GNARK_VERIFIER_SBF")
             .unwrap_or_else(|_| format!("{target_dir}/vanta_private_pool_v2_actual_private_spend_entry.so"));
+        let wrong_verifier_sbf = env::var("VANTA_C01_LOCAL_GNARK_WRONG_VERIFIER_SBF")
+            .unwrap_or_else(|_| {
+                "/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/target/vanta_private_pool_v2_actual_private_spend_entry.so"
+                    .to_string()
+            });
         let proof = fs::read(Path::new(&target_dir).join("vanta_private_pool_v2_actual_private_spend_entry.proof"))
             .expect("local unsafe C01 Gnark proof artifact must exist");
         let public_witness =
@@ -1297,11 +1302,16 @@ mod tests {
 
         let mut invalid_proof = proof.clone();
         invalid_proof[0] ^= 0x01;
-        let verifier_key_hash = local_unsafe_sunspot_vk_sha256();
+        let verifier_key_hash = env_hash_or("VANTA_C01_LOCAL_GNARK_VK_SHA256", local_unsafe_h6_sunspot_vk_sha256());
+        let wrong_verifier_key_hash = env_hash_or(
+            "VANTA_C01_LOCAL_GNARK_WRONG_VK_SHA256",
+            local_unsafe_legacy_sunspot_vk_sha256(),
+        );
 
         let mut fixture = VantaPrivatePoolV2Spend::setup();
         fixture.install_c01_verifier_program_from_path(&verifier_sbf);
         let wrong_verifier_program = fixture.add_c01_verifier_program_from_path(&verifier_sbf);
+        let wrong_verifying_key_program = fixture.add_c01_verifier_program_from_path(&wrong_verifier_sbf);
         fixture.action_init_standard();
         fixture.action_spend_with_proof_local_unsafe_generated_verifier_accepts_and_mutates(
             9_002,
@@ -1328,6 +1338,13 @@ mod tests {
             &public_witness,
             verifier_key_hash,
             wrong_verifier_program,
+        );
+        fixture.action_spend_with_proof_local_unsafe_wrong_verifying_key_rejects_without_mutation(
+            9_006,
+            &proof,
+            &public_witness,
+            wrong_verifier_key_hash,
+            wrong_verifying_key_program,
         );
     }
 }
@@ -1512,6 +1529,50 @@ impl VantaPrivatePoolV2Spend {
         );
     }
 
+    #[cfg(test)]
+    fn action_spend_with_proof_local_unsafe_wrong_verifying_key_rejects_without_mutation(
+        &mut self,
+        seed: u64,
+        proof: &[u8],
+        public_witness: &[u8],
+        wrong_verifier_key_hash: [u8; HASH_LEN],
+        wrong_verifying_key_program: Pubkey,
+    ) {
+        if !self.initialized || self.state_error_code.is_some() {
+            return;
+        }
+
+        self.ensure_provenanced_root(seed.wrapping_add(1_010));
+        let Some(record) = self.root_records.last().cloned() else {
+            return;
+        };
+        let payload = spend_with_proof_payload_with_gnark_artifacts(
+            seed,
+            record.accepted_root,
+            wrong_verifier_key_hash,
+            proof,
+            public_witness,
+        );
+        self.register_verifier_key_for_hash_with_program(
+            &payload.verifier_key_hash,
+            wrong_verifying_key_program,
+        );
+        self.ensure_spend_with_proof_placeholders(&payload);
+
+        let accounts = self.spend_with_proof_accounts_for_payload_with_verifier_program(
+            &payload,
+            wrong_verifying_key_program,
+        );
+        let before = self.snapshot_existing_account_metas(&accounts);
+        let outcome = self.call_authorized(payload.data.clone(), accounts.clone());
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_existing_account_metas(&accounts),
+            "local unsafe wrong-verifying-key rejection mutated account bytes or lamports"
+        );
+    }
+
     fn reset_accounts(&mut self, nullifier_capacity: usize, root_capacity: usize) {
         create_program_accounts(
             &mut self.ctx,
@@ -1641,13 +1702,21 @@ impl VantaPrivatePoolV2Spend {
     }
 
     fn register_verifier_key_for_hash(&mut self, verifier_key_hash: &[u8; HASH_LEN]) {
+        self.register_verifier_key_for_hash_with_program(verifier_key_hash, self.c01_verifier_program);
+    }
+
+    fn register_verifier_key_for_hash_with_program(
+        &mut self,
+        verifier_key_hash: &[u8; HASH_LEN],
+        verifier_program: Pubkey,
+    ) {
         if verifier_key_hash.iter().all(|byte| *byte == 0) {
             return;
         }
         self.ensure_verifier_key_placeholder(verifier_key_hash);
         let accounts = self.verifier_key_registration_accounts_for_hash(verifier_key_hash);
         let outcome = self.call_authorized(
-            register_verifier_key_data(*verifier_key_hash, self.c01_verifier_program),
+            register_verifier_key_data(*verifier_key_hash, verifier_program),
             accounts,
         );
         fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_success));
@@ -1659,7 +1728,7 @@ impl VantaPrivatePoolV2Spend {
             {
                 self.registered_verifier_keys.push(*verifier_key_hash);
             }
-            self.assert_verifier_key_account(verifier_key_hash);
+            self.assert_verifier_key_account_for_program(verifier_key_hash, verifier_program);
         }
     }
 
@@ -2641,6 +2710,14 @@ impl VantaPrivatePoolV2Spend {
     }
 
     fn assert_verifier_key_account(&self, verifier_key_hash: &[u8; HASH_LEN]) {
+        self.assert_verifier_key_account_for_program(verifier_key_hash, self.c01_verifier_program);
+    }
+
+    fn assert_verifier_key_account_for_program(
+        &self,
+        verifier_key_hash: &[u8; HASH_LEN],
+        verifier_program: Pubkey,
+    ) {
         let key_data = self.account_data(self.verifier_key_pubkey(verifier_key_hash));
         fuzz_assert!(key_data.len() >= VERIFIER_KEY_ACCOUNT_LEN);
         fuzz_assert_eq!(&key_data[..8], VERIFIER_KEY_MAGIC);
@@ -2656,7 +2733,7 @@ impl VantaPrivatePoolV2Spend {
         );
         fuzz_assert_eq!(
             &key_data[VERIFIER_KEY_PROGRAM_ID_OFFSET..VERIFIER_KEY_PROGRAM_ID_OFFSET + HASH_LEN],
-            &self.c01_verifier_program.to_bytes()
+            &verifier_program.to_bytes()
         );
     }
 
@@ -3019,11 +3096,44 @@ fn payload_output1(payload: &SpendWithProofPayload) -> [u8; HASH_LEN] {
         .unwrap()
 }
 
-fn local_unsafe_sunspot_vk_sha256() -> [u8; HASH_LEN] {
+fn env_hash_or(name: &str, fallback: [u8; HASH_LEN]) -> [u8; HASH_LEN] {
+    let Ok(value) = std::env::var(name) else {
+        return fallback;
+    };
+    let value = value.strip_prefix("sha256:").unwrap_or(&value);
+    assert_eq!(value.len(), HASH_LEN * 2, "{name} must be a 32-byte hex sha256");
+
+    let mut out = [0u8; HASH_LEN];
+    for (index, chunk) in value.as_bytes().chunks_exact(2).enumerate() {
+        let high = hex_nibble(chunk[0]);
+        let low = hex_nibble(chunk[1]);
+        out[index] = (high << 4) | low;
+    }
+    out
+}
+
+fn hex_nibble(byte: u8) -> u8 {
+    match byte {
+        b'0'..=b'9' => byte - b'0',
+        b'a'..=b'f' => byte - b'a' + 10,
+        b'A'..=b'F' => byte - b'A' + 10,
+        _ => panic!("invalid hex byte"),
+    }
+}
+
+fn local_unsafe_legacy_sunspot_vk_sha256() -> [u8; HASH_LEN] {
     [
         0xfb, 0xd6, 0xba, 0x8c, 0xe6, 0x4c, 0xc0, 0xb0, 0x32, 0x0a, 0x0d, 0x80, 0x80, 0xfc,
         0xa1, 0x5d, 0x79, 0xca, 0x6c, 0xa2, 0xf7, 0x32, 0x38, 0x1a, 0x95, 0x50, 0x09, 0x2f,
         0x64, 0x5f, 0x0e, 0x1d,
+    ]
+}
+
+fn local_unsafe_h6_sunspot_vk_sha256() -> [u8; HASH_LEN] {
+    [
+        0x5e, 0x0a, 0x6f, 0x08, 0x50, 0x3f, 0x53, 0x4c, 0xbb, 0x46, 0x2f, 0x43, 0xfb, 0xf0,
+        0xb2, 0x47, 0xe8, 0xaa, 0x2c, 0xe7, 0x5d, 0x1f, 0xa5, 0x8c, 0x23, 0x50, 0xf8, 0x15,
+        0x81, 0x79, 0x48, 0xb4,
     ]
 }
 

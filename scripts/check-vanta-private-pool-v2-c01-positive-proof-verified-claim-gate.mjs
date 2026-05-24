@@ -386,7 +386,7 @@ assertAllowedKeys(
 );
 assert(
   packet.localUnsafeGeneratedVerifierCpiAcceptanceHarnessRef.status ===
-    "local-unsafe-generated-verifier-cpi-acceptance-and-no-mutation",
+    "local-unsafe-h6-generated-verifier-cpi-acceptance-and-no-mutation",
   "local unsafe generated verifier CPI harness ref status mismatch",
 );
 assert(
@@ -403,16 +403,13 @@ for (const field of [
   "provesLocalUnsafeInvalidProofNoMutation",
   "provesLocalUnsafeWrongPublicInputNoMutation",
   "provesLocalUnsafeWrongVerifierProgramNoMutation",
+  "provesWrongVerifyingKeyNoMutation",
 ]) {
   assert(
     packet.localUnsafeGeneratedVerifierCpiAcceptanceHarnessRef[field] === true,
     `local unsafe generated verifier CPI harness ${field} must be true`,
   );
 }
-assert(
-  packet.localUnsafeGeneratedVerifierCpiAcceptanceHarnessRef.provesWrongVerifyingKeyNoMutation === false,
-  "local unsafe generated verifier CPI harness must not claim wrong-verifying-key no-mutation",
-);
 for (const field of [
   "satisfiesValidProofSuccess",
   "satisfiesAcceptedProofMutation",
@@ -428,7 +425,8 @@ for (const field of [
   );
 }
 for (const phrase of [
-  "local unsafe Sunspot/Gnark artifact lane only",
+  "local unsafe H6-preserving Sunspot/Gnark artifact lane only",
+  "wrong-verifying-key local unsafe path",
   "not tag-3 production valid-proof success evidence",
   "not accepted-proof production mutation evidence",
   "not production no-mutation evidence",
@@ -496,7 +494,7 @@ assert(
 );
 assert(
   adapter.localUnsafeGeneratedVerifierCpiAcceptanceHarness?.status ===
-    "local-unsafe-generated-verifier-cpi-acceptance-and-no-mutation",
+    "local-unsafe-h6-generated-verifier-cpi-acceptance-and-no-mutation",
   "adapter packet must expose the local unsafe generated verifier CPI acceptance harness",
 );
 assert(

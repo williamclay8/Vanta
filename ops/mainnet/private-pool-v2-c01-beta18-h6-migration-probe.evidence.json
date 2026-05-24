@@ -1,0 +1,237 @@
+{
+  "version": "vanta-private-pool-v2-c01-beta18-h6-migration-probe-evidence-0.1",
+  "checkedAt": "2026-05-24T01:27:00.000Z",
+  "status": "local-h6-beta18-migration-probe-succeeded-nonproduction-unsafe-setup",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "selectedBackendStatus": "selected-pending-production-evidence",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "productionReady": false,
+  "mainnetReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "sourceMigrationReady": false,
+  "secretPolicy": "metadata-and-hashes-only-no-raw-proof-vk-witness-pk-keypair-or-signed-transaction-bytes",
+  "purpose": "Local nonproduction probe for a beta18-compatible source migration that preserves the current H6 actual-private-spend context_hash preimage binding. This proves the migrated local source can traverse Sunspot compile/setup/prove/verify, produce a Gnark public witness matching the current H6 Noir/bb receipt public input, build a generated Solana verifier SBF, and pass the local Vanta unsafe verifier-CPI harness. It does not satisfy production source migration, setup, proof-format, VK, adapter, SBF/live, or audit evidence.",
+  "sourceMigrationCandidateRef": "ops/mainnet/private-pool-v2-c01-beta18-source-migration-candidate.evidence.json",
+  "currentSourceSunspotCompileAttemptRef": "ops/mainnet/private-pool-v2-c01-current-source-sunspot-compile-attempt.evidence.json",
+  "routePacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json",
+  "artifactAcquisitionPacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json",
+  "productionArtifactAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+  "verifierAdapterTestCandidateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "currentRepoCircuit": {
+    "path": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry",
+    "nargoVersion": "1.0.0-beta.19",
+    "compiledAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
+    "publicInputLabel": "private-spend-public-input-hash",
+    "proofReceiptRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.proof.json",
+    "proofReceiptPublicInput": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "proofReceiptPublicInputCommitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2",
+    "h6RequiredSemantics": [
+      "five context_preimage_* private inputs",
+      "derive_actual_private_spend_context_tag",
+      "bn254::hash_6 over merchant hi/lo, denomination, settlement epoch hi/lo, and nullifier",
+      "assert computed_context_hash == context_hash"
+    ]
+  },
+  "localH6Beta18Probe": {
+    "status": "passed-local-unsafe",
+    "workDir": "/private/tmp/vanta-c01-sunspot-lane/work/beta18-h6-circuit",
+    "targetDir": "/private/tmp/vanta-c01-sunspot-lane/work/beta18-h6-circuit/target",
+    "sourceRef": "/private/tmp/vanta-c01-sunspot-lane/work/beta18-h6-circuit/src/main.nr",
+    "sourceByteLength": 7191,
+    "sourceSha256": "sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430",
+    "nargoVersion": "1.0.0-beta.18",
+    "poseidonImport": "use dep::poseidon::poseidon::bn254;",
+    "h6ContextPreimageInputsPresent": true,
+    "h6Poseidon6ContextAssertionPresent": true,
+    "matchesCurrentSourceAcir": false,
+    "matchesCurrentH6PublicInput": true,
+    "satisfiesReviewedSourceMigration": false,
+    "satisfiesProductionSourceLineage": false,
+    "truthBoundary": "This local source migration preserves the H6 context preimage binding and matches the current H6 public input, but it is not reviewed and its beta18 ACIR hash does not match the current beta19 source ACIR hash required by the existing production bundle gate."
+  },
+  "observedProbeFlow": [
+    {
+      "step": "switch-nargo-beta18",
+      "command": "noirup -v 1.0.0-beta.18 && nargo --version",
+      "status": "passed",
+      "observedVersion": "nargo version = 1.0.0-beta.18"
+    },
+    {
+      "step": "nargo-check",
+      "command": "nargo check",
+      "status": "passed-after-cache-access",
+      "truthBoundary": "Initial sandboxed run failed to lock the Noir git dependency cache; rerun with cache access passed."
+    },
+    {
+      "step": "nargo-compile",
+      "command": "nargo compile",
+      "status": "passed"
+    },
+    {
+      "step": "nargo-execute",
+      "command": "nargo execute",
+      "status": "passed"
+    },
+    {
+      "step": "sunspot-compile",
+      "command": "/private/tmp/vanta-c01-sunspot-lane/bin/sunspot compile vanta_private_pool_v2_actual_private_spend_entry.json",
+      "status": "passed",
+      "nbConstraints": 27614,
+      "sunspotReportedPublicInputs": 0,
+      "sunspotReportedSecretInputs": 0,
+      "truthBoundary": "Sunspot still reports zero public and zero secret inputs even though the generated verifier records one public input; reviewer/toolchain investigation remains required."
+    },
+    {
+      "step": "sunspot-setup",
+      "command": "/private/tmp/vanta-c01-sunspot-lane/bin/sunspot setup vanta_private_pool_v2_actual_private_spend_entry.ccs",
+      "status": "passed-nonproduction-unsafe"
+    },
+    {
+      "step": "sunspot-prove",
+      "command": "/private/tmp/vanta-c01-sunspot-lane/bin/sunspot prove vanta_private_pool_v2_actual_private_spend_entry.json vanta_private_pool_v2_actual_private_spend_entry.gz vanta_private_pool_v2_actual_private_spend_entry.ccs vanta_private_pool_v2_actual_private_spend_entry.pk",
+      "status": "passed"
+    },
+    {
+      "step": "sunspot-verify",
+      "command": "/private/tmp/vanta-c01-sunspot-lane/bin/sunspot verify vanta_private_pool_v2_actual_private_spend_entry.vk vanta_private_pool_v2_actual_private_spend_entry.proof vanta_private_pool_v2_actual_private_spend_entry.pw",
+      "status": "passed"
+    },
+    {
+      "step": "sunspot-build-solana-verifier-sbf",
+      "command": "PATH=/Users/clay/.local/share/solana/install/active_release/bin:$PATH GNARK_VERIFIER_BIN=/private/tmp/vanta-c01-sunspot-lane/sunspot/gnark-solana/crates/verifier-bin /private/tmp/vanta-c01-sunspot-lane/bin/sunspot deploy vanta_private_pool_v2_actual_private_spend_entry.vk",
+      "status": "passed-local-build-only",
+      "warning": "cargo-build-sbf reported deprecated alt_bn128 constants and undefined functions listed as runtime-error risks by the build tool."
+    },
+    {
+      "step": "sunspot-generated-verifier-litesvm-positive",
+      "command": "VK_PATH=/private/tmp/vanta-c01-sunspot-lane/work/beta18-h6-circuit/target/vanta_private_pool_v2_actual_private_spend_entry.vk cargo test --manifest-path /private/tmp/vanta-c01-sunspot-lane/sunspot/gnark-solana/crates/verifier-bin/Cargo.toml --lib -- --exact tests::test::test_solana_verification --nocapture",
+      "status": "passed-local-svm-only",
+      "computeUnitsConsumed": 163841
+    },
+    {
+      "step": "vanta-local-unsafe-generated-verifier-cpi-harness",
+      "command": "VANTA_C01_LOCAL_GNARK_TARGET_DIR=/private/tmp/vanta-c01-sunspot-lane/work/beta18-h6-circuit/target VANTA_C01_LOCAL_GNARK_VERIFIER_SBF=/private/tmp/vanta-c01-sunspot-lane/work/beta18-h6-circuit/target/vanta_private_pool_v2_actual_private_spend_entry.so cargo test --manifest-path fuzz/vanta_private_pool_v2_spend/Cargo.toml --features invariant_test spend_with_proof_local_unsafe_generated_verifier_cpi_acceptance_and_no_mutation -- --nocapture",
+      "status": "passed-local-unsafe-only"
+    },
+    {
+      "step": "restore-nargo-beta19",
+      "command": "noirup -v 1.0.0-beta.19 && nargo --version",
+      "status": "passed",
+      "restoredVersion": "nargo version = 1.0.0-beta.19"
+    }
+  ],
+  "observedArtifacts": {
+    "compiledAcir": {
+      "byteLength": 1906902,
+      "sha256": "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde",
+      "matchesCurrentSourceAcir": false,
+      "satisfiesProductionSourceLineage": false
+    },
+    "compressedWitness": {
+      "byteLength": 541233,
+      "sha256Stored": true,
+      "rawValuesStoredInRepo": false
+    },
+    "ccs": {
+      "byteLength": 2687452,
+      "sha256": "sha256:b32de5a9a88c630ff4dd158b3f11e2dd9b40877e40aaff4e723b8ffde18fa71e",
+      "satisfiesProductionEvidence": false
+    },
+    "provingKey": {
+      "byteLength": 15587553,
+      "hashStored": false,
+      "satisfiesProductionEvidence": false
+    },
+    "verifyingKey": {
+      "byteLength": 716,
+      "sha256": "sha256:5e0a6f08503f534cbb462f43fbf0b247e8aa2ce75d1fa58c2350f815817948b4",
+      "verifyingKeyHashKind": "local-unsafe-h6-beta18-sunspot-vk-hash-not-production",
+      "satisfiesProductionVerifyingKeyEvidence": false
+    },
+    "proof": {
+      "byteLength": 324,
+      "sha256": "sha256:afde2c07683c4262b5b9ae72c66e559e857a9fd7a529b980b34a45bf2374d186",
+      "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+      "satisfiesProductionProofFormatEvidence": false
+    },
+    "publicWitness": {
+      "byteLength": 44,
+      "sha256": "sha256:19e42b6e34a5861d8804565476d72f8835c81d30cfc66bd598a236d26e1baa60",
+      "headerHex": "000000010000000000000001",
+      "decodedPublicInputLabel": "private-spend-public-input-hash",
+      "decodedPublicInputValue": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+      "decodedPublicInputDecimal": "16963424638190234080672794650477965029028993730088032200183857169018303244923",
+      "matchesCurrentH6ProofReceiptPublicInput": true,
+      "matchesCurrentH6ProofReceiptCommitment": true,
+      "satisfiesProductionPublicInputBindingEvidence": false
+    },
+    "solanaVerifierSbf": {
+      "byteLength": 86216,
+      "sha256": "sha256:91fc2db5e06ebfb72bee120ebbcd51698684216598ec50f046d62fcf64928ac0",
+      "standaloneLocalSvmAccepted": true,
+      "computeUnitsConsumed": 163841,
+      "satisfiesSbfLiveLineage": false
+    },
+    "solanaVerifierKeypair": {
+      "generatedInPrivateTmp": true,
+      "byteLength": 230,
+      "storedInRepo": false,
+      "hashStored": false,
+      "satisfiesLiveLineage": false
+    }
+  },
+  "localUnsafeVantaAdapterProbe": {
+    "status": "passed-local-unsafe-h6-generated-verifier-cpi-harness",
+    "targetDir": "/private/tmp/vanta-c01-sunspot-lane/work/beta18-h6-circuit/target",
+    "verifierSbfRef": "/private/tmp/vanta-c01-sunspot-lane/work/beta18-h6-circuit/target/vanta_private_pool_v2_actual_private_spend_entry.so",
+    "wrongVerifierSbfRef": "/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/target/vanta_private_pool_v2_actual_private_spend_entry.so",
+    "command": "npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check",
+    "validProofMutatesNullifierAndOutputState": true,
+    "invalidProofLeavesAccountsUnchanged": true,
+    "wrongPublicInputHashLeavesAccountsUnchanged": true,
+    "wrongVerifierProgramLeavesAccountsUnchanged": true,
+    "wrongVerifyingKeyLeavesAccountsUnchanged": true,
+    "satisfiesVerifierAdapterAcceptance": false,
+    "satisfiesProductionMutationNoMutationEvidence": false,
+    "truthBoundary": "This proves the local Vanta spend SBF can CPI into the local unsafe H6-preserving generated verifier and run the local mutation/no-mutation harness, including valid mutation, invalid-proof no-mutation, wrong-public-input no-mutation, wrong-executable-verifier-program no-mutation, and wrong-verifying-key local unsafe no-mutation using the pre-H6 generated verifier SBF/key hash against the H6 proof/public witness. It is not production verifier-adapter acceptance because the source migration, setup, VK, proof, verifier SBF, deployment lineage, and reviewer acceptance are not production accepted."
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "backendSelection": true,
+    "localH6Beta18MigrationProbe": true,
+    "privateSpendPublicInputHashBindingLocalH6Probe": true,
+    "reviewedSourceMigration": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "remainingBlockers": [
+    "no reviewed beta18-compatible source migration",
+    "beta18 migrated ACIR hash does not match the current beta19 source ACIR hash required by the existing production bundle gate",
+    "Sunspot setup used unsafe local single-operator setup with no toxic-waste mitigation",
+    "local VK/proof/public-witness/verifier SBF are /private/tmp artifacts and not reviewed production artifacts",
+    "Sunspot still reports zero public and zero secret inputs during compile",
+    "no production verifier adapter acceptance",
+    "no production valid mutation or invalid/wrong-input/wrong-key no-mutation evidence",
+    "no rebuilt/redeployed/reinitialized/live SBF lineage",
+    "no audit/reviewer acceptance"
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-beta18-h6-migration-probe-check",
+    "VANTA_C01_BETA18_H6_PROBE_RAW=1 npm run zk:c01-beta18-h6-migration-probe-check",
+    "npm run zk:c01-beta18-source-migration-candidate-check",
+    "npm run zk:c01-current-source-sunspot-compile-attempt-check",
+    "VANTA_C01_LOCAL_GNARK_TARGET_DIR=/private/tmp/vanta-c01-sunspot-lane/work/beta18-h6-circuit/target VANTA_C01_LOCAL_GNARK_VERIFIER_SBF=/private/tmp/vanta-c01-sunspot-lane/work/beta18-h6-circuit/target/vanta_private_pool_v2_actual_private_spend_entry.so cargo test --manifest-path fuzz/vanta_private_pool_v2_spend/Cargo.toml --features invariant_test spend_with_proof_local_unsafe_generated_verifier_cpi_acceptance_and_no_mutation -- --nocapture",
+    "npm run zk:review-guards-check"
+  ],
+  "truthBoundary": "This is local H6-preserving beta18 migration probe evidence only. It proves a stronger local route than the older pre-H6 beta18 shim because the public witness matches the current H6 proof receipt, but it is not a reviewed source migration, not production source lineage, not production proof-format evidence, not production VK/hash evidence, not production verifier-adapter acceptance, not production valid mutation or negative no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure."
+}

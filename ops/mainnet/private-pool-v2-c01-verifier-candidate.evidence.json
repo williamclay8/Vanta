@@ -104,6 +104,20 @@
       "truthBoundary": "This records the refs-only production artifact acceptance gate for returned Sunspot/Gnark source/build/setup/proof-format/VK/public-witness/adapter/test/SBF/live/audit artifacts. It does not satisfy production proof-format, production verifying-key, verifier-adapter, mutation/no-mutation, SBF/live-lineage, or audit evidence."
     },
     {
+      "id": "blocked-external-review-handoff",
+      "status": "ready-for-external-c01-verifier-review-handoff-blocked",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json",
+      "command": "npm run zk:c01-external-review-handoff-check",
+      "truthBoundary": "This records the refs-only external reviewer handoff order for source-review acceptance, deterministic production artifact build, production artifact bundle, verifier-adapter acceptance, SBF/live lineage acceptance, audit/reviewer acceptance, and composite evidence-chain closure. It does not satisfy production proof-format, production verifying-key, verifier-adapter acceptance, valid mutation, invalid/wrong-input/wrong-key no-mutation, SBF/live lineage, audit/reviewer acceptance, or C01 closure."
+    },
+    {
+      "id": "blocked-sbf-live-lineage-candidate",
+      "status": "blocked-no-rebuilt-redeployed-reinitialized-live-lineage",
+      "artifactRef": "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-candidate.evidence.json",
+      "command": "npm run zk:c01-sbf-live-lineage-candidate-check",
+      "truthBoundary": "This records the refs-only SBF/live lineage requirement for rebuilt spend SBF, accepted verifier SBF, deployed program ids, verifier-key registration, reinitialization or migration receipts, live proof-enforced path receipt, and audit/reviewer acceptance. Local SBF ABI freshness and local unsafe verifier SBF metadata do not satisfy SBF/live lineage, and this packet does not satisfy SBF/live lineage."
+    },
+    {
       "id": "blocked-verifier-adapter-acceptance-test-candidate",
       "status": "blocked-no-verifier-adapter-acceptance-tests",
       "artifactRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
@@ -112,10 +126,10 @@
     },
     {
       "id": "local-sunspot-public-witness-binding-observation",
-      "status": "local-public-witness-binding-observed-not-production",
+      "status": "local-public-witness-decoded-stale-against-current-proof-receipt",
       "artifactRef": "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
       "command": "npm run zk:c01-public-witness-binding-check",
-      "truthBoundary": "This records that the local nonproduction Sunspot/Gnark public witness decodes to the local receipt's private-spend-public-input-hash. It does not satisfy production private-spend-public-input-hash binding evidence, verifier-adapter acceptance, tag-3 proof acceptance, or production proof-format evidence."
+      "truthBoundary": "This records that the local nonproduction Sunspot/Gnark beta18 public witness decodes as private-spend-public-input-hash but is stale against the current H6 local proof receipt. It does not satisfy production private-spend-public-input-hash binding evidence, verifier-adapter acceptance, tag-3 proof acceptance, or production proof-format evidence."
     },
     {
       "id": "local-fail-closed-verifier-adapter-seam-harness",
@@ -148,7 +162,7 @@
       "status": "blocked",
       "requiredArtifactShape": "test:<verifier-binds-private-spend-public-input-hash>",
       "currentArtifactRef": null,
-      "truthBoundary": "A local nonproduction public-witness observation now decodes to the local receipt's private-spend-public-input-hash, but a production verifier adapter must verify the exact public input hash for the spend transcript before this can become C01 evidence."
+      "truthBoundary": "A local nonproduction beta18 public-witness observation decodes as private-spend-public-input-hash but is stale against the current H6 local proof receipt; a production verifier adapter must verify the exact public input hash for the spend transcript before this can become C01 evidence."
     },
     {
       "id": "production-verifying-key-hash",
@@ -225,8 +239,10 @@
     "npm run zk:c01-groth16-proof-format-candidate-check",
     "npm run zk:c01-production-groth16-toolchain-preflight-check",
     "npm run zk:c01-production-artifact-acceptance-gate-check",
+    "npm run zk:c01-external-review-handoff-check",
     "npm run zk:c01-public-witness-binding-check",
     "npm run zk:c01-production-verifying-key-candidate-check",
+    "npm run zk:c01-sbf-live-lineage-candidate-check",
     "npm run zk:c01-verifier-adapter-test-candidate-check",
     "npm run zk:c01-verifier-adapter-seam-check",
     "npm run private-pool-v2:sbf-abi-check",

@@ -1,0 +1,192 @@
+{
+  "version": "vanta-private-pool-v2-c01-audit-reviewer-acceptance-gate-0.1",
+  "checkedAt": "2026-05-24T00:00:00.000Z",
+  "status": "blocked-no-audit-reviewer-acceptance",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "selectedBackendStatus": "selected-pending-production-evidence",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "productionReady": false,
+  "mainnetReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "auditReviewerAcceptanceReady": false,
+  "secretPolicy": "refs-only-no-raw-proof-vk-witness-pk-keypair-secret-or-signed-transaction-bytes",
+  "purpose": "Machine-readable intake gate for C01 audit/reviewer acceptance. It validates refs-only reviewer acceptance for the selected backend only after production proof/VK/public-witness, verifier-adapter acceptance, mutation/no-mutation, SBF/live lineage, and proof-verified claim gate prerequisites exist.",
+  "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "productionArtifactAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+  "verifierAdapterAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
+  "sbfLiveLineageCandidateRef": "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-candidate.evidence.json",
+  "sbfLiveLineageAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance-gate.evidence.json",
+  "positiveProofVerifiedClaimGateRef": "ops/mainnet/private-pool-v2-c01-positive-proof-verified-claim-gate.evidence.json",
+  "auditReviewerAcceptanceTemplateRef": "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance.template.json",
+  "productionArtifactBundleTemplateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-bundle.template.json",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "requiredAcceptanceShape": {
+    "target": "solana-c01-tag3-groth16-v0",
+    "tag": 3,
+    "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+    "proofSystem": "groth16",
+    "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+    "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+    "proofByteLength": 324,
+    "publicWitnessByteLength": 44,
+    "verifierInstructionDataByteLength": 368,
+    "publicInputLabel": "private-spend-public-input-hash",
+    "requiredPublicInputValue": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "requiredPublicInputCommitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2",
+    "verifyingKeyHashKind": "production-verifying-key-hash",
+    "requiredPrerequisites": [
+      "reviewed production artifact bundle",
+      "production verifier-adapter acceptance",
+      "valid-proof mutation evidence",
+      "invalid-proof no-mutation evidence",
+      "wrong-public-input no-mutation evidence",
+      "wrong-verifying-key no-mutation evidence",
+      "SBF/live lineage evidence",
+      "reviewed SBF/live lineage acceptance",
+      "reviewer finding disposition",
+      "audit/reviewer acceptance ref"
+    ],
+    "status": "required-before-audit-reviewer-acceptance"
+  },
+  "currentAcceptedAuditReviewerAcceptance": {
+    "status": "absent",
+    "auditReviewerAcceptanceRef": null,
+    "reviewerIdentityRef": null,
+    "auditScopeRef": null,
+    "findingsDispositionRef": null,
+    "productionArtifactBundleRef": null,
+    "verifierAdapterAcceptanceRef": null,
+    "sbfLiveLineageRef": null,
+    "reviewerAccepted": false,
+    "acceptedForC01": false,
+    "satisfiesAuditReviewerAcceptance": false
+  },
+  "externalAuditReviewerAcceptanceValidation": {
+    "status": "ready-for-reviewed-refs-only-audit-reviewer-acceptance-validation",
+    "envVar": "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH",
+    "templateRef": "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance.template.json",
+    "command": "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-audit-reviewer-acceptance-gate-check",
+    "defaultGuardRequiresExternalAcceptance": false,
+    "validatedWhenEnvVarPresent": true,
+    "validates": [
+      "reviewed production artifact bundle ref",
+      "production verifier-adapter acceptance ref",
+      "valid-proof mutation and invalid/wrong-input/wrong-key no-mutation refs",
+      "SBF/live lineage acceptance gate ref",
+      "SBF/live lineage ref",
+      "positive proof-verified claim gate compatibility",
+      "reviewer identity and scope refs",
+      "findings disposition ref",
+      "audit/reviewer acceptance ref",
+      "refs-only secret policy"
+    ],
+    "satisfiesAuditReviewerAcceptance": false,
+    "truthBoundary": "This makes C01 audit/reviewer acceptance intake executable but does not supply acceptance and does not promote C01 verifier readiness. Without VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH, accepted audit/reviewer refs remain null."
+  },
+  "acceptanceCriteria": [
+    {
+      "id": "reviewed-production-artifact-bundle",
+      "requiredRefShape": "bundle:<reviewed-production-artifact-bundle-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-verifier-adapter-acceptance",
+      "requiredRefShape": "adapter:<reviewed-production-verifier-adapter-acceptance-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "valid-proof-mutates-nullifier-output-state",
+      "requiredRefShape": "test:<valid-proof-mutates-nullifier-output-state-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "invalid-proof-leaves-account-bytes-unchanged",
+      "requiredRefShape": "test:<invalid-proof-leaves-account-bytes-unchanged-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "wrong-public-input-leaves-account-bytes-unchanged",
+      "requiredRefShape": "test:<wrong-public-input-hash-leaves-account-bytes-unchanged-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "wrong-verifying-key-leaves-account-bytes-unchanged",
+      "requiredRefShape": "test:<wrong-verifying-key-leaves-account-bytes-unchanged-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "sbf-live-lineage",
+      "requiredRefShape": "lineage:<rebuilt-redeployed-reinitialized-live-lineage-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "reviewer-identity-and-scope",
+      "requiredRefShape": "review:<reviewer-identity-and-c01-scope-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "findings-disposition",
+      "requiredRefShape": "review:<all-c01-findings-accepted-or-remediated-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "audit-reviewer-acceptance",
+      "requiredRefShape": "audit-or-review:<selected-verifier-backend-accepted-for-c01-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    }
+  ],
+  "promotionRules": [
+    "audit/reviewer acceptance refs must be references only; raw proof, verifying-key, proving-key, witness, keypair, secret, and signed transaction bytes stay out of git",
+    "audit/reviewer acceptance can promote only after a reviewed production artifact bundle exists for the selected backend",
+    "audit/reviewer acceptance can promote only after production verifier-adapter acceptance and mutation/no-mutation refs exist",
+    "audit/reviewer acceptance can promote only after SBF/live lineage ties the deployed spend/verifier programs, verifier-key record, and tag-3 proof-enforced path to the accepted production proof/VK lineage",
+    "audit/reviewer acceptance must identify reviewer scope and findings disposition; generic approval language is not enough"
+  ],
+  "satisfiesRequiredPositiveEvidence": {
+    "backendSelection": true,
+    "productionArtifactAcceptance": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "remainingBlockers": [
+    "no reviewed production artifact bundle",
+    "no production verifier-adapter acceptance",
+    "no production valid mutation evidence",
+    "no production invalid/wrong-input/wrong-key no-mutation evidence",
+    "no rebuilt/redeployed/reinitialized/live SBF lineage",
+    "no reviewer identity and C01 scope ref",
+    "no C01 findings disposition ref",
+    "no audit/reviewer acceptance ref"
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-audit-reviewer-acceptance-gate-check",
+    "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-audit-reviewer-acceptance-gate-check",
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+    "npm run zk:c01-verifier-adapter-acceptance-gate-check",
+    "npm run zk:c01-sbf-live-lineage-candidate-check",
+    "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
+    "npm run zk:c01-positive-proof-verified-claim-gate-check",
+    "npm run zk:review-guards-check"
+  ],
+  "truthBoundary": "This is a blocked audit/reviewer acceptance gate for the selected C01 backend. It defines refs-only validation for final reviewer acceptance, but it is not audit/reviewer acceptance, not SBF/live lineage, not tag-3 proof acceptance, not production-private readiness, and not C01 closure."
+}

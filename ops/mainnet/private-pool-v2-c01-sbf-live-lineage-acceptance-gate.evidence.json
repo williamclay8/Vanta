@@ -1,0 +1,207 @@
+{
+  "version": "vanta-private-pool-v2-c01-sbf-live-lineage-acceptance-gate-0.1",
+  "checkedAt": "2026-05-24T00:00:00.000Z",
+  "status": "blocked-no-sbf-live-lineage-acceptance",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "selectedBackendStatus": "selected-pending-production-evidence",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "productionReady": false,
+  "mainnetReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "sbfLiveLineageReady": false,
+  "secretPolicy": "refs-only-no-keypairs-secrets-signed-transactions-or-live-private-data",
+  "purpose": "Machine-readable intake gate for C01 SBF/live lineage acceptance. It validates refs-only deployment, reinitialization, verifier-key registration, and live-or-reviewer-dry-run proof-enforced path receipts for the selected backend while keeping audit acceptance and C01 closure blocked.",
+  "sbfLiveLineageCandidateRef": "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-candidate.evidence.json",
+  "sbfLiveLineageAcceptanceTemplateRef": "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance.template.json",
+  "productionArtifactAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+  "verifierAdapterAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
+  "productionArtifactBundleTemplateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-bundle.template.json",
+  "auditReviewerAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance-gate.evidence.json",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "requiredAcceptanceShape": {
+    "target": "solana-c01-tag3-groth16-v0",
+    "tag": 3,
+    "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+    "proofSystem": "groth16",
+    "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+    "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+    "proofByteLength": 324,
+    "publicWitnessByteLength": 44,
+    "verifierInstructionDataByteLength": 368,
+    "publicInputLabel": "private-spend-public-input-hash",
+    "sourceAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
+    "verifyingKeyHashKind": "production-verifying-key-hash",
+    "verifierProgramKind": "dedicated-verifier-cpi-or-reviewed-in-program-verifier",
+    "requiredPrerequisites": [
+      "reviewed production artifact bundle",
+      "production verifier-adapter acceptance",
+      "production proof-format artifact",
+      "production verifying-key artifact and hash",
+      "current H6 public-input binding",
+      "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence"
+    ],
+    "requiredLineageRefs": [
+      "rebuilt spend SBF hash",
+      "accepted verifier SBF hash or reviewed in-program verifier hash",
+      "deployed spend program id",
+      "deployed verifier program id",
+      "verifier-key record binding production VK hash to verifier program id",
+      "spend/verifier deployment receipts",
+      "pool reinitialization or migration receipt",
+      "tag-5 verifier-key registration receipt",
+      "live proof-enforced tag-3 receipt or reviewer-accepted dry-run receipt"
+    ],
+    "status": "required-before-sbf-live-lineage-acceptance"
+  },
+  "currentAcceptedSbfLiveLineage": {
+    "status": "absent",
+    "sbfLiveLineageRef": null,
+    "productionArtifactBundleRef": null,
+    "verifierAdapterAcceptanceRef": null,
+    "spendProgramSbfHash": null,
+    "acceptedVerifierProgramSbfHash": null,
+    "spendProgramId": null,
+    "verifierProgramId": null,
+    "verifierKeyRecordRef": null,
+    "spendProgramDeploymentRef": null,
+    "verifierProgramDeploymentRef": null,
+    "poolReinitializationOrMigrationRef": null,
+    "verifierKeyRegistrationRef": null,
+    "liveProofEnforcedSpendRef": null,
+    "reviewerAcceptedDryRunRef": null,
+    "acceptedForC01": false,
+    "satisfiesSbfLiveLineage": false
+  },
+  "externalSbfLiveLineageAcceptanceValidation": {
+    "status": "ready-for-reviewed-refs-only-sbf-live-lineage-validation",
+    "envVar": "VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH",
+    "templateRef": "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance.template.json",
+    "command": "VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
+    "defaultGuardRequiresExternalAcceptance": false,
+    "validatedWhenEnvVarPresent": true,
+    "validates": [
+      "reviewed production artifact bundle ref",
+      "production verifier-adapter acceptance ref",
+      "production proof-format and verifying-key refs",
+      "current H6 public-input binding ref",
+      "rebuilt spend SBF hash",
+      "accepted verifier SBF hash",
+      "deployed spend and verifier program ids",
+      "verifier-key record binding production VK hash to verifier program id",
+      "deployment, migration, verifier-key registration, and proof-enforced path refs",
+      "refs-only secret policy"
+    ],
+    "satisfiesSbfLiveLineage": false,
+    "truthBoundary": "This makes C01 SBF/live lineage intake executable but does not supply lineage and does not promote C01 verifier readiness. Without VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH, accepted SBF/live refs remain null."
+  },
+  "acceptanceCriteria": [
+    {
+      "id": "reviewed-production-artifact-bundle",
+      "requiredRefShape": "bundle:<reviewed-production-artifact-bundle-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-verifier-adapter-acceptance",
+      "requiredRefShape": "adapter:<reviewed-production-verifier-adapter-acceptance-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "rebuilt-spend-sbf-hash",
+      "requiredRefShape": "sha256:<rebuilt-spend-program-sbf-hash>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "accepted-verifier-sbf-hash",
+      "requiredRefShape": "sha256:<accepted-production-verifier-sbf-hash>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "deployed-spend-program-id",
+      "requiredRefShape": "program:<deployed-spend-program-id>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "deployed-verifier-program-id",
+      "requiredRefShape": "program:<deployed-verifier-program-id>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "verifier-key-record-binding",
+      "requiredRefShape": "record:<production-vk-hash-bound-to-verifier-program-id-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "spend-and-verifier-deployment-receipts",
+      "requiredRefShape": "tx-or-review:<spend-and-verifier-deployment-receipt-refs>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "pool-reinitialization-or-migration",
+      "requiredRefShape": "tx-or-review:<pool-reinit-or-migration-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "verifier-key-registration",
+      "requiredRefShape": "tx-or-review:<tag5-production-verifier-key-registration-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "proof-enforced-path-or-reviewer-dry-run",
+      "requiredRefShape": "tx-or-review:<live-proof-enforced-tag3-or-reviewer-dry-run-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    }
+  ],
+  "promotionRules": [
+    "SBF/live lineage refs must be references only; keypairs, secrets, signed transactions, raw proof bytes, raw VK bytes, raw witness bytes, and live private data stay out of git",
+    "SBF/live lineage can promote only after reviewed production artifact bundle and production verifier-adapter acceptance refs exist",
+    "accepted lineage must tie the rebuilt spend SBF hash, accepted verifier SBF hash, deployed program ids, verifier-key record, and tag-3 proof-enforced path to the same production proof/VK lineage",
+    "reviewer-accepted dry-run receipts can validate lineage shape but must still identify deployment/migration/verifier-key refs and the accepted proof-enforced path under review",
+    "SBF/live lineage does not by itself prove audit/reviewer acceptance or C01 closure"
+  ],
+  "satisfiesRequiredPositiveEvidence": {
+    "backendSelection": true,
+    "productionArtifactAcceptance": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "remainingBlockers": [
+    "no reviewed production artifact bundle",
+    "no production verifier-adapter acceptance",
+    "no rebuilt spend SBF hash accepted for deployed lineage",
+    "no accepted verifier SBF hash or reviewed in-program verifier hash",
+    "no deployed spend/verifier program ids",
+    "no verifier-key record binding production VK hash to verifier program id",
+    "no deployment, reinitialization/migration, verifier-key registration, or proof-enforced path receipts",
+    "no audit/reviewer acceptance"
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
+    "VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
+    "npm run zk:c01-sbf-live-lineage-candidate-check",
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+    "npm run zk:c01-verifier-adapter-acceptance-gate-check",
+    "npm run zk:review-guards-check"
+  ],
+  "truthBoundary": "This is a blocked SBF/live lineage acceptance gate for the selected C01 backend. It defines refs-only validation for deployed or reviewer-accepted dry-run lineage receipts, but it is not SBF/live lineage, not audit/reviewer acceptance, not tag-3 proof acceptance by itself, not production-private readiness, and not C01 closure."
+}

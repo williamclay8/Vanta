@@ -1,6 +1,6 @@
 {
   "version": "vanta-private-pool-v2-c01-local-proof-format-evidence-0.1",
-  "checkedAt": "2026-05-14T00:00:00.000Z",
+  "checkedAt": "2026-05-23T00:00:00.000Z",
   "status": "local-proof-format-observed-not-production",
   "mainnetReady": false,
   "productionReady": false,
@@ -24,12 +24,12 @@
     "publicInputLabels": [
       "private-spend-public-input-hash"
     ],
-    "publicInputCommitment": "sha256:c809ccff8c9f8549463fa0d635953adbffd63b58f2d8d74f8f397cec50d6cf26",
+    "publicInputCommitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2",
     "verified": true,
-    "acirBytecodeHash": "sha256:665f0f88954787237f040886a2853d7a8d68d4f62cf3ba80e503964bdebc2ef9",
-    "verifyingKeyHash": "sha256:665f0f88954787237f040886a2853d7a8d68d4f62cf3ba80e503964bdebc2ef9",
+    "acirBytecodeHash": "sha256:6ab8f6a90eb551bf02e1b313ede919a6e4aefd8740e70728cce641fdfc2c8d04",
+    "verifyingKeyHash": "sha256:6ab8f6a90eb551bf02e1b313ede919a6e4aefd8740e70728cce641fdfc2c8d04",
     "verifyingKeyHashKind": "local-acir-bytecode-hash-not-production-vk",
-    "verifyingKeyId": "local-acir-bytecode:vanta_private_pool_v2_actual_private_spend_entry:sha256:665f0f88954787237f040886a2853d7a8d68d4f62cf3ba80e503964bdebc2ef9",
+    "verifyingKeyId": "local-acir-bytecode:vanta_private_pool_v2_actual_private_spend_entry:sha256:6ab8f6a90eb551bf02e1b313ede919a6e4aefd8740e70728cce641fdfc2c8d04",
     "proofRuntimePackage": "@aztec/bb.js",
     "proofRuntimeVersion": "^4.1.3",
     "onChainVerifierEvidence": "offchain-remote-proof-artifact-only",

@@ -1,0 +1,51 @@
+{
+  "version": "vanta-private-pool-v2-c01-audit-reviewer-acceptance-template-0.1",
+  "status": "template-not-audit-reviewer-acceptance",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "secretPolicy": "refs-only-no-raw-proof-vk-witness-pk-keypair-secret-or-signed-transaction-bytes",
+  "purpose": "Refs-only template for C01 audit/reviewer acceptance. Copy this shape into an external reviewed acceptance file, fill only refs, hashes, and reviewer decisions, then validate it with VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-audit-reviewer-acceptance-gate-check.",
+  "prerequisites": {
+    "productionArtifactBundleRef": null,
+    "productionArtifactAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+    "verifierAdapterAcceptanceRef": null,
+    "verifierAdapterAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
+    "sbfLiveLineageRef": null,
+    "sbfLiveLineageCandidateRef": "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-candidate.evidence.json",
+    "sbfLiveLineageAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance-gate.evidence.json",
+    "positiveProofVerifiedClaimGateRef": "ops/mainnet/private-pool-v2-c01-positive-proof-verified-claim-gate.evidence.json",
+    "productionProofFormatArtifactRef": null,
+    "productionVerifyingKeyArtifactRef": null,
+    "productionVerifyingKeyHash": null,
+    "verifyingKeyHashKind": "production-verifying-key-hash",
+    "currentH6PublicInputBindingRef": null,
+    "validProofMutationTestRef": null,
+    "invalidProofNoMutationTestRef": null,
+    "wrongPublicInputNoMutationTestRef": null,
+    "wrongVerifyingKeyNoMutationTestRef": null
+  },
+  "auditReview": {
+    "auditReviewerAcceptanceRef": null,
+    "reviewerIdentityRef": null,
+    "auditScopeRef": null,
+    "findingsDispositionRef": null,
+    "acceptanceKind": "audit-or-reviewer-acceptance",
+    "reviewerAccepted": false,
+    "acceptedForC01": false,
+    "satisfiesAuditReviewerAcceptance": false
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "productionArtifactAcceptance": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "truthBoundary": "This template is not audit/reviewer acceptance and does not close C01. It only defines the refs-only final reviewer acceptance shape after production artifact, adapter, mutation/no-mutation, and SBF/live lineage evidence exists."
+}

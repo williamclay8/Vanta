@@ -1,0 +1,76 @@
+{
+  "version": "vanta-private-pool-v2-c01-deterministic-production-artifact-build-template-0.1",
+  "status": "template-not-production-evidence",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "secretPolicy": "refs-only-no-raw-proof-vk-witness-pk-keypair-secret-or-signed-transaction-bytes",
+  "purpose": "Refs-only template for a reviewed deterministic C01 production artifact build receipt. Copy this shape into an external reviewed build receipt, fill only refs, hashes, and reviewer decisions, then validate it with VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH=<reviewed-refs-only-json> npm run zk:c01-deterministic-production-artifact-build-check.",
+  "sourceLineage": {
+    "sourceReviewAcceptanceRef": null,
+    "reviewedSourceMigrationAccepted": false,
+    "requiredCurrentSourceAcirRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json",
+    "requiredCurrentSourceAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
+    "candidateSourceRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry_sunspot_beta18_h6_candidate/src/main.nr",
+    "candidateSourceSha256": "sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430",
+    "returnedSourceAcirRef": null,
+    "returnedSourceAcirSha256": null,
+    "matchesRequiredCurrentSourceAcir": false
+  },
+  "toolchainAndSetup": {
+    "pinnedToolchainSourceRef": null,
+    "reviewedToolchainBuildRef": null,
+    "trustedSetupOrMitigationRef": null,
+    "buildEnvironmentRef": null,
+    "buildCommandManifestRef": null,
+    "deterministicRebuildObserved": false
+  },
+  "productionOutputs": {
+    "proofArtifactRef": null,
+    "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+    "proofByteLength": 324,
+    "publicWitnessArtifactRef": null,
+    "publicWitnessByteLength": 44,
+    "verifierInstructionDataByteLength": 368,
+    "generatedVerifierNrPubinputs": 1,
+    "generatedVerifierCommitmentKeys": 0,
+    "productionVerifyingKeyArtifactRef": null,
+    "productionVerifyingKeyHash": null,
+    "verifyingKeyHashKind": "production-verifying-key-hash",
+    "outputManifestRef": null,
+    "satisfiesDeterministicBuildOutputs": false
+  },
+  "publicInputBinding": {
+    "publicWitnessArtifactRef": null,
+    "decodedPublicInputLabel": "private-spend-public-input-hash",
+    "decodedPublicInputValue": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "publicInputCommitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2",
+    "matchesCurrentH6ProofReceipt": false,
+    "satisfiesProductionPublicInputBinding": false
+  },
+  "reproducibilityReview": {
+    "reproducibilityReviewRef": null,
+    "secondBuilderOrVerifierRef": null,
+    "reviewerAcceptedDeterministicBuild": false
+  },
+  "downstreamRequired": {
+    "productionBundleRef": null,
+    "adapterAcceptanceRef": null,
+    "sbfLiveLineageRef": null,
+    "auditReviewerAcceptanceRef": null
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "sourceReviewAcceptance": false,
+    "deterministicArtifactBuild": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "truthBoundary": "This template is not production evidence and does not close C01. It only defines the refs-only deterministic artifact build receipt shape; verifier-adapter acceptance, mutation/no-mutation evidence, SBF/live lineage, final production bundle acceptance, and audit acceptance remain separate."
+}

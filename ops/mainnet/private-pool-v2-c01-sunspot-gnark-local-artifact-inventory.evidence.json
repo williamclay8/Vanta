@@ -12,7 +12,7 @@
   "solanaC01Groth16VerifierReady": false,
   "externalArtifactsReady": false,
   "secretPolicy": "metadata-hashes-and-local-path-refs-only-no-raw-proof-vk-witness-pk-keypair-or-signed-transaction-bytes",
-  "purpose": "Metadata-only inventory of the local Sunspot/Gnark artifacts observed for the selected C01 tag-3 route. This preserves exact byte lengths and safe hashes for reviewer comparison while keeping raw proof, verifying-key, witness, proving-key, keypair, and signed transaction bytes out of the repo.",
+  "purpose": "Metadata-only inventory of the local Sunspot/Gnark artifacts observed for the selected C01 tag-3 route. This preserves exact byte lengths and safe hashes for reviewer comparison while keeping raw proof, verifying-key, witness, proving-key, keypair, and signed transaction bytes out of the repo; the beta18 public witness is stale against the current H6 local proof receipt.",
   "routePacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json",
   "localSunspotGroth16DevProbeRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
   "publicWitnessBindingObservationRef": "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
@@ -36,7 +36,28 @@
     "setupBoundary": "unsafe-local-single-operator-setup-no-toxic-waste-mitigation",
     "satisfiesProductionToolchainReview": false
   },
+  "sourceLineageComparison": {
+    "status": "local-beta18-artifacts-do-not-match-current-source-acir",
+    "requiredCurrentSourceAcirRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json",
+    "requiredCurrentSourceAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
+    "localBeta18CompiledAcirRef": "local-path:${VANTA_C01_SUNSPOT_LOCAL_ARTIFACT_ROOT}/vanta_private_pool_v2_actual_private_spend_entry.json",
+    "localBeta18CompiledAcirByteLength": 1828305,
+    "localBeta18CompiledAcirSha256": "sha256:5e0e27752ff1c0f01d318323083b168c1309c0c84521401531b42d07033c68bf",
+    "matchesCurrentSourceAcir": false,
+    "productionBundleMustMatchCurrentSourceAcir": true,
+    "satisfiesProductionSourceLineage": false,
+    "truthBoundary": "The local beta18 Sunspot/Gnark artifacts were generated from a temporary beta18 source shim and compiled ACIR hash that does not match the current required source ACIR hash. They cannot satisfy production source lineage, production proof-format, production verifying-key, verifier-adapter, or mutation/no-mutation evidence."
+  },
   "artifacts": {
+    "compiledAcir": {
+      "fileName": "vanta_private_pool_v2_actual_private_spend_entry.json",
+      "localRef": "local-path:${VANTA_C01_SUNSPOT_LOCAL_ARTIFACT_ROOT}/vanta_private_pool_v2_actual_private_spend_entry.json",
+      "byteLength": 1828305,
+      "sha256": "sha256:5e0e27752ff1c0f01d318323083b168c1309c0c84521401531b42d07033c68bf",
+      "matchesCurrentSourceAcir": false,
+      "rawBytesStoredInRepo": false,
+      "satisfiesProductionSourceLineage": false
+    },
     "proof": {
       "fileName": "vanta_private_pool_v2_actual_private_spend_entry.proof",
       "localRef": "local-path:${VANTA_C01_SUNSPOT_LOCAL_ARTIFACT_ROOT}/vanta_private_pool_v2_actual_private_spend_entry.proof",
@@ -55,7 +76,8 @@
       "headerHex": "000000010000000000000001",
       "decodedPublicInputLabel": "private-spend-public-input-hash",
       "decodedPublicInputValue": "0x0421d1c89c8353818f26d6efcd44b4222a2de2b1f14b8287c59728573a90dd32",
-      "matchesLocalProofReceiptPublicInput": true,
+      "matchesLocalProofReceiptPublicInput": false,
+      "staleAgainstCurrentProofReceipt": true,
       "rawBytesStoredInRepo": false,
       "satisfiesProductionPublicInputBindingEvidence": false
     },
@@ -120,6 +142,7 @@
     "reviewed compatible Noir/Sunspot/Gnark source and reproducible build",
     "trusted setup ceremony or equivalent toxic-waste mitigation",
     "production Groth16 proof-format artifact for the repo circuit, not a beta18 temporary source shim",
+    "production artifacts generated from the current source ACIR hash, not stale beta18 temporary source output",
     "production verifying-key artifact and production verifying-key hash",
     "accepted verifier adapter or verifier CPI wired to Vanta tag 3",
     "valid-proof mutation under the accepted verifier",
@@ -136,5 +159,5 @@
     "npm run zk:c01-groth16-proof-format-candidate-check",
     "npm run zk:c01-production-verifying-key-candidate-check"
   ],
-  "truthBoundary": "This is a local nonproduction artifact inventory only. It records the exact unsafe local Sunspot/Gnark proof, public-witness, verifying-key, CCS, proving-key, and verifier-SBF metadata without storing raw bytes. It is not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not valid-proof mutation evidence, not invalid/wrong-input/wrong-key no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, not production privacy, and not C01 closure."
+  "truthBoundary": "This is a local nonproduction artifact inventory only. It records the exact unsafe local Sunspot/Gnark proof, public-witness, verifying-key, CCS, proving-key, and verifier-SBF metadata without storing raw bytes. The beta18 public witness is stale against the current H6 local proof receipt. It is not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not valid-proof mutation evidence, not invalid/wrong-input/wrong-key no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, not production privacy, and not C01 closure."
 }

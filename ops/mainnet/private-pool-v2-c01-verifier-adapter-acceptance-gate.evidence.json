@@ -1,0 +1,183 @@
+{
+  "version": "vanta-private-pool-v2-c01-verifier-adapter-acceptance-gate-0.1",
+  "checkedAt": "2026-05-24T00:00:00.000Z",
+  "status": "blocked-no-production-verifier-adapter-acceptance",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "selectedBackendStatus": "selected-pending-production-evidence",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "productionReady": false,
+  "mainnetReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "verifierAdapterAcceptanceReady": false,
+  "secretPolicy": "refs-only-no-raw-proof-vk-witness-pk-keypair-secret-or-signed-transaction-bytes",
+  "purpose": "Machine-readable intake gate for reviewed C01 production verifier-adapter acceptance. It validates refs-only adapter and mutation/no-mutation receipts for the selected tag-3 Sunspot/Gnark tuple while keeping SBF/live lineage, audit acceptance, and C01 closure blocked.",
+  "verifierAdapterTestCandidateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+  "productionArtifactAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+  "deterministicProductionArtifactBuildGateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
+  "verifierAdapterAcceptanceTemplateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance.template.json",
+  "productionVerifyingKeyCandidateRef": "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
+  "groth16ProofFormatCandidateRef": "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
+  "publicWitnessBindingObservationRef": "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
+  "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
+  "requiredAcceptanceShape": {
+    "target": "solana-c01-tag3-groth16-v0",
+    "tag": 3,
+    "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+    "proofSystem": "groth16",
+    "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+    "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+    "proofByteLength": 324,
+    "publicWitnessByteLength": 44,
+    "verifierInstructionDataByteLength": 368,
+    "generatedVerifierNrPubinputs": 1,
+    "generatedVerifierCommitmentKeys": 0,
+    "publicInputLabel": "private-spend-public-input-hash",
+    "currentProofReceiptRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.proof.json",
+    "requiredPublicInputValue": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "requiredPublicInputCommitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2",
+    "verifyingKeyHashKind": "production-verifying-key-hash",
+    "adapterKind": "in-program-verifier-or-dedicated-verifier-cpi",
+    "deterministicArtifactBuildRequired": true,
+    "deterministicArtifactBuildGateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
+    "validMutationRequired": true,
+    "invalidProofNoMutationRequired": true,
+    "wrongPublicInputNoMutationRequired": true,
+    "wrongVerifyingKeyNoMutationRequired": true,
+    "status": "required-before-production-bundle-adapter-promotion"
+  },
+  "currentAcceptedVerifierAdapter": {
+    "status": "absent",
+    "adapterAcceptanceRef": null,
+    "deterministicArtifactBuildRef": null,
+    "productionProofFormatArtifactRef": null,
+    "productionVerifyingKeyArtifactRef": null,
+    "productionVerifyingKeyHash": null,
+    "publicWitnessArtifactRef": null,
+    "verifierAdapterOrProgramRef": null,
+    "acceptedVerifierBoundary": null,
+    "validProofMutationTestRef": null,
+    "invalidProofNoMutationTestRef": null,
+    "wrongPublicInputNoMutationTestRef": null,
+    "wrongVerifyingKeyNoMutationTestRef": null,
+    "satisfiesVerifierAdapterAcceptance": false
+  },
+  "externalVerifierAdapterAcceptanceValidation": {
+    "status": "ready-for-reviewed-refs-only-verifier-adapter-acceptance-validation",
+    "envVar": "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH",
+    "templateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance.template.json",
+    "command": "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-verifier-adapter-acceptance-gate-check",
+    "defaultGuardRequiresExternalAcceptance": false,
+    "validatedWhenEnvVarPresent": true,
+    "validates": [
+      "deterministic production artifact build ref",
+      "production proof-format artifact ref",
+      "production verifying-key artifact and hash kind",
+      "current H6 private-spend-public-input-hash binding",
+      "accepted verifier adapter or verifier program ref",
+      "valid-proof mutation evidence",
+      "invalid-proof no-mutation evidence",
+      "wrong-public-input no-mutation evidence",
+      "wrong-verifying-key no-mutation evidence",
+      "refs-only secret policy",
+      "SBF/live lineage and audit blockers remain separate"
+    ],
+    "satisfiesVerifierAdapterAcceptance": false,
+    "truthBoundary": "This makes verifier-adapter acceptance intake executable but does not supply acceptance and does not promote C01 verifier readiness. Without VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH, C01 remains blocked with accepted verifier-adapter refs null."
+  },
+  "acceptanceCriteria": [
+    {
+      "id": "deterministic-production-artifact-build-receipt",
+      "requiredRefShape": "build:<reviewed-deterministic-production-artifact-build-receipt-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-proof-format-artifact",
+      "requiredRefShape": "artifact:<actual-private-spend-production-groth16-proof-format-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-verifying-key-artifact-and-hash",
+      "requiredRefShape": "artifact+sha256:<actual-private-spend-production-vk-ref-and-hash>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "current-h6-public-input-binding",
+      "requiredRefShape": "artifact:<public-witness-values-ref-bound-to-current-h6-private-spend-public-input-hash>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "accepted-verifier-adapter-or-program",
+      "requiredRefShape": "adapter:<accepted-solana-groth16-verifier-adapter-or-program-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "valid-proof-mutates-nullifier-output-state",
+      "requiredRefShape": "test:<valid-proof-mutates-nullifier-output-state-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "invalid-proof-leaves-account-bytes-unchanged",
+      "requiredRefShape": "test:<invalid-proof-leaves-account-bytes-unchanged-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "wrong-public-input-leaves-account-bytes-unchanged",
+      "requiredRefShape": "test:<wrong-public-input-hash-leaves-account-bytes-unchanged-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "wrong-verifying-key-leaves-account-bytes-unchanged",
+      "requiredRefShape": "test:<wrong-verifying-key-leaves-account-bytes-unchanged-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    }
+  ],
+  "promotionRules": [
+    "verifier-adapter acceptance refs must be references only; raw proof, verifying-key, proving-key, witness, keypair, secret, and signed transaction bytes stay out of git",
+    "adapter acceptance can promote only after reviewed deterministic production artifact build evidence exists for the exact proof/VK/public-witness tuple",
+    "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence must run under the accepted verifier boundary",
+    "wrong-verifying-key no-mutation must bind to production verifying-key hash semantics, not only wrong verifier-program id",
+    "verifier-adapter acceptance does not by itself prove rebuilt/redeployed/reinitialized/live SBF lineage or audit/reviewer acceptance"
+  ],
+  "satisfiesRequiredPositiveEvidence": {
+    "backendSelection": true,
+    "deterministicArtifactBuild": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "remainingBlockers": [
+    "no reviewed deterministic production artifact build receipt",
+    "no production proof/VK/public-witness artifact refs accepted for adapter testing",
+    "no production verifier adapter acceptance",
+    "no production valid mutation evidence",
+    "no production invalid/wrong-input/wrong-key no-mutation evidence",
+    "no rebuilt/redeployed/reinitialized/live SBF lineage",
+    "no audit/reviewer acceptance"
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-verifier-adapter-acceptance-gate-check",
+    "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-verifier-adapter-acceptance-gate-check",
+    "npm run zk:c01-verifier-adapter-test-candidate-check",
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+    "npm run zk:review-guards-check"
+  ],
+  "truthBoundary": "This is a blocked production verifier-adapter acceptance gate for the selected C01 backend. It defines refs-only validation for accepted adapter and mutation/no-mutation evidence, but it is not verifier-adapter acceptance, not tag-3 proof acceptance, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure."
+}

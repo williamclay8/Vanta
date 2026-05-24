@@ -14,14 +14,28 @@
   "secretPolicy": "refs-only-no-raw-proof-vk-witness-secret-or-signed-transaction-bytes",
   "purpose": "Refs-only intake contract for returned Sunspot/Gnark production artifacts needed by C01. This packet records the exact artifacts reviewers must receive before the selected Groth16 tag-3 backend can move from selected direction to production verifier evidence.",
   "routePacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json",
+  "currentSourceSunspotCompileAttemptRef": "ops/mainnet/private-pool-v2-c01-current-source-sunspot-compile-attempt.evidence.json",
   "localSunspotGroth16DevProbeRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
   "localSunspotGnarkLocalArtifactInventoryRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-local-artifact-inventory.evidence.json",
   "productionArtifactAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+  "deterministicProductionArtifactBuildGateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
   "localSunspotPublicWitnessBindingObservationRef": {
-    "status": "local-public-witness-binding-observed-not-production",
+    "status": "local-public-witness-decoded-stale-against-current-proof-receipt",
     "artifactRef": "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
     "command": "npm run zk:c01-public-witness-binding-check",
-    "truthBoundary": "The local public-witness binding observation decodes the /private/tmp public witness to private-spend-public-input-hash and matches the local proof receipt, but it does not satisfy production public-input binding evidence."
+    "truthBoundary": "The local public-witness observation decodes the /private/tmp beta18 public witness to private-spend-public-input-hash but is stale against the current H6 local proof receipt, so it does not satisfy production public-input binding evidence."
+  },
+  "requiredProductionPublicWitnessBinding": {
+    "status": "blocked-current-h6-public-input-binding-required",
+    "publicWitnessBindingObservationRef": "ops/mainnet/private-pool-v2-c01-public-witness-binding.evidence.json",
+    "localProofReceiptRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.proof.json",
+    "requiredPublicInputLabel": "private-spend-public-input-hash",
+    "requiredPublicInputValue": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "requiredPublicInputCommitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2",
+    "localBeta18PublicWitnessValue": "0x0421d1c89c8353818f26d6efcd44b4222a2de2b1f14b8287c59728573a90dd32",
+    "localBeta18PublicWitnessMatchesCurrentReceipt": false,
+    "satisfiesProductionPublicInputBinding": false,
+    "truthBoundary": "Returned production public-witness evidence must bind to the current H6 local proof receipt public input and commitment. The local beta18 public witness is stale and remains comparison-only."
   },
   "productionGroth16ToolchainPreflightRef": "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
   "productionVerifyingKeyCandidateRef": "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
@@ -36,7 +50,7 @@
     "compiledAcirByteLength": 1840868,
     "compiledAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
     "compressedWitnessRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.gz",
-    "compressedWitnessByteLength": 546926,
+    "compressedWitnessByteLength": 563801,
     "compressedWitnessHashStored": false,
     "compressedWitnessValuesStored": false,
     "publicInputLabel": "private-spend-public-input-hash"
@@ -73,6 +87,12 @@
       "satisfiesC01PositiveEvidence": false
     },
     {
+      "id": "deterministic-production-artifact-build-receipt",
+      "requiredRefShape": "build:<reviewed-deterministic-production-artifact-build-receipt-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
       "id": "deterministic-groth16-proof-format-artifact",
       "requiredRefShape": "artifact:<actual-private-spend-groth16-proof-format-ref>",
       "currentRef": null,
@@ -92,7 +112,7 @@
     },
     {
       "id": "public-witness-artifact",
-      "requiredRefShape": "artifact:<public-witness-values-ref-no-private-witness>",
+      "requiredRefShape": "artifact:<current-h6-public-witness-values-ref-no-private-witness>",
       "currentRef": null,
       "satisfiesC01PositiveEvidence": false
     },
@@ -142,10 +162,13 @@
   "productionAcceptanceRequires": [
     "pinned and reviewed Sunspot/Gnark source or release",
     "reproducible toolchain build review",
+    "reviewed Sunspot/Gnark support for the current beta19 source ACIR bytecode format or a reviewed source migration with accepted source lineage; latest observed upstream Sunspot main e29fd6586f9a9f936ace0d71c103f5a4e9d9db76 still does not support the current beta19 bytecode format",
     "production trusted setup ceremony or equivalent toxic-waste mitigation",
+    "deterministic reviewed production artifact build receipt",
     "deterministic Groth16 proof-format artifact for vanta_private_pool_v2_actual_private_spend_entry",
     "production verifying-key artifact and hash",
     "public witness artifact separated from private witness values",
+    "public witness artifact bound to the current H6 private-spend-public-input-hash receipt",
     "Solana verifier adapter or verifier CPI acceptance",
     "valid-proof mutation and invalid/wrong-public-input/wrong-verifying-key no-mutation tests",
     "rebuilt SBF, redeploy/reinit/live lineage, and audit/reviewer acceptance"
@@ -177,11 +200,14 @@
   "canonicalCommands": [
     "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
     "npm run zk:c01-sunspot-groth16-route-check",
+    "npm run zk:c01-current-source-sunspot-compile-attempt-check",
+    "VANTA_C01_SUNSPOT_BIN=/private/tmp/vanta-c01-sunspot-latest-e29fd658/go/sunspot VANTA_C01_SUNSPOT_COMPILE_ATTEMPT=latest VANTA_C01_SUNSPOT_COMPILE_LIVE=1 npm run zk:c01-current-source-sunspot-compile-attempt-check",
     "npm run zk:c01-sunspot-groth16-dev-probe-check",
     "npm run zk:c01-public-witness-binding-check",
     "npm run zk:c01-sunspot-gnark-local-artifact-inventory-check",
     "npm run zk:c01-production-groth16-toolchain-preflight-check",
     "npm run zk:c01-production-artifact-acceptance-gate-check",
+    "npm run zk:c01-deterministic-production-artifact-build-check",
     "npm run zk:c01-groth16-proof-format-candidate-check",
     "npm run zk:c01-production-verifying-key-candidate-check",
     "npm run zk:c01-verifier-adapter-test-candidate-check",
