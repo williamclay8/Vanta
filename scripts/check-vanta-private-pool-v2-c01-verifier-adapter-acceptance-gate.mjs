@@ -121,8 +121,20 @@ function assertNullRefs(value, label, fields) {
 
 function assertRef(value, label) {
   assert(typeof value === "string" && value.length > 0, `${label} must be a non-empty ref`);
+  assert(value === value.trim(), `${label} must not have surrounding whitespace`);
   assert(!value.includes("://"), `${label} must be a refs-only local/review handle, not a URL`);
   assert(!value.includes("-----BEGIN"), `${label} must not contain key material`);
+}
+
+function assertDistinctRefs(value, label, fields) {
+  const seen = new Map();
+  for (const field of fields) {
+    const ref = value[field];
+    assertRef(ref, `${label}.${field}`);
+    const normalizedRef = ref.trim();
+    assert(!seen.has(normalizedRef), `${label}.${field} must be distinct from ${label}.${seen.get(normalizedRef)}`);
+    seen.set(normalizedRef, field);
+  }
 }
 
 function assertSha256(value, label) {
@@ -336,14 +348,13 @@ function assertReviewedAdapterAcceptance(acceptance, label) {
   assert(adapter.satisfiesVerifierAdapterAcceptance === true, `${label} verifier adapter acceptance must be true`);
 
   const mutation = acceptance.mutationEvidence ?? {};
-  for (const field of [
+  const mutationRefFields = [
     "validProofMutationTestRef",
     "invalidProofNoMutationTestRef",
     "wrongPublicInputNoMutationTestRef",
     "wrongVerifyingKeyNoMutationTestRef",
-  ]) {
-    assertRef(mutation[field], `${label} mutationEvidence.${field}`);
-  }
+  ];
+  assertDistinctRefs(mutation, `${label} mutationEvidence`, mutationRefFields);
   for (const field of [
     "validProofMutatesState",
     "invalidProofLeavesAccountsUnchanged",
@@ -605,6 +616,7 @@ for (const marker of [
   "invalid-proof no-mutation evidence",
   "wrong-public-input no-mutation evidence",
   "wrong-verifying-key no-mutation evidence",
+  "four trim-normalized distinct mutation/no-mutation evidence refs",
   "verifier-adapter reviewer identity/scope attestation",
   "refs-only secret policy",
   "no raw proof/VK/witness/key/secret/transaction material in env-supplied JSON",

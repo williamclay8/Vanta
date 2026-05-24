@@ -141,6 +141,7 @@
       "invalid-proof no-mutation evidence",
       "wrong-public-input no-mutation evidence",
       "wrong-verifying-key no-mutation evidence",
+      "four trim-normalized distinct mutation/no-mutation evidence refs",
       "SBF/live lineage evidence",
       "audit/reviewer acceptance",
       "artifact producer and reviewer identity/scope attestation",
@@ -276,6 +277,7 @@
     "reviewed production verifier-adapter acceptance receipt is required before adapter and mutation/no-mutation refs can promote into the production bundle",
     "verifier adapter acceptance can promote only after production proof-format and production verifying-key evidence exist",
     "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence must run under the accepted verifier boundary",
+    "valid mutation and each invalid/wrong-input/wrong-key no-mutation case must have distinct evidence refs",
     "production artifact bundle acceptance must include artifact producer identity, reviewer identity, review scope, and cross-refs to deterministic build, adapter, lineage, and audit acceptance refs",
     "SBF/live lineage and audit/reviewer acceptance remain separate required refs"
   ],

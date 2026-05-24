@@ -81,6 +81,7 @@
       "same production verifying-key artifact and production verifying-key hash",
       "same accepted verifier adapter or verifier program boundary",
       "same valid mutation and invalid/wrong-input/wrong-key no-mutation refs",
+      "four trim-normalized distinct mutation/no-mutation evidence refs",
       "same SBF/live lineage ref",
       "same audit/reviewer acceptance ref",
       "refs-only secret policy",
@@ -99,7 +100,8 @@
     "production verifying-key hash must match across artifact bundle, adapter acceptance, lineage acceptance, and audit acceptance",
     "adapter acceptance refs and mutation/no-mutation refs must match across production bundle, adapter acceptance, and audit acceptance",
     "SBF/live lineage ref must match across production bundle, adapter acceptance downstream refs, lineage acceptance, and audit acceptance",
-    "audit/reviewer acceptance ref must match across production bundle, adapter acceptance downstream refs, and audit acceptance"
+    "audit/reviewer acceptance ref must match across production bundle, adapter acceptance downstream refs, and audit acceptance",
+    "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence refs must be distinct across the closure chain"
   ],
   "satisfiesRequiredPositiveEvidence": {
     "backendSelection": true,

@@ -74,6 +74,7 @@
       "reviewed production artifact bundle ref",
       "production verifier-adapter acceptance ref",
       "valid-proof mutation and invalid/wrong-input/wrong-key no-mutation refs",
+      "four trim-normalized distinct mutation/no-mutation evidence refs",
       "SBF/live lineage acceptance gate ref",
       "SBF/live lineage ref",
       "positive proof-verified claim gate compatibility",
@@ -152,6 +153,7 @@
     "audit/reviewer acceptance refs must be references only; raw proof, verifying-key, proving-key, witness, keypair, secret, and signed transaction bytes stay out of git",
     "audit/reviewer acceptance can promote only after a reviewed production artifact bundle exists for the selected backend",
     "audit/reviewer acceptance can promote only after production verifier-adapter acceptance and mutation/no-mutation refs exist",
+    "audit/reviewer acceptance requires distinct refs for valid mutation and each invalid/wrong-input/wrong-key no-mutation case",
     "audit/reviewer acceptance can promote only after SBF/live lineage ties the deployed spend/verifier programs, verifier-key record, and tag-3 proof-enforced path to the accepted production proof/VK lineage",
     "audit/reviewer acceptance must identify reviewer scope and findings disposition; generic approval language is not enough"
   ],

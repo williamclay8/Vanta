@@ -117,8 +117,20 @@ function assertNullRefs(value, label, fields) {
 
 function assertRef(value, label) {
   assert(typeof value === "string" && value.length > 0, `${label} must be a non-empty ref`);
+  assert(value === value.trim(), `${label} must not have surrounding whitespace`);
   assert(!value.includes("://"), `${label} must be a refs-only local/review handle, not a URL`);
   assert(!value.includes("-----BEGIN"), `${label} must not contain key material`);
+}
+
+function assertDistinctRefs(value, label, fields) {
+  const seen = new Map();
+  for (const field of fields) {
+    const ref = value[field];
+    assertRef(ref, `${label}.${field}`);
+    const normalizedRef = ref.trim();
+    assert(!seen.has(normalizedRef), `${label}.${field} must be distinct from ${label}.${seen.get(normalizedRef)}`);
+    seen.set(normalizedRef, field);
+  }
 }
 
 function assertSha256(value, label) {
@@ -294,6 +306,12 @@ function assertReviewedAuditAcceptance(acceptance, label) {
   );
   assertSha256(prerequisites.productionVerifyingKeyHash, `${label} production VK hash`);
   assert(prerequisites.verifyingKeyHashKind === shape.verifyingKeyHashKind, `${label} VK hash kind mismatch`);
+  assertDistinctRefs(prerequisites, `${label} prerequisites`, [
+    "validProofMutationTestRef",
+    "invalidProofNoMutationTestRef",
+    "wrongPublicInputNoMutationTestRef",
+    "wrongVerifyingKeyNoMutationTestRef",
+  ]);
 
   const auditReview = acceptance.auditReview ?? {};
   for (const field of [
@@ -548,6 +566,7 @@ for (const marker of [
   "reviewed production artifact bundle ref",
   "production verifier-adapter acceptance ref",
   "valid-proof mutation and invalid/wrong-input/wrong-key no-mutation refs",
+  "four trim-normalized distinct mutation/no-mutation evidence refs",
   "SBF/live lineage acceptance gate ref",
   "SBF/live lineage ref",
   "reviewer identity and scope refs",
@@ -591,6 +610,7 @@ for (const rule of [
   "audit/reviewer acceptance refs must be references only; raw proof, verifying-key, proving-key, witness, keypair, secret, and signed transaction bytes stay out of git",
   "audit/reviewer acceptance can promote only after a reviewed production artifact bundle exists for the selected backend",
   "audit/reviewer acceptance can promote only after production verifier-adapter acceptance and mutation/no-mutation refs exist",
+  "audit/reviewer acceptance requires distinct refs for valid mutation and each invalid/wrong-input/wrong-key no-mutation case",
   "audit/reviewer acceptance can promote only after SBF/live lineage ties the deployed spend/verifier programs, verifier-key record, and tag-3 proof-enforced path to the accepted production proof/VK lineage",
   "audit/reviewer acceptance must identify reviewer scope and findings disposition; generic approval language is not enough",
 ]) {

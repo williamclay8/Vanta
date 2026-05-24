@@ -52,6 +52,10 @@ Do not set `VANTA_SOL_TO_SHIELDED_ADAPTER_AUTH_TOKEN` directly on a browser-call
 
 Raw liquidity keypair envs, `VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_JSON` and `VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_PATH`, are local-only escape hatches for non-production checks. Production mode refuses to boot when either raw keypair env is present; the liquidity wallet must sit behind a wrapped external signer/HSM boundary before this route can be treated as production executable.
 
+`VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF` comes from the governed wallet-infrastructure lane, not from a local keypair file. The expected source is a production secret-manager value that points at the reviewed external signer, normally the scoped Turnkey sign-with handle plus its policy id (`VANTA_TURNKEY_SIGN_WITH_REF` / `VANTA_TURNKEY_POLICY_ID_REF`) or an equivalent HSM signer handle. Store only the reference, never exported key material.
+
+The current adapter exposes and enforces this signer policy boundary, but it does not yet execute Jupiter live swaps through a wrapped external signer. Live production execution remains blocked until a server-only signer adapter consumes `VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF`, signs without exposing private key material, and passes a no-live-call dry run plus review.
+
 ## Demo Boundary
 
 - Jupiter provides public-route liquidity.

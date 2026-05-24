@@ -47,5 +47,5 @@
     "sbfLiveLineage": false,
     "auditReviewerAcceptance": false
   },
-  "truthBoundary": "This template is not audit/reviewer acceptance and does not close C01. It only defines the refs-only final reviewer acceptance shape after production artifact, adapter, mutation/no-mutation, and SBF/live lineage evidence exists."
+  "truthBoundary": "This template is not audit/reviewer acceptance and does not close C01. It only defines the refs-only final reviewer acceptance shape after production artifact, adapter, trim-normalized distinct valid/invalid/wrong-input/wrong-key mutation evidence refs, and SBF/live lineage evidence exists."
 }

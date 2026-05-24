@@ -101,8 +101,20 @@ function assertStringArray(value, label) {
 
 function assertRef(value, label) {
   assert(typeof value === "string" && value.length > 0, `${label} must be a non-empty ref`);
+  assert(value === value.trim(), `${label} must not have surrounding whitespace`);
   assert(!value.includes("://"), `${label} must be a refs-only local/review handle, not a URL`);
   assert(!value.includes("-----BEGIN"), `${label} must not contain key material`);
+}
+
+function assertDistinctRefs(value, label, fields) {
+  const seen = new Map();
+  for (const field of fields) {
+    const ref = value[field];
+    assertRef(ref, `${label}.${field}`);
+    const normalizedRef = ref.trim();
+    assert(!seen.has(normalizedRef), `${label}.${field} must be distinct from ${label}.${seen.get(normalizedRef)}`);
+    seen.set(normalizedRef, field);
+  }
 }
 
 function assertSha256(value, label) {
@@ -295,12 +307,14 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
 
   const bundleMutation = bundle.mutationEvidence ?? {};
   const adapterMutation = adapter.mutationEvidence ?? {};
-  for (const field of [
+  const mutationRefFields = [
     "validProofMutationTestRef",
     "invalidProofNoMutationTestRef",
     "wrongPublicInputNoMutationTestRef",
     "wrongVerifyingKeyNoMutationTestRef",
-  ]) {
+  ];
+  assertDistinctRefs(bundleMutation, "bundle mutation", mutationRefFields);
+  for (const field of mutationRefFields) {
     assertRef(bundleMutation[field], `bundle mutation ${field}`);
     assertSame(adapterMutation[field], bundleMutation[field], `adapter mutation ${field}`);
   }
@@ -333,12 +347,8 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
   assertSame(lineagePrereq.productionArtifactBundleRef, productionBundleRef, "lineage production bundle ref");
   assertSame(auditPrereq.productionArtifactBundleRef, productionBundleRef, "audit production bundle ref");
 
-  for (const field of [
-    "validProofMutationTestRef",
-    "invalidProofNoMutationTestRef",
-    "wrongPublicInputNoMutationTestRef",
-    "wrongVerifyingKeyNoMutationTestRef",
-  ]) {
+  assertDistinctRefs(auditPrereq, "audit prerequisite", mutationRefFields);
+  for (const field of mutationRefFields) {
     assertSame(auditPrereq[field], bundleMutation[field], `audit prerequisite ${field}`);
   }
 
@@ -682,6 +692,7 @@ for (const marker of [
   "same production verifying-key artifact and production verifying-key hash",
   "adapter public-input label/value/commitment and production binding flag match the production bundle",
   "same valid mutation and invalid/wrong-input/wrong-key no-mutation refs",
+  "four trim-normalized distinct mutation/no-mutation evidence refs",
   "same SBF/live lineage ref",
   "same audit/reviewer acceptance ref",
   "no raw proof/VK/witness/key/secret/transaction material in env-supplied JSON",
@@ -690,6 +701,11 @@ for (const marker of [
 }
 assert(external.satisfiesC01VerifierEvidenceClosure === false, "external closure must not satisfy by itself");
 assertStringArray(gate.crossPacketInvariants, "crossPacketInvariants");
+for (const invariant of [
+  "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence refs must be distinct across the closure chain",
+]) {
+  assert(gate.crossPacketInvariants.includes(invariant), `cross-packet invariant missing ${invariant}`);
+}
 assertStringArray(gate.remainingBlockers, "remainingBlockers");
 assertStringArray(gate.canonicalCommands, "canonicalCommands");
 for (const command of [
@@ -734,6 +750,7 @@ for (const marker of [
   "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-audit-json>",
   "source-review acceptance and deterministic build/output-manifest prerequisite refs",
   "adapter public-input binding flag",
+  "trim-normalized distinct mutation/no-mutation refs",
 ]) {
   includes(decision, marker, decisionPath);
   includes(auditPackage, marker, auditPackagePath);

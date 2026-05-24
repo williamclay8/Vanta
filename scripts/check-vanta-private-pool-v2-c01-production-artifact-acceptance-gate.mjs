@@ -137,8 +137,20 @@ function assertNullRefs(value, label, fields) {
 
 function assertRef(value, label) {
   assert(typeof value === "string" && value.length > 0, `${label} must be a non-empty ref`);
+  assert(value === value.trim(), `${label} must not have surrounding whitespace`);
   assert(!value.includes("://"), `${label} must be a refs-only local/review handle, not a URL`);
   assert(!value.includes("-----BEGIN"), `${label} must not contain key material`);
+}
+
+function assertDistinctRefs(value, label, fields) {
+  const seen = new Map();
+  for (const field of fields) {
+    const ref = value[field];
+    assertRef(ref, `${label}.${field}`);
+    const normalizedRef = ref.trim();
+    assert(!seen.has(normalizedRef), `${label}.${field} must be distinct from ${label}.${seen.get(normalizedRef)}`);
+    seen.set(normalizedRef, field);
+  }
 }
 
 function assertSha256(value, label) {
@@ -404,14 +416,13 @@ function assertReviewedProductionBundle(bundle, label) {
   assert(adapter.satisfiesVerifierAdapterAcceptance === true, `${label} verifier adapter acceptance must be true`);
 
   const mutation = bundle.mutationEvidence ?? {};
-  for (const field of [
+  const mutationRefFields = [
     "validProofMutationTestRef",
     "invalidProofNoMutationTestRef",
     "wrongPublicInputNoMutationTestRef",
     "wrongVerifyingKeyNoMutationTestRef",
-  ]) {
-    assertRef(mutation[field], `${label} ${field}`);
-  }
+  ];
+  assertDistinctRefs(mutation, `${label} mutationEvidence`, mutationRefFields);
   for (const field of [
     "validProofMutatesState",
     "invalidProofLeavesAccountsUnchanged",
@@ -996,6 +1007,7 @@ for (const marker of [
   "invalid-proof no-mutation evidence",
   "wrong-public-input no-mutation evidence",
   "wrong-verifying-key no-mutation evidence",
+  "four trim-normalized distinct mutation/no-mutation evidence refs",
   "SBF/live lineage evidence",
   "audit/reviewer acceptance",
   "artifact producer and reviewer identity/scope attestation",
@@ -1057,6 +1069,7 @@ for (const rule of [
   "reviewed production verifier-adapter acceptance receipt is required before adapter and mutation/no-mutation refs can promote into the production bundle",
   "verifier adapter acceptance can promote only after production proof-format and production verifying-key evidence exist",
   "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence must run under the accepted verifier boundary",
+  "valid mutation and each invalid/wrong-input/wrong-key no-mutation case must have distinct evidence refs",
   "production artifact bundle acceptance must include artifact producer identity, reviewer identity, review scope, and cross-refs to deterministic build, adapter, lineage, and audit acceptance refs",
   "SBF/live lineage and audit/reviewer acceptance remain separate required refs",
 ]) {
