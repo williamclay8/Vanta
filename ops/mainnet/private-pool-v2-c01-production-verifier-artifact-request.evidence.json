@@ -181,6 +181,12 @@
       "satisfiesC01PositiveEvidence": false
     },
     {
+      "id": "wrong-verifier-program-no-mutation-test",
+      "requiredRefShape": "test:<wrong-verifier-program-leaves-account-bytes-unchanged-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
       "id": "sbf-live-lineage-acceptance",
       "requiredRefShape": "lineage:<rebuilt-redeployed-reinitialized-sbf-and-live-or-reviewer-dry-run-ref>",
       "currentRef": null,
@@ -285,7 +291,7 @@
     "no deterministic reviewed production artifact build receipt",
     "no reviewed production artifact bundle",
     "no production verifier-adapter acceptance",
-    "no production valid mutation or invalid/wrong-input/wrong-key no-mutation refs",
+    "no production valid mutation or invalid/wrong-input/wrong-key/wrong-program no-mutation refs",
     "no SBF/live lineage acceptance",
     "no audit/reviewer acceptance",
     "no composite C01 verifier evidence closure validation"
@@ -304,5 +310,5 @@
     "npm run zk:c01-verifier-evidence-closure-gate-check",
     "npm run zk:review-guards-check"
   ],
-  "truthBoundary": "This is a refs-only outbound production verifier artifact request packet. It makes the production proof-format/VK/public-witness/verifier-adapter/mutation/no-mutation/SBF-live/audit request checkable, but it is not external source-review acceptance, not a deterministic production artifact build receipt, not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not valid mutation evidence, not invalid/wrong-input/wrong-key no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, not C01 closure, and not production-private readiness."
+  "truthBoundary": "This is a refs-only outbound production verifier artifact request packet. It makes the production proof-format/VK/public-witness/verifier-adapter/mutation/no-mutation/SBF-live/audit request checkable, but it is not external source-review acceptance, not a deterministic production artifact build receipt, not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not valid mutation evidence, not invalid/wrong-input/wrong-key/wrong-program no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, not C01 closure, and not production-private readiness."
 }

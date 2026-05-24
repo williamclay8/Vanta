@@ -43,6 +43,7 @@
       "invalid-proof no-mutation evidence",
       "wrong-public-input no-mutation evidence",
       "wrong-verifying-key no-mutation evidence",
+      "wrong-verifier-program no-mutation evidence",
       "SBF/live lineage evidence",
       "reviewed SBF/live lineage acceptance",
       "reviewer finding disposition",
@@ -74,7 +75,8 @@
       "reviewed production artifact bundle ref",
       "production verifier-adapter acceptance ref",
       "valid-proof mutation and invalid/wrong-input/wrong-key no-mutation refs",
-      "four trim-normalized distinct mutation/no-mutation evidence refs",
+      "valid-proof mutation and invalid/wrong-input/wrong-key/wrong-program no-mutation refs",
+      "five trim-normalized distinct mutation/no-mutation evidence refs",
       "SBF/live lineage acceptance gate ref",
       "SBF/live lineage ref",
       "positive proof-verified claim gate compatibility",
@@ -125,6 +127,12 @@
       "satisfiesC01PositiveEvidence": false
     },
     {
+      "id": "wrong-verifier-program-leaves-account-bytes-unchanged",
+      "requiredRefShape": "test:<wrong-verifier-program-leaves-account-bytes-unchanged-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
       "id": "sbf-live-lineage",
       "requiredRefShape": "lineage:<rebuilt-redeployed-reinitialized-live-lineage-ref>",
       "currentRef": null,
@@ -153,7 +161,7 @@
     "audit/reviewer acceptance refs must be references only; raw proof, verifying-key, proving-key, witness, keypair, secret, and signed transaction bytes stay out of git",
     "audit/reviewer acceptance can promote only after a reviewed production artifact bundle exists for the selected backend",
     "audit/reviewer acceptance can promote only after production verifier-adapter acceptance and mutation/no-mutation refs exist",
-    "audit/reviewer acceptance requires distinct refs for valid mutation and each invalid/wrong-input/wrong-key no-mutation case",
+    "audit/reviewer acceptance requires distinct refs for valid mutation and each invalid/wrong-input/wrong-key/wrong-program no-mutation case",
     "audit/reviewer acceptance can promote only after SBF/live lineage ties the deployed spend/verifier programs, verifier-key record, and tag-3 proof-enforced path to the accepted production proof/VK lineage",
     "audit/reviewer acceptance must identify reviewer scope and findings disposition; generic approval language is not enough"
   ],
@@ -168,6 +176,7 @@
     "invalidProofLeavesAccountsUnchangedTest": false,
     "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
     "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "wrongVerifierProgramLeavesAccountsUnchangedTest": false,
     "sbfLiveLineage": false,
     "auditReviewerAcceptance": false
   },
@@ -175,7 +184,7 @@
     "no reviewed production artifact bundle",
     "no production verifier-adapter acceptance",
     "no production valid mutation evidence",
-    "no production invalid/wrong-input/wrong-key no-mutation evidence",
+    "no production invalid/wrong-input/wrong-key/wrong-program no-mutation evidence",
     "no rebuilt/redeployed/reinitialized/live SBF lineage",
     "no reviewer identity and C01 scope ref",
     "no C01 findings disposition ref",

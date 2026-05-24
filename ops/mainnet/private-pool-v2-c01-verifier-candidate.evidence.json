@@ -108,7 +108,7 @@
       "status": "ready-for-external-c01-verifier-review-handoff-blocked",
       "artifactRef": "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json",
       "command": "npm run zk:c01-external-review-handoff-check",
-      "truthBoundary": "This records the refs-only external reviewer handoff order for source-review acceptance, production output-manifest preflight, deterministic production artifact build, production artifact bundle, verifier-adapter acceptance, SBF/live lineage acceptance, audit/reviewer acceptance, and composite evidence-chain closure. It does not satisfy production proof-format, production verifying-key, verifier-adapter acceptance, valid mutation, invalid/wrong-input/wrong-key no-mutation, SBF/live lineage, audit/reviewer acceptance, or C01 closure."
+      "truthBoundary": "This records the refs-only external reviewer handoff order for source-review acceptance, production output-manifest preflight, deterministic production artifact build, production artifact bundle, verifier-adapter acceptance, SBF/live lineage acceptance, audit/reviewer acceptance, and composite evidence-chain closure. It does not satisfy production proof-format, production verifying-key, verifier-adapter acceptance, valid mutation, invalid/wrong-input/wrong-key/wrong-program no-mutation, SBF/live lineage, audit/reviewer acceptance, or C01 closure."
     },
     {
       "id": "production-verifier-artifact-request",
@@ -228,6 +228,13 @@
       "requiredArtifactShape": "test:<wrong-verifying-key-rejects-and-leaves-account-bytes-unchanged>",
       "currentArtifactRef": null,
       "truthBoundary": "No wrong-verifying-key no-mutation verifier test exists."
+    },
+    {
+      "id": "wrong-verifier-program-leaves-accounts-unchanged-test",
+      "status": "blocked",
+      "requiredArtifactShape": "test:<wrong-verifier-program-rejects-and-leaves-account-bytes-unchanged>",
+      "currentArtifactRef": null,
+      "truthBoundary": "No wrong-verifier-program no-mutation verifier test exists."
     },
     {
       "id": "sbf-live-lineage",

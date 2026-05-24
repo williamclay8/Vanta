@@ -79,6 +79,7 @@
     "invalidProofNoMutationTestRef": null,
     "wrongPublicInputNoMutationTestRef": null,
     "wrongVerifyingKeyNoMutationTestRef": null,
+    "wrongVerifierProgramNoMutationTestRef": null,
     "sbfLiveLineageRef": null,
     "auditReviewerAcceptanceRef": null,
     "artifactReviewAttestationRef": null,
@@ -141,7 +142,8 @@
       "invalid-proof no-mutation evidence",
       "wrong-public-input no-mutation evidence",
       "wrong-verifying-key no-mutation evidence",
-      "four trim-normalized distinct mutation/no-mutation evidence refs",
+      "wrong-verifier-program no-mutation evidence",
+      "five trim-normalized distinct mutation/no-mutation evidence refs",
       "SBF/live lineage evidence",
       "audit/reviewer acceptance",
       "audit/reviewer reviewer identity, C01 scope, findings disposition, acceptedForC01, and satisfiesAuditReviewerAcceptance fields",
@@ -249,6 +251,12 @@
       "satisfiesC01PositiveEvidence": false
     },
     {
+      "id": "wrong-verifier-program-leaves-account-bytes-unchanged",
+      "requiredRefShape": "test:<wrong-verifier-program-leaves-account-bytes-unchanged-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
       "id": "sbf-live-lineage",
       "requiredRefShape": "lineage:<rebuilt-redeployed-reinitialized-sbf-and-account-evidence-ref>",
       "currentRef": null,
@@ -277,8 +285,8 @@
     "reviewed deterministic production artifact build receipt is required before proof/VK/public-witness refs can promote into the production bundle",
     "reviewed production verifier-adapter acceptance receipt is required before adapter and mutation/no-mutation refs can promote into the production bundle",
     "verifier adapter acceptance can promote only after production proof-format and production verifying-key evidence exist",
-    "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence must run under the accepted verifier boundary",
-    "valid mutation and each invalid/wrong-input/wrong-key no-mutation case must have distinct evidence refs",
+    "valid mutation and invalid/wrong-input/wrong-key/wrong-program no-mutation evidence must run under the accepted verifier boundary",
+    "valid mutation and each invalid/wrong-input/wrong-key/wrong-program no-mutation case must have distinct evidence refs",
     "production artifact bundle acceptance must include artifact producer identity, reviewer identity, review scope, and cross-refs to deterministic build, adapter, lineage, and audit acceptance refs",
     "SBF/live lineage and audit/reviewer acceptance remain separate required refs"
   ],
@@ -295,6 +303,7 @@
     "invalidProofLeavesAccountsUnchangedTest": false,
     "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
     "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "wrongVerifierProgramLeavesAccountsUnchangedTest": false,
     "sbfLiveLineage": false,
     "auditReviewerAcceptance": false
   },

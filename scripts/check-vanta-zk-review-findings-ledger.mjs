@@ -826,8 +826,8 @@ for (const phrase of [
   "wrong public input hash without mutation",
   "wrong executable verifier program without mutation",
   "test-only selected-Gnark",
-  "valid-mutation / invalid-proof / wrong-public-input / wrong-verifying-key no-mutation shape coverage",
-  "invalid/wrong-input/wrong-key no-mutation shape coverage",
+  "valid-mutation / invalid-proof / wrong-public-input / wrong-verifying-key / wrong-verifier-program no-mutation shape coverage",
+  "invalid/wrong-input/wrong-key/wrong-program no-mutation shape coverage",
   "reserved tag 3",
   "ERR_PROOF_VERIFIER_NOT_WIRED",
   "not verifier-adapter acceptance",
@@ -890,7 +890,7 @@ for (const phrase of [
   "wrong executable verifier program without mutation",
   "test-only selected-Gnark",
   "valid-mutation and no-mutation shape coverage",
-  "invalid/wrong-input/wrong-key no-mutation shape coverage",
+  "invalid/wrong-input/wrong-key/wrong-program no-mutation shape coverage",
   "cannot unlock proof-verified wording",
   "not tag-3 valid-proof success evidence",
   "not proof-verified spend evidence",
@@ -2550,7 +2550,7 @@ for (const marker of [
   "selected_gnark_fixture_adapter_wrong_public_input_no_mutation",
   "selected_gnark_fixture_adapter_wrong_verifying_key_no_mutation",
   "test-only selected-Gnark",
-  "invalid-proof / wrong-public-input / wrong-verifying-key no-mutation shape tests",
+  "invalid-proof / wrong-public-input / wrong-verifying-key / wrong-verifier-program no-mutation shape tests",
 ]) {
   assert(c01Text.includes(marker), `C01 must record the selected-Gnark adapter shape marker: ${marker}`);
 }

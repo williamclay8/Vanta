@@ -70,6 +70,11 @@
       "status": "absent",
       "artifactRef": null,
       "satisfiesProductionVerifyingKeyBinding": false
+    },
+    "wrongVerifierProgramLeavesAccountsUnchanged": {
+      "status": "absent",
+      "artifactRef": null,
+      "satisfiesVerifierProgramBinding": false
     }
   },
   "currentFailClosedObservation": {
@@ -118,7 +123,7 @@
     "satisfiesTag3ProofAcceptance": false,
     "satisfiesProductionProofFormatEvidence": false,
     "satisfiesProductionVerifyingKeyEvidence": false,
-    "truthBoundary": "This local fail-closed seam harness proves the source has a preflight/default-adapter/verified-commit split, that the default tag-3 adapter rejects before mutation, that source assembles the 368-byte proof-plus-public-witness verifier instruction-data tuple, that source prechecks the one-field Gnark public witness against private-spend-public-input-hash before the not-wired verifier boundary, that the public tag-3 account list now reserves a dedicated readonly executable verifier-program account, that tag 5 binds that verifier program id into the verifier-key record and tag 3 rejects a different executable verifier program before the not-wired boundary, that source constructs the generated Solana verifier CPI instruction with no account metas and data equal to proof||publicWitness, that source has an on-chain-only verifier CPI hook passing the verifier-program account to CPI, that host-side Solana syscall stubs cannot turn CPI construction into proof acceptance, that the public tag-3 account list is commit-capable after adapter success, and that a test-only selected Gnark fixture adapter shape covers valid mutation through that account list plus invalid-proof, wrong-public-input, and wrong-verifying-key no-mutation cases for the 324-byte proof plus 44-byte public-witness tuple. It is not verifier-adapter acceptance, not tag-3 proof acceptance, not production proof-format evidence, and not production verifying-key evidence."
+    "truthBoundary": "This local fail-closed seam harness proves the source has a preflight/default-adapter/verified-commit split, that the default tag-3 adapter rejects before mutation, that source assembles the 368-byte proof-plus-public-witness verifier instruction-data tuple, that source prechecks the one-field Gnark public witness against private-spend-public-input-hash before the not-wired verifier boundary, that the public tag-3 account list now reserves a dedicated readonly executable verifier-program account, that tag 5 binds that verifier program id into the verifier-key record and tag 3 rejects a different executable verifier program before the not-wired boundary, that source constructs the generated Solana verifier CPI instruction with no account metas and data equal to proof||publicWitness, that source has an on-chain-only verifier CPI hook passing the verifier-program account to CPI, that host-side Solana syscall stubs cannot turn CPI construction into proof acceptance, that the public tag-3 account list is commit-capable after adapter success, and that a test-only selected Gnark fixture adapter shape covers valid mutation through that account list plus invalid-proof, wrong-public-input, wrong-verifying-key, and wrong-verifier-program no-mutation cases for the 324-byte proof plus 44-byte public-witness tuple. It is not verifier-adapter acceptance, not tag-3 proof acceptance, not production proof-format evidence, and not production verifying-key evidence."
   },
   "localSbfVerifierCpiRejectionHarness": {
     "status": "local-sbf-cpi-rejection-no-mutation-harness-required",
@@ -165,7 +170,7 @@
     "canonicalCommands": [
       "npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check"
     ],
-    "truthBoundary": "local unsafe H6-preserving Sunspot/Gnark artifact lane only. This proves the Vanta spend SBF can CPI into the generated verifier SBF from /private/tmp, accept the local unsafe H6 proof/public-witness tuple, mutate nullifier/output state after verifier success, reject a tampered proof without mutation, reject a wrong public input hash without mutation, reject a wrong executable verifier program without mutation when the registered verifier-key record is bound to the correct generated verifier program id, and reject a wrong-verifying-key local unsafe no-mutation path by registering the pre-H6 generated verifier SBF/key hash against the H6 proof/public witness. It is not production verifier-adapter acceptance, not production proof-format evidence, not production verifying-key evidence, not production wrong-verifying-key no-mutation evidence, and not SBF/live lineage."
+    "truthBoundary": "local unsafe H6-preserving Sunspot/Gnark artifact lane only. This proves the Vanta spend SBF can CPI into the generated verifier SBF from /private/tmp, accept the local unsafe H6 proof/public-witness tuple, mutate nullifier/output state after verifier success, reject a tampered proof without mutation, reject a wrong public input hash without mutation, reject a wrong executable verifier program without mutation when the registered verifier-key record is bound to the correct generated verifier program id, and reject a wrong-verifying-key local unsafe no-mutation path by registering the pre-H6 generated verifier SBF/key hash against the H6 proof/public witness. It is not production verifier-adapter acceptance, not production proof-format evidence, not production verifying-key evidence, not production wrong-verifying-key or wrong-verifier-program no-mutation evidence, and not SBF/live lineage."
   },
   "localSunspotGroth16DevProbeAdapterBlockers": {
     "status": "local-dev-probe-only-not-adapter-acceptance",
@@ -253,6 +258,7 @@
     "invalidProofLeavesAccountsUnchangedTest": false,
     "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
     "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "wrongVerifierProgramLeavesAccountsUnchangedTest": false,
     "sbfLiveLineage": false,
     "auditReviewerAcceptance": false
   },
@@ -264,6 +270,7 @@
     "invalidProofLeavesAccountsUnchangedTestCurrentArtifactRef": null,
     "wrongPublicInputHashLeavesAccountsUnchangedTestCurrentArtifactRef": null,
     "wrongVerifyingKeyLeavesAccountsUnchangedTestCurrentArtifactRef": null,
+    "wrongVerifierProgramLeavesAccountsUnchangedTestCurrentArtifactRef": null,
     "privateSpendPublicInputHashBindingCurrentArtifactRef": null,
     "allRequiredPositiveEvidenceStatus": "blocked"
   },

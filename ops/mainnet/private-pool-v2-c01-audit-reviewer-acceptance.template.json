@@ -22,7 +22,8 @@
     "validProofMutationTestRef": null,
     "invalidProofNoMutationTestRef": null,
     "wrongPublicInputNoMutationTestRef": null,
-    "wrongVerifyingKeyNoMutationTestRef": null
+    "wrongVerifyingKeyNoMutationTestRef": null,
+    "wrongVerifierProgramNoMutationTestRef": null
   },
   "auditReview": {
     "auditReviewerAcceptanceRef": null,
@@ -44,8 +45,9 @@
     "invalidProofLeavesAccountsUnchangedTest": false,
     "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
     "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "wrongVerifierProgramLeavesAccountsUnchangedTest": false,
     "sbfLiveLineage": false,
     "auditReviewerAcceptance": false
   },
-  "truthBoundary": "This template is not audit/reviewer acceptance and does not close C01. It only defines the refs-only final reviewer acceptance shape after production artifact, adapter, trim-normalized distinct valid/invalid/wrong-input/wrong-key mutation evidence refs, and SBF/live lineage evidence exists."
+  "truthBoundary": "This template is not audit/reviewer acceptance and does not close C01. It only defines the refs-only final reviewer acceptance shape after production artifact, adapter, trim-normalized distinct valid/invalid/wrong-input/wrong-key/wrong-program mutation evidence refs, and SBF/live lineage evidence exists."
 }

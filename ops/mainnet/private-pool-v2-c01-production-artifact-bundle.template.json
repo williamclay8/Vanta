@@ -68,10 +68,12 @@
     "invalidProofNoMutationTestRef": null,
     "wrongPublicInputNoMutationTestRef": null,
     "wrongVerifyingKeyNoMutationTestRef": null,
+    "wrongVerifierProgramNoMutationTestRef": null,
     "validProofMutatesState": false,
     "invalidProofLeavesAccountsUnchanged": false,
     "wrongPublicInputLeavesAccountsUnchanged": false,
-    "wrongVerifyingKeyLeavesAccountsUnchanged": false
+    "wrongVerifyingKeyLeavesAccountsUnchanged": false,
+    "wrongVerifierProgramLeavesAccountsUnchanged": false
   },
   "sbfLiveLineage": {
     "sbfLiveLineageRef": null,
@@ -117,8 +119,9 @@
     "invalidProofLeavesAccountsUnchangedTest": false,
     "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
     "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "wrongVerifierProgramLeavesAccountsUnchangedTest": false,
     "sbfLiveLineage": false,
     "auditReviewerAcceptance": false
   },
-  "truthBoundary": "This template is not production evidence and does not close C01. It only defines the refs-only reviewed bundle shape that an external production artifact bundle must satisfy before promotion; valid mutation, invalid-proof, wrong-public-input, and wrong-verifying-key cases need distinct evidence refs."
+  "truthBoundary": "This template is not production evidence and does not close C01. It only defines the refs-only reviewed bundle shape that an external production artifact bundle must satisfy before promotion; valid mutation, invalid-proof, wrong-public-input, wrong-verifying-key, and wrong-verifier-program cases need distinct evidence refs."
 }

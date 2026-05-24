@@ -233,12 +233,14 @@ function assertTemplate(template) {
     "invalidProofNoMutationTestRef",
     "wrongPublicInputNoMutationTestRef",
     "wrongVerifyingKeyNoMutationTestRef",
+    "wrongVerifierProgramNoMutationTestRef",
   ]);
   for (const field of [
     "validProofMutatesState",
     "invalidProofLeavesAccountsUnchanged",
     "wrongPublicInputLeavesAccountsUnchanged",
     "wrongVerifyingKeyLeavesAccountsUnchanged",
+    "wrongVerifierProgramLeavesAccountsUnchanged",
   ]) {
     assert(template.mutationEvidence?.[field] === false, `template mutationEvidence.${field} must be false`);
   }
@@ -270,6 +272,7 @@ function assertTemplate(template) {
       invalidProofLeavesAccountsUnchangedTest: false,
       wrongPublicInputHashLeavesAccountsUnchangedTest: false,
       wrongVerifyingKeyLeavesAccountsUnchangedTest: false,
+      wrongVerifierProgramLeavesAccountsUnchangedTest: false,
       sbfLiveLineage: false,
       auditReviewerAcceptance: false,
     },
@@ -353,6 +356,7 @@ function assertReviewedAdapterAcceptance(acceptance, label) {
     "invalidProofNoMutationTestRef",
     "wrongPublicInputNoMutationTestRef",
     "wrongVerifyingKeyNoMutationTestRef",
+    "wrongVerifierProgramNoMutationTestRef",
   ];
   assertDistinctRefs(mutation, `${label} mutationEvidence`, mutationRefFields);
   for (const field of [
@@ -360,6 +364,7 @@ function assertReviewedAdapterAcceptance(acceptance, label) {
     "invalidProofLeavesAccountsUnchanged",
     "wrongPublicInputLeavesAccountsUnchanged",
     "wrongVerifyingKeyLeavesAccountsUnchanged",
+    "wrongVerifierProgramLeavesAccountsUnchanged",
   ]) {
     assert(mutation[field] === true, `${label} mutationEvidence.${field} must be true`);
   }
@@ -404,6 +409,7 @@ function assertReviewedAdapterAcceptance(acceptance, label) {
       invalidProofLeavesAccountsUnchangedTest: true,
       wrongPublicInputHashLeavesAccountsUnchangedTest: true,
       wrongVerifyingKeyLeavesAccountsUnchangedTest: true,
+      wrongVerifierProgramLeavesAccountsUnchangedTest: true,
       sbfLiveLineage: false,
       auditReviewerAcceptance: false,
     },
@@ -549,6 +555,7 @@ for (const [field, expected] of [
   ["invalidProofNoMutationRequired", true],
   ["wrongPublicInputNoMutationRequired", true],
   ["wrongVerifyingKeyNoMutationRequired", true],
+  ["wrongVerifierProgramNoMutationRequired", true],
   ["status", "required-before-production-bundle-adapter-promotion"],
 ]) {
   assert(shape[field] === expected, `required acceptance shape ${field} mismatch`);
@@ -573,6 +580,7 @@ assertAllowedKeys(accepted, "current accepted verifier adapter", [
   "invalidProofNoMutationTestRef",
   "wrongPublicInputNoMutationTestRef",
   "wrongVerifyingKeyNoMutationTestRef",
+  "wrongVerifierProgramNoMutationTestRef",
   "acceptanceReviewAttestationRef",
   "satisfiesVerifierAdapterAcceptance",
 ]);
@@ -590,6 +598,7 @@ assertNullRefs(accepted, "accepted verifier adapter", [
   "invalidProofNoMutationTestRef",
   "wrongPublicInputNoMutationTestRef",
   "wrongVerifyingKeyNoMutationTestRef",
+  "wrongVerifierProgramNoMutationTestRef",
   "acceptanceReviewAttestationRef",
 ]);
 assert(accepted.satisfiesVerifierAdapterAcceptance === false, "accepted verifier adapter must remain false");
@@ -616,7 +625,8 @@ for (const marker of [
   "invalid-proof no-mutation evidence",
   "wrong-public-input no-mutation evidence",
   "wrong-verifying-key no-mutation evidence",
-  "four trim-normalized distinct mutation/no-mutation evidence refs",
+  "wrong-verifier-program no-mutation evidence",
+  "five trim-normalized distinct mutation/no-mutation evidence refs",
   "verifier-adapter reviewer identity/scope attestation",
   "refs-only secret policy",
   "no raw proof/VK/witness/key/secret/transaction material in env-supplied JSON",
@@ -645,6 +655,7 @@ for (const [id, shapeRef] of [
   ["invalid-proof-leaves-account-bytes-unchanged", "test:<invalid-proof-leaves-account-bytes-unchanged-ref>"],
   ["wrong-public-input-leaves-account-bytes-unchanged", "test:<wrong-public-input-hash-leaves-account-bytes-unchanged-ref>"],
   ["wrong-verifying-key-leaves-account-bytes-unchanged", "test:<wrong-verifying-key-leaves-account-bytes-unchanged-ref>"],
+  ["wrong-verifier-program-leaves-account-bytes-unchanged", "test:<wrong-verifier-program-leaves-account-bytes-unchanged-ref>"],
   ["verifier-adapter-review-attestation", "review:<verifier-adapter-reviewer-identity-scope-attestation-ref>"],
 ]) {
   const criterion = criteria.get(id);
@@ -656,9 +667,10 @@ for (const [id, shapeRef] of [
 for (const rule of [
   "verifier-adapter acceptance refs must be references only; raw proof, verifying-key, proving-key, witness, keypair, secret, and signed transaction bytes stay out of git",
   "adapter acceptance can promote only after reviewed deterministic production artifact build evidence exists for the exact proof/VK/public-witness tuple",
-  "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence must run under the accepted verifier boundary",
-  "valid mutation and each invalid/wrong-input/wrong-key no-mutation case must have distinct evidence refs",
+  "valid mutation and invalid/wrong-input/wrong-key/wrong-program no-mutation evidence must run under the accepted verifier boundary",
+  "valid mutation and each invalid/wrong-input/wrong-key/wrong-program no-mutation case must have distinct evidence refs",
   "wrong-verifying-key no-mutation must bind to production verifying-key hash semantics, not only wrong verifier-program id",
+  "wrong-verifier-program no-mutation must prove the verifier-key record rejects an executable verifier program that does not match the accepted verifier program id",
   "verifier-adapter acceptance must include reviewer identity, review scope, and cross-refs to the accepted adapter, deterministic build, and production verifying-key artifact",
   "verifier-adapter acceptance does not by itself prove rebuilt/redeployed/reinitialized/live SBF lineage or audit/reviewer acceptance",
 ]) {
@@ -677,6 +689,7 @@ assertEvidenceFlags(
     invalidProofLeavesAccountsUnchangedTest: false,
     wrongPublicInputHashLeavesAccountsUnchangedTest: false,
     wrongVerifyingKeyLeavesAccountsUnchangedTest: false,
+    wrongVerifierProgramLeavesAccountsUnchangedTest: false,
     sbfLiveLineage: false,
     auditReviewerAcceptance: false,
   },

@@ -42,7 +42,7 @@
       "production proof-format artifact",
       "production verifying-key artifact and hash",
       "current H6 public-input binding",
-      "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence"
+      "valid mutation and invalid/wrong-input/wrong-key/wrong-program no-mutation evidence"
     ],
     "requiredLineageRefs": [
       "rebuilt spend SBF hash",
@@ -185,6 +185,7 @@
     "invalidProofLeavesAccountsUnchangedTest": false,
     "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
     "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "wrongVerifierProgramLeavesAccountsUnchangedTest": false,
     "sbfLiveLineage": false,
     "auditReviewerAcceptance": false
   },

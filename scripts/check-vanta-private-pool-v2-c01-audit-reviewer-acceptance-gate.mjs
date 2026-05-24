@@ -185,6 +185,7 @@ function assertTemplate(template) {
     "invalidProofNoMutationTestRef",
     "wrongPublicInputNoMutationTestRef",
     "wrongVerifyingKeyNoMutationTestRef",
+    "wrongVerifierProgramNoMutationTestRef",
   ]);
   assertNullRefs(template.prerequisites, "template prerequisites", [
     "productionArtifactBundleRef",
@@ -198,6 +199,7 @@ function assertTemplate(template) {
     "invalidProofNoMutationTestRef",
     "wrongPublicInputNoMutationTestRef",
     "wrongVerifyingKeyNoMutationTestRef",
+    "wrongVerifierProgramNoMutationTestRef",
   ]);
   for (const [field, expected] of [
     ["productionArtifactAcceptanceGateRef", productionGatePath],
@@ -245,6 +247,7 @@ function assertTemplate(template) {
       invalidProofLeavesAccountsUnchangedTest: false,
       wrongPublicInputHashLeavesAccountsUnchangedTest: false,
       wrongVerifyingKeyLeavesAccountsUnchangedTest: false,
+      wrongVerifierProgramLeavesAccountsUnchangedTest: false,
       sbfLiveLineage: false,
       auditReviewerAcceptance: false,
     },
@@ -287,6 +290,7 @@ function assertReviewedAuditAcceptance(acceptance, label) {
     "invalidProofNoMutationTestRef",
     "wrongPublicInputNoMutationTestRef",
     "wrongVerifyingKeyNoMutationTestRef",
+    "wrongVerifierProgramNoMutationTestRef",
   ]) {
     assertRef(prerequisites[field], `${label} prerequisites.${field}`);
   }
@@ -311,6 +315,7 @@ function assertReviewedAuditAcceptance(acceptance, label) {
     "invalidProofNoMutationTestRef",
     "wrongPublicInputNoMutationTestRef",
     "wrongVerifyingKeyNoMutationTestRef",
+    "wrongVerifierProgramNoMutationTestRef",
   ]);
 
   const auditReview = acceptance.auditReview ?? {};
@@ -341,6 +346,7 @@ function assertReviewedAuditAcceptance(acceptance, label) {
       invalidProofLeavesAccountsUnchangedTest: true,
       wrongPublicInputHashLeavesAccountsUnchangedTest: true,
       wrongVerifyingKeyLeavesAccountsUnchangedTest: true,
+      wrongVerifierProgramLeavesAccountsUnchangedTest: true,
       sbfLiveLineage: true,
       auditReviewerAcceptance: true,
     },
@@ -515,6 +521,7 @@ for (const marker of [
   "reviewed production artifact bundle",
   "production verifier-adapter acceptance",
   "wrong-verifying-key no-mutation evidence",
+  "wrong-verifier-program no-mutation evidence",
   "SBF/live lineage evidence",
   "reviewed SBF/live lineage acceptance",
   "audit/reviewer acceptance ref",
@@ -565,8 +572,8 @@ assertStringArray(external.validates, "external validation validates");
 for (const marker of [
   "reviewed production artifact bundle ref",
   "production verifier-adapter acceptance ref",
-  "valid-proof mutation and invalid/wrong-input/wrong-key no-mutation refs",
-  "four trim-normalized distinct mutation/no-mutation evidence refs",
+  "valid-proof mutation and invalid/wrong-input/wrong-key/wrong-program no-mutation refs",
+  "five trim-normalized distinct mutation/no-mutation evidence refs",
   "SBF/live lineage acceptance gate ref",
   "SBF/live lineage ref",
   "reviewer identity and scope refs",
@@ -595,6 +602,7 @@ for (const [id, shapeRef] of [
   ["invalid-proof-leaves-account-bytes-unchanged", "test:<invalid-proof-leaves-account-bytes-unchanged-ref>"],
   ["wrong-public-input-leaves-account-bytes-unchanged", "test:<wrong-public-input-hash-leaves-account-bytes-unchanged-ref>"],
   ["wrong-verifying-key-leaves-account-bytes-unchanged", "test:<wrong-verifying-key-leaves-account-bytes-unchanged-ref>"],
+  ["wrong-verifier-program-leaves-account-bytes-unchanged", "test:<wrong-verifier-program-leaves-account-bytes-unchanged-ref>"],
   ["sbf-live-lineage", "lineage:<rebuilt-redeployed-reinitialized-live-lineage-ref>"],
   ["reviewer-identity-and-scope", "review:<reviewer-identity-and-c01-scope-ref>"],
   ["findings-disposition", "review:<all-c01-findings-accepted-or-remediated-ref>"],
@@ -610,7 +618,7 @@ for (const rule of [
   "audit/reviewer acceptance refs must be references only; raw proof, verifying-key, proving-key, witness, keypair, secret, and signed transaction bytes stay out of git",
   "audit/reviewer acceptance can promote only after a reviewed production artifact bundle exists for the selected backend",
   "audit/reviewer acceptance can promote only after production verifier-adapter acceptance and mutation/no-mutation refs exist",
-  "audit/reviewer acceptance requires distinct refs for valid mutation and each invalid/wrong-input/wrong-key no-mutation case",
+  "audit/reviewer acceptance requires distinct refs for valid mutation and each invalid/wrong-input/wrong-key/wrong-program no-mutation case",
   "audit/reviewer acceptance can promote only after SBF/live lineage ties the deployed spend/verifier programs, verifier-key record, and tag-3 proof-enforced path to the accepted production proof/VK lineage",
   "audit/reviewer acceptance must identify reviewer scope and findings disposition; generic approval language is not enough",
 ]) {
@@ -629,6 +637,7 @@ assertEvidenceFlags(
     invalidProofLeavesAccountsUnchangedTest: false,
     wrongPublicInputHashLeavesAccountsUnchangedTest: false,
     wrongVerifyingKeyLeavesAccountsUnchangedTest: false,
+    wrongVerifierProgramLeavesAccountsUnchangedTest: false,
     sbfLiveLineage: false,
     auditReviewerAcceptance: false,
   },

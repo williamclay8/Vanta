@@ -25,6 +25,7 @@
     "invalidProofNoMutation": false,
     "wrongPublicInputHashNoMutation": false,
     "wrongVerifyingKeyNoMutation": false,
+    "wrongVerifierProgramNoMutation": false,
     "sbfLiveLineage": false,
     "auditReviewerAcceptance": false
   },
@@ -37,6 +38,7 @@
     "invalidProofLeavesAccountsUnchanged": false,
     "wrongPublicInputHashLeavesAccountsUnchanged": false,
     "wrongVerifyingKeyLeavesAccountsUnchanged": false,
+    "wrongVerifierProgramLeavesAccountsUnchanged": false,
     "truthBoundary": "Host-side reserved tag 3 still returns ERR_PROOF_VERIFIER_NOT_WIRED after preflight so Solana syscall stubs cannot fake proof acceptance; SBF now has an on-chain verifier CPI hook, but no accepted production verifier artifact or mutation/no-mutation evidence exists. That is not positive proof-verified claim evidence and not proof acceptance."
   },
   "positiveEvidenceRefs": {
@@ -46,7 +48,8 @@
     "tag3AcceptedProofMutationArtifactRef": null,
     "tag3InvalidProofNoMutationArtifactRef": null,
     "tag3WrongPublicInputHashNoMutationArtifactRef": null,
-    "tag3WrongVerifyingKeyNoMutationArtifactRef": null
+    "tag3WrongVerifyingKeyNoMutationArtifactRef": null,
+    "tag3WrongVerifierProgramNoMutationArtifactRef": null
   },
   "localFailClosedVerifierAdapterSeamHarnessRef": {
     "status": "local-fail-closed-harness-only",
@@ -67,14 +70,16 @@
     "provesTestOnlyPublicTag3AccountListMutationShape": true,
     "provesTestOnlyInvalidProofNoMutationShape": true,
     "provesTestOnlyWrongPublicInputNoMutationShape": true,
+    "provesTestOnlyWrongVerifierProgramNoMutationShape": true,
     "provesTestOnlyWrongVerifyingKeyNoMutationShape": true,
     "satisfiesValidProofSuccess": false,
     "satisfiesAcceptedProofMutation": false,
     "satisfiesInvalidProofNoMutation": false,
     "satisfiesWrongPublicInputHashNoMutation": false,
     "satisfiesWrongVerifyingKeyNoMutation": false,
+    "satisfiesWrongVerifierProgramNoMutation": false,
     "satisfiesVerifierAdapterAcceptance": false,
-    "truthBoundary": "This local seam harness is drift-prevention only. It proves the default tag-3 adapter rejects before mutation, assembles the 368-byte proof-plus-public-witness verifier instruction-data tuple, prechecks the one-field Gnark public witness against publicInputHash, reserves a dedicated read-only executable verifier-program account, binds that verifier program id into the tag-5 verifier-key record, rejects a different executable verifier program before the not-wired boundary, constructs the generated Solana verifier CPI instruction with no account metas and data equal to proof||publicWitness, has an on-chain-only verifier CPI hook that passes the verifier-program account, prevents host-side Solana syscall stubs from turning CPI construction into proof acceptance, that a verified-commit helper mutates only after an accepted-adapter handoff, and that a test-only selected Gnark fixture adapter shape can mutate through the public commit-capable tag-3 account list while preserving invalid-proof, wrong-public-input, and wrong-verifying-key no-mutation cases. It is not tag-3 valid-proof success evidence, not accepted-proof mutation evidence, not invalid/wrong-input/wrong-key production no-mutation evidence, not verifier-adapter acceptance, not production proof-format evidence, and not production verifying-key evidence."
+    "truthBoundary": "This local seam harness is drift-prevention only. It proves the default tag-3 adapter rejects before mutation, assembles the 368-byte proof-plus-public-witness verifier instruction-data tuple, prechecks the one-field Gnark public witness against publicInputHash, reserves a dedicated read-only executable verifier-program account, binds that verifier program id into the tag-5 verifier-key record, rejects a different executable verifier program before the not-wired boundary, constructs the generated Solana verifier CPI instruction with no account metas and data equal to proof||publicWitness, has an on-chain-only verifier CPI hook that passes the verifier-program account, prevents host-side Solana syscall stubs from turning CPI construction into proof acceptance, that a verified-commit helper mutates only after an accepted-adapter handoff, and that a test-only selected Gnark fixture adapter shape can mutate through the public commit-capable tag-3 account list while preserving invalid-proof, wrong-public-input, wrong-verifying-key, and wrong-verifier-program no-mutation cases. It is not tag-3 valid-proof success evidence, not accepted-proof mutation evidence, not invalid/wrong-input/wrong-key/wrong-program production no-mutation evidence, not verifier-adapter acceptance, not production proof-format evidence, and not production verifying-key evidence."
   },
   "localSbfVerifierCpiRejectionHarnessRef": {
     "status": "local-sbf-cpi-rejection-no-mutation-only",
@@ -87,6 +92,7 @@
     "satisfiesInvalidProofNoMutation": false,
     "satisfiesWrongPublicInputHashNoMutation": false,
     "satisfiesWrongVerifyingKeyNoMutation": false,
+    "satisfiesWrongVerifierProgramNoMutation": false,
     "satisfiesSbfLiveLineage": false,
     "satisfiesVerifierAdapterAcceptance": false,
     "truthBoundary": "SBF CPI rejection/no-mutation only. This local harness proves the spend SBF can reach an executable verifier-program CPI and leave accounts unchanged when that verifier rejects, but it is not tag-3 valid-proof success evidence, not accepted-proof mutation evidence, not production no-mutation evidence, not SBF/live lineage, and not verifier-adapter acceptance."
@@ -105,6 +111,7 @@
     "satisfiesInvalidProofNoMutation": false,
     "satisfiesWrongPublicInputHashNoMutation": false,
     "satisfiesWrongVerifyingKeyNoMutation": false,
+    "satisfiesWrongVerifierProgramNoMutation": false,
     "satisfiesVerifierAdapterAcceptance": false,
     "satisfiesSbfLiveLineage": false,
     "truthBoundary": "local unsafe H6-preserving Sunspot/Gnark artifact lane only. This proves local Vanta tag 3 can CPI into the generated verifier SBF from /private/tmp, mutate after the local unsafe H6 proof/public-witness tuple is accepted, reject a tampered proof without mutation, reject a wrong public input hash without mutation, reject a wrong executable verifier program without mutation when the registered verifier-key record is bound to the correct generated verifier program id, and reject a wrong-verifying-key local unsafe path by registering the pre-H6 generated verifier SBF/key hash against the H6 proof/public witness. It is not tag-3 production valid-proof success evidence, not accepted-proof production mutation evidence, not production no-mutation evidence, not verifier-adapter acceptance, not SBF/live lineage, and not wrong-verifying-key production no-mutation evidence."

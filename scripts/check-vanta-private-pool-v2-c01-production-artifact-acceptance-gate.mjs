@@ -309,6 +309,7 @@ function assertBundleTemplate(template) {
       invalidProofLeavesAccountsUnchangedTest: false,
       wrongPublicInputHashLeavesAccountsUnchangedTest: false,
       wrongVerifyingKeyLeavesAccountsUnchangedTest: false,
+      wrongVerifierProgramLeavesAccountsUnchangedTest: false,
       sbfLiveLineage: false,
       auditReviewerAcceptance: false,
     },
@@ -443,6 +444,7 @@ function assertReviewedProductionBundle(bundle, label) {
     "invalidProofNoMutationTestRef",
     "wrongPublicInputNoMutationTestRef",
     "wrongVerifyingKeyNoMutationTestRef",
+    "wrongVerifierProgramNoMutationTestRef",
   ];
   assertDistinctRefs(mutation, `${label} mutationEvidence`, mutationRefFields);
   for (const field of [
@@ -450,6 +452,7 @@ function assertReviewedProductionBundle(bundle, label) {
     "invalidProofLeavesAccountsUnchanged",
     "wrongPublicInputLeavesAccountsUnchanged",
     "wrongVerifyingKeyLeavesAccountsUnchanged",
+    "wrongVerifierProgramLeavesAccountsUnchanged",
   ]) {
     assert(mutation[field] === true, `${label} mutationEvidence.${field} must be true`);
   }
@@ -542,6 +545,7 @@ function assertReviewedProductionBundle(bundle, label) {
       invalidProofLeavesAccountsUnchangedTest: true,
       wrongPublicInputHashLeavesAccountsUnchangedTest: true,
       wrongVerifyingKeyLeavesAccountsUnchangedTest: true,
+      wrongVerifierProgramLeavesAccountsUnchangedTest: true,
       sbfLiveLineage: true,
       auditReviewerAcceptance: true,
     },
@@ -804,6 +808,7 @@ assertAllowedKeys(accepted, "current accepted production bundle", [
   "invalidProofNoMutationTestRef",
   "wrongPublicInputNoMutationTestRef",
   "wrongVerifyingKeyNoMutationTestRef",
+  "wrongVerifierProgramNoMutationTestRef",
   "sbfLiveLineageRef",
   "auditReviewerAcceptanceRef",
   "artifactReviewAttestationRef",
@@ -828,6 +833,7 @@ assertNullRefs(accepted, "accepted production bundle", [
   "invalidProofNoMutationTestRef",
   "wrongPublicInputNoMutationTestRef",
   "wrongVerifyingKeyNoMutationTestRef",
+  "wrongVerifierProgramNoMutationTestRef",
   "sbfLiveLineageRef",
   "auditReviewerAcceptanceRef",
   "artifactReviewAttestationRef",
@@ -1050,7 +1056,8 @@ for (const marker of [
   "invalid-proof no-mutation evidence",
   "wrong-public-input no-mutation evidence",
   "wrong-verifying-key no-mutation evidence",
-  "four trim-normalized distinct mutation/no-mutation evidence refs",
+  "wrong-verifier-program no-mutation evidence",
+  "five trim-normalized distinct mutation/no-mutation evidence refs",
   "SBF/live lineage evidence",
   "audit/reviewer acceptance",
   "audit/reviewer reviewer identity, C01 scope, findings disposition, acceptedForC01, and satisfiesAuditReviewerAcceptance fields",
@@ -1090,6 +1097,7 @@ for (const [id, shapeRef] of [
   ["invalid-proof-leaves-account-bytes-unchanged", "test:<invalid-proof-leaves-account-bytes-unchanged-ref>"],
   ["wrong-public-input-leaves-account-bytes-unchanged", "test:<wrong-public-input-hash-leaves-account-bytes-unchanged-ref>"],
   ["wrong-verifying-key-leaves-account-bytes-unchanged", "test:<wrong-verifying-key-leaves-account-bytes-unchanged-ref>"],
+  ["wrong-verifier-program-leaves-account-bytes-unchanged", "test:<wrong-verifier-program-leaves-account-bytes-unchanged-ref>"],
   ["sbf-live-lineage", "lineage:<rebuilt-redeployed-reinitialized-sbf-and-account-evidence-ref>"],
   ["audit-reviewer-acceptance", "audit-or-review:<selected-verifier-backend-accepted-for-c01-ref>"],
   ["artifact-review-attestation", "review:<production-artifact-bundle-reviewer-attestation-ref>"],
@@ -1112,8 +1120,8 @@ for (const rule of [
   "reviewed deterministic production artifact build receipt is required before proof/VK/public-witness refs can promote into the production bundle",
   "reviewed production verifier-adapter acceptance receipt is required before adapter and mutation/no-mutation refs can promote into the production bundle",
   "verifier adapter acceptance can promote only after production proof-format and production verifying-key evidence exist",
-  "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence must run under the accepted verifier boundary",
-  "valid mutation and each invalid/wrong-input/wrong-key no-mutation case must have distinct evidence refs",
+  "valid mutation and invalid/wrong-input/wrong-key/wrong-program no-mutation evidence must run under the accepted verifier boundary",
+  "valid mutation and each invalid/wrong-input/wrong-key/wrong-program no-mutation case must have distinct evidence refs",
   "production artifact bundle acceptance must include artifact producer identity, reviewer identity, review scope, and cross-refs to deterministic build, adapter, lineage, and audit acceptance refs",
   "SBF/live lineage and audit/reviewer acceptance remain separate required refs",
 ]) {
@@ -1133,6 +1141,7 @@ assertAllowedKeys(packet.satisfiesRequiredPositiveEvidence, "satisfiesRequiredPo
   "invalidProofLeavesAccountsUnchangedTest",
   "wrongPublicInputHashLeavesAccountsUnchangedTest",
   "wrongVerifyingKeyLeavesAccountsUnchangedTest",
+  "wrongVerifierProgramLeavesAccountsUnchangedTest",
   "sbfLiveLineage",
   "auditReviewerAcceptance",
 ]);
@@ -1149,6 +1158,7 @@ for (const field of [
   "invalidProofLeavesAccountsUnchangedTest",
   "wrongPublicInputHashLeavesAccountsUnchangedTest",
   "wrongVerifyingKeyLeavesAccountsUnchangedTest",
+  "wrongVerifierProgramLeavesAccountsUnchangedTest",
   "sbfLiveLineage",
   "auditReviewerAcceptance",
 ]) {

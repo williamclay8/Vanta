@@ -228,7 +228,7 @@ for (const marker of [
   "data equal to `gnarkProof || gnarkPublicWitness`",
   "on-chain-only verifier CPI hook",
   "host-side Solana syscall stubs remain fail-closed",
-  "test-only selected-Gnark valid-mutation / invalid-proof / wrong-public-input / wrong-verifying-key no-mutation shape coverage",
+  "test-only selected-Gnark valid-mutation / invalid-proof / wrong-public-input / wrong-verifying-key / wrong-verifier-program no-mutation shape coverage",
   "324-byte proof plus 44-byte public-witness tuple",
   "npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check",
   "local unsafe generated-verifier CPI harness",

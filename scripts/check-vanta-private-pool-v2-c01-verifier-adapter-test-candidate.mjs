@@ -325,6 +325,7 @@ assertAllowedKeys(packet.currentAcceptanceTests, "current acceptance tests", [
   "invalidProofLeavesAccountsUnchanged",
   "wrongPublicInputHashLeavesAccountsUnchanged",
   "wrongVerifyingKeyLeavesAccountsUnchanged",
+  "wrongVerifierProgramLeavesAccountsUnchanged",
 ]);
 for (const [field, satisfiesField] of [
   ["validProofMutatesNullifierAndOutputState", "satisfiesAcceptedProofMutatesStateTest"],
@@ -459,7 +460,7 @@ for (const marker of [
   "data equal to proof||publicWitness",
   "public tag-3 account list is commit-capable after adapter success",
   "test-only selected Gnark fixture adapter shape covers valid mutation",
-  "invalid-proof, wrong-public-input, and wrong-verifying-key no-mutation cases",
+  "invalid-proof, wrong-public-input, wrong-verifying-key, and wrong-verifier-program no-mutation cases",
   "324-byte proof plus 44-byte public-witness tuple",
   "not verifier-adapter acceptance",
   "not tag-3 proof acceptance",
@@ -673,7 +674,7 @@ for (const marker of [
   "not production verifier-adapter acceptance",
   "not production proof-format evidence",
   "not production verifying-key evidence",
-  "not production wrong-verifying-key no-mutation evidence",
+  "not production wrong-verifying-key or wrong-verifier-program no-mutation evidence",
   "not SBF/live lineage",
 ]) {
   includes(localUnsafeAcceptance.truthBoundary ?? "", marker, "local unsafe harness truth boundary");
@@ -960,6 +961,7 @@ assertAllowedKeys(packet.satisfiesRequiredPositiveEvidence, "required positive e
   "invalidProofLeavesAccountsUnchangedTest",
   "wrongPublicInputHashLeavesAccountsUnchangedTest",
   "wrongVerifyingKeyLeavesAccountsUnchangedTest",
+  "wrongVerifierProgramLeavesAccountsUnchangedTest",
   "sbfLiveLineage",
   "auditReviewerAcceptance",
 ]);
@@ -973,6 +975,7 @@ for (const [field, expected] of [
   ["invalidProofLeavesAccountsUnchangedTest", false],
   ["wrongPublicInputHashLeavesAccountsUnchangedTest", false],
   ["wrongVerifyingKeyLeavesAccountsUnchangedTest", false],
+  ["wrongVerifierProgramLeavesAccountsUnchangedTest", false],
   ["sbfLiveLineage", false],
   ["auditReviewerAcceptance", false],
 ]) {
@@ -987,6 +990,7 @@ assertAllowedKeys(packet.candidatePacketMustRemain, "candidate packet invariant"
   "invalidProofLeavesAccountsUnchangedTestCurrentArtifactRef",
   "wrongPublicInputHashLeavesAccountsUnchangedTestCurrentArtifactRef",
   "wrongVerifyingKeyLeavesAccountsUnchangedTestCurrentArtifactRef",
+  "wrongVerifierProgramLeavesAccountsUnchangedTestCurrentArtifactRef",
   "privateSpendPublicInputHashBindingCurrentArtifactRef",
   "allRequiredPositiveEvidenceStatus",
 ]);
@@ -1004,6 +1008,7 @@ for (const field of [
   "invalidProofLeavesAccountsUnchangedTestCurrentArtifactRef",
   "wrongPublicInputHashLeavesAccountsUnchangedTestCurrentArtifactRef",
   "wrongVerifyingKeyLeavesAccountsUnchangedTestCurrentArtifactRef",
+  "wrongVerifierProgramLeavesAccountsUnchangedTestCurrentArtifactRef",
   "privateSpendPublicInputHashBindingCurrentArtifactRef",
 ]) {
   assert(packet.candidatePacketMustRemain[field] === null, `${field} must remain null`);
@@ -1024,6 +1029,7 @@ for (const id of [
   "invalid-proof-leaves-accounts-unchanged-test",
   "wrong-public-input-hash-leaves-accounts-unchanged-test",
   "wrong-verifying-key-leaves-accounts-unchanged-test",
+  "wrong-verifier-program-leaves-accounts-unchanged-test",
 ]) {
   const evidence = findRequiredEvidence(candidate, id);
   assert(evidence.status === "blocked", `candidate ${id} must remain blocked`);

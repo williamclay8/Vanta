@@ -873,6 +873,7 @@ for (const id of [
   "invalid-proof-leaves-accounts-unchanged-test",
   "wrong-public-input-hash-leaves-accounts-unchanged-test",
   "wrong-verifying-key-leaves-accounts-unchanged-test",
+  "wrong-verifier-program-leaves-accounts-unchanged-test",
   "sbf-live-lineage",
   "audit-reviewer-acceptance",
 ]) {

@@ -143,6 +143,7 @@ assertAllowedKeys(packet.currentTag3Observation, "current tag-3 observation", [
   "invalidProofLeavesAccountsUnchanged",
   "wrongPublicInputHashLeavesAccountsUnchanged",
   "wrongVerifyingKeyLeavesAccountsUnchanged",
+  "wrongVerifierProgramLeavesAccountsUnchanged",
   "truthBoundary",
 ]);
 assert(packet.currentTag3Observation.status === "reserved-fail-closed", "tag 3 must remain fail-closed");
@@ -157,6 +158,7 @@ for (const field of [
   "invalidProofLeavesAccountsUnchanged",
   "wrongPublicInputHashLeavesAccountsUnchanged",
   "wrongVerifyingKeyLeavesAccountsUnchanged",
+  "wrongVerifierProgramLeavesAccountsUnchanged",
 ]) {
   const expected = field.endsWith("ArtifactRef") ? null : false;
   assert(packet.currentTag3Observation[field] === expected, `current tag-3 observation ${field} mismatch`);
@@ -178,6 +180,7 @@ assertAllowedKeys(packet.positiveClaimRequires, "positive claim requirements", [
   "invalidProofNoMutation",
   "wrongPublicInputHashNoMutation",
   "wrongVerifyingKeyNoMutation",
+  "wrongVerifierProgramNoMutation",
   "sbfLiveLineage",
   "auditReviewerAcceptance",
 ]);
@@ -194,6 +197,7 @@ assertAllowedKeys(packet.positiveEvidenceRefs, "positive evidence refs", [
   "tag3InvalidProofNoMutationArtifactRef",
   "tag3WrongPublicInputHashNoMutationArtifactRef",
   "tag3WrongVerifyingKeyNoMutationArtifactRef",
+  "tag3WrongVerifierProgramNoMutationArtifactRef",
 ]);
 assert(
   packet.positiveEvidenceRefs.candidatePacketStatus ===
@@ -210,6 +214,7 @@ for (const field of [
   "tag3InvalidProofNoMutationArtifactRef",
   "tag3WrongPublicInputHashNoMutationArtifactRef",
   "tag3WrongVerifyingKeyNoMutationArtifactRef",
+  "tag3WrongVerifierProgramNoMutationArtifactRef",
 ]) {
   assert(packet.positiveEvidenceRefs[field] === null, `${field} must stay null`);
 }
@@ -233,12 +238,14 @@ assertAllowedKeys(packet.localFailClosedVerifierAdapterSeamHarnessRef, "local se
   "provesTestOnlyPublicTag3AccountListMutationShape",
   "provesTestOnlyInvalidProofNoMutationShape",
   "provesTestOnlyWrongPublicInputNoMutationShape",
+  "provesTestOnlyWrongVerifierProgramNoMutationShape",
   "provesTestOnlyWrongVerifyingKeyNoMutationShape",
   "satisfiesValidProofSuccess",
   "satisfiesAcceptedProofMutation",
   "satisfiesInvalidProofNoMutation",
   "satisfiesWrongPublicInputHashNoMutation",
   "satisfiesWrongVerifyingKeyNoMutation",
+  "satisfiesWrongVerifierProgramNoMutation",
   "satisfiesVerifierAdapterAcceptance",
   "truthBoundary",
 ]);
@@ -273,6 +280,7 @@ for (const field of [
   "provesTestOnlyPublicTag3AccountListMutationShape",
   "provesTestOnlyInvalidProofNoMutationShape",
   "provesTestOnlyWrongPublicInputNoMutationShape",
+  "provesTestOnlyWrongVerifierProgramNoMutationShape",
   "provesTestOnlyWrongVerifyingKeyNoMutationShape",
 ]) {
   assert(packet.localFailClosedVerifierAdapterSeamHarnessRef[field] === true, `local seam harness ${field} must be true`);
@@ -283,6 +291,7 @@ for (const field of [
   "satisfiesInvalidProofNoMutation",
   "satisfiesWrongPublicInputHashNoMutation",
   "satisfiesWrongVerifyingKeyNoMutation",
+  "satisfiesWrongVerifierProgramNoMutation",
   "satisfiesVerifierAdapterAcceptance",
 ]) {
   assert(packet.localFailClosedVerifierAdapterSeamHarnessRef[field] === false, `local seam harness ${field} must stay false`);
@@ -297,10 +306,10 @@ for (const phrase of [
   "data equal to proof||publicWitness",
   "on-chain-only verifier CPI hook",
   "prevents host-side Solana syscall stubs from turning CPI construction into proof acceptance",
-  "invalid-proof, wrong-public-input, and wrong-verifying-key no-mutation cases",
+  "invalid-proof, wrong-public-input, wrong-verifying-key, and wrong-verifier-program no-mutation cases",
   "not tag-3 valid-proof success evidence",
   "not accepted-proof mutation evidence",
-  "not invalid/wrong-input/wrong-key production no-mutation evidence",
+  "not invalid/wrong-input/wrong-key/wrong-program production no-mutation evidence",
   "not verifier-adapter acceptance",
 ]) {
   includes(packet.localFailClosedVerifierAdapterSeamHarnessRef.truthBoundary ?? "", phrase, "local seam truth boundary");
@@ -317,6 +326,7 @@ assertAllowedKeys(packet.localSbfVerifierCpiRejectionHarnessRef, "local SBF veri
   "satisfiesInvalidProofNoMutation",
   "satisfiesWrongPublicInputHashNoMutation",
   "satisfiesWrongVerifyingKeyNoMutation",
+  "satisfiesWrongVerifierProgramNoMutation",
   "satisfiesSbfLiveLineage",
   "satisfiesVerifierAdapterAcceptance",
   "truthBoundary",
@@ -346,6 +356,7 @@ for (const field of [
   "satisfiesInvalidProofNoMutation",
   "satisfiesWrongPublicInputHashNoMutation",
   "satisfiesWrongVerifyingKeyNoMutation",
+  "satisfiesWrongVerifierProgramNoMutation",
   "satisfiesSbfLiveLineage",
   "satisfiesVerifierAdapterAcceptance",
 ]) {
@@ -379,6 +390,7 @@ assertAllowedKeys(
     "satisfiesInvalidProofNoMutation",
     "satisfiesWrongPublicInputHashNoMutation",
     "satisfiesWrongVerifyingKeyNoMutation",
+    "satisfiesWrongVerifierProgramNoMutation",
     "satisfiesVerifierAdapterAcceptance",
     "satisfiesSbfLiveLineage",
     "truthBoundary",
@@ -416,6 +428,7 @@ for (const field of [
   "satisfiesInvalidProofNoMutation",
   "satisfiesWrongPublicInputHashNoMutation",
   "satisfiesWrongVerifyingKeyNoMutation",
+  "satisfiesWrongVerifierProgramNoMutation",
   "satisfiesVerifierAdapterAcceptance",
   "satisfiesSbfLiveLineage",
 ]) {
@@ -506,6 +519,7 @@ for (const id of [
   "invalid-proof-leaves-accounts-unchanged-test",
   "wrong-public-input-hash-leaves-accounts-unchanged-test",
   "wrong-verifying-key-leaves-accounts-unchanged-test",
+  "wrong-verifier-program-leaves-accounts-unchanged-test",
 ]) {
   const evidence = candidate.requiredPositiveEvidence?.find((entry) => entry.id === id);
   assert(evidence?.status === "blocked", `candidate ${id} must remain blocked`);

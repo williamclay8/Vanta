@@ -312,6 +312,7 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
     "invalidProofNoMutationTestRef",
     "wrongPublicInputNoMutationTestRef",
     "wrongVerifyingKeyNoMutationTestRef",
+    "wrongVerifierProgramNoMutationTestRef",
   ];
   assertDistinctRefs(bundleMutation, "bundle mutation", mutationRefFields);
   for (const field of mutationRefFields) {
@@ -323,6 +324,7 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
     "invalidProofLeavesAccountsUnchanged",
     "wrongPublicInputLeavesAccountsUnchanged",
     "wrongVerifyingKeyLeavesAccountsUnchanged",
+    "wrongVerifierProgramLeavesAccountsUnchanged",
   ]) {
     assert(bundleMutation[field] === true, `bundle mutation ${field} must be true`);
     assert(adapterMutation[field] === true, `adapter mutation ${field} must be true`);
@@ -463,6 +465,7 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
       invalidProofLeavesAccountsUnchangedTest: true,
       wrongPublicInputHashLeavesAccountsUnchangedTest: true,
       wrongVerifyingKeyLeavesAccountsUnchangedTest: true,
+      wrongVerifierProgramLeavesAccountsUnchangedTest: true,
       sbfLiveLineage: false,
       auditReviewerAcceptance: false,
     },
@@ -480,6 +483,7 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
       invalidProofLeavesAccountsUnchangedTest: true,
       wrongPublicInputHashLeavesAccountsUnchangedTest: true,
       wrongVerifyingKeyLeavesAccountsUnchangedTest: true,
+      wrongVerifierProgramLeavesAccountsUnchangedTest: true,
       sbfLiveLineage: true,
       auditReviewerAcceptance: false,
     },
@@ -497,6 +501,7 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
       invalidProofLeavesAccountsUnchangedTest: true,
       wrongPublicInputHashLeavesAccountsUnchangedTest: true,
       wrongVerifyingKeyLeavesAccountsUnchangedTest: true,
+      wrongVerifierProgramLeavesAccountsUnchangedTest: true,
       sbfLiveLineage: true,
       auditReviewerAcceptance: true,
     },
@@ -516,6 +521,7 @@ const fullPositiveFlags = {
   invalidProofLeavesAccountsUnchangedTest: true,
   wrongPublicInputHashLeavesAccountsUnchangedTest: true,
   wrongVerifyingKeyLeavesAccountsUnchangedTest: true,
+  wrongVerifierProgramLeavesAccountsUnchangedTest: true,
   sbfLiveLineage: true,
   auditReviewerAcceptance: true,
 };
@@ -671,6 +677,7 @@ assertNullRefs(current, "current closure evidence", [
   "invalidProofNoMutationTestRef",
   "wrongPublicInputNoMutationTestRef",
   "wrongVerifyingKeyNoMutationTestRef",
+  "wrongVerifierProgramNoMutationTestRef",
 ]);
 assert(current.satisfiesC01VerifierEvidenceClosure === false, "current closure must remain false");
 
@@ -691,8 +698,8 @@ for (const marker of [
   "source-review acceptance and deterministic build/output-manifest prerequisite refs are present in the reviewed production bundle",
   "same production verifying-key artifact and production verifying-key hash",
   "adapter public-input label/value/commitment and production binding flag match the production bundle",
-  "same valid mutation and invalid/wrong-input/wrong-key no-mutation refs",
-  "four trim-normalized distinct mutation/no-mutation evidence refs",
+  "same valid mutation and invalid/wrong-input/wrong-key/wrong-program no-mutation refs",
+  "five trim-normalized distinct mutation/no-mutation evidence refs",
   "same SBF/live lineage ref",
   "same audit/reviewer acceptance ref",
   "no raw proof/VK/witness/key/secret/transaction material in env-supplied JSON",
@@ -702,7 +709,7 @@ for (const marker of [
 assert(external.satisfiesC01VerifierEvidenceClosure === false, "external closure must not satisfy by itself");
 assertStringArray(gate.crossPacketInvariants, "crossPacketInvariants");
 for (const invariant of [
-  "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence refs must be distinct across the closure chain",
+  "valid mutation and invalid/wrong-input/wrong-key/wrong-program no-mutation evidence refs must be distinct across the closure chain",
 ]) {
   assert(gate.crossPacketInvariants.includes(invariant), `cross-packet invariant missing ${invariant}`);
 }
@@ -732,6 +739,7 @@ assertEvidenceFlags(
     invalidProofLeavesAccountsUnchangedTest: false,
     wrongPublicInputHashLeavesAccountsUnchangedTest: false,
     wrongVerifyingKeyLeavesAccountsUnchangedTest: false,
+    wrongVerifierProgramLeavesAccountsUnchangedTest: false,
     sbfLiveLineage: false,
     auditReviewerAcceptance: false,
     c01VerifierEvidenceClosure: false,

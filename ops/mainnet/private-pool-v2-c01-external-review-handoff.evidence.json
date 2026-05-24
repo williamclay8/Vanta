@@ -72,7 +72,7 @@
       "gateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
       "envVar": "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH",
       "validationCommand": "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check",
-      "requiredReturn": "reviewed production proof-format, VK hash, current H6 public-input binding, adapter, mutation/no-mutation, lineage, audit refs, and artifact producer/reviewer identity-scope attestation in one refs-only production artifact bundle",
+      "requiredReturn": "reviewed production proof-format, VK hash, current H6 public-input binding, adapter, valid-proof mutation plus invalid-proof, wrong-public-input, wrong-verifying-key, and wrong-verifier-program no-mutation refs, lineage, audit refs, and artifact producer/reviewer identity-scope attestation in one refs-only production artifact bundle",
       "truthBoundary": "The bundle must be reviewed and validated before promotion; this handoff manifest does not supply it."
     },
     {
@@ -82,7 +82,7 @@
       "gateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
       "envVar": "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH",
       "validationCommand": "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-verifier-adapter-acceptance-gate-check",
-      "requiredReturn": "accepted verifier adapter or verifier program boundary, current H6 public-input binding, valid mutation, invalid-proof no-mutation, wrong-public-input no-mutation, wrong-verifying-key no-mutation refs, and reviewer identity-scope attestation",
+      "requiredReturn": "accepted verifier adapter or verifier program boundary, current H6 public-input binding, valid-proof mutation; invalid-proof, wrong-public-input, wrong-verifying-key, and wrong-verifier-program no-mutation refs, and reviewer identity-scope attestation",
       "truthBoundary": "Local unsafe adapter evidence and source seam tests do not satisfy production verifier-adapter acceptance."
     },
     {
@@ -102,7 +102,7 @@
       "gateRef": "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance-gate.evidence.json",
       "envVar": "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH",
       "validationCommand": "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-audit-reviewer-acceptance-gate-check",
-      "requiredReturn": "reviewer identity, scope, findings disposition, and explicit C01 acceptance refs after production bundle, adapter acceptance, mutation/no-mutation, and SBF/live lineage exist",
+      "requiredReturn": "reviewer identity, scope, findings disposition, and explicit C01 acceptance refs after production bundle, adapter acceptance, valid-proof mutation plus invalid-proof, wrong-public-input, wrong-verifying-key, and wrong-verifier-program no-mutation, and SBF/live lineage exist",
       "truthBoundary": "Repo-local checks are not audit/reviewer acceptance."
     },
     {
@@ -112,7 +112,7 @@
       "gateRef": "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json",
       "envVar": "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH+VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH+VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH+VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH",
       "validationCommand": "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-bundle-json> VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-adapter-json> VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH=<reviewed-lineage-json> VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-audit-json> npm run zk:c01-verifier-evidence-closure-gate-check",
-      "requiredReturn": "all four reviewed packets must cross-bind the same backend, route, source ACIR, proof tuple, current H6 public input, production VK hash, adapter refs, mutation refs, lineage ref, and audit ref",
+      "requiredReturn": "all four reviewed packets must cross-bind the same backend, route, source ACIR, proof tuple, current H6 public input, production VK hash, adapter refs, five mutation/no-mutation refs, lineage ref, and audit ref",
       "truthBoundary": "Closure validation can only pass after reviewed returned packets exist; this handoff manifest is not C01 closure and remains blocked."
     }
   ],
@@ -154,7 +154,7 @@
     "no deterministic reviewed production artifact build receipt",
     "no reviewed production artifact bundle",
     "no production verifier-adapter acceptance",
-    "no production valid mutation or invalid/wrong-input/wrong-key no-mutation refs",
+    "no production valid mutation or invalid/wrong-input/wrong-key/wrong-program no-mutation refs",
     "no SBF/live lineage acceptance",
     "no audit/reviewer acceptance",
     "no composite C01 verifier evidence closure validation"
@@ -172,5 +172,5 @@
     "npm run zk:c01-verifier-evidence-closure-gate-check",
     "npm run zk:review-guards-check"
   ],
-  "truthBoundary": "This is a C01 external reviewer handoff manifest. It makes the production verifier review path executable, but it is not external review, not source-review acceptance, not deterministic production artifact build evidence, not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not valid mutation evidence, not invalid/wrong-input/wrong-key no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, not C01 closure, and not production-private readiness."
+  "truthBoundary": "This is a C01 external reviewer handoff manifest. It makes the production verifier review path executable, but it is not external review, not source-review acceptance, not deterministic production artifact build evidence, not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not valid mutation evidence, not invalid/wrong-input/wrong-key/wrong-program no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, not C01 closure, and not production-private readiness."
 }
