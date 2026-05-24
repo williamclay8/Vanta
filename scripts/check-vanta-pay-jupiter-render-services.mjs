@@ -110,9 +110,9 @@ for (const envName of [
 }
 for (const blocker of [
   "raw-liquidity-keypair-env-must-be-removed",
-  "server-only-turnkey-signer-adapter-not-implemented",
+  "turnkey-runtime-credentials-not-provisioned",
   "turnkey-signer-ref-resolution-not-reviewed",
-  "live-jupiter-swap-signing-still-raw-keypair-path",
+  "turnkey-live-signing-approval-not-recorded",
   "adapter-auth-proxy-not-configured-for-live-browser-flow",
   "durable-live-cap-state-not-configured",
   "swap-live-settlement-evidence-not-reviewed",
@@ -121,15 +121,48 @@ for (const blocker of [
 }
 for (const ref of [
   "VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF",
+  "VANTA_SOL_TO_SHIELDED_LIQUIDITY_PUBLIC_KEY_REF",
+  "VANTA_SOL_TO_SHIELDED_TURNKEY_REVIEW_PACKET_REF",
+  "VANTA_SOL_TO_SHIELDED_TURNKEY_LIVE_SIGNING_APPROVAL_REF",
+  "VANTA_TURNKEY_ORGANIZATION_ID_REF",
+  "VANTA_TURNKEY_API_PUBLIC_KEY_REF",
+  "VANTA_TURNKEY_API_PRIVATE_KEY_REF",
   "VANTA_TURNKEY_SIGN_WITH_REF",
   "VANTA_TURNKEY_POLICY_ID_REF",
 ]) {
   assert.ok(jupiter.requiredEnvRefs.includes(ref), `Jupiter manifest missing required ref ${ref}.`);
 }
+for (const envName of [
+  "VANTA_SOL_TO_SHIELDED_EXECUTION_MODE",
+  "VANTA_SOLANA_RPC_URL",
+  "VANTA_SOL_TO_SHIELDED_MAX_INPUT_SOL",
+  "VANTA_SOL_TO_SHIELDED_SUPPORTED_ASSETS",
+  "VANTA_SOL_TO_SHIELDED_ADAPTER_AUTH_TOKEN",
+  "VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF",
+  "VANTA_SOL_TO_SHIELDED_LIQUIDITY_PUBLIC_KEY",
+  "VANTA_SOL_TO_SHIELDED_LIQUIDITY_PUBLIC_KEY_REF",
+  "VANTA_SOL_TO_SHIELDED_TURNKEY_REVIEW_PACKET_REF",
+  "VANTA_SOL_TO_SHIELDED_TURNKEY_LIVE_SIGNING_APPROVED",
+  "VANTA_SOL_TO_SHIELDED_TURNKEY_LIVE_SIGNING_APPROVAL_REF",
+  "VANTA_TURNKEY_ORGANIZATION_ID",
+  "VANTA_TURNKEY_ORGANIZATION_ID_REF",
+  "VANTA_TURNKEY_API_PUBLIC_KEY",
+  "VANTA_TURNKEY_API_PUBLIC_KEY_REF",
+  "VANTA_TURNKEY_API_PRIVATE_KEY",
+  "VANTA_TURNKEY_API_PRIVATE_KEY_REF",
+  "VANTA_TURNKEY_SIGN_WITH",
+  "VANTA_TURNKEY_POLICY_ID",
+  "VANTA_TURNKEY_POLICY_ID_REF",
+  "VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
+  "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN",
+]) {
+  assert.ok(jupiter.runtimeEnvNames.includes(envName), `Jupiter manifest missing runtime env ${envName}.`);
+}
 
 for (const gate of [
   "npm run pay:production-readiness-contract-check",
   "npm run swap:turnkey-liquidity-signer-dry-run-check",
+  "npm run swap:turnkey-liquidity-live-signer-adapter-check",
   "npm run swap:jupiter-sol-to-shielded-adapter-check",
   "npm run mainnet:swap-production-check",
   "npm run mainnet:pay-jupiter-render-services-check",

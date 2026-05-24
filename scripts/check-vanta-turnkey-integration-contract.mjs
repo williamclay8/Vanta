@@ -17,6 +17,7 @@ assert.equal(contract.productionReady, false);
 assert.equal(contract.mainnetReady, false);
 assert.equal(contract.liveSigningEnabled, false);
 assert.equal(contract.liveBroadcastEnabled, false);
+assert.equal(contract.serverOnlyLiveSignerAdapterImplemented, true);
 assert.equal(contract.rootCredentialsAutonomousUseAllowed, false);
 assert.equal(contract.browserBundleUseAllowed, false);
 assert.equal(contract.custodyClaimAllowed, false);
@@ -41,6 +42,17 @@ for (const secretRef of contract.secretRefs) {
 assert.deepEqual(contract.externalSignerRefs, ["VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF"]);
 for (const signerRef of contract.externalSignerRefs) {
   assert.ok(signerRef.endsWith("_REF"), `External signer refs must be reference names only: ${signerRef}`);
+}
+for (const governanceRef of [
+  "VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF",
+  "VANTA_SOL_TO_SHIELDED_LIQUIDITY_PUBLIC_KEY_REF",
+  "VANTA_SOL_TO_SHIELDED_TURNKEY_REVIEW_PACKET_REF",
+  "VANTA_SOL_TO_SHIELDED_TURNKEY_LIVE_SIGNING_APPROVAL_REF",
+]) {
+  assert.ok(
+    contract.liquiditySignerGovernanceRefs.includes(governanceRef),
+    `Missing liquidity signer governance ref: ${governanceRef}`,
+  );
 }
 
 for (const action of [
@@ -89,9 +101,18 @@ assert.equal(
   "node scripts/check-vanta-turnkey-liquidity-signer-dry-run.mjs",
   "package.json must expose the Turnkey liquidity signer dry-run gate.",
 );
+assert.equal(
+  packageJson.scripts["swap:turnkey-liquidity-live-signer-adapter-check"],
+  "node scripts/check-vanta-turnkey-liquidity-live-signer-adapter.mjs",
+  "package.json must expose the Turnkey liquidity live signer adapter gate.",
+);
 assert.ok(
   contract.requiredVerificationCommands.includes("npm run swap:turnkey-liquidity-signer-dry-run-check"),
   "Turnkey contract must require the liquidity signer dry-run gate.",
+);
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run swap:turnkey-liquidity-live-signer-adapter-check"),
+  "Turnkey contract must require the liquidity live signer adapter gate.",
 );
 assert.ok(
   packageJson.scripts["mainnet:swap-production-check"]?.includes(
@@ -100,8 +121,20 @@ assert.ok(
   "Swap production check must run the Turnkey liquidity signer dry-run gate before live-mode review.",
 );
 assert.ok(
+  packageJson.scripts["mainnet:swap-production-check"]?.includes(
+    "npm run swap:turnkey-liquidity-live-signer-adapter-check",
+  ),
+  "Swap production check must run the Turnkey live signer adapter gate before live-mode review.",
+);
+assert.ok(
   packageJson.scripts["swap:capability-check"]?.includes("npm run swap:turnkey-liquidity-signer-dry-run-check"),
   "Swap capability check must include the Turnkey liquidity signer dry-run gate.",
+);
+assert.ok(
+  packageJson.scripts["swap:capability-check"]?.includes(
+    "npm run swap:turnkey-liquidity-live-signer-adapter-check",
+  ),
+  "Swap capability check must include the Turnkey live signer adapter gate.",
 );
 assert.ok(
   packageJson.scripts["wallet:signing-safety-check"]?.includes("npm run turnkey:integration-contract-check"),
@@ -114,11 +147,20 @@ assert.ok(
   "wallet:signing-safety-check must include the Turnkey liquidity signer dry-run gate.",
 );
 assert.ok(
+  packageJson.scripts["wallet:signing-safety-check"]?.includes(
+    "npm run swap:turnkey-liquidity-live-signer-adapter-check",
+  ),
+  "wallet:signing-safety-check must include the Turnkey live signer adapter gate.",
+);
+assert.ok(
   packageJson.scripts["mainnet:secret-handling-check"]?.includes("npm run turnkey:integration-contract-check") &&
     packageJson.scripts["mainnet:secret-handling-check"]?.includes(
       "npm run swap:turnkey-liquidity-signer-dry-run-check",
+    ) &&
+    packageJson.scripts["mainnet:secret-handling-check"]?.includes(
+      "npm run swap:turnkey-liquidity-live-signer-adapter-check",
     ),
-  "mainnet:secret-handling-check must include the Turnkey integration contract and liquidity signer dry-run gate.",
+  "mainnet:secret-handling-check must include the Turnkey integration contract and liquidity signer gates.",
 );
 assert.ok(
   packageJson.scripts["mainnet:preflight"]?.includes("npm run wallet:signing-safety-check") &&

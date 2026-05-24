@@ -21,9 +21,9 @@
       "readinessChecks": ["/v1/status"],
       "deploymentStatus": "update-failed",
       "lastFailedDeploy": {
-        "deployId": "dep-d89i384vikkc73bib070",
-        "commit": "d1f45b2068cd34218938fc63a46f8e85579d46b7",
-        "finishedAt": "2026-05-24T16:06:37Z",
+        "deployId": "dep-d89jhru7r5hc73d4o9sg",
+        "commit": "e90d898f7ad429127ee85106af196472e9c89be3",
+        "finishedAt": "2026-05-24T17:45:59Z",
         "failureRef": "Vanta Pay production mode requires VANTA_PAY_SECRET_KEY"
       },
       "requiredEnvRefs": [
@@ -63,9 +63,9 @@
       "readinessChecks": ["/health"],
       "deploymentStatus": "update-failed",
       "lastFailedDeploy": {
-        "deployId": "dep-d89i384vikkc73bib0p0",
-        "commit": "d1f45b2068cd34218938fc63a46f8e85579d46b7",
-        "finishedAt": "2026-05-24T16:06:32Z",
+        "deployId": "dep-d89jhs67r5hc73d4oaf0",
+        "commit": "e90d898f7ad429127ee85106af196472e9c89be3",
+        "finishedAt": "2026-05-24T17:46:05Z",
         "failureRef": "raw liquidity keypairs are local-only"
       },
       "forbiddenEnvNames": [
@@ -74,6 +74,12 @@
       ],
       "requiredEnvRefs": [
         "VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF",
+        "VANTA_SOL_TO_SHIELDED_LIQUIDITY_PUBLIC_KEY_REF",
+        "VANTA_SOL_TO_SHIELDED_TURNKEY_REVIEW_PACKET_REF",
+        "VANTA_SOL_TO_SHIELDED_TURNKEY_LIVE_SIGNING_APPROVAL_REF",
+        "VANTA_TURNKEY_ORGANIZATION_ID_REF",
+        "VANTA_TURNKEY_API_PUBLIC_KEY_REF",
+        "VANTA_TURNKEY_API_PRIVATE_KEY_REF",
         "VANTA_TURNKEY_SIGN_WITH_REF",
         "VANTA_TURNKEY_POLICY_ID_REF"
       ],
@@ -82,15 +88,30 @@
         "VANTA_SOLANA_RPC_URL",
         "VANTA_SOL_TO_SHIELDED_MAX_INPUT_SOL",
         "VANTA_SOL_TO_SHIELDED_SUPPORTED_ASSETS",
+        "VANTA_SOL_TO_SHIELDED_ADAPTER_AUTH_TOKEN",
         "VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF",
+        "VANTA_SOL_TO_SHIELDED_LIQUIDITY_PUBLIC_KEY",
+        "VANTA_SOL_TO_SHIELDED_LIQUIDITY_PUBLIC_KEY_REF",
+        "VANTA_SOL_TO_SHIELDED_TURNKEY_REVIEW_PACKET_REF",
+        "VANTA_SOL_TO_SHIELDED_TURNKEY_LIVE_SIGNING_APPROVED",
+        "VANTA_SOL_TO_SHIELDED_TURNKEY_LIVE_SIGNING_APPROVAL_REF",
+        "VANTA_TURNKEY_ORGANIZATION_ID",
+        "VANTA_TURNKEY_ORGANIZATION_ID_REF",
+        "VANTA_TURNKEY_API_PUBLIC_KEY",
+        "VANTA_TURNKEY_API_PUBLIC_KEY_REF",
+        "VANTA_TURNKEY_API_PRIVATE_KEY",
+        "VANTA_TURNKEY_API_PRIVATE_KEY_REF",
+        "VANTA_TURNKEY_SIGN_WITH",
+        "VANTA_TURNKEY_POLICY_ID",
+        "VANTA_TURNKEY_POLICY_ID_REF",
         "VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
         "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN"
       ],
       "blockers": [
         "raw-liquidity-keypair-env-must-be-removed",
-        "server-only-turnkey-signer-adapter-not-implemented",
+        "turnkey-runtime-credentials-not-provisioned",
         "turnkey-signer-ref-resolution-not-reviewed",
-        "live-jupiter-swap-signing-still-raw-keypair-path",
+        "turnkey-live-signing-approval-not-recorded",
         "adapter-auth-proxy-not-configured-for-live-browser-flow",
         "durable-live-cap-state-not-configured",
         "swap-live-settlement-evidence-not-reviewed"
@@ -101,6 +122,7 @@
   "releaseGates": [
     "npm run pay:production-readiness-contract-check",
     "npm run swap:turnkey-liquidity-signer-dry-run-check",
+    "npm run swap:turnkey-liquidity-live-signer-adapter-check",
     "npm run swap:jupiter-sol-to-shielded-adapter-check",
     "npm run mainnet:swap-production-check",
     "npm run mainnet:pay-jupiter-render-services-check"

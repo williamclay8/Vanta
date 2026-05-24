@@ -30,6 +30,7 @@ assert.equal(status.committedSettlementCovered, true);
 assert.equal(status.localAtomicMutationCovered, true);
 assert.equal(status.noFundsOperatorEndpointCovered, true);
 assert.equal(status.turnkeyLiquiditySignerDryRunCovered, true);
+assert.equal(status.turnkeyLiquidityLiveSignerAdapterCovered, true);
 assert.equal(status.quoteRoutePrivacyProven, false);
 assert.equal(status.liveVenuePrivacyProven, false);
 assert.equal(status.liveSettlementProven, false);
@@ -62,6 +63,7 @@ for (const [key, command] of Object.entries({
   swapProofRequest: "npm run private-pool-v2:swap-to-shielded-proof-request-check",
   swapTrustPacket: "npm run swap:trust-packet-check",
   turnkeyLiquiditySignerDryRun: "npm run swap:turnkey-liquidity-signer-dry-run-check",
+  turnkeyLiquidityLiveSignerAdapter: "npm run swap:turnkey-liquidity-live-signer-adapter-check",
   walletSigningStatus: "npm run mainnet:wallet-signing-status-check",
 })) {
   assert.equal(status.evidenceRefs[key], command, `Swap status evidence ref mismatch for ${key}.`);
@@ -99,7 +101,7 @@ assert.equal(
 );
 assert.equal(
   packageJson.scripts["mainnet:swap-production-check"],
-  "npm run swap:turnkey-liquidity-signer-dry-run-check && node scripts/check-vanta-swap-mainnet-production-status.mjs",
+  "npm run swap:turnkey-liquidity-signer-dry-run-check && npm run swap:turnkey-liquidity-live-signer-adapter-check && node scripts/check-vanta-swap-mainnet-production-status.mjs",
 );
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:swap-production-check"),

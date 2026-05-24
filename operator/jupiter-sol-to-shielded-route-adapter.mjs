@@ -7,6 +7,11 @@ import {
   Keypair,
   VersionedTransaction,
 } from "@solana/web3.js";
+import {
+  getTurnkeyLiveSignerReadiness,
+  readTurnkeyLiveSignerConfig,
+  signJupiterTransactionWithTurnkey,
+} from "./turnkey-sol-to-shielded-live-signer.mjs";
 
 const host = process.env.HOST ?? process.env.VANTA_SOL_TO_SHIELDED_ADAPTER_HOST ?? "0.0.0.0";
 const port = Number(process.env.PORT ?? process.env.VANTA_SOL_TO_SHIELDED_ADAPTER_PORT ?? "8798");
@@ -86,6 +91,20 @@ const defaultSupportedAssets = process.env.VANTA_SOL_TO_SHIELDED_SUPPORTED_ASSET
   (cluster === "mainnet-beta" ? "USDC,PYUSD" : "USDC");
 const connection = new Connection(rpcUrl, "confirmed");
 const quoteStore = new Map();
+
+function isLiveMainnetExecution() {
+  return executionMode === "live" && cluster === "mainnet-beta";
+}
+
+function getAdapterAuthRequirement() {
+  const required = process.env.NODE_ENV === "production" || isLiveMainnetExecution();
+  const configured = Boolean(authToken.trim());
+  return {
+    configured,
+    ready: !required || configured,
+    required,
+  };
+}
 
 function hashHex(...parts) {
   const hash = createHash("sha256");
@@ -265,8 +284,7 @@ function parseJsonKeypair(value) {
 }
 
 function assertLiquiditySignerPolicy() {
-  const liveMainnetExecution = executionMode === "live" && cluster === "mainnet-beta";
-  if ((process.env.NODE_ENV === "production" || liveMainnetExecution) && rawLiquidityKeypairConfigured) {
+  if ((process.env.NODE_ENV === "production" || isLiveMainnetExecution()) && rawLiquidityKeypairConfigured) {
     throw new Error(
       "VANTA_SOL_TO_SHIELDED raw liquidity keypairs are local-only. Production or live mainnet execution must use VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF with a wrapped external signer/HSM boundary.",
     );
@@ -285,6 +303,41 @@ function loadLiquidityKeypair() {
   }
 
   return null;
+}
+
+function getLiquiditySignerRuntime() {
+  if (liquiditySignerMode === "wrapped-external-signer") {
+    const config = readTurnkeyLiveSignerConfig();
+    return {
+      liquidityPublicKey: config.liquidityPublicKey,
+      mode: "wrapped-external-signer",
+      signTransaction: (transaction) =>
+        signJupiterTransactionWithTurnkey({
+          config,
+          transaction,
+        }),
+    };
+  }
+
+  const liquidityKeypair = loadLiquidityKeypair();
+  if (!liquidityKeypair) {
+    throw new Error(
+      "Jupiter SOL-to-shielded live execution requires VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF or a local-only liquidity keypair.",
+    );
+  }
+
+  return {
+    liquidityKeypair,
+    liquidityPublicKey: liquidityKeypair.publicKey.toBase58(),
+    mode: "raw-keypair-local-only",
+    signTransaction: async (transaction) => {
+      transaction.sign([liquidityKeypair]);
+      return {
+        liquidityPublicKey: liquidityKeypair.publicKey.toBase58(),
+        signedTransaction: transaction,
+      };
+    },
+  };
 }
 
 function decimalToAtomic(value, decimals) {
@@ -342,17 +395,28 @@ function configuredAssets() {
     .filter(Boolean);
 }
 
-function getMainnetReadiness({ liquidityKeypair }) {
+function getMainnetReadiness() {
   const supportedOutputAssets = configuredAssets().map((asset) => asset.symbol);
+  const turnkeyLiveSignerReadiness = getTurnkeyLiveSignerReadiness();
+  const adapterAuth = getAdapterAuthRequirement();
   const liquiditySignerPolicyReady =
     process.env.NODE_ENV !== "production" ||
     liquiditySignerMode === "wrapped-external-signer";
+  const liquidityWalletConfigured =
+    liquiditySignerMode === "wrapped-external-signer"
+      ? turnkeyLiveSignerReadiness.liquidityPublicKeyConfigured
+      : rawLiquidityKeypairConfigured;
+  const liquiditySignerLiveReady =
+    liquiditySignerMode === "wrapped-external-signer"
+      ? turnkeyLiveSignerReadiness.ready
+      : Boolean(rawLiquidityKeypairConfigured);
   const mainnetReady =
     cluster === "mainnet-beta" &&
     executionMode === "live" &&
     Boolean(jupiterQuoteUrl) &&
     Boolean(jupiterSwapUrl) &&
-    Boolean(liquidityKeypair) &&
+    adapterAuth.ready &&
+    liquiditySignerLiveReady &&
     liquiditySignerPolicyReady &&
     Boolean(privatePoolOperatorUrl) &&
     Number.isFinite(maxInputSol) &&
@@ -360,11 +424,17 @@ function getMainnetReadiness({ liquidityKeypair }) {
     supportedOutputAssets.length > 0;
 
   return {
+    adapterAuthConfigured: adapterAuth.configured,
+    adapterAuthReady: adapterAuth.ready,
+    adapterAuthRequired: adapterAuth.required,
     liquiditySignerMode,
+    liquiditySignerLiveReady,
     liquiditySignerPolicyReady,
     liquiditySignerRefConfigured: Boolean(liquiditySignerRef.trim()),
+    liquidityWalletConfigured,
     mainnetReady,
     supportedOutputAssets,
+    turnkeyLiveSignerReadiness,
   };
 }
 
@@ -405,7 +475,15 @@ function sendJson(response, status, payload) {
 }
 
 function requireAuth(request, response) {
+  const adapterAuth = getAdapterAuthRequirement();
   if (!authToken) {
+    if (adapterAuth.required) {
+      sendJson(response, 503, {
+        error: "Jupiter SOL-to-shielded live adapter requires VANTA_SOL_TO_SHIELDED_ADAPTER_AUTH_TOKEN.",
+        ok: false,
+      });
+      return false;
+    }
     return true;
   }
 
@@ -513,16 +591,13 @@ function assertExecutionAllowed(inputAmount) {
 }
 
 async function executeJupiterSwap({ quoteEntry }) {
-  const liquidityKeypair = loadLiquidityKeypair();
-  if (!liquidityKeypair) {
-    throw new Error("Jupiter SOL-to-shielded live execution requires a liquidity keypair env var.");
-  }
+  const liquiditySigner = getLiquiditySignerRuntime();
 
   const response = await fetch(jupiterSwapUrl, {
     body: JSON.stringify({
       dynamicComputeUnitLimit: true,
       quoteResponse: quoteEntry.quoteResponse,
-      userPublicKey: liquidityKeypair.publicKey.toBase58(),
+      userPublicKey: liquiditySigner.liquidityPublicKey,
       wrapAndUnwrapSol: true,
     }),
     headers: {
@@ -545,8 +620,9 @@ async function executeJupiterSwap({ quoteEntry }) {
   const transaction = VersionedTransaction.deserialize(
     Buffer.from(payload.swapTransaction, "base64"),
   );
-  transaction.sign([liquidityKeypair]);
-  const signature = await connection.sendRawTransaction(transaction.serialize(), {
+  const signingResult = await liquiditySigner.signTransaction(transaction);
+  const { signedTransaction } = signingResult;
+  const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
     maxRetries: 2,
     skipPreflight: false,
   });
@@ -564,7 +640,21 @@ async function executeJupiterSwap({ quoteEntry }) {
     throw new Error(`Jupiter swap failed to confirm: ${JSON.stringify(confirmation.value.err)}`);
   }
 
-  return signature;
+  return {
+    publicSwapSignature: signature,
+    signerReview: signingResult.signerRef
+      ? {
+          approvalRef: signingResult.approvalRef,
+          liquidityPublicKey: signingResult.liquidityPublicKey,
+          liquiditySignerMode: liquiditySigner.mode,
+          policyIdRef: signingResult.policyIdRef,
+          reviewPacketRef: signingResult.reviewPacketRef,
+          signWithRef: signingResult.signWithRef,
+          signerRef: signingResult.signerRef,
+          transactionFingerprint: signingResult.transactionFingerprint,
+        }
+      : undefined,
+  };
 }
 
 async function requestProtocolSettlement({ body, outputLeafIndex, publicSwapSignature, quoteEntry }) {
@@ -813,10 +903,14 @@ async function handleExecute(body) {
   const state = assertExecutionAllowed(body.inputAmount);
   const outputLeafIndex = String((state.executions ?? []).length);
   await assertLivePrivatePoolProofBoundary();
-  const publicSwapSignature =
+  const swapResult =
     executionMode === "mock"
-      ? hashHex("mock-jupiter-swap", body.quoteId, body.transitionNoteId)
+      ? {
+          publicSwapSignature: hashHex("mock-jupiter-swap", body.quoteId, body.transitionNoteId),
+          signerReview: undefined,
+        }
       : await executeJupiterSwap({ quoteEntry });
+  const { publicSwapSignature, signerReview } = swapResult;
   const settlement = await requestProtocolSettlement({
     body,
     outputLeafIndex,
@@ -842,6 +936,7 @@ async function handleExecute(body) {
     routePlanHash: body.routePlanHash,
     routeProvider: body.routeProvider,
     slippageBps: body.slippageBps,
+    ...(signerReview ? { turnkeySignerReview: signerReview } : {}),
     transitionNoteId: body.transitionNoteId,
   };
 
@@ -856,6 +951,7 @@ async function handleExecute(body) {
       publicSwapSignature,
       quoteId: body.quoteId,
       recordedAt: new Date().toISOString(),
+      ...(signerReview ? { turnkeySignerReview: signerReview } : {}),
       transitionNoteId: body.transitionNoteId,
     },
   ];
@@ -876,14 +972,17 @@ const server = createServer(async (request, response) => {
     const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
 
     if (request.method === "GET" && url.pathname === "/health") {
-      const liquidityKeypair = loadLiquidityKeypair();
-      const readiness = getMainnetReadiness({ liquidityKeypair });
+      const readiness = getMainnetReadiness();
       sendJson(response, 200, {
+        adapterAuthConfigured: readiness.adapterAuthConfigured,
+        adapterAuthReady: readiness.adapterAuthReady,
+        adapterAuthRequired: readiness.adapterAuthRequired,
         cluster,
         executionMode,
         jupiterQuoteConfigured: Boolean(jupiterQuoteUrl),
         jupiterSwapConfigured: Boolean(jupiterSwapUrl),
-        liquidityWalletConfigured: Boolean(liquidityKeypair),
+        liquiditySignerLiveReady: readiness.liquiditySignerLiveReady,
+        liquidityWalletConfigured: readiness.liquidityWalletConfigured,
         liquiditySignerMode: readiness.liquiditySignerMode,
         liquiditySignerPolicyReady: readiness.liquiditySignerPolicyReady,
         liquiditySignerRefConfigured: readiness.liquiditySignerRefConfigured,
@@ -894,6 +993,7 @@ const server = createServer(async (request, response) => {
         privatePoolSettlementConfigured: Boolean(privatePoolOperatorUrl),
         service: "vanta-sol-to-shielded-jupiter-route-adapter",
         supportedOutputAssets: readiness.supportedOutputAssets,
+        turnkeyLiveSignerReadiness: readiness.turnkeyLiveSignerReadiness,
       });
       return;
     }

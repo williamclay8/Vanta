@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { PublicKey } from "@solana/web3.js";
 
 const serverSource = readFileSync("operator/jupiter-sol-to-shielded-route-adapter.mjs", "utf8");
 
@@ -19,6 +20,15 @@ assert.match(serverSource, /raw liquidity keypairs are local-only/);
 assert.match(serverSource, /Production or live mainnet execution must use VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF/);
 assert.match(serverSource, /liquiditySignerMode/);
 assert.match(serverSource, /liquiditySignerWrapped/);
+assert.match(serverSource, /getTurnkeyLiveSignerReadiness/);
+assert.match(serverSource, /signJupiterTransactionWithTurnkey/);
+assert.match(serverSource, /getLiquiditySignerRuntime/);
+assert.match(serverSource, /getAdapterAuthRequirement/);
+assert.match(serverSource, /VANTA_SOL_TO_SHIELDED_ADAPTER_AUTH_TOKEN/);
+assert.match(serverSource, /userPublicKey: liquiditySigner\.liquidityPublicKey/);
+assert.match(serverSource, /signedTransaction\.serialize\(\)/);
+assert.match(serverSource, /turnkeySignerReview/);
+assert.match(serverSource, /transactionFingerprint/);
 assert.match(serverSource, /VANTA_PRIVATE_POOL_V2_OPERATOR_URL/);
 assert.match(serverSource, /maxInputSol/);
 assert.match(serverSource, /routeAdapter: "sol-to-shielded-v1"/);
@@ -79,6 +89,10 @@ function hashHex(...parts) {
     hash.update("\0");
   }
   return `0x${hash.digest("hex")}`;
+}
+
+function publicKeyFromByte(value) {
+  return new PublicKey(Uint8Array.from({ length: 32 }, () => value)).toBase58();
 }
 
 async function waitForHealth(baseUrl) {
@@ -163,6 +177,104 @@ async function assertRawLiveMainnetKeypairRefusedWithoutNodeEnv() {
   assert.match(result.stderr, /raw liquidity keypairs are local-only/);
   assert.match(result.stderr, /live mainnet execution/);
   assert.match(result.stderr, /VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF/);
+}
+
+async function assertLiveWrappedSignerBootsWithoutRawKeypair() {
+  const port = 19_798 + Math.floor(Math.random() * 1000);
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const liquidityPublicKey = publicKeyFromByte(41);
+  const child = spawn(process.execPath, ["operator/jupiter-sol-to-shielded-route-adapter.mjs"], {
+    env: {
+      ...process.env,
+      HOST: "127.0.0.1",
+      NODE_ENV: "production",
+      PORT: String(port),
+      VANTA_SOL_TO_SHIELDED_ADAPTER_AUTH_TOKEN: "test-adapter-auth-token",
+      VANTA_SOL_TO_SHIELDED_EXECUTION_MODE: "live",
+      VANTA_SOL_TO_SHIELDED_LIQUIDITY_PUBLIC_KEY: liquidityPublicKey,
+      VANTA_SOL_TO_SHIELDED_LIQUIDITY_PUBLIC_KEY_REF:
+        "test-ref:VANTA_SOL_TO_SHIELDED_LIQUIDITY_PUBLIC_KEY_REF",
+      VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF:
+        "test-ref:VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF",
+      VANTA_SOL_TO_SHIELDED_TURNKEY_LIVE_SIGNING_APPROVED: "true",
+      VANTA_SOL_TO_SHIELDED_TURNKEY_LIVE_SIGNING_APPROVAL_REF:
+        "test-ref:turnkey-liquidity-live-signing-approval",
+      VANTA_SOL_TO_SHIELDED_TURNKEY_REVIEW_PACKET_REF:
+        "test-ref:turnkey-liquidity-signer-review",
+      VANTA_TURNKEY_API_PRIVATE_KEY: "tk-test-credential-placeholder",
+      VANTA_TURNKEY_API_PRIVATE_KEY_REF: "test-ref:VANTA_TURNKEY_API_PRIVATE_KEY_REF",
+      VANTA_TURNKEY_API_PUBLIC_KEY: "tk-test-public-credential-placeholder",
+      VANTA_TURNKEY_API_PUBLIC_KEY_REF: "test-ref:VANTA_TURNKEY_API_PUBLIC_KEY_REF",
+      VANTA_TURNKEY_ORGANIZATION_ID: "org_test_vanta_liquidity",
+      VANTA_TURNKEY_ORGANIZATION_ID_REF: "test-ref:VANTA_TURNKEY_ORGANIZATION_ID_REF",
+      VANTA_TURNKEY_POLICY_ID: "policy_test_vanta_liquidity",
+      VANTA_TURNKEY_POLICY_ID_REF: "test-ref:VANTA_TURNKEY_POLICY_ID_REF",
+      VANTA_TURNKEY_SIGN_WITH: liquidityPublicKey,
+      VANTA_TURNKEY_SIGN_WITH_REF: "test-ref:VANTA_TURNKEY_SIGN_WITH_REF",
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+
+  try {
+    const health = await waitForHealth(baseUrl);
+    assert.equal(health.ok, true);
+    assert.equal(health.adapterAuthConfigured, true);
+    assert.equal(health.adapterAuthReady, true);
+    assert.equal(health.adapterAuthRequired, true);
+    assert.equal(health.executionMode, "live");
+    assert.equal(health.liquiditySignerMode, "wrapped-external-signer");
+    assert.equal(health.liquiditySignerPolicyReady, true);
+    assert.equal(health.liquiditySignerRefConfigured, true);
+    assert.equal(health.liquiditySignerWrapped, true);
+    assert.equal(health.liquiditySignerLiveReady, true);
+    assert.equal(health.liquidityWalletConfigured, true);
+    assert.equal(health.turnkeyLiveSignerReadiness.ready, true);
+    assert.equal(health.turnkeyLiveSignerReadiness.apiPrivateKeyConfigured, true);
+    assert.ok(
+      !JSON.stringify(health).includes("tk-test-credential-placeholder"),
+      "Health output must not print Turnkey credential values.",
+    );
+    assert.ok(
+      !JSON.stringify(health).includes("test-adapter-auth-token"),
+      "Health output must not print adapter auth token values.",
+    );
+  } finally {
+    child.kill("SIGTERM");
+  }
+}
+
+async function assertLiveAdapterRejectsMissingAuthToken() {
+  const port = 20_798 + Math.floor(Math.random() * 1000);
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const child = spawn(process.execPath, ["operator/jupiter-sol-to-shielded-route-adapter.mjs"], {
+    env: {
+      ...process.env,
+      HOST: "127.0.0.1",
+      NODE_ENV: "production",
+      PORT: String(port),
+      VANTA_SOL_TO_SHIELDED_EXECUTION_MODE: "live",
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+
+  try {
+    const health = await waitForHealth(baseUrl);
+    assert.equal(health.adapterAuthConfigured, false);
+    assert.equal(health.adapterAuthReady, false);
+    assert.equal(health.adapterAuthRequired, true);
+    const response = await fetch(`${baseUrl}/execute`, {
+      body: JSON.stringify({}),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+    const payload = await response.json();
+    assert.equal(response.status, 503);
+    assert.match(payload.error, /VANTA_SOL_TO_SHIELDED_ADAPTER_AUTH_TOKEN/);
+  } finally {
+    child.kill("SIGTERM");
+  }
 }
 
 async function main() {
@@ -288,6 +400,8 @@ async function main() {
 
   await assertRawProductionKeypairRefused();
   await assertRawLiveMainnetKeypairRefusedWithoutNodeEnv();
+  await assertLiveAdapterRejectsMissingAuthToken();
+  await assertLiveWrappedSignerBootsWithoutRawKeypair();
 
   console.log("Vanta Jupiter SOL-to-shielded route adapter check: PASS");
 }

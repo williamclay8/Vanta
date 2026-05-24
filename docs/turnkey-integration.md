@@ -31,6 +31,7 @@ Canonical local check:
 
 ```sh
 npm run swap:turnkey-liquidity-signer-dry-run-check
+npm run swap:turnkey-liquidity-live-signer-adapter-check
 npm run turnkey:integration-contract-check
 ```
 
@@ -43,4 +44,4 @@ npm run mainnet:secret-handling-check
 
 The Turnkey liquidity signer dry run is intentionally no-live-call: it uses a fixture Jupiter transaction, an injected mock Turnkey client, no network, no broadcast, and reference-only signer/policy handles. The review packet records signer and policy refs, the transaction fingerprint, a simulation ref, an instruction summary, amount, asset, destination, and an explicit approval state. It must not contain raw key material, raw serialized transactions, signed payloads, or secret values.
 
-Live Swap signing remains blocked after the dry run. The next safe implementation step is reviewing that packet and only then wiring a credentialed server-only Turnkey signer behind exact signer-ref, policy-ref, simulation, and approval gates.
+Live Swap signing now has a server-only adapter seam, but it remains disabled until provider-side Turnkey org/API/sign-with/policy values, `VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF`, explicit liquidity public-key and policy refs, a reviewed dry-run packet ref, a live-signing approval ref, and exact `VANTA_SOL_TO_SHIELDED_TURNKEY_LIVE_SIGNING_APPROVED=true` approval are provisioned. The live adapter check is no-network and uses an injected signer; it proves code shape and redaction, not real Turnkey signing.

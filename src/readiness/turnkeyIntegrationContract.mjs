@@ -6,6 +6,7 @@ export function createVantaTurnkeyIntegrationContract() {
     mainnetReady: false,
     liveSigningEnabled: false,
     liveBroadcastEnabled: false,
+    serverOnlyLiveSignerAdapterImplemented: true,
     rootCredentialsAutonomousUseAllowed: false,
     browserBundleUseAllowed: false,
     custodyClaimAllowed: false,
@@ -36,6 +37,7 @@ export function createVantaTurnkeyIntegrationContract() {
       "docs/turnkey-integration.md",
       "docs/jupiter-sol-to-shielded-route-adapter.md",
       "operator/turnkey-sol-to-shielded-liquidity-signer.mjs",
+      "operator/turnkey-sol-to-shielded-live-signer.mjs",
     ],
     secretRefs: [
       "VANTA_TURNKEY_ORGANIZATION_ID_REF",
@@ -45,6 +47,12 @@ export function createVantaTurnkeyIntegrationContract() {
       "VANTA_TURNKEY_POLICY_ID_REF",
     ],
     externalSignerRefs: ["VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF"],
+    liquiditySignerGovernanceRefs: [
+      "VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF",
+      "VANTA_SOL_TO_SHIELDED_LIQUIDITY_PUBLIC_KEY_REF",
+      "VANTA_SOL_TO_SHIELDED_TURNKEY_REVIEW_PACKET_REF",
+      "VANTA_SOL_TO_SHIELDED_TURNKEY_LIVE_SIGNING_APPROVAL_REF",
+    ],
     blockedActions: [
       "root-credential-autonomous-use",
       "root-key-in-client-bundle",
@@ -59,6 +67,7 @@ export function createVantaTurnkeyIntegrationContract() {
     ],
     requiredVerificationCommands: [
       "npm run swap:turnkey-liquidity-signer-dry-run-check",
+      "npm run swap:turnkey-liquidity-live-signer-adapter-check",
       "npm run turnkey:integration-contract-check",
       "npm run wallet:signing-safety-check",
       "npm run mainnet:secret-handling-check",
@@ -73,6 +82,6 @@ export function createVantaTurnkeyIntegrationContract() {
       "activity monitoring design without approval",
     ],
     nextSafeStep:
-      "Review the server-only Turnkey liquidity signer dry-run packet, then keep live signing disabled until governed signer and policy refs are approved for an exact live action.",
+      "Provision governed Turnkey runtime credentials and signer/policy/public-key refs, record the dry-run review packet ref, and keep live signing disabled until exact live signing approval plus approval ref are set for the scoped Jupiter action.",
   };
 }

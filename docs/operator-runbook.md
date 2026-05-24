@@ -1318,6 +1318,14 @@ npm run swap:turnkey-liquidity-signer-dry-run-check
 
 It uses a fixture Jupiter transaction and a mocked Turnkey client. It must not call Turnkey, Jupiter, Solana RPC, or broadcast paths, and its review packet may contain only signer/policy refs, a transaction fingerprint, simulation ref, instruction summary, amount, asset, destination, and explicit approval state.
 
+The server-only Turnkey live signer adapter gate is also no-live-call:
+
+```bash
+npm run swap:turnkey-liquidity-live-signer-adapter-check
+```
+
+It uses an injected signer fixture to prove the Jupiter adapter can consume `VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF`, preserve the unsigned transaction fingerprint before/after signing, reject missing approval, keep raw production keypairs out of live mode, and avoid printing Turnkey credential values.
+
 ## Secret Handling
 
 The checked secret-handling contract is:
