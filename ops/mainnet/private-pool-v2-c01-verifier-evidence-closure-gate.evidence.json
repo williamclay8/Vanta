@@ -83,7 +83,8 @@
       "same valid mutation and invalid/wrong-input/wrong-key no-mutation refs",
       "same SBF/live lineage ref",
       "same audit/reviewer acceptance ref",
-      "refs-only secret policy"
+      "refs-only secret policy",
+      "no raw proof/VK/witness/key/secret/transaction material in env-supplied JSON"
     ],
     "satisfiesC01VerifierEvidenceClosure": false,
     "truthBoundary": "This makes C01 verifier evidence-chain validation executable but does not supply any reviewed evidence. Without all four env vars, the closure gate remains blocked with accepted refs null."

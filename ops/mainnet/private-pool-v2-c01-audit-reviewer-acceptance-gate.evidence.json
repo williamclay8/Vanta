@@ -80,7 +80,8 @@
       "reviewer identity and scope refs",
       "findings disposition ref",
       "audit/reviewer acceptance ref",
-      "refs-only secret policy"
+      "refs-only secret policy",
+      "no raw proof/VK/witness/key/secret/transaction material in env-supplied JSON"
     ],
     "satisfiesAuditReviewerAcceptance": false,
     "truthBoundary": "This makes C01 audit/reviewer acceptance intake executable but does not supply acceptance and does not promote C01 verifier readiness. Without VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH, accepted audit/reviewer refs remain null."

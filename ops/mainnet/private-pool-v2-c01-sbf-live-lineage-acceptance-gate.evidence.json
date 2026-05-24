@@ -93,7 +93,8 @@
       "deployed spend and verifier program ids",
       "verifier-key record binding production VK hash to verifier program id",
       "deployment, migration, verifier-key registration, and proof-enforced path refs",
-      "refs-only secret policy"
+      "refs-only secret policy",
+      "no raw proof/VK/witness/key/secret/transaction material in env-supplied JSON"
     ],
     "satisfiesSbfLiveLineage": false,
     "truthBoundary": "This makes C01 SBF/live lineage intake executable but does not supply lineage and does not promote C01 verifier readiness. Without VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH, accepted SBF/live refs remain null."

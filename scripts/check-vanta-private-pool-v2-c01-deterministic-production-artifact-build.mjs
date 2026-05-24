@@ -60,10 +60,36 @@ function readJson(path) {
   return JSON.parse(read(path));
 }
 
+const forbiddenExternalMaterialMarkers = [
+  "proofBytes",
+  "proofHex",
+  "verifyingKeyBytes",
+  "verifying_key_bytes",
+  "vkBytes",
+  "witnessBytes",
+  "provingKeyBytes",
+  "keypairBytes",
+  "privateKey",
+  "secretKey",
+  "signedTransactionBytes",
+  "-----BEGIN",
+  "bearer ",
+  "postgres://",
+  "postgresql://",
+];
+
+function assertNoForbiddenExternalMaterial(source, label) {
+  for (const marker of forbiddenExternalMaterialMarkers) {
+    assert(!source.includes(marker), `${label} must not contain forbidden marker ${marker}`);
+  }
+}
+
 function readJsonPath(path, label) {
-  const resolved = resolve(repoRoot, path);
+  const resolved = path.startsWith("/") ? path : resolve(repoRoot, path);
   assert(existsSync(resolved), `${label} missing at ${path}`);
-  return JSON.parse(readFileSync(resolved, "utf8"));
+  const source = readFileSync(resolved, "utf8");
+  assertNoForbiddenExternalMaterial(source, label);
+  return JSON.parse(source);
 }
 
 function includes(source, marker, label) {
@@ -768,6 +794,7 @@ for (const marker of [
   "current H6 private-spend-public-input-hash binding",
   "artifact producer and reviewer identity/scope attestation",
   "refs-only secret policy",
+  "no raw proof/VK/witness/key/secret/transaction material in env-supplied JSON",
   "downstream adapter, live lineage, and audit blockers remain separate",
 ]) {
   assert(external.validates.includes(marker), `external build validation missing ${marker}`);

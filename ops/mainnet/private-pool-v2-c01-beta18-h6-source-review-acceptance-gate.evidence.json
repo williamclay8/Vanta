@@ -60,6 +60,7 @@
       "H6 context preimage and Poseidon6 preservation",
       "beta18 nargo check review",
       "refs-only secret policy",
+      "no raw proof/VK/witness/key/secret/transaction material in env-supplied JSON",
       "downstream production blockers remain separate"
     ],
     "satisfiesSourceReviewAcceptance": false,

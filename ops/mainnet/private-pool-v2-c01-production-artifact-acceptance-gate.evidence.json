@@ -143,7 +143,8 @@
       "wrong-verifying-key no-mutation evidence",
       "SBF/live lineage evidence",
       "audit/reviewer acceptance",
-      "artifact producer and reviewer identity/scope attestation"
+      "artifact producer and reviewer identity/scope attestation",
+      "no raw proof/VK/witness/key/secret/transaction material in env-supplied JSON"
     ],
     "satisfiesProductionArtifactAcceptance": false,
     "truthBoundary": "This makes the external reviewed-bundle intake executable but does not supply a bundle and does not promote the current gate. Without VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH, C01 remains blocked with accepted production refs null."

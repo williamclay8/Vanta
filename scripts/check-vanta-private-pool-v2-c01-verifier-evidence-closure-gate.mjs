@@ -45,9 +45,36 @@ function readJson(path) {
   return JSON.parse(read(path));
 }
 
+const forbiddenExternalMaterialMarkers = [
+  "proofBytes",
+  "proofHex",
+  "verifyingKeyBytes",
+  "verifying_key_bytes",
+  "vkBytes",
+  "witnessBytes",
+  "provingKeyBytes",
+  "keypairBytes",
+  "privateKey",
+  "secretKey",
+  "signedTransactionBytes",
+  "-----BEGIN",
+  "bearer ",
+  "postgres://",
+  "postgresql://",
+];
+
+function assertNoForbiddenExternalMaterial(source, label) {
+  for (const marker of forbiddenExternalMaterialMarkers) {
+    assert(!source.includes(marker), `${label} must not contain forbidden marker ${marker}`);
+  }
+}
+
 function readJsonPath(path, label) {
-  assert(existsSync(path), `${label} missing at ${path}`);
-  return JSON.parse(readFileSync(path, "utf8"));
+  const resolved = path.startsWith("/") ? path : resolve(repoRoot, path);
+  assert(existsSync(resolved), `${label} missing at ${path}`);
+  const source = readFileSync(resolved, "utf8");
+  assertNoForbiddenExternalMaterial(source, label);
+  return JSON.parse(source);
 }
 
 function includes(source, marker, label) {
@@ -657,6 +684,7 @@ for (const marker of [
   "same valid mutation and invalid/wrong-input/wrong-key no-mutation refs",
   "same SBF/live lineage ref",
   "same audit/reviewer acceptance ref",
+  "no raw proof/VK/witness/key/secret/transaction material in env-supplied JSON",
 ]) {
   assert(external.validates.includes(marker), `external closure validates missing ${marker}`);
 }
