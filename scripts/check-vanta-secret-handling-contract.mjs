@@ -18,7 +18,7 @@ assert.equal(
   "Secret handling contract must point at the checked references-only manifest.",
 );
 
-const requiredScopes = ["pay", "privatePoolV2", "strategy", "operator", "wallet"];
+const requiredScopes = ["pay", "privatePoolV2", "strategy", "operator", "turnkey", "wallet"];
 for (const scopeId of requiredScopes) {
   const scope = contract.scopes.find((candidate) => candidate.id === scopeId);
   assert.ok(scope, `Missing secret handling scope: ${scopeId}.`);
@@ -45,6 +45,10 @@ assert.ok(
 assert.ok(
   contract.requiredVerificationCommands.includes("npm run mainnet:secret-exposure-check"),
   "Missing secret exposure verification command.",
+);
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run turnkey:integration-contract-check"),
+  "Missing Turnkey integration verification command.",
 );
 
 assert.ok(
@@ -127,6 +131,11 @@ for (const requiredRef of [
   "VANTA_PRIVATE_POOL_V2_PROVER_DATABASE_URL_REF",
   "VANTA_PRIVATE_POOL_V2_RELAYER_DATABASE_URL_REF",
   "VANTA_PRIVATE_POOL_V2_VERIFIER_DATABASE_URL_REF",
+  "VANTA_TURNKEY_ORGANIZATION_ID_REF",
+  "VANTA_TURNKEY_API_PUBLIC_KEY_REF",
+  "VANTA_TURNKEY_API_PRIVATE_KEY_REF",
+  "VANTA_TURNKEY_SIGN_WITH_REF",
+  "VANTA_TURNKEY_POLICY_ID_REF",
 ]) {
   assert.ok(
     manifest.secrets.some((secret) => secret.ref === requiredRef),

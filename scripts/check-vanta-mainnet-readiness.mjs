@@ -2,10 +2,12 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { createVantaMainnetReadinessSnapshot } from "../src/readiness/mainnetReadiness.mjs";
 import { createVantaProductionObservabilityControlsSummary } from "../src/readiness/productionObservabilityControls.mjs";
+import { createVantaTurnkeyIntegrationContract } from "../src/readiness/turnkeyIntegrationContract.mjs";
 import { createVantaWalletSigningLaunchPolicy } from "../src/readiness/walletSigningLaunchPolicy.mjs";
 
 const snapshot = createVantaMainnetReadinessSnapshot();
 const observabilityControls = createVantaProductionObservabilityControlsSummary();
+const turnkeyIntegrationContract = createVantaTurnkeyIntegrationContract();
 const walletSigningLaunchPolicy = createVantaWalletSigningLaunchPolicy();
 
 assert.equal(snapshot.version, "vanta-mainnet-readiness-0.1");
@@ -214,6 +216,16 @@ assert.ok(
 assert.ok(snapshot.walletSigning.deploymentTruth.includes("repo targets live-submission mode by default"));
 assert.ok(snapshot.walletSigning.nextOperatorAction.includes("deployed browser verification"));
 assert.ok(snapshot.walletSigning.nextOperatorAction.includes("real-funds actions remain bounded by explicit approval"));
+assert.deepEqual(snapshot.turnkeyIntegration, turnkeyIntegrationContract);
+assert.equal(snapshot.turnkeyIntegration.productionReady, false);
+assert.equal(snapshot.turnkeyIntegration.mainnetReady, false);
+assert.equal(snapshot.turnkeyIntegration.liveSigningEnabled, false);
+assert.equal(snapshot.turnkeyIntegration.rootCredentialsAutonomousUseAllowed, false);
+assert.equal(snapshot.turnkeyIntegration.browserBundleUseAllowed, false);
+assert.ok(snapshot.turnkeyIntegration.blockedActions.includes("root-key-in-client-bundle"));
+assert.ok(
+  snapshot.turnkeyIntegration.requiredVerificationCommands.includes("npm run turnkey:integration-contract-check"),
+);
 assert.equal(
   snapshot.privatePoolV2ProductionSmoke.checkedEvidenceRef,
   "ops/mainnet/private-pool-v2-production-smoke.evidence.json",
@@ -552,6 +564,10 @@ assert.ok(
 assert.ok(
   snapshot.requiredCommands.includes("npm run wallet:signing-safety-check"),
   "Missing wallet signing safety command.",
+);
+assert.ok(
+  snapshot.requiredCommands.includes("npm run turnkey:integration-contract-check"),
+  "Missing Turnkey integration contract command.",
 );
 assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:wallet-signing-status"),

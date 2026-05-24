@@ -1,0 +1,123 @@
+import { strict as assert } from "node:assert";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { join, relative, resolve } from "node:path";
+import { createVantaTurnkeyIntegrationContract } from "../src/readiness/turnkeyIntegrationContract.mjs";
+
+const repoRoot = resolve(import.meta.dirname, "..");
+const packagePath = resolve(repoRoot, "package.json");
+const lockPath = resolve(repoRoot, "package-lock.json");
+const srcPath = resolve(repoRoot, "src");
+const contract = createVantaTurnkeyIntegrationContract();
+
+const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
+const packageLock = JSON.parse(readFileSync(lockPath, "utf8"));
+
+assert.equal(contract.version, "vanta-turnkey-integration-contract-0.1");
+assert.equal(contract.productionReady, false);
+assert.equal(contract.mainnetReady, false);
+assert.equal(contract.liveSigningEnabled, false);
+assert.equal(contract.liveBroadcastEnabled, false);
+assert.equal(contract.rootCredentialsAutonomousUseAllowed, false);
+assert.equal(contract.browserBundleUseAllowed, false);
+assert.equal(contract.custodyClaimAllowed, false);
+assert.ok(contract.docsRefs.includes("https://docs.turnkey.com/llms.txt"));
+assert.ok(contract.workflowRefs.includes("/Users/clay/.agents/skills/turnkey-agent-skills/SKILL.md"));
+assert.ok(
+  contract.workflowRefs.includes("/Users/clay/.agents/skills/turnkey-agent-skills/references/vanta-turnkey-workflows.md"),
+);
+
+for (const workflowRef of contract.workflowRefs) {
+  assert.ok(existsSync(workflowRef), `Missing Turnkey workflow ref: ${workflowRef}`);
+}
+
+for (const localRef of contract.localRefs) {
+  assert.ok(existsSync(resolve(repoRoot, localRef)), `Missing local Turnkey integration ref: ${localRef}`);
+}
+
+for (const secretRef of contract.secretRefs) {
+  assert.ok(secretRef.startsWith("VANTA_TURNKEY_"), `Unexpected Turnkey secret ref prefix: ${secretRef}`);
+  assert.ok(secretRef.endsWith("_REF"), `Turnkey secret refs must be reference names only: ${secretRef}`);
+}
+
+for (const action of [
+  "root-credential-autonomous-use",
+  "root-key-in-client-bundle",
+  "wallet-delete-or-export-programmatically",
+  "policy-mutation-without-exact-approval",
+  "sign-and-broadcast-without-simulation-summary-and-approval",
+  "production-custody-or-privacy-claim-elevation",
+]) {
+  assert.ok(contract.blockedActions.includes(action), `Missing blocked Turnkey action: ${action}`);
+}
+
+for (const sdkPackage of contract.sdkPackages) {
+  assert.equal(
+    packageJson.dependencies?.[sdkPackage.name],
+    sdkPackage.version,
+    `${sdkPackage.name} must be pinned in package.json.`,
+  );
+  assert.equal(
+    packageLock.packages?.[""]?.dependencies?.[sdkPackage.name],
+    sdkPackage.version,
+    `${sdkPackage.name} must be pinned in package-lock root dependencies.`,
+  );
+  assert.ok(
+    packageLock.packages?.[`node_modules/${sdkPackage.name}`],
+    `${sdkPackage.name} must be installed in package-lock.`,
+  );
+}
+
+for (const browserPackage of ["@turnkey/sdk-browser", "@turnkey/iframe-stamper", "@turnkey/react-wallet-kit"]) {
+  assert.ok(
+    !Object.prototype.hasOwnProperty.call(packageJson.dependencies ?? {}, browserPackage),
+    `${browserPackage} must not become a direct browser dependency before a product/design gate.`,
+  );
+}
+
+assert.equal(
+  packageJson.scripts["turnkey:integration-contract-check"],
+  "node scripts/check-vanta-turnkey-integration-contract.mjs",
+  "package.json must expose turnkey:integration-contract-check.",
+);
+assert.ok(
+  packageJson.scripts["wallet:signing-safety-check"]?.includes("npm run turnkey:integration-contract-check"),
+  "wallet:signing-safety-check must include the Turnkey integration contract.",
+);
+assert.ok(
+  packageJson.scripts["mainnet:secret-handling-check"]?.includes("npm run turnkey:integration-contract-check"),
+  "mainnet:secret-handling-check must include the Turnkey integration contract.",
+);
+assert.ok(
+  packageJson.scripts["mainnet:preflight"]?.includes("npm run wallet:signing-safety-check") &&
+    packageJson.scripts["mainnet:preflight"]?.includes("npm run mainnet:secret-handling-check"),
+  "mainnet:preflight must inherit Turnkey checks through wallet and secret gates.",
+);
+
+const sourceFiles = [];
+function collectSourceFiles(dir) {
+  for (const entry of readdirSync(dir)) {
+    const fullPath = join(dir, entry);
+    const stats = statSync(fullPath);
+    if (stats.isDirectory()) {
+      collectSourceFiles(fullPath);
+      continue;
+    }
+    if (/\.(ts|tsx|mts|cts|js|jsx)$/.test(entry)) {
+      sourceFiles.push(fullPath);
+    }
+  }
+}
+
+collectSourceFiles(srcPath);
+
+for (const filePath of sourceFiles) {
+  const rel = relative(repoRoot, filePath);
+  if (rel === "src/readiness/turnkeyIntegrationContract.mjs") {
+    continue;
+  }
+  const source = readFileSync(filePath, "utf8");
+  assert.ok(!source.includes("@turnkey/"), `${rel} must not import Turnkey into app/client code yet.`);
+  assert.ok(!/process\.env\.TURNKEY_/u.test(source), `${rel} must not read Turnkey env values directly.`);
+}
+
+console.log("Vanta Turnkey integration contract check: PASS");

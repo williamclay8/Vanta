@@ -8,6 +8,7 @@ import { createVantaMainnetRealFundsApprovalStatus } from "./mainnetRealFundsApp
 import { createVantaWalletSigningStatus } from "./walletSigningStatus.mjs";
 import { createVantaPrivatePoolV2ProductionSmokeStatus } from "./privatePoolV2ProductionSmokeStatus.mjs";
 import { createVantaProductionServiceDeploymentStatus } from "./productionServiceDeploymentStatus.mjs";
+import { createVantaTurnkeyIntegrationContract } from "./turnkeyIntegrationContract.mjs";
 
 const blockerDefinitions = [
   {
@@ -151,6 +152,7 @@ const requiredCommands = [
   "npm run mainnet:private-pool-v2-production-smoke-check",
   "npm run private-pool-v2:role-storage-check",
   "npm run wallet:signing-safety-check",
+  "npm run turnkey:integration-contract-check",
   "npm run mainnet:wallet-signing-status",
   "npm run mainnet:wallet-production-browser-check",
   "npm run mainnet:wallet-signing-evidence-check",
@@ -272,6 +274,7 @@ export function createVantaMainnetReadinessSnapshot() {
   const realFundsApproval = createVantaMainnetRealFundsApprovalStatus();
   const privateSettlement = createVantaMainnetPrivateSettlementStatus();
   const walletSigning = createVantaWalletSigningStatus();
+  const turnkeyIntegration = createVantaTurnkeyIntegrationContract();
   const privatePoolV2ProductionSmoke = createVantaPrivatePoolV2ProductionSmokeStatus();
   const productionServiceDeployment = createVantaProductionServiceDeploymentStatus();
   const preflightCommandCoverage = createPreflightCommandCoverage();
@@ -284,6 +287,7 @@ export function createVantaMainnetReadinessSnapshot() {
       privateSettlement,
       productionServiceDeployment,
       realFundsApproval,
+      turnkeyIntegration,
       walletSigning,
     }) : blocker.buildSummary,
   }));
@@ -298,6 +302,7 @@ export function createVantaMainnetReadinessSnapshot() {
     `Keep the abuse/observability status/evidence surface fresh while incident workflow runbook refs remain configured and the checked pending provider controls remain ${abuseObservability.pendingObservabilityControls.join(", ")}.`,
     `Keep the deployed operator replay-status evidence, the Postgres-backed nullifier replay guard, role-service replay verification, and production smoke replay simulation fresh while the checked replay blockers remain ${nullifierReplay.productionReplayBlockedBy.join(", ")}.`,
     `Keep the wallet-signing status/evidence surface, four-page local browser verification, deployed browser verification, and live-send inventory commands fresh while any real-funds action remains bounded by explicit approval.`,
+    `Keep Turnkey as a governed SDK-only integration until ${turnkeyIntegration.nextSafeStep}`,
   ];
 
   return {
@@ -320,6 +325,7 @@ export function createVantaMainnetReadinessSnapshot() {
     realFundsApproval,
     requiredCommands,
     score,
+    turnkeyIntegration,
     walletSigning,
   };
 }

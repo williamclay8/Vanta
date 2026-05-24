@@ -82,6 +82,26 @@ const scopes = [
     rotationRequirements: sharedRotationRequirements,
   },
   {
+    id: "turnkey",
+    label: "Turnkey Wallet Infrastructure",
+    status: "contracted-not-provisioned",
+    allowedSecretRefs: [
+      "VANTA_TURNKEY_ORGANIZATION_ID_REF",
+      "VANTA_TURNKEY_API_PUBLIC_KEY_REF",
+      "VANTA_TURNKEY_API_PRIVATE_KEY_REF",
+      "VANTA_TURNKEY_SIGN_WITH_REF",
+      "VANTA_TURNKEY_POLICY_ID_REF",
+    ],
+    forbiddenValues,
+    rotationRequirements: [
+      "non-root-agent-users-only",
+      "root-credentials-human-admin-only",
+      "policy-and-activity-approval-reviewed",
+      "no-client-bundle-secret-access",
+      "emergency-revocation-required",
+    ],
+  },
+  {
     id: "wallet",
     label: "Browser Wallet Boundary",
     status: "contracted-not-provisioned",
@@ -118,6 +138,7 @@ export function createVantaSecretHandlingContract() {
     requiredVerificationCommands: [
       "npm run mainnet:secret-handling-check",
       "npm run mainnet:secret-exposure-check",
+      "npm run turnkey:integration-contract-check",
       "npm run mainnet:preflight",
       "npm run wallet:signing-safety-check",
     ],

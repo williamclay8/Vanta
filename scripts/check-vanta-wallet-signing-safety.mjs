@@ -22,6 +22,7 @@ assert.ok(policy.blockedActions.includes("private-key-or-seed-phrase-request"));
 assert.ok(policy.blockedActions.includes("fresh-wallet-server-storage"));
 assert.ok(policy.blockedActions.includes("blind-signing"));
 assert.ok(policy.releaseGateCommands.includes("npm run wallet:signing-safety-check"));
+assert.ok(policy.releaseGateCommands.includes("npm run turnkey:integration-contract-check"));
 assert.ok(policy.releaseGateCommands.includes("npm run wallet:browser-signing-safety-check"));
 assert.ok(policy.releaseGateCommands.includes("npm run wallet:fresh-wallet-check"));
 assert.ok(policy.releaseGateCommands.includes("npm run wallet:fresh-wallet-browser-check"));
