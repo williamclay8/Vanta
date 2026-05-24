@@ -26,8 +26,8 @@
     "artifactRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-local-artifact-inventory.evidence.json",
     "command": "npm run zk:c01-sunspot-gnark-local-artifact-inventory-check",
     "verifyingKeyByteLength": 716,
-    "verifyingKeySha256": "sha256:fbd6ba8ce64cc0b0320a0d8080fca15d79ca6ca2f732381a9550092f645f0e1d",
-    "verifyingKeyHashKind": "local-unsafe-sunspot-vk-hash-not-production",
+    "verifyingKeySha256": "sha256:5e0a6f08503f534cbb462f43fbf0b247e8aa2ce75d1fa58c2350f815817948b4",
+    "verifyingKeyHashKind": "local-unsafe-h6-beta18-sunspot-vk-hash-not-production",
     "satisfiesProductionVerifyingKeyEvidence": false,
     "truthBoundary": "The local artifact inventory records an unsafe local Sunspot/Gnark verifying-key hash for comparison only; it is not a production verifying-key hash artifact."
   },

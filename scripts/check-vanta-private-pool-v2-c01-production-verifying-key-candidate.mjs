@@ -227,12 +227,12 @@ assert(
 );
 assert(
   packet.localSunspotGnarkLocalArtifactInventoryRef?.verifyingKeySha256 ===
-    "sha256:fbd6ba8ce64cc0b0320a0d8080fca15d79ca6ca2f732381a9550092f645f0e1d",
+    "sha256:5e0a6f08503f534cbb462f43fbf0b247e8aa2ce75d1fa58c2350f815817948b4",
   "packet local unsafe VK hash mismatch",
 );
 assert(
   packet.localSunspotGnarkLocalArtifactInventoryRef?.verifyingKeyHashKind ===
-    "local-unsafe-sunspot-vk-hash-not-production",
+    "local-unsafe-h6-beta18-sunspot-vk-hash-not-production",
   "packet local unsafe VK hash kind mismatch",
 );
 assert(
@@ -242,7 +242,7 @@ assert(
 );
 assert(
   localSunspotGnarkLocalArtifactInventory.artifacts?.verifyingKey?.sha256 ===
-    "sha256:fbd6ba8ce64cc0b0320a0d8080fca15d79ca6ca2f732381a9550092f645f0e1d",
+    "sha256:5e0a6f08503f534cbb462f43fbf0b247e8aa2ce75d1fa58c2350f815817948b4",
   "local artifact inventory VK hash mismatch",
 );
 assert(

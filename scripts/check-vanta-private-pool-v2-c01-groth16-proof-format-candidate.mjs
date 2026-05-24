@@ -619,7 +619,7 @@ for (const blocker of [
   "local Sunspot/Gnark dev probe used unsafe local setup and a beta18-only temporary source shim",
   "local Sunspot/Gnark dev probe produced the selected Gnark-native 324-byte proof plus 44-byte public witness accepted by a generated standalone verifier",
   "current spend-program tag 3 now reserves the selected Gnark-native 324-byte proof plus 44-byte public-witness tuple fail-closed and rejects the legacy 256-byte proof-only shape, but still needs an accepted adapter shape",
-  "local Sunspot/Gnark beta18 public-witness bytes decode to private-spend-public-input-hash but are stale against the current H6 local proof receipt; the observation is local/nonproduction, Sunspot compile output still reported zero public and zero secret inputs, and production private-spend-public-input-hash binding is not accepted",
+  "local H6 Sunspot/Gnark public-witness bytes decode to private-spend-public-input-hash and match the current H6 local proof receipt, but the inventory is local/nonproduction, Sunspot compile output still reported zero public and zero secret inputs, and production private-spend-public-input-hash binding is not accepted",
   "current local proof observation is noir-bb / barretenberg-ultrahonk / 16000 bytes",
   "no production verifying-key hash artifact exists",
   "host-side reserved tag 3 still returns ERR_PROOF_VERIFIER_NOT_WIRED before mutation while SBF has an unaccepted verifier CPI hook",

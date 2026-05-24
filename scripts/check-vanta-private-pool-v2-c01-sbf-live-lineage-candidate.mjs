@@ -350,8 +350,14 @@ assert(
   localComparison.localUnsafeVerifierSbfSha256 === localInventory.artifacts?.solanaVerifierSbf?.sha256,
   "local comparison verifier SBF hash must match the local inventory metadata",
 );
+assert(
+  localComparison.wrongLocalUnsafeVerifierSbfSha256 ===
+    "sha256:222ca0869212f455331933b5b6751a04449b5d7bd7387e72ae7f5702a3bf2e58",
+  "local comparison wrong verifier SBF hash mismatch",
+);
 assert(localComparison.satisfiesSbfLiveLineage === false, "local comparison must not satisfy live lineage");
 includes(localComparison.truthBoundary ?? "", "/private/tmp", "local comparison truth boundary");
+includes(localComparison.truthBoundary ?? "", "pre-H6 wrong-verifier", "local comparison truth boundary");
 
 const localUnsafeHarness = adapter.localUnsafeGeneratedVerifierCpiAcceptanceHarness ?? {};
 const localRehearsal = packet.localH6SbfLineageRehearsal ?? {};
@@ -455,8 +461,8 @@ assert(
   "local H6 rehearsal wrong verifier SBF path mismatch",
 );
 assert(
-  rehearsalWrongVerifierSbf.sha256 === localComparison.localUnsafeVerifierSbfSha256,
-  "local H6 rehearsal wrong verifier SBF hash must match the pre-H6 local inventory hash",
+  rehearsalWrongVerifierSbf.sha256 === localComparison.wrongLocalUnsafeVerifierSbfSha256,
+  "local H6 rehearsal wrong verifier SBF hash must match the pre-H6 negative-control hash",
 );
 assert(
   rehearsalWrongVerifierSbf.satisfiesAcceptedVerifierProgramSbf === false,

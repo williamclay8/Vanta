@@ -36,7 +36,7 @@ const currentH6PublicInputCommitment =
 const staleBeta18PublicWitnessValue =
   "0x0421d1c89c8353818f26d6efcd44b4222a2de2b1f14b8287c59728573a90dd32";
 const localBeta18CompiledAcirSha256 =
-  "sha256:5e0e27752ff1c0f01d318323083b168c1309c0c84521401531b42d07033c68bf";
+  "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde";
 const reviewedBeta18H6SourceAcirSha256 =
   "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde";
 const localH6ProbePublicWitnessSha256 =
@@ -779,7 +779,10 @@ assert(local.command === "npm run zk:c01-sunspot-gnark-local-artifact-inventory-
 assert(local.proofSha256 === localInventory.artifacts?.proof?.sha256, "local proof hash mismatch");
 assert(local.publicWitnessSha256 === localInventory.artifacts?.publicWitness?.sha256, "local public witness hash mismatch");
 assert(local.verifyingKeySha256 === localInventory.artifacts?.verifyingKey?.sha256, "local VK hash mismatch");
-assert(local.verifyingKeyHashKind === "local-unsafe-sunspot-vk-hash-not-production", "local VK hash kind mismatch");
+assert(
+  local.verifyingKeyHashKind === "local-unsafe-h6-beta18-sunspot-vk-hash-not-production",
+  "local VK hash kind mismatch",
+);
 assert(
   local.referenceCurrentSourceAcirSha256 === acquisition.sourceCircuit?.compiledAcirSha256,
   "local reference current-source ACIR hash mismatch",
@@ -790,7 +793,7 @@ assert(
   local.localBeta18CompiledAcirSha256 === localInventory.artifacts?.compiledAcir?.sha256,
   "local beta18 ACIR inventory hash mismatch",
 );
-assert(local.matchesRequiredSourceAcir === false, "local inventory must not match required source ACIR");
+assert(local.matchesRequiredSourceAcir === true, "local inventory must match required beta18 H6 source ACIR");
 assert(local.satisfiesProductionSourceLineage === false, "local inventory must not satisfy source lineage");
 assert(
   localInventory.sourceLineageComparison?.requiredCurrentSourceAcirSha256 === local.referenceCurrentSourceAcirSha256,
@@ -802,16 +805,17 @@ assert(
   "local inventory source lineage beta18 ACIR mismatch",
 );
 assert(
-  localInventory.sourceLineageComparison?.matchesCurrentSourceAcir === false,
-  "local inventory source lineage must reject beta18 ACIR",
+  localInventory.sourceLineageComparison?.matchesRequiredProductionSourceAcir === true,
+  "local inventory source lineage must match required beta18 H6 ACIR",
 );
 assert(local.solanaVerifierSbfSha256 === localInventory.artifacts?.solanaVerifierSbf?.sha256, "local SBF hash mismatch");
 assert(local.promotableToProductionEvidence === false, "local inventory must not be promotable");
 assert(local.comparisonOnly === true, "local inventory must be comparison-only");
 for (const marker of [
-  "local inventory can be used only to compare expected C01 shapes",
-  "does not match the reviewed beta18 H6 production source ACIR route",
-  "stale against the current H6 local proof receipt",
+  "local H6 inventory can be used only to compare expected C01 shapes",
+  "matches the reviewed beta18 H6 production source candidate",
+  "public witness matches the current H6 local proof receipt",
+  "local unsafe setup",
   "production source lineage",
   "cannot satisfy production proof-format",
   "production verifying-key",

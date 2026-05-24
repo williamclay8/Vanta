@@ -299,13 +299,26 @@ assert(
   "production public-witness binding must reject stale beta18 public witness",
 );
 assert(
+  productionWitnessBinding.localH6InventoryPublicWitnessValue === currentH6PublicInputValue,
+  "production public-witness binding H6 inventory value mismatch",
+);
+assert(
+  productionWitnessBinding.localH6InventoryPublicWitnessMatchesCurrentReceipt === true,
+  "production public-witness binding must record the local H6 inventory match",
+);
+assert(
+  productionWitnessBinding.localH6InventoryComparisonOnly === true,
+  "production public-witness binding must keep the local H6 inventory comparison-only",
+);
+assert(
   productionWitnessBinding.satisfiesProductionPublicInputBinding === false,
   "production public-witness binding must remain unsatisfied",
 );
 for (const marker of [
   "bind to the current H6 local proof receipt public input and commitment",
   "local beta18 public witness is stale",
-  "comparison-only",
+  "local H6 inventory public witness matches the current receipt",
+  "local unsafe comparison evidence",
 ]) {
   includes(
     productionWitnessBinding.truthBoundary ?? "",

@@ -78,12 +78,13 @@
   },
   "localComparisonOnly": {
     "status": "local-unsafe-and-local-bytecode-comparison-only",
-    "localUnsafeVerifierSbfSha256": "sha256:222ca0869212f455331933b5b6751a04449b5d7bd7387e72ae7f5702a3bf2e58",
+    "localUnsafeVerifierSbfSha256": "sha256:91fc2db5e06ebfb72bee120ebbcd51698684216598ec50f046d62fcf64928ac0",
+    "wrongLocalUnsafeVerifierSbfSha256": "sha256:222ca0869212f455331933b5b6751a04449b5d7bd7387e72ae7f5702a3bf2e58",
     "localUnsafeVerifierSbfRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-local-artifact-inventory.evidence.json",
     "localUnsafeGeneratedVerifierCpiHarnessRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
     "localSbfAbiStatusCommand": "npm run private-pool-v2:sbf-abi-check",
     "satisfiesSbfLiveLineage": false,
-    "truthBoundary": "The /private/tmp generated verifier SBF hash and local Vanta spend-program SBF checks are useful comparison and drift-prevention evidence only. They are not production artifact acceptance, not deployed verifier-program evidence, not reinitialization evidence, not live proof-enforced spend evidence, and not SBF/live lineage."
+    "truthBoundary": "The /private/tmp H6 generated verifier SBF hash, the pre-H6 wrong-verifier negative-control SBF hash, and local Vanta spend-program SBF checks are useful comparison and drift-prevention evidence only. They are not production artifact acceptance, not deployed verifier-program evidence, not reinitialization evidence, not live proof-enforced spend evidence, and not SBF/live lineage."
   },
   "localH6SbfLineageRehearsal": {
     "status": "local-h6-sbf-lineage-rehearsal-only",

@@ -16,7 +16,7 @@ const currentSourceAcirRef =
 const currentSourceAcirSha256 =
   "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9";
 const localBeta18CompiledAcirSha256 =
-  "sha256:5e0e27752ff1c0f01d318323083b168c1309c0c84521401531b42d07033c68bf";
+  "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde";
 
 function fail(message) {
   console.error(`private-pool-v2 C01 Sunspot/Gnark local artifact inventory: FAIL - ${message}`);
@@ -185,7 +185,7 @@ assert(packet.toolchainBoundary?.satisfiesProductionToolchainReview === false, "
 
 const sourceLineage = packet.sourceLineageComparison ?? {};
 assert(
-  sourceLineage.status === "local-beta18-artifacts-do-not-match-current-source-acir",
+  sourceLineage.status === "local-beta18-h6-artifacts-match-reviewed-production-source-candidate",
   "source lineage status mismatch",
 );
 assert(sourceLineage.requiredCurrentSourceAcirRef === currentSourceAcirRef, "source lineage ref mismatch");
@@ -193,23 +193,28 @@ assert(
   sourceLineage.requiredCurrentSourceAcirSha256 === currentSourceAcirSha256,
   "source lineage current ACIR hash mismatch",
 );
-assert(sourceLineage.localBeta18CompiledAcirByteLength === 1828305, "source lineage beta18 ACIR byteLength mismatch");
+assert(sourceLineage.localBeta18CompiledAcirByteLength === 1906902, "source lineage beta18 ACIR byteLength mismatch");
 assert(
   sourceLineage.localBeta18CompiledAcirSha256 === localBeta18CompiledAcirSha256,
   "source lineage beta18 ACIR hash mismatch",
 );
 assert(sourceLineage.matchesCurrentSourceAcir === false, "source lineage must record beta18 mismatch");
 assert(
-  sourceLineage.productionBundleMustMatchCurrentSourceAcir === true,
-  "source lineage must require current source ACIR binding",
+  sourceLineage.matchesRequiredProductionSourceAcir === true,
+  "source lineage must record required production source ACIR match",
+);
+assert(
+  sourceLineage.productionBundleMustMatchReviewedBeta18H6SourceAcir === true,
+  "source lineage must require reviewed beta18 H6 source ACIR binding",
 );
 assert(
   sourceLineage.satisfiesProductionSourceLineage === false,
   "source lineage must not satisfy production source lineage",
 );
 for (const marker of [
-  "temporary beta18 source shim",
-  "does not match the current required source ACIR hash",
+  "reviewed-source-candidate beta18 H6 migration hash",
+  "preserve the current H6 public input",
+  "local unsafe setup",
   "cannot satisfy production source lineage",
   "production proof-format",
 ]) {
@@ -217,9 +222,13 @@ for (const marker of [
 }
 
 const artifacts = packet.artifacts ?? {};
-assert(artifacts.compiledAcir?.byteLength === 1828305, "compiled ACIR byteLength mismatch");
+assert(artifacts.compiledAcir?.byteLength === 1906902, "compiled ACIR byteLength mismatch");
 assert(artifacts.compiledAcir?.sha256 === localBeta18CompiledAcirSha256, "compiled ACIR hash mismatch");
 assert(artifacts.compiledAcir?.matchesCurrentSourceAcir === false, "compiled ACIR must record source mismatch");
+assert(
+  artifacts.compiledAcir?.matchesRequiredProductionSourceAcir === true,
+  "compiled ACIR must record required production source ACIR match",
+);
 assert(artifacts.compiledAcir?.rawBytesStoredInRepo === false, "compiled ACIR raw bytes must not be stored");
 assert(
   artifacts.compiledAcir?.satisfiesProductionSourceLineage === false,
@@ -229,46 +238,46 @@ for (const [field, expected] of [
   ["proof", 324],
   ["publicWitness", 44],
   ["verifyingKey", 716],
-  ["ccs", 2565732],
-  ["provingKey", 15168269],
+  ["ccs", 2687452],
+  ["provingKey", 15587553],
   ["solanaVerifierSbf", 86216],
 ]) {
   assert(artifacts[field]?.byteLength === expected, `${field} byteLength mismatch`);
   assert(artifacts[field]?.rawBytesStoredInRepo === false, `${field} raw bytes must not be stored in repo`);
 }
-assert(artifacts.proof?.sha256 === "sha256:e76c6d47052ecdb743b894a5413de62dca556f25546c1dd4a842403532281a85", "proof hash mismatch");
+assert(artifacts.proof?.sha256 === "sha256:afde2c07683c4262b5b9ae72c66e559e857a9fd7a529b980b34a45bf2374d186", "proof hash mismatch");
 assert(artifacts.proof?.proofFormatId === "gnark-solana-native-proof-and-public-witness-v0", "proof format mismatch");
 assert(artifacts.proof?.satisfiesProductionProofFormatEvidence === false, "proof must not satisfy production evidence");
-assert(artifacts.publicWitness?.sha256 === "sha256:885351f63518202c4fcd120af8ffc296a8706edae14ed4795c11795dfd7f90e3", "public witness hash mismatch");
+assert(artifacts.publicWitness?.sha256 === "sha256:19e42b6e34a5861d8804565476d72f8835c81d30cfc66bd598a236d26e1baa60", "public witness hash mismatch");
 assert(artifacts.publicWitness?.headerHex === "000000010000000000000001", "public witness header mismatch");
 assert(
-  artifacts.publicWitness?.matchesLocalProofReceiptPublicInput === false,
-  "stale beta18 public witness must not claim it matches the current local receipt",
+  artifacts.publicWitness?.matchesLocalProofReceiptPublicInput === true,
+  "H6 public witness must record that it matches the current local receipt",
 );
 assert(
-  artifacts.publicWitness?.staleAgainstCurrentProofReceipt === true,
-  "public witness must record stale current-receipt boundary",
+  artifacts.publicWitness?.staleAgainstCurrentProofReceipt === false,
+  "H6 public witness must not be marked stale against the current receipt",
 );
 assert(
   artifacts.publicWitness?.satisfiesProductionPublicInputBindingEvidence === false,
   "public witness must not satisfy production binding",
 );
-assert(artifacts.verifyingKey?.sha256 === "sha256:fbd6ba8ce64cc0b0320a0d8080fca15d79ca6ca2f732381a9550092f645f0e1d", "VK hash mismatch");
+assert(artifacts.verifyingKey?.sha256 === "sha256:5e0a6f08503f534cbb462f43fbf0b247e8aa2ce75d1fa58c2350f815817948b4", "VK hash mismatch");
 assert(
-  artifacts.verifyingKey?.verifyingKeyHashKind === "local-unsafe-sunspot-vk-hash-not-production",
+  artifacts.verifyingKey?.verifyingKeyHashKind === "local-unsafe-h6-beta18-sunspot-vk-hash-not-production",
   "VK hash kind mismatch",
 );
 assert(
   artifacts.verifyingKey?.satisfiesProductionVerifyingKeyEvidence === false,
   "VK must not satisfy production evidence",
 );
-assert(artifacts.ccs?.sha256 === "sha256:9c4cdf4858a5b180c27a9343c767598b515f71ec0a2a1b78f8069d4e309ccd53", "CCS hash mismatch");
+assert(artifacts.ccs?.sha256 === "sha256:b32de5a9a88c630ff4dd158b3f11e2dd9b40877e40aaff4e723b8ffde18fa71e", "CCS hash mismatch");
 assert(artifacts.provingKey?.sha256Stored === false, "PK hash must not be stored");
 assert(artifacts.provingKey?.satisfiesProductionEvidence === false, "PK must not satisfy production evidence");
-assert(artifacts.solanaVerifierSbf?.sha256 === "sha256:222ca0869212f455331933b5b6751a04449b5d7bd7387e72ae7f5702a3bf2e58", "SBF hash mismatch");
+assert(artifacts.solanaVerifierSbf?.sha256 === "sha256:91fc2db5e06ebfb72bee120ebbcd51698684216598ec50f046d62fcf64928ac0", "SBF hash mismatch");
 assert(artifacts.solanaVerifierSbf?.satisfiesSbfLiveLineage === false, "SBF must not satisfy live lineage");
 assert(artifacts.solanaVerifierKeypair?.generatedInPrivateTmp === true, "keypair private tmp flag mismatch");
-assert(artifacts.solanaVerifierKeypair?.byteLength === 243, "keypair byteLength mismatch");
+assert(artifacts.solanaVerifierKeypair?.byteLength === 230, "keypair byteLength mismatch");
 assert(artifacts.solanaVerifierKeypair?.localRefStored === false, "keypair local ref must not be stored");
 assert(artifacts.solanaVerifierKeypair?.sha256Stored === false, "keypair hash must not be stored");
 assert(artifacts.solanaVerifierKeypair?.rawBytesStoredInRepo === false, "keypair bytes must not be stored");
@@ -282,7 +291,9 @@ assertFalsePositiveEvidence(packet.satisfiesRequiredPositiveEvidence, "satisfies
 assertStringArray(packet.productionPromotionStillRequires, "productionPromotionStillRequires");
 for (const requirement of [
   "trusted setup ceremony or equivalent toxic-waste mitigation",
-  "production artifacts generated from the current source ACIR hash, not stale beta18 temporary source output",
+  "reviewed beta18 H6 source migration and source-review acceptance",
+  "production Groth16 proof-format artifact generated under reviewed setup, not local unsafe setup",
+  "deterministic production artifact build receipt and reproducibility review for the H6 output tuple",
   "production verifying-key artifact and production verifying-key hash",
   "accepted verifier adapter or verifier CPI wired to Vanta tag 3",
   "invalid-proof, wrong-public-input, and wrong-verifying-key no-mutation under the accepted verifier",
@@ -302,8 +313,8 @@ for (const command of [
   assert(packet.canonicalCommands.includes(command), `missing canonical command ${command}`);
 }
 for (const marker of [
-  "local nonproduction artifact inventory only",
-  "stale against the current H6 local proof receipt",
+  "local nonproduction H6 artifact inventory only",
+  "local H6 public witness matches the current H6 local proof receipt",
   "not production proof-format evidence",
   "not production verifying-key evidence",
   "not verifier-adapter acceptance",

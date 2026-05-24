@@ -35,8 +35,11 @@
     "requiredPublicInputCommitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2",
     "localBeta18PublicWitnessValue": "0x0421d1c89c8353818f26d6efcd44b4222a2de2b1f14b8287c59728573a90dd32",
     "localBeta18PublicWitnessMatchesCurrentReceipt": false,
+    "localH6InventoryPublicWitnessValue": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "localH6InventoryPublicWitnessMatchesCurrentReceipt": true,
+    "localH6InventoryComparisonOnly": true,
     "satisfiesProductionPublicInputBinding": false,
-    "truthBoundary": "Returned production public-witness evidence must bind to the current H6 local proof receipt public input and commitment. The local beta18 public witness is stale and remains comparison-only."
+    "truthBoundary": "Returned production public-witness evidence must bind to the current H6 local proof receipt public input and commitment. The older local beta18 public witness is stale and remains comparison-only; the newer local H6 inventory public witness matches the current receipt but remains local unsafe comparison evidence until source review, setup, deterministic build, adapter acceptance, lineage, and reviewer acceptance exist."
   },
   "productionGroth16ToolchainPreflightRef": "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
   "productionVerifyingKeyCandidateRef": "ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json",
