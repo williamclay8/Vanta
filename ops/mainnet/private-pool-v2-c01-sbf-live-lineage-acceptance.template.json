@@ -17,7 +17,9 @@
     "currentH6PublicInputBindingRef": null
   },
   "programLineage": {
-    "sourceAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
+    "referenceCurrentSourceAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
+    "productionSourceLineageMode": "reviewed-beta18-h6-source-migration",
+    "sourceAcirSha256": "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde",
     "spendProgramSbfHash": null,
     "acceptedVerifierProgramSbfHash": null,
     "spendProgramId": null,

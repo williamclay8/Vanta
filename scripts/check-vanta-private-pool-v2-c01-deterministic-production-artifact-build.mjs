@@ -28,6 +28,8 @@ const currentSourceAcirRef =
   "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json";
 const currentSourceAcirSha256 =
   "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9";
+const reviewedBeta18H6SourceAcirSha256 =
+  "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde";
 const currentProofReceiptRef =
   "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.proof.json";
 const currentH6PublicInputValue =
@@ -165,11 +167,23 @@ function assertTemplate(template) {
     template.sourceLineage?.candidateSourceSha256 === candidateSourceSha256,
     "template candidate source hash mismatch",
   );
+  assert(
+    template.sourceLineage?.requiredProductionSourceLineageMode === "reviewed-beta18-h6-source-migration",
+    "template production source lineage mode mismatch",
+  );
+  assert(
+    template.sourceLineage?.requiredProductionSourceAcirSha256 === reviewedBeta18H6SourceAcirSha256,
+    "template production source ACIR hash mismatch",
+  );
   assert(template.sourceLineage?.returnedSourceAcirRef === null, "template returned source ref must stay null");
   assert(template.sourceLineage?.returnedSourceAcirSha256 === null, "template returned source hash must stay null");
   assert(
     template.sourceLineage?.matchesRequiredCurrentSourceAcir === false,
     "template must not claim current source match",
+  );
+  assert(
+    template.sourceLineage?.matchesRequiredProductionSourceLineage === false,
+    "template must not claim production source lineage",
   );
   assertNullRefs(template.toolchainAndSetup, "template toolchain and setup", [
     "pinnedToolchainSourceRef",
@@ -336,15 +350,27 @@ function assertReviewedDeterministicBuildReceipt(receipt, label) {
   );
   assert(sourceLineage.candidateSourceRef === candidateSourceRef, `${label} candidate source ref mismatch`);
   assert(sourceLineage.candidateSourceSha256 === candidateSourceSha256, `${label} candidate source hash mismatch`);
+  assert(
+    sourceLineage.requiredProductionSourceLineageMode === "reviewed-beta18-h6-source-migration",
+    `${label} production source lineage mode mismatch`,
+  );
+  assert(
+    sourceLineage.requiredProductionSourceAcirSha256 === reviewedBeta18H6SourceAcirSha256,
+    `${label} production source ACIR hash mismatch`,
+  );
   assertRef(sourceLineage.returnedSourceAcirRef, `${label} returned source ACIR ref`);
   assertSha256(sourceLineage.returnedSourceAcirSha256, `${label} returned source ACIR hash`);
   assert(
-    sourceLineage.returnedSourceAcirSha256 === currentSourceAcirSha256,
-    `${label} returned source ACIR hash must match current source ACIR hash`,
+    sourceLineage.returnedSourceAcirSha256 === reviewedBeta18H6SourceAcirSha256,
+    `${label} returned source ACIR hash must match reviewed beta18 H6 production source ACIR hash`,
   );
   assert(
-    sourceLineage.matchesRequiredCurrentSourceAcir === true,
-    `${label} must match required current source ACIR`,
+    sourceLineage.matchesRequiredCurrentSourceAcir === false,
+    `${label} beta18 H6 source migration must not claim beta19 current ACIR identity`,
+  );
+  assert(
+    sourceLineage.matchesRequiredProductionSourceLineage === true,
+    `${label} must match reviewed beta18 H6 production source lineage`,
   );
 
   const toolchain = receipt.toolchainAndSetup ?? {};
@@ -610,10 +636,12 @@ assertAllowedKeys(shape, "required build receipt shape", [
   "currentProofReceiptRef",
   "requiredPublicInputValue",
   "requiredPublicInputCommitment",
-  "sourceAcirRef",
-  "sourceAcirSha256",
+  "currentSourceAcirRef",
+  "currentSourceAcirSha256",
   "candidateSourceRef",
   "candidateSourceSha256",
+  "requiredProductionSourceLineageMode",
+  "requiredProductionSourceAcirSha256",
   "sourceReviewAcceptanceRequired",
   "sourceReviewAcceptanceGateRef",
   "toolchainReviewRequired",
@@ -641,10 +669,12 @@ for (const [field, expected] of [
   ["currentProofReceiptRef", currentProofReceiptRef],
   ["requiredPublicInputValue", currentH6PublicInputValue],
   ["requiredPublicInputCommitment", currentH6PublicInputCommitment],
-  ["sourceAcirRef", currentSourceAcirRef],
-  ["sourceAcirSha256", currentSourceAcirSha256],
+  ["currentSourceAcirRef", currentSourceAcirRef],
+  ["currentSourceAcirSha256", currentSourceAcirSha256],
   ["candidateSourceRef", candidateSourceRef],
   ["candidateSourceSha256", candidateSourceSha256],
+  ["requiredProductionSourceLineageMode", "reviewed-beta18-h6-source-migration"],
+  ["requiredProductionSourceAcirSha256", reviewedBeta18H6SourceAcirSha256],
   ["sourceReviewAcceptanceRequired", true],
   ["sourceReviewAcceptanceGateRef", sourceReviewAcceptanceGatePath],
   ["toolchainReviewRequired", true],
@@ -732,7 +762,7 @@ for (const marker of [
   "reviewed reproducible toolchain build",
   "trusted setup or toxic-waste mitigation ref",
   "deterministic build environment and command manifest",
-  "current source ACIR hash lineage",
+  "reviewed beta18 H6 production source ACIR lineage",
   "Groth16 production proof-format output tuple",
   "production verifying-key artifact and hash kind",
   "current H6 private-spend-public-input-hash binding",
@@ -782,7 +812,7 @@ for (const rule of [
   "deterministic build receipt refs must be references only; raw proof, verifying-key, proving-key, witness, keypair, secret, and signed transaction bytes stay out of git",
   "source-review acceptance is required before a beta18 H6 source-migration build receipt can promote source lineage",
   "production setup or equivalent toxic-waste mitigation must be reviewed before proof/VK output refs can promote",
-  "deterministic build output refs must agree on circuit, source ACIR hash, proof format id, proof byte length, public-witness byte length, generated verifier public input count, and public input label",
+  "deterministic build output refs must agree on circuit, reviewed beta18 H6 production source ACIR hash, proof format id, proof byte length, public-witness byte length, generated verifier public input count, and public input label",
   "the public-witness output must decode one private-spend-public-input-hash equal to the current H6 proof receipt public input and commitment",
   "deterministic build receipts must include artifact producer identity, reviewer identity, review scope, and cross-refs to the source acceptance, build manifest, and output manifest",
   "deterministic artifact build evidence does not by itself accept the verifier adapter, mutation/no-mutation tests, SBF/live lineage, or audit/reviewer acceptance",

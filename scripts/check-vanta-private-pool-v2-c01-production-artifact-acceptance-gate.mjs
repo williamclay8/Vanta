@@ -35,6 +35,10 @@ const staleBeta18PublicWitnessValue =
   "0x0421d1c89c8353818f26d6efcd44b4222a2de2b1f14b8287c59728573a90dd32";
 const localBeta18CompiledAcirSha256 =
   "sha256:5e0e27752ff1c0f01d318323083b168c1309c0c84521401531b42d07033c68bf";
+const reviewedBeta18H6SourceAcirSha256 =
+  "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde";
+const localH6ProbePublicWitnessSha256 =
+  "sha256:19e42b6e34a5861d8804565476d72f8835c81d30cfc66bd598a236d26e1baa60";
 const currentSourceAcirRef =
   "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json";
 const productionBundleEnvVar = "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH";
@@ -151,8 +155,16 @@ function assertBundleTemplate(template) {
   assert(template.routeId === "sunspot-noir-acir-gnark-groth16-solana-v0", "template route mismatch");
   assert(template.sourceLineage?.requiredCurrentSourceAcirRef === currentSourceAcirRef, "template ACIR ref mismatch");
   assert(
-    template.sourceLineage?.requiredCurrentSourceAcirSha256 === shape.sourceAcirSha256,
-    "template ACIR hash mismatch",
+    template.sourceLineage?.requiredCurrentSourceAcirSha256 === shape.referenceCurrentSourceAcirSha256,
+    "template current-source ACIR hash mismatch",
+  );
+  assert(
+    template.sourceLineage?.requiredProductionSourceLineageMode === shape.productionSourceLineageMode,
+    "template production source lineage mode mismatch",
+  );
+  assert(
+    template.sourceLineage?.requiredProductionSourceAcirSha256 === shape.sourceAcirSha256,
+    "template production source ACIR hash mismatch",
   );
   assert(template.sourceLineage?.sourceReviewAcceptanceRef === null, "template source review acceptance ref must stay null");
   assert(
@@ -160,6 +172,10 @@ function assertBundleTemplate(template) {
     "template must not claim source migration acceptance",
   );
   assert(template.sourceLineage?.matchesRequiredCurrentSourceAcir === false, "template must not claim source match");
+  assert(
+    template.sourceLineage?.matchesRequiredProductionSourceLineage === false,
+    "template must not claim production source lineage",
+  );
   assert(
     template.deterministicArtifactBuild?.deterministicArtifactBuildGateRef === deterministicBuildGatePath,
     "template deterministic build gate ref mismatch",
@@ -266,16 +282,34 @@ function assertReviewedProductionBundle(bundle, label) {
 
   const sourceLineage = bundle.sourceLineage ?? {};
   assert(sourceLineage.requiredCurrentSourceAcirRef === currentSourceAcirRef, `${label} source ACIR ref mismatch`);
-  assert(sourceLineage.requiredCurrentSourceAcirSha256 === shape.sourceAcirSha256, `${label} source ACIR hash mismatch`);
+  assert(
+    sourceLineage.requiredCurrentSourceAcirSha256 === shape.referenceCurrentSourceAcirSha256,
+    `${label} current-source ACIR hash mismatch`,
+  );
+  assert(
+    sourceLineage.requiredProductionSourceLineageMode === shape.productionSourceLineageMode,
+    `${label} production source lineage mode mismatch`,
+  );
+  assert(
+    sourceLineage.requiredProductionSourceAcirSha256 === shape.sourceAcirSha256,
+    `${label} production source ACIR hash mismatch`,
+  );
   assertRef(sourceLineage.sourceReviewAcceptanceRef, `${label} source review acceptance ref`);
   assert(sourceLineage.reviewedSourceMigrationAccepted === true, `${label} reviewed source migration acceptance must be true`);
   assertRef(sourceLineage.returnedSourceAcirRef, `${label} returned source ACIR ref`);
   assertSha256(sourceLineage.returnedSourceAcirSha256, `${label} returned source ACIR hash`);
   assert(
     sourceLineage.returnedSourceAcirSha256 === shape.sourceAcirSha256,
-    `${label} returned source ACIR hash must equal required current source ACIR hash`,
+    `${label} returned source ACIR hash must equal reviewed beta18 H6 production source ACIR hash`,
   );
-  assert(sourceLineage.matchesRequiredCurrentSourceAcir === true, `${label} must match current source ACIR`);
+  assert(
+    sourceLineage.matchesRequiredCurrentSourceAcir === false,
+    `${label} beta18 H6 source migration must not claim beta19 current ACIR identity`,
+  );
+  assert(
+    sourceLineage.matchesRequiredProductionSourceLineage === true,
+    `${label} must match reviewed beta18 H6 production source lineage`,
+  );
 
   const deterministicBuild = bundle.deterministicArtifactBuild ?? {};
   assertRef(deterministicBuild.buildReceiptRef, `${label} deterministic build receipt ref`);
@@ -583,6 +617,8 @@ assertAllowedKeys(shape, "required production bundle shape", [
   "requiredPublicInputCommitment",
   "requiresCurrentProofReceiptPublicInputBinding",
   "verifyingKeyHashKind",
+  "referenceCurrentSourceAcirSha256",
+  "productionSourceLineageMode",
   "sourceAcirSha256",
   "sourceReviewAcceptanceRequired",
   "sourceReviewAcceptanceGateRef",
@@ -612,7 +648,9 @@ for (const [field, expected] of [
   ["requiredPublicInputCommitment", currentH6PublicInputCommitment],
   ["requiresCurrentProofReceiptPublicInputBinding", true],
   ["verifyingKeyHashKind", "production-verifying-key-hash"],
-  ["sourceAcirSha256", acquisition.sourceCircuit?.compiledAcirSha256],
+  ["referenceCurrentSourceAcirSha256", acquisition.sourceCircuit?.compiledAcirSha256],
+  ["productionSourceLineageMode", "reviewed-beta18-h6-source-migration"],
+  ["sourceAcirSha256", reviewedBeta18H6SourceAcirSha256],
   ["sourceReviewAcceptanceRequired", true],
   ["sourceReviewAcceptanceGateRef", sourceReviewAcceptanceGatePath],
   ["deterministicArtifactBuildRequired", true],
@@ -698,6 +736,7 @@ assertAllowedKeys(local, "local artifact inventory policy", [
   "publicWitnessSha256",
   "verifyingKeySha256",
   "verifyingKeyHashKind",
+  "referenceCurrentSourceAcirSha256",
   "requiredSourceAcirSha256",
   "localBeta18CompiledAcirSha256",
   "matchesRequiredSourceAcir",
@@ -714,6 +753,10 @@ assert(local.proofSha256 === localInventory.artifacts?.proof?.sha256, "local pro
 assert(local.publicWitnessSha256 === localInventory.artifacts?.publicWitness?.sha256, "local public witness hash mismatch");
 assert(local.verifyingKeySha256 === localInventory.artifacts?.verifyingKey?.sha256, "local VK hash mismatch");
 assert(local.verifyingKeyHashKind === "local-unsafe-sunspot-vk-hash-not-production", "local VK hash kind mismatch");
+assert(
+  local.referenceCurrentSourceAcirSha256 === acquisition.sourceCircuit?.compiledAcirSha256,
+  "local reference current-source ACIR hash mismatch",
+);
 assert(local.requiredSourceAcirSha256 === shape.sourceAcirSha256, "local required source ACIR hash mismatch");
 assert(local.localBeta18CompiledAcirSha256 === localBeta18CompiledAcirSha256, "local beta18 ACIR hash mismatch");
 assert(
@@ -723,7 +766,7 @@ assert(
 assert(local.matchesRequiredSourceAcir === false, "local inventory must not match required source ACIR");
 assert(local.satisfiesProductionSourceLineage === false, "local inventory must not satisfy source lineage");
 assert(
-  localInventory.sourceLineageComparison?.requiredCurrentSourceAcirSha256 === local.requiredSourceAcirSha256,
+  localInventory.sourceLineageComparison?.requiredCurrentSourceAcirSha256 === local.referenceCurrentSourceAcirSha256,
   "local inventory source lineage current ACIR mismatch",
 );
 assert(
@@ -740,7 +783,7 @@ assert(local.promotableToProductionEvidence === false, "local inventory must not
 assert(local.comparisonOnly === true, "local inventory must be comparison-only");
 for (const marker of [
   "local inventory can be used only to compare expected C01 shapes",
-  "beta18 compiled ACIR does not match the required current source ACIR",
+  "does not match the reviewed beta18 H6 production source ACIR route",
   "stale against the current H6 local proof receipt",
   "production source lineage",
   "cannot satisfy production proof-format",
@@ -761,12 +804,16 @@ assertAllowedKeys(currentH6Binding, "current H6 public-input binding requirement
   "observedLocalSunspotPublicWitnessValue",
   "observedLocalSunspotPublicWitnessSha256",
   "observedLocalSunspotPublicWitnessMatchesCurrentReceipt",
+  "localH6ProbePublicWitnessValue",
+  "localH6ProbePublicWitnessSha256",
+  "localH6ProbePublicWitnessMatchesCurrentReceipt",
+  "localH6ProbeComparisonOnly",
   "acceptedProductionBundleMustBindCurrentReceipt",
   "satisfiesProductionPublicInputBinding",
   "truthBoundary",
 ]);
 assert(
-  currentH6Binding.status === "blocked-local-sunspot-public-witness-stale-against-current-h6-receipt",
+  currentH6Binding.status === "blocked-no-reviewed-production-public-witness-binding",
   "current H6 binding status mismatch",
 );
 assert(
@@ -800,6 +847,22 @@ assert(
 assert(
   currentH6Binding.observedLocalSunspotPublicWitnessMatchesCurrentReceipt === false,
   "current H6 binding must record the stale local public witness mismatch",
+);
+assert(
+  currentH6Binding.localH6ProbePublicWitnessValue === currentH6PublicInputValue,
+  "current H6 binding local H6 probe public witness mismatch",
+);
+assert(
+  currentH6Binding.localH6ProbePublicWitnessSha256 === localH6ProbePublicWitnessSha256,
+  "current H6 binding local H6 probe public witness hash mismatch",
+);
+assert(
+  currentH6Binding.localH6ProbePublicWitnessMatchesCurrentReceipt === true,
+  "current H6 binding must record the local H6 probe match",
+);
+assert(
+  currentH6Binding.localH6ProbeComparisonOnly === true,
+  "current H6 binding must keep local H6 probe comparison-only",
 );
 assert(
   currentH6Binding.acceptedProductionBundleMustBindCurrentReceipt === true,
@@ -863,7 +926,7 @@ assert(externalValidation.defaultGuardRequiresExternalBundle === false, "externa
 assert(externalValidation.validatedWhenEnvVarPresent === true, "external bundle must validate when env var is present");
 assertStringArray(externalValidation.validates, "external bundle validation validates");
 for (const marker of [
-  "current source ACIR hash lineage",
+  "reviewed beta18 H6 production source ACIR lineage",
   "external source-review acceptance",
   "deterministic production artifact build receipt",
   "Groth16 production proof-format tuple",
@@ -926,7 +989,7 @@ assertStringArray(packet.promotionRules, "promotionRules");
 for (const rule of [
   "production bundle refs must be references only; raw proof, verifying-key, proving-key, witness, keypair, secret, and signed transaction bytes stay out of git",
   "local /private/tmp Sunspot/Gnark outputs are comparison metadata only and cannot fill production currentRef fields",
-  "production proof-format and production verifying-key refs must agree on circuit, source ACIR hash, proof format id, proof byte length, public-witness byte length, generated verifier public input count, and public input label",
+  "production proof-format and production verifying-key refs must agree on circuit, reviewed beta18 H6 production source ACIR hash, proof format id, proof byte length, public-witness byte length, generated verifier public input count, and public input label",
   "production public-witness evidence must decode one private-spend-public-input-hash equal to the current H6 proof receipt public input and commitment before adapter or mutation evidence can promote",
   "reviewed source migration acceptance is required before a beta18 source-migration production bundle can promote source lineage",
   "reviewed deterministic production artifact build receipt is required before proof/VK/public-witness refs can promote into the production bundle",
@@ -1048,7 +1111,7 @@ for (const marker of [
   "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check",
   "npm run zk:c01-production-artifact-acceptance-gate-check",
   "blocked-no-reviewed-production-artifact-bundle",
-  "current source ACIR hash",
+  "reviewed beta18 H6 production source ACIR",
   "current H6 proof receipt public input and commitment",
   "does not satisfy production proof-format evidence",
 ]) {

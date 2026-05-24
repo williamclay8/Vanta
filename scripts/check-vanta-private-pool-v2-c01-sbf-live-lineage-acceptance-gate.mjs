@@ -161,6 +161,8 @@ function assertTemplate(template) {
   );
 
   assertAllowedKeys(template.programLineage, "template program lineage", [
+    "referenceCurrentSourceAcirSha256",
+    "productionSourceLineageMode",
     "sourceAcirSha256",
     "spendProgramSbfHash",
     "acceptedVerifierProgramSbfHash",
@@ -172,6 +174,14 @@ function assertTemplate(template) {
     "verifierKeyRecordBindsProductionVkHash",
     "verifierKeyRecordBindsVerifierProgramId",
   ]);
+  assert(
+    template.programLineage.referenceCurrentSourceAcirSha256 === shape.referenceCurrentSourceAcirSha256,
+    "template reference current-source ACIR mismatch",
+  );
+  assert(
+    template.programLineage.productionSourceLineageMode === shape.productionSourceLineageMode,
+    "template production source lineage mode mismatch",
+  );
   assert(template.programLineage.sourceAcirSha256 === shape.sourceAcirSha256, "template source ACIR mismatch");
   assert(template.programLineage.verifierProgramKind === shape.verifierProgramKind, "template verifier kind mismatch");
   assertNullRefs(template.programLineage, "template program lineage", [
@@ -275,6 +285,14 @@ function assertReviewedLineageAcceptance(acceptance, label) {
   assert(prerequisites.verifyingKeyHashKind === shape.verifyingKeyHashKind, `${label} VK hash kind mismatch`);
 
   const programLineage = acceptance.programLineage ?? {};
+  assert(
+    programLineage.referenceCurrentSourceAcirSha256 === shape.referenceCurrentSourceAcirSha256,
+    `${label} reference current-source ACIR mismatch`,
+  );
+  assert(
+    programLineage.productionSourceLineageMode === shape.productionSourceLineageMode,
+    `${label} production source lineage mode mismatch`,
+  );
   assert(programLineage.sourceAcirSha256 === shape.sourceAcirSha256, `${label} source ACIR mismatch`);
   assertSha256(programLineage.spendProgramSbfHash, `${label} spend SBF hash`);
   assertSha256(programLineage.acceptedVerifierProgramSbfHash, `${label} verifier SBF hash`);
@@ -488,6 +506,8 @@ for (const [field, expected] of [
   ["publicWitnessByteLength", 44],
   ["verifierInstructionDataByteLength", 368],
   ["publicInputLabel", "private-spend-public-input-hash"],
+  ["referenceCurrentSourceAcirSha256", candidate.requiredLineageShape?.referenceCurrentSourceAcirSha256],
+  ["productionSourceLineageMode", "reviewed-beta18-h6-source-migration"],
   ["sourceAcirSha256", candidate.requiredLineageShape?.sourceAcirSha256],
   ["verifyingKeyHashKind", "production-verifying-key-hash"],
   ["verifierProgramKind", "dedicated-verifier-cpi-or-reviewed-in-program-verifier"],

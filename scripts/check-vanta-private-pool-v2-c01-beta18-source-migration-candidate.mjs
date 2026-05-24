@@ -34,6 +34,8 @@ const expectedBeta18SourceSha256 =
   "sha256:fc53c7f1624a2bb1f1af1bedd3126438924f4954c71ac060c453ba16620d6b27";
 const expectedCurrentAcirSha256 =
   "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9";
+const expectedReviewedBeta18H6AcirSha256 =
+  "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde";
 const expectedBeta18AcirSha256 =
   "sha256:5e0e27752ff1c0f01d318323083b168c1309c0c84521401531b42d07033c68bf";
 const currentH6PublicInputValue =
@@ -206,7 +208,19 @@ for (const [field, expected] of [
 assert(currentSourceCompileAttempt.status.includes("blocked-current-beta19"), "compile attempt status mismatch");
 assert(route.routeId === packet.routeId, "route id linkage mismatch");
 assert(acquisition.routeId === packet.routeId, "acquisition route id mismatch");
-assert(acceptanceGate.requiredProductionBundleShape?.sourceAcirSha256 === expectedCurrentAcirSha256, "acceptance gate source hash mismatch");
+assert(
+  acceptanceGate.requiredProductionBundleShape?.referenceCurrentSourceAcirSha256 === expectedCurrentAcirSha256,
+  "acceptance gate reference current-source hash mismatch",
+);
+assert(
+  acceptanceGate.requiredProductionBundleShape?.productionSourceLineageMode ===
+    "reviewed-beta18-h6-source-migration",
+  "acceptance gate source lineage mode mismatch",
+);
+assert(
+  acceptanceGate.requiredProductionBundleShape?.sourceAcirSha256 === expectedReviewedBeta18H6AcirSha256,
+  "acceptance gate production source hash mismatch",
+);
 assert(devProbe.sourceCircuit?.temporarySourceShimCommitted === false, "dev probe must record temp shim only");
 assert(localInventory.sourceLineageComparison?.matchesCurrentSourceAcir === false, "local inventory must record source mismatch");
 assert(publicWitness.satisfiesRequiredPositiveEvidence?.privateSpendPublicInputHashBinding === false, "public witness must remain nonproduction");

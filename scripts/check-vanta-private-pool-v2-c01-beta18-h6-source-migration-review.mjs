@@ -30,6 +30,8 @@ const candidateSourceSha256 =
   "sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430";
 const currentAcirSha256 =
   "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9";
+const reviewedBeta18H6SourceAcirSha256 =
+  "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde";
 const proverSha256 = "sha256:2c62fa9b0a7bfb32c98fb89fc5fbc90211d67b017066eb5555da8f0da20d890e";
 const currentH6PublicInput =
   "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b";
@@ -161,8 +163,17 @@ assert(
   "H6 probe public witness value mismatch",
 );
 assert(
-  acceptanceGate.requiredProductionBundleShape?.sourceAcirSha256 === currentAcirSha256,
-  "acceptance gate source ACIR hash mismatch",
+  acceptanceGate.requiredProductionBundleShape?.referenceCurrentSourceAcirSha256 === currentAcirSha256,
+  "acceptance gate reference current-source ACIR hash mismatch",
+);
+assert(
+  acceptanceGate.requiredProductionBundleShape?.productionSourceLineageMode ===
+    "reviewed-beta18-h6-source-migration",
+  "acceptance gate source lineage mode mismatch",
+);
+assert(
+  acceptanceGate.requiredProductionBundleShape?.sourceAcirSha256 === reviewedBeta18H6SourceAcirSha256,
+  "acceptance gate production source ACIR hash mismatch",
 );
 
 const current = packet.currentSource ?? {};

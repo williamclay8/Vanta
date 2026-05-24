@@ -8,11 +8,14 @@
   "sourceLineage": {
     "requiredCurrentSourceAcirRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json",
     "requiredCurrentSourceAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
+    "requiredProductionSourceLineageMode": "reviewed-beta18-h6-source-migration",
+    "requiredProductionSourceAcirSha256": "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde",
     "sourceReviewAcceptanceRef": null,
     "reviewedSourceMigrationAccepted": false,
     "returnedSourceAcirRef": null,
     "returnedSourceAcirSha256": null,
-    "matchesRequiredCurrentSourceAcir": false
+    "matchesRequiredCurrentSourceAcir": false,
+    "matchesRequiredProductionSourceLineage": false
   },
   "deterministicArtifactBuild": {
     "buildReceiptRef": null,

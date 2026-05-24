@@ -25,6 +25,8 @@ const currentH6PublicInputCommitment =
   "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2";
 const currentSourceAcirSha256 =
   "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9";
+const reviewedBeta18H6SourceAcirSha256 =
+  "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde";
 const rawValidationEnv = "VANTA_C01_BETA18_H6_PROBE_RAW";
 
 function fail(message) {
@@ -174,7 +176,19 @@ assert(sourceMigration.localH6Beta18MigrationProbeRef === packetPath, "source mi
 assert(currentSourceCompileAttempt.status.includes("blocked-current-beta19"), "current-source compile attempt status mismatch");
 assert(route.routeId === packet.routeId, "route linkage mismatch");
 assert(acquisition.routeId === packet.routeId, "acquisition linkage mismatch");
-assert(acceptanceGate.requiredProductionBundleShape?.sourceAcirSha256 === currentSourceAcirSha256, "acceptance source hash mismatch");
+assert(
+  acceptanceGate.requiredProductionBundleShape?.referenceCurrentSourceAcirSha256 === currentSourceAcirSha256,
+  "acceptance reference current-source hash mismatch",
+);
+assert(
+  acceptanceGate.requiredProductionBundleShape?.productionSourceLineageMode ===
+    "reviewed-beta18-h6-source-migration",
+  "acceptance source lineage mode mismatch",
+);
+assert(
+  acceptanceGate.requiredProductionBundleShape?.sourceAcirSha256 === reviewedBeta18H6SourceAcirSha256,
+  "acceptance production source hash mismatch",
+);
 assert(adapter.selectedBackend === packet.selectedBackend, "adapter selected backend mismatch");
 
 const current = packet.currentRepoCircuit ?? {};

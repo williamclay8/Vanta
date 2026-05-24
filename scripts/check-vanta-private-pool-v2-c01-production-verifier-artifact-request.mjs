@@ -18,6 +18,8 @@ const currentH6PublicInputValue =
 const currentH6PublicInputCommitment =
   "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2";
 const currentSourceAcirSha256 = "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9";
+const reviewedBeta18H6SourceAcirSha256 =
+  "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde";
 
 function read(path) {
   return readFileSync(resolve(repoRoot, path), "utf8");
@@ -169,7 +171,9 @@ for (const [field, expected] of [
   ["requiredPublicInputValue", currentH6PublicInputValue],
   ["requiredPublicInputCommitment", currentH6PublicInputCommitment],
   ["verifyingKeyHashKind", "production-verifying-key-hash"],
-  ["sourceAcirSha256", currentSourceAcirSha256],
+  ["referenceCurrentSourceAcirSha256", currentSourceAcirSha256],
+  ["productionSourceLineageMode", "reviewed-beta18-h6-source-migration"],
+  ["sourceAcirSha256", reviewedBeta18H6SourceAcirSha256],
 ]) {
   assert(shape[field] === expected, `currentRequiredShape.${field} mismatch`);
 }

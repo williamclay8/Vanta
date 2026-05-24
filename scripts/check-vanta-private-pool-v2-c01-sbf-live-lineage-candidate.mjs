@@ -23,6 +23,10 @@ const auditPackagePath = "docs/audit-package.md";
 const operatorRunbookPath = "docs/operator-runbook.md";
 const reviewPath = "VANTA_ZK_REVIEW.md";
 const ledgerPath = "VANTA_ZK_REVIEW.findings.json";
+const currentSourceAcirSha256 =
+  "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9";
+const reviewedBeta18H6SourceAcirSha256 =
+  "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde";
 
 function read(path) {
   return readFileSync(resolve(repoRoot, path), "utf8");
@@ -246,6 +250,8 @@ assertAllowedKeys(shape, "required lineage shape", [
   "verifierInstructionDataByteLength",
   "publicInputLabel",
   "verifyingKeyHashKind",
+  "referenceCurrentSourceAcirSha256",
+  "productionSourceLineageMode",
   "sourceAcirSha256",
   "spendProgramSbfPath",
   "verifierProgramKind",
@@ -265,7 +271,9 @@ for (const [field, expected] of [
   ["verifierInstructionDataByteLength", 368],
   ["publicInputLabel", "private-spend-public-input-hash"],
   ["verifyingKeyHashKind", "production-verifying-key-hash"],
-  ["sourceAcirSha256", acquisition.sourceCircuit?.compiledAcirSha256],
+  ["referenceCurrentSourceAcirSha256", currentSourceAcirSha256],
+  ["productionSourceLineageMode", "reviewed-beta18-h6-source-migration"],
+  ["sourceAcirSha256", reviewedBeta18H6SourceAcirSha256],
   ["spendProgramSbfPath", "programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so"],
   ["verifierProgramKind", "dedicated-verifier-cpi-or-reviewed-in-program-verifier"],
   ["status", "required-before-sbf-live-lineage-acceptance"],

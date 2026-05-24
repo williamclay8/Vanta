@@ -455,7 +455,8 @@ for (const marker of [
   "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
   "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
   "npm run zk:c01-production-verifier-artifact-request-check",
-  "current source ACIR hash",
+  "reviewed beta18 H6 production source ACIR",
+  "reference current source ACIR hash",
   "current H6 proof receipt public input and commitment",
 ]) {
   includes(decision, marker, decisionPath);

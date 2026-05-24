@@ -154,10 +154,28 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
   assert(proof.satisfiesProductionProofFormatEvidence === true, "production proof-format evidence must be true");
 
   const sourceLineage = bundle.sourceLineage ?? {};
-  assert(sourceLineage.requiredCurrentSourceAcirSha256 === shape.sourceAcirSha256, "source ACIR requirement mismatch");
+  assert(
+    sourceLineage.requiredCurrentSourceAcirSha256 === shape.referenceCurrentSourceAcirSha256,
+    "current-source ACIR requirement mismatch",
+  );
+  assert(
+    sourceLineage.requiredProductionSourceLineageMode === shape.productionSourceLineageMode,
+    "production source lineage mode mismatch",
+  );
+  assert(
+    sourceLineage.requiredProductionSourceAcirSha256 === shape.sourceAcirSha256,
+    "production source ACIR requirement mismatch",
+  );
   assert(sourceLineage.returnedSourceAcirSha256 === shape.sourceAcirSha256, "returned source ACIR mismatch");
   assert(sourceLineage.reviewedSourceMigrationAccepted === true, "source migration must be accepted");
-  assert(sourceLineage.matchesRequiredCurrentSourceAcir === true, "source ACIR must match required current source");
+  assert(
+    sourceLineage.matchesRequiredCurrentSourceAcir === false,
+    "reviewed beta18 H6 source migration must not claim beta19 current ACIR identity",
+  );
+  assert(
+    sourceLineage.matchesRequiredProductionSourceLineage === true,
+    "source ACIR must match reviewed beta18 H6 production source lineage",
+  );
 
   const vk = bundle.verifyingKey ?? {};
   assertRef(vk.productionVerifyingKeyArtifactRef, "production bundle VK artifact ref");
@@ -556,7 +574,9 @@ for (const [field, expected] of [
   ["requiredPublicInputValue", "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b"],
   ["requiredPublicInputCommitment", "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2"],
   ["verifyingKeyHashKind", "production-verifying-key-hash"],
-  ["sourceAcirSha256", "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9"],
+  ["referenceCurrentSourceAcirSha256", "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9"],
+  ["productionSourceLineageMode", "reviewed-beta18-h6-source-migration"],
+  ["sourceAcirSha256", "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde"],
   ["adapterKind", "in-program-verifier-or-dedicated-verifier-cpi"],
   ["verifierProgramKind", "dedicated-verifier-cpi-or-reviewed-in-program-verifier"],
   ["status", "required-before-c01-verifier-evidence-closure"],
