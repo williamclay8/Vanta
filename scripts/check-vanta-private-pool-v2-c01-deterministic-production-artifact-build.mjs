@@ -134,6 +134,7 @@ function assertTemplate(template) {
     "productionOutputs",
     "publicInputBinding",
     "reproducibilityReview",
+    "artifactProducerAttestation",
     "downstreamRequired",
     "satisfiesRequiredPositiveEvidence",
     "truthBoundary",
@@ -250,6 +251,18 @@ function assertTemplate(template) {
     template.reproducibilityReview?.reviewerAcceptedDeterministicBuild === false,
     "template must not claim reviewer accepted build",
   );
+  assertNullRefs(template.artifactProducerAttestation, "template artifact producer attestation", [
+    "artifactProducerIdentityRef",
+    "reviewerIdentityRef",
+    "reviewScopeRef",
+    "sourceReviewAcceptanceRef",
+    "buildCommandManifestRef",
+    "outputManifestRef",
+  ]);
+  assert(
+    template.artifactProducerAttestation?.acceptedForC01DeterministicBuild === false,
+    "template must not claim C01 deterministic build attestation",
+  );
   assertNullRefs(template.downstreamRequired, "template downstream required", [
     "productionBundleRef",
     "adapterAcceptanceRef",
@@ -290,6 +303,7 @@ function assertReviewedDeterministicBuildReceipt(receipt, label) {
     "productionOutputs",
     "publicInputBinding",
     "reproducibilityReview",
+    "artifactProducerAttestation",
     "downstreamRequired",
     "satisfiesRequiredPositiveEvidence",
     "truthBoundary",
@@ -385,6 +399,34 @@ function assertReviewedDeterministicBuildReceipt(receipt, label) {
   assertRef(review.reproducibilityReviewRef, `${label} reproducibility review ref`);
   assertRef(review.secondBuilderOrVerifierRef, `${label} second builder or verifier ref`);
   assert(review.reviewerAcceptedDeterministicBuild === true, `${label} reviewer accepted build must be true`);
+
+  const attestation = receipt.artifactProducerAttestation ?? {};
+  for (const field of [
+    "artifactProducerIdentityRef",
+    "reviewerIdentityRef",
+    "reviewScopeRef",
+    "sourceReviewAcceptanceRef",
+    "buildCommandManifestRef",
+    "outputManifestRef",
+  ]) {
+    assertRef(attestation[field], `${label} artifactProducerAttestation.${field}`);
+  }
+  assert(
+    attestation.sourceReviewAcceptanceRef === sourceLineage.sourceReviewAcceptanceRef,
+    `${label} attestation source review ref must match source lineage ref`,
+  );
+  assert(
+    attestation.buildCommandManifestRef === toolchain.buildCommandManifestRef,
+    `${label} attestation build command manifest ref must match toolchain manifest ref`,
+  );
+  assert(
+    attestation.outputManifestRef === outputs.outputManifestRef,
+    `${label} attestation output manifest ref must match production output manifest ref`,
+  );
+  assert(
+    attestation.acceptedForC01DeterministicBuild === true,
+    `${label} attestation must accept C01 deterministic build`,
+  );
 
   for (const field of [
     "productionBundleRef",
@@ -636,6 +678,7 @@ assertAllowedKeys(accepted, "current accepted deterministic build receipt", [
   "productionVerifyingKeyHash",
   "publicWitnessArtifactRef",
   "reproducibilityReviewRef",
+  "artifactProducerAttestationRef",
   "satisfiesDeterministicArtifactBuild",
 ]);
 assert(accepted.status === "absent", "accepted deterministic build receipt must be absent");
@@ -653,6 +696,7 @@ assertNullRefs(accepted, "accepted deterministic build receipt", [
   "productionVerifyingKeyHash",
   "publicWitnessArtifactRef",
   "reproducibilityReviewRef",
+  "artifactProducerAttestationRef",
 ]);
 assert(accepted.satisfiesDeterministicArtifactBuild === false, "accepted build receipt must remain false");
 
@@ -692,6 +736,7 @@ for (const marker of [
   "Groth16 production proof-format output tuple",
   "production verifying-key artifact and hash kind",
   "current H6 private-spend-public-input-hash binding",
+  "artifact producer and reviewer identity/scope attestation",
   "refs-only secret policy",
   "downstream adapter, live lineage, and audit blockers remain separate",
 ]) {
@@ -723,6 +768,7 @@ for (const [id, shapeRef] of [
   ["production-verifying-key-artifact-and-hash", "artifact+sha256:<actual-private-spend-production-vk-ref-and-hash>"],
   ["public-witness-current-h6-binding", "artifact:<public-witness-values-ref-bound-to-current-h6-private-spend-public-input-hash>"],
   ["deterministic-build-reproducibility-review", "review:<deterministic-production-artifact-build-reproducibility-review-ref>"],
+  ["artifact-producer-review-attestation", "review:<artifact-producer-and-reviewer-identity-scope-attestation-ref>"],
 ]) {
   const criterion = criteria.get(id);
   assert(criterion, `missing criterion ${id}`);
@@ -738,6 +784,7 @@ for (const rule of [
   "production setup or equivalent toxic-waste mitigation must be reviewed before proof/VK output refs can promote",
   "deterministic build output refs must agree on circuit, source ACIR hash, proof format id, proof byte length, public-witness byte length, generated verifier public input count, and public input label",
   "the public-witness output must decode one private-spend-public-input-hash equal to the current H6 proof receipt public input and commitment",
+  "deterministic build receipts must include artifact producer identity, reviewer identity, review scope, and cross-refs to the source acceptance, build manifest, and output manifest",
   "deterministic artifact build evidence does not by itself accept the verifier adapter, mutation/no-mutation tests, SBF/live lineage, or audit/reviewer acceptance",
 ]) {
   assert(gate.promotionRules.includes(rule), `missing promotion rule ${rule}`);

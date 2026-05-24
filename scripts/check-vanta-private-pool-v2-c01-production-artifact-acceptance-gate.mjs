@@ -138,6 +138,7 @@ function assertBundleTemplate(template) {
     "mutationEvidence",
     "sbfLiveLineage",
     "auditReviewerAcceptance",
+    "artifactReviewAttestation",
     "satisfiesRequiredPositiveEvidence",
     "truthBoundary",
   ]);
@@ -198,6 +199,20 @@ function assertBundleTemplate(template) {
     template.publicInputBinding?.matchesCurrentH6ProofReceipt === false,
     "template must not claim H6 binding",
   );
+  assertNullRefs(template.artifactReviewAttestation, "template artifact review attestation", [
+    "artifactProducerIdentityRef",
+    "reviewerIdentityRef",
+    "reviewScopeRef",
+    "productionArtifactBundleReviewRef",
+    "deterministicBuildReceiptRef",
+    "verifierAdapterAcceptanceRef",
+    "sbfLiveLineageRef",
+    "auditReviewerAcceptanceRef",
+  ]);
+  assert(
+    template.artifactReviewAttestation?.acceptedForC01ProductionBundle === false,
+    "template must not claim production bundle review attestation",
+  );
   assertEvidenceFlags(
     template.satisfiesRequiredPositiveEvidence,
     {
@@ -236,6 +251,7 @@ function assertReviewedProductionBundle(bundle, label) {
     "mutationEvidence",
     "sbfLiveLineage",
     "auditReviewerAcceptance",
+    "artifactReviewAttestation",
     "satisfiesRequiredPositiveEvidence",
     "truthBoundary",
   ]);
@@ -353,6 +369,40 @@ function assertReviewedProductionBundle(bundle, label) {
   const audit = bundle.auditReviewerAcceptance ?? {};
   assertRef(audit.auditReviewerAcceptanceRef, `${label} audit/reviewer acceptance ref`);
   assert(audit.reviewerAccepted === true, `${label} reviewerAccepted must be true`);
+
+  const reviewAttestation = bundle.artifactReviewAttestation ?? {};
+  for (const field of [
+    "artifactProducerIdentityRef",
+    "reviewerIdentityRef",
+    "reviewScopeRef",
+    "productionArtifactBundleReviewRef",
+    "deterministicBuildReceiptRef",
+    "verifierAdapterAcceptanceRef",
+    "sbfLiveLineageRef",
+    "auditReviewerAcceptanceRef",
+  ]) {
+    assertRef(reviewAttestation[field], `${label} artifactReviewAttestation.${field}`);
+  }
+  assert(
+    reviewAttestation.deterministicBuildReceiptRef === deterministicBuild.buildReceiptRef,
+    `${label} artifact review deterministic build ref must match bundle build receipt ref`,
+  );
+  assert(
+    reviewAttestation.verifierAdapterAcceptanceRef === adapter.verifierAdapterAcceptanceRef,
+    `${label} artifact review adapter acceptance ref must match bundle adapter ref`,
+  );
+  assert(
+    reviewAttestation.sbfLiveLineageRef === lineage.sbfLiveLineageRef,
+    `${label} artifact review lineage ref must match bundle lineage ref`,
+  );
+  assert(
+    reviewAttestation.auditReviewerAcceptanceRef === audit.auditReviewerAcceptanceRef,
+    `${label} artifact review audit acceptance ref must match bundle audit ref`,
+  );
+  assert(
+    reviewAttestation.acceptedForC01ProductionBundle === true,
+    `${label} artifact review attestation must accept C01 production bundle`,
+  );
 
   assertEvidenceFlags(
     bundle.satisfiesRequiredPositiveEvidence,
@@ -612,6 +662,7 @@ assertAllowedKeys(accepted, "current accepted production bundle", [
   "wrongVerifyingKeyNoMutationTestRef",
   "sbfLiveLineageRef",
   "auditReviewerAcceptanceRef",
+  "artifactReviewAttestationRef",
   "satisfiesProductionArtifactAcceptance",
 ]);
 assert(accepted.status === "absent", "accepted production bundle must be absent");
@@ -634,6 +685,7 @@ assertNullRefs(accepted, "accepted production bundle", [
   "wrongVerifyingKeyNoMutationTestRef",
   "sbfLiveLineageRef",
   "auditReviewerAcceptanceRef",
+  "artifactReviewAttestationRef",
 ]);
 assert(accepted.satisfiesProductionArtifactAcceptance === false, "accepted bundle must not satisfy acceptance");
 
@@ -825,6 +877,7 @@ for (const marker of [
   "wrong-verifying-key no-mutation evidence",
   "SBF/live lineage evidence",
   "audit/reviewer acceptance",
+  "artifact producer and reviewer identity/scope attestation",
 ]) {
   assert(externalValidation.validates.includes(marker), `external bundle validation missing ${marker}`);
 }
@@ -860,6 +913,7 @@ for (const [id, shapeRef] of [
   ["wrong-verifying-key-leaves-account-bytes-unchanged", "test:<wrong-verifying-key-leaves-account-bytes-unchanged-ref>"],
   ["sbf-live-lineage", "lineage:<rebuilt-redeployed-reinitialized-sbf-and-account-evidence-ref>"],
   ["audit-reviewer-acceptance", "audit-or-review:<selected-verifier-backend-accepted-for-c01-ref>"],
+  ["artifact-review-attestation", "review:<production-artifact-bundle-reviewer-attestation-ref>"],
 ]) {
   const criterion = criteria.get(id);
   assert(criterion, `missing criterion ${id}`);
@@ -879,6 +933,7 @@ for (const rule of [
   "reviewed production verifier-adapter acceptance receipt is required before adapter and mutation/no-mutation refs can promote into the production bundle",
   "verifier adapter acceptance can promote only after production proof-format and production verifying-key evidence exist",
   "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence must run under the accepted verifier boundary",
+  "production artifact bundle acceptance must include artifact producer identity, reviewer identity, review scope, and cross-refs to deterministic build, adapter, lineage, and audit acceptance refs",
   "SBF/live lineage and audit/reviewer acceptance remain separate required refs",
 ]) {
   assert(packet.promotionRules.includes(rule), `missing promotion rule ${rule}`);

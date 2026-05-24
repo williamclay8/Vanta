@@ -93,8 +93,20 @@
       "satisfiesC01PositiveEvidence": false
     },
     {
+      "id": "deterministic-build-artifact-producer-attestation",
+      "requiredRefShape": "review:<artifact-producer-and-reviewer-identity-scope-attestation-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
       "id": "production-artifact-bundle",
       "requiredRefShape": "bundle:<reviewed-production-proof-vk-public-witness-adapter-test-lineage-audit-refs>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-artifact-bundle-review-attestation",
+      "requiredRefShape": "review:<production-artifact-bundle-reviewer-attestation-ref>",
       "currentRef": null,
       "satisfiesC01PositiveEvidence": false
     },
@@ -125,6 +137,12 @@
     {
       "id": "verifier-adapter-acceptance",
       "requiredRefShape": "adapter:<accepted-solana-groth16-verifier-adapter-or-program-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "verifier-adapter-review-attestation",
+      "requiredRefShape": "review:<verifier-adapter-reviewer-identity-scope-attestation-ref>",
       "currentRef": null,
       "satisfiesC01PositiveEvidence": false
     },

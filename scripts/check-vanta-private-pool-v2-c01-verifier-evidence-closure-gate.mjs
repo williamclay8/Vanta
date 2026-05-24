@@ -307,6 +307,61 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
   assert(auditReview.acceptedForC01 === true, "audit acceptedForC01 must be true");
   assert(auditReview.satisfiesAuditReviewerAcceptance === true, "audit acceptance must satisfy audit/reviewer acceptance");
 
+  const bundleBuild = bundle.deterministicArtifactBuild ?? {};
+  const bundleReview = bundle.artifactReviewAttestation ?? {};
+  for (const field of [
+    "artifactProducerIdentityRef",
+    "reviewerIdentityRef",
+    "reviewScopeRef",
+    "productionArtifactBundleReviewRef",
+    "deterministicBuildReceiptRef",
+    "verifierAdapterAcceptanceRef",
+    "sbfLiveLineageRef",
+    "auditReviewerAcceptanceRef",
+  ]) {
+    assertRef(bundleReview[field], `bundle artifact review ${field}`);
+  }
+  assertSame(bundleReview.deterministicBuildReceiptRef, bundleBuild.buildReceiptRef, "bundle review build receipt ref");
+  assertSame(
+    bundleReview.verifierAdapterAcceptanceRef,
+    adapterAcceptance.verifierAdapterAcceptanceRef,
+    "bundle review adapter acceptance ref",
+  );
+  assertSame(bundleReview.sbfLiveLineageRef, bundleLineage.sbfLiveLineageRef, "bundle review lineage ref");
+  assertSame(
+    bundleReview.auditReviewerAcceptanceRef,
+    auditReview.auditReviewerAcceptanceRef,
+    "bundle review audit acceptance ref",
+  );
+  assert(bundleReview.acceptedForC01ProductionBundle === true, "bundle review must accept C01 production bundle");
+
+  const adapterReview = adapter.acceptanceReviewAttestation ?? {};
+  for (const field of [
+    "reviewerIdentityRef",
+    "reviewScopeRef",
+    "verifierAdapterAcceptanceRef",
+    "deterministicArtifactBuildRef",
+    "productionVerifyingKeyArtifactRef",
+  ]) {
+    assertRef(adapterReview[field], `adapter review ${field}`);
+  }
+  assertSame(
+    adapterReview.verifierAdapterAcceptanceRef,
+    adapterAcceptance.verifierAdapterAcceptanceRef,
+    "adapter review acceptance ref",
+  );
+  assertSame(
+    adapterReview.deterministicArtifactBuildRef,
+    adapterPrereq.deterministicArtifactBuildRef,
+    "adapter review build ref",
+  );
+  assertSame(
+    adapterReview.productionVerifyingKeyArtifactRef,
+    adapterPrereq.productionVerifyingKeyArtifactRef,
+    "adapter review VK ref",
+  );
+  assert(adapterReview.acceptedForC01VerifierAdapter === true, "adapter review must accept C01 verifier adapter");
+
   assertEvidenceFlags(bundle.satisfiesRequiredPositiveEvidence, fullPositiveFlags, "bundle positive evidence flags");
   assertEvidenceFlags(
     adapter.satisfiesRequiredPositiveEvidence,

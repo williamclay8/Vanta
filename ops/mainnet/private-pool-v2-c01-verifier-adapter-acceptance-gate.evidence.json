@@ -61,6 +61,7 @@
     "invalidProofNoMutationTestRef": null,
     "wrongPublicInputNoMutationTestRef": null,
     "wrongVerifyingKeyNoMutationTestRef": null,
+    "acceptanceReviewAttestationRef": null,
     "satisfiesVerifierAdapterAcceptance": false
   },
   "externalVerifierAdapterAcceptanceValidation": {
@@ -80,6 +81,7 @@
       "invalid-proof no-mutation evidence",
       "wrong-public-input no-mutation evidence",
       "wrong-verifying-key no-mutation evidence",
+      "verifier-adapter reviewer identity/scope attestation",
       "refs-only secret policy",
       "SBF/live lineage and audit blockers remain separate"
     ],
@@ -140,6 +142,12 @@
       "requiredRefShape": "test:<wrong-verifying-key-leaves-account-bytes-unchanged-ref>",
       "currentRef": null,
       "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "verifier-adapter-review-attestation",
+      "requiredRefShape": "review:<verifier-adapter-reviewer-identity-scope-attestation-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
     }
   ],
   "promotionRules": [
@@ -147,6 +155,7 @@
     "adapter acceptance can promote only after reviewed deterministic production artifact build evidence exists for the exact proof/VK/public-witness tuple",
     "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence must run under the accepted verifier boundary",
     "wrong-verifying-key no-mutation must bind to production verifying-key hash semantics, not only wrong verifier-program id",
+    "verifier-adapter acceptance must include reviewer identity, review scope, and cross-refs to the accepted adapter, deterministic build, and production verifying-key artifact",
     "verifier-adapter acceptance does not by itself prove rebuilt/redeployed/reinitialized/live SBF lineage or audit/reviewer acceptance"
   ],
   "satisfiesRequiredPositiveEvidence": {

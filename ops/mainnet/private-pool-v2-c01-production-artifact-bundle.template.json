@@ -84,6 +84,17 @@
     "auditReviewerAcceptanceRef": null,
     "reviewerAccepted": false
   },
+  "artifactReviewAttestation": {
+    "artifactProducerIdentityRef": null,
+    "reviewerIdentityRef": null,
+    "reviewScopeRef": null,
+    "productionArtifactBundleReviewRef": null,
+    "deterministicBuildReceiptRef": null,
+    "verifierAdapterAcceptanceRef": null,
+    "sbfLiveLineageRef": null,
+    "auditReviewerAcceptanceRef": null,
+    "acceptedForC01ProductionBundle": false
+  },
   "satisfiesRequiredPositiveEvidence": {
     "sourceReviewAcceptance": false,
     "deterministicArtifactBuild": false,

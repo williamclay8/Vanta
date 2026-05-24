@@ -251,12 +251,18 @@ const outputs = mapById(packet.requiredProductionOutputs, "requiredProductionOut
 for (const [id, shape] of [
   ["source-review-acceptance", "review:<external-beta18-h6-source-migration-acceptance-ref>"],
   ["deterministic-production-artifact-build-receipt", "build:<reviewed-deterministic-production-artifact-build-receipt-ref>"],
+  [
+    "deterministic-build-artifact-producer-attestation",
+    "review:<artifact-producer-and-reviewer-identity-scope-attestation-ref>",
+  ],
   ["production-artifact-bundle", "bundle:<reviewed-production-proof-vk-public-witness-adapter-test-lineage-audit-refs>"],
+  ["production-artifact-bundle-review-attestation", "review:<production-artifact-bundle-reviewer-attestation-ref>"],
   ["production-proof-format-artifact", "artifact:<actual-private-spend-groth16-proof-format-ref>"],
   ["production-verifying-key-artifact", "artifact:<actual-private-spend-production-vk-ref>"],
   ["production-verifying-key-hash", "sha256:<production-verifying-key-hash>"],
   ["current-h6-public-witness-artifact", "artifact:<current-h6-public-witness-values-ref-no-private-witness>"],
   ["verifier-adapter-acceptance", "adapter:<accepted-solana-groth16-verifier-adapter-or-program-ref>"],
+  ["verifier-adapter-review-attestation", "review:<verifier-adapter-reviewer-identity-scope-attestation-ref>"],
   ["valid-proof-mutation-test", "test:<valid-proof-mutates-nullifier-output-state-ref>"],
   ["invalid-proof-no-mutation-test", "test:<invalid-proof-leaves-account-bytes-unchanged-ref>"],
   ["wrong-public-input-no-mutation-test", "test:<wrong-public-input-hash-leaves-account-bytes-unchanged-ref>"],

@@ -46,6 +46,14 @@
     "wrongPublicInputLeavesAccountsUnchanged": false,
     "wrongVerifyingKeyLeavesAccountsUnchanged": false
   },
+  "acceptanceReviewAttestation": {
+    "reviewerIdentityRef": null,
+    "reviewScopeRef": null,
+    "verifierAdapterAcceptanceRef": null,
+    "deterministicArtifactBuildRef": null,
+    "productionVerifyingKeyArtifactRef": null,
+    "acceptedForC01VerifierAdapter": false
+  },
   "downstreamRequired": {
     "productionBundleRef": null,
     "sbfLiveLineageRef": null,

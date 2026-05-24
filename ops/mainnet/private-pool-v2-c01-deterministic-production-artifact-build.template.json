@@ -52,6 +52,15 @@
     "secondBuilderOrVerifierRef": null,
     "reviewerAcceptedDeterministicBuild": false
   },
+  "artifactProducerAttestation": {
+    "artifactProducerIdentityRef": null,
+    "reviewerIdentityRef": null,
+    "reviewScopeRef": null,
+    "sourceReviewAcceptanceRef": null,
+    "buildCommandManifestRef": null,
+    "outputManifestRef": null,
+    "acceptedForC01DeterministicBuild": false
+  },
   "downstreamRequired": {
     "productionBundleRef": null,
     "adapterAcceptanceRef": null,

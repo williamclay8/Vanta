@@ -123,6 +123,7 @@ function assertTemplate(template) {
     "publicInputBinding",
     "adapterAcceptance",
     "mutationEvidence",
+    "acceptanceReviewAttestation",
     "downstreamRequired",
     "satisfiesRequiredPositiveEvidence",
     "truthBoundary",
@@ -203,6 +204,17 @@ function assertTemplate(template) {
   ]) {
     assert(template.mutationEvidence?.[field] === false, `template mutationEvidence.${field} must be false`);
   }
+  assertNullRefs(template.acceptanceReviewAttestation, "template acceptance review attestation", [
+    "reviewerIdentityRef",
+    "reviewScopeRef",
+    "verifierAdapterAcceptanceRef",
+    "deterministicArtifactBuildRef",
+    "productionVerifyingKeyArtifactRef",
+  ]);
+  assert(
+    template.acceptanceReviewAttestation?.acceptedForC01VerifierAdapter === false,
+    "template must not claim verifier-adapter review attestation",
+  );
   assertNullRefs(template.downstreamRequired, "template downstream required", [
     "productionBundleRef",
     "sbfLiveLineageRef",
@@ -240,6 +252,7 @@ function assertReviewedAdapterAcceptance(acceptance, label) {
     "publicInputBinding",
     "adapterAcceptance",
     "mutationEvidence",
+    "acceptanceReviewAttestation",
     "downstreamRequired",
     "satisfiesRequiredPositiveEvidence",
     "truthBoundary",
@@ -313,6 +326,32 @@ function assertReviewedAdapterAcceptance(acceptance, label) {
   ]) {
     assert(mutation[field] === true, `${label} mutationEvidence.${field} must be true`);
   }
+  const reviewAttestation = acceptance.acceptanceReviewAttestation ?? {};
+  for (const field of [
+    "reviewerIdentityRef",
+    "reviewScopeRef",
+    "verifierAdapterAcceptanceRef",
+    "deterministicArtifactBuildRef",
+    "productionVerifyingKeyArtifactRef",
+  ]) {
+    assertRef(reviewAttestation[field], `${label} acceptanceReviewAttestation.${field}`);
+  }
+  assert(
+    reviewAttestation.verifierAdapterAcceptanceRef === adapter.verifierAdapterAcceptanceRef,
+    `${label} review attestation adapter acceptance ref must match adapter ref`,
+  );
+  assert(
+    reviewAttestation.deterministicArtifactBuildRef === prerequisites.deterministicArtifactBuildRef,
+    `${label} review attestation deterministic build ref must match prerequisite build ref`,
+  );
+  assert(
+    reviewAttestation.productionVerifyingKeyArtifactRef === prerequisites.productionVerifyingKeyArtifactRef,
+    `${label} review attestation VK ref must match prerequisite VK ref`,
+  );
+  assert(
+    reviewAttestation.acceptedForC01VerifierAdapter === true,
+    `${label} review attestation must accept C01 verifier adapter`,
+  );
   for (const field of ["productionBundleRef", "sbfLiveLineageRef", "auditReviewerAcceptanceRef"]) {
     assertRef(acceptance.downstreamRequired?.[field], `${label} downstreamRequired.${field}`);
   }
@@ -497,6 +536,7 @@ assertAllowedKeys(accepted, "current accepted verifier adapter", [
   "invalidProofNoMutationTestRef",
   "wrongPublicInputNoMutationTestRef",
   "wrongVerifyingKeyNoMutationTestRef",
+  "acceptanceReviewAttestationRef",
   "satisfiesVerifierAdapterAcceptance",
 ]);
 assert(accepted.status === "absent", "accepted verifier adapter must be absent");
@@ -513,6 +553,7 @@ assertNullRefs(accepted, "accepted verifier adapter", [
   "invalidProofNoMutationTestRef",
   "wrongPublicInputNoMutationTestRef",
   "wrongVerifyingKeyNoMutationTestRef",
+  "acceptanceReviewAttestationRef",
 ]);
 assert(accepted.satisfiesVerifierAdapterAcceptance === false, "accepted verifier adapter must remain false");
 
@@ -538,6 +579,7 @@ for (const marker of [
   "invalid-proof no-mutation evidence",
   "wrong-public-input no-mutation evidence",
   "wrong-verifying-key no-mutation evidence",
+  "verifier-adapter reviewer identity/scope attestation",
   "refs-only secret policy",
   "SBF/live lineage and audit blockers remain separate",
 ]) {
@@ -564,6 +606,7 @@ for (const [id, shapeRef] of [
   ["invalid-proof-leaves-account-bytes-unchanged", "test:<invalid-proof-leaves-account-bytes-unchanged-ref>"],
   ["wrong-public-input-leaves-account-bytes-unchanged", "test:<wrong-public-input-hash-leaves-account-bytes-unchanged-ref>"],
   ["wrong-verifying-key-leaves-account-bytes-unchanged", "test:<wrong-verifying-key-leaves-account-bytes-unchanged-ref>"],
+  ["verifier-adapter-review-attestation", "review:<verifier-adapter-reviewer-identity-scope-attestation-ref>"],
 ]) {
   const criterion = criteria.get(id);
   assert(criterion, `missing criterion ${id}`);
@@ -576,6 +619,7 @@ for (const rule of [
   "adapter acceptance can promote only after reviewed deterministic production artifact build evidence exists for the exact proof/VK/public-witness tuple",
   "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence must run under the accepted verifier boundary",
   "wrong-verifying-key no-mutation must bind to production verifying-key hash semantics, not only wrong verifier-program id",
+  "verifier-adapter acceptance must include reviewer identity, review scope, and cross-refs to the accepted adapter, deterministic build, and production verifying-key artifact",
   "verifier-adapter acceptance does not by itself prove rebuilt/redeployed/reinitialized/live SBF lineage or audit/reviewer acceptance",
 ]) {
   assert(gate.promotionRules?.includes(rule), `missing promotion rule ${rule}`);

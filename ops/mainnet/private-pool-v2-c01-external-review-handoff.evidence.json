@@ -50,7 +50,7 @@
       "gateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
       "envVar": "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH",
       "validationCommand": "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH=<reviewed-refs-only-json> npm run zk:c01-deterministic-production-artifact-build-check",
-      "requiredReturn": "reviewed reproducible Sunspot/Gnark build receipt, setup or toxic-waste mitigation refs, and output manifest refs for proof, VK, public witness, and verifier artifacts",
+      "requiredReturn": "reviewed reproducible Sunspot/Gnark build receipt, setup or toxic-waste mitigation refs, output manifest refs for proof, VK, public witness, verifier artifacts, and artifact producer/reviewer identity-scope attestation",
       "truthBoundary": "Deterministic artifact build acceptance is a prerequisite for artifact bundle review, but it is not verifier-adapter acceptance, SBF/live lineage, audit acceptance, or C01 closure."
     },
     {
@@ -60,7 +60,7 @@
       "gateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
       "envVar": "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH",
       "validationCommand": "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check",
-      "requiredReturn": "reviewed production proof-format, VK hash, current H6 public-input binding, adapter, mutation/no-mutation, lineage, and audit refs in one refs-only production artifact bundle",
+      "requiredReturn": "reviewed production proof-format, VK hash, current H6 public-input binding, adapter, mutation/no-mutation, lineage, audit refs, and artifact producer/reviewer identity-scope attestation in one refs-only production artifact bundle",
       "truthBoundary": "The bundle must be reviewed and validated before promotion; this handoff manifest does not supply it."
     },
     {
@@ -70,7 +70,7 @@
       "gateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
       "envVar": "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH",
       "validationCommand": "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-verifier-adapter-acceptance-gate-check",
-      "requiredReturn": "accepted verifier adapter or verifier program boundary, current H6 public-input binding, valid mutation, invalid-proof no-mutation, wrong-public-input no-mutation, and wrong-verifying-key no-mutation refs",
+      "requiredReturn": "accepted verifier adapter or verifier program boundary, current H6 public-input binding, valid mutation, invalid-proof no-mutation, wrong-public-input no-mutation, wrong-verifying-key no-mutation refs, and reviewer identity-scope attestation",
       "truthBoundary": "Local unsafe adapter evidence and source seam tests do not satisfy production verifier-adapter acceptance."
     },
     {

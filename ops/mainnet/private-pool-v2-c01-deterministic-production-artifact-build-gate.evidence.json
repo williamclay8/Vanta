@@ -68,6 +68,7 @@
     "productionVerifyingKeyHash": null,
     "publicWitnessArtifactRef": null,
     "reproducibilityReviewRef": null,
+    "artifactProducerAttestationRef": null,
     "satisfiesDeterministicArtifactBuild": false
   },
   "externalDeterministicBuildReceiptValidation": {
@@ -87,6 +88,7 @@
       "Groth16 production proof-format output tuple",
       "production verifying-key artifact and hash kind",
       "current H6 private-spend-public-input-hash binding",
+      "artifact producer and reviewer identity/scope attestation",
       "refs-only secret policy",
       "downstream adapter, live lineage, and audit blockers remain separate"
     ],
@@ -159,6 +161,12 @@
       "requiredRefShape": "review:<deterministic-production-artifact-build-reproducibility-review-ref>",
       "currentRef": null,
       "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "artifact-producer-review-attestation",
+      "requiredRefShape": "review:<artifact-producer-and-reviewer-identity-scope-attestation-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
     }
   ],
   "promotionRules": [
@@ -167,6 +175,7 @@
     "production setup or equivalent toxic-waste mitigation must be reviewed before proof/VK output refs can promote",
     "deterministic build output refs must agree on circuit, source ACIR hash, proof format id, proof byte length, public-witness byte length, generated verifier public input count, and public input label",
     "the public-witness output must decode one private-spend-public-input-hash equal to the current H6 proof receipt public input and commitment",
+    "deterministic build receipts must include artifact producer identity, reviewer identity, review scope, and cross-refs to the source acceptance, build manifest, and output manifest",
     "deterministic artifact build evidence does not by itself accept the verifier adapter, mutation/no-mutation tests, SBF/live lineage, or audit/reviewer acceptance"
   ],
   "satisfiesRequiredPositiveEvidence": {

@@ -75,6 +75,7 @@
     "wrongVerifyingKeyNoMutationTestRef": null,
     "sbfLiveLineageRef": null,
     "auditReviewerAcceptanceRef": null,
+    "artifactReviewAttestationRef": null,
     "satisfiesProductionArtifactAcceptance": false
   },
   "localArtifactInventoryPolicy": {
@@ -129,7 +130,8 @@
       "wrong-public-input no-mutation evidence",
       "wrong-verifying-key no-mutation evidence",
       "SBF/live lineage evidence",
-      "audit/reviewer acceptance"
+      "audit/reviewer acceptance",
+      "artifact producer and reviewer identity/scope attestation"
     ],
     "satisfiesProductionArtifactAcceptance": false,
     "truthBoundary": "This makes the external reviewed-bundle intake executable but does not supply a bundle and does not promote the current gate. Without VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH, C01 remains blocked with accepted production refs null."
@@ -236,6 +238,12 @@
       "requiredRefShape": "audit-or-review:<selected-verifier-backend-accepted-for-c01-ref>",
       "currentRef": null,
       "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "artifact-review-attestation",
+      "requiredRefShape": "review:<production-artifact-bundle-reviewer-attestation-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
     }
   ],
   "promotionRules": [
@@ -248,6 +256,7 @@
     "reviewed production verifier-adapter acceptance receipt is required before adapter and mutation/no-mutation refs can promote into the production bundle",
     "verifier adapter acceptance can promote only after production proof-format and production verifying-key evidence exist",
     "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence must run under the accepted verifier boundary",
+    "production artifact bundle acceptance must include artifact producer identity, reviewer identity, review scope, and cross-refs to deterministic build, adapter, lineage, and audit acceptance refs",
     "SBF/live lineage and audit/reviewer acceptance remain separate required refs"
   ],
   "satisfiesRequiredPositiveEvidence": {
