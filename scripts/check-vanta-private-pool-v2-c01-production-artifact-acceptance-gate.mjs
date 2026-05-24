@@ -14,6 +14,8 @@ const preflightPath =
   "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json";
 const sourceReviewAcceptanceGatePath =
   "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json";
+const outputManifestPreflightPath =
+  "ops/mainnet/private-pool-v2-c01-production-output-manifest-preflight.evidence.json";
 const deterministicBuildGatePath =
   "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json";
 const adapterAcceptanceGatePath =
@@ -180,6 +182,10 @@ function assertBundleTemplate(template) {
     template.deterministicArtifactBuild?.deterministicArtifactBuildGateRef === deterministicBuildGatePath,
     "template deterministic build gate ref mismatch",
   );
+  assert(
+    template.deterministicArtifactBuild?.outputManifestPreflightGateRef === outputManifestPreflightPath,
+    "template output manifest preflight gate ref mismatch",
+  );
   assertNullRefs(template.deterministicArtifactBuild, "template deterministic artifact build", [
     "buildReceiptRef",
     "pinnedToolchainSourceRef",
@@ -314,6 +320,10 @@ function assertReviewedProductionBundle(bundle, label) {
   const deterministicBuild = bundle.deterministicArtifactBuild ?? {};
   assertRef(deterministicBuild.buildReceiptRef, `${label} deterministic build receipt ref`);
   assert(deterministicBuild.deterministicArtifactBuildGateRef === deterministicBuildGatePath, `${label} deterministic build gate ref mismatch`);
+  assert(
+    deterministicBuild.outputManifestPreflightGateRef === outputManifestPreflightPath,
+    `${label} output manifest preflight gate ref mismatch`,
+  );
   for (const field of [
     "pinnedToolchainSourceRef",
     "reviewedToolchainBuildRef",
@@ -471,6 +481,7 @@ const acquisition = readJson(acquisitionPath);
 const route = readJson(routePath);
 const preflight = readJson(preflightPath);
 const sourceReviewAcceptanceGate = readJson(sourceReviewAcceptanceGatePath);
+const outputManifestPreflight = readJson(outputManifestPreflightPath);
 const deterministicBuildGate = readJson(deterministicBuildGatePath);
 const adapterAcceptanceGate = readJson(adapterAcceptanceGatePath);
 const proofFormat = readJson(proofFormatPath);
@@ -493,6 +504,10 @@ for (const aggregate of ["zk:review-guards-check", "zk:feedback-loop-check"]) {
   assert(
     scripts[aggregate]?.includes("npm run zk:c01-deterministic-production-artifact-build-check"),
     `${aggregate} must include the deterministic production artifact build guard`,
+  );
+  assert(
+    scripts[aggregate]?.includes("npm run zk:c01-production-output-manifest-check"),
+    `${aggregate} must include the production output-manifest preflight guard`,
   );
 }
 
@@ -556,6 +571,7 @@ assertAllowedKeys(packet, "acceptance gate packet", [
   "routePacketRef",
   "productionGroth16ToolchainPreflightRef",
   "sourceReviewAcceptanceGateRef",
+  "productionOutputManifestPreflightRef",
   "deterministicProductionArtifactBuildGateRef",
   "verifierAdapterAcceptanceGateRef",
   "groth16ProofFormatCandidateRef",
@@ -584,6 +600,7 @@ for (const [field, expected] of [
   ["routePacketRef", routePath],
   ["productionGroth16ToolchainPreflightRef", preflightPath],
   ["sourceReviewAcceptanceGateRef", sourceReviewAcceptanceGatePath],
+  ["productionOutputManifestPreflightRef", outputManifestPreflightPath],
   ["deterministicProductionArtifactBuildGateRef", deterministicBuildGatePath],
   ["verifierAdapterAcceptanceGateRef", adapterAcceptanceGatePath],
   ["groth16ProofFormatCandidateRef", proofFormatPath],
@@ -622,6 +639,8 @@ assertAllowedKeys(shape, "required production bundle shape", [
   "sourceAcirSha256",
   "sourceReviewAcceptanceRequired",
   "sourceReviewAcceptanceGateRef",
+  "productionOutputManifestPreflightRequired",
+  "productionOutputManifestPreflightRef",
   "deterministicArtifactBuildRequired",
   "deterministicArtifactBuildGateRef",
   "verifierAdapterAcceptanceRequired",
@@ -653,6 +672,8 @@ for (const [field, expected] of [
   ["sourceAcirSha256", reviewedBeta18H6SourceAcirSha256],
   ["sourceReviewAcceptanceRequired", true],
   ["sourceReviewAcceptanceGateRef", sourceReviewAcceptanceGatePath],
+  ["productionOutputManifestPreflightRequired", true],
+  ["productionOutputManifestPreflightRef", outputManifestPreflightPath],
   ["deterministicArtifactBuildRequired", true],
   ["deterministicArtifactBuildGateRef", deterministicBuildGatePath],
   ["verifierAdapterAcceptanceRequired", true],
@@ -664,6 +685,10 @@ for (const [field, expected] of [
 assert(route.routeId === shape.routeId, "route packet route id mismatch");
 assert(preflight.sunspotGroth16RouteRef === routePath, "preflight must reference route packet");
 assert(sourceReviewAcceptanceGate.status === "blocked-no-external-source-review-acceptance", "source-review acceptance gate status mismatch");
+assert(
+  outputManifestPreflight.status === "blocked-no-reviewed-production-output-manifest",
+  "production output-manifest preflight status mismatch",
+);
 assert(
   deterministicBuildGate.status === "blocked-no-deterministic-production-artifact-build-receipt",
   "deterministic build gate status mismatch",
@@ -687,6 +712,7 @@ assertAllowedKeys(accepted, "current accepted production bundle", [
   "reviewedToolchainBuildRef",
   "trustedSetupOrMitigationRef",
   "sourceReviewAcceptanceRef",
+  "productionOutputManifestRef",
   "deterministicArtifactBuildRef",
   "proofFormatArtifactRef",
   "productionVerifyingKeyArtifactRef",
@@ -710,6 +736,7 @@ assertNullRefs(accepted, "accepted production bundle", [
   "reviewedToolchainBuildRef",
   "trustedSetupOrMitigationRef",
   "sourceReviewAcceptanceRef",
+  "productionOutputManifestRef",
   "deterministicArtifactBuildRef",
   "proofFormatArtifactRef",
   "productionVerifyingKeyArtifactRef",
@@ -928,6 +955,7 @@ assertStringArray(externalValidation.validates, "external bundle validation vali
 for (const marker of [
   "reviewed beta18 H6 production source ACIR lineage",
   "external source-review acceptance",
+  "production output-manifest preflight",
   "deterministic production artifact build receipt",
   "Groth16 production proof-format tuple",
   "production verifying-key artifact and hash kind",
@@ -960,6 +988,7 @@ assertBundleTemplate(bundleTemplate);
 const criteria = mapById(packet.acceptanceCriteria, "acceptance criteria");
 for (const [id, shapeRef] of [
   ["external-source-review-acceptance", "review:<external-beta18-h6-source-migration-acceptance-ref>"],
+  ["production-output-manifest-preflight", "manifest:<refs-only-production-output-manifest-preflight-ref>"],
   ["deterministic-production-artifact-build-receipt", "build:<reviewed-deterministic-production-artifact-build-receipt-ref>"],
   ["pinned-reviewed-toolchain-source", "source:<pinned-reviewed-sunspot-gnark-source-or-release-ref>"],
   ["reproducible-toolchain-build-review", "review:<reproducible-toolchain-build-review-ref>"],
@@ -992,6 +1021,7 @@ for (const rule of [
   "production proof-format and production verifying-key refs must agree on circuit, reviewed beta18 H6 production source ACIR hash, proof format id, proof byte length, public-witness byte length, generated verifier public input count, and public input label",
   "production public-witness evidence must decode one private-spend-public-input-hash equal to the current H6 proof receipt public input and commitment before adapter or mutation evidence can promote",
   "reviewed source migration acceptance is required before a beta18 source-migration production bundle can promote source lineage",
+  "production output-manifest preflight is required before the deterministic production artifact build receipt can cite returned proof/VK/public-witness refs",
   "reviewed deterministic production artifact build receipt is required before proof/VK/public-witness refs can promote into the production bundle",
   "reviewed production verifier-adapter acceptance receipt is required before adapter and mutation/no-mutation refs can promote into the production bundle",
   "verifier adapter acceptance can promote only after production proof-format and production verifying-key evidence exist",
@@ -1047,6 +1077,7 @@ for (const command of [
   "npm run zk:c01-verifier-adapter-test-candidate-check",
   "npm run zk:c01-production-verifier-backend-candidate-check",
   "npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
+  "npm run zk:c01-production-output-manifest-check",
   "npm run zk:c01-deterministic-production-artifact-build-check",
   "npm run zk:c01-verifier-adapter-acceptance-gate-check",
   "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check",

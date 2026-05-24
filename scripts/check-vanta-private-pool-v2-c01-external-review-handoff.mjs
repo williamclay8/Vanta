@@ -7,6 +7,8 @@ const decisionPath = "docs/zk/c01-production-verifier-backend-decision.md";
 const auditPackagePath = "docs/audit-package.md";
 const runbookPath = "docs/operator-runbook.md";
 const reviewPath = "VANTA_ZK_REVIEW.md";
+const artifactRequestPath =
+  "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json";
 
 function fail(message) {
   console.error(`private-pool-v2 C01 external review handoff: FAIL - ${message}`);
@@ -55,6 +57,7 @@ const runbook = read(runbookPath);
 const review = read(reviewPath);
 const closureGate = readJson(packet.closureGateRef);
 const candidate = readJson(packet.candidatePacketRef);
+const artifactRequest = readJson(artifactRequestPath);
 
 for (const forbidden of [
   "proofBytes",
@@ -130,20 +133,20 @@ const expectedReviewOrder = [
     "npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
   ],
   [
-    "deterministic-production-artifact-build",
-    "external-review-required",
-    "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build.template.json",
-    "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
-    "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH",
-    "npm run zk:c01-deterministic-production-artifact-build-check",
-  ],
-  [
     "production-output-manifest-preflight",
     "artifact-producer-preflight-required",
     null,
     "ops/mainnet/private-pool-v2-c01-production-output-manifest-preflight.evidence.json",
     "VANTA_C01_PRODUCTION_OUTPUT_MANIFEST_ROOT|VANTA_C01_PRODUCTION_OUTPUT_MANIFEST_PATH",
     "npm run zk:c01-production-output-manifest-check",
+  ],
+  [
+    "deterministic-production-artifact-build",
+    "external-review-required",
+    "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build.template.json",
+    "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
+    "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH",
+    "npm run zk:c01-deterministic-production-artifact-build-check",
   ],
   [
     "production-artifact-bundle",
@@ -189,6 +192,10 @@ const expectedReviewOrder = [
 
 assert(Array.isArray(packet.reviewOrder), "reviewOrder must be an array");
 assert(packet.reviewOrder.length === expectedReviewOrder.length, "reviewOrder length mismatch");
+assert(
+  JSON.stringify(packet.reviewOrder.map((entry) => entry.id)) === JSON.stringify(artifactRequest.promotionOrder),
+  "handoff reviewOrder must match artifact request promotionOrder",
+);
 for (const [index, [id, status, templateRef, gateRef, envVar, command]] of expectedReviewOrder.entries()) {
   const entry = packet.reviewOrder[index];
   assert(entry.id === id, `reviewOrder[${index}].id mismatch`);
@@ -274,6 +281,7 @@ for (const marker of [
   "npm run zk:c01-production-verifier-artifact-request-check",
   "npm run zk:c01-production-output-manifest-check",
   "source-review acceptance",
+  "source-review acceptance, production output-manifest preflight, deterministic production artifact build",
   "deterministic production artifact build",
   "production output-manifest preflight",
   "production artifact bundle",

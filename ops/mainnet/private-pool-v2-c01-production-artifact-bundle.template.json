@@ -20,6 +20,7 @@
   "deterministicArtifactBuild": {
     "buildReceiptRef": null,
     "deterministicArtifactBuildGateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
+    "outputManifestPreflightGateRef": "ops/mainnet/private-pool-v2-c01-production-output-manifest-preflight.evidence.json",
     "pinnedToolchainSourceRef": null,
     "reviewedToolchainBuildRef": null,
     "trustedSetupOrMitigationRef": null,

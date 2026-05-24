@@ -18,6 +18,7 @@
   "routePacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-route.evidence.json",
   "productionGroth16ToolchainPreflightRef": "ops/mainnet/private-pool-v2-c01-production-groth16-toolchain-preflight.evidence.json",
   "sourceReviewAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
+  "productionOutputManifestPreflightRef": "ops/mainnet/private-pool-v2-c01-production-output-manifest-preflight.evidence.json",
   "deterministicProductionArtifactBuildGateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
   "verifierAdapterAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
   "groth16ProofFormatCandidateRef": "ops/mainnet/private-pool-v2-c01-groth16-proof-format-candidate.evidence.json",
@@ -51,6 +52,8 @@
     "sourceAcirSha256": "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde",
     "sourceReviewAcceptanceRequired": true,
     "sourceReviewAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
+    "productionOutputManifestPreflightRequired": true,
+    "productionOutputManifestPreflightRef": "ops/mainnet/private-pool-v2-c01-production-output-manifest-preflight.evidence.json",
     "deterministicArtifactBuildRequired": true,
     "deterministicArtifactBuildGateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
     "verifierAdapterAcceptanceRequired": true,
@@ -64,6 +67,7 @@
     "reviewedToolchainBuildRef": null,
     "trustedSetupOrMitigationRef": null,
     "sourceReviewAcceptanceRef": null,
+    "productionOutputManifestRef": null,
     "deterministicArtifactBuildRef": null,
     "proofFormatArtifactRef": null,
     "productionVerifyingKeyArtifactRef": null,
@@ -126,6 +130,7 @@
     "validates": [
       "reviewed beta18 H6 production source ACIR lineage",
       "external source-review acceptance",
+      "production output-manifest preflight",
       "deterministic production artifact build receipt",
       "Groth16 production proof-format tuple",
       "production verifying-key artifact and hash kind",
@@ -147,6 +152,12 @@
     {
       "id": "external-source-review-acceptance",
       "requiredRefShape": "review:<external-beta18-h6-source-migration-acceptance-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-output-manifest-preflight",
+      "requiredRefShape": "manifest:<refs-only-production-output-manifest-preflight-ref>",
       "currentRef": null,
       "satisfiesC01PositiveEvidence": false
     },
@@ -259,6 +270,7 @@
     "production proof-format and production verifying-key refs must agree on circuit, reviewed beta18 H6 production source ACIR hash, proof format id, proof byte length, public-witness byte length, generated verifier public input count, and public input label",
     "production public-witness evidence must decode one private-spend-public-input-hash equal to the current H6 proof receipt public input and commitment before adapter or mutation evidence can promote",
     "reviewed source migration acceptance is required before a beta18 source-migration production bundle can promote source lineage",
+    "production output-manifest preflight is required before the deterministic production artifact build receipt can cite returned proof/VK/public-witness refs",
     "reviewed deterministic production artifact build receipt is required before proof/VK/public-witness refs can promote into the production bundle",
     "reviewed production verifier-adapter acceptance receipt is required before adapter and mutation/no-mutation refs can promote into the production bundle",
     "verifier adapter acceptance can promote only after production proof-format and production verifying-key evidence exist",
@@ -299,6 +311,7 @@
     "npm run zk:c01-verifier-adapter-test-candidate-check",
     "npm run zk:c01-production-verifier-backend-candidate-check",
     "npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
+    "npm run zk:c01-production-output-manifest-check",
     "npm run zk:c01-deterministic-production-artifact-build-check",
     "npm run zk:c01-verifier-adapter-acceptance-gate-check",
     "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check",

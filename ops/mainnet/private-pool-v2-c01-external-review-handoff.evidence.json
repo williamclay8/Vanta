@@ -46,16 +46,6 @@
       "truthBoundary": "Source-review acceptance is a prerequisite for production artifact review, but it is not production proof/VK evidence, adapter acceptance, SBF/live lineage, audit acceptance, or C01 closure."
     },
     {
-      "id": "deterministic-production-artifact-build",
-      "status": "external-review-required",
-      "templateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build.template.json",
-      "gateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
-      "envVar": "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH",
-      "validationCommand": "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH=<reviewed-refs-only-json> npm run zk:c01-deterministic-production-artifact-build-check",
-      "requiredReturn": "reviewed reproducible Sunspot/Gnark build receipt, setup or toxic-waste mitigation refs, output manifest refs for proof, VK, public witness, verifier artifacts, and artifact producer/reviewer identity-scope attestation",
-      "truthBoundary": "Deterministic artifact build acceptance is a prerequisite for artifact bundle review, but it is not verifier-adapter acceptance, SBF/live lineage, audit acceptance, or C01 closure."
-    },
-    {
       "id": "production-output-manifest-preflight",
       "status": "artifact-producer-preflight-required",
       "templateRef": null,
@@ -64,6 +54,16 @@
       "validationCommand": "VANTA_C01_PRODUCTION_OUTPUT_MANIFEST_ROOT=<returned-artifact-dir> npm run zk:c01-production-output-manifest-check",
       "requiredReturn": "refs-only output manifest for returned proof, public witness, production VK, source ACIR, and generated verifier SBF artifacts; raw proof, VK, witness, proving-key, keypair, and signed transaction bytes must stay out of repo evidence",
       "truthBoundary": "Output-manifest preflight can hash and shape-check returned artifacts before deterministic build review, but it is not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not SBF/live lineage, not audit acceptance, and not C01 closure."
+    },
+    {
+      "id": "deterministic-production-artifact-build",
+      "status": "external-review-required",
+      "templateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build.template.json",
+      "gateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
+      "envVar": "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH",
+      "validationCommand": "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH=<reviewed-refs-only-json> npm run zk:c01-deterministic-production-artifact-build-check",
+      "requiredReturn": "reviewed reproducible Sunspot/Gnark build receipt, setup or toxic-waste mitigation refs, output manifest refs for proof, VK, public witness, verifier artifacts, and artifact producer/reviewer identity-scope attestation",
+      "truthBoundary": "Deterministic artifact build acceptance is a prerequisite for artifact bundle review, but it is not verifier-adapter acceptance, SBF/live lineage, audit acceptance, or C01 closure."
     },
     {
       "id": "production-artifact-bundle",
