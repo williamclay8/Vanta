@@ -86,7 +86,13 @@
   },
   "auditReviewerAcceptance": {
     "auditReviewerAcceptanceRef": null,
-    "reviewerAccepted": false
+    "reviewerIdentityRef": null,
+    "auditScopeRef": null,
+    "findingsDispositionRef": null,
+    "acceptanceKind": "audit-or-reviewer-acceptance",
+    "reviewerAccepted": false,
+    "acceptedForC01": false,
+    "satisfiesAuditReviewerAcceptance": false
   },
   "artifactReviewAttestation": {
     "artifactProducerIdentityRef": null,

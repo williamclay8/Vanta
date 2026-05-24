@@ -259,6 +259,28 @@ function assertBundleTemplate(template) {
     template.publicInputBinding?.matchesCurrentH6ProofReceipt === false,
     "template must not claim H6 binding",
   );
+  assertNullRefs(template.auditReviewerAcceptance, "template audit/reviewer acceptance", [
+    "auditReviewerAcceptanceRef",
+    "reviewerIdentityRef",
+    "auditScopeRef",
+    "findingsDispositionRef",
+  ]);
+  assert(
+    template.auditReviewerAcceptance?.acceptanceKind === "audit-or-reviewer-acceptance",
+    "template audit acceptance kind mismatch",
+  );
+  assert(
+    template.auditReviewerAcceptance?.reviewerAccepted === false,
+    "template must not claim reviewer acceptance",
+  );
+  assert(
+    template.auditReviewerAcceptance?.acceptedForC01 === false,
+    "template must not claim audit acceptance for C01",
+  );
+  assert(
+    template.auditReviewerAcceptance?.satisfiesAuditReviewerAcceptance === false,
+    "template must not satisfy audit/reviewer acceptance",
+  );
   assertNullRefs(template.artifactReviewAttestation, "template artifact review attestation", [
     "artifactProducerIdentityRef",
     "reviewerIdentityRef",
@@ -448,8 +470,21 @@ function assertReviewedProductionBundle(bundle, label) {
   assert(lineage.satisfiesSbfLiveLineage === true, `${label} SBF/live lineage must be true`);
 
   const audit = bundle.auditReviewerAcceptance ?? {};
-  assertRef(audit.auditReviewerAcceptanceRef, `${label} audit/reviewer acceptance ref`);
+  for (const field of [
+    "auditReviewerAcceptanceRef",
+    "reviewerIdentityRef",
+    "auditScopeRef",
+    "findingsDispositionRef",
+  ]) {
+    assertRef(audit[field], `${label} audit/reviewer acceptance ${field}`);
+  }
+  assert(audit.acceptanceKind === "audit-or-reviewer-acceptance", `${label} audit acceptance kind mismatch`);
   assert(audit.reviewerAccepted === true, `${label} reviewerAccepted must be true`);
+  assert(audit.acceptedForC01 === true, `${label} audit acceptedForC01 must be true`);
+  assert(
+    audit.satisfiesAuditReviewerAcceptance === true,
+    `${label} audit acceptance must satisfy audit/reviewer acceptance`,
+  );
 
   const reviewAttestation = bundle.artifactReviewAttestation ?? {};
   for (const field of [
@@ -479,6 +514,14 @@ function assertReviewedProductionBundle(bundle, label) {
   assert(
     reviewAttestation.auditReviewerAcceptanceRef === audit.auditReviewerAcceptanceRef,
     `${label} artifact review audit acceptance ref must match bundle audit ref`,
+  );
+  assert(
+    reviewAttestation.reviewerIdentityRef === audit.reviewerIdentityRef,
+    `${label} artifact review reviewer identity must match audit reviewer identity`,
+  );
+  assert(
+    reviewAttestation.reviewScopeRef === audit.auditScopeRef,
+    `${label} artifact review scope must match audit scope`,
   );
   assert(
     reviewAttestation.acceptedForC01ProductionBundle === true,
@@ -1010,6 +1053,7 @@ for (const marker of [
   "four trim-normalized distinct mutation/no-mutation evidence refs",
   "SBF/live lineage evidence",
   "audit/reviewer acceptance",
+  "audit/reviewer reviewer identity, C01 scope, findings disposition, acceptedForC01, and satisfiesAuditReviewerAcceptance fields",
   "artifact producer and reviewer identity/scope attestation",
   "no raw proof/VK/witness/key/secret/transaction material in env-supplied JSON",
 ]) {

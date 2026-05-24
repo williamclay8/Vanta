@@ -657,7 +657,19 @@ for (const command of [
   assert(gate.canonicalCommands.includes(command), `missing canonical command ${command}`);
 }
 assert(productionBundleTemplate.auditReviewerAcceptance?.auditReviewerAcceptanceRef === null, "production bundle template must keep audit ref null");
+assert(productionBundleTemplate.auditReviewerAcceptance?.reviewerIdentityRef === null, "production bundle template must keep audit reviewer identity ref null");
+assert(productionBundleTemplate.auditReviewerAcceptance?.auditScopeRef === null, "production bundle template must keep audit scope ref null");
+assert(productionBundleTemplate.auditReviewerAcceptance?.findingsDispositionRef === null, "production bundle template must keep findings disposition ref null");
+assert(
+  productionBundleTemplate.auditReviewerAcceptance?.acceptanceKind === "audit-or-reviewer-acceptance",
+  "production bundle template audit acceptance kind mismatch",
+);
 assert(productionBundleTemplate.auditReviewerAcceptance?.reviewerAccepted === false, "production bundle template must not claim reviewer acceptance");
+assert(productionBundleTemplate.auditReviewerAcceptance?.acceptedForC01 === false, "production bundle template must not claim acceptedForC01");
+assert(
+  productionBundleTemplate.auditReviewerAcceptance?.satisfiesAuditReviewerAcceptance === false,
+  "production bundle template must not satisfy audit/reviewer acceptance",
+);
 assert(productionGate.satisfiesRequiredPositiveEvidence?.auditReviewerAcceptance === false, "production gate must keep audit evidence false");
 assert(sbfLiveLineage.satisfiesRequiredPositiveEvidence?.auditReviewerAcceptance === false, "SBF/live gate must keep audit evidence false");
 assert(positiveClaimGate.positiveClaimRequires?.auditReviewerAcceptance === false, "positive claim gate must keep audit evidence false");

@@ -39,6 +39,16 @@ function sectionBetween(source, startMarker, endMarker, label) {
   return source.slice(start, end);
 }
 
+function fencedBlockAfter(source, heading, label) {
+  const headingIndex = source.indexOf(heading);
+  assert(headingIndex >= 0, `${label} missing heading: ${heading}`);
+  const open = source.indexOf("```bash", headingIndex);
+  assert(open > headingIndex, `${label} missing bash code block`);
+  const close = source.indexOf("```", open + "```bash".length);
+  assert(close > open, `${label} missing closing fence`);
+  return source.slice(open, close);
+}
+
 const decisionPath = "docs/zk/c01-production-verifier-backend-decision.md";
 const reviewPath = "VANTA_ZK_REVIEW.md";
 const runbookPath = "docs/operator-runbook.md";
@@ -50,6 +60,7 @@ const audit = read(auditPath);
 const packageJson = JSON.parse(read("package.json"));
 const ledger = JSON.parse(read("VANTA_ZK_REVIEW.findings.json"));
 const c01 = ledger.findings.find((finding) => finding.id === "VANTA-ZK-2026-05-09-C01");
+const reviewerCommands = fencedBlockAfter(decision, "## Reviewer Commands", "reviewer commands");
 
 assert(c01, "missing C01 finding");
 assert(c01.status === "partial", "C01 must stay partial while selected backend production evidence is absent");
@@ -240,6 +251,45 @@ for (const marker of [
   "noir-bb-ultrahonk-adaptation",
 ]) {
   includes(decision, marker, decisionPath);
+}
+
+for (const command of [
+  "npm run zk:c01-onchain-proof-boundary-check",
+  "npm run zk:c01-verifier-backend-contract-check",
+  "npm run zk:c01-production-verifier-backend-candidate-check",
+  "npm run zk:c01-verifier-backend-decision-check",
+  "npm run zk:c01-verifier-backend-options-check",
+  "npm run zk:c01-groth16-proof-format-candidate-check",
+  "npm run zk:c01-production-groth16-toolchain-preflight-check",
+  "npm run zk:c01-sunspot-groth16-route-check",
+  "npm run zk:c01-current-source-sunspot-compile-attempt-check",
+  "npm run zk:c01-beta18-source-migration-candidate-check",
+  "npm run zk:c01-beta18-h6-migration-probe-check",
+  "npm run zk:c01-beta18-h6-source-migration-review-check",
+  "npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
+  "npm run zk:c01-production-output-manifest-check",
+  "npm run zk:c01-deterministic-production-artifact-build-check",
+  "npm run zk:c01-sunspot-groth16-dev-probe-check",
+  "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
+  "npm run zk:c01-production-verifier-artifact-request-check",
+  "npm run zk:c01-production-artifact-acceptance-gate-check",
+  "npm run zk:c01-production-verifying-key-candidate-check",
+  "npm run zk:c01-public-witness-binding-check",
+  "npm run zk:c01-sbf-live-lineage-candidate-check",
+  "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
+  "npm run zk:c01-audit-reviewer-acceptance-gate-check",
+  "npm run zk:c01-verifier-evidence-closure-gate-check",
+  "npm run zk:c01-external-review-handoff-check",
+  "npm run zk:c01-verifier-adapter-test-candidate-check",
+  "npm run zk:c01-verifier-adapter-seam-check",
+  "npm run zk:c01-positive-proof-verified-claim-gate-check",
+  "npm run zk:c01-verifier-key-registry-check",
+  "npm run private-pool-v2:c01-sbf-verifier-cpi-rejection-check",
+  "npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check",
+  "npm run private-pool-v2:proof-backend-boundary-check",
+  "npm run private-pool-v2:remote-proof-artifact-boundary-check",
+]) {
+  includes(reviewerCommands, command, "reviewer commands block");
 }
 
 for (const marker of [

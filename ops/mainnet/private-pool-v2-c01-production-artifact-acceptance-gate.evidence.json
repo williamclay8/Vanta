@@ -144,6 +144,7 @@
       "four trim-normalized distinct mutation/no-mutation evidence refs",
       "SBF/live lineage evidence",
       "audit/reviewer acceptance",
+      "audit/reviewer reviewer identity, C01 scope, findings disposition, acceptedForC01, and satisfiesAuditReviewerAcceptance fields",
       "artifact producer and reviewer identity/scope attestation",
       "no raw proof/VK/witness/key/secret/transaction material in env-supplied JSON"
     ],

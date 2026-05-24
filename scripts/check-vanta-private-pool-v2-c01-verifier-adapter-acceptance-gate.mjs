@@ -657,6 +657,7 @@ for (const rule of [
   "verifier-adapter acceptance refs must be references only; raw proof, verifying-key, proving-key, witness, keypair, secret, and signed transaction bytes stay out of git",
   "adapter acceptance can promote only after reviewed deterministic production artifact build evidence exists for the exact proof/VK/public-witness tuple",
   "valid mutation and invalid/wrong-input/wrong-key no-mutation evidence must run under the accepted verifier boundary",
+  "valid mutation and each invalid/wrong-input/wrong-key no-mutation case must have distinct evidence refs",
   "wrong-verifying-key no-mutation must bind to production verifying-key hash semantics, not only wrong verifier-program id",
   "verifier-adapter acceptance must include reviewer identity, review scope, and cross-refs to the accepted adapter, deterministic build, and production verifying-key artifact",
   "verifier-adapter acceptance does not by itself prove rebuilt/redeployed/reinitialized/live SBF lineage or audit/reviewer acceptance",
