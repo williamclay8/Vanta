@@ -17,6 +17,7 @@
   "currentSourceSunspotCompileAttemptRef": "ops/mainnet/private-pool-v2-c01-current-source-sunspot-compile-attempt.evidence.json",
   "localSunspotGroth16DevProbeRef": "ops/mainnet/private-pool-v2-c01-sunspot-groth16-dev-probe.evidence.json",
   "localSunspotGnarkLocalArtifactInventoryRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-local-artifact-inventory.evidence.json",
+  "productionVerifierArtifactRequestRef": "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
   "productionArtifactAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
   "deterministicProductionArtifactBuildGateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
   "localSunspotPublicWitnessBindingObservationRef": {
@@ -205,6 +206,7 @@
     "npm run zk:c01-sunspot-groth16-dev-probe-check",
     "npm run zk:c01-public-witness-binding-check",
     "npm run zk:c01-sunspot-gnark-local-artifact-inventory-check",
+    "npm run zk:c01-production-verifier-artifact-request-check",
     "npm run zk:c01-production-groth16-toolchain-preflight-check",
     "npm run zk:c01-production-artifact-acceptance-gate-check",
     "npm run zk:c01-deterministic-production-artifact-build-check",

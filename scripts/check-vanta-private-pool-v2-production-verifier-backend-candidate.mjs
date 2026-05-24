@@ -62,6 +62,9 @@ const productionArtifactAcceptanceGateEvidence = JSON.parse(
 const externalReviewHandoffEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json"),
 );
+const productionVerifierArtifactRequestEvidence = JSON.parse(
+  read("ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json"),
+);
 const verifierAdapterTestCandidateEvidence = JSON.parse(
   read("ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json"),
 );
@@ -256,6 +259,37 @@ includes(
   groth16ProofFormatRef?.truthBoundary ?? "",
   "does not satisfy production proof-format evidence",
   "C01 verifier candidate Groth16 proof-format truth boundary",
+);
+const productionVerifierArtifactRequestRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
+  (entry) => entry.id === "production-verifier-artifact-request",
+);
+assert(
+  productionVerifierArtifactRequestRef?.artifactRef ===
+    "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
+  "C01 verifier candidate evidence must reference the production verifier artifact request packet",
+);
+assert(
+  productionVerifierArtifactRequestRef?.command === "npm run zk:c01-production-verifier-artifact-request-check",
+  "C01 verifier candidate evidence must record the production verifier artifact request guard",
+);
+includes(
+  productionVerifierArtifactRequestRef?.truthBoundary ?? "",
+  "does not satisfy production proof-format evidence",
+  "C01 verifier candidate production verifier artifact request truth boundary",
+);
+assert(
+  productionVerifierArtifactRequestEvidence.status ===
+    "ready-for-external-production-verifier-artifact-request-blocked",
+  "C01 production verifier artifact request must remain blocked",
+);
+assert(
+  productionVerifierArtifactRequestEvidence.c01VerifierReady === false,
+  "C01 production verifier artifact request must not set c01VerifierReady",
+);
+assert(
+  externalReviewHandoffEvidence.productionVerifierArtifactRequestRef ===
+    "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
+  "C01 external review handoff must reference the production verifier artifact request packet",
 );
 const productionGroth16ToolchainPreflightRef = verifierCandidateEvidence.intermediateEvidenceRefs?.find(
   (entry) => entry.id === "blocked-production-groth16-toolchain-preflight",

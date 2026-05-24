@@ -90,6 +90,11 @@ for (const field of [
 }
 assert(packet.decisionPacketRef === decisionPath, "decision ref mismatch");
 assert(packet.candidatePacketRef === "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json", "candidate ref mismatch");
+assert(
+  packet.productionVerifierArtifactRequestRef ===
+    "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
+  "production verifier artifact request ref mismatch",
+);
 assert(packet.closureGateRef === "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json", "closure gate ref mismatch");
 assert(candidate.status === "blocked-selected-groth16-tag3-solana-v0-production-evidence", "candidate must remain blocked");
 assert(closureGate.status === "blocked-no-complete-c01-verifier-evidence-chain", "closure gate must remain blocked");
@@ -210,6 +215,7 @@ for (const blocker of [
 assertStringArray(packet.canonicalCommands, "canonicalCommands");
 for (const command of [
   "npm run zk:c01-external-review-handoff-check",
+  "npm run zk:c01-production-verifier-artifact-request-check",
   "npm run zk:c01-production-artifact-acceptance-gate-check",
   "npm run zk:c01-verifier-adapter-acceptance-gate-check",
   "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
@@ -244,6 +250,9 @@ for (const marker of [
   packetPath,
   "ready-for-external-c01-verifier-review-handoff-blocked",
   "npm run zk:c01-external-review-handoff-check",
+  "C01 production verifier artifact request packet",
+  "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
+  "npm run zk:c01-production-verifier-artifact-request-check",
   "source-review acceptance",
   "deterministic production artifact build",
   "production artifact bundle",

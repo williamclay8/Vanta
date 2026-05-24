@@ -2334,6 +2334,10 @@ assert(
   "C01 must record the Sunspot/Gnark artifact acquisition guard",
 );
 assert(
+  c01Text.includes("zk:c01-production-verifier-artifact-request-check"),
+  "C01 must record the production verifier artifact request guard",
+);
+assert(
   c01Text.includes("zk:c01-production-verifying-key-candidate-check"),
   "C01 must record the production verifying-key candidate guard",
 );
@@ -2404,6 +2408,10 @@ assert(
 assert(
   c01Text.includes("ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json"),
   "C01 must record the Sunspot/Gnark artifact acquisition packet path",
+);
+assert(
+  c01Text.includes("ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json"),
+  "C01 must record the production verifier artifact request packet path",
 );
 assert(
   c01Text.includes("ops/mainnet/private-pool-v2-c01-production-verifying-key-candidate.evidence.json"),
@@ -2494,6 +2502,15 @@ assert(
 assert(
   c01Text.includes("ready-for-external-c01-verifier-review-handoff-blocked"),
   "C01 must record the external reviewer handoff status",
+);
+assert(
+  c01Text.includes("ready-for-external-production-verifier-artifact-request-blocked"),
+  "C01 must record the production verifier artifact request status",
+);
+assert(c01Text.includes("artifact producer"), "C01 must record the artifact producer request audience");
+assert(
+  c01Text.includes("production proof-format/VK/public-witness"),
+  "C01 must record the production verifier artifact request output shape",
 );
 assert(
   c01Text.includes("local fail-closed verifier adapter seam harness"),

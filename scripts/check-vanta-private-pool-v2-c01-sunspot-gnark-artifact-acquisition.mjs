@@ -9,6 +9,8 @@ const currentSourceCompileAttemptPath =
   "ops/mainnet/private-pool-v2-c01-current-source-sunspot-compile-attempt.evidence.json";
 const localArtifactInventoryPath =
   "ops/mainnet/private-pool-v2-c01-sunspot-gnark-local-artifact-inventory.evidence.json";
+const productionVerifierArtifactRequestPath =
+  "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json";
 const acceptanceGatePath =
   "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json";
 const deterministicBuildGatePath =
@@ -197,6 +199,10 @@ assert(packet.localSunspotGroth16DevProbeRef === devProbePath, "local dev-probe 
 assert(
   packet.localSunspotGnarkLocalArtifactInventoryRef === localArtifactInventoryPath,
   "local artifact inventory ref mismatch",
+);
+assert(
+  packet.productionVerifierArtifactRequestRef === productionVerifierArtifactRequestPath,
+  "production verifier artifact request ref mismatch",
 );
 assert(packet.productionArtifactAcceptanceGateRef === acceptanceGatePath, "acceptance gate ref mismatch");
 assert(
@@ -425,6 +431,7 @@ for (const command of [
   "npm run zk:c01-production-groth16-toolchain-preflight-check",
   "npm run zk:c01-public-witness-binding-check",
   "npm run zk:c01-sunspot-gnark-local-artifact-inventory-check",
+  "npm run zk:c01-production-verifier-artifact-request-check",
   "npm run zk:c01-production-artifact-acceptance-gate-check",
   "npm run zk:c01-deterministic-production-artifact-build-check",
   "npm run zk:c01-production-verifying-key-candidate-check",
@@ -446,6 +453,8 @@ for (const marker of [
   "C01 Sunspot/Gnark artifact acquisition packet",
   packetPath,
   "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
+  "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
+  "npm run zk:c01-production-verifier-artifact-request-check",
   "current source ACIR hash",
   "current H6 proof receipt public input and commitment",
 ]) {

@@ -15,6 +15,7 @@
   "purpose": "Single refs-only reviewer handoff manifest for C01. It tells an external reviewer or artifact producer exactly which evidence packets to return, which validation commands to run, and which local evidence remains comparison-only before C01 verifier evidence can close.",
   "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
   "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "productionVerifierArtifactRequestRef": "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
   "closureGateRef": "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json",
   "currentRequiredShape": {
     "target": "solana-c01-tag3-groth16-v0",
@@ -147,6 +148,7 @@
   ],
   "canonicalCommands": [
     "npm run zk:c01-external-review-handoff-check",
+    "npm run zk:c01-production-verifier-artifact-request-check",
     "npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
     "npm run zk:c01-deterministic-production-artifact-build-check",
     "npm run zk:c01-production-artifact-acceptance-gate-check",

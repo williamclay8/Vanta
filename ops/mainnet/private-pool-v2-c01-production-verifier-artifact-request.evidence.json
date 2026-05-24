@@ -1,0 +1,273 @@
+{
+  "version": "vanta-private-pool-v2-c01-production-verifier-artifact-request-0.1",
+  "checkedAt": "2026-05-24T00:00:00.000Z",
+  "status": "ready-for-external-production-verifier-artifact-request-blocked",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "selectedBackendStatus": "selected-pending-production-evidence",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "productionReady": false,
+  "mainnetReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "productionArtifactsReady": false,
+  "verifierAdapterReady": false,
+  "sbfLiveLineageReady": false,
+  "auditReviewerAccepted": false,
+  "secretPolicy": "refs-only-no-raw-proof-vk-witness-pk-keypair-secret-live-private-data-or-signed-transaction-bytes",
+  "purpose": "Outbound refs-only artifact-producer request for C01 production verifier evidence. This packet gives an external producer or reviewer the exact source inputs, current H6 public input binding, required returned refs, validation commands, and comparison-only local evidence boundaries for the selected Sunspot/Gnark Groth16 tag-3 route.",
+  "artifactAcquisitionPacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json",
+  "externalReviewHandoffRef": "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json",
+  "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
+  "sourceReviewPacketRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-migration-review.evidence.json",
+  "sourceReviewAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
+  "deterministicProductionArtifactBuildGateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
+  "productionArtifactAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+  "verifierAdapterAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
+  "sbfLiveLineageAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance-gate.evidence.json",
+  "auditReviewerAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance-gate.evidence.json",
+  "closureGateRef": "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json",
+  "currentRequiredShape": {
+    "target": "solana-c01-tag3-groth16-v0",
+    "tag": 3,
+    "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+    "proofSystem": "groth16",
+    "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+    "proofByteLength": 324,
+    "publicWitnessByteLength": 44,
+    "verifierInstructionDataByteLength": 368,
+    "publicInputLabel": "private-spend-public-input-hash",
+    "requiredPublicInputValue": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "requiredPublicInputCommitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2",
+    "verifyingKeyHashKind": "production-verifying-key-hash",
+    "sourceAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9"
+  },
+  "sourceReviewInputs": {
+    "currentSourceRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr",
+    "currentSourceSha256": "sha256:363d7dffa7ba03698a8bdbe2d48a6f13cf32ddeb7326fb997ff9cff63db8bf96",
+    "currentProverRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/Prover.toml",
+    "currentProverSha256": "sha256:2c62fa9b0a7bfb32c98fb89fc5fbc90211d67b017066eb5555da8f0da20d890e",
+    "currentCompiledAcirRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json",
+    "currentCompiledAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
+    "currentH6ProofReceiptPublicInput": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "currentH6ProofReceiptPublicInputCommitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2",
+    "candidateSourceRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry_sunspot_beta18_h6_candidate/src/main.nr",
+    "candidateSourceSha256": "sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430",
+    "candidateNargoRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry_sunspot_beta18_h6_candidate/Nargo.toml",
+    "candidateProverRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry_sunspot_beta18_h6_candidate/Prover.toml",
+    "candidateReadmeRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry_sunspot_beta18_h6_candidate/README.md",
+    "compatibilityDelta": "poseidon-import-path-only",
+    "normalizedSourceMatchesCurrent": true,
+    "proverMatchesCurrent": true,
+    "h6ContextPreimageInputsPresent": true,
+    "h6Poseidon6ContextAssertionPresent": true,
+    "satisfiesReviewedSourceMigration": false,
+    "satisfiesProductionSourceLineage": false
+  },
+  "artifactBuildInputs": {
+    "sourceReviewAcceptanceTemplateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance.template.json",
+    "deterministicBuildTemplateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build.template.json",
+    "productionArtifactBundleTemplateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-bundle.template.json",
+    "verifierAdapterAcceptanceTemplateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance.template.json",
+    "sbfLiveLineageAcceptanceTemplateRef": "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance.template.json",
+    "auditReviewerAcceptanceTemplateRef": "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance.template.json",
+    "requiredNargoVersion": "1.0.0-beta.18",
+    "selectedProofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+    "requiresReviewedSunspotGnarkSource": true,
+    "requiresReviewedToolchainBuild": true,
+    "requiresTrustedSetupOrMitigation": true,
+    "requiresCurrentH6PublicInputBinding": true,
+    "requiresRefsOnlyReturnedEvidence": true
+  },
+  "requiredProductionOutputs": [
+    {
+      "id": "source-review-acceptance",
+      "requiredRefShape": "review:<external-beta18-h6-source-migration-acceptance-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "deterministic-production-artifact-build-receipt",
+      "requiredRefShape": "build:<reviewed-deterministic-production-artifact-build-receipt-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-artifact-bundle",
+      "requiredRefShape": "bundle:<reviewed-production-proof-vk-public-witness-adapter-test-lineage-audit-refs>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-proof-format-artifact",
+      "requiredRefShape": "artifact:<actual-private-spend-groth16-proof-format-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-verifying-key-artifact",
+      "requiredRefShape": "artifact:<actual-private-spend-production-vk-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-verifying-key-hash",
+      "requiredRefShape": "sha256:<production-verifying-key-hash>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "current-h6-public-witness-artifact",
+      "requiredRefShape": "artifact:<current-h6-public-witness-values-ref-no-private-witness>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "verifier-adapter-acceptance",
+      "requiredRefShape": "adapter:<accepted-solana-groth16-verifier-adapter-or-program-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "valid-proof-mutation-test",
+      "requiredRefShape": "test:<valid-proof-mutates-nullifier-output-state-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "invalid-proof-no-mutation-test",
+      "requiredRefShape": "test:<invalid-proof-leaves-account-bytes-unchanged-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "wrong-public-input-no-mutation-test",
+      "requiredRefShape": "test:<wrong-public-input-hash-leaves-account-bytes-unchanged-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "wrong-verifying-key-no-mutation-test",
+      "requiredRefShape": "test:<wrong-verifying-key-leaves-account-bytes-unchanged-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "sbf-live-lineage-acceptance",
+      "requiredRefShape": "lineage:<rebuilt-redeployed-reinitialized-sbf-and-live-or-reviewer-dry-run-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "audit-reviewer-acceptance",
+      "requiredRefShape": "audit-or-review:<selected-verifier-backend-accepted-for-c01-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    }
+  ],
+  "validationCommands": [
+    {
+      "id": "request-packet",
+      "command": "npm run zk:c01-production-verifier-artifact-request-check"
+    },
+    {
+      "id": "source-review-acceptance",
+      "command": "VANTA_C01_BETA18_H6_SOURCE_REVIEW_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-beta18-h6-source-review-acceptance-gate-check"
+    },
+    {
+      "id": "deterministic-production-artifact-build",
+      "command": "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH=<reviewed-refs-only-json> npm run zk:c01-deterministic-production-artifact-build-check"
+    },
+    {
+      "id": "production-artifact-bundle",
+      "command": "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check"
+    },
+    {
+      "id": "verifier-adapter-acceptance",
+      "command": "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-verifier-adapter-acceptance-gate-check"
+    },
+    {
+      "id": "sbf-live-lineage-acceptance",
+      "command": "VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-sbf-live-lineage-acceptance-gate-check"
+    },
+    {
+      "id": "audit-reviewer-acceptance",
+      "command": "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-audit-reviewer-acceptance-gate-check"
+    },
+    {
+      "id": "composite-evidence-closure",
+      "command": "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-bundle-json> VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-adapter-json> VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH=<reviewed-lineage-json> VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-audit-json> npm run zk:c01-verifier-evidence-closure-gate-check"
+    }
+  ],
+  "comparisonOnlyLocalEvidence": [
+    {
+      "id": "h6-beta18-migration-probe",
+      "ref": "ops/mainnet/private-pool-v2-c01-beta18-h6-migration-probe.evidence.json",
+      "command": "npm run zk:c01-beta18-h6-migration-probe-check",
+      "truthBoundary": "Local H6-preserving Sunspot/Gnark route evidence only; not production source lineage, setup, proof-format, VK, adapter, mutation/no-mutation, SBF/live, audit, or closure."
+    },
+    {
+      "id": "h6-source-migration-review-candidate",
+      "ref": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-migration-review.evidence.json",
+      "command": "npm run zk:c01-beta18-h6-source-migration-review-check",
+      "truthBoundary": "Repo-local reviewable source delta only; not external source-review acceptance or production source lineage."
+    },
+    {
+      "id": "local-unsafe-generated-verifier-cpi",
+      "ref": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
+      "command": "npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check",
+      "truthBoundary": "Local unsafe generated-verifier CPI harness only; not production verifier-adapter acceptance or production mutation/no-mutation evidence."
+    },
+    {
+      "id": "fresh-local-sbf-abi",
+      "ref": "programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so",
+      "command": "npm run private-pool-v2:sbf-abi-check",
+      "truthBoundary": "Fresh local SBF ABI only; not redeployed, reinitialized, live, or accepted lineage."
+    }
+  ],
+  "promotionOrder": [
+    "source-review-acceptance",
+    "deterministic-production-artifact-build",
+    "production-artifact-bundle",
+    "verifier-adapter-acceptance",
+    "sbf-live-lineage-acceptance",
+    "audit-reviewer-acceptance",
+    "composite-evidence-closure"
+  ],
+  "forbiddenPacketContents": [
+    "raw proof bytes",
+    "raw verifying-key bytes",
+    "raw witness bytes",
+    "proving key bytes",
+    "keypair material",
+    "private keys",
+    "seed phrases",
+    "signed transaction bytes",
+    "live private user data",
+    "provider credentials"
+  ],
+  "remainingBlockers": [
+    "no external source-review acceptance",
+    "no deterministic reviewed production artifact build receipt",
+    "no reviewed production artifact bundle",
+    "no production verifier-adapter acceptance",
+    "no production valid mutation or invalid/wrong-input/wrong-key no-mutation refs",
+    "no SBF/live lineage acceptance",
+    "no audit/reviewer acceptance",
+    "no composite C01 verifier evidence closure validation"
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-production-verifier-artifact-request-check",
+    "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
+    "npm run zk:c01-external-review-handoff-check",
+    "npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
+    "npm run zk:c01-deterministic-production-artifact-build-check",
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+    "npm run zk:c01-verifier-adapter-acceptance-gate-check",
+    "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
+    "npm run zk:c01-audit-reviewer-acceptance-gate-check",
+    "npm run zk:c01-verifier-evidence-closure-gate-check",
+    "npm run zk:review-guards-check"
+  ],
+  "truthBoundary": "This is a refs-only outbound production verifier artifact request packet. It makes the production proof-format/VK/public-witness/verifier-adapter/mutation/no-mutation/SBF-live/audit request checkable, but it is not external source-review acceptance, not a deterministic production artifact build receipt, not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not valid mutation evidence, not invalid/wrong-input/wrong-key no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, not C01 closure, and not production-private readiness."
+}

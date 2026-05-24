@@ -98,6 +98,13 @@ for (const marker of [
   "C01 Sunspot/Gnark artifact acquisition packet",
   "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json",
   "npm run zk:c01-sunspot-gnark-artifact-acquisition-check",
+  "C01 production verifier artifact request packet",
+  "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
+  "ready-for-external-production-verifier-artifact-request-blocked",
+  "npm run zk:c01-production-verifier-artifact-request-check",
+  "artifact producer",
+  "production proof-format/VK/public-witness",
+  "mutation/no-mutation",
   "C01 beta18 source-migration candidate packet",
   "ops/mainnet/private-pool-v2-c01-beta18-source-migration-candidate.evidence.json",
   "npm run zk:c01-beta18-source-migration-candidate-check",
@@ -329,6 +336,13 @@ for (const marker of [
     "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json",
     "npm run zk:c01-external-review-handoff-check",
     "ready-for-external-c01-verifier-review-handoff-blocked",
+    "C01 production verifier artifact request packet",
+    "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
+    "npm run zk:c01-production-verifier-artifact-request-check",
+    "ready-for-external-production-verifier-artifact-request-blocked",
+    "artifact producer",
+    "production proof-format/VK/public-witness",
+    "mutation/no-mutation",
     "source-review acceptance",
     "deterministic production artifact build",
     "production artifact bundle",
@@ -403,6 +417,23 @@ for (const source of [runbook, audit]) {
     "npm run zk:c01-external-review-handoff-check",
     "C01 external reviewer handoff guard handoff",
   );
+  includes(
+    source,
+    "npm run zk:c01-production-verifier-artifact-request-check",
+    "C01 production verifier artifact request guard handoff",
+  );
+  includes(
+    source,
+    "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
+    "C01 production verifier artifact request packet handoff",
+  );
+  includes(source, "artifact producer", "C01 production verifier artifact request audience handoff");
+  includes(
+    source,
+    "production proof-format/VK/public-witness",
+    "C01 production verifier artifact request proof/VK/public-witness handoff",
+  );
+  includes(source, "mutation/no-mutation", "C01 production verifier artifact request mutation handoff");
   includes(
     source,
     "npm run zk:c01-sunspot-groth16-dev-probe-check",
@@ -609,6 +640,11 @@ assert(
   "package.json must expose zk:c01-external-review-handoff-check",
 );
 assert(
+  packageJson.scripts?.["zk:c01-production-verifier-artifact-request-check"] ===
+    "node scripts/check-vanta-private-pool-v2-c01-production-verifier-artifact-request.mjs",
+  "package.json must expose zk:c01-production-verifier-artifact-request-check",
+);
+assert(
   packageJson.scripts?.["zk:c01-verifier-adapter-seam-check"]?.includes(
     "proof_carrying_spend_default_adapter_rejects_before_commit",
   ) &&
@@ -730,6 +766,12 @@ assert(
   "zk:review-guards-check must include the C01 external reviewer handoff guard",
 );
 assert(
+  packageJson.scripts?.["zk:review-guards-check"]?.includes(
+    "npm run zk:c01-production-verifier-artifact-request-check",
+  ),
+  "zk:review-guards-check must include the C01 production verifier artifact request guard",
+);
+assert(
   packageJson.scripts?.["zk:review-guards-check"]?.includes("npm run zk:c01-sunspot-groth16-dev-probe-check"),
   "zk:review-guards-check must include the C01 Sunspot Groth16 dev-probe guard",
 );
@@ -848,6 +890,12 @@ assert(
     "npm run zk:c01-external-review-handoff-check",
   ),
   "zk:feedback-loop-check must include the C01 external reviewer handoff guard",
+);
+assert(
+  packageJson.scripts?.["zk:feedback-loop-check"]?.includes(
+    "npm run zk:c01-production-verifier-artifact-request-check",
+  ),
+  "zk:feedback-loop-check must include the C01 production verifier artifact request guard",
 );
 assert(
   packageJson.scripts?.["zk:feedback-loop-check"]?.includes("npm run zk:c01-sunspot-groth16-dev-probe-check"),
