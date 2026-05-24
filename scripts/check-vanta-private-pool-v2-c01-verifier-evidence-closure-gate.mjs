@@ -6,6 +6,10 @@ const gatePath = "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate
 const candidatePath = "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json";
 const productionGatePath =
   "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json";
+const deterministicBuildGatePath =
+  "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json";
+const outputManifestPreflightPath =
+  "ops/mainnet/private-pool-v2-c01-production-output-manifest-preflight.evidence.json";
 const adapterGatePath = "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json";
 const lineageGatePath = "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance-gate.evidence.json";
 const auditGatePath = "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance-gate.evidence.json";
@@ -166,6 +170,7 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
     sourceLineage.requiredProductionSourceAcirSha256 === shape.sourceAcirSha256,
     "production source ACIR requirement mismatch",
   );
+  assertRef(sourceLineage.sourceReviewAcceptanceRef, "production bundle source-review acceptance ref");
   assert(sourceLineage.returnedSourceAcirSha256 === shape.sourceAcirSha256, "returned source ACIR mismatch");
   assert(sourceLineage.reviewedSourceMigrationAccepted === true, "source migration must be accepted");
   assert(
@@ -175,6 +180,30 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
   assert(
     sourceLineage.matchesRequiredProductionSourceLineage === true,
     "source ACIR must match reviewed beta18 H6 production source lineage",
+  );
+
+  const bundleBuild = bundle.deterministicArtifactBuild ?? {};
+  assertRef(bundleBuild.buildReceiptRef, "production bundle deterministic build receipt ref");
+  assert(
+    bundleBuild.deterministicArtifactBuildGateRef === deterministicBuildGatePath,
+    "production bundle deterministic build gate ref mismatch",
+  );
+  assert(
+    bundleBuild.outputManifestPreflightGateRef === outputManifestPreflightPath,
+    "production bundle output manifest preflight gate ref mismatch",
+  );
+  for (const field of [
+    "pinnedToolchainSourceRef",
+    "reviewedToolchainBuildRef",
+    "trustedSetupOrMitigationRef",
+    "outputManifestRef",
+    "reproducibilityReviewRef",
+  ]) {
+    assertRef(bundleBuild[field], `production bundle deterministic build ${field}`);
+  }
+  assert(
+    bundleBuild.satisfiesDeterministicArtifactBuild === true,
+    "production bundle deterministic artifact build must be true",
   );
 
   const vk = bundle.verifyingKey ?? {};
@@ -210,6 +239,7 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
 
   const adapterBinding = adapter.publicInputBinding ?? {};
   assertSame(adapterBinding.publicWitnessArtifactRef, binding.publicWitnessArtifactRef, "adapter binding witness ref");
+  assertSame(adapterBinding.decodedPublicInputLabel, shape.publicInputLabel, "adapter public input label");
   assertSame(adapterBinding.decodedPublicInputValue, shape.requiredPublicInputValue, "adapter public input");
   assertSame(
     adapterBinding.publicInputCommitment,
@@ -217,6 +247,10 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
     "adapter public input commitment",
   );
   assert(adapterBinding.matchesCurrentH6ProofReceipt === true, "adapter must bind current H6 receipt");
+  assert(
+    adapterBinding.satisfiesProductionPublicInputBinding === true,
+    "adapter public-input binding must satisfy production binding",
+  );
 
   const bundleAdapter = bundle.adapterAcceptance ?? {};
   const adapterAcceptance = adapter.adapterAcceptance ?? {};
@@ -325,7 +359,6 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
   assert(auditReview.acceptedForC01 === true, "audit acceptedForC01 must be true");
   assert(auditReview.satisfiesAuditReviewerAcceptance === true, "audit acceptance must satisfy audit/reviewer acceptance");
 
-  const bundleBuild = bundle.deterministicArtifactBuild ?? {};
   const bundleReview = bundle.artifactReviewAttestation ?? {};
   for (const field of [
     "artifactProducerIdentityRef",
@@ -577,6 +610,8 @@ for (const [field, expected] of [
   ["referenceCurrentSourceAcirSha256", "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9"],
   ["productionSourceLineageMode", "reviewed-beta18-h6-source-migration"],
   ["sourceAcirSha256", "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde"],
+  ["deterministicArtifactBuildGateRef", deterministicBuildGatePath],
+  ["productionOutputManifestPreflightGateRef", outputManifestPreflightPath],
   ["adapterKind", "in-program-verifier-or-dedicated-verifier-cpi"],
   ["verifierProgramKind", "dedicated-verifier-cpi-or-reviewed-in-program-verifier"],
   ["status", "required-before-c01-verifier-evidence-closure"],
@@ -616,7 +651,9 @@ assert(external.requiresAllEnvVarsWhenAnyEnvVarPresent === true, "external closu
 assertStringArray(external.validates, "external closure validates");
 for (const marker of [
   "same selected backend and route across all reviewed packets",
+  "source-review acceptance and deterministic build/output-manifest prerequisite refs are present in the reviewed production bundle",
   "same production verifying-key artifact and production verifying-key hash",
+  "adapter public-input label/value/commitment and production binding flag match the production bundle",
   "same valid mutation and invalid/wrong-input/wrong-key no-mutation refs",
   "same SBF/live lineage ref",
   "same audit/reviewer acceptance ref",
@@ -667,6 +704,8 @@ for (const marker of [
   "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-adapter-json>",
   "VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH=<reviewed-lineage-json>",
   "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-audit-json>",
+  "source-review acceptance and deterministic build/output-manifest prerequisite refs",
+  "adapter public-input binding flag",
 ]) {
   includes(decision, marker, decisionPath);
   includes(auditPackage, marker, auditPackagePath);
