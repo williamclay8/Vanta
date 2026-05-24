@@ -570,6 +570,10 @@ assert.ok(
   "Missing Turnkey integration contract command.",
 );
 assert.ok(
+  snapshot.requiredCommands.includes("npm run swap:turnkey-liquidity-signer-dry-run-check"),
+  "Missing Turnkey liquidity signer dry-run command.",
+);
+assert.ok(
   snapshot.requiredCommands.includes("npm run mainnet:wallet-signing-status"),
   "Missing production wallet-signing status command.",
 );

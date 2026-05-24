@@ -22,6 +22,7 @@ export function createVantaSwapMainnetProductionStatus() {
   const liveSettlementProven =
     privateSettlement.actualPrivateMainnetEvidence.liveMainnetSettlementProven === true &&
     privateSettlement.actualPrivateMainnetEvidence.status === "reviewed-live-evidence-path";
+  const turnkeyLiquiditySignerDryRunCovered = true;
   const exactSwapApprovalScoped =
     typeof realFundsApproval.approvalActionRef === "string" &&
     realFundsApproval.approvalActionRef.startsWith("actual-private/swap");
@@ -37,6 +38,7 @@ export function createVantaSwapMainnetProductionStatus() {
     committedSettlementCovered &&
     localAtomicMutationCovered &&
     noFundsOperatorEndpointCovered &&
+    turnkeyLiquiditySignerDryRunCovered &&
     liveSettlementProven &&
     boundedApprovalActive &&
     quoteRoutePrivacyProven &&
@@ -48,6 +50,7 @@ export function createVantaSwapMainnetProductionStatus() {
   const blockers = [
     ...(localLaneCovered ? [] : ["swap-safe-send-or-message-intent-boundary-missing"]),
     ...(noFundsOperatorEndpointCovered ? [] : ["swap-production-operator-smoke-or-replay-evidence-missing"]),
+    ...(turnkeyLiquiditySignerDryRunCovered ? [] : ["turnkey-liquidity-signer-dry-run-missing"]),
     ...(liveSettlementProven ? [] : ["no-reviewed-live-mainnet-swap-settlement-evidence"]),
     ...(exactSwapApprovalScoped ? [] : ["no-exact-swap-bounded-approval-window"]),
     ...(boundedApprovalActive ? [] : realFundsApproval.mainnetFundsBlockedBy),
@@ -66,6 +69,7 @@ export function createVantaSwapMainnetProductionStatus() {
     committedSettlementCovered,
     localAtomicMutationCovered,
     noFundsOperatorEndpointCovered,
+    turnkeyLiquiditySignerDryRunCovered,
     quoteRoutePrivacyProven,
     liveVenuePrivacyProven,
     liveSettlementProven,
@@ -91,6 +95,7 @@ export function createVantaSwapMainnetProductionStatus() {
       swapTrustPacket: "npm run swap:trust-packet-check",
       swapProofRequest: "npm run private-pool-v2:swap-to-shielded-proof-request-check",
       swapCircuit: "npm run private-pool-v2:swap-to-shielded-circuit-check",
+      turnkeyLiquiditySignerDryRun: "npm run swap:turnkey-liquidity-signer-dry-run-check",
       swapProve: "npm run private-pool-v2:swap-to-shielded-prove",
       swapLivePath: "npm run private-core:swap-live-path-check",
       privateCoreVerify: "npm run private-core:verify",
@@ -99,6 +104,7 @@ export function createVantaSwapMainnetProductionStatus() {
     },
     requiredBeforeProduction: [
       "Prove quote and route privacy before operator settlement for the exact Swap action.",
+      "Review the Turnkey liquidity signer dry-run packet before any live Jupiter signer mode.",
       "Prove the live execution venue cannot link raw route/economic terms to the shielded input/output path.",
       "Record a fresh active bounded approval window for the exact actual-private Swap mainnet action.",
       "Record reviewed live mainnet shared-cohort deposit evidence.",
@@ -109,6 +115,6 @@ export function createVantaSwapMainnetProductionStatus() {
     safety:
       "No auth tokens, database URLs, wallet keys, signed transactions, seed phrases, raw route quotes, or raw private inputs are printed.",
     truth:
-      "Swap has local proof-request, circuit, committed-settlement, trust-packet, wallet-safety, and atomic verifier/indexer coverage, but it must not be called mainnet-production-ready until quote/route privacy, live venue privacy, reviewed live settlement evidence, active real-funds approval, audited/shared anonymity-set evidence, and production replay evidence are all present.",
+      "Swap has local proof-request, circuit, committed-settlement, trust-packet, wallet-safety, Turnkey liquidity signer dry-run, and atomic verifier/indexer coverage, but it must not be called mainnet-production-ready until quote/route privacy, live venue privacy, reviewed live settlement evidence, active real-funds approval, audited/shared anonymity-set evidence, and production replay evidence are all present.",
   };
 }

@@ -30,6 +30,7 @@ For Vanta code integration, current official Turnkey docs and SDK references rem
 Canonical local check:
 
 ```sh
+npm run swap:turnkey-liquidity-signer-dry-run-check
 npm run turnkey:integration-contract-check
 ```
 
@@ -40,4 +41,6 @@ npm run wallet:signing-safety-check
 npm run mainnet:secret-handling-check
 ```
 
-The next safe implementation step is a server-only Turnkey adapter behind explicit secret-reference gating and a no-live-call dry run.
+The Turnkey liquidity signer dry run is intentionally no-live-call: it uses a fixture Jupiter transaction, an injected mock Turnkey client, no network, no broadcast, and reference-only signer/policy handles. The review packet records signer and policy refs, the transaction fingerprint, a simulation ref, an instruction summary, amount, asset, destination, and an explicit approval state. It must not contain raw key material, raw serialized transactions, signed payloads, or secret values.
+
+Live Swap signing remains blocked after the dry run. The next safe implementation step is reviewing that packet and only then wiring a credentialed server-only Turnkey signer behind exact signer-ref, policy-ref, simulation, and approval gates.

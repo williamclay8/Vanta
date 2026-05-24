@@ -19,6 +19,7 @@ if (checkMode) {
   assert.equal(status.committedSettlementCovered, true);
   assert.equal(status.localAtomicMutationCovered, true);
   assert.equal(status.noFundsOperatorEndpointCovered, true);
+  assert.equal(status.turnkeyLiquiditySignerDryRunCovered, true);
   assert.equal(status.quoteRoutePrivacyProven, false);
   assert.equal(status.liveVenuePrivacyProven, false);
   assert.equal(status.liveSettlementProven, false);
@@ -48,6 +49,10 @@ if (checkMode) {
   );
   assert.equal(status.evidenceRefs.swapCommittedSettlement, "npm run swap:committed-settlement-check");
   assert.equal(status.evidenceRefs.swapTrustPacket, "npm run swap:trust-packet-check");
+  assert.equal(
+    status.evidenceRefs.turnkeyLiquiditySignerDryRun,
+    "npm run swap:turnkey-liquidity-signer-dry-run-check",
+  );
   assert.equal(status.evidenceRefs.swapCircuit, "npm run private-pool-v2:swap-to-shielded-circuit-check");
   assert.equal(status.evidenceRefs.privatePoolV2Verify, "npm run private-pool-v2:verify");
   assert.ok(status.truth.includes("must not be called mainnet-production-ready"));
@@ -64,6 +69,7 @@ if (jsonMode || checkMode) {
   console.log(`- committedSettlementCovered: ${String(status.committedSettlementCovered)}`);
   console.log(`- localAtomicMutationCovered: ${String(status.localAtomicMutationCovered)}`);
   console.log(`- noFundsOperatorEndpointCovered: ${String(status.noFundsOperatorEndpointCovered)}`);
+  console.log(`- turnkeyLiquiditySignerDryRunCovered: ${String(status.turnkeyLiquiditySignerDryRunCovered)}`);
   console.log(`- quoteRoutePrivacyProven: ${String(status.quoteRoutePrivacyProven)}`);
   console.log(`- liveVenuePrivacyProven: ${String(status.liveVenuePrivacyProven)}`);
   console.log(`- liveSettlementProven: ${String(status.liveSettlementProven)}`);

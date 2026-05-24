@@ -38,6 +38,10 @@ for (const secretRef of contract.secretRefs) {
   assert.ok(secretRef.startsWith("VANTA_TURNKEY_"), `Unexpected Turnkey secret ref prefix: ${secretRef}`);
   assert.ok(secretRef.endsWith("_REF"), `Turnkey secret refs must be reference names only: ${secretRef}`);
 }
+assert.deepEqual(contract.externalSignerRefs, ["VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF"]);
+for (const signerRef of contract.externalSignerRefs) {
+  assert.ok(signerRef.endsWith("_REF"), `External signer refs must be reference names only: ${signerRef}`);
+}
 
 for (const action of [
   "root-credential-autonomous-use",
@@ -45,6 +49,7 @@ for (const action of [
   "wallet-delete-or-export-programmatically",
   "policy-mutation-without-exact-approval",
   "sign-and-broadcast-without-simulation-summary-and-approval",
+  "swap-live-mode-before-turnkey-liquidity-signer-dry-run-review",
   "production-custody-or-privacy-claim-elevation",
 ]) {
   assert.ok(contract.blockedActions.includes(action), `Missing blocked Turnkey action: ${action}`);
@@ -79,13 +84,41 @@ assert.equal(
   "node scripts/check-vanta-turnkey-integration-contract.mjs",
   "package.json must expose turnkey:integration-contract-check.",
 );
+assert.equal(
+  packageJson.scripts["swap:turnkey-liquidity-signer-dry-run-check"],
+  "node scripts/check-vanta-turnkey-liquidity-signer-dry-run.mjs",
+  "package.json must expose the Turnkey liquidity signer dry-run gate.",
+);
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run swap:turnkey-liquidity-signer-dry-run-check"),
+  "Turnkey contract must require the liquidity signer dry-run gate.",
+);
+assert.ok(
+  packageJson.scripts["mainnet:swap-production-check"]?.includes(
+    "npm run swap:turnkey-liquidity-signer-dry-run-check",
+  ),
+  "Swap production check must run the Turnkey liquidity signer dry-run gate before live-mode review.",
+);
+assert.ok(
+  packageJson.scripts["swap:capability-check"]?.includes("npm run swap:turnkey-liquidity-signer-dry-run-check"),
+  "Swap capability check must include the Turnkey liquidity signer dry-run gate.",
+);
 assert.ok(
   packageJson.scripts["wallet:signing-safety-check"]?.includes("npm run turnkey:integration-contract-check"),
   "wallet:signing-safety-check must include the Turnkey integration contract.",
 );
 assert.ok(
-  packageJson.scripts["mainnet:secret-handling-check"]?.includes("npm run turnkey:integration-contract-check"),
-  "mainnet:secret-handling-check must include the Turnkey integration contract.",
+  packageJson.scripts["wallet:signing-safety-check"]?.includes(
+    "npm run swap:turnkey-liquidity-signer-dry-run-check",
+  ),
+  "wallet:signing-safety-check must include the Turnkey liquidity signer dry-run gate.",
+);
+assert.ok(
+  packageJson.scripts["mainnet:secret-handling-check"]?.includes("npm run turnkey:integration-contract-check") &&
+    packageJson.scripts["mainnet:secret-handling-check"]?.includes(
+      "npm run swap:turnkey-liquidity-signer-dry-run-check",
+    ),
+  "mainnet:secret-handling-check must include the Turnkey integration contract and liquidity signer dry-run gate.",
 );
 assert.ok(
   packageJson.scripts["mainnet:preflight"]?.includes("npm run wallet:signing-safety-check") &&

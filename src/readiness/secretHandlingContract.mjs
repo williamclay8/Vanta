@@ -139,6 +139,7 @@ export function createVantaSecretHandlingContract() {
     requiredVerificationCommands: [
       "npm run mainnet:secret-handling-check",
       "npm run mainnet:secret-exposure-check",
+      "npm run swap:turnkey-liquidity-signer-dry-run-check",
       "npm run turnkey:integration-contract-check",
       "npm run mainnet:preflight",
       "npm run wallet:signing-safety-check",

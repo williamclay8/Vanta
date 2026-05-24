@@ -32,7 +32,11 @@ export function createVantaTurnkeyIntegrationContract() {
       "/Users/clay/.agents/skills/turnkey-agent-skills/SKILL.md",
       "/Users/clay/.agents/skills/turnkey-agent-skills/references/vanta-turnkey-workflows.md",
     ],
-    localRefs: ["docs/turnkey-integration.md"],
+    localRefs: [
+      "docs/turnkey-integration.md",
+      "docs/jupiter-sol-to-shielded-route-adapter.md",
+      "operator/turnkey-sol-to-shielded-liquidity-signer.mjs",
+    ],
     secretRefs: [
       "VANTA_TURNKEY_ORGANIZATION_ID_REF",
       "VANTA_TURNKEY_API_PUBLIC_KEY_REF",
@@ -40,6 +44,7 @@ export function createVantaTurnkeyIntegrationContract() {
       "VANTA_TURNKEY_SIGN_WITH_REF",
       "VANTA_TURNKEY_POLICY_ID_REF",
     ],
+    externalSignerRefs: ["VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF"],
     blockedActions: [
       "root-credential-autonomous-use",
       "root-key-in-client-bundle",
@@ -48,10 +53,12 @@ export function createVantaTurnkeyIntegrationContract() {
       "policy-mutation-without-exact-approval",
       "activity-approval-bulk-or-unreviewed",
       "sign-and-broadcast-without-simulation-summary-and-approval",
+      "swap-live-mode-before-turnkey-liquidity-signer-dry-run-review",
       "real-funds-or-mainnet-action-without-vanta-approval-window",
       "production-custody-or-privacy-claim-elevation",
     ],
     requiredVerificationCommands: [
+      "npm run swap:turnkey-liquidity-signer-dry-run-check",
       "npm run turnkey:integration-contract-check",
       "npm run wallet:signing-safety-check",
       "npm run mainnet:secret-handling-check",
@@ -66,6 +73,6 @@ export function createVantaTurnkeyIntegrationContract() {
       "activity monitoring design without approval",
     ],
     nextSafeStep:
-      "Add a server-only Turnkey adapter behind explicit env-ref gating and a no-live-call dry run before any credentialed Turnkey API call.",
+      "Review the server-only Turnkey liquidity signer dry-run packet, then keep live signing disabled until governed signer and policy refs are approved for an exact live action.",
   };
 }

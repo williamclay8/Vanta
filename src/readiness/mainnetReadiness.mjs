@@ -153,6 +153,7 @@ const requiredCommands = [
   "npm run private-pool-v2:role-storage-check",
   "npm run wallet:signing-safety-check",
   "npm run turnkey:integration-contract-check",
+  "npm run swap:turnkey-liquidity-signer-dry-run-check",
   "npm run mainnet:wallet-signing-status",
   "npm run mainnet:wallet-production-browser-check",
   "npm run mainnet:wallet-signing-evidence-check",

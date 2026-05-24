@@ -16,6 +16,7 @@ export function createVantaWalletSigningSafetyPolicy() {
     releaseGateCommands: [
       "npm run wallet:signing-safety-check",
       "npm run turnkey:integration-contract-check",
+      "npm run swap:turnkey-liquidity-signer-dry-run-check",
       "npm run wallet:browser-signing-safety-check",
       "npm run wallet:fresh-wallet-check",
       "npm run wallet:fresh-wallet-browser-check",

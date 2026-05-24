@@ -139,6 +139,7 @@ const requiredPhrases = [
   "npm run mainnet:private-rail-route-health-evidence-check",
   "npm run mainnet:wallet-signing-status",
   "npm run mainnet:wallet-signing-evidence-check",
+  "npm run swap:turnkey-liquidity-signer-dry-run-check",
   "npm run private-pool-v2:service-network-check",
   "npm run private-pool-v2:role-storage-check",
   "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL",

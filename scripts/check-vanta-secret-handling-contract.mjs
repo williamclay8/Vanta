@@ -50,6 +50,17 @@ assert.ok(
   contract.requiredVerificationCommands.includes("npm run turnkey:integration-contract-check"),
   "Missing Turnkey integration verification command.",
 );
+assert.ok(
+  contract.requiredVerificationCommands.includes("npm run swap:turnkey-liquidity-signer-dry-run-check"),
+  "Missing Turnkey liquidity signer dry-run verification command.",
+);
+const packageJson = JSON.parse(readFileSync(resolve(repoRoot, "package.json"), "utf8"));
+assert.ok(
+  packageJson.scripts["mainnet:secret-handling-check"]?.includes(
+    "npm run swap:turnkey-liquidity-signer-dry-run-check",
+  ),
+  "mainnet:secret-handling-check must run the Turnkey liquidity signer dry-run gate.",
+);
 
 assert.ok(
   existsSync(secretReferencesManifestPath),

@@ -1310,6 +1310,14 @@ The production wallet-signing evidence command is:
 npm run mainnet:wallet-signing-evidence-check
 ```
 
+The required no-live-call Turnkey liquidity signer dry-run gate is:
+
+```bash
+npm run swap:turnkey-liquidity-signer-dry-run-check
+```
+
+It uses a fixture Jupiter transaction and a mocked Turnkey client. It must not call Turnkey, Jupiter, Solana RPC, or broadcast paths, and its review packet may contain only signer/policy refs, a transaction fingerprint, simulation ref, instruction summary, amount, asset, destination, and explicit approval state.
+
 ## Secret Handling
 
 The checked secret-handling contract is:

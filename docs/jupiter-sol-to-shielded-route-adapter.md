@@ -54,7 +54,13 @@ Raw liquidity keypair envs, `VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_JSON` and `
 
 `VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF` comes from the governed wallet-infrastructure lane, not from a local keypair file. The expected source is a production secret-manager value that points at the reviewed external signer, normally the scoped Turnkey sign-with handle plus its policy id (`VANTA_TURNKEY_SIGN_WITH_REF` / `VANTA_TURNKEY_POLICY_ID_REF`) or an equivalent HSM signer handle. Store only the reference, never exported key material.
 
-The current adapter exposes and enforces this signer policy boundary, but it does not yet execute Jupiter live swaps through a wrapped external signer. Live production execution remains blocked until a server-only signer adapter consumes `VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF`, signs without exposing private key material, and passes a no-live-call dry run plus review.
+The current adapter exposes and enforces this signer policy boundary, but it does not yet execute Jupiter live swaps through a wrapped external signer. Live production execution remains blocked until a server-only signer adapter consumes `VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF`, signs without exposing private key material, and passes:
+
+```bash
+npm run swap:turnkey-liquidity-signer-dry-run-check
+```
+
+That dry-run gate uses a fixture Jupiter transaction and a mocked Turnkey client. It must make no live Turnkey, Jupiter, Solana RPC, or broadcast calls; reject raw production liquidity keypairs; and emit only a review packet with signer/policy refs, transaction fingerprint, simulation ref, instruction summary, amount, asset, destination, and explicit approval state.
 
 ## Demo Boundary
 
@@ -67,6 +73,7 @@ The current adapter exposes and enforces this signer policy boundary, but it doe
 ## Verification
 
 ```bash
+npm run swap:turnkey-liquidity-signer-dry-run-check
 npm run swap:jupiter-sol-to-shielded-adapter-check
 npm run swap:capability-check
 npm run build
