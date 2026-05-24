@@ -36,6 +36,21 @@ assert.doesNotMatch(
   /process\.env\.(?:VANTA_TURNKEY|VANTA_SOL_TO_SHIELDED_LIQUIDITY)/u,
   "Turnkey dry-run signer must not read live Turnkey or liquidity env values.",
 );
+assert.doesNotMatch(
+  signerSource,
+  /\bprocess\.env\b/u,
+  "Turnkey dry-run signer must not read process env; it consumes injected refs only.",
+);
+assert.doesNotMatch(
+  signerSource,
+  /\b(?:readFileSync|writeFileSync|createReadStream)\b/u,
+  "Turnkey dry-run signer must not read or write secret-bearing files.",
+);
+assert.doesNotMatch(
+  signerSource,
+  /\b(?:window|document|localStorage|sessionStorage)\b|import\.meta\.env|VITE_/u,
+  "Turnkey dry-run signer must remain server-only and out of browser/client env surfaces.",
+);
 for (const source of [signerSource, checkerSource]) {
   assert.doesNotMatch(source, /VersionedTransaction\.deserialize/u);
   assert.doesNotMatch(source, /Keypair\.fromSecretKey/u);
@@ -147,10 +162,10 @@ async function waitForExit(child) {
   });
 }
 
-async function assertExistingAdapterRejectsRawProductionKeypair(rawEnv) {
+async function assertExistingAdapterRejectsRawProductionOrLiveKeypair({ nodeEnv, rawEnv }) {
   const child = spawn(process.execPath, ["operator/jupiter-sol-to-shielded-route-adapter.mjs"], {
     env: {
-      NODE_ENV: "production",
+      NODE_ENV: nodeEnv,
       PATH: process.env.PATH ?? "",
       PORT: "0",
       VANTA_SOL_TO_SHIELDED_EXECUTION_MODE: "live",
@@ -266,13 +281,36 @@ try {
   assert.equal(packet.signer.signWithRef, "test-ref:VANTA_TURNKEY_SIGN_WITH_REF");
   assert.equal(packet.signer.policyIdRef, "test-ref:VANTA_TURNKEY_POLICY_ID_REF");
   assert.equal(packet.signer.keyMaterialObserved, false);
+  assert.equal(packet.gate.command, "npm run swap:turnkey-liquidity-signer-dry-run-check");
+  assert.equal(packet.gate.requiredBeforeLiveMode, true);
+  assert.equal(packet.serverOnlyAdapter.browserExposureAllowed, false);
+  assert.equal(packet.serverOnlyAdapter.clientBundleAllowed, false);
+  assert.equal(packet.serverOnlyAdapter.signerRefSource, "server-secret-manager-reference");
+  assert.equal(packet.serverOnlyAdapter.turnkeyClient, "mock-injected-server-client");
+  assert.equal(packet.transaction.fixture, "offline-jupiter-versioned-transaction-v0");
   assert.equal(packet.transaction.fingerprint, transactionFingerprint);
+  assert.equal(packet.transaction.instructionSummary.length, 1);
+  assert.equal(packet.transaction.instructionSummary[0].label, "jupiter-swap-fixture");
   assert.equal(packet.transaction.instructionSummary[0].programId, jupiterProgramId.toBase58());
+  assert.equal(packet.transaction.instructionSummary[0].dataFingerprint, hashBuffer(instruction.data));
+  assert.equal(packet.transaction.instructionSummary[0].signerCount, 1);
+  assert.equal(packet.transaction.instructionSummary[0].writableAccountCount, 2);
   assert.equal(packet.simulation.simulationRef, "test-ref:offline-jupiter-fixture-simulation-no-rpc");
   assert.equal(packet.amount.input, "0.025");
+  assert.equal(packet.amount.inputAtomic, "25000000");
+  assert.equal(packet.amount.maxInput, "0.025");
+  assert.equal(packet.amount.minOutput, "3.40");
+  assert.equal(packet.amount.slippageBps, 50);
   assert.equal(packet.asset.input, "SOL");
+  assert.equal(packet.asset.inputMint, nativeSolMint);
   assert.equal(packet.asset.output, "USDC");
+  assert.equal(packet.asset.outputMint, usdcMint);
+  assert.equal(packet.destination.outputMint, usdcMint);
   assert.equal(packet.destination.publicSettlementDestination, destinationPublicKey.toBase58());
+  assert.equal(
+    packet.destination.shieldedOutputCommitmentRef,
+    "test-ref:private-pool-v2-output-commitment-fixture",
+  );
   assert.equal(packet.approval.state, "review-required-not-approved");
   assert.equal(packet.approval.liveModeAllowed, false);
   assert.equal(packet.controls.noLiveCall, true);
@@ -293,15 +331,30 @@ try {
   assert.equal(packet.controls.liquiditySignerMode, "wrapped-external-signer");
   assertReviewPacketSanitized(packet);
   assertNoSecretLikeOutput(packet, "Turnkey liquidity signer dry-run review packet");
+
+  console.log(
+    JSON.stringify(
+      {
+        ok: true,
+        reviewPacket: packet,
+      },
+      null,
+      2,
+    ),
+  );
 } finally {
   globalThis.fetch = originalFetch;
 }
 
-await assertExistingAdapterRejectsRawProductionKeypair({
-  VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_JSON: "[1,2,3]",
+await assertExistingAdapterRejectsRawProductionOrLiveKeypair({
+  nodeEnv: "production",
+  rawEnv: {
+    VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_JSON: "[1,2,3]",
+  },
 });
-await assertExistingAdapterRejectsRawProductionKeypair({
-  VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_PATH: "/tmp/vanta-raw-liquidity-keypair-forbidden.json",
+await assertExistingAdapterRejectsRawProductionOrLiveKeypair({
+  nodeEnv: "",
+  rawEnv: {
+    VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_PATH: "/tmp/vanta-raw-liquidity-keypair-forbidden.json",
+  },
 });
-
-console.log(`Vanta Turnkey liquidity signer dry-run check: PASS ${transactionFingerprint}`);

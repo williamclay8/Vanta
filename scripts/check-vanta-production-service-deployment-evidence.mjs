@@ -22,6 +22,10 @@ assert.match(
 );
 assert.equal(evidence.manifestRef, "ops/mainnet/private-pool-v2-services.manifest.json");
 assert.equal(
+  evidence.payAndJupiterRenderServicesManifestRef,
+  "ops/mainnet/pay-and-jupiter-render-services.manifest.json",
+);
+assert.equal(
   evidence.roleServiceReplayEvidenceRef,
   "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
 );
@@ -119,6 +123,10 @@ assert.equal(
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:service-deployment-evidence-check"),
   "mainnet:preflight must include service deployment evidence check.",
+);
+assert.ok(
+  packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:pay-jupiter-render-services-check"),
+  "mainnet:preflight must include Pay/Jupiter Render services check.",
 );
 
 console.log("Vanta production service deployment evidence check: PASS");

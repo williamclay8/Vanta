@@ -189,6 +189,38 @@ function sendJson(response, status, payload) {
   response.end(`${JSON.stringify(normalizeForJson(payload), null, 2)}\n`);
 }
 
+function getProductionLaunchApproved() {
+  return process.env.VANTA_PAY_PRODUCTION_LAUNCH_APPROVED === "true";
+}
+
+function getPayOperatorReadiness() {
+  const durableStoreConfigured = Boolean(storePath || databaseUrl);
+  const productionDatabaseConfigured = Boolean(databaseUrl);
+  const privatePoolOperatorConfigured = Boolean(privatePoolOperatorUrl);
+  const privatePoolOperatorAuthConfigured = Boolean(privatePoolOperatorAuthToken);
+  const internalSettlementCompletionTokenConfigured = Boolean(internalSettlementToken);
+  const productionLaunchApproved = getProductionLaunchApproved();
+  const productionReady =
+    process.env.NODE_ENV === "production" &&
+    durableStoreConfigured &&
+    productionDatabaseConfigured &&
+    privatePoolOperatorConfigured &&
+    privatePoolOperatorAuthConfigured &&
+    internalSettlementCompletionTokenConfigured &&
+    productionLaunchApproved;
+
+  return {
+    durableStoreConfigured,
+    internalSettlementCompletionTokenConfigured,
+    privatePoolOperatorAuthConfigured,
+    privatePoolOperatorConfigured,
+    productionDatabaseConfigured,
+    productionDurableStoreConfigured: productionDatabaseConfigured && durableStoreConfigured,
+    productionLaunchApproved,
+    productionReady,
+  };
+}
+
 const rateLimiter = databaseUrl
   ? await createPostgresRateLimiterFromDatabaseUrl({
       databaseUrl,
@@ -618,26 +650,32 @@ const server = createServer(async (request, response) => {
     }
 
     if (request.method === "GET" && url.pathname === "/v1/status") {
+      const readiness = getPayOperatorReadiness();
       sendJson(response, 200, {
         capabilities: {
           browserCheckoutVerification: true,
           databaseAdapterSeam: true,
           hostedCheckoutSessions: true,
-          durableStoreConfigured: Boolean(storePath || databaseUrl),
+          durableStoreConfigured: readiness.durableStoreConfigured,
           idempotency: {
             checkoutCompletion: true,
             checkoutSessions: true,
             refunds: true,
             withdrawals: true,
           },
-          internalSettlementCompletionTokenConfigured: Boolean(internalSettlementToken),
+          internalSettlementCompletionTokenConfigured:
+            readiness.internalSettlementCompletionTokenConfigured,
           paymentLinkCreation: true,
           privateExitWithdrawalRequired: true,
-          privatePoolOperatorConfigured: Boolean(privatePoolOperatorUrl),
+          privatePoolOperatorAuthConfigured: readiness.privatePoolOperatorAuthConfigured,
+          privatePoolOperatorConfigured: readiness.privatePoolOperatorConfigured,
           privateRailCompletionRequired: true,
+          productionDatabaseConfigured: readiness.productionDatabaseConfigured,
           productionDatabaseRequired: true,
+          productionDurableStoreConfigured: readiness.productionDurableStoreConfigured,
           productionDurableStoreRequired: true,
           productionHttpsWebhooks: true,
+          productionLaunchApproved: readiness.productionLaunchApproved,
           rateLimits: rateLimiter.kind === "postgres-rate-limiter" ? "postgres-durable-shared-window" : "in-memory-per-process",
           requestValidation: "fail-closed",
           webhookDeliveryRetries: true,
@@ -668,10 +706,11 @@ const server = createServer(async (request, response) => {
         ],
         object: "vanta_pay_operator_status",
         privateSettlement: runtime.getMerchantApiStatus().privateSettlement,
+        readiness,
         service: "vanta-pay",
         storage: {
           auditEventSinkKind: operatorEventSink.kind,
-          durableStoreConfigured: Boolean(storePath || databaseUrl),
+          durableStoreConfigured: readiness.durableStoreConfigured,
           kind: snapshotStore.kind,
           path: snapshotStore.path,
           productionReady: snapshotStore.productionReady,

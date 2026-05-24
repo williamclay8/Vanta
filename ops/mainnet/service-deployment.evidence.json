@@ -5,6 +5,7 @@
   "lastStatusRef": "npm run mainnet:service-deployment-status-check",
   "routeHealthLastCheckedAt": "2026-04-30T03:20:35Z",
   "manifestRef": "ops/mainnet/private-pool-v2-services.manifest.json",
+  "payAndJupiterRenderServicesManifestRef": "ops/mainnet/pay-and-jupiter-render-services.manifest.json",
   "roleServiceReplayEvidenceRef": "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
   "roleServiceNetworkRef": "npm run private-pool-v2:service-network-check",
   "roleServiceReplayVerified": true,

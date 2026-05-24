@@ -265,9 +265,10 @@ function parseJsonKeypair(value) {
 }
 
 function assertLiquiditySignerPolicy() {
-  if (process.env.NODE_ENV === "production" && rawLiquidityKeypairConfigured) {
+  const liveMainnetExecution = executionMode === "live" && cluster === "mainnet-beta";
+  if ((process.env.NODE_ENV === "production" || liveMainnetExecution) && rawLiquidityKeypairConfigured) {
     throw new Error(
-      "VANTA_SOL_TO_SHIELDED raw liquidity keypairs are local-only. Production must use VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF with a wrapped external signer/HSM boundary.",
+      "VANTA_SOL_TO_SHIELDED raw liquidity keypairs are local-only. Production or live mainnet execution must use VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF with a wrapped external signer/HSM boundary.",
     );
   }
 }

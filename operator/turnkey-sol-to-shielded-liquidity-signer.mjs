@@ -178,9 +178,19 @@ export function createTurnkeyLiquiditySignerReviewPacket({
     amount,
     asset,
     destination,
+    gate: {
+      command: "npm run swap:turnkey-liquidity-signer-dry-run-check",
+      requiredBeforeLiveMode: true,
+    },
     approval: {
       state: approvalState,
       liveModeAllowed: false,
+    },
+    serverOnlyAdapter: {
+      browserExposureAllowed: false,
+      clientBundleAllowed: false,
+      signerRefSource: "server-secret-manager-reference",
+      turnkeyClient: "mock-injected-server-client",
     },
     controls: {
       ...controls,

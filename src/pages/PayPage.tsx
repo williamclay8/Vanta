@@ -372,7 +372,10 @@ export function PayPage() {
           <div>
             <span className="pay-kicker product-intro__eyebrow">Vanta Pay</span>
             <h1 id="pay-title">Pay</h1>
-            <p>Create a payment request. Show the receipt each party can verify.</p>
+            <p>
+              Create a payment request. Show the receipt each party can verify.
+              It is not a production payment processor and does not provide a privacy guarantee.
+            </p>
             <div className="pay-hero-badges pay-hero-badges--compact" aria-label="Pay beta status">
               <span>
                 {isBetaMode ? "Test mode" : "Test harness"} — no production funds, test receipt only
@@ -408,7 +411,7 @@ export function PayPage() {
                 </header>
                 <div className="pay-builder-intro">
                   <h2 id="pay-details-title">Payment details</h2>
-                  <p>Create a test request. Not for production settlement yet.</p>
+                  <p>Create a test payment request before live approval or production settlement.</p>
                 </div>
 
                 <form
@@ -823,7 +826,7 @@ export function PayPage() {
             <div className="pay-success-card pay-success-card--truth">
               <strong>Vanta Pay is in test mode.</strong>
               <span>
-                Not a production payment processor. No production funds moved.
+                It is not a production payment processor. No production funds moved. This is not a privacy guarantee.
               </span>
             </div>
           </article>

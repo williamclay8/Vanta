@@ -1,0 +1,109 @@
+{
+  "version": "vanta-pay-and-jupiter-render-services-manifest-0.1",
+  "network": "mainnet-beta",
+  "mainnetReady": false,
+  "productionReady": false,
+  "secretPolicy": "refs-only-no-secret-values-no-raw-keypairs",
+  "renderWorkspace": {
+    "provider": "render",
+    "workspaceName": "William's workspace",
+    "workspaceId": "tea-d7j37af7f7vs739ii8rg"
+  },
+  "services": [
+    {
+      "id": "pay",
+      "provider": "render",
+      "environment": "production-blocked",
+      "serviceId": "srv-d7j3ggqqqhas739for80",
+      "serviceName": "Vanta",
+      "startCommand": "npm run pay:operator",
+      "healthChecks": ["/health"],
+      "readinessChecks": ["/v1/status"],
+      "deploymentStatus": "update-failed",
+      "lastFailedDeploy": {
+        "deployId": "dep-d89i384vikkc73bib070",
+        "commit": "d1f45b2068cd34218938fc63a46f8e85579d46b7",
+        "finishedAt": "2026-05-24T16:06:37Z",
+        "failureRef": "Vanta Pay production mode requires VANTA_PAY_SECRET_KEY"
+      },
+      "requiredEnvRefs": [
+        "VANTA_PAY_SECRET_KEY_REF",
+        "VANTA_PAY_WEBHOOK_SECRET_REF",
+        "VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN_REF",
+        "VANTA_PAY_DATABASE_URL_REF",
+        "VANTA_PAY_PRIVATE_POOL_OPERATOR_TOKEN_REF"
+      ],
+      "runtimeEnvNames": [
+        "VANTA_PAY_SECRET_KEY",
+        "VANTA_PAY_WEBHOOK_SECRET",
+        "VANTA_PAY_INTERNAL_SETTLEMENT_TOKEN",
+        "VANTA_PAY_DATABASE_URL",
+        "VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_URL",
+        "VANTA_PAY_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN"
+      ],
+      "blockers": [
+        "pay-production-secret-env-not-provisioned",
+        "pay-production-durable-store-not-proven",
+        "pay-private-pool-operator-not-configured-for-production",
+        "pay-internal-settlement-token-not-configured-for-production",
+        "pay-customer-payment-evidence-not-wired",
+        "pay-production-launch-approval-not-recorded",
+        "private-settlement-not-live-mainnet"
+      ],
+      "productionReady": false
+    },
+    {
+      "id": "jupiter-adapter",
+      "provider": "render",
+      "environment": "production-blocked",
+      "serviceId": "srv-d7oe3cu7r5hc73d28530",
+      "serviceName": "Jupiter Adapter",
+      "startCommand": "npm run swap:jupiter-sol-to-shielded-adapter",
+      "healthChecks": ["/health"],
+      "readinessChecks": ["/health"],
+      "deploymentStatus": "update-failed",
+      "lastFailedDeploy": {
+        "deployId": "dep-d89i384vikkc73bib0p0",
+        "commit": "d1f45b2068cd34218938fc63a46f8e85579d46b7",
+        "finishedAt": "2026-05-24T16:06:32Z",
+        "failureRef": "raw liquidity keypairs are local-only"
+      },
+      "forbiddenEnvNames": [
+        "VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_JSON",
+        "VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_PATH"
+      ],
+      "requiredEnvRefs": [
+        "VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF",
+        "VANTA_TURNKEY_SIGN_WITH_REF",
+        "VANTA_TURNKEY_POLICY_ID_REF"
+      ],
+      "runtimeEnvNames": [
+        "VANTA_SOL_TO_SHIELDED_EXECUTION_MODE",
+        "VANTA_SOLANA_RPC_URL",
+        "VANTA_SOL_TO_SHIELDED_MAX_INPUT_SOL",
+        "VANTA_SOL_TO_SHIELDED_SUPPORTED_ASSETS",
+        "VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF",
+        "VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
+        "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN"
+      ],
+      "blockers": [
+        "raw-liquidity-keypair-env-must-be-removed",
+        "server-only-turnkey-signer-adapter-not-implemented",
+        "turnkey-signer-ref-resolution-not-reviewed",
+        "live-jupiter-swap-signing-still-raw-keypair-path",
+        "adapter-auth-proxy-not-configured-for-live-browser-flow",
+        "durable-live-cap-state-not-configured",
+        "swap-live-settlement-evidence-not-reviewed"
+      ],
+      "productionReady": false
+    }
+  ],
+  "releaseGates": [
+    "npm run pay:production-readiness-contract-check",
+    "npm run swap:turnkey-liquidity-signer-dry-run-check",
+    "npm run swap:jupiter-sol-to-shielded-adapter-check",
+    "npm run mainnet:swap-production-check",
+    "npm run mainnet:pay-jupiter-render-services-check"
+  ],
+  "safety": "This manifest stores service ids, env names, and secret reference names only. It must not contain secret values, raw keypairs, bearer tokens, database URLs, or signed transactions."
+}

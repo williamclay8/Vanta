@@ -791,6 +791,18 @@ try {
       "Expected configured Private Pool v2 operator status.",
     );
     assert(
+      apiStatus.parsed?.capabilities?.privatePoolOperatorAuthConfigured === true,
+      "Expected configured Private Pool v2 operator auth status.",
+    );
+    assert(
+      apiStatus.parsed?.capabilities?.productionLaunchApproved === false,
+      "Expected production launch approval to stay false in local Pay status.",
+    );
+    assert(
+      apiStatus.parsed?.capabilities?.productionDurableStoreConfigured === false,
+      "Expected local JSON store to avoid claiming production durable-store configuration.",
+    );
+    assert(
       apiStatus.parsed?.capabilities?.idempotency?.checkoutSessions === true,
       "Expected checkout-session idempotency capability.",
     );
@@ -817,6 +829,38 @@ try {
     assert(
       apiStatus.parsed?.capabilities?.durableStoreConfigured === true,
       "Expected durable store configured capability.",
+    );
+    assert(
+      apiStatus.parsed?.readiness?.durableStoreConfigured === true,
+      "Expected Pay status readiness to expose durable-store configuration.",
+    );
+    assert(
+      apiStatus.parsed?.readiness?.privatePoolOperatorConfigured === true,
+      "Expected Pay status readiness to expose Private Pool operator configuration.",
+    );
+    assert(
+      apiStatus.parsed?.readiness?.privatePoolOperatorAuthConfigured === true,
+      "Expected Pay status readiness to expose Private Pool operator auth configuration.",
+    );
+    assert(
+      apiStatus.parsed?.readiness?.internalSettlementCompletionTokenConfigured === true,
+      "Expected Pay status readiness to expose internal settlement token presence.",
+    );
+    assert(
+      apiStatus.parsed?.readiness?.productionDatabaseConfigured === false,
+      "Expected local Pay status readiness to avoid claiming production database configuration.",
+    );
+    assert(
+      apiStatus.parsed?.readiness?.productionDurableStoreConfigured === false,
+      "Expected local Pay status readiness to avoid claiming production durable-store configuration.",
+    );
+    assert(
+      apiStatus.parsed?.readiness?.productionLaunchApproved === false,
+      "Expected Pay status readiness to expose missing production launch approval.",
+    );
+    assert(
+      apiStatus.parsed?.readiness?.productionReady === false,
+      "Expected Pay status readiness to keep productionReady false.",
     );
     assert(
       apiStatus.parsed?.capabilities?.productionHttpsWebhooks === true,

@@ -1724,7 +1724,7 @@ export function SwapPage() {
   } else if (sourcePairCapability.status !== "live") {
     validationMessage =
       sourcePairCapability.blockers[0] ??
-      "This pair has no live route adapter yet.";
+      "This shielded pair needs a route adapter with committed settlement evidence before it can execute.";
   } else if (!selectedShieldAsset.configured) {
     validationMessage = `Shielded ${selectedSourceAsset} is not configured yet.`;
   } else if (requiresPrivateSwap && usesLegacyUsdcSolOperator && !liveSwapPair.configured) {

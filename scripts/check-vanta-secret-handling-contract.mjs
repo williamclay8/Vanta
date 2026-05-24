@@ -86,10 +86,15 @@ const rawSecretValuePatterns = [
   /bearer\s+[a-z0-9._-]+/i,
   /-----BEGIN [A-Z ]*PRIVATE KEY-----/,
   /seed phrase/i,
+  /\[[\d,\s]{96,}\]/,
 ];
 
 function scanForRawSecretValues(value, path = "manifest") {
   if (Array.isArray(value)) {
+    assert.ok(
+      !(value.length >= 32 && value.every((entry) => Number.isInteger(entry) && entry >= 0 && entry <= 255)),
+      `Secret references manifest contains raw-looking Solana keypair byte array at ${path}.`,
+    );
     value.forEach((entry, index) => scanForRawSecretValues(entry, `${path}[${index}]`));
     return;
   }
@@ -113,6 +118,15 @@ function scanForRawSecretValues(value, path = "manifest") {
     assert.ok(!pattern.test(value), `Secret references manifest contains raw-looking secret value at ${path}.`);
   }
 }
+
+assert.throws(
+  () => scanForRawSecretValues({ secretKey: Array.from({ length: 64 }, (_, index) => index) }, "synthetic"),
+  /raw-looking Solana keypair byte array/u,
+);
+assert.throws(
+  () => scanForRawSecretValues({ bytes: Array.from({ length: 64 }, (_, index) => index) }, "synthetic"),
+  /raw-looking Solana keypair byte array/u,
+);
 
 scanForRawSecretValues(manifest);
 

@@ -14,7 +14,9 @@ assert.match(serverSource, /assertLiquiditySignerPolicy/);
 assert.match(serverSource, /raw-keypair-local-only/);
 assert.match(serverSource, /wrapped-external-signer/);
 assert.match(serverSource, /NODE_ENV === "production"/);
+assert.match(serverSource, /executionMode === "live" && cluster === "mainnet-beta"/);
 assert.match(serverSource, /raw liquidity keypairs are local-only/);
+assert.match(serverSource, /Production or live mainnet execution must use VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF/);
 assert.match(serverSource, /liquiditySignerMode/);
 assert.match(serverSource, /liquiditySignerWrapped/);
 assert.match(serverSource, /VANTA_PRIVATE_POOL_V2_OPERATOR_URL/);
@@ -144,6 +146,25 @@ async function assertRawProductionKeypairRefused() {
   assert.match(result.stderr, /VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF/);
 }
 
+async function assertRawLiveMainnetKeypairRefusedWithoutNodeEnv() {
+  const child = spawn(process.execPath, ["operator/jupiter-sol-to-shielded-route-adapter.mjs"], {
+    env: {
+      ...process.env,
+      NODE_ENV: "",
+      PORT: "0",
+      VANTA_SOL_TO_SHIELDED_EXECUTION_MODE: "live",
+      VANTA_SOL_TO_SHIELDED_LIQUIDITY_KEYPAIR_PATH:
+        "/tmp/vanta-raw-liquidity-keypair-live-mainnet-forbidden.json",
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  const result = await waitForExit(child);
+  assert.notEqual(result.code, 0);
+  assert.match(result.stderr, /raw liquidity keypairs are local-only/);
+  assert.match(result.stderr, /live mainnet execution/);
+  assert.match(result.stderr, /VANTA_SOL_TO_SHIELDED_LIQUIDITY_SIGNER_REF/);
+}
+
 async function main() {
   const port = 18_798 + Math.floor(Math.random() * 1000);
   const baseUrl = `http://127.0.0.1:${port}`;
@@ -266,6 +287,7 @@ async function main() {
   }
 
   await assertRawProductionKeypairRefused();
+  await assertRawLiveMainnetKeypairRefusedWithoutNodeEnv();
 
   console.log("Vanta Jupiter SOL-to-shielded route adapter check: PASS");
 }
