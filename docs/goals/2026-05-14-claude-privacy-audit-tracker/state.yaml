@@ -1865,6 +1865,101 @@ production_privacy_audit_remediation:
             committed: "c922a52b0da2d7be7b44e79121a8bf64f49c993b (Map C01 external evidence refs)"
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at c922a52b0da2d7be7b44e79121a8bf64f49c993b on 2026-05-25"
             deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a8op7aqgkc73ap4gn0 at commit c922a52b0 on 2026-05-25; public live meta-description, public audit discovery, and live anonymity-set probe passed; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, accepted external verifier refs, and production privacy remain not deployed/live."
+    - id: band-4-anonymity-set-bootstrap
+      status: tracker-open-blocked-on-band-1-3-external-acceptance
+      rule: "Band 4 is continuous work, but the audit gates it on Bands 1-3 having externally accepted production evidence. Do not run closed-alpha deposits, publish anonymity claims, or mark public beta ready while C01 verifier/artifact/SBF/live/audit evidence is absent."
+      items:
+        - id: PPA-ANON-001
+          audit_section: "Band 4 item 14 - closed alpha fixed-denomination anonymity bootstrap"
+          remediation_order: 14
+          title: "Plan closed-alpha operator-bonded fixed-cohort shield deposits after verifier/custody evidence"
+          severity: critical
+          owner_lane: anonymity-set-bootstrap
+          status: blocked-on-band-1-3-external-acceptance
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#What-must-be-true-before-Vanta-can-say-production-private"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-anon-001-closed-alpha-bootstrap-plan.md"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml#architecture_backlog-A6"
+          current_truth:
+            - "The live anonymity probe remains below threshold at 2 observed commitments versus a 1024 minimum threshold."
+            - "Bands 1-3 do not yet have externally accepted production verifier/artifact/SBF/live/audit evidence."
+            - "PPA-PROGRAM-003, PPA-UNSHIELD-002, PPA-VERIFIER-002, and PPA-VERIFIER-003 remain blocked on verifier/root/nullifier, production artifact, SBF/live lineage, deployed verifier program id/hash, verifier-key binding, and reviewer acceptance refs."
+            - "Closed-alpha deposits would be premature until proof-verified Shield/Send/Unshield paths and custody lineage are externally accepted."
+          planned_files_after_unblock:
+            - "ops/mainnet/closed-alpha-anonymity-bootstrap.evidence.json"
+            - "scripts/check-vanta-private-pool-v2-anonymity-set-readiness.mjs"
+            - "scripts/check-vanta-live-anonymity-set-probe.mjs"
+            - "public/.well-known/vanta-audit.json"
+            - "src/readiness/mainnetPrivateSettlementStatus.mjs"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+          planned_fixtures_after_unblock:
+            - "Refs-only closed-alpha cohort packet rejects missing verifier/artifact/SBF-live/audit refs."
+            - "Fixed-denomination cohort packet rejects mixed denomination, mixed asset, unbonded operator deposits, and non-program-owned custody deposits."
+            - "Live probe evidence rejects currentDistinctCommitments below 1024 or non-fail-closed claim flags."
+          planned_new_or_updated_scripts:
+            - "npm run private-pool-v2:anonymity-set-readiness-check"
+            - "npm run private-pool-v2:live-anonymity-set-probe-check"
+            - "npm run private-pool-v2:production-privacy-reviewer-packet-check"
+          blocker_before_implementation:
+            - "Externally accepted Band 1-3 production evidence is absent."
+            - "No deployed verifier program id/hash, tag-5 verifier-key binding, SBF/live lineage, proof-enforced tag-3 receipt, or reviewer acceptance refs exist."
+            - "No approval exists to perform live/operator-bonded shield deposits or any real-funds/mainnet action."
+          plan_verification:
+            - "npm run private-pool-v2:anonymity-set-readiness-check"
+            - "npm run private-pool-v2:live-anonymity-set-probe-check"
+            - "npm run truth:privacy-claim-gate"
+            - "npm run privacy-audit:tracker-check"
+          approval_gate: "Tracker entry opened on 2026-05-25 as blocked-before-implementation. Any live closed-alpha deposit, operator bond, real-funds action, public cohort claim, or claim-gate change requires Clay approval after Bands 1-3 external evidence exists."
+          remaining_truth_boundary: "This tracker entry does not start a closed alpha, generate deposits, prove anonymity, lift claims, or create production-private readiness. It only records that Band 4 item 14 is blocked until verifier/custody/live/audit evidence exists."
+          lumi:
+            local: "Tracker-only blocked entry added and verified locally."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
+        - id: PPA-ANON-002
+          audit_section: "Band 4 item 15 - public beta gated on anonymity-set probe staying >= 1024"
+          remediation_order: 15
+          title: "Plan public-beta anonymity threshold gate after closed-alpha depth is real"
+          severity: critical
+          owner_lane: anonymity-set-bootstrap
+          status: blocked-on-ppa-anon-001-and-live-threshold-evidence
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-anon-002-public-beta-threshold-plan.md"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-r11a-live-anonymity-set-probe.md"
+          current_truth:
+            - "The live probe command exists and must remain fail-closed while currentDistinctCommitments is below 1024."
+            - "Public beta cannot be gated on a threshold that the live manifest does not satisfy."
+            - "The public audit manifest still must not claim anonymity/private/production readiness before accepted verifier/custody/audit evidence and sustained depth evidence exist."
+          planned_files_after_unblock:
+            - "public/.well-known/vanta-audit.json"
+            - "scripts/check-vanta-live-anonymity-set-probe.mjs"
+            - "scripts/check-vanta-privacy-claim-gate.mjs"
+            - "src/readiness/mainnetPrivateSettlementStatus.mjs"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+          planned_fixtures_after_unblock:
+            - "Probe rejects depth below 1024."
+            - "Probe rejects stale threshold evidence, missing measurement window, non-public manifest refs, or anonymityClaimAllowed=true without matching verifier/custody/audit refs."
+            - "Truth gate rejects public beta readiness if any Band 1-4 dependency is missing."
+          planned_new_or_updated_scripts:
+            - "npm run private-pool-v2:live-anonymity-set-probe-check"
+            - "npm run truth:privacy-claim-gate"
+          blocker_before_implementation:
+            - "PPA-ANON-001 closed-alpha fixed-cohort depth is not live."
+            - "Live distinct commitment count remains below 1024."
+            - "Bands 1-3 accepted production evidence remains absent."
+          plan_verification:
+            - "npm run private-pool-v2:live-anonymity-set-probe-check"
+            - "npm run truth:privacy-claim-gate"
+            - "npm run privacy-audit:tracker-check"
+          approval_gate: "Tracker entry opened on 2026-05-25 as blocked-before-implementation. Public beta gating, manifest re-attestation, anonymity claim changes, or production claim changes require Clay approval after sustained live threshold and accepted reviewer evidence exists."
+          remaining_truth_boundary: "This tracker entry does not mark public beta ready, does not lift anonymity claims, and does not alter the live manifest. It only records the Band 4 item 15 blocker chain."
+          lumi:
+            local: "Tracker-only blocked entry added and verified locally."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
 
 audit_completion_checklist:
   path: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-completion-audit.md"
@@ -1888,4 +1983,6 @@ next_safe_slices:
   - "PPA-VERIFIER-001 / Band 3 item 11 is accepted-noop/evidence-local: groth16-tag3-solana-v0 is the recorded backend direction only, with production proof-format/VK/adapter/SBF/live/audit evidence still pending. Next safe slice is a plan for Band 3 item 12."
   - "PPA-VERIFIER-002 / Band 3 item 12 is tracker-approved as a doc-only blocked-before-implementation plan for public Groth16 ceremony/setup, production verifying-key evidence, and tag-5 verifier-key registration; do not edit evidence gates/scripts or attempt ceremony/build/registration until external ceremony/setup, production artifact/VK refs, registration receipts, SBF/live lineage, and review evidence exist."
   - "PPA-VERIFIER-003 / Band 3 item 13 is evidence-contract-tightened and the Ref Source Map slice is committed/pushed/website-live at c922a52b0 / dep-d8a8op7aqgkc73ap4gn0, with a fail-closed Groth16 verifier-CPI guard, but remains blocked before verifier-program deployment, SBF/live lineage, and audit/reviewer acceptance; do not attempt deployment, tag-5 registration, proof-enforced receipts, audit/reviewer intake, verifier wiring, release, or claim-lift work until reviewed production artifact bundle, accepted verifier adapter/program evidence, SBF/live lineage, deployed verifier program id/hash, verifier program upgrade-authority status ref, verifier-key binding, and reviewer acceptance refs exist."
+  - "PPA-ANON-001 / Band 4 item 14 is tracker-open but blocked before closed-alpha deposits on Bands 1-3 externally accepted production evidence, proof-verified custody/release lineage, reviewer acceptance, and explicit live/real-funds approval."
+  - "PPA-ANON-002 / Band 4 item 15 is tracker-open but blocked before public beta/anonymity claims on PPA-ANON-001, sustained live currentDistinctCommitments >= 1024, accepted verifier/custody/audit evidence, and explicit claim-gate approval."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."
