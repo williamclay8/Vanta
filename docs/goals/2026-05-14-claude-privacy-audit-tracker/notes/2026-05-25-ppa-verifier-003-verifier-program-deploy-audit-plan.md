@@ -227,9 +227,22 @@ On 2026-05-25, the human-readable external evidence request gained a refs-only s
 
 This is still a handoff aid only. It does not fill accepted refs, does not deploy a verifier, does not register tag-5, does not accept artifact/adapter/lineage/audit packets, and does not lift any proof-verified or privacy claim.
 
+## Post-Source-Map Release Hygiene
+
+On 2026-05-25, the Ref Source Map slice was committed, pushed, and website-live verified:
+
+- Commit: `c922a52b0da2d7be7b44e79121a8bf64f49c993b` (`Map C01 external evidence refs`)
+- Pushed refs: `origin/codex/ppa-program-004-runtime-verifier-wired` and `origin/main`
+- Render service: `srv-d7j3ggqqqhas739for80`
+- Render deploy: `dep-d8a8op7aqgkc73ap4gn0`, status `live`
+- Live asset observed: `assets/index-CnLrET4N.js`
+- Post-deploy checks passed: `npm run public:live-meta-description-check`, `npm run public:audit-discovery-check`, and `npm run private-pool-v2:live-anonymity-set-probe-check`
+
+This was docs/guard release hygiene only. The public audit manifest still intentionally reports `liveDeploymentVerified=false`, accepted external verifier refs remain null, live anonymity remains below threshold, and no proof-verified/privacy/mainnet/production claim was lifted.
+
 ## Lumi
 
-- Local: refs-only C01 external evidence contract tightened locally, including verifier program upgrade-authority status as a required ref; implementation remains blocked before deployment/audit evidence exists.
-- Committed: not committed.
-- Pushed: not pushed.
-- Deployed/live: not deployed or live verified.
+- Local: refs-only C01 external evidence contract tightened, including verifier program upgrade-authority status and guarded Ref Source Map requirements; accepted refs remain null and implementation remains blocked before deployment/audit evidence exists.
+- Committed: `c922a52b0da2d7be7b44e79121a8bf64f49c993b` (`Map C01 external evidence refs`).
+- Pushed: `origin/codex/ppa-program-004-runtime-verifier-wired` and `origin/main` at `c922a52b0da2d7be7b44e79121a8bf64f49c993b` on 2026-05-25.
+- Deployed/live: Render Vanta website deploy `dep-d8a8op7aqgkc73ap4gn0` live for commit `c922a52b0`; on-chain verifier, TAG5/TAG6, SBF/live lineage, accepted external refs, and production privacy remain not deployed/live.
