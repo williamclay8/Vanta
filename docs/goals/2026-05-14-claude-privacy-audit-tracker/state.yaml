@@ -2431,6 +2431,58 @@ production_privacy_audit_remediation:
             committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
             deployed_live: "not-deployed-live"
+        - id: PPA-AUDIT-003
+          audit_section: "Band 7 item 23 - lift privacy-claim gate only after audits plus anonymity threshold"
+          remediation_order: 23
+          title: "Record claim-gate lift blockers and required evidence"
+          severity: critical
+          owner_lane: external-review
+          status: blocked-on-audit-bounty-verifier-lineage-anonymity-evidence
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#TLDR--the-seven-things-that-gate-every-lane"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-audit-003-claim-gate-lift-blocker-plan.md"
+          current_truth:
+            - "The claim gates must remain locked."
+            - "Current repo/local evidence does not include accepted independent audit refs, complete verifier evidence closure, SBF/live lineage, deployed verifier program id/hash, tag-5 verifier-key binding, live proof-enforced receipt, reviewer acceptance, or live anonymity-set evidence at the required threshold."
+            - "The live anonymity-set probe has historically reported currentDistinctCommitments=2 against minimumDistinctCommitments=1024."
+            - "No repo-local tracker/docs work may move claim gates."
+          planned_files:
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-audit-003-claim-gate-lift-blocker-plan.md"
+          external_refs_needed:
+            - "Accepted ZK audit refs and accepted Solana program audit refs."
+            - "Bug bounty live refs from PPA-AUDIT-002."
+            - "Complete C01 verifier evidence closure refs: reviewed production artifact bundle, verifier adapter/program acceptance, SBF/live lineage, deployed verifier program id/hash, verifier program upgrade-authority status, tag-5 verifier-key binding, proof-enforced tag-3 receipt or reviewer-accepted dry-run, and audit/reviewer acceptance."
+            - "Live anonymity-set evidence proving the active cohort meets or exceeds 1024 distinct commitments with fresh measurement metadata."
+            - "Claim-gate reviewer signoff tying the exact public copy, manifest booleans, operator status, and readiness surfaces to the accepted evidence refs."
+            - "Public manifest re-attestation ref if any public claim flag changes."
+          existing_guards_to_keep_locked:
+            - "npm run truth:privacy-claim-gate"
+            - "npm run private-pool-v2:live-anonymity-set-probe-check"
+            - "npm run zk:c01-positive-proof-verified-claim-gate-check"
+            - "npm run zk:c01-verifier-evidence-closure-gate-check"
+          planned_follow_up_after_approval:
+            - "Reject claim-gate lift if either independent audit lane is missing."
+            - "Reject claim-gate lift if bug bounty live refs are missing."
+            - "Reject claim-gate lift if C01 verifier evidence closure is incomplete."
+            - "Reject claim-gate lift if live distinct commitments are below 1024, stale, unreviewed, or not scoped to the active cohort."
+            - "Reject claim-gate lift if public manifest, status surfaces, and user-facing copy drift from the accepted evidence refs."
+            - "Reject secret-bearing evidence packets."
+          blocker_before_completion:
+            - "Independent audit acceptance, bug bounty live evidence, verifier/SBF/live lineage, and live anonymity-set threshold evidence are absent."
+            - "Any claim-gate change requires explicit Clay approval after those refs exist."
+          plan_verification:
+            - "npm run privacy-audit:tracker-check"
+            - "npm run truth:privacy-claim-gate"
+            - "git diff --check"
+          approval_gate: "Tracker-only Band 7 item 23 slice opened on 2026-05-25. No claim-gate code or public-copy change is planned for this slice."
+          remaining_truth_boundary: "This tracker item does not lift any claim gate, re-attest the public manifest, change public copy, accept audit evidence, accept verifier evidence, create live anonymity evidence, deploy programs, or change launch status."
+          lumi:
+            local: "Tracker-only Band 7 item 23 plan is recorded in this slice."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
 
 audit_completion_checklist:
   path: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-completion-audit.md"
@@ -2463,4 +2515,5 @@ next_safe_slices:
   - "PPA-DISCOVERY-002 / Band 6 item 20 is implemented-verified-local for local legacy v1 Send memo migration/segregation tooling. It does not rewrite historical on-chain memos, deploy recipient discovery, provide reviewed migration/segregation evidence, or lift production privacy claims."
   - "PPA-AUDIT-001 / Band 7 item 21 is tracker-open but blocked on Clay choosing and contracting two independent external audit firms, one ZK specialist and one Solana program specialist; repo-local work can prepare refs-only gates but cannot create signed engagement, scope, report, or reviewer acceptance refs."
   - "PPA-AUDIT-002 / Band 7 item 22 is tracker-open but blocked on Clay approving the bug bounty provider/intake path, budget, legal/safe-harbor posture, triage owners, scope, and public launch timing; repo-local work can prepare refs-only gates but cannot create live bounty facts."
+  - "PPA-AUDIT-003 / Band 7 item 23 is tracker-open but blocked on accepted audit refs, bug bounty live refs, C01 verifier closure, SBF/live lineage, deployed verifier id/hash, tag-5 binding, reviewer signoff, and live anonymity-set evidence at or above 1024 distinct commitments; claim gates must remain locked."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."
