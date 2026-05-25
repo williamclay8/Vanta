@@ -1201,7 +1201,7 @@ production_privacy_audit_remediation:
               - "npm run private-pool-v2:live-anonymity-set-probe-check: PASS; currentDistinctCommitments=2, minimumDistinctCommitments=1024, and depthBelowThreshold=true remain fail-closed."
           remaining_truth_boundary: "This implements local program-owned tree append/root-history correctness for a one-leaf append lane. It does not wire Shield deposits into the tree, Send two-output appends, verifier CPI acceptance, program-owned vault custody, TAG_UNSHIELD release, live anonymity, external audit, production deployment, or any privacy/mainnet-ready claim. The SBF build warning for sol_poseidon requires live/runtime confirmation before production reliance."
           lumi:
-            local: "PPA-PROGRAM-001 implementation, local SBF rebuild, guard wiring, docs, tracker evidence, and local verification are local only."
+            local: "PPA-PROGRAM-001 source, local SBF rebuild, guard wiring, docs, tracker evidence, and local verification are committed and pushed on this branch; on-chain deployment/live/audit evidence remains absent."
             committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
             deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
@@ -1316,7 +1316,7 @@ production_privacy_audit_remediation:
             - "npm run private-pool-v2:live-anonymity-set-probe-check: PASS; currentDistinctCommitments=2, minimumDistinctCommitments=1024, and depthBelowThreshold=true remain fail-closed."
           remaining_truth_boundary: "This local implementation does not remove the production fail-closed release guard or claim live custody/private production readiness. Until on-chain verifier, root verification, public input binding, nullifier consumption, SBF/live lineage, and external review are real, PDA release remains unaudited and must not be callable in production. releaseEnabled stays 0 and production should only require releaseEnabled == 1 when the proof/root/nullifier path is real."
           lumi:
-            local: "PPA-PROGRAM-002 implementation, guard wiring, status/trust/security limitations, and local verification are local only."
+            local: "PPA-PROGRAM-002 source, guard wiring, status/trust/security limitations, and local verification are committed and pushed on this branch; on-chain deployment/live/audit evidence remains absent."
             committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
             deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
@@ -1961,7 +1961,7 @@ production_privacy_audit_remediation:
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
             deployed_live: "not-deployed-live"
     - id: band-5-relayer-maturity
-      status: active-item-18-plan-open-awaiting-approval
+      status: active-item-18-implemented-verified-local
       rule: "Band 5 may only advance after Band 4 items are explicitly blocked/deferred. Do not claim timing privacy, relayer maturity, Tor/blinded-token protection, production privacy, or live private settlement from local relayer controls."
       items:
         - id: PPA-RELAYER-001
@@ -2144,8 +2144,8 @@ production_privacy_audit_remediation:
             - "Reviewer acceptance is required before any Tor/blinded-token protection claim can move beyond local source/evidence-contract status."
           lumi:
             local: "Relayer privacy-transport source, docs, npm script, and tracker evidence are implemented locally in this slice."
-            committed: "8db388d8b49558ba8fda45c482ef7f4336c1f47c Add relayer privacy transport gate."
-            pushed: "pending push for this implementation slice."
+            committed: "8db388d8b49558ba8fda45c482ef7f4336c1f47c Add relayer privacy transport gate; d1de01d8 Record relayer privacy transport status."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired includes d1de01d8 on 2026-05-25."
             deployed_live: "not-deployed-live"
 
 audit_completion_checklist:

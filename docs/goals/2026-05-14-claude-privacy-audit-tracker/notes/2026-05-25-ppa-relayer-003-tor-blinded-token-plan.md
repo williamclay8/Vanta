@@ -88,11 +88,11 @@ Clay approved this plan in thread on 2026-05-25 before code edits.
 
 ## Truth Boundary
 
-This plan would make the relayer privacy-transport requirement executable and fail-closed, but it would not by itself deploy Tor, implement Privacy Pass/blinded-token cryptography, prove IP privacy, prove anonymity, provide audit acceptance, or make any lane production-private/mainnet-ready.
+This local gate makes the relayer privacy-transport requirement executable and fail-closed, but it does not deploy Tor, implement Privacy Pass/blinded-token cryptography, prove IP privacy, prove anonymity, provide audit acceptance, or make any lane production-private/mainnet-ready.
 
 ## Lumi
 
-- Local: tracker plan entry added locally; implementation not started.
-- Committed: latest branch head after this tracker-only slice; use `git log` for the exact commit.
-- Pushed: `origin/codex/ppa-program-004-runtime-verifier-wired` after this tracker-only slice; use `git status` for sync.
+- Local: relayer privacy-transport source, docs, npm script, and tracker evidence are implemented locally in this slice.
+- Committed: `8db388d8b49558ba8fda45c482ef7f4336c1f47c` (`Add relayer privacy transport gate`) plus `d1de01d8` (`Record relayer privacy transport status`).
+- Pushed: `origin/codex/ppa-program-004-runtime-verifier-wired` includes `d1de01d8` on 2026-05-25.
 - Deployed/live: not deployed/live.
