@@ -21,6 +21,7 @@
     "compiledAcirRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json",
     "compiledAcirByteLength": 1840868,
     "compiledAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
+    "compiledAcirBytecodeHash": "sha256:6ab8f6a90eb551bf02e1b313ede919a6e4aefd8740e70728cce641fdfc2c8d04",
     "noirVersion": "1.0.0-beta.19",
     "publicInputLabel": "private-spend-public-input-hash",
     "truthBoundary": "This is the current repo source ACIR required by the production artifact acceptance gate. The older /private/tmp beta18 shim artifacts do not match this source ACIR."

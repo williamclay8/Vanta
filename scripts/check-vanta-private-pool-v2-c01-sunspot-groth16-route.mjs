@@ -1,6 +1,6 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -20,6 +20,10 @@ const sunspotSourceRef = "https://github.com/reilabs/sunspot";
 const sunspotRequiredNargoVersion = "1.0.0-beta.18";
 const localObservedNargoVersion = "1.0.0-beta.19";
 const sunspotCompatibilityStatus = "blocked-local-nargo-version-mismatch-and-sunspot-missing";
+const expectedCurrentAcirSha256 =
+  "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9";
+const expectedCurrentAcirBytecodeHash =
+  "sha256:6ab8f6a90eb551bf02e1b313ede919a6e4aefd8740e70728cce641fdfc2c8d04";
 
 function read(path) {
   return readFileSync(resolve(repoRoot, path), "utf8");
@@ -88,8 +92,14 @@ function runOptional(command, args) {
   };
 }
 
-function sha256(path) {
-  return createHash("sha256").update(readFileSync(resolve(repoRoot, path))).digest("hex");
+function sha256String(value) {
+  return `sha256:${createHash("sha256").update(value).digest("hex")}`;
+}
+
+function acirBytecodeHash(path) {
+  const acir = readJson(path);
+  assert(typeof acir.bytecode === "string" && acir.bytecode.length > 0, "compiled ACIR bytecode must be present");
+  return sha256String(acir.bytecode);
 }
 
 function assertStringArray(value, label) {
@@ -192,8 +202,7 @@ const bbProveHelp = run(bbPath, ["prove", "--help-extended"]);
 const goVersion = run("go", ["version"]).trim();
 const sunspotProbe = runOptional("sunspot", ["--help"]);
 const gnarkVerifierBin = process.env.GNARK_VERIFIER_BIN ?? "";
-const compiledAcir = statSync(resolve(repoRoot, compiledAcirPath));
-const compressedWitness = statSync(resolve(repoRoot, compressedWitnessPath));
+const currentAcirBytecodeHash = acirBytecodeHash(compiledAcirPath);
 
 assert(packet.version === "vanta-private-pool-v2-c01-sunspot-groth16-route-evidence-0.1", "schema mismatch");
 assert(
@@ -340,15 +349,23 @@ for (const [field, expected] of [
 const sourceCircuit = packet.sourceCircuit ?? {};
 assert(sourceCircuit.path === circuitPath, "packet must bind to the actual-private-spend circuit");
 assert(sourceCircuit.compiledAcirRef === compiledAcirPath, "compiled ACIR ref mismatch");
-assert(sourceCircuit.compiledAcirByteLength === compiledAcir.size, "compiled ACIR byte length mismatch");
+assert(sourceCircuit.compiledAcirByteLength === 1840868, "recorded compiled ACIR byte length mismatch");
 assert(
-  sourceCircuit.compiledAcirSha256 === `sha256:${sha256(compiledAcirPath)}`,
-  "compiled ACIR sha256 mismatch",
+  sourceCircuit.compiledAcirSha256 === expectedCurrentAcirSha256,
+  "recorded compiled ACIR sha256 mismatch",
+);
+assert(
+  sourceCircuit.compiledAcirBytecodeHash === expectedCurrentAcirBytecodeHash,
+  "compiled ACIR bytecode hash mismatch",
+);
+assert(
+  currentAcirBytecodeHash === sourceCircuit.compiledAcirBytecodeHash,
+  "current compiled ACIR bytecode hash mismatch",
 );
 assert(sourceCircuit.compressedWitnessRef === compressedWitnessPath, "compressed witness ref mismatch");
 assert(
-  sourceCircuit.compressedWitnessByteLength === compressedWitness.size,
-  "compressed witness byte length mismatch",
+  sourceCircuit.compressedWitnessByteLength === 563801,
+  "recorded compressed witness byte length mismatch",
 );
 assert(sourceCircuit.compressedWitnessHashStored === false, "packet must not store compressed witness hash");
 assert(sourceCircuit.compressedWitnessValuesStored === false, "packet must not store witness values");
