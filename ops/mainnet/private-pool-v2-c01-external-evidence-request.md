@@ -54,6 +54,28 @@ These refs are already recorded in the machine-readable packets as local context
 
 These are comparison/source refs only. They are not external source-review acceptance, not production proof/VK/public-witness evidence, not verifier-adapter acceptance, not deployed verifier evidence, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure. Keep every `requiredProductionOutputs[].currentRef` null until the reviewed returned packets provide the corresponding external refs.
 
+## Ref Source Map
+
+Use this map to collect returned refs. Local commands may produce candidate values, but only reviewer-returned refs can be copied into the acceptance packets.
+
+| Required ref | Where it comes from | Fill target |
+|---|---|---|
+| `git:<reviewed-immutable-production-source-commit-ref>` | External source reviewer freezes the exact production verifier lane after checking `git rev-parse HEAD`, `git status --short`, circuit source hashes, ACIR hash, public-input layout, and proof tuple. | `sourceLineage.frozenSourceCommitRef` in the deterministic build and production bundle packets. |
+| `review:<clean-source-tree-or-reviewed-diff-status-ref>` | External source reviewer records whether the frozen lane was clean or the reviewed diff was accepted. | `sourceLineage.sourceTreeStatusRef` in the deterministic build and production bundle packets. |
+| `review:<reviewed-source-freeze-acceptance-ref>` | External source reviewer signs source-freeze scope, identity, and acceptance. | `sourceLineage.sourceFreezeReviewRef` and `sourceFreezeAccepted=true` in the deterministic build and production bundle packets. |
+| `manifest:<refs-only-production-output-manifest-preflight-ref>` | External artifact producer returns the reviewed output manifest for proof, public witness, production VK, source ACIR, and verifier SBF artifact refs. | `deterministicArtifactBuild.outputManifestRef` and the production output manifest gate. |
+| `build:<reviewed-deterministic-production-artifact-build-receipt-ref>` | External artifact producer performs the deterministic build from frozen reviewed source and pinned toolchain refs; reviewer accepts reproducibility. | `deterministicArtifactBuild.buildReceiptRef` and `satisfiesDeterministicArtifactBuild=true`. |
+| `bundle:<reviewed-production-proof-vk-public-witness-adapter-test-lineage-audit-refs>` | External reviewer accepts the production artifact bundle tying proof-format artifact, VK artifact/hash, public-witness binding, adapter tests, lineage, and audit refs. | `VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-bundle-json>`. |
+| `adapter:<accepted-solana-groth16-verifier-adapter-or-program-ref>` | External reviewer runs the verifier adapter/program matrix: valid proof mutates, invalid proof no mutation, wrong public input no mutation, wrong verifying key no mutation, wrong verifier program no mutation. | `VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-adapter-json>`. |
+| `program:<deployed-verifier-program-id>` | Deployment operator or reviewer records the approved deployed verifier program id after explicit deploy approval. | SBF/live lineage packet and production bundle `deployedVerifierProgramId`. |
+| `sha256:<deployed-verifier-program-sbf-hash>` | Reviewer dumps deployed verifier executable bytes, hashes them, and records the hash ref. | SBF/live lineage packet and production bundle `acceptedVerifierSbfSha256` / verifier hash fields. |
+| `authority:<deployed-verifier-program-upgrade-authority-status-ref>` | Reviewer records upgrade-authority status for the deployed verifier program. | SBF/live lineage packet and production bundle `verifierProgramUpgradeAuthorityStatusRef`. |
+| `record:<tag5-verifier-key-record-binds-production-vk-hash-and-verifier-program-id-ref>` | After approved `TAG_REGISTER_VERIFIER_KEY`, reviewer decodes `[b"vanta2vkey", pool_state, verifierKeyHash]` and records that production VK hash binds to the deployed verifier program id. | SBF/live lineage packet and production bundle `verifierKeyRecordBindingRef`. |
+| `tx-or-review:<live-proof-enforced-tag3-or-reviewer-dry-run-ref>` | Reviewer records a live proof-enforced tag-3 receipt or an explicitly reviewer-accepted dry-run receipt after artifact, adapter, and lineage refs exist. | `liveProofEnforcedTag3ReceiptRef` or `reviewerAcceptedDryRunRef` in the SBF/live lineage packet. |
+| `audit-or-review:<selected-verifier-backend-accepted-for-c01-ref>` | External reviewer/auditor accepts the bundle, adapter matrix, mutation/no-mutation refs, SBF/live lineage, and finding dispositions for C01 scope. | `VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-audit-json>`. |
+
+Do not fill accepted refs from current repo-local command output alone. Repo-local values are useful to prepare the packet, but they are comparison evidence until a reviewed returned packet names them.
+
 ## Return Packets
 
 Return references only. Do not place raw proof bytes, raw verifying-key bytes, raw witness bytes, proving key bytes, keypair material, private keys, seed phrases, signed transaction bytes, live private user data, provider credentials, or authorization-token material in repo evidence.

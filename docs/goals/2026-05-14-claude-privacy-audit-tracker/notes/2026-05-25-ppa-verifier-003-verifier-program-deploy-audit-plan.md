@@ -33,6 +33,7 @@ After Clay's explicit 2026-05-25 request to work on external Band 3 evidence, th
 - `ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json` now cross-checks deployed verifier program id/hash, verifier program upgrade-authority status ref, verifier-key binding, and frozen source commit evidence across the returned production bundle and SBF/live lineage acceptance packet.
 - `ops/mainnet/private-pool-v2-c01-sbf-live-lineage-candidate.evidence.json` now records the fresh local comparison-only spend SBF hash `sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55`; this still has `satisfiesSbfLiveLineage=false`.
 - `ops/mainnet/private-pool-v2-c01-external-evidence-request.md` now gives external producers/reviewers a concise refs-only work order for the same handoff without changing accepted refs or promotion rules.
+- `ops/mainnet/private-pool-v2-c01-external-evidence-request.md` now includes a guarded Ref Source Map that names where each required returned ref comes from and which reviewed packet field it fills. The map explicitly says current repo-local command output is comparison evidence only and must not populate accepted refs without a reviewed returned packet.
 
 ## Planned Files
 
@@ -207,6 +208,24 @@ On 2026-05-25, the env-supplied external packet validators were also exercised w
 - Composite closure with only `VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH` supplied: expected FAIL; rejected with `all C01 closure env vars must be supplied together`.
 
 These are negative guard checks only. They do not supply production artifact, adapter, lineage, tag-5, or audit refs.
+
+## Continuation Ref Source Map
+
+On 2026-05-25, the human-readable external evidence request gained a refs-only source map for the exact external blockers Clay asked about:
+
+- reviewed frozen source commit
+- reviewed source tree or reviewed diff status
+- source-freeze review acceptance
+- production output manifest and deterministic build receipt
+- reviewed production artifact bundle
+- verifier adapter/program acceptance and mutation/no-mutation refs
+- deployed verifier program id and deployed verifier SBF hash
+- verifier program upgrade-authority status ref
+- tag-5 verifier-key record binding production VK hash to verifier program id
+- live proof-enforced tag-3 receipt or reviewer-accepted dry-run
+- audit/reviewer acceptance
+
+This is still a handoff aid only. It does not fill accepted refs, does not deploy a verifier, does not register tag-5, does not accept artifact/adapter/lineage/audit packets, and does not lift any proof-verified or privacy claim.
 
 ## Lumi
 
