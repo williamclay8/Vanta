@@ -2385,6 +2385,52 @@ production_privacy_audit_remediation:
             committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
             deployed_live: "not-deployed-live"
+        - id: PPA-AUDIT-002
+          audit_section: "Band 7 item 22 - bug bounty live from launch"
+          remediation_order: 22
+          title: "Open the bug bounty launch evidence path"
+          severity: critical
+          owner_lane: external-review
+          status: blocked-external-plan-open
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#Audit"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-audit-002-bug-bounty-launch-plan.md"
+          current_truth:
+            - "The repo has no accepted external refs proving a bug bounty is live, funded, scoped, triaged, or legally approved."
+            - "Band 7 item 22 depends on external program facts: platform or hosted intake, scope, rules, payout budget, safe harbor, triage ownership, disclosure policy, severity matrix, and public launch URL."
+            - "A repo-local plan can define the evidence contract, but it cannot make the bounty live."
+          planned_files:
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-audit-002-bug-bounty-launch-plan.md"
+          external_refs_needed:
+            - "Bug bounty platform or public intake URL ref."
+            - "Scope ref covering Vanta web/app, operator services, Private Pool v2 programs, verifier/adaptor evidence, proof lanes, custody/release paths, relayer/indexer/prover/verifier services, and relevant infrastructure."
+            - "Out-of-scope/refusal policy ref for spam, social engineering, physical attacks, denial-of-service, public data scraping, and duplicate reports."
+            - "Safe-harbor/legal approval ref."
+            - "Payout budget and severity matrix ref."
+            - "Triage owner/on-call/SLA ref."
+            - "Report handling, disclosure, duplicate, embargo, and fix-verification policy refs."
+            - "Launch timing ref proving the bounty is live no later than the launch event it is meant to cover."
+            - "Reviewer acceptance ref that the bounty scope matches the audit blockers and does not imply audit acceptance by itself."
+          planned_follow_up_after_approval:
+            - "Add a fail-closed refs-only bug bounty launch evidence gate under ops/mainnet/ and scripts/."
+            - "Reject missing public intake URL, scope gaps, missing safe-harbor/legal approval, missing payout/severity matrix, missing triage owner/SLA, missing disclosure policy, stale launch timing, generic reviewer acceptance, and secret-bearing packets."
+            - "Keep truth gates fail-closed until independent audit refs, bounty live refs, verifier evidence, SBF/live lineage, and live anonymity evidence all exist."
+          blocker_before_completion:
+            - "Clay must approve the bounty provider/intake path, budget, legal/safe-harbor posture, triage owners, scope, and public launch timing."
+            - "If a third-party platform is used, provider-side setup and public URL evidence are external facts."
+            - "Repo-local work can prepare request packets and intake gates, but cannot create the external bounty launch facts."
+          plan_verification:
+            - "npm run privacy-audit:tracker-check"
+            - "git diff --check"
+          approval_gate: "Tracker-only Band 7 item 22 slice opened on 2026-05-25. Follow-up code/evidence-gate work remains a separate approved implementation slice."
+          remaining_truth_boundary: "This tracker item does not open a live bounty, allocate payout budget, create a safe-harbor policy, publish a public intake URL, accept reports, move a claim gate, deploy programs, or change launch status."
+          lumi:
+            local: "Tracker-only Band 7 item 22 plan is recorded in this slice."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
 
 audit_completion_checklist:
   path: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-completion-audit.md"
@@ -2416,4 +2462,5 @@ next_safe_slices:
   - "PPA-DISCOVERY-001 / Band 6 item 19 is implemented-verified-local for an authenticated indexer view-tag prefix pull API. It is not deployed/live/reviewed, does not prove query privacy, and production recipient discovery remains blocked on deployed service, retention/log-redaction, public or anonymous read posture, legacy v1 memo migration/segregation, and reviewer acceptance evidence."
   - "PPA-DISCOVERY-002 / Band 6 item 20 is implemented-verified-local for local legacy v1 Send memo migration/segregation tooling. It does not rewrite historical on-chain memos, deploy recipient discovery, provide reviewed migration/segregation evidence, or lift production privacy claims."
   - "PPA-AUDIT-001 / Band 7 item 21 is tracker-open but blocked on Clay choosing and contracting two independent external audit firms, one ZK specialist and one Solana program specialist; repo-local work can prepare refs-only gates but cannot create signed engagement, scope, report, or reviewer acceptance refs."
+  - "PPA-AUDIT-002 / Band 7 item 22 is tracker-open but blocked on Clay approving the bug bounty provider/intake path, budget, legal/safe-harbor posture, triage owners, scope, and public launch timing; repo-local work can prepare refs-only gates but cannot create live bounty facts."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."
