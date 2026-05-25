@@ -2338,6 +2338,53 @@ production_privacy_audit_remediation:
             committed: "committed on codex/ppa-program-004-runtime-verifier-wired after the PPA-DISCOVERY-002 implementation slice; use git log for the exact branch head."
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired includes the PPA-DISCOVERY-002 implementation slice; use git status for sync."
             deployed_live: "not-deployed-live"
+    - id: band-7-audit-launch
+      status: tracker-open-blocked-on-external-audit-engagement
+      rule: "Band 7 requires external reviewer/legal/commercial facts. Do not claim audit acceptance, launch readiness, proof-verified privacy, or claim-gate release from repo-local tracker or evidence-gate work."
+      items:
+        - id: PPA-AUDIT-001
+          audit_section: "Band 7 item 21 - contract two independent audit firms"
+          remediation_order: 21
+          title: "Open the two-firm external audit engagement evidence path"
+          severity: critical
+          owner_lane: external-review
+          status: blocked-external-plan-open
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#Audit"
+            - "AUDIT_2026-05-19.md#Required-external-validation"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-audit-001-two-firm-audit-engagement-plan.md"
+          current_truth:
+            - "The repo has no accepted external refs proving two independent audit firms are contracted."
+            - "The ZK audit lane must cover circuit source/ACIR hash, public-input layout, proof tuple, production VK hash, verifier adapter evidence, artifact bundle, and Send/Swap output binding."
+            - "The Solana program audit lane must cover spend/verifier SBF lineage, PDA vault custody, TAG_REGISTER_VAULT_ASSET, TAG_REGISTER_VERIFIER_KEY, TAG_SPEND_WITH_PROOF, TAG_UNSHIELD, nullifier/root ordering, token/SOL CPI release shape, and runtime verifier gate behavior."
+            - "Band 3 external artifact/verifier/SBF/live/reviewer refs remain absent, so audit engagement planning cannot be treated as audit acceptance."
+          planned_files:
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-audit-001-two-firm-audit-engagement-plan.md"
+          external_refs_needed:
+            - "ZK audit firm identity ref, independence/conflict disclosure ref, signed engagement/SOW acceptance ref, and scope ref."
+            - "Solana audit firm identity ref, independence/conflict disclosure ref, signed engagement/SOW acceptance ref, and scope ref."
+            - "Reviewer packet receipt refs, finding register refs, finding disposition refs, final report or acceptance-letter refs, and reviewer signoff refs."
+            - "Refs-only evidence packet path with no raw proof, witness, private key, bearer credential, signed transaction, or live private data."
+          planned_follow_up_after_approval:
+            - "Add a fail-closed refs-only audit engagement evidence gate under ops/mainnet/ and scripts/."
+            - "Reject missing both firms, only one firm, same-firm reuse, generic review scope, missing independence disclosure, missing signed engagement acceptance, missing finding disposition, missing reviewer signoff, and secret-bearing packets."
+            - "Keep truth gates fail-closed until accepted audit refs, verifier evidence, SBF/live lineage, and live anonymity evidence all exist."
+          blocker_before_completion:
+            - "Clay must choose and contract two independent external reviewers through the appropriate legal/commercial path."
+            - "Named firms or reviewers, budget/terms approval, signed acceptance refs, and reviewer-owned deliverable refs are absent."
+            - "Repo-local work can prepare request packets and intake gates, but cannot create the external contracting facts."
+          plan_verification:
+            - "npm run privacy-audit:tracker-check"
+            - "git diff --check"
+          approval_gate: "Clay approved opening this tracker-only Band 7 item 21 slice on 2026-05-25. Follow-up code/evidence-gate work remains a separate approved implementation slice."
+          remaining_truth_boundary: "This tracker item does not contract auditors, open a bounty, publish a report, accept reviewer findings, change public claims, deploy programs, register verifier keys, release funds, or make any privacy/audit/launch claim true."
+          lumi:
+            local: "Tracker-only Band 7 item 21 plan is recorded in this slice."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
 
 audit_completion_checklist:
   path: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-completion-audit.md"
@@ -2368,4 +2415,5 @@ next_safe_slices:
   - "PPA-RELAYER-003 / Band 5 item 18 is implemented-verified-local for a fail-closed Tor/blinded-token privacy-transport evidence gate. It is not live Tor, not live blinded-token submission, not production privacy, not IP privacy proof, not anonymity evidence, not audit acceptance, and not mainnet readiness."
   - "PPA-DISCOVERY-001 / Band 6 item 19 is implemented-verified-local for an authenticated indexer view-tag prefix pull API. It is not deployed/live/reviewed, does not prove query privacy, and production recipient discovery remains blocked on deployed service, retention/log-redaction, public or anonymous read posture, legacy v1 memo migration/segregation, and reviewer acceptance evidence."
   - "PPA-DISCOVERY-002 / Band 6 item 20 is implemented-verified-local for local legacy v1 Send memo migration/segregation tooling. It does not rewrite historical on-chain memos, deploy recipient discovery, provide reviewed migration/segregation evidence, or lift production privacy claims."
+  - "PPA-AUDIT-001 / Band 7 item 21 is tracker-open but blocked on Clay choosing and contracting two independent external audit firms, one ZK specialist and one Solana program specialist; repo-local work can prepare refs-only gates but cannot create signed engagement, scope, report, or reviewer acceptance refs."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."
