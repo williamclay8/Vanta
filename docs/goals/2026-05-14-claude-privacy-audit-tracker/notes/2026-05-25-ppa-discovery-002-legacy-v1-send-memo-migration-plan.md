@@ -115,6 +115,6 @@ This implemented slice is local migration/segregation tooling and executable cla
 ## Lumi
 
 - Local: local migration/segregation tooling, guard, docs, and tracker updates are implemented in the working tree.
-- Committed: not committed.
-- Pushed: not pushed.
+- Committed: committed on `codex/ppa-program-004-runtime-verifier-wired` after the PPA-DISCOVERY-002 implementation slice.
+- Pushed: pushed to `origin/codex/ppa-program-004-runtime-verifier-wired`.
 - Deployed/live: not deployed/live.

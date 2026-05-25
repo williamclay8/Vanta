@@ -392,7 +392,7 @@ for (const phrase of [
   "PPA-VERIFIER-003 Band 3 item 13 evidence-contract hardening is committed/pushed/website-live",
   "Recorded deploy baseline c922a52b0da2d7be7b44e79121a8bf64f49c993b",
   "prior audit-remediation implementation commits include 995b24ba9a5615e435ee638b0b139ea84ef2d446",
-  "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main both point to c922a52b0da2d7be7b44e79121a8bf64f49c993b",
+  "origin/codex/ppa-program-004-runtime-verifier-wired includes the PPA-DISCOVERY-002 local legacy v1 Send migration guard slice",
   "Render Vanta website service srv-d7j3ggqqqhas739for80 is live deploy dep-d8a8op7aqgkc73ap4gn0",
   "No remaining small local-only audit quick-fix is open after R4A/R6A/R9B/R9C/R10B/R16 and the website-live status refresh",
   ".github/workflows/privacy-audit.yml",
