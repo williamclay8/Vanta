@@ -542,6 +542,23 @@ It verifies the role snapshot boundary can use a role-specific database URL such
 
 When `NODE_ENV=production`, every role service refuses to boot without its role bearer token and restart storage configuration. This prevents accidental stateless or unauthenticated production startup, but does not replace the production database/restore evidence gate.
 
+The relayer has an additional local privacy-transport contract:
+
+```bash
+npm run relayer:privacy-transport-check
+```
+
+Production relayer startup remains fail-closed unless `VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_ENABLED=true` and exactly one mode is configured with refs-only evidence:
+
+```bash
+VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_MODE=tor-onion
+VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_MODE=blinded-token
+```
+
+Required common refs are deployment, log-redaction review, no-IP retention policy, and reviewer acceptance refs. Tor mode also needs onion-service, onion host fingerprint, and reverse-proxy redaction refs. Blinded-token mode also needs issuer, verifier, token-family, and replay-cache refs. These are references only; do not store onion private keys, blinded-token preimages, raw IPs, `x-forwarded-for`, `cf-connecting-ip`, user agents, auth tokens, proof bytes, witnesses, owner secrets, note blindings, user identifiers, or wallet identifiers in the repo, status payloads, queue records, or evidence packets.
+
+This is not live Tor, not live blinded-token submission, not production privacy, not anonymity evidence, and not audit acceptance. It only makes the Tor/blinded-token relayer path executable as a fail-closed evidence contract.
+
 Important environment variables:
 
 ```bash

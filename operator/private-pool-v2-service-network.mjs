@@ -27,6 +27,10 @@ import {
   buildVantaPrivatePoolV2RelayerTimingControlsStatus,
   createVantaPrivatePoolV2RelayerQueue,
 } from "../src/privacy/privatePoolV2RelayerQueue.mjs";
+import {
+  assertProductionRelayerPrivacyTransportConfig,
+  buildVantaPrivatePoolV2RelayerPrivacyTransportStatus,
+} from "../src/privacy/privatePoolV2RelayerPrivacyTransport.mjs";
 import { createVantaPrivatePoolV2SolanaRelayerSubmitterFromEnv } from "../src/privacy/privatePoolV2SolanaRelayerSubmission.mjs";
 import { createPrivatePoolV2RoleSnapshotStore } from "../src/storage/vantaPrivatePoolV2RoleSnapshotStore.mjs";
 
@@ -545,7 +549,11 @@ function basePayload(role) {
     },
     version: serviceVersion,
     ...(role === "relayer"
-      ? { relayerTimingControls: buildVantaPrivatePoolV2RelayerTimingControlsStatus(process.env) }
+      ? {
+          relayerPrivacyTransport:
+            buildVantaPrivatePoolV2RelayerPrivacyTransportStatus(process.env),
+          relayerTimingControls: buildVantaPrivatePoolV2RelayerTimingControlsStatus(process.env),
+        }
       : {}),
     warnings: [
       "This service is a separated Private Pool v2 runtime surface, not audited production proving infrastructure.",
@@ -604,6 +612,7 @@ function assertProductionRoleConfig(role) {
 
   if (role === "relayer") {
     assertProductionRelayerJitterBatchingConfig(process.env);
+    assertProductionRelayerPrivacyTransportConfig(process.env);
   }
 }
 

@@ -9,7 +9,7 @@
 
 ## Status
 
-`plan-open-awaiting-approval`
+`implemented-verified-local`
 
 ## Planned Files
 
@@ -58,7 +58,28 @@
 
 ## Approval Gate
 
-Implementation is pending Clay approval before code edits.
+Clay approved this plan in thread on 2026-05-25 before code edits.
+
+## Delivered
+
+- Added `src/privacy/privatePoolV2RelayerPrivacyTransport.mjs` for the refs-only Tor/blinded-token privacy-transport evidence contract.
+- Wired production relayer startup to require `VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_ENABLED=true`, exactly one mode (`tor-onion` or `blinded-token`), and refs-only deployment/log-redaction/retention/reviewer evidence.
+- Exposed fail-closed `relayerPrivacyTransport` status on the relayer role service.
+- Extended relay queue metadata rejection to cover raw IP, `x-forwarded-for`, `cf-connecting-ip`, user-agent, auth-token, raw-token, token-preimage, and blinded-token-preimage fields.
+- Updated threat-model, security-limitations, operator-runbook, package, and tracker surfaces.
+
+## Verified
+
+- `npm run relayer:privacy-transport-check: PASS`
+- `npm run relayer:jitter-and-batching-check: PASS`
+- `npm run private-pool-v2:service-network-check: PASS`
+- `npm run mainnet:secret-handling-check: PASS`
+- `npm run truth:privacy-claim-gate: PASS`
+- `npm run privacy-audit:tracker-check: PASS`
+- `npm run build: PASS`
+- `npm run security:limitations-check: PASS`
+- `npm run operator:runbook-check: PASS`
+- `git diff --check: PASS`
 
 ## External Blockers
 

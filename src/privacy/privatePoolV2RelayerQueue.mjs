@@ -1,3 +1,7 @@
+import {
+  VANTA_PRIVATE_POOL_V2_RELAYER_FORBIDDEN_PERSISTENCE_FIELDS,
+} from "./privatePoolV2RelayerPrivacyTransport.mjs";
+
 export const VANTA_PRIVATE_POOL_V2_RELAYER_QUEUE_VERSION =
   "vanta-private-pool-v2-relayer-queue-0.1";
 
@@ -11,6 +15,7 @@ const relayerQueueClaimBoundary =
   "local relayer timing-correlation mitigation; not Tor, anonymity-set, audit, or production privacy evidence";
 const supportedKinds = new Set(["send", "unshield"]);
 const forbiddenQueuedRelayKeys = new Set([
+  ...VANTA_PRIVATE_POOL_V2_RELAYER_FORBIDDEN_PERSISTENCE_FIELDS,
   "authorization",
   "authToken",
   "bearerToken",

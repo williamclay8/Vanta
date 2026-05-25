@@ -2077,7 +2077,7 @@ production_privacy_audit_remediation:
           title: "Add relayer privacy-transport gate for Tor or blinded-token ingress"
           severity: high
           owner_lane: relayer-ops
-          status: plan-open-awaiting-approval
+          status: implemented-verified-local
           source_refs:
             - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
             - "PRODUCTION_PRIVACY_AUDIT.md#Relayer--ops"
@@ -2090,7 +2090,6 @@ production_privacy_audit_remediation:
           planned_files:
             - "src/privacy/privatePoolV2RelayerPrivacyTransport.mjs"
             - "operator/private-pool-v2-service-network.mjs"
-            - "operator/private-pool-v2-relayer-server.mjs"
             - "scripts/check-vanta-private-pool-v2-relayer-privacy-transport.mjs"
             - "docs/threat-model.md"
             - "SECURITY_LIMITATIONS.md"
@@ -2121,15 +2120,32 @@ production_privacy_audit_remediation:
             - "npm run privacy-audit:tracker-check"
             - "npm run build"
             - "git diff --check"
-          approval_gate: "Tracker plan opened on 2026-05-25. Implementation is pending Clay approval before code edits."
-          remaining_truth_boundary: "This planned local gate would make the relayer privacy-transport requirement executable and fail-closed, but it would not by itself deploy Tor, implement Privacy Pass/blinded-token cryptography, prove IP privacy, prove anonymity, provide audit acceptance, or make any lane production-private/mainnet-ready."
+          delivered:
+            - "Added `src/privacy/privatePoolV2RelayerPrivacyTransport.mjs` as the refs-only Tor/blinded-token privacy-transport contract."
+            - "Production relayer startup now requires `VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_ENABLED=true`, exactly one mode (`tor-onion` or `blinded-token`), and refs-only deployment/log-redaction/retention/reviewer evidence."
+            - "Relayer readiness now exposes `relayerPrivacyTransport` with supported modes, forbidden persistence fields, `privacyTransportReady`, and `productionReady: false`."
+            - "Relayer queued metadata now rejects raw IP, `x-forwarded-for`, `cf-connecting-ip`, user-agent, auth-token, raw-token, token-preimage, and blinded-token-preimage fields."
+            - "Docs/runbook/threat-model/security limitations now state the gate is not live Tor, not live blinded-token submission, not anonymity evidence, not audit acceptance, and not production privacy."
+          verification:
+            - "npm run relayer:privacy-transport-check: PASS"
+            - "npm run relayer:jitter-and-batching-check: PASS"
+            - "npm run private-pool-v2:service-network-check: PASS"
+            - "npm run mainnet:secret-handling-check: PASS"
+            - "npm run truth:privacy-claim-gate: PASS"
+            - "npm run privacy-audit:tracker-check: PASS"
+            - "npm run build: PASS"
+            - "npm run security:limitations-check: PASS"
+            - "npm run operator:runbook-check: PASS"
+            - "git diff --check: PASS"
+          approval_gate: "Clay approved the PPA-RELAYER-003 plan in thread on 2026-05-25 before implementation."
+          remaining_truth_boundary: "This local gate makes the relayer privacy-transport requirement executable and fail-closed, but it is not live Tor, not live blinded-token submission, not production privacy, not IP privacy proof, not anonymity evidence, not audit acceptance, and not mainnet readiness."
           blockers:
             - "Live Tor hidden-service deployment or blinded-token issuer/verifier infrastructure requires external provider/deployment approval."
             - "Reviewer acceptance is required before any Tor/blinded-token protection claim can move beyond local source/evidence-contract status."
           lumi:
-            local: "Tracker plan entry added locally; implementation not started."
-            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
-            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            local: "Relayer privacy-transport source, docs, npm script, and tracker evidence are implemented locally in this slice."
+            committed: "pending commit for this implementation slice."
+            pushed: "pending push for this implementation slice."
             deployed_live: "not-deployed-live"
 
 audit_completion_checklist:
@@ -2158,5 +2174,5 @@ next_safe_slices:
   - "PPA-ANON-002 / Band 4 item 15 is tracker-open but blocked before public beta/anonymity claims on PPA-ANON-001, sustained live currentDistinctCommitments >= 1024, accepted verifier/custody/audit evidence, and explicit claim-gate approval."
   - "PPA-RELAYER-001 / Band 5 item 16 is accepted-noop/evidence-local: current source already has Postgres-backed Private Pool v2 rate limiting and durable nullifier replay store gates, but no live production settlement/anonymity/audit claim is lifted."
   - "PPA-RELAYER-002 / Band 5 item 17 is implemented-verified-local for randomized jitter and batching. It remains not deployed/live and does not satisfy Tor/blinded-token relayer protection."
-  - "PPA-RELAYER-003 / Band 5 item 18 is plan-open-awaiting-approval for a fail-closed Tor/blinded-token privacy-transport gate. Do not implement code, deploy Tor, stand up a blinded-token issuer/verifier, or claim relayer transport privacy until Clay approves the plan and external deployment/reviewer evidence exists."
+  - "PPA-RELAYER-003 / Band 5 item 18 is implemented-verified-local for a fail-closed Tor/blinded-token privacy-transport evidence gate. It is not live Tor, not live blinded-token submission, not production privacy, not IP privacy proof, not anonymity evidence, not audit acceptance, and not mainnet readiness."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."
