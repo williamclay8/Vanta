@@ -227,6 +227,29 @@ On 2026-05-25, the human-readable external evidence request gained a refs-only s
 
 This is still a handoff aid only. It does not fill accepted refs, does not deploy a verifier, does not register tag-5, does not accept artifact/adapter/lineage/audit packets, and does not lift any proof-verified or privacy claim.
 
+## Continuation Reviewer Starting Point
+
+On 2026-05-25, the outbound production verifier artifact request gained a checked `reviewerLocalPrecursorRefs` section so external reviewers have a concrete starting point without treating local command output as accepted evidence:
+
+- repo: `https://github.com/williamclay8/Vanta.git`
+- branch: `codex/ppa-program-004-runtime-verifier-wired`
+- review start commit: `git:d5a71b6a8a5bb40cd0fc0407c9e6b5d9b9f414a5`
+- collection tree status: `clean`
+- current circuit source hash: `sha256:363d7dffa7ba03698a8bdbe2d48a6f13cf32ddeb7326fb997ff9cff63db8bf96`
+- current prover hash: `sha256:2c62fa9b0a7bfb32c98fb89fc5fbc90211d67b017066eb5555da8f0da20d890e`
+- current ACIR hash: `sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9`
+- beta18 H6 candidate source hash: `sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430`
+- local spend SBF comparison hash: `sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55`
+
+The production verifier artifact request checker now requires this section and its truth boundary. It remains comparison-only reviewer context: not reviewed frozen source, not source-freeze acceptance, not production proof/VK/public-witness evidence, not verifier-adapter acceptance, not deployed verifier evidence, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure.
+
+Verification:
+
+- `npm run zk:c01-production-verifier-artifact-request-check`: PASS
+- `npm run zk:c01-external-review-handoff-check`: PASS
+- `npm run zk:c01-verifier-evidence-closure-gate-check`: PASS; default closure remains blocked with accepted refs null.
+- `npm run private-pool-v2:groth16-verifier-cpi-check`: PASS; `status=blocked-fail-closed`, `proofVerifiedClaimAllowed=false`, `c01VerifierReady=false`.
+
 ## Post-Source-Map Release Hygiene
 
 On 2026-05-25, the Ref Source Map slice was committed, pushed, and website-live verified:

@@ -283,6 +283,66 @@ for (const [field, expected] of [
   assert(laneFreeze[field] === expected, `laneFreezeRequirements.${field} mismatch`);
 }
 
+const precursor = packet.reviewerLocalPrecursorRefs ?? {};
+for (const [field, expected] of [
+  ["status", "comparison-only-reviewer-starting-point"],
+  ["repoRemote", "https://github.com/williamclay8/Vanta.git"],
+  ["branch", "codex/ppa-program-004-runtime-verifier-wired"],
+  ["reviewStartCommitRef", "git:d5a71b6a8a5bb40cd0fc0407c9e6b5d9b9f414a5"],
+  ["treeStatusAtCollection", "clean"],
+  ["selectedBackend", packet.selectedBackend],
+  ["routeId", packet.routeId],
+  ["currentSourceRef", sourceInputs.currentSourceRef],
+  ["currentSourceSha256", sourceInputs.currentSourceSha256],
+  ["currentProverRef", sourceInputs.currentProverRef],
+  ["currentProverSha256", sourceInputs.currentProverSha256],
+  ["currentCompiledAcirRef", sourceInputs.currentCompiledAcirRef],
+  ["currentCompiledAcirSha256", sourceInputs.currentCompiledAcirSha256],
+  ["candidateSourceRef", sourceInputs.candidateSourceRef],
+  ["candidateSourceSha256", sourceInputs.candidateSourceSha256],
+  ["currentH6ProofReceiptPublicInput", currentH6PublicInputValue],
+  ["currentH6ProofReceiptPublicInputCommitment", currentH6PublicInputCommitment],
+  ["localSpendSbfRef", "programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so"],
+  ["localSpendSbfSha256", "sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55"],
+  ["localSpendSbfIsIgnoredBuildArtifact", true],
+  ["satisfiesLaneFreeze", false],
+  ["satisfiesC01PositiveEvidence", false],
+]) {
+  assert(precursor[field] === expected, `reviewerLocalPrecursorRefs.${field} mismatch`);
+}
+for (const ref of [
+  precursor.currentSourceRef,
+  precursor.currentProverRef,
+  precursor.currentCompiledAcirRef,
+  precursor.candidateSourceRef,
+  precursor.localSpendSbfRef,
+]) {
+  assertRepoLocalPathShape(ref, `reviewerLocalPrecursorRefs local ref ${ref}`);
+}
+assertStringArray(precursor.requiredExternalFreezeRefs, "reviewerLocalPrecursorRefs.requiredExternalFreezeRefs");
+for (const expected of [
+  "git:<reviewed-immutable-production-source-commit-ref>",
+  "review:<clean-source-tree-or-reviewed-diff-status-ref>",
+  "review:<reviewed-source-freeze-acceptance-ref>",
+]) {
+  assert(
+    precursor.requiredExternalFreezeRefs.includes(expected),
+    `reviewerLocalPrecursorRefs.requiredExternalFreezeRefs missing ${expected}`,
+  );
+}
+for (const marker of [
+  "reviewer starting point only",
+  "not reviewed frozen source",
+  "not production proof/VK/public-witness evidence",
+  "not verifier-adapter acceptance",
+  "not deployed verifier evidence",
+  "not SBF/live lineage",
+  "not audit/reviewer acceptance",
+  "not C01 closure",
+]) {
+  includes(precursor.truthBoundary ?? "", marker, "reviewerLocalPrecursorRefs truth boundary");
+}
+
 const outputs = mapById(packet.requiredProductionOutputs, "requiredProductionOutputs");
 for (const [id, shape] of [
   ["frozen-source-commit", "git:<reviewed-immutable-production-source-commit-ref>"],

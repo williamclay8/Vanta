@@ -1720,6 +1720,7 @@ production_privacy_audit_remediation:
             - "After Clay approved the freeze-lane slice, the deterministic build, production bundle, handoff, artifact request, and closure surfaces now require a reviewed frozen source commit, source tree status, and source freeze review refs before returned production artifact refs can promote."
             - "The local comparison-only H6 SBF lineage rehearsal spend-program SBF hash now matches the fresh local SBF ABI binary hash sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55; this is still not deployed/live lineage."
             - "The human-readable Ref Source Map slice is committed, pushed, and website-live at c922a52b0da2d7be7b44e79121a8bf64f49c993b / Render deploy dep-d8a8op7aqgkc73ap4gn0; this is docs/guard hygiene only and does not provide accepted external refs."
+            - "The outbound production verifier artifact request now carries checked reviewerLocalPrecursorRefs for the local reviewer starting point: repo https://github.com/williamclay8/Vanta.git, branch codex/ppa-program-004-runtime-verifier-wired, review start commit git:d5a71b6a8a5bb40cd0fc0407c9e6b5d9b9f414a5, clean collection status, current circuit/source/prover/ACIR hashes, H6 public-input binding, and local spend SBF comparison hash sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55. These refs are comparison-only and do not fill accepted external evidence."
             - "The current frozen source commit, accepted verifier adapter, SBF/live lineage, deployed verifier program id/hash, verifier program upgrade-authority status ref, proof-enforced tag-3 receipt, and audit/reviewer acceptance refs are absent."
             - "No privacy, production-ready, mainnet-ready, audited, or proof-verified claim may be lifted by this item."
           planned_files:
@@ -1775,6 +1776,7 @@ production_privacy_audit_remediation:
               - "Composite closure gate now rejects closure without a reviewed frozen source commit and source freeze review refs in the production bundle."
               - "Human-readable external evidence request added at ops/mainnet/private-pool-v2-c01-external-evidence-request.md; external-review handoff guard now requires it and scans it for forbidden raw proof/VK/witness/key/secret/transaction material markers."
               - "Fail-closed Groth16 verifier-CPI guard added at scripts/check-vanta-private-pool-v2-groth16-verifier-cpi.mjs; it pins the tag-3 ABI, verifier-key-to-verifier-program binding, host not-wired behavior, and external blocker chain without accepting production refs."
+              - "Production verifier artifact request now includes checked reviewerLocalPrecursorRefs so an external reviewer has concrete local starting refs while all requiredProductionOutputs[].currentRef entries remain null."
             verification:
               - "npm run zk:c01-production-verifier-artifact-request-check: PASS"
               - "npm run zk:c01-production-artifact-acceptance-gate-check: PASS"
@@ -1787,6 +1789,7 @@ production_privacy_audit_remediation:
               - "npm run zk:c01-external-review-handoff-check initially failed after the human handoff was added because the markdown included the forbidden marker bearer ; wording was changed to authorization-token material and the guard then passed."
               - "npm run zk:c01-positive-proof-verified-claim-gate-check: PASS; remains blocked-no-tag3-valid-proof-success."
               - "npm run private-pool-v2:groth16-verifier-cpi-check: PASS; status=blocked-fail-closed, proofVerifiedClaimAllowed=false, c01VerifierReady=false."
+              - "2026-05-25 reviewer-local-precursor refresh: npm run zk:c01-production-verifier-artifact-request-check, npm run zk:c01-external-review-handoff-check, npm run zk:c01-verifier-evidence-closure-gate-check, and npm run private-pool-v2:groth16-verifier-cpi-check all passed; accepted external refs remained null and the verifier CPI guard remained blocked-fail-closed."
               - "Post-source-map release hygiene: commit c922a52b0da2d7be7b44e79121a8bf64f49c993b pushed to origin/codex/ppa-program-004-runtime-verifier-wired and origin/main; Render deploy dep-d8a8op7aqgkc73ap4gn0 live; public live meta-description, audit discovery, and live anonymity-set probe passed with privacy/mainnet/production claims still false."
               - "2026-05-25T23:07Z compact appendix runner covering all 36 PRODUCTION_PRIVACY_AUDIT.md appendix commands: PASS; relayer:jitter-and-batching-check and indexer:view-tag-pull-check are now present and passed locally."
             negative_intake_verification:
@@ -1852,6 +1855,7 @@ production_privacy_audit_remediation:
             - "npm run zk:c01-audit-reviewer-acceptance-gate-check: PASS; remains blocked-no-audit-reviewer-acceptance."
             - "npm run zk:c01-verifier-evidence-closure-gate-check: PASS; remains blocked-no-complete-c01-verifier-evidence-chain."
             - "npm run zk:c01-external-review-handoff-check: PASS; handoff remains refs-only."
+            - "npm run zk:c01-production-verifier-artifact-request-check: PASS; reviewerLocalPrecursorRefs are checked as comparison-only and do not satisfy lane freeze or C01 positive evidence."
             - "npm run zk:c01-positive-proof-verified-claim-gate-check: PASS; remains blocked-no-tag3-valid-proof-success."
             - "npm run private-pool-v2:groth16-verifier-cpi-check: PASS; remains blocked/fail-closed and pins missing external evidence before any verifier wiring claim."
             - "npm run truth:privacy-claim-gate: PASS; privacyClaimsAllowed=false, mainnetReady=false, productionReady=false."
