@@ -1788,7 +1788,7 @@ production_privacy_audit_remediation:
               - "npm run zk:c01-positive-proof-verified-claim-gate-check: PASS; remains blocked-no-tag3-valid-proof-success."
               - "npm run private-pool-v2:groth16-verifier-cpi-check: PASS; status=blocked-fail-closed, proofVerifiedClaimAllowed=false, c01VerifierReady=false."
               - "Post-source-map release hygiene: commit c922a52b0da2d7be7b44e79121a8bf64f49c993b pushed to origin/codex/ppa-program-004-runtime-verifier-wired and origin/main; Render deploy dep-d8a8op7aqgkc73ap4gn0 live; public live meta-description, audit discovery, and live anonymity-set probe passed with privacy/mainnet/production claims still false."
-              - "Compact appendix runner covering the 34 currently present PRODUCTION_PRIVACY_AUDIT.md appendix commands: PASS; only relayer:jitter-and-batching-check and indexer:view-tag-pull-check remain absent/not claimed."
+              - "2026-05-25T23:07Z compact appendix runner covering all 36 PRODUCTION_PRIVACY_AUDIT.md appendix commands: PASS; relayer:jitter-and-batching-check and indexer:view-tag-pull-check are now present and passed locally."
             negative_intake_verification:
               - "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=ops/mainnet/private-pool-v2-c01-production-artifact-bundle.template.json npm run zk:c01-production-artifact-acceptance-gate-check: expected FAIL; template rejected as external production artifact bundle."
               - "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance.template.json npm run zk:c01-verifier-adapter-acceptance-gate-check: expected FAIL; template rejected as external verifier-adapter acceptance."
@@ -1797,8 +1797,8 @@ production_privacy_audit_remediation:
               - "Composite closure with all four template paths: expected FAIL; rejected before closure."
               - "Composite closure with only VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH supplied: expected FAIL; rejected with all C01 closure env vars must be supplied together."
             full_predeploy_suite_after_human_handoff:
-              run_on: "2026-05-25"
-              status: "all present appendix scripts passed; two future appendix scripts absent and not claimed green."
+              run_on: "2026-05-25T23:02:14Z to 2026-05-25T23:07:27Z"
+              status: "all 36 PRODUCTION_PRIVACY_AUDIT.md appendix commands are present in package.json and passed sequentially."
               present_base_commands_passed:
                 - "npm run truth:privacy-claim-gate"
                 - "npm run zk:circuit-soundness-lint"
@@ -1835,12 +1835,12 @@ production_privacy_audit_remediation:
                 - "npm run private-pool-v2:groth16-verifier-cpi-check"
                 - "npm run private-pool-v2:pda-vault-custody-check"
                 - "npm run private-pool-v2:program-merkle-tree-check"
+                - "npm run relayer:jitter-and-batching-check"
+                - "npm run indexer:view-tag-pull-check"
               truth_boundary_observed:
                 - "truth:privacy-claim-gate PASS; privacyClaimsAllowed=false, mainnetReady=false, productionReady=false."
                 - "private-pool-v2:live-anonymity-set-probe-check PASS; currentDistinctCommitments=2, minimumDistinctCommitments=1024, depthBelowThreshold=true."
-              missing_future_appendix_scripts:
-                - "npm run relayer:jitter-and-batching-check"
-                - "npm run indexer:view-tag-pull-check"
+              missing_future_appendix_scripts: []
           blocker_before_implementation:
             - "Item 12 external public ceremony/setup, deterministic production artifact bundle, production proof/VK/public-witness refs, and production verifying-key hash are absent."
             - "A reviewed frozen production source commit, source tree status, and source freeze review ref are absent."
@@ -1857,7 +1857,7 @@ production_privacy_audit_remediation:
             - "npm run truth:privacy-claim-gate: PASS; privacyClaimsAllowed=false, mainnetReady=false, productionReady=false."
             - "npm run privacy-audit:tracker-check: PASS"
             - "git diff --check: PASS"
-            - "Compact appendix runner covering the 34 currently present PRODUCTION_PRIVACY_AUDIT.md appendix commands: PASS."
+            - "2026-05-25T23:07Z compact appendix runner covering all 36 PRODUCTION_PRIVACY_AUDIT.md appendix commands: PASS."
           approval_gate: "Tracker plan opened on 2026-05-25. Clay approved the plan in-thread on 2026-05-25 with \"Plan approved\" and then explicitly asked to work on external Band 3 evidence. Clay approved the freeze-lane slice on 2026-05-25 with \"slice approved\". The local work is limited to refs-only evidence-contract hardening. Implementation remains blocked before verifier deployment, tag-5 registration, proof-enforced receipts, audit/reviewer acceptance, verifier wiring, release, or claim-lift work until reviewed frozen source commit/source tree status, reviewed production artifact bundle, accepted verifier adapter/program evidence, SBF/live lineage, deployed verifier program id/hash, verifier program upgrade-authority status ref, verifier-key binding, and reviewer acceptance refs exist."
           remaining_truth_boundary: "This tracker item does not deploy a verifier program, audit a verifier, accept production artifacts, accept SBF/live lineage, register verifier keys on chain, wire proof acceptance, enable releases, lift privacy claims, or establish production-private/mainnet/audit readiness. It only makes the missing external evidence harder to blur."
           lumi:

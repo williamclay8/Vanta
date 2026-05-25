@@ -167,12 +167,12 @@ The frozen source commit, source tree status, and source-freeze review refs are 
 
 ## Full Appendix Verification After Human Handoff
 
-After adding the human-readable external evidence request, the existing audit appendix pre-deploy commands were re-run on 2026-05-25. All present scripts passed:
+After adding the human-readable external evidence request, and after the later relayer/indexer guard slices landed, the existing audit appendix pre-deploy commands were re-run on 2026-05-25. All 36 current appendix scripts passed sequentially:
 
 - Base appendix: `truth:privacy-claim-gate`, `zk:circuit-soundness-lint`, all five PPv2 circuit checks, `private-core:send-check`, `private-core:swap-check`, `zk:c01-positive-proof-verified-claim-gate-check`, `private-pool-v2:onchain-unshield-custody-check`, `private-pool-v2:root-provenance-check`, `private-pool-v2:service-network-check`, `private-pool-v2:role-storage-check`, `mainnet:role-service-replay-evidence-check`, `mainnet:secret-handling-check`, `public:live-meta-description-check`, `private-pool-v2:live-anonymity-set-probe-check`, `public:audit-discovery-check`, `frontend:operator-env-exposure-check`, `unshield:public-exit-surface-check`, `send:direct-viewing-key-exchange-check`, `actions:legacy-v1-memo-quarantine-check`, `private-vault:crypto-check`, `docs:source-of-truth-check`, and `build`.
-- Band 1/2/3 appendix aliases present today: `send:output-commitment-binding-check`, `swap:output-commitment-binding-check`, `swap:economics-binding-check`, `private-core-unshield:nullifier-binding-fixture-check`, `claim:relayer-fee-bound-check`, `private-pool-v2:groth16-verifier-cpi-check`, `private-pool-v2:pda-vault-custody-check`, and `private-pool-v2:program-merkle-tree-check`.
+- Additional appendix aliases present today: `send:output-commitment-binding-check`, `swap:output-commitment-binding-check`, `swap:economics-binding-check`, `private-core-unshield:nullifier-binding-fixture-check`, `claim:relayer-fee-bound-check`, `private-pool-v2:groth16-verifier-cpi-check`, `private-pool-v2:pda-vault-custody-check`, `private-pool-v2:program-merkle-tree-check`, `relayer:jitter-and-batching-check`, and `indexer:view-tag-pull-check`.
 - Fail-closed truth preserved: `truth:privacy-claim-gate` still reports `privacyClaimsAllowed=false`, `mainnetReady=false`, and `productionReady=false`; the live anonymity probe still reports `currentDistinctCommitments=2` and `minimumDistinctCommitments=1024`.
-- Appendix scripts not present yet and therefore not claimed green: `relayer:jitter-and-batching-check` and `indexer:view-tag-pull-check`. The verifier CPI guard is now present and passing as a fail-closed guard before any verifier wiring claim. The relayer and indexer scripts belong to later Bands 5 and 6.
+- Appendix presence: 36/36 current `PRODUCTION_PRIVACY_AUDIT.md` appendix commands are present in `package.json` and passed locally in the sequential runner ending `2026-05-25T23:07:27Z`. The verifier CPI guard remains a fail-closed guard before any verifier wiring claim, and the relayer/indexer checks remain local drift guards rather than external evidence acceptance.
 
 ## Approved Groth16 Verifier CPI Guard Slice
 
@@ -194,7 +194,7 @@ This is not verifier deployment, not production proof acceptance, not SBF/live l
 Verification:
 
 - `npm run private-pool-v2:groth16-verifier-cpi-check`: PASS; `status=blocked-fail-closed`, `proofVerifiedClaimAllowed=false`, `c01VerifierReady=false`.
-- Compact appendix runner covering the 34 currently present appendix commands: PASS, including the new Groth16 verifier-CPI guard; only future `relayer:jitter-and-batching-check` and `indexer:view-tag-pull-check` remain absent/not claimed.
+- 2026-05-25T23:07Z compact appendix runner covering all 36 current `PRODUCTION_PRIVACY_AUDIT.md` appendix commands: PASS, including the Groth16 verifier-CPI, relayer jitter/batching, and indexer view-tag guards.
 
 ## Continuation Negative Intake Verification
 
