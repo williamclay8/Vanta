@@ -10,18 +10,19 @@ goal:
     status: last-verified-website-deploy-and-current-live-read-checks-pass
     confidence: high
     live_site: "https://vantaprivacy.xyz"
-    user_reported_local_live_bundle_hash_match: "index-BhWFlXXv.js"
-    last_verified_website_deploy_commit: "7635c9b641a505379b82e74a6679986dbabc55fe"
+    user_reported_local_live_bundle_hash_match: "assets/index-CnLrET4N.js"
+    last_verified_website_deploy_commit: "a2fa72a4fd048826982974ffdcae7c6a0a942140"
     render_workspace: "William's workspace"
     render_workspace_id: "tea-d7j37af7f7vs739ii8rg"
     render_service_id: "srv-d7j3ggqqqhas739for80"
-    last_verified_render_deploy_id: "dep-d834ce4vikkc73fb2ep0"
-    github_actions_main_run: "25888198149"
-    github_actions_branch_run: "25888193053"
-    live_main_asset: "assets/index-C5gkBpDx.js"
-    live_js_chunks_scanned: 62
+    last_verified_render_deploy_id: "dep-d8a8ef99rddc73b3g86g"
+    github_actions_main_run: "not-refreshed-after-a2fa72a4"
+    github_actions_branch_run: "not-refreshed-after-a2fa72a4"
+    live_main_asset: "assets/index-CnLrET4N.js"
+    live_js_chunks_scanned: "not-refreshed-after-a2fa72a4"
     live_dist_size: "2.7 MB"
     public_manifest: "/.well-known/vanta-audit.json"
+    public_manifest_reattestation_status: "pending-reattestation-after-2026-05-14-deploy-drift; public manifest still reports lastVerifiedCommit 7635c9b641a505379b82e74a6679986dbabc55fe and liveDeploymentVerified=false."
     current_live_read_checks:
       - "npm run public:live-meta-description-check"
       - "npm run private-pool-v2:live-anonymity-set-probe-check"
@@ -38,10 +39,10 @@ rules:
   no_production_private_claims_without_positive_proof_and_live_receipts: true
 
 lumi:
-  local: "Tracker, N1/N2/N3/N5, R4A, R6A (native SOL Phase 2 sentinel migration closure + TAG6 runtime verifier_wired gate + TAG6 toolkit as canonical §12 pre-deploy + live evidence mechanism), R8A, R9A/R9B/R9C, R10A/R10B, R11A, R12 (legacy v1 + native sol WSOL quarantine/migration), R13-R16, R19 local/source-level receipts exist; use git status for current dirt. PPA-PROGRAM-004 is implemented and verified locally: pool_state.verifier_wired is initialized to 0, no live setter exists, cfg-test TAG6 release helpers are removed, TAG6 remains fail-closed before nullifier consume/CPI even if the flag is manually set, and the TAG6 toolkit remains the official §12 pre-deploy/live-evidence mechanism. PPA-VERIFIER-001 Band 3 item 11 is accepted-noop/evidence-local: existing C01 evidence selects groth16-tag3-solana-v0 as backend direction only, with no production proof-format, VK, adapter, SBF/live, audit, or privacy-claim lift. PPA-VERIFIER-002 Band 3 item 12 tracker plan is approved locally as a doc-only truth marker and remains blocked before implementation on external public ceremony/reviewed setup, production artifact build/VK refs, and tag-5 registration receipts. PPA-VERIFIER-003 Band 3 item 13 evidence-contract hardening is local only: the C01 artifact request, deterministic build gate, production bundle template, SBF/live, handoff, and closure gates now explicitly require reviewed frozen source commit/source tree status refs, deployed verifier program id/hash, verifier program upgrade-authority status ref, and tag-5 verifier-key record binding production VK hash to verifier program id; accepted refs remain null and external reviewed production artifact bundle, verifier-adapter acceptance, SBF/live lineage, proof-enforced receipt, and audit/reviewer acceptance remain blocked. Lumi: local in Vanta only; not committed, pushed, deployed, live-verified, or audited."
-  committed: "Last verified website deployment receipt references 7635c9b (Add TAG_UNSHIELD verifier key preflight). Use git log for the exact current head. Full Blast native SOL TAG6 artifacts + regression local (lane-trust-worker programs/ + scripts/ + Vanta docs/goals/ + src/ updates)."
-  pushed: "Last verified website deployment receipt had origin/codex/vanta-zk-review-hardening and origin/main at 7635c9b641a505379b82e74a6679986dbabc55fe; use git status and git ls-remote for current confirmation. Full Blast changes pending commit/push (lane + Vanta surfaces + artifacts)."
-  deployed_live: "Last verified website/audit-copy surfaces were live on https://vantaprivacy.xyz via Render deploy dep-d834ce4vikkc73fb2ep0 for commit 7635c9b641a505379b82e74a6679986dbabc55fe; rerun live verification for newer commits. Spend-program SBF, proof verifier, custody, private-settlement, recipient-discovery service, and anonymity evidence remain blocked or not live-verified. Native SOL v2 + TAG6 prep/runtime-gated checks are local only; no live TAG6 releases or production program. Vault local-only hygiene reported."
+  local: "Tracker, N1/N2/N3/N5, R4A, R6A (native SOL Phase 2 sentinel migration closure + TAG6 runtime verifier_wired gate + TAG6 toolkit as canonical §12 pre-deploy + live evidence mechanism), R8A, R9A/R9B/R9C, R10A/R10B, R11A, R12 (legacy v1 + native sol WSOL quarantine/migration), R13-R16, R19 local/source-level receipts exist; use git status for current dirt. PPA-PROGRAM-004 is implemented and verified locally: pool_state.verifier_wired is initialized to 0, no live setter exists, cfg-test TAG6 release helpers are removed, TAG6 remains fail-closed before nullifier consume/CPI even if the flag is manually set, and the TAG6 toolkit remains the official §12 pre-deploy/live-evidence mechanism. PPA-VERIFIER-001 Band 3 item 11 is accepted-noop/evidence-local: existing C01 evidence selects groth16-tag3-solana-v0 as backend direction only, with no production proof-format, VK, adapter, SBF/live, audit, or privacy-claim lift. PPA-VERIFIER-002 Band 3 item 12 tracker plan is approved locally as a doc-only truth marker and remains blocked before implementation on external public ceremony/reviewed setup, production artifact build/VK refs, and tag-5 registration receipts. PPA-VERIFIER-003 Band 3 item 13 evidence-contract hardening is local only: the C01 artifact request, deterministic build gate, production bundle template, SBF/live, handoff, and closure gates now explicitly require reviewed frozen source commit/source tree status refs, deployed verifier program id/hash, verifier program upgrade-authority status ref, and tag-5 verifier-key record binding production VK hash to verifier program id; accepted refs remain null and external reviewed production artifact bundle, verifier-adapter acceptance, SBF/live lineage, proof-enforced receipt, and audit/reviewer acceptance remain blocked. Lumi: recorded deploy baseline is a2fa72a4fd048826982974ffdcae7c6a0a942140 after doc-only audit wording cleanup; no new external verifier refs are accepted."
+  committed: "Recorded deploy baseline a2fa72a4fd048826982974ffdcae7c6a0a942140 (Tighten audit readiness wording) is committed; prior audit-remediation implementation commit is 995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)."
+  pushed: "Recorded pushed baseline had origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at a2fa72a4fd048826982974ffdcae7c6a0a942140 on 2026-05-25; use git status/git ls-remote for newer hygiene commits."
+  deployed_live: "Recorded Render Vanta website baseline for service srv-d7j3ggqqqhas739for80 is live deploy dep-d8a8ef99rddc73b3g86g at commit a2fa72a4fd048826982974ffdcae7c6a0a942140 on 2026-05-25; live meta, public audit discovery, and live anonymity-set probes pass. Public audit manifest still records liveDeploymentVerified=false and pending re-attestation after deploy drift. Spend-program SBF, proof verifier, custody, private-settlement, recipient-discovery service, and anonymity evidence remain blocked or not live-verified; no live TAG6 releases or production program."
 
 audit_findings:
   - id: N1
