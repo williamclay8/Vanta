@@ -2535,6 +2535,68 @@ production_privacy_audit_remediation:
             committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
             deployed_live: "not-deployed-live"
+        - id: PPA-COMPLIANCE-002
+          audit_section: "Band 8 item 25 - threat model, incident-response runbook, and key-custody runbook published"
+          remediation_order: 25
+          title: "Plan Band 8 threat/incident/key-custody publication guard"
+          severity: high
+          owner_lane: compliance-ops
+          status: plan-open-approval-pending
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#Threat-model"
+            - "PRODUCTION_PRIVACY_AUDIT.md#Key-custody-and-secrets"
+            - "SECURITY_LIMITATIONS.md#Required-before-mainnet"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-compliance-002-threat-incident-key-custody-publication-plan.md"
+          current_evidence:
+            - "docs/threat-model.md exists and was last validated against repo-local code on 2026-05-25."
+            - "docs/mainnet-deployment-runbook.md has a Monitoring And Incident Response section."
+            - "docs/operator-runbook.md references monitoring and incident-response expectations."
+            - "ops/mainnet/production-incident-workflow.evidence.json exists as a refs-only incident workflow evidence surface."
+            - "ops/mainnet/production-key-custody.template.json exists as a refs-only key-custody intake template."
+            - "The audit specifically calls for docs/key-custody-runbook.md; that file is not present."
+            - "A dedicated public incident-response runbook file is not present; incident response is currently embedded in broader deployment/operator docs."
+          planned_files_after_approval:
+            - "docs/threat-model.md"
+            - "docs/incident-response-runbook.md"
+            - "docs/key-custody-runbook.md"
+            - "docs/mainnet-deployment-runbook.md"
+            - "docs/operator-runbook.md"
+            - "docs/mainnet-external-gates.md"
+            - "SECURITY_LIMITATIONS.md"
+            - "ops/mainnet/production-incident-workflow.evidence.json"
+            - "ops/mainnet/production-key-custody.template.json"
+            - "scripts/check-vanta-band8-ops-publication.mjs"
+            - "package.json"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+          planned_new_script: "npm run compliance:ops-publication-check"
+          planned_test_cases:
+            - "Fail if docs/threat-model.md is missing, stale, or loses current no-overclaim boundaries."
+            - "Fail if docs/incident-response-runbook.md is missing or omits stop/suspend, preserve evidence, secret-safe debugging, disclosure, recovery, and post-incident review steps."
+            - "Fail if docs/key-custody-runbook.md is missing or omits key roles, multisig/HSM/Turnkey custody refs, rotation, revocation, access audit, emergency freeze, break-glass controls, and no-secret handling."
+            - "Fail if runbooks claim audit acceptance, production custody, live privacy, or launch readiness without matching refs."
+            - "Fail if runbooks contain private keys, seed phrases, signed transaction material, bearer credentials, owner secrets, viewing key plaintext, or note blindings."
+            - "Fail if SECURITY_LIMITATIONS.md, docs/mainnet-external-gates.md, and runbooks disagree on external refs required before claim-gate movement."
+          verification_after_approval:
+            - "npm run compliance:ops-publication-check"
+            - "npm run docs:source-of-truth-check"
+            - "npm run operator:runbook-check"
+            - "npm run security:limitations-check"
+            - "npm run mainnet:external-gates-production-claim-check"
+            - "npm run privacy-audit:tracker-check"
+            - "npm run truth:privacy-claim-gate"
+            - "npm run build"
+            - "git diff --check"
+          blocker_before_implementation:
+            - "Clay approval is required before adding/publishing dedicated incident-response and key-custody runbook docs, wiring the new guard script, or changing docs source-of-truth surfaces."
+            - "Legal/compliance/custody review remains separate external evidence and must not be implied by local docs publication."
+          approval_gate: "Tracker plan opened on 2026-05-25. Await Clay approval before implementation."
+          remaining_truth_boundary: "This tracker item does not publish final incident-response or key-custody runbooks, prove legal/compliance/custody review, create production custody, satisfy audit acceptance, move claim gates, deploy services, or change launch status."
+          lumi:
+            local: "Tracker-only Band 8 item 25 plan is recorded in this slice."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
 
 audit_completion_checklist:
   path: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-completion-audit.md"
@@ -2569,4 +2631,5 @@ next_safe_slices:
   - "PPA-AUDIT-002 / Band 7 item 22 is tracker-open but blocked on Clay approving the bug bounty provider/intake path, budget, legal/safe-harbor posture, triage owners, scope, and public launch timing; repo-local work can prepare refs-only gates but cannot create live bounty facts."
   - "PPA-AUDIT-003 / Band 7 item 23 is tracker-open but blocked on accepted audit refs, bug bounty live refs, C01 verifier closure, SBF/live lineage, deployed verifier id/hash, tag-5 binding, reviewer signoff, and live anonymity-set evidence at or above 1024 distinct commitments; claim gates must remain locked."
   - "PPA-COMPLIANCE-001 / Band 8 item 24 is tracker-open but blocked on Clay/legal/compliance direction: implement unshield destination screening or accept documented jurisdiction limits. Do not implement provider calls, storage, public copy, or launch-scope changes without explicit approval."
+  - "PPA-COMPLIANCE-002 / Band 8 item 25 is tracker-open as a plan awaiting Clay approval. Threat model exists; incident response exists only inside broader docs/evidence; docs/key-custody-runbook.md is absent. Follow-up implementation should add dedicated incident-response and key-custody runbooks plus compliance:ops-publication-check without implying legal/custody review."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."
