@@ -9,7 +9,7 @@
 
 ## Status
 
-`plan-open-awaiting-approval`
+`implemented-verified-local`
 
 ## Planned Files
 
@@ -46,25 +46,32 @@
 
 ## Verification After Approval
 
-- `npm run relayer:jitter-and-batching-check`
-- `npm run private-pool-v2:service-network-check`
-- `npm run mainnet:secret-handling-check`
-- `npm run truth:privacy-claim-gate`
-- `npm run privacy-audit:tracker-check`
-- `npm run build`
-- `git diff --check`
+- `npm run relayer:jitter-and-batching-check` - PASS
+- `npm run private-pool-v2:service-network-check` - PASS
+- `npm run mainnet:secret-handling-check` - PASS
+- `npm run truth:privacy-claim-gate` - PASS
+- `npm run privacy-audit:tracker-check` - PASS
+- `npm run build` - PASS
+- `git diff --check` - PASS
+
+## Implementation Evidence
+
+- `src/privacy/privatePoolV2RelayerQueue.mjs` implements deterministic Send/Unshield jitter windows, deadline-ordered ready queues, Send batch envelopes, idempotency-key replay rejection, production nonzero-window guards, and no-secret queued metadata validation.
+- `operator/private-pool-v2-service-network.mjs` exposes relayer timing controls on readiness, persists relay queue metadata with the relayer snapshot, and adds relay-queue status/drain endpoints while keeping `productionReady: false`.
+- `scripts/check-vanta-private-pool-v2-relayer-jitter-batching.mjs` covers jitter windows, batching, idempotency, no-secret queued records, production fail-closed config, docs, package wiring, and tracker evidence.
+- `docs/threat-model.md` and `SECURITY_LIMITATIONS.md` document timing-correlation limits without lifting privacy, anonymity, production, audit, or mainnet claims.
 
 ## Approval Gate
 
-Implementation is pending Clay approval before code edits.
+Clay approved the plan in thread on 2026-05-25 before implementation.
 
 ## Truth Boundary
 
-This plan would reduce timing-correlation risk locally, but it would not by itself prove anonymity, Tor/blinded-token protection, live relayer maturity, production-private readiness, audit acceptance, or mainnet readiness.
+This local implementation reduces source-level timing-correlation risk and guards production config shape, but it does not by itself prove anonymity, Tor/blinded-token protection, live relayer maturity, production-private readiness, audit acceptance, or mainnet readiness.
 
 ## Lumi
 
-- Local: tracker plan entry added locally; implementation not started.
-- Committed: latest branch head after this tracker-only slice; use `git log` for the exact commit.
-- Pushed: `origin/codex/ppa-program-004-runtime-verifier-wired` after this tracker-only slice; use `git status` for sync.
+- Local: relayer jitter/batching source, docs, npm script, and tracker evidence are implemented locally in this slice.
+- Committed: not committed in current slice yet.
+- Pushed: not pushed in current slice yet.
 - Deployed/live: not deployed/live.

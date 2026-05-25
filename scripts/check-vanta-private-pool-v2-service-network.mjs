@@ -135,6 +135,20 @@ function serviceNetworkTestEnv(overrides = {}) {
   };
 }
 
+function relayerTimingControlEnv(service) {
+  if (service.role !== "relayer") {
+    return {};
+  }
+  return {
+    VANTA_PRIVATE_POOL_V2_RELAYER_BATCH_MAX_SIZE: "4",
+    VANTA_PRIVATE_POOL_V2_RELAYER_JITTER_BATCHING_ENABLED: "true",
+    VANTA_PRIVATE_POOL_V2_RELAYER_SEND_JITTER_MAX_MS: "180000",
+    VANTA_PRIVATE_POOL_V2_RELAYER_SEND_JITTER_MIN_MS: "30000",
+    VANTA_PRIVATE_POOL_V2_RELAYER_UNSHIELD_JITTER_MAX_MS: "3600000",
+    VANTA_PRIVATE_POOL_V2_RELAYER_UNSHIELD_JITTER_MIN_MS: "30000",
+  };
+}
+
 function hashHex(...parts) {
   return `0x${createHash("sha256").update(parts.join("\u001f")).digest("hex")}`;
 }
@@ -285,6 +299,7 @@ try {
         cwd: repoRoot,
         env: serviceNetworkTestEnv({
           NODE_ENV: "production",
+          ...relayerTimingControlEnv(service),
           [service.role === "indexer"
             ? "VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL"
             : service.role === "prover"
@@ -390,6 +405,14 @@ try {
       readiness.parsed?.productionReady === false,
       `${service.role} readiness must stay productionReady false until external gates clear.`,
     );
+    if (service.role === "relayer") {
+      assert(
+        readiness.parsed?.relayerTimingControls?.sendJitterWindowMs?.[0] === 30_000 &&
+          readiness.parsed?.relayerTimingControls?.unshieldJitterWindowMs?.[1] === 3_600_000 &&
+          readiness.parsed?.relayerTimingControls?.productionReady === false,
+        "Expected relayer readiness to expose fail-closed jitter/batching timing controls.",
+      );
+    }
 
     console.log(`private-pool-v2 ${service.role} service: PASS`);
   }

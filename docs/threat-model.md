@@ -50,7 +50,7 @@ Review artifacts and receipts are also security-sensitive when they imply livene
 - A chain observer can inspect transparent deposits, vault movements, operator-submitted metadata, root registrations, nullifier markers, output records, public exits, timing, and live anonymity-set depth.
 - A compromised or malicious operator can correlate requests, misuse logs, expose database contents, delay service, censor actions, or drain operator-controlled vault funds until program-owned custody is deployed.
 - A prover or prover relay can observe proof inputs, target circuits, timing, request size, retry behavior, and network metadata if witness construction leaves the user's device.
-- A relayer can correlate sender network metadata with action timing unless batching, transport, and service separation are reviewed.
+- A relayer can correlate sender network metadata with action timing unless batching, transport, and service separation are reviewed. The local relayer queue now guards 30-180s Send jitter, 30s-1h Unshield jitter, and Send batch envelopes as a source-level timing-correlation mitigation only; it is not Tor/blinded-token protection, anonymity-set evidence, production-private readiness, or audit acceptance.
 - An indexer or recipient-discovery service can learn request cadence, discovery queries, view tags, ciphertext availability, and wallet-associated metadata unless the discovery protocol is reviewed.
 - A wallet or RPC provider can correlate wallet identity, IP address, RPC calls, signatures, transaction timing, and balance changes outside Vanta's cryptographic boundary.
 - A stale deployment can make local source-level fixes look live when the deployed SBF binary or public bundle has not been rebuilt, pushed, deployed, and verified.

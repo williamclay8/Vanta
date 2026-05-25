@@ -2008,7 +2008,7 @@ production_privacy_audit_remediation:
           title: "Add relayer randomized delay windows and batch submission controls"
           severity: high
           owner_lane: relayer-ops
-          status: plan-open-awaiting-approval
+          status: implemented-verified-local
           source_refs:
             - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
             - "PRODUCTION_PRIVACY_AUDIT.md#Relayer--ops"
@@ -2049,12 +2049,27 @@ production_privacy_audit_remediation:
             - "npm run privacy-audit:tracker-check"
             - "npm run build"
             - "git diff --check"
-          approval_gate: "Plan opened on 2026-05-25. Implementation is pending Clay approval before code edits."
-          remaining_truth_boundary: "This plan would reduce timing-correlation risk locally, but it would not by itself prove anonymity, Tor/blinded-token protection, live relayer maturity, production-private readiness, audit acceptance, or mainnet readiness."
+          implementation_evidence:
+            - "src/privacy/privatePoolV2RelayerQueue.mjs implements deterministic Send/Unshield jitter windows, deadline-ordered ready queues, Send batch envelopes, idempotency-key replay rejection, production nonzero-window guards, and no-secret queued metadata validation."
+            - "operator/private-pool-v2-service-network.mjs exposes relayerTimingControls on relayer readiness, persists relayQueue metadata with the relayer snapshot, and adds relay-queue status/drain endpoints while keeping productionReady false."
+            - "scripts/check-vanta-private-pool-v2-relayer-jitter-batching.mjs is the new regression fixture for jitter windows, batching, idempotency, no-secret queued records, production fail-closed config, docs, package wiring, and tracker evidence."
+            - "docs/threat-model.md and SECURITY_LIMITATIONS.md document timing-correlation limits without lifting privacy, anonymity, production, audit, or mainnet claims."
+          acceptance_evidence:
+            disposition: "implemented-verified-local"
+            verification:
+              - "npm run relayer:jitter-and-batching-check: PASS"
+              - "npm run private-pool-v2:service-network-check: PASS"
+              - "npm run mainnet:secret-handling-check: PASS"
+              - "npm run truth:privacy-claim-gate: PASS"
+              - "npm run privacy-audit:tracker-check: PASS"
+              - "npm run build: PASS"
+              - "git diff --check: PASS"
+          approval_gate: "Clay approved the PPA-RELAYER-002 plan in thread on 2026-05-25 before implementation."
+          remaining_truth_boundary: "This local implementation reduces source-level timing-correlation risk and guards production config shape, but it does not prove anonymity, Tor/blinded-token protection, live relayer maturity, production-private readiness, audit acceptance, or mainnet readiness."
           lumi:
-            local: "Tracker plan entry added locally; implementation not started."
-            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
-            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            local: "Relayer jitter/batching source, docs, npm script, and tracker evidence are implemented locally in this slice."
+            committed: "not committed in current slice yet."
+            pushed: "not pushed in current slice yet."
             deployed_live: "not-deployed-live"
 
 audit_completion_checklist:
@@ -2082,5 +2097,5 @@ next_safe_slices:
   - "PPA-ANON-001 / Band 4 item 14 is tracker-open but blocked before closed-alpha deposits on Bands 1-3 externally accepted production evidence, proof-verified custody/release lineage, reviewer acceptance, and explicit live/real-funds approval."
   - "PPA-ANON-002 / Band 4 item 15 is tracker-open but blocked before public beta/anonymity claims on PPA-ANON-001, sustained live currentDistinctCommitments >= 1024, accepted verifier/custody/audit evidence, and explicit claim-gate approval."
   - "PPA-RELAYER-001 / Band 5 item 16 is accepted-noop/evidence-local: current source already has Postgres-backed Private Pool v2 rate limiting and durable nullifier replay store gates, but no live production settlement/anonymity/audit claim is lifted."
-  - "PPA-RELAYER-002 / Band 5 item 17 is plan-open-awaiting-approval for randomized jitter and batching. Do not implement code until Clay approves the plan."
+  - "PPA-RELAYER-002 / Band 5 item 17 is implemented-verified-local for randomized jitter and batching. It remains not deployed/live and does not satisfy Tor/blinded-token relayer protection."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."

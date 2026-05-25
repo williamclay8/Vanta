@@ -22,6 +22,11 @@ import { dirname, resolve } from "node:path";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import { poseidon2 } from "poseidon-lite";
+import {
+  assertProductionRelayerJitterBatchingConfig,
+  buildVantaPrivatePoolV2RelayerTimingControlsStatus,
+  createVantaPrivatePoolV2RelayerQueue,
+} from "../src/privacy/privatePoolV2RelayerQueue.mjs";
 import { createVantaPrivatePoolV2SolanaRelayerSubmitterFromEnv } from "../src/privacy/privatePoolV2SolanaRelayerSubmission.mjs";
 import { createPrivatePoolV2RoleSnapshotStore } from "../src/storage/vantaPrivatePoolV2RoleSnapshotStore.mjs";
 
@@ -539,6 +544,9 @@ function basePayload(role) {
       productionReady: false,
     },
     version: serviceVersion,
+    ...(role === "relayer"
+      ? { relayerTimingControls: buildVantaPrivatePoolV2RelayerTimingControlsStatus(process.env) }
+      : {}),
     warnings: [
       "This service is a separated Private Pool v2 runtime surface, not audited production proving infrastructure.",
       "Keep productionReady and mainnetReady false until deployed services, secret refs, production smoke evidence, audit, legal/custody review, and explicit mainnet funds approval are complete.",
@@ -592,6 +600,10 @@ function assertProductionRoleConfig(role) {
     throw new Error(
       `Private Pool v2 ${role} production service requires ${storeEnv}, ${roleConfig[role].databaseEnv}, or VANTA_PRIVATE_POOL_V2_DATABASE_URL.`,
     );
+  }
+
+  if (role === "relayer") {
+    assertProductionRelayerJitterBatchingConfig(process.env);
   }
 }
 
@@ -1029,6 +1041,7 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
   let quotes = new Map();
   let claims = new Map();
   let privateSpends = new Map();
+  const relayQueue = createVantaPrivatePoolV2RelayerQueue({ env: process.env });
   const liveSolanaSubmitter =
     process.env.VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMISSION_MODE === "live"
       ? createVantaPrivatePoolV2SolanaRelayerSubmitterFromEnv(process.env)
@@ -1050,6 +1063,7 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
         submission,
       ]),
     );
+    relayQueue.replaceRecords(snapshot.relayQueue ?? []);
     loaded = true;
   }
 
@@ -1058,6 +1072,7 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
       claims: [...claims.values()],
       privateSpends: [...privateSpends.values()],
       quotes: [...quotes.values()],
+      relayQueue: relayQueue.snapshot(),
     };
     if (snapshotStore) {
       await snapshotStore.save(snapshot);
@@ -1090,6 +1105,17 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
       const claim = {
         quote,
         relayerId: String(quote.relayerId),
+        relaySchedule: relayQueue.enqueueRelaySubmission({
+          idempotencyKey: key,
+          kind: "unshield",
+          metadata: {
+            estimatedFeeBaseUnits: String(quote.estimatedFeeBaseUnits),
+            expiresAtSlot: String(quote.expiresAtSlot),
+            quoteKey: key,
+            relayerId: String(quote.relayerId),
+            serializedTransactionRef: hashHex(serviceVersion, "claim-serialized-transaction", String(serializedTransaction)),
+          },
+        }),
         serializedTransaction: String(serializedTransaction),
         signature: hashHex(serviceVersion, "claim", key, String(serializedTransaction)),
       };
@@ -1126,6 +1152,22 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
         ...(expectedAccountRefs ? { expectedAccounts: expectedAccountRefs } : {}),
         ...(expectedPublicInputRefs ? { expectedPublicInputs: expectedPublicInputRefs } : {}),
       };
+      const relaySchedule = relayQueue.enqueueRelaySubmission({
+        idempotencyKey: key,
+        kind: "send",
+        metadata: {
+          ...(expectedAccountRefs ? { expectedAccounts: expectedAccountRefs } : {}),
+          ...(expectedPublicInputRefs ? { expectedPublicInputs: expectedPublicInputRefs } : {}),
+          proofReceiptId: String(proofReceiptId),
+          publicInputCommitment: String(publicInputCommitment),
+          serializedTransactionRef: hashHex(
+            serviceVersion,
+            "private-spend-serialized-transaction",
+            String(serializedTransaction),
+          ),
+          settlementId: String(settlementId),
+        },
+      });
       const liveSubmission = liveSolanaSubmitter
         ? await liveSolanaSubmitter.submitPrivateSpend(liveSubmissionRequest)
         : null;
@@ -1135,16 +1177,24 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
             relayerId: liveSubmission.relayerId,
             signature: liveSubmission.signature,
             submittedBy: liveSubmission.submittedBy,
+            relaySchedule,
           }
         : {
             ...liveSubmissionRequest,
             relayerId: `vanta-service-relayer:${hashHex(serviceVersion, "private-spend", String(settlementId)).slice(2, 18)}`,
             signature: hashHex(serviceVersion, "private-spend", key, String(serializedTransaction)),
             submittedBy: "relayer",
+            relaySchedule,
           };
       privateSpends.set(key, submission);
       await save();
       return submission;
+    },
+    relayQueueStatus() {
+      return relayQueue.status();
+    },
+    drainRelayQueue({ kind, maxBatchSize, nowMs } = {}) {
+      return relayQueue.drainReadyBatches({ kind, maxBatchSize, nowMs });
     },
   };
 }
@@ -1925,6 +1975,28 @@ if (request.method === "POST" && url.pathname === "/v1/commitments") {
     if (request.method === "POST" && request.url === "/v1/private-spends/submit") {
       const body = await readRequestBody(request);
       sendJson(response, 200, await relayerState.submitPrivateSpend(body));
+      return true;
+    }
+
+    if (request.method === "GET" && request.url === "/v1/relay-queue/status") {
+      sendJson(response, 200, {
+        ...basePayload(role),
+        relayQueue: relayerState.relayQueueStatus(),
+      });
+      return true;
+    }
+
+    if (request.method === "POST" && request.url === "/v1/relay-queue/drain") {
+      const body = await readRequestBody(request);
+      sendJson(response, 200, {
+        ...basePayload(role),
+        batches: relayerState.drainRelayQueue({
+          kind: body.kind,
+          maxBatchSize: body.maxBatchSize === undefined ? undefined : Number(body.maxBatchSize),
+          nowMs: body.nowMs === undefined ? undefined : Number(body.nowMs),
+        }),
+        relayQueue: relayerState.relayQueueStatus(),
+      });
       return true;
     }
 
