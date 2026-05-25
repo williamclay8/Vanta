@@ -53,10 +53,14 @@ function assertStringArray(value, label) {
   }
 }
 
-function assertRefPath(path, label) {
+function assertRepoLocalPathShape(path, label) {
   assert(typeof path === "string" && path.length > 0, `${label} must be a non-empty path`);
   assert(!path.includes("://"), `${label} must be repo-local, not a URL`);
   assert(!path.startsWith("../") && !path.includes("/../"), `${label} must stay inside repo`);
+}
+
+function assertRefPath(path, label) {
+  assertRepoLocalPathShape(path, label);
   assert(existsSync(resolve(repoRoot, path)), `${label} missing referenced file ${path}`);
 }
 
@@ -348,7 +352,14 @@ for (const [id, ref, command] of [
   const entry = comparisonOnlyLocalEvidence.get(id);
   assert(entry, `missing comparison-only local evidence ${id}`);
   assert(entry.ref === ref, `${id} comparison ref mismatch`);
-  assertRefPath(entry.ref, `${id} comparison ref`);
+  if (id === "fresh-local-sbf-abi") {
+    assertRepoLocalPathShape(entry.ref, `${id} comparison ref`);
+    assert(entry.refIsIgnoredBuildArtifact === true, `${id} must mark the SBF ref as an ignored build artifact`);
+    assert(entry.cleanCiMayMissRef === true, `${id} must mark clean CI as allowed to miss the local SBF ref`);
+    includes(entry.truthBoundary, "ignored local build artifact", `${id} comparison truth boundary`);
+  } else {
+    assertRefPath(entry.ref, `${id} comparison ref`);
+  }
   assert(entry.command === command, `${id} comparison command mismatch`);
   includes(entry.truthBoundary, "not", `${id} comparison truth boundary`);
 }

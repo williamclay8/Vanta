@@ -515,7 +515,9 @@
       "id": "fresh-local-sbf-abi",
       "ref": "programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so",
       "command": "npm run private-pool-v2:sbf-abi-check",
-      "truthBoundary": "Fresh local SBF ABI only; not redeployed, reinitialized, live, or accepted lineage."
+      "refIsIgnoredBuildArtifact": true,
+      "cleanCiMayMissRef": true,
+      "truthBoundary": "Fresh local SBF ABI only; ignored local build artifact may be absent on clean CI; not redeployed, reinitialized, live, or accepted lineage."
     },
     {
       "id": "production-privacy-audit-source",
