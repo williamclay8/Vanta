@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 import { poseidon2 } from "poseidon-lite";
 
 const repoRoot = resolve(import.meta.dirname, "..");
+mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-action-memo-encryption-"));
 const tempTsDir = join(tempRoot, "ts");
 const tempJsDir = join(tempRoot, "js");
