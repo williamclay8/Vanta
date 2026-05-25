@@ -103,7 +103,7 @@ requirePhrase(limitations, "Last validated against repo-local code: 2026-05-14",
 requirePhrase(docsContent, "test checkout", "src/docs/docsContent.ts");
 requirePhrase(privacyModel, 'What "shielded state" means today', "docs/privacy-model.md");
 for (const phrase of [
-  "Last validated against repo-local code: 2026-05-14",
+  "Last validated against repo-local code: 2026-05-25",
   "Vanta production privacy is not enabled",
   "users, merchants, relayers, operators, counterparties",
   "A remote prover or prover relay must be explicit opt-in.",

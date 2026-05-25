@@ -24,7 +24,13 @@ assert(
 );
 assert(
   !status.blockers.includes("legacy-v1-send-history-migration-not-scoped"),
-  "Send status must not keep the historical v1 migration blocker once fresh-v2-only claim scope is recorded.",
+  "Send status must not keep the historical v1 scope blocker once fresh-v2-only claim scope is recorded.",
+);
+assert(
+  status.blockers.includes(
+    "legacy-v1-send-history-reviewed-migration-or-segregation-evidence-missing",
+  ),
+  "Send status must keep the reviewed legacy v1 migration/segregation evidence blocker.",
 );
 assert(
   shieldState.includes("createPreparedSendDualAeadMemo") &&
@@ -78,6 +84,16 @@ assert.equal(
   "Send status must not claim legacy v1 history was migrated.",
 );
 assert.equal(
+  status.sendDiscoveryHandoff?.legacyHistoryScope?.localMigrationToolingCovered,
+  true,
+  "Send status must expose local legacy v1 migration tooling coverage.",
+);
+assert.equal(
+  status.sendDiscoveryHandoff?.legacyHistoryScope?.reviewedMigrationOrSegregationEvidence,
+  false,
+  "Send status must not claim reviewed legacy v1 migration/segregation evidence.",
+);
+assert.equal(
   status.sendDiscoveryHandoff?.legacyHistoryScope?.legacyV1EligibleForProductionPrivacyClaims,
   false,
   "Legacy v1 plaintext Send history must not be eligible for production privacy claims.",
@@ -86,12 +102,18 @@ assert(
   trustPacket.sendDiscoveryHandoff?.blockerIds?.includes(
     "send-memo-indexer-body-hash-handoff-not-deployed",
   ) &&
+    trustPacket.sendDiscoveryHandoff?.blockerIds?.includes(
+      "legacy-v1-send-history-reviewed-migration-or-segregation-evidence-missing",
+    ) &&
     !trustPacket.sendDiscoveryHandoff?.blockerIds?.includes(
       "legacy-v1-send-history-migration-not-scoped",
     ) &&
     trustPacket.remainingBlockers.includes("send-memo-indexer-body-hash-handoff-not-deployed") &&
+    trustPacket.remainingBlockers.includes(
+      "legacy-v1-send-history-reviewed-migration-or-segregation-evidence-missing",
+    ) &&
     !trustPacket.remainingBlockers.includes("legacy-v1-send-history-migration-not-scoped"),
-  "Send trust packet must expose only the remaining deployed discovery blocker id.",
+  "Send trust packet must expose deployed discovery and reviewed legacy-v1 evidence blocker ids.",
 );
 assert.equal(
   trustPacket.sendDiscoveryHandoff?.productionReady,
@@ -112,6 +134,16 @@ assert.equal(
   trustPacket.legacyHistoryScope?.legacyV1EligibleForProductionPrivacyClaims,
   false,
   "Send trust packet must keep legacy v1 plaintext history outside production privacy scope.",
+);
+assert.equal(
+  trustPacket.legacyHistoryScope?.localMigrationToolingCovered,
+  true,
+  "Send trust packet must expose local legacy v1 migration tooling coverage.",
+);
+assert.equal(
+  trustPacket.legacyHistoryScope?.reviewedMigrationOrSegregationEvidence,
+  false,
+  "Send trust packet must not claim reviewed legacy v1 migration/segregation evidence.",
 );
 assert(
   trustPacket.verificationCommands.includes("npm run send:discovery-indexer-handoff-check"),

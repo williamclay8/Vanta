@@ -37,6 +37,7 @@ for (const phrase of [
   "VANTA_LEGACY_V1_MEMO_QUARANTINE_POLICY_VERSION",
   "vanta-legacy-v1-memo-quarantine-0.1",
   "getVantaLegacyV1MemoQuarantinePolicy",
+  "createLegacyV1SendMemoMigrationPacket",
   "legacy-v1-plaintext-memos-quarantined-parse-compatible-history",
   "freshV2EncryptedRequiredForNewMemos: true",
   "freshV2ViewingKeyAeadRequiredForNewActionMemos: true",
@@ -44,6 +45,8 @@ for (const phrase of [
   "migrated: false",
   "productionPrivacyClaimsEligible: false",
   "privacyClaimsExcluded: true",
+  "reviewedMigrationOrSegregationEvidence: false",
+  "local-legacy-v1-send-memo-migration-tooling-not-production-recipient-discovery",
   "legacy v1 plaintext memo chain history is parse-compatible history only",
 ]) {
   requirePhrase(shieldState, phrase, "src/solana/vantaShieldState.ts");
@@ -88,6 +91,7 @@ for (const phrase of [
 
 for (const phrase of [
   "legacyHistoryScope?.legacyV1EligibleForProductionPrivacyClaims",
+  "legacyHistoryScope?.reviewedMigrationOrSegregationEvidence",
   "legacy v1 plaintext history outside production privacy scope",
 ]) {
   requirePhrase(
@@ -142,16 +146,34 @@ assert.ok(
   "actions:memo-encryption-check must include the legacy v1 memo quarantine guard.",
 );
 assert.ok(
+  packageJson.scripts["actions:memo-encryption-check"]?.includes(
+    "npm run actions:legacy-v1-send-memo-migration-check",
+  ),
+  "actions:memo-encryption-check must include the legacy v1 Send memo migration guard.",
+);
+assert.ok(
   packageJson.scripts["truth:privacy-claim-gate"]?.includes(
     "npm run actions:legacy-v1-memo-quarantine-check",
   ),
   "truth:privacy-claim-gate must include the legacy v1 memo quarantine guard.",
 );
 assert.ok(
+  packageJson.scripts["truth:privacy-claim-gate"]?.includes(
+    "npm run actions:legacy-v1-send-memo-migration-check",
+  ),
+  "truth:privacy-claim-gate must include the legacy v1 Send memo migration guard.",
+);
+assert.ok(
   packageJson.scripts["zk:feedback-loop-check"]?.includes(
     "npm run actions:legacy-v1-memo-quarantine-check",
   ),
   "zk:feedback-loop-check must include the legacy v1 memo quarantine guard.",
+);
+assert.ok(
+  packageJson.scripts["zk:feedback-loop-check"]?.includes(
+    "npm run actions:legacy-v1-send-memo-migration-check",
+  ),
+  "zk:feedback-loop-check must include the legacy v1 Send memo migration guard.",
 );
 
 console.log("Vanta legacy v1 memo quarantine check: PASS");

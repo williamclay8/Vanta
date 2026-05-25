@@ -39,6 +39,8 @@ export const VANTA_SEND_HISTORY_PRIVACY_SCOPE_VERSION =
   "vanta-send-history-privacy-scope-0.1";
 export const VANTA_LEGACY_V1_MEMO_QUARANTINE_POLICY_VERSION =
   "vanta-legacy-v1-memo-quarantine-0.1";
+export const VANTA_LEGACY_V1_SEND_MEMO_MIGRATION_VERSION =
+  "vanta-legacy-v1-send-memo-migration-0.1";
 export const VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE =
   "vanta-native-sol-same-transaction-deposit";
 export const VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE =
@@ -587,6 +589,40 @@ export type PreparedSendDualAeadMemo = PreparedSendMemoIds & {
   recipientMemoCiphertextBodyHash: string;
 };
 
+export type VantaLegacyV1SendMemoMigrationLeg = {
+  audience: "recipient" | "change";
+  bodyHashScheme: VantaSendDiscoveryHandoff["bodyHashScheme"];
+  claimBoundary: VantaSendDiscoveryHandoff["claimBoundary"];
+  encryptedViewTag: string;
+  memoCiphertextBodyHash: string;
+  memoPrefix: typeof VANTA_SEND_MEMO_PREFIX_V2;
+  productionReady: false;
+  proofBinding: VantaSendDiscoveryHandoff["proofBinding"];
+};
+
+export type VantaLegacyV1SendMemoMigrationResult = {
+  changeMemo?: VantaLegacyV1SendMemoMigrationLeg;
+  changeMemoCiphertextBodyHash?: string;
+  claimBoundary:
+    "local-legacy-v1-send-memo-migration-tooling-not-production-recipient-discovery";
+  legacyMemoPrefix: typeof VANTA_SEND_MEMO_PREFIX;
+  legacyV1EligibleForProductionPrivacyClaims: false;
+  migrationRunId?: string;
+  noteId?: string;
+  productionReady: false;
+  recipientMemo?: VantaLegacyV1SendMemoMigrationLeg;
+  recipientMemoCiphertextBodyHash?: string;
+  reason?: string;
+  reviewedMigrationOrSegregationEvidence: false;
+  segregationRequired: boolean;
+  stateSignature: string;
+  status:
+    | "local-v2-discovery-packet-created"
+    | "not-applicable"
+    | "segregation-required";
+  version: typeof VANTA_LEGACY_V1_SEND_MEMO_MIGRATION_VERSION;
+};
+
 type UnshieldMemoPayload = {
   amount: string;
   asset: VantaShieldTokenAsset;
@@ -1056,6 +1092,178 @@ export function getVantaLegacyV1MemoQuarantinePolicy() {
     quarantineBoundary:
       "legacy v1 plaintext memo chain history is parse-compatible history only and is excluded from production privacy, anonymity, proof-verified, and mainnet-private claims unless migrated or segregated with reviewed evidence",
   } as const;
+}
+
+function createLegacyV1SendMemoMigrationBase(args: {
+  migrationRunId?: string | null;
+  reason?: string;
+  stateSignature: string;
+  status: VantaLegacyV1SendMemoMigrationResult["status"];
+}): VantaLegacyV1SendMemoMigrationResult {
+  return {
+    claimBoundary:
+      "local-legacy-v1-send-memo-migration-tooling-not-production-recipient-discovery",
+    legacyMemoPrefix: VANTA_SEND_MEMO_PREFIX,
+    legacyV1EligibleForProductionPrivacyClaims: false,
+    migrationRunId: args.migrationRunId ?? undefined,
+    productionReady: false,
+    reason: args.reason,
+    reviewedMigrationOrSegregationEvidence: false,
+    segregationRequired: args.status !== "local-v2-discovery-packet-created",
+    stateSignature: args.stateSignature,
+    status: args.status,
+    version: VANTA_LEGACY_V1_SEND_MEMO_MIGRATION_VERSION,
+  };
+}
+
+function parseLegacyV1SendMemoPayloadForMigration(
+  memo: string | null | undefined,
+): Omit<SendMemoPayload, "kind" | "noteId" | "changeNoteId"> | null {
+  const memoPayload = extractMemoPayload(memo, VANTA_SEND_MEMO_PREFIX);
+  if (!memoPayload) {
+    return null;
+  }
+
+  let parsed: Partial<SendMemoPayload>;
+  try {
+    parsed = JSON.parse(memoPayload) as Partial<SendMemoPayload>;
+  } catch {
+    return null;
+  }
+
+  if (
+    parsed.kind !== "send" ||
+    !isShieldTokenAsset(parsed.asset) ||
+    typeof parsed.owner !== "string" ||
+    typeof parsed.mintAddress !== "string" ||
+    typeof parsed.vaultOwner !== "string" ||
+    typeof parsed.recipient !== "string" ||
+    typeof parsed.amount !== "string" ||
+    typeof parsed.changeAmount !== "string" ||
+    typeof parsed.createdAt !== "number"
+  ) {
+    return null;
+  }
+
+  const amount = Number(parsed.amount);
+  const changeAmount = Number(parsed.changeAmount);
+  if (
+    !Number.isFinite(amount) ||
+    amount <= 0 ||
+    !Number.isFinite(changeAmount) ||
+    changeAmount < 0
+  ) {
+    return null;
+  }
+
+  return {
+    amount: parsed.amount,
+    asset: parsed.asset,
+    changeAmount: parsed.changeAmount,
+    consumedNoteId:
+      typeof parsed.consumedNoteId === "string" ? parsed.consumedNoteId : undefined,
+    consumedShieldStateSignature:
+      typeof parsed.consumedShieldStateSignature === "string"
+        ? parsed.consumedShieldStateSignature
+        : undefined,
+    createdAt: parsed.createdAt,
+    mintAddress: parsed.mintAddress,
+    owner: parsed.owner,
+    recipient: parsed.recipient,
+    vaultOwner: parsed.vaultOwner,
+  };
+}
+
+function sanitizeLegacyV1SendMemoMigrationLeg(
+  leg: PreparedSendDualAeadMemoLeg,
+): VantaLegacyV1SendMemoMigrationLeg {
+  return {
+    audience: leg.audience,
+    bodyHashScheme: leg.discoveryHandoff.bodyHashScheme,
+    claimBoundary: leg.discoveryHandoff.claimBoundary,
+    encryptedViewTag: leg.discoveryHandoff.encryptedViewTag,
+    memoCiphertextBodyHash: leg.ciphertextBodyHash,
+    memoPrefix: leg.discoveryHandoff.memoPrefix,
+    productionReady: false,
+    proofBinding: leg.discoveryHandoff.proofBinding,
+  };
+}
+
+export function createLegacyV1SendMemoMigrationPacket(args: {
+  changeViewingPublicKey?: string | null;
+  memo: string | null | undefined;
+  migrationRunId?: string | null;
+  recipientViewingPublicKey?: string | null;
+  stateSignature: string;
+}): VantaLegacyV1SendMemoMigrationResult {
+  const memoText = typeof args.memo === "string" ? args.memo.trim() : "";
+
+  if (memoText.startsWith(VANTA_SEND_MEMO_PREFIX_V2)) {
+    return createLegacyV1SendMemoMigrationBase({
+      migrationRunId: args.migrationRunId,
+      reason: "fresh-v2-send-memo-not-remigrated",
+      stateSignature: args.stateSignature,
+      status: "not-applicable",
+    });
+  }
+
+  if (!memoText.startsWith(VANTA_SEND_MEMO_PREFIX)) {
+    return createLegacyV1SendMemoMigrationBase({
+      migrationRunId: args.migrationRunId,
+      reason: "not-legacy-v1-send-memo",
+      stateSignature: args.stateSignature,
+      status: "not-applicable",
+    });
+  }
+
+  const payload = parseLegacyV1SendMemoPayloadForMigration(args.memo);
+  if (!payload) {
+    return createLegacyV1SendMemoMigrationBase({
+      migrationRunId: args.migrationRunId,
+      reason: "malformed-legacy-v1-send-memo-segregation-required",
+      stateSignature: args.stateSignature,
+      status: "segregation-required",
+    });
+  }
+
+  if (!args.recipientViewingPublicKey) {
+    return createLegacyV1SendMemoMigrationBase({
+      migrationRunId: args.migrationRunId,
+      reason: "missing-recipient-viewing-public-key",
+      stateSignature: args.stateSignature,
+      status: "segregation-required",
+    });
+  }
+
+  if (Number(payload.changeAmount) > 0 && !args.changeViewingPublicKey) {
+    return createLegacyV1SendMemoMigrationBase({
+      migrationRunId: args.migrationRunId,
+      reason: "missing-change-viewing-public-key",
+      stateSignature: args.stateSignature,
+      status: "segregation-required",
+    });
+  }
+
+  const prepared = createPreparedSendDualAeadMemo(payload, {
+    changeViewingPublicKey: args.changeViewingPublicKey,
+    recipientViewingPublicKey: args.recipientViewingPublicKey,
+  });
+
+  return {
+    ...createLegacyV1SendMemoMigrationBase({
+      migrationRunId: args.migrationRunId,
+      stateSignature: args.stateSignature,
+      status: "local-v2-discovery-packet-created",
+    }),
+    changeMemo: prepared.changeMemo
+      ? sanitizeLegacyV1SendMemoMigrationLeg(prepared.changeMemo)
+      : undefined,
+    changeMemoCiphertextBodyHash: prepared.changeMemoCiphertextBodyHash,
+    noteId: prepared.noteId,
+    recipientMemo: sanitizeLegacyV1SendMemoMigrationLeg(prepared.recipientMemo),
+    recipientMemoCiphertextBodyHash: prepared.recipientMemoCiphertextBodyHash,
+    segregationRequired: false,
+  };
 }
 
 function createShieldNoteId(payload: Omit<ShieldMemoPayload, "kind" | "noteId">) {

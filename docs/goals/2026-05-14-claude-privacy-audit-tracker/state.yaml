@@ -39,7 +39,7 @@ rules:
   no_production_private_claims_without_positive_proof_and_live_receipts: true
 
 lumi:
-  local: "Tracker, N1/N2/N3/N5, R4A, R6A (native SOL Phase 2 sentinel migration closure + TAG6 runtime verifier_wired gate + TAG6 toolkit as canonical §12 pre-deploy + live evidence mechanism), R8A, R9A/R9B/R9C, R10A/R10B, R11A, R12 (legacy v1 + native sol WSOL quarantine/migration), R13-R16, R19 local/source-level receipts exist; use git status for current dirt. PPA-PROGRAM-004 is implemented and verified locally: pool_state.verifier_wired is initialized to 0, no live setter exists, cfg-test TAG6 release helpers are removed, TAG6 remains fail-closed before nullifier consume/CPI even if the flag is manually set, and the TAG6 toolkit remains the official §12 pre-deploy/live-evidence mechanism. PPA-VERIFIER-001 Band 3 item 11 is accepted-noop/evidence-local: existing C01 evidence selects groth16-tag3-solana-v0 as backend direction only, with no production proof-format, VK, adapter, SBF/live, audit, or privacy-claim lift. PPA-VERIFIER-002 Band 3 item 12 tracker plan is approved locally as a doc-only truth marker and remains blocked before implementation on external public ceremony/reviewed setup, production artifact build/VK refs, and tag-5 registration receipts. PPA-VERIFIER-003 Band 3 item 13 evidence-contract hardening is committed/pushed/website-live as docs/guard status at c922a52b0da2d7be7b44e79121a8bf64f49c993b: the C01 artifact request, deterministic build gate, production bundle template, SBF/live, handoff, and closure gates explicitly require reviewed frozen source commit/source tree status refs, deployed verifier program id/hash, verifier program upgrade-authority status ref, and tag-5 verifier-key record binding production VK hash to verifier program id; accepted refs remain null and external reviewed production artifact bundle, verifier-adapter acceptance, SBF/live lineage, proof-enforced receipt, and audit/reviewer acceptance remain blocked."
+  local: "Tracker, N1/N2/N3/N5, R4A, R6A (native SOL Phase 2 sentinel migration closure + TAG6 runtime verifier_wired gate + TAG6 toolkit as canonical §12 pre-deploy + live evidence mechanism), R8A, R9A/R9B/R9C, R10A/R10B, R11A, R12 (legacy v1 + native sol WSOL quarantine/migration), R13-R16, R19 local/source-level receipts exist; use git status for current dirt. PPA-DISCOVERY-002 Band 6 item 20 is implemented and verified locally for local legacy v1 Send memo migration/segregation tooling; it does not rewrite on-chain memo history, deploy recipient discovery, provide reviewed migration/segregation evidence, or lift Send production privacy claims. PPA-PROGRAM-004 is implemented and verified locally: pool_state.verifier_wired is initialized to 0, no live setter exists, cfg-test TAG6 release helpers are removed, TAG6 remains fail-closed before nullifier consume/CPI even if the flag is manually set, and the TAG6 toolkit remains the official §12 pre-deploy/live-evidence mechanism. PPA-VERIFIER-001 Band 3 item 11 is accepted-noop/evidence-local: existing C01 evidence selects groth16-tag3-solana-v0 as backend direction only, with no production proof-format, VK, adapter, SBF/live, audit, or privacy-claim lift. PPA-VERIFIER-002 Band 3 item 12 tracker plan is approved locally as a doc-only truth marker and remains blocked before implementation on external public ceremony/reviewed setup, production artifact build/VK refs, and tag-5 registration receipts. PPA-VERIFIER-003 Band 3 item 13 evidence-contract hardening is committed/pushed/website-live as docs/guard status at c922a52b0da2d7be7b44e79121a8bf64f49c993b: the C01 artifact request, deterministic build gate, production bundle template, SBF/live, handoff, and closure gates explicitly require reviewed frozen source commit/source tree status refs, deployed verifier program id/hash, verifier program upgrade-authority status ref, and tag-5 verifier-key record binding production VK hash to verifier program id; accepted refs remain null and external reviewed production artifact bundle, verifier-adapter acceptance, SBF/live lineage, proof-enforced receipt, and audit/reviewer acceptance remain blocked."
   committed: "Recorded deploy baseline c922a52b0da2d7be7b44e79121a8bf64f49c993b (Map C01 external evidence refs) is committed; prior audit-remediation implementation commits include 995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates) and a2fa72a4fd048826982974ffdcae7c6a0a942140 (Tighten audit readiness wording)."
   pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main both point to c922a52b0da2d7be7b44e79121a8bf64f49c993b as of 2026-05-25."
   deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 is live deploy dep-d8a8op7aqgkc73ap4gn0 at commit c922a52b0da2d7be7b44e79121a8bf64f49c993b on 2026-05-25; live meta, public audit discovery, and live anonymity-set probes pass. Public audit manifest still records liveDeploymentVerified=false and pending re-attestation after deploy drift. Spend-program SBF, proof verifier, custody, private-settlement, recipient-discovery service, and anonymity evidence remain blocked or not live-verified; no live TAG6 releases or production program."
@@ -2148,7 +2148,7 @@ production_privacy_audit_remediation:
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired includes d1de01d8 on 2026-05-25."
             deployed_live: "not-deployed-live"
     - id: band-6-recipient-discovery
-      status: active-item-19-implemented-verified-local
+      status: active-item-20-implemented-verified-local
       rule: "Band 6 may start only after Band 5 is landed or explicitly blocked. Do not claim production recipient discovery, query privacy, anonymity, or production privacy from local indexer API work."
       items:
         - id: PPA-DISCOVERY-001
@@ -2247,6 +2247,97 @@ production_privacy_audit_remediation:
             committed: "latest branch head after the PPA-DISCOVERY-001 implementation slice; use git log for the exact commit."
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after the PPA-DISCOVERY-001 implementation slice; use git status for sync."
             deployed_live: "not-deployed-live"
+        - id: PPA-DISCOVERY-002
+          audit_section: "Band 6 item 20 - Force-migrate legacy v1 memos"
+          remediation_order: 20
+          title: "Add local legacy v1 Send memo migration and segregation evidence"
+          severity: high
+          owner_lane: recipient-discovery
+          status: implemented-verified-local
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#SEND-production-gap-list"
+            - "SECURITY_LIMITATIONS.md"
+            - "src/solana/vantaShieldState.ts"
+            - "scripts/check-vanta-legacy-v1-memo-quarantine.mjs"
+            - "scripts/check-vanta-send-discovery-migration-policy.mjs"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-discovery-002-legacy-v1-send-memo-migration-plan.md"
+          current_truth:
+            - "Legacy v1 Send plaintext memo history is parse-compatible and quarantined; local tooling can create sanitized v2 discovery metadata or segregation-required records, but reviewed migration/segregation evidence is still missing."
+            - "Fresh Send action memos use v2 viewing-key AEAD and fail closed without viewing-key material."
+            - "Existing Send status/trust surfaces keep legacy v1 plaintext history ineligible for production privacy claims unless migrated or segregated with reviewed evidence."
+            - "Historical on-chain plaintext memo content cannot be rewritten; any migration can only create v2 encrypted discovery packets and/or segregation records for future review."
+          planned_files:
+            - "src/solana/vantaShieldState.ts"
+            - "src/readiness/sendMainnetProductionStatus.mjs"
+            - "scripts/print-vanta-protocol-trust-packet.mjs"
+            - "scripts/check-vanta-send-discovery-migration-policy.mjs"
+            - "scripts/check-vanta-legacy-v1-memo-quarantine.mjs"
+            - "scripts/check-vanta-legacy-v1-send-memo-migration.mjs"
+            - "package.json"
+            - "PRODUCTION_PRIVACY_AUDIT.md"
+            - "SECURITY_LIMITATIONS.md"
+            - "docs/threat-model.md"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-discovery-002-legacy-v1-send-memo-migration-plan.md"
+          planned_design:
+            - "Add a red-first actions:legacy-v1-send-memo-migration-check package script."
+            - "Add a local one-time migration packet helper for parse-compatible legacy v1 Send memos that requires recipient/change viewing-key material before re-encrypting to v2 dual-AEAD discovery packets."
+            - "Add segregation-required results for missing viewing keys, malformed legacy payloads, fresh v2 memos, and non-Send v1 prefixes."
+            - "Emit only ciphertext body hashes, encrypted view tags, migration refs, and review metadata; do not persist plaintext memo payloads, viewing-key plaintext, owner secrets, note blindings, proofs, or witnesses."
+            - "Keep productionReady=false and privacy claims locked until reviewed migration/segregation evidence, deployed recipient discovery, retention/log-redaction evidence, anonymous/public read posture, and reviewer acceptance exist."
+          planned_fixtures:
+            - "Red-first: npm run actions:legacy-v1-send-memo-migration-check fails before script/package wiring."
+            - "Eligible v1 Send memo plus recipient/change viewing keys returns v2 recipient/change discovery handoff metadata."
+            - "Missing recipient viewing key returns segregation-required with no v2 packet."
+            - "Missing change viewing key for nonzero change returns segregation-required with no partial migration."
+            - "Fresh v2 Send memo is not re-migrated."
+            - "Malformed legacy v1 memo and non-Send legacy prefixes are segregated, not promoted."
+            - "Status/trust surfaces keep legacyV1EligibleForProductionPrivacyClaims=false, productionReady=false, privacyClaimAllowed=false, and reviewedMigrationOrSegregationEvidence=false."
+          red_first_evidence:
+            - "2026-05-25: npm run actions:legacy-v1-send-memo-migration-check fails before implementation with npm Missing script: actions:legacy-v1-send-memo-migration-check."
+          implementation_summary:
+            - "Added createLegacyV1SendMemoMigrationPacket in src/solana/vantaShieldState.ts for local legacy v1 Send migration/segregation packets."
+            - "Eligible parse-compatible legacy v1 Send memos can produce sanitized v2 recipient/change discovery metadata when recipient/change viewing-key material is present."
+            - "Missing viewing-key material, malformed legacy payloads, fresh v2 memos, and non-Send memos produce not-applicable or segregation-required results instead of claim promotion."
+            - "Send production status, trust packet, lane trust contract, security limitations, threat model, and audit tracker now keep reviewed legacy v1 migration/segregation evidence as an explicit blocker."
+          planned_new_script: "npm run actions:legacy-v1-send-memo-migration-check"
+          verified_evidence:
+            - "2026-05-25: npm run actions:legacy-v1-send-memo-migration-check: PASS"
+            - "2026-05-25: npm run actions:legacy-v1-memo-quarantine-check: PASS"
+            - "2026-05-25: npm run mainnet:send-production-check: PASS"
+            - "2026-05-25: npm run actions:memo-encryption-check: PASS"
+            - "2026-05-25: npm run send:discovery-migration-policy-check: PASS"
+            - "2026-05-25: npm run send:trust-packet-check: PASS"
+            - "2026-05-25: npm run lanes:trust-contract-check: PASS"
+            - "2026-05-25: npm run send:direct-viewing-key-exchange-check: PASS"
+            - "2026-05-25: npm run indexer:view-tag-pull-check: PASS"
+            - "2026-05-25: npm run security:limitations-check: PASS"
+            - "2026-05-25: npm run privacy-audit:tracker-check: PASS"
+            - "2026-05-25: npm run truth:privacy-claim-gate: PASS"
+            - "2026-05-25: npm run docs:source-of-truth-check: PASS after aligning the guard to the threat-model 2026-05-25 validation marker."
+            - "2026-05-25: npm run build: PASS"
+            - "2026-05-25: git diff --check: PASS"
+          verification_after_approval:
+            - "npm run actions:legacy-v1-send-memo-migration-check"
+            - "npm run actions:legacy-v1-memo-quarantine-check"
+            - "npm run actions:memo-encryption-check"
+            - "npm run send:discovery-migration-policy-check"
+            - "npm run send:direct-viewing-key-exchange-check"
+            - "npm run indexer:view-tag-pull-check"
+            - "npm run truth:privacy-claim-gate"
+            - "npm run privacy-audit:tracker-check"
+            - "npm run build"
+            - "git diff --check"
+          approval_gate: "Clay approved PPA-DISCOVERY-002 implementation on 2026-05-25 after the tracker plan and red-first missing-script evidence were posted."
+          remaining_truth_boundary: "This implemented slice is local migration/segregation tooling and claim-boundary evidence only. It does not rewrite historical on-chain memos, deploy recipient discovery, provide query privacy, prove anonymity, provide reviewer acceptance, or make Send production-private/mainnet-ready."
+          blockers:
+            - "Production recipient discovery still requires deployed service evidence, retention/log-redaction evidence, public or anonymous read posture, external reviewer acceptance, and reviewed legacy v1 migration or segregation evidence."
+          lumi:
+            local: "Band 6 item 20 local legacy v1 Send migration/segregation helper, guard, docs, and tracker truth updates are implemented locally."
+            committed: "not-committed"
+            pushed: "not-pushed"
+            deployed_live: "not-deployed-live"
 
 audit_completion_checklist:
   path: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-completion-audit.md"
@@ -2276,4 +2367,5 @@ next_safe_slices:
   - "PPA-RELAYER-002 / Band 5 item 17 is implemented-verified-local for randomized jitter and batching. It remains not deployed/live and does not satisfy Tor/blinded-token relayer protection."
   - "PPA-RELAYER-003 / Band 5 item 18 is implemented-verified-local for a fail-closed Tor/blinded-token privacy-transport evidence gate. It is not live Tor, not live blinded-token submission, not production privacy, not IP privacy proof, not anonymity evidence, not audit acceptance, and not mainnet readiness."
   - "PPA-DISCOVERY-001 / Band 6 item 19 is implemented-verified-local for an authenticated indexer view-tag prefix pull API. It is not deployed/live/reviewed, does not prove query privacy, and production recipient discovery remains blocked on deployed service, retention/log-redaction, public or anonymous read posture, legacy v1 memo migration/segregation, and reviewer acceptance evidence."
+  - "PPA-DISCOVERY-002 / Band 6 item 20 is implemented-verified-local for local legacy v1 Send memo migration/segregation tooling. It does not rewrite historical on-chain memos, deploy recipient discovery, provide reviewed migration/segregation evidence, or lift production privacy claims."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."

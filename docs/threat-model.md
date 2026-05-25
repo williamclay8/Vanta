@@ -70,7 +70,7 @@ Before Vanta can claim production-private, proof-verified, program-owned custody
 - live anonymity-set depth is above the published threshold and claim flags remain tied to live data;
 - recipient discovery is deployed and reviewed;
 - prover, relayer, verifier, indexer, and operator services are separated and reviewed;
-- legacy v1 plaintext memo history is migrated, quarantined, or excluded from claims;
+- legacy v1 plaintext memo history is migrated, quarantined, or excluded from claims, with local Send migration tooling creating sanitized v2 discovery metadata or segregation records only until reviewed migration/segregation evidence exists;
 - the deployed bytecode and public bundle are matched to reviewed source;
 - hosted CI, local canonical checks, and reviewer-facing docs all agree.
 
