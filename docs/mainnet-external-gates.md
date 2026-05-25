@@ -286,16 +286,21 @@ ops/mainnet/production-key-custody.template.json
 Evidence needed:
 
 - `VANTA_SHIELD_PRODUCTION_KEY_CUSTODY_REF`
+- `VANTA_KEY_CUSTODY_RUNBOOK_REF`
+- `VANTA_INCIDENT_RESPONSE_RUNBOOK_REF`
 - Shield viewing-key backup and recovery policy refs
 - operator key access policy ref
 - relayer fee-wallet custody ref
 - key rotation and revocation runbook refs
 - key access-audit log ref
 - custody reviewer decision ref
+- `docs/key-custody-runbook.md`
+- `docs/incident-response-runbook.md`
 
 Verification:
 
 ```bash
+npm run compliance:ops-publication-check
 npm run mainnet:external-gates-production-claim-check
 npm run shield:privacy-readiness-check
 ```
@@ -388,6 +393,10 @@ Evidence needed:
 - alert routing reference
 - on-call owner reference
 - `VANTA_INCIDENT_RUNBOOK_REF`
+- `VANTA_INCIDENT_RESPONSE_RUNBOOK_REF`
+- `VANTA_KEY_CUSTODY_RUNBOOK_REF`
+- `docs/incident-response-runbook.md`
+- `docs/key-custody-runbook.md`
 - abuse response workflow reference
 - retention policy reference
 - privacy-preserving telemetry review reference
@@ -397,6 +406,7 @@ Evidence needed:
 Verification:
 
 ```bash
+npm run compliance:ops-publication-check
 npm run mainnet:abuse-observability-check
 npm run ops:rate-limit-check
 npm run ops:safe-telemetry-check

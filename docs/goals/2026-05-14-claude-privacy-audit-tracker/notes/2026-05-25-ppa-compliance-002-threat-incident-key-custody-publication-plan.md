@@ -6,7 +6,7 @@
 - Band: 8 - compliance + ops
 - Recommended remediation order: 25
 - Finding: Threat model published. Incident-response runbook published. Key-custody runbook published.
-- Status: plan-open-approval-pending on 2026-05-25.
+- Status: implemented-verified-local on 2026-05-25 after Clay approval.
 
 ## Current Evidence
 
@@ -15,14 +15,15 @@
 - `docs/operator-runbook.md` references monitoring and incident-response expectations.
 - `ops/mainnet/production-incident-workflow.evidence.json` exists as a refs-only incident workflow evidence surface.
 - `ops/mainnet/production-key-custody.template.json` exists as a refs-only key-custody intake template.
-- The audit specifically calls for `docs/key-custody-runbook.md`; that file is not present.
-- A dedicated public incident-response runbook file is not present; incident response is currently embedded in broader deployment/operator docs.
+- `docs/incident-response-runbook.md` now records the stop/suspend, evidence-preservation, secret-safe debugging, disclosure, recovery, and post-incident review flow.
+- `docs/key-custody-runbook.md` now records refs-only custody surfaces, access approval, multisig/HSM/Turnkey ref expectations, rotation, revocation, emergency freeze, break-glass, and access-audit expectations.
 
-## Planned Files After Approval
+## Implemented Files
 
 - `docs/threat-model.md`
 - `docs/incident-response-runbook.md`
 - `docs/key-custody-runbook.md`
+- `docs/docs-source-of-truth.md`
 - `docs/mainnet-deployment-runbook.md`
 - `docs/operator-runbook.md`
 - `docs/mainnet-external-gates.md`
@@ -30,10 +31,12 @@
 - `ops/mainnet/production-incident-workflow.evidence.json`
 - `ops/mainnet/production-key-custody.template.json`
 - `scripts/check-vanta-band8-ops-publication.mjs`
+- `scripts/check-vanta-docs-source-of-truth.mjs`
+- `scripts/check-vanta-production-incident-workflow-evidence.mjs`
 - `package.json`
 - `docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml`
 
-## Planned New Script
+## Implemented New Script
 
 - `npm run compliance:ops-publication-check`
 
@@ -58,10 +61,12 @@
 - `npm run build`
 - `git diff --check`
 
+All listed commands passed locally on 2026-05-25.
+
 ## Approval Gate
 
-This plan requires Clay approval before adding or publishing the incident-response and key-custody runbook docs, wiring the new guard script, or changing public/docs source-of-truth surfaces.
+Clay approved implementation on 2026-05-25 before the runbooks, refs, and guard script were added.
 
 ## Truth Boundary
 
-This tracker plan does not publish final incident-response or key-custody runbooks, prove legal/compliance/custody review, create production custody, satisfy audit acceptance, move claim gates, deploy services, or change launch status.
+This repo-local slice publishes operator-trusted beta incident-response and key-custody runbooks plus a fail-closed publication guard. It does not prove legal/compliance/custody review, create custody authority, satisfy external reviewer acceptance, move claim gates, deploy services, or change launch status.

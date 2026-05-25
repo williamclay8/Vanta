@@ -72,6 +72,7 @@ The checked privacy-rail contract is `docs/privacy-rail-contract.md` and `src/re
 - Browser UX checks prove navigation and rendering behavior, not wallet security, relayer safety, or cryptographic privacy.
 - Live mainnet submission mode can be enabled in bounded operator windows, but real-funds actions still require explicit approval and must not be presented as production-ready private settlement.
 - Transaction Evidence v0.1 is evidence of the current transaction or receipt trace only; it may include mainnet signatures, local/operator receipt ids, and redacted linkage fields, but it does not prove mainnet finality, production settlement, or privacy guarantees. It must not store private inputs, secrets, seed phrases, raw customer data, signed transaction material, or credential-bearing URLs.
+- Incident and key-custody procedures are now split into `docs/incident-response-runbook.md` and `docs/key-custody-runbook.md`, checked by `npm run compliance:ops-publication-check`. These docs are repo-local operator-trusted beta procedures only; they do not replace external legal, compliance, custody, or reviewer refs.
 - Never request, store, or handle private keys, seed phrases, or keypair files.
 - Future live transaction paths must simulate before signature, show a human-readable transaction summary, and require explicit human approval before requesting a wallet signature.
 - Future wallet signing paths must pass the executable transaction safety summary boundary before requesting approval.
@@ -115,7 +116,7 @@ Vanta is not production-ready until at least the following are complete:
 - browser-verified wallet and checkout UX
 - production deployment docs
 - legal, compliance, custody, and audit review where applicable
-- documented incident response and operational runbooks
+- documented incident response and operational runbooks, including `docs/incident-response-runbook.md`, `docs/key-custody-runbook.md`, and `npm run compliance:ops-publication-check`
 - a final threat model covering users, merchants, relayers, operators, and counterparties
 
 ## What can be claimed today

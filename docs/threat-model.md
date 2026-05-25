@@ -10,6 +10,13 @@ This threat model covers the current Shield, Send, Swap, Unshield, Pay, operator
 
 It does not claim anonymous, untraceable, fully private, production-ready, or live mainnet-private settlement. It is a source-of-truth document for engineering and review until a newer audited model replaces it.
 
+Operational runbook companions:
+
+- `docs/incident-response-runbook.md`
+- `docs/key-custody-runbook.md`
+
+They are checked with `npm run compliance:ops-publication-check` and keep launch status unchanged until the external refs named in those files exist.
+
 ## Actors
 
 The minimum actor set is users, merchants, relayers, operators, counterparties, provers, verifiers, indexers, wallet providers, RPC providers, auditors, and reviewers.
@@ -79,6 +86,7 @@ Before Vanta can claim production-private, proof-verified, program-owned custody
 Use these commands as the current local guard set for this threat model:
 
 - `npm run docs:source-of-truth-check`
+- `npm run compliance:ops-publication-check`
 - `npm run privacy-audit:tracker-check`
 - `npm run zk:feedback-loop-check`
 - `npm run private-core:verify`

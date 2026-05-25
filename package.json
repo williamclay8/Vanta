@@ -28,6 +28,7 @@
     "docs:source-of-truth-check": "node scripts/check-vanta-docs-source-of-truth.mjs",
     "docs:inline-diagram-check": "node scripts/check-vanta-docs-inline-diagram.mjs",
     "performance:route-code-split-check": "node scripts/check-vanta-route-code-split.mjs",
+    "compliance:ops-publication-check": "node scripts/check-vanta-band8-ops-publication.mjs",
     "mainnet:external-gates-production-claim-check": "node scripts/check-vanta-external-gates-production-claim.mjs",
     "mainnet:transaction-evidence-check": "node scripts/check-vanta-transaction-evidence.mjs",
     "mainnet:transaction-evidence-preview": "node scripts/write-vanta-transaction-evidence.mjs --dry-run",

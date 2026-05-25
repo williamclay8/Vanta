@@ -416,6 +416,19 @@ src/ops/vantaRateLimit.mjs
 
 The current fallback limiter is intentionally marked `productionReady: false`; it provides a fail-closed operator control point when no database is configured. The same module now also exposes a Postgres-backed durable shared-window limiter that the Pay and Private Pool v2 operator services prefer when their production database URL is configured. Incident workflow evidence is now checked through `npm run mainnet:production-incident-workflow-evidence-check`; production observability is still not complete until deployed runtime evidence plus provider log sink, metrics, alerts, dashboards, and retention evidence are all fresh.
 
+Dedicated operator-trusted beta runbooks now split the incident and custody procedures out of the broader deployment docs:
+
+```text
+docs/incident-response-runbook.md
+docs/key-custody-runbook.md
+```
+
+Check the publication and no-secret boundary with:
+
+```bash
+npm run compliance:ops-publication-check
+```
+
 Pay and Private Pool v2 also emit shared privacy-safe JSON telemetry through:
 
 ```text

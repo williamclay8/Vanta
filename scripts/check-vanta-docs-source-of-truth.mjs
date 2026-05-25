@@ -50,6 +50,8 @@ const sourceOfTruth = readRequired("docs/docs-source-of-truth.md");
 const limitations = readRequired("SECURITY_LIMITATIONS.md");
 const privacyModel = readRequired("docs/privacy-model.md");
 const threatModel = readRequired("docs/threat-model.md");
+const incidentRunbook = readRequired("docs/incident-response-runbook.md");
+const keyCustodyRunbook = readRequired("docs/key-custody-runbook.md");
 const canonicalNote = readRequired("docs/zk/canonical-note-schema.md");
 const zkAssumptions = readRequired("docs/zk/vanta-zk-v1-assumptions.md");
 const zkRemainingWork = readRequired("docs/zk/vanta-zk-v1-remaining-work.md");
@@ -91,8 +93,11 @@ for (const phrase of [
   "docs/privacy-model.md",
   "docs/privacy-rail-contract.md",
   "docs/threat-model.md",
+  "docs/incident-response-runbook.md",
+  "docs/key-custody-runbook.md",
   "LANE_STATUS.md",
   "src/docs/docsContent.ts",
+  "compliance:ops-publication-check",
   "pay:doc-truth-check",
   "truth:privacy-claim-gate",
 ]) {
@@ -123,6 +128,15 @@ for (const phrase of [
   "npm run private-pool-v2:live-anonymity-set-probe-check",
 ]) {
   requirePhrase(threatModel, phrase, "docs/threat-model.md");
+}
+for (const [content, path] of [
+  [incidentRunbook, "docs/incident-response-runbook.md"],
+  [keyCustodyRunbook, "docs/key-custody-runbook.md"],
+]) {
+  requirePhrase(content, "Status: operator-trusted beta runbook.", path);
+  requirePhrase(content, "Launch status unchanged.", path);
+  requirePhrase(content, "Claim Gates Stay Locked", path);
+  requirePhrase(content, "npm run compliance:ops-publication-check", path);
 }
 requirePhrase(canonicalNote, "Transitional Hash Surface Today", "docs/zk/canonical-note-schema.md");
 for (const [content, path] of [
@@ -182,6 +196,9 @@ requirePhrase(
 
 if (packageJson.scripts["docs:source-of-truth-check"] !== "node scripts/check-vanta-docs-source-of-truth.mjs") {
   throw new Error("package.json must expose docs:source-of-truth-check.");
+}
+if (packageJson.scripts["compliance:ops-publication-check"] !== "node scripts/check-vanta-band8-ops-publication.mjs") {
+  throw new Error("package.json must expose compliance:ops-publication-check.");
 }
 if (!packageJson.scripts["docs:verify"]?.includes("npm run docs:source-of-truth-check")) {
   throw new Error("docs:verify must include docs:source-of-truth-check.");
