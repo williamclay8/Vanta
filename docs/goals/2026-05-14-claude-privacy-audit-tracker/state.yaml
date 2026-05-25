@@ -1960,6 +1960,102 @@ production_privacy_audit_remediation:
             committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
             deployed_live: "not-deployed-live"
+    - id: band-5-relayer-maturity
+      status: active-item-16-accepted-noop-item-17-awaiting-approval
+      rule: "Band 5 may only advance after Band 4 items are explicitly blocked/deferred. Do not claim timing privacy, relayer maturity, Tor/blinded-token protection, production privacy, or live private settlement from local relayer controls."
+      items:
+        - id: PPA-RELAYER-001
+          audit_section: "Band 5 item 16 - Postgres-backed nullifier + rate-limit"
+          remediation_order: 16
+          title: "Record existing Postgres-backed nullifier replay and rate-limit evidence"
+          severity: high
+          owner_lane: relayer-ops
+          status: accepted-noop-evidence-local
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#Relayer--ops"
+            - "AUDIT_2026-05-19.md#M2"
+            - "operator/private-pool-v2-server.mjs"
+            - "src/privacy/postgresNullifierReplayStore.mjs"
+            - "src/ops/vantaRateLimit.mjs"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-relayer-001-postgres-nullifier-rate-limit.md"
+          current_truth:
+            - "Private Pool v2 production mode requires VANTA_PRIVATE_POOL_V2_DATABASE_URL before operator startup."
+            - "When databaseUrl is present, the operator uses createPostgresRateLimiterFromDatabaseUrl for a postgres-durable-shared-window rate limiter."
+            - "When databaseUrl is present, the operator uses createPostgresNullifierReplayStoreFromDatabaseUrl for durable nullifier replay enforcement."
+            - "The Postgres nullifier store uses transactional insert-on-conflict behavior and unique indexes for global nullifier plus context/request idempotency."
+            - "This is source/local/evidence-packet coverage only, not live production settlement or anonymity evidence."
+          planned_files:
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-relayer-001-postgres-nullifier-rate-limit.md"
+          acceptance_evidence:
+            disposition: "accepted-noop: existing source and gates already satisfy the source-level Band 5 item 16 requirement."
+            verification:
+              - "npm run nullifier:replay-guard-check: PASS"
+              - "npm run ops:rate-limit-check: PASS"
+              - "npm run mainnet:nullifier-replay-evidence-check: PASS"
+              - "npm run private-pool-v2:role-storage-check: PASS"
+          remaining_truth_boundary: "This does not prove live production settlement, multi-replica relayer behavior, provider-side rate limiting, Tor/blinded-token protection, timing privacy, anonymity, or audit acceptance."
+          approval_gate: "Accepted-noop/evidence-local entry opened on 2026-05-25 because current source and existing gates already cover the local requirement; no code implementation requested for this item."
+          lumi:
+            local: "Tracker-only accepted-noop evidence entry added and verified locally."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
+        - id: PPA-RELAYER-002
+          audit_section: "Band 5 item 17 - Randomized jitter + batching"
+          remediation_order: 17
+          title: "Add relayer randomized delay windows and batch submission controls"
+          severity: high
+          owner_lane: relayer-ops
+          status: plan-open-awaiting-approval
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#Relayer--ops"
+            - "PRODUCTION_PRIVACY_AUDIT.md#SEND-production-gap-list"
+            - "PRODUCTION_PRIVACY_AUDIT.md#UNSHIELD-production-gap-list"
+            - "operator/private-pool-v2-service-network.mjs"
+            - "operator/private-pool-v2-relayer-server.mjs"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-relayer-002-jitter-batching-plan.md"
+          planned_files:
+            - "operator/private-pool-v2-service-network.mjs"
+            - "operator/private-pool-v2-relayer-server.mjs"
+            - "src/privacy/privatePoolV2RelayerQueue.mjs"
+            - "scripts/check-vanta-private-pool-v2-relayer-jitter-batching.mjs"
+            - "docs/threat-model.md"
+            - "SECURITY_LIMITATIONS.md"
+            - "package.json"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-relayer-002-jitter-batching-plan.md"
+          planned_fixtures:
+            - "Deterministic fake-clock scheduler proves Send submissions are queued for a randomized delay inside the configured 30-180s window before relayer submission."
+            - "Deterministic fake-clock scheduler proves Unshield release relay requests are queued for a randomized delay inside the configured 30s-1h window before relay."
+            - "Batching fixture proves multiple ready Send submissions are grouped into a single batch envelope when load and account limits allow."
+            - "No-secret fixture proves queued/batched records reject or redact proof bytes, witness material, owner secrets, note blindings, auth tokens, raw IP addresses, and private keys."
+            - "Fail-closed production fixture proves jitter/batching cannot be disabled in production without an explicit env guard and tracker-visible status."
+          planned_new_script: "npm run relayer:jitter-and-batching-check"
+          planned_test_cases:
+            - "Default local/test mode can use deterministic jitter for reproducible checks."
+            - "Production mode requires nonzero jitter windows for Send and Unshield."
+            - "Invalid window configuration rejects zero, negative, inverted, or out-of-policy windows."
+            - "Ready queue drains in deadline order and preserves request idempotency/replay keys."
+            - "Batch envelopes contain account/proof-reference metadata only and do not persist witness/secret/plaintext payloads."
+            - "Threat model documents timing-correlation limits and delay-window distribution without claiming anonymity."
+          verification_after_approval:
+            - "npm run relayer:jitter-and-batching-check"
+            - "npm run private-pool-v2:service-network-check"
+            - "npm run mainnet:secret-handling-check"
+            - "npm run truth:privacy-claim-gate"
+            - "npm run privacy-audit:tracker-check"
+            - "npm run build"
+            - "git diff --check"
+          approval_gate: "Plan opened on 2026-05-25. Implementation is pending Clay approval before code edits."
+          remaining_truth_boundary: "This plan would reduce timing-correlation risk locally, but it would not by itself prove anonymity, Tor/blinded-token protection, live relayer maturity, production-private readiness, audit acceptance, or mainnet readiness."
+          lumi:
+            local: "Tracker plan entry added locally; implementation not started."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
 
 audit_completion_checklist:
   path: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-completion-audit.md"
@@ -1985,4 +2081,6 @@ next_safe_slices:
   - "PPA-VERIFIER-003 / Band 3 item 13 is evidence-contract-tightened and the Ref Source Map slice is committed/pushed/website-live at c922a52b0 / dep-d8a8op7aqgkc73ap4gn0, with a fail-closed Groth16 verifier-CPI guard, but remains blocked before verifier-program deployment, SBF/live lineage, and audit/reviewer acceptance; do not attempt deployment, tag-5 registration, proof-enforced receipts, audit/reviewer intake, verifier wiring, release, or claim-lift work until reviewed production artifact bundle, accepted verifier adapter/program evidence, SBF/live lineage, deployed verifier program id/hash, verifier program upgrade-authority status ref, verifier-key binding, and reviewer acceptance refs exist."
   - "PPA-ANON-001 / Band 4 item 14 is tracker-open but blocked before closed-alpha deposits on Bands 1-3 externally accepted production evidence, proof-verified custody/release lineage, reviewer acceptance, and explicit live/real-funds approval."
   - "PPA-ANON-002 / Band 4 item 15 is tracker-open but blocked before public beta/anonymity claims on PPA-ANON-001, sustained live currentDistinctCommitments >= 1024, accepted verifier/custody/audit evidence, and explicit claim-gate approval."
+  - "PPA-RELAYER-001 / Band 5 item 16 is accepted-noop/evidence-local: current source already has Postgres-backed Private Pool v2 rate limiting and durable nullifier replay store gates, but no live production settlement/anonymity/audit claim is lifted."
+  - "PPA-RELAYER-002 / Band 5 item 17 is plan-open-awaiting-approval for randomized jitter and batching. Do not implement code until Clay approves the plan."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."
