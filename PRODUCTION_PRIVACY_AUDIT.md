@@ -279,7 +279,7 @@ This is the order that maximizes "real privacy delta per week" given the depende
 12. If Groth16: run public powers-of-tau ceremony, ≥ 50 contributors. Register verifier keys.
 13. Deploy and audit the verifier program.
 
-**Band 4 — anonymity set bootstrap.** Continuous, gated on bands 1-3 being mainnet-ready.
+**Band 4 — anonymity set bootstrap.** Continuous, gated on bands 1-3 having externally accepted production evidence.
 14. Closed alpha with operator-bonded shield deposits in one fixed-denomination cohort (e.g., 1 SOL). Drive `currentDistinctCommitments` ≥ 1024.
 15. Public beta gated on anonymity-set probe staying ≥ 1024.
 
