@@ -102,7 +102,7 @@ This item is local circuit/fixture/proof-request/operator/client binding only. I
 
 ## Lumi
 
-- Local: PPA-SWAP-001 implementation, fixtures, npm wiring, tracker/audit notes, and verification evidence are local only.
-- Committed: not committed.
-- Pushed: not pushed.
-- Deployed/live: not deployed or live verified.
+- Local: PPA-SWAP-001 implementation, fixtures, npm wiring, tracker/audit notes, and verification evidence passed locally.
+- Committed: `995b24ba9a5615e435ee638b0b139ea84ef2d446` (`Harden privacy audit remediation gates`).
+- Pushed: `origin/codex/ppa-program-004-runtime-verifier-wired` and `origin/main` on 2026-05-25.
+- Deployed/live: website/status evidence live via Render deploy `dep-d8a876kt8o5s73etj9d0` for commit `995b24ba`; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live.
