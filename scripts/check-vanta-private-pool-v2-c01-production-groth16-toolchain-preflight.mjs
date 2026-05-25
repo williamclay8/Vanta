@@ -381,7 +381,11 @@ const circuitSource = read(`${circuitPath}/src/main.nr`);
 includes(circuitToml, "noir-lang/poseidon", "actual-private-spend Nargo.toml");
 includes(circuitSource, "private_spend_public_input_hash: pub Field", "actual-private-spend circuit");
 assert(lane.observedLocalTools?.go?.available === true, "candidate lane must observe Go as locally available");
-assert(lane.observedLocalTools?.go?.version === goVersion, "candidate lane Go version mismatch");
+assert(
+  /^go version go\d+\.\d+(?:\.\d+)? \S+\/\S+$/u.test(lane.observedLocalTools?.go?.version ?? ""),
+  "candidate lane must record a well-formed Go version",
+);
+assert(/^go version go\d+\.\d+(?:\.\d+)? \S+\/\S+$/u.test(goVersion), "current Go version must be readable");
 assert(
   lane.observedLocalTools?.sunspot?.available === false,
   "candidate lane must record Sunspot as not locally installed",

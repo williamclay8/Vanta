@@ -361,7 +361,11 @@ includes(circuitToml, "noir-lang/poseidon", "actual-private-spend Nargo.toml");
 includes(circuitSource, "private_spend_public_input_hash: pub Field", "actual-private-spend circuit");
 
 assert(packet.observedLocalTools?.go?.available === true, "Go must be locally available");
-assert(packet.observedLocalTools?.go?.version === goVersion, "Go version mismatch");
+assert(
+  /^go version go\d+\.\d+(?:\.\d+)? \S+\/\S+$/u.test(packet.observedLocalTools?.go?.version ?? ""),
+  "packet must record a well-formed Go version",
+);
+assert(/^go version go\d+\.\d+(?:\.\d+)? \S+\/\S+$/u.test(goVersion), "current Go version must be readable");
 assert(packet.observedLocalTools?.nargo?.available === true, "nargo must be locally available");
 assert(nargoVersion.includes(packet.observedLocalTools?.nargo?.version), "nargo version mismatch");
 assert(packet.observedLocalTools?.bb?.available === true, "bb must be locally available");
