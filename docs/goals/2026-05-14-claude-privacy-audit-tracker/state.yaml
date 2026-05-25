@@ -2200,6 +2200,8 @@ production_privacy_audit_remediation:
             - "No-private-fields: packet ingest and pull responses reject or omit raw IPs, forwarding headers, wallet identifiers, plaintext memos, amounts, proof bytes, witnesses, owner secrets, note blindings, auth tokens, and raw private inputs."
             - "Persistence/restart: prefix-queryable discovery packets survive an indexer restart without widening productionReady or claim boundaries."
             - "Status truth: indexer status exposes viewTagPullImplemented=true and productionReady=false with blockers for deployed service, retention/log-redaction evidence, anonymous/public read posture, and reviewer acceptance."
+          red_first_evidence:
+            - "2026-05-25: npm run indexer:view-tag-pull-check fails before implementation with npm Missing script: indexer:view-tag-pull-check."
           planned_new_script: "npm run indexer:view-tag-pull-check"
           planned_test_cases:
             - "Prefix query returns a deterministic page of matching candidate packets and a next cursor when more matches exist."
@@ -2223,7 +2225,7 @@ production_privacy_audit_remediation:
           blockers:
             - "Production recipient discovery still requires deployed indexer service evidence, retention/log-redaction evidence, public or anonymous read posture, external reviewer acceptance, and later legacy v1 memo migration."
           lumi:
-            local: "Tracker-only Band 6 item 19 plan entry opened locally; no code implementation yet."
+            local: "Tracker-only Band 6 item 19 plan entry and red-first missing-script evidence recorded locally; no code implementation yet."
             committed: "latest branch head after this tracker-only plan slice; use git log for the exact commit."
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only plan slice; use git status for sync."
             deployed_live: "not-deployed-live"

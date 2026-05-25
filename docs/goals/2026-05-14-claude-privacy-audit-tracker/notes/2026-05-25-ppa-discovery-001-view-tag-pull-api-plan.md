@@ -54,6 +54,10 @@ No code implementation has started for this item. Clay approval is required afte
 - Prefix-queryable discovery packets persist across indexer restart.
 - Status surfaces expose local implementation plus `productionReady: false` and blockers for deployed service, retention/log-redaction evidence, anonymous/public read posture, and reviewer acceptance.
 
+## Red-First Evidence
+
+- 2026-05-25: `npm run indexer:view-tag-pull-check` fails before implementation with `npm error Missing script: "indexer:view-tag-pull-check"`.
+
 ## Planned Script
 
 - `npm run indexer:view-tag-pull-check`
@@ -85,7 +89,7 @@ This plan is for a local indexer API and evidence gate. It does not deploy a rec
 
 ## Lumi
 
-- Local: tracker-only Band 6 item 19 plan opened locally; no code implementation yet.
+- Local: tracker-only Band 6 item 19 plan and red-first missing-script evidence recorded locally; no code implementation yet.
 - Committed: latest branch head after this tracker-only plan slice; use `git log` for the exact commit.
 - Pushed: `origin/codex/ppa-program-004-runtime-verifier-wired` after this tracker-only plan slice; use `git status` for sync.
 - Deployed/live: not deployed/live.
