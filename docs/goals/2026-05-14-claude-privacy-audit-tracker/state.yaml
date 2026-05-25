@@ -2144,7 +2144,7 @@ production_privacy_audit_remediation:
             - "Reviewer acceptance is required before any Tor/blinded-token protection claim can move beyond local source/evidence-contract status."
           lumi:
             local: "Relayer privacy-transport source, docs, npm script, and tracker evidence are implemented locally in this slice."
-            committed: "pending commit for this implementation slice."
+            committed: "8db388d8b49558ba8fda45c482ef7f4336c1f47c Add relayer privacy transport gate."
             pushed: "pending push for this implementation slice."
             deployed_live: "not-deployed-live"
 
