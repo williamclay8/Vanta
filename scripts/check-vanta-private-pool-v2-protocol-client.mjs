@@ -646,6 +646,7 @@ try {
     sendPublicInputHash: "0xstatefulsend_public_input_hash",
     settlementCommitment: "0xstatefulsend_settlement",
     settlementId: "protocol-client-stateful-send",
+    validUntilSlot: "1000250",
   };
   const statefulCommittedSendProofRequest = createVantaPrivatePoolV2SendProofRequest({
     assetIdCommitment: statefulCommittedSendRequest.assetIdCommitment,
@@ -666,6 +667,7 @@ try {
     recipientOutputRoot: statefulCommittedSendRequest.outputRoot,
     sendContextTag: statefulCommittedSendRequest.sendContextTag,
     sendPublicInputHash: statefulCommittedSendRequest.sendPublicInputHash,
+    validUntilSlot: statefulCommittedSendRequest.validUntilSlot,
   });
   const statefulCommittedSendPublicInputCommitment =
     expectedLocalPublicInputCommitment(statefulCommittedSendProofRequest);
@@ -921,15 +923,19 @@ try {
     economicsCommitment: "0xcommittedswap_economics",
     inputCommitment: committedSwapInputCommitment,
     inputRoot: committedSwapInputRoot,
+    minOutputAmount: "4700",
     nullifierOrReplayCommitment: "0xcommittedswap_replay",
+    outputAmount: "4800",
     outputCommitment: "0xcommittedswap_output",
     outputLeafIndex: "4",
     outputRoot: committedSwapOutputRoot,
     ownerCommitment: "0xcommittedswap_owner",
     routeCommitment: "0xcommittedswap_route",
     settlementCommitment: "0xcommittedswap_settlement",
+    slippageBps: "50",
     swapContextTag: "0xcommittedswap_context",
     swapPublicInputHash: "0xcommittedswap_public_input_hash",
+    validUntilSlot: "1000275",
   });
   const committedSwapSettlement = await requestVantaPrivatePoolV2ProtocolSettlement({
     action: "swap",
@@ -939,7 +945,9 @@ try {
     economicsMode: "committed-economics",
     inputCommitment: committedSwapInputCommitment,
     inputRoot: committedSwapInputRoot,
+    minOutputAmount: "4700",
     nullifierOrReplayCommitment: "0xcommittedswap_replay",
+    outputAmount: "4800",
     outputCommitment: "0xcommittedswap_output",
     outputLeafIndex: "4",
     outputRoot: committedSwapOutputRoot,
@@ -947,8 +955,10 @@ try {
     routeCommitment: "0xcommittedswap_route",
     settlementCommitment: "0xcommittedswap_settlement",
     settlementId: "protocol-client-committed-swap",
+    slippageBps: "50",
     swapContextTag: "0xcommittedswap_context",
     swapPublicInputHash: "0xcommittedswap_public_input_hash",
+    validUntilSlot: "1000275",
   });
   assert(
     committedSwapSettlement?.proofReceipt?.intent === "swap-to-shielded",
@@ -1010,7 +1020,9 @@ try {
             economicsMode: "committed-economics",
             inputCommitment: committedSwapInputCommitment,
             inputRoot: committedSwapInputRoot,
+            minOutputAmount: "4700",
             nullifierOrReplayCommitment: "0xcommittedswap_replay",
+            outputAmount: "4800",
             outputCommitment: "0xcommittedswap_output",
             outputLeafIndex: "4",
             outputRoot: committedSwapOutputRoot,
@@ -1018,8 +1030,10 @@ try {
             routeCommitment: "0xcommittedswap_route",
             settlementCommitment: "0xcommittedswap_settlement",
             settlementId: "protocol-client-committed-swap",
+            slippageBps: "50",
             swapContextTag: "0xcommittedswap_context",
             swapPublicInputHash: "0xcommittedswap_public_input_hash",
+            validUntilSlot: "1000275",
           },
           response: {
             ...committedSwapSettlement,
@@ -1044,7 +1058,9 @@ try {
         economicsMode: "committed-economics",
         inputCommitment: "0xcommittedsend_recipient_output",
         inputRoot: committedSwapOutputRoot,
+        minOutputAmount: "4700",
         nullifierOrReplayCommitment: "0xcommittedswap_replay",
+        outputAmount: "4800",
         outputCommitment: "0xcommittedswap_output_second",
         outputLeafIndex: "4",
         outputRoot: "0xcommittedswap_output_root_second",
@@ -1052,8 +1068,10 @@ try {
         routeCommitment: "0xcommittedswap_route_second",
         settlementCommitment: "0xcommittedswap_settlement_second",
         settlementId: "protocol-client-committed-swap-replay",
+        slippageBps: "50",
         swapContextTag: "0xcommittedswap_context_second",
         swapPublicInputHash: "0xcommittedswap_public_input_hash_second",
+        validUntilSlot: "1000276",
       }),
     "Private-pool nullifier replay rejected",
     "Expected committed Swap replay commitment reuse to be rejected.",

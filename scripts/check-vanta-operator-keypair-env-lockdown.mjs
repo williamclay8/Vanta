@@ -32,7 +32,6 @@ const rawKeypairEnvPattern =
   /process\.env\.([A-Z0-9_]*(?:KEYPAIR|PRIVATE_KEY|SIGNER_SECRET_KEY)[A-Z0-9_]*)/g;
 const allowedKeypairLoaderFiles = new Set([
   "operator/jupiter-sol-to-shielded-route-adapter.mjs",
-  "operator/unshield-server.mjs",
 ]);
 
 function assertNoSolanaKeypairLoader(label, source) {
@@ -89,13 +88,15 @@ assert.ok(
 );
 
 const unshieldServerSource = readRepoFile("operator/unshield-server.mjs");
+assertNoSolanaKeypairLoader("Unshield operator", unshieldServerSource);
 for (const phrase of [
-  "vaultSignerSecretKeyEnvName",
-  "loadKeypairFromEnv(vaultSignerSecretKeyEnvName)",
+  "buildTagUnshieldProgramReleaseReceipt",
+  "program-tag-unshield-pda-cpi-fail-closed",
+  "TAG_UNSHIELD",
 ]) {
   assert.ok(
     unshieldServerSource.includes(phrase),
-    `Unshield operator-keypair exception must stay explicit for A2 tracking: ${phrase}`,
+    `Unshield operator must preserve fail-closed TAG_UNSHIELD relay marker: ${phrase}`,
   );
 }
 const trackerState = readRepoFile(
@@ -103,12 +104,11 @@ const trackerState = readRepoFile(
 );
 for (const phrase of [
   "A2-OPERATOR-KEYPAIR-CUSTODY",
-  "loadKeypairFromEnv(vaultSignerSecretKeyEnvName)",
-  "operator-keypair public exits",
+  "operator-keypair",
 ]) {
   assert.ok(
     trackerState.includes(phrase),
-    `Unshield keypair exception must remain tracked as an A2 blocker: ${phrase}`,
+    `Unshield keypair custody history must remain tracked for A2 audit continuity: ${phrase}`,
   );
 }
 
@@ -131,7 +131,7 @@ for (const file of operatorFiles) {
 assert.deepEqual(
   unexpectedKeypairLoaderFiles,
   [],
-  "Only the Jupiter local-only signer exception and the tracked Unshield A2 custody exception may load operator keypair material.",
+  "Only the Jupiter local-only signer exception may load operator keypair material.",
 );
 
 const rebalanceOperatorFiles = operatorFiles.filter((file) => {

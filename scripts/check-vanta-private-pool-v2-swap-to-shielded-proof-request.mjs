@@ -106,15 +106,19 @@ try {
     economicsCommitment: "field:economics",
     inputCommitment: "field:input-note",
     inputRoot: "field:input-root",
+    minOutputAmount: "4700",
     nullifierOrReplayCommitment: "field:nullifier",
+    outputAmount: "4800",
     outputCommitment: "field:output-note",
     outputLeafIndex: "51",
     outputRoot: "field:output-root",
     ownerCommitment: "field:owner",
     routeCommitment: "field:route",
     settlementCommitment: "field:settlement",
+    slippageBps: "50",
     swapContextTag: "field:swap-context",
     swapPublicInputHash: "field:swap-public-input-hash",
+    validUntilSlot: "1000275",
   });
 
   assert(request.intent === "swap-to-shielded", "Expected swap-to-shielded intent.");
@@ -141,6 +145,7 @@ try {
         "output-root:field:output-root",
         "owner-commitment:field:owner",
         "swap-context-tag:field:swap-context",
+        "valid-until-slot:1000275",
       ]),
     "Expected stable private swap proof public-input ordering.",
   );
@@ -173,6 +178,11 @@ try {
     "output-asset:",
     "input-amount:",
     "output-amount:",
+    "min-output-amount:",
+    "slippage-bps:",
+    "4700",
+    "4800",
+    "50",
     "venue:",
   ]);
   console.log("private-pool-v2 swap proof request public inputs: PASS");
@@ -183,14 +193,18 @@ try {
         economicsCommitment: "field:economics",
         inputCommitment: "field:input-note",
         inputRoot: "",
+        minOutputAmount: "4700",
         nullifierOrReplayCommitment: "field:nullifier",
+        outputAmount: "4800",
         outputCommitment: "field:output-note",
         outputLeafIndex: "51",
         outputRoot: "field:output-root",
         ownerCommitment: "field:owner",
         routeCommitment: "field:route",
         settlementCommitment: "field:settlement",
+        slippageBps: "50",
         swapContextTag: "field:swap-context",
+        validUntilSlot: "1000275",
       }),
     "input root",
   );
@@ -202,18 +216,114 @@ try {
         economicsCommitment: "field:economics",
         inputCommitment: "field:input-note",
         inputRoot: "field:input-root",
+        minOutputAmount: "4700",
         nullifierOrReplayCommitment: "field:nullifier",
+        outputAmount: "4800",
         outputCommitment: " ",
         outputLeafIndex: "51",
         outputRoot: "field:output-root",
         ownerCommitment: "field:owner",
         routeCommitment: "field:route",
         settlementCommitment: "field:settlement",
+        slippageBps: "50",
         swapContextTag: "field:swap-context",
+        validUntilSlot: "1000275",
       }),
     "output commitment",
   );
   console.log("private-pool-v2 swap proof request output guard: PASS");
+
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2SwapToShieldedProofRequest({
+        economicsCommitment: "field:economics",
+        inputCommitment: "field:input-note",
+        inputRoot: "field:input-root",
+        minOutputAmount: "4700",
+        nullifierOrReplayCommitment: "field:nullifier",
+        outputAmount: " ",
+        outputCommitment: "field:output-note",
+        outputLeafIndex: "51",
+        outputRoot: "field:output-root",
+        ownerCommitment: "field:owner",
+        routeCommitment: "field:route",
+        settlementCommitment: "field:settlement",
+        slippageBps: "50",
+        swapContextTag: "field:swap-context",
+        validUntilSlot: "1000275",
+      }),
+    "output amount",
+  );
+  console.log("private-pool-v2 swap proof request output amount guard: PASS");
+
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2SwapToShieldedProofRequest({
+        economicsCommitment: "field:economics",
+        inputCommitment: "field:input-note",
+        inputRoot: "field:input-root",
+        minOutputAmount: " ",
+        nullifierOrReplayCommitment: "field:nullifier",
+        outputAmount: "4800",
+        outputCommitment: "field:output-note",
+        outputLeafIndex: "51",
+        outputRoot: "field:output-root",
+        ownerCommitment: "field:owner",
+        routeCommitment: "field:route",
+        settlementCommitment: "field:settlement",
+        slippageBps: "50",
+        swapContextTag: "field:swap-context",
+        validUntilSlot: "1000275",
+      }),
+    "minimum output amount",
+  );
+  console.log("private-pool-v2 swap proof request min output amount guard: PASS");
+
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2SwapToShieldedProofRequest({
+        economicsCommitment: "field:economics",
+        inputCommitment: "field:input-note",
+        inputRoot: "field:input-root",
+        minOutputAmount: "4700",
+        nullifierOrReplayCommitment: "field:nullifier",
+        outputAmount: "4800",
+        outputCommitment: "field:output-note",
+        outputLeafIndex: "51",
+        outputRoot: "field:output-root",
+        ownerCommitment: "field:owner",
+        routeCommitment: "field:route",
+        settlementCommitment: "field:settlement",
+        slippageBps: " ",
+        swapContextTag: "field:swap-context",
+        validUntilSlot: "1000275",
+      }),
+    "slippage bps",
+  );
+  console.log("private-pool-v2 swap proof request slippage bps guard: PASS");
+
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2SwapToShieldedProofRequest({
+        economicsCommitment: "field:economics",
+        inputCommitment: "field:input-note",
+        inputRoot: "field:input-root",
+        minOutputAmount: "4700",
+        nullifierOrReplayCommitment: "field:nullifier",
+        outputAmount: "4800",
+        outputCommitment: "field:output-note",
+        outputLeafIndex: "51",
+        outputRoot: "field:output-root",
+        ownerCommitment: "field:owner",
+        routeCommitment: "field:route",
+        settlementCommitment: "field:settlement",
+        slippageBps: "50",
+        swapContextTag: "field:swap-context",
+        validUntilSlot: " ",
+      }),
+    "valid-until slot",
+  );
+  console.log("private-pool-v2 swap proof request valid-until slot guard: PASS");
 } catch (error) {
   const stdout = String(error.stdout ?? "");
   const stderr = String(error.stderr ?? "");

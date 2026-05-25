@@ -4,6 +4,7 @@ import {
   poseidon1,
   poseidon15,
   poseidon2,
+  poseidon6,
   poseidon8,
 } from "poseidon-lite";
 import {
@@ -301,15 +302,10 @@ export function buildVantaPrivateCoreUnshieldProofBoundary(
     ...noteFieldEncoding,
     ownerPublicKey: provingOwnerPublicKey,
   };
-  const provingNoteCommitment = derivePoseidonNoteCommitmentField(provingNoteFieldEncoding);
-  const provingMerkleLeaf = derivePoseidonMerkleLeafField(provingNoteCommitment);
-  const provingStateRoot = derivePoseidonMerkleRootField(provingMerkleLeaf, merklePathEncoding);
   const provingNullifier = derivePoseidonNullifierField(
     provingNoteFieldEncoding.ownerPublicKey,
     provingNoteFieldEncoding.noteSecret,
     provingNoteFieldEncoding.noteNonce,
-    provingStateRoot,
-    provingMerkleLeaf,
   );
   const provingConsumeContext = derivePoseidonConsumeContextField({
     releaseDestination: releaseDestinationEncoding,
@@ -407,8 +403,6 @@ export function createVantaPrivateCoreNoirUnshieldWitnessPackage(args: {
     provingNoteFieldEncoding.ownerPublicKey,
     provingNoteFieldEncoding.noteSecret,
     provingNoteFieldEncoding.noteNonce,
-    stateRootField,
-    merkleLeafField,
   );
   const consumeContextField = derivePoseidonConsumeContextField({
     releaseDestination: releaseDestinationEncoding,
@@ -1006,18 +1000,14 @@ function derivePoseidonNullifierField(
   ownerPublicKey: Bytes32EncodingV0,
   noteSecret: Bytes32EncodingV0,
   noteNonce: Bytes32EncodingV0,
-  stateRoot: FieldDecimalString,
-  merkleLeafField: FieldDecimalString,
 ): FieldDecimalString {
-  return poseidon8([
+  return poseidon6([
     BigInt(ownerPublicKey.hi),
     BigInt(ownerPublicKey.lo),
     BigInt(noteSecret.hi),
     BigInt(noteSecret.lo),
     BigInt(noteNonce.hi),
     BigInt(noteNonce.lo),
-    BigInt(stateRoot),
-    BigInt(merkleLeafField),
   ]).toString(10);
 }
 

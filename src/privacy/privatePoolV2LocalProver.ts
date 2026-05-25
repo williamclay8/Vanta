@@ -258,6 +258,7 @@ const LOCAL_BB_FIXTURE_TARGET_CONFIGS = {
       "output-root",
       "owner-commitment",
       "swap-context-tag",
+      "valid-until-slot",
     ],
     target: "swap-to-shielded",
     versionPrefix: "vanta-private-pool-v2-swap-to-shielded-proof-request-0.1:version",

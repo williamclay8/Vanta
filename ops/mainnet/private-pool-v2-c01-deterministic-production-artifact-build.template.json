@@ -6,6 +6,10 @@
   "secretPolicy": "refs-only-no-raw-proof-vk-witness-pk-keypair-secret-or-signed-transaction-bytes",
   "purpose": "Refs-only template for a reviewed deterministic C01 production artifact build receipt. Copy this shape into an external reviewed build receipt, fill only refs, hashes, and reviewer decisions, then validate it with VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH=<reviewed-refs-only-json> npm run zk:c01-deterministic-production-artifact-build-check.",
   "sourceLineage": {
+    "frozenSourceCommitRef": null,
+    "sourceTreeStatusRef": null,
+    "sourceFreezeReviewRef": null,
+    "sourceFreezeAccepted": false,
     "sourceReviewAcceptanceRef": null,
     "reviewedSourceMigrationAccepted": false,
     "requiredCurrentSourceAcirRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json",

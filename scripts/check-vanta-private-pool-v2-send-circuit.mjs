@@ -111,6 +111,114 @@ try {
     console.log("invalid-input-commitment-preimage fixture: expected failure observed");
   }
 
+  writeFixture("invalid-relayer-fee-conservation");
+  console.log("invalid-relayer-fee-conservation fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-relayer-fee-conservation fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-relayer-fee-conservation fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-relayer-fee-conservation fixture: expected failure observed");
+  }
+
+  writeFixture("invalid-relayer-fee-exceeds-input");
+  console.log("invalid-relayer-fee-exceeds-input fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-relayer-fee-exceeds-input fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-relayer-fee-exceeds-input fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-relayer-fee-exceeds-input fixture: expected failure observed");
+  }
+
+  writeFixture("invalid-relayer-fee-public-binding");
+  console.log("invalid-relayer-fee-public-binding fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-relayer-fee-public-binding fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-relayer-fee-public-binding fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-relayer-fee-public-binding fixture: expected failure observed");
+  }
+
+  writeFixture("invalid-valid-until-slot-public-binding");
+  console.log("invalid-valid-until-slot-public-binding fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-valid-until-slot-public-binding fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-valid-until-slot-public-binding fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-valid-until-slot-public-binding fixture: expected failure observed");
+  }
+
+  writeFixture("invalid-recipient-output-commitment-preimage");
+  console.log("invalid-recipient-output-commitment-preimage fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-recipient-output-commitment-preimage fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-recipient-output-commitment-preimage fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-recipient-output-commitment-preimage fixture: expected failure observed");
+  }
+
+  writeFixture("invalid-change-output-commitment-preimage");
+  console.log("invalid-change-output-commitment-preimage fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-change-output-commitment-preimage fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-change-output-commitment-preimage fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-change-output-commitment-preimage fixture: expected failure observed");
+  }
+
   writeFixture("invalid-nullifier");
   console.log("invalid-nullifier fixture write: PASS");
 

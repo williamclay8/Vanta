@@ -94,6 +94,7 @@ export type VantaPrivatePoolV2SendProofRequestArgs = {
   recipientOutputRoot: string;
   sendContextTag: string;
   sendPublicInputHash?: string;
+  validUntilSlot: string;
 };
 
 export type VantaPrivatePoolV2MemoCiphertextBodyHashField = string;
@@ -122,14 +123,18 @@ export type VantaPrivatePoolV2SwapToShieldedProofRequestArgs = {
   inputCommitment: string;
   inputRoot: string;
   nullifierOrReplayCommitment: string;
+  minOutputAmount: string;
+  outputAmount: string;
   outputCommitment: string;
   outputLeafIndex: string;
   outputRoot: string;
   ownerCommitment: string;
   routeCommitment: string;
   settlementCommitment: string;
+  slippageBps: string;
   swapContextTag: string;
   swapPublicInputHash?: string;
+  validUntilSlot: string;
 };
 
 export type VantaPrivatePoolV2ActualPrivateSpendProofRequestArgs = {
@@ -529,6 +534,7 @@ export function createVantaPrivatePoolV2SendProofRequest({
   recipientOutputRoot,
   sendContextTag,
   sendPublicInputHash,
+  validUntilSlot,
 }: VantaPrivatePoolV2SendProofRequestArgs): VantaPrivatePoolV2ProofRequest {
   if (recipientMemoCiphertextBodyHash === undefined || recipientMemoCiphertextBodyHash === null) {
     throw new Error("Private-send proof request requires a recipient memo ciphertext body hash.");
@@ -608,6 +614,10 @@ export function createVantaPrivatePoolV2SendProofRequest({
     throw new Error("Private-send proof request requires a send context tag.");
   }
 
+  if (!validUntilSlot.trim()) {
+    throw new Error("Private-send proof request requires a valid-until slot.");
+  }
+
   return {
     amountBaseUnits: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_AMOUNT_BASE_UNITS,
     assetId: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
@@ -632,6 +642,7 @@ export function createVantaPrivatePoolV2SendProofRequest({
       `economics-commitment:${economicsCommitment}`,
       `owner-commitment:${ownerCommitment}`,
       `send-context-tag:${sendContextTag}`,
+      `valid-until-slot:${validUntilSlot}`,
     ],
   };
 }
@@ -736,15 +747,19 @@ export function createVantaPrivatePoolV2SwapToShieldedProofRequest({
   economicsCommitment,
   inputCommitment,
   inputRoot,
+  minOutputAmount,
   nullifierOrReplayCommitment,
+  outputAmount,
   outputCommitment,
   outputLeafIndex,
   outputRoot,
   ownerCommitment,
   routeCommitment,
   settlementCommitment,
+  slippageBps,
   swapContextTag,
   swapPublicInputHash,
+  validUntilSlot,
 }: VantaPrivatePoolV2SwapToShieldedProofRequestArgs): VantaPrivatePoolV2ProofRequest {
   if (!inputRoot.trim()) {
     throw new Error("Private swap proof request requires an input root.");
@@ -770,6 +785,18 @@ export function createVantaPrivatePoolV2SwapToShieldedProofRequest({
     throw new Error("Private swap proof request requires an economics commitment.");
   }
 
+  if (!outputAmount.trim()) {
+    throw new Error("Private swap proof request requires an output amount.");
+  }
+
+  if (!minOutputAmount.trim()) {
+    throw new Error("Private swap proof request requires a minimum output amount.");
+  }
+
+  if (!slippageBps.trim()) {
+    throw new Error("Private swap proof request requires slippage bps.");
+  }
+
   if (!outputCommitment.trim()) {
     throw new Error("Private swap proof request requires an output commitment.");
   }
@@ -788,6 +815,10 @@ export function createVantaPrivatePoolV2SwapToShieldedProofRequest({
 
   if (!swapContextTag.trim()) {
     throw new Error("Private swap proof request requires a swap context tag.");
+  }
+
+  if (!validUntilSlot.trim()) {
+    throw new Error("Private swap proof request requires a valid-until slot.");
   }
 
   return {
@@ -810,6 +841,7 @@ export function createVantaPrivatePoolV2SwapToShieldedProofRequest({
       `output-root:${outputRoot}`,
       `owner-commitment:${ownerCommitment}`,
       `swap-context-tag:${swapContextTag}`,
+      `valid-until-slot:${validUntilSlot}`,
     ],
   };
 }

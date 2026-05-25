@@ -147,6 +147,22 @@ for (const file of noirFiles) {
     if (/\brelayer_fee\s*:\s*Field\b/u.test(mainSignature)) {
       failures.push(`${file}: claim relayer fee in main ABI must be u128, not raw Field`);
     }
+    if (!/\bnet_payout\s*:\s*u128\b/u.test(mainSignature)) {
+      failures.push(`${file}: claim net_payout must be a u128 witness input`);
+    }
+    if (!source.includes("assert(relayer_fee <= amount)")) {
+      failures.push(`${file}: claim relayer fee must be constrained to amount`);
+    }
+    if (!source.includes("assert(amount as Field == net_payout as Field + relayer_fee as Field)")) {
+      failures.push(`${file}: claim net_payout must conserve amount after relayer fee`);
+    }
+    if (
+      !/fn\s+bind_claim_public_inputs[\s\S]*net_payout:\s*u128[\s\S]*let\s+claim_terms\s*=\s*bn254::hash_5\s*\(\[[\s\S]*relayer_fee\s+as\s+Field[\s\S]*net_payout\s+as\s+Field/u.test(
+        source,
+      )
+    ) {
+      failures.push(`${file}: claim public-input hash must bind relayer_fee and net_payout`);
+    }
     for (const requiredPhrase of [
       "fn compute_owner_commitment",
       "fn compute_input_commitment",
@@ -162,33 +178,110 @@ for (const file of noirFiles) {
   }
 
   if (file === "zk/noir/vanta_private_pool_v2_send_entry/src/main.nr") {
+    if (!/\brelayer_fee\s*:\s*u128\b/u.test(source)) {
+      failures.push(`${file}: Send relayer_fee must be a u128 witness input`);
+    }
+    if (!source.includes("assert(relayer_fee <= input_amount)")) {
+      failures.push(`${file}: Send relayer fee must be constrained to input amount`);
+    }
+    if (!source.includes("recipient_amount as Field + change_amount as Field + relayer_fee as Field")) {
+      failures.push(`${file}: Send amount conservation must include relayer_fee`);
+    }
+    if (
+      !/fn\s+compute_send_economics_commitment[\s\S]*relayer_fee:\s*u128[\s\S]*bn254::hash_5\s*\(\[[\s\S]*relayer_fee\s+as\s+Field/u.test(
+        source,
+      )
+    ) {
+      failures.push(`${file}: Send economics commitment must bind relayer_fee`);
+    }
+    if (
+      !/fn\s+bind_send_public_inputs[\s\S]*relayer_fee:\s*u128[\s\S]*let\s+economics_terms\s*=\s*bn254::hash_3\s*\(\[[\s\S]*economics_commitment[\s\S]*relayer_fee\s+as\s+Field/u.test(
+        source,
+      )
+    ) {
+      failures.push(`${file}: Send public-input hash must bind relayer_fee under the single-hash ABI`);
+    }
+    if (!/\bvalid_until_slot\s*:\s*Field\b/u.test(source)) {
+      failures.push(`${file}: Send valid_until_slot must be a Field witness/public-hash component`);
+    }
+    if (
+      !/fn\s+bind_send_public_inputs[\s\S]*valid_until_slot:\s*Field[\s\S]*let\s+economics_terms\s*=\s*bn254::hash_3\s*\(\[[\s\S]*economics_commitment[\s\S]*relayer_fee\s+as\s+Field[\s\S]*valid_until_slot/u.test(
+        source,
+      )
+    ) {
+      failures.push(`${file}: Send public-input hash must bind valid_until_slot with economics freshness terms`);
+    }
     for (const requiredPhrase of [
       "fn compute_owner_commitment",
       "fn compute_input_commitment",
+      "fn compute_output_commitment",
       "input_blinding: Field",
       "input_derivation_tag: Field",
+      "recipient_owner_commitment: Field",
+      "recipient_output_blinding: Field",
+      "recipient_output_derivation_tag: Field",
+      "change_output_blinding: Field",
+      "change_output_derivation_tag: Field",
       "assert(computed_owner_commitment == owner_commitment)",
       "assert(computed_input_commitment == input_commitment)",
+      "let computed_recipient_output_commitment = compute_output_commitment",
+      "let computed_change_output_commitment = compute_output_commitment",
+      "assert(computed_recipient_output_commitment == recipient_output_commitment)",
+      "assert(computed_change_output_commitment == change_output_commitment)",
     ]) {
       if (!source.includes(requiredPhrase)) {
-        failures.push(`${file}: Send owner/input commitment must be bound to owner and input preimages (${requiredPhrase})`);
+        failures.push(`${file}: Send owner/input/output commitments must be bound to their note preimages (${requiredPhrase})`);
       }
     }
   }
 
   if (file === "zk/noir/vanta_private_pool_v2_swap_to_shielded_entry/src/main.nr") {
+    if (!/\bvalid_until_slot\s*:\s*Field\b/u.test(source)) {
+      failures.push(`${file}: Swap-to-shielded valid_until_slot must be a Field witness/public-hash component`);
+    }
+    if (
+      !/fn\s+bind_swap_public_inputs[\s\S]*valid_until_slot:\s*Field[\s\S]*let\s+output_transition\s*=\s*bn254::hash_2\s*\(\[[\s\S]*output_leaf_index[\s\S]*output_root[\s\S]*bn254::hash_12\s*\(\[[\s\S]*output_transition[\s\S]*swap_context_tag[\s\S]*valid_until_slot/u.test(
+        source,
+      )
+    ) {
+      failures.push(`${file}: Swap-to-shielded public-input hash must bind valid_until_slot under the single-hash ABI`);
+    }
+    if (
+      !/fn\s+compute_swap_economics_commitment[\s\S]*min_output_amount:\s*u128[\s\S]*slippage_bps:\s*u128[\s\S]*economics_blinding:\s*Field[\s\S]*let\s+asset_terms\s*=\s*bn254::hash_2[\s\S]*let\s+amount_terms\s*=\s*bn254::hash_4[\s\S]*input_amount\s+as\s+Field[\s\S]*output_amount\s+as\s+Field[\s\S]*min_output_amount\s+as\s+Field[\s\S]*slippage_bps\s+as\s+Field[\s\S]*bn254::hash_3\s*\(\[[\s\S]*asset_terms[\s\S]*amount_terms[\s\S]*economics_blinding/u.test(
+        source,
+      )
+    ) {
+      failures.push(`${file}: Swap-to-shielded economics commitment must bind input/output assets, output amount, minimum output, slippage, and blinding`);
+    }
+    if (!source.includes("assert(output_amount >= min_output_amount)")) {
+      failures.push(`${file}: Swap-to-shielded circuit must constrain output_amount >= min_output_amount`);
+    }
+    if (!source.includes("assert(computed_economics_commitment == economics_commitment)")) {
+      failures.push(`${file}: Swap-to-shielded circuit must assert the computed economics commitment`);
+    }
     for (const requiredPhrase of [
       "fn compute_owner_commitment",
       "fn compute_input_commitment",
+      "fn compute_swap_economics_commitment",
+      "fn compute_output_commitment",
       "input_asset_id_commitment: Field",
       "input_amount: u128",
       "input_blinding: Field",
       "input_derivation_tag: Field",
+      "economics_blinding: Field",
+      "output_asset_id_commitment: Field",
+      "output_amount: u128",
+      "min_output_amount: u128",
+      "slippage_bps: u128",
+      "output_blinding: Field",
+      "output_derivation_tag: Field",
       "assert(computed_owner_commitment == owner_commitment)",
       "assert(computed_input_commitment == input_commitment)",
+      "let computed_output_commitment = compute_output_commitment",
+      "assert(computed_output_commitment == output_commitment)",
     ]) {
       if (!source.includes(requiredPhrase)) {
-        failures.push(`${file}: Swap-to-shielded owner/input commitment must be bound to owner and consumed-note preimages (${requiredPhrase})`);
+        failures.push(`${file}: Swap-to-shielded owner/input/output commitments must be bound to their note preimages (${requiredPhrase})`);
       }
     }
   }
@@ -223,6 +316,34 @@ for (const file of noirFiles) {
     ]) {
       if (!source.includes(requiredPhrase)) {
         failures.push(`${file}: Private Core Send/Swap must bind sender_secret_key to distinct Poseidon proof-owner fields (${requiredPhrase})`);
+      }
+    }
+  }
+
+  if (file === "zk/noir/vanta_private_core_single_note_unshield/src/main.nr") {
+    const nullifierStart = source.indexOf("fn derive_nullifier(");
+    const nextFunctionStart =
+      nullifierStart === -1 ? -1 : source.indexOf("\nfn ", nullifierStart + 1);
+    const nullifierSource =
+      nullifierStart === -1
+        ? ""
+        : source.slice(
+            nullifierStart,
+            nextFunctionStart === -1 ? source.length : nextFunctionStart,
+          );
+
+    if (nullifierSource === "") {
+      failures.push(`${file}: Private Core Unshield must define derive_nullifier`);
+    } else {
+      if (/\bstate_root\b|\bmerkle_leaf\b/u.test(nullifierSource)) {
+        failures.push(
+          `${file}: Private Core Unshield nullifier preimage must not bind state_root or merkle_leaf`,
+        );
+      }
+      if (!/bn254::hash_6\s*\(/u.test(nullifierSource)) {
+        failures.push(
+          `${file}: Private Core Unshield nullifier must hash exactly owner key, note secret, and note nonce limbs`,
+        );
       }
     }
   }

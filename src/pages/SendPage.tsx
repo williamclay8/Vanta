@@ -1804,7 +1804,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                   <div className="send-advanced-panel__field">
                     <span>Encrypted recipient memo</span>
                     <strong>Automatic v2 AEAD packet</strong>
-                    <small>Memo contents stay out of the operator packet.</small>
+                    <small>Plaintext memo contents stay out of the operator packet.</small>
                   </div>
 
                   <div className="send-advanced-panel__field">

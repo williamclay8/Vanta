@@ -65,12 +65,14 @@ export type LiveSwapCanonicalizationInput = {
   };
   venue: {
     family: "DLMM";
+    minOutputAmount: string;
     name: "Meteora";
     network: "Mainnet";
     poolAddress: string;
     quoteId: string;
     quoteTimestamp: number;
     quoteExpiresAt: number;
+    slippageBps: number;
   };
 };
 
@@ -99,6 +101,7 @@ export type LiveSwapCanonicalRecord = {
     outputAsset: "SOL";
     outputAssetId: string;
     outputAmountDisplay: string;
+    minOutputAmountDisplay: string;
     outputNoteId: string;
     outputStateSignature: string;
     transitionNoteId: string;
@@ -112,6 +115,7 @@ export type LiveSwapCanonicalRecord = {
     quoteId: string;
     quoteTimestamp: number;
     quoteExpiresAt: number;
+    slippageBps: number;
   };
   inputReference: CanonicalSwapInputReference;
   consumption?: CanonicalLifecycleConsumptionRecord;
@@ -181,7 +185,9 @@ export type LiveSwapCommittedSettlementTerms = {
   economicsCommitment: string;
   inputCommitment: string;
   inputRoot: string;
+  minOutputAmount: string;
   nullifierOrReplayCommitment: string;
+  outputAmount: string;
   outputCommitment: string;
   outputLeafIndex: string;
   outputRoot: string;
@@ -189,8 +195,10 @@ export type LiveSwapCommittedSettlementTerms = {
   routeCommitment: string;
   settlementCommitment: string;
   settlementId: string;
+  slippageBps: string;
   swapContextTag: string;
   swapPublicInputHash: string;
+  validUntilSlot: string;
 };
 
 export async function recordCanonicalSwapFromLiveSwap(
@@ -250,6 +258,7 @@ export async function recordCanonicalSwapFromLiveSwap(
       outputAsset: "SOL",
       outputAssetId: input.output.assetId,
       outputAmountDisplay: input.output.amountDisplay,
+      minOutputAmountDisplay: input.venue.minOutputAmount,
       outputNoteId: input.output.noteId,
       outputStateSignature: input.output.stateSignature,
       transitionNoteId: input.transition.noteId,
@@ -263,6 +272,7 @@ export async function recordCanonicalSwapFromLiveSwap(
       quoteId: input.venue.quoteId,
       quoteTimestamp: input.venue.quoteTimestamp,
       quoteExpiresAt: input.venue.quoteExpiresAt,
+      slippageBps: input.venue.slippageBps,
     },
     inputReference,
     consumption:
@@ -333,9 +343,11 @@ export async function createCommittedSwapSettlementTerms(
     record.liveSwap.outputAsset,
     record.liveSwap.outputAssetId,
     record.liveSwap.outputAmountDisplay,
+    record.liveSwap.minOutputAmountDisplay,
     record.liveSwap.quoteId,
     record.liveSwap.quoteTimestamp,
     record.liveSwap.quoteExpiresAt,
+    record.liveSwap.slippageBps,
   ]);
   const ownerCommitment = await createSwapSettlementCommitment(record, "owner", [
     record.liveSwap.owner,
@@ -349,6 +361,7 @@ export async function createCommittedSwapSettlementTerms(
     record.liveSwap.quoteId,
     record.liveSwap.quoteTimestamp,
     record.liveSwap.quoteExpiresAt,
+    record.liveSwap.slippageBps,
   ]);
   const settlementCommitment = await createSwapSettlementCommitment(record, "settlement", [
     record.recordId,
@@ -365,12 +378,15 @@ export async function createCommittedSwapSettlementTerms(
     record.liveSwap.transitionNoteId,
     record.liveSwap.operatorRequestId,
   ]);
+  const validUntilSlot = String(record.liveSwap.quoteExpiresAt);
 
   return {
     economicsCommitment,
     inputCommitment,
     inputRoot: record.outputSuccessor.insertion.previousRoot,
+    minOutputAmount: record.liveSwap.minOutputAmountDisplay,
     nullifierOrReplayCommitment,
+    outputAmount: record.liveSwap.outputAmountDisplay,
     outputCommitment,
     outputLeafIndex: String(record.outputSuccessor.insertion.index),
     outputRoot: record.outputSuccessor.insertion.root,
@@ -378,7 +394,9 @@ export async function createCommittedSwapSettlementTerms(
     routeCommitment,
     settlementCommitment,
     settlementId,
+    slippageBps: String(record.liveSwap.slippageBps),
     swapContextTag,
+    validUntilSlot,
     swapPublicInputHash: await createSwapSettlementCommitment(record, "swap-public-input", [
       record.outputSuccessor.insertion.previousRoot,
       inputCommitment,
@@ -391,6 +409,7 @@ export async function createCommittedSwapSettlementTerms(
       record.outputSuccessor.insertion.root,
       ownerCommitment,
       swapContextTag,
+      validUntilSlot,
     ]),
   };
 }
@@ -604,6 +623,12 @@ export function persistCanonicalSwapRecord(record: LiveSwapCanonicalRecord) {
 function normalizeLiveSwapRecordForPersistence(record: LiveSwapCanonicalRecord): LiveSwapCanonicalRecord {
   return {
     ...record,
+    liveSwap: {
+      ...record.liveSwap,
+      minOutputAmountDisplay:
+        record.liveSwap.minOutputAmountDisplay ?? record.liveSwap.outputAmountDisplay,
+      slippageBps: record.liveSwap.slippageBps ?? 0,
+    },
     ownerContextEvidence: createOwnerContextRecoveryEvidence({
       existingEvidence: record.ownerContextEvidence,
     }),

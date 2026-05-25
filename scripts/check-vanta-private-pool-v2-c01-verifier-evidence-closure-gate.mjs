@@ -197,6 +197,10 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
   assert(proof.satisfiesProductionProofFormatEvidence === true, "production proof-format evidence must be true");
 
   const sourceLineage = bundle.sourceLineage ?? {};
+  assertRef(sourceLineage.frozenSourceCommitRef, "production bundle frozen source commit ref");
+  assertRef(sourceLineage.sourceTreeStatusRef, "production bundle source tree status ref");
+  assertRef(sourceLineage.sourceFreezeReviewRef, "production bundle source freeze review ref");
+  assert(sourceLineage.sourceFreezeAccepted === true, "production bundle source freeze acceptance must be true");
   assert(
     sourceLineage.requiredCurrentSourceAcirSha256 === shape.referenceCurrentSourceAcirSha256,
     "current-source ACIR requirement mismatch",
@@ -366,10 +370,21 @@ function assertReviewedClosure(bundle, adapter, lineage, audit) {
   assertSame(lineageProgram.acceptedVerifierProgramSbfHash, bundleLineage.acceptedVerifierSbfSha256, "lineage verifier SBF hash");
   assertSame(lineageProgram.spendProgramId, bundleLineage.deployedSpendProgramId, "lineage spend program id");
   assertSame(lineageProgram.verifierProgramId, bundleLineage.deployedVerifierProgramId, "lineage verifier program id");
+  assertSha256(lineageProgram.acceptedVerifierProgramSbfHash, "lineage deployed verifier SBF hash");
   assertSame(
     lineageLive.verifierKeyRegistrationRef,
     bundleLineage.tag5ProductionVerifierKeyRegistrationRef,
     "lineage verifier-key registration ref",
+  );
+  assertSame(
+    lineageProgram.verifierKeyRecordRef,
+    bundleLineage.verifierKeyRecordBindingRef,
+    "lineage verifier-key record binding ref",
+  );
+  assertSame(
+    lineageLive.verifierProgramUpgradeAuthorityStatusRef,
+    bundleLineage.verifierProgramUpgradeAuthorityStatusRef,
+    "lineage verifier program upgrade-authority status ref",
   );
   assertSame(
     lineageLive.poolReinitializationOrMigrationRef,
@@ -653,6 +668,8 @@ for (const [field, expected] of [
   ["referenceCurrentSourceAcirSha256", "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9"],
   ["productionSourceLineageMode", "reviewed-beta18-h6-source-migration"],
   ["sourceAcirSha256", "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde"],
+  ["sourceFreezeRequired", true],
+  ["frozenSourceCommitRefShape", "git:<reviewed-immutable-production-source-commit-ref>"],
   ["deterministicArtifactBuildGateRef", deterministicBuildGatePath],
   ["productionOutputManifestPreflightGateRef", outputManifestPreflightPath],
   ["adapterKind", "in-program-verifier-or-dedicated-verifier-cpi"],
@@ -670,6 +687,7 @@ assertNullRefs(current, "current closure evidence", [
   "sbfLiveLineageRef",
   "auditReviewerAcceptanceRef",
   "productionProofFormatArtifactRef",
+  "frozenSourceCommitRef",
   "productionVerifyingKeyArtifactRef",
   "productionVerifyingKeyHash",
   "currentH6PublicInputBindingRef",
@@ -678,6 +696,10 @@ assertNullRefs(current, "current closure evidence", [
   "wrongPublicInputNoMutationTestRef",
   "wrongVerifyingKeyNoMutationTestRef",
   "wrongVerifierProgramNoMutationTestRef",
+  "deployedVerifierProgramId",
+  "deployedVerifierProgramSbfHash",
+  "verifierProgramUpgradeAuthorityStatusRef",
+  "tag5VerifierKeyRecordBindingRef",
 ]);
 assert(current.satisfiesC01VerifierEvidenceClosure === false, "current closure must remain false");
 
@@ -696,8 +718,11 @@ assertStringArray(external.validates, "external closure validates");
 for (const marker of [
   "same selected backend and route across all reviewed packets",
   "source-review acceptance and deterministic build/output-manifest prerequisite refs are present in the reviewed production bundle",
+  "reviewed frozen source commit and source tree status refs are present in the reviewed production bundle",
   "same production verifying-key artifact and production verifying-key hash",
   "adapter public-input label/value/commitment and production binding flag match the production bundle",
+  "same deployed verifier program id/hash and verifier-key record binding across production bundle and SBF/live lineage acceptance",
+  "same verifier program upgrade-authority status ref across production bundle and SBF/live lineage acceptance",
   "same valid mutation and invalid/wrong-input/wrong-key/wrong-program no-mutation refs",
   "five trim-normalized distinct mutation/no-mutation evidence refs",
   "same SBF/live lineage ref",
@@ -709,11 +734,23 @@ for (const marker of [
 assert(external.satisfiesC01VerifierEvidenceClosure === false, "external closure must not satisfy by itself");
 assertStringArray(gate.crossPacketInvariants, "crossPacketInvariants");
 for (const invariant of [
+  "closure must reject a production bundle that sets positive flags without a reviewed frozen source commit and source freeze review refs",
+  "deployed verifier program id and accepted/deployed verifier SBF hash must match across production bundle and SBF/live lineage acceptance",
+  "verifier program upgrade-authority status ref must match across production bundle and SBF/live lineage acceptance",
+  "verifier-key record binding must bind the production VK hash to the accepted deployed verifier program id",
   "valid mutation and invalid/wrong-input/wrong-key/wrong-program no-mutation evidence refs must be distinct across the closure chain",
 ]) {
   assert(gate.crossPacketInvariants.includes(invariant), `cross-packet invariant missing ${invariant}`);
 }
 assertStringArray(gate.remainingBlockers, "remainingBlockers");
+for (const blocker of [
+  "no reviewed frozen source commit",
+  "no deployed verifier program id/hash",
+  "no verifier program upgrade-authority status ref",
+  "no verifier-key record binding production VK hash to verifier program id",
+]) {
+  assert(gate.remainingBlockers.includes(blocker), `remaining blocker missing ${blocker}`);
+}
 assertStringArray(gate.canonicalCommands, "canonicalCommands");
 for (const command of [
   "npm run zk:c01-verifier-evidence-closure-gate-check",
@@ -757,6 +794,7 @@ for (const marker of [
   "VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH=<reviewed-lineage-json>",
   "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-audit-json>",
   "source-review acceptance and deterministic build/output-manifest prerequisite refs",
+  "reviewed frozen source commit",
   "adapter public-input binding flag",
   "trim-normalized distinct mutation/no-mutation refs",
 ]) {

@@ -248,6 +248,7 @@ function buildPrivateCoreSendCommittedSettlement(args: {
     changeCommitment,
     result.resultingRoot,
   );
+  const validUntilSlot = "1000250";
   const sendPublicInputHash = hashPrivatePoolV2CommittedTerm(
     "vanta.private-core.send.public-input-hash.v0",
     proofInputs.state_root,
@@ -258,6 +259,7 @@ function buildPrivateCoreSendCommittedSettlement(args: {
     proofInputs.note_version,
     proofInputs.send_context_tag_hi ?? "0",
     proofInputs.send_context_tag_lo ?? "0",
+    validUntilSlot,
   );
 
   return {
@@ -288,6 +290,7 @@ function buildPrivateCoreSendCommittedSettlement(args: {
     ),
     sendPublicInputHash,
     settlementCommitment,
+    validUntilSlot,
   };
 }
 
@@ -2296,6 +2299,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         sendPublicInputHash: committedSendSettlement.sendPublicInputHash,
         settlementCommitment: committedSendSettlement.settlementCommitment,
         settlementId: result.resultingRoot,
+        validUntilSlot: committedSendSettlement.validUntilSlot,
       }).then(() => refreshPrivatePoolV2ProtocolSettlementStatus());
 
       return {

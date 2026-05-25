@@ -103,10 +103,11 @@ assert.ok(
   programReadme.includes("TAG_UNSHIELD") && programReadme.includes("vault-asset registry"),
   "Program README must document TAG_UNSHIELD preflight and vault-asset (TAG6 prep)."
 );
-// Positive assertions for test helper wiring (Rust Deepening lane completed: dedicated SOL_VAULT_SEED + sentinel derivation, cfg(test) success path, UnshieldEvent scaffolding, system CPI from program-owned PDA)
+// Positive assertions for runtime-gated TAG6 wiring (dedicated SOL_VAULT_SEED + sentinel derivation,
+// reserved UnshieldEvent/System CPI shape, and no public release before verifier evidence).
 assert.ok(
   programSource.includes("const VAULT_ASSET_KIND_SOL: u8 = 2;"),
-  "programs/vanta_private_pool_v2_spend/src/lib.rs must define VAULT_ASSET_KIND_SOL=2 for TAG6 SOL branch (test helper per design contract)."
+  "programs/vanta_private_pool_v2_spend/src/lib.rs must define VAULT_ASSET_KIND_SOL=2 for TAG6 SOL branch (runtime-gated design contract)."
 );
 assert.ok(
   programSource.includes('const SOL_VAULT_SEED: &[u8] = b"vanta2solvault";'),
@@ -114,7 +115,7 @@ assert.ok(
 );
 assert.ok(
   programSource.includes("if asset_kind == VAULT_ASSET_KIND_SOL {"),
-  "process_unshield must contain SOL kind==2 branch (test helper wiring in progress per Rust Deepening lane; demonstrates TAG6 path in Vanta copy)."
+  "process_unshield must contain SOL kind==2 branch (runtime-gated fail-closed wiring per Rust Deepening lane)."
 );
 assert.ok(
   programSource.includes("system_instruction::transfer(sol_vault_holding.key, destination.key, exit_amount)"),
@@ -135,7 +136,7 @@ assert.ok(
 );
 assert.ok(
   !programSource.match(/if asset_kind == VAULT_ASSET_KIND_SOL \{[\s\S]{0,800}?(vaultOwner|operator.*keypair|signer.*operator)/i),
-  "SOL branch in test helper must NOT contain operator keypair on transfer (program-owned PDA only; 'as private as possible' per design doc §11)."
+  "SOL branch must NOT contain operator keypair on transfer (program-owned PDA only; 'as private as possible' per design doc §11)."
 );
 assert.ok(
   programSource.includes("design doc §11") || programSource.includes("2026-05-14-native-sol-private-pool-v2-integration.md") || programSource.includes("VANTA_ZK_REVIEW.md U2.1"),
@@ -143,11 +144,13 @@ assert.ok(
 );
 assert.ok(
   programSource.includes("UnshieldEvent") || programSource.includes("Minimal UnshieldEvent"),
-  "program must have UnshieldEvent scaffolding / emit for indexer (test helper per Rust Deepening + design §11)."
+  "program must have UnshieldEvent scaffolding / emit for indexer (reserved per Rust Deepening + design §11)."
 );
 assert.ok(
-  programSource.includes("unshield success (asset_kind=SOL=2, sentinel, program-owned PDA CPI, nullifier consumed)"),
-  "SOL branch must emit the current test-helper success message for sentinel SOL, program-owned PDA CPI, and nullifier consume."
+  programSource.includes("require_pool_verifier_wired(&pool_data, ERR_UNSHIELD_NOT_WIRED)?;") &&
+    programSource.includes("unshield_sol_verifier_wired_zero_rejects_before_nullifier_or_release") &&
+    programSource.includes("unshield_sol_verifier_wired_one_still_rejects_until_verifier_acceptance"),
+  "SOL TAG6 must be runtime-gated and fail closed before nullifier consume or CPI until verifier/root/nullifier acceptance exists."
 );
 
 // === Status / Trust surfaces for native SOL TAG6 ===
@@ -193,5 +196,5 @@ assert.ok(
 
 console.log("Vanta Private Pool v2 Native SOL TAG6 Wiring Check: PASS");
 console.log(
-  "Evidence: VANTA_ZK_REVIEW.md U2.1 + design doc 2026-05-14-native-sol-private-pool-v2-integration.md + status note 2026-05-14-native-sol-v2-integration-status.md all reference sentinel, VAULT_ASSET_KIND_SOL=2, vanta2solvault PDA, system_instruction::transfer CPI, exit_asset_id sentinel for TAG_UNSHIELD=6. operator exports isNativeSolAssetId + sentinel (Day 1). Test helper in programs/vanta_private_pool_v2_spend/src/lib.rs now wired with SOL_VAULT_SEED + sentinel derivation, VAULT_ASSET_KIND_SOL=2 branch, system CPI + invoke_signed from PDA, ensure_nullifier_marker, UnshieldEvent emit, cfg(test) success paths + extended tests (Rust Deepening lane completed). Production surfaces remain strictly fail-closed (no SBF/deploy, productionCustodyReadyForSol:false, blockers active, 'test helper only; live evidence required per §12'). New check wired in package.json + zk:review-guards-check / private-pool-v2:verify / truth:privacy-claim-gate / zk:feedback-loop-check (Verification Commands lane). All red-first per authoritative references. References: design doc §11 + status note Post-Deployment Monitoring Checklist + §12. File:line evidence of wired test helper + checks in this script + Rust lib.rs tests."
+  "Evidence: VANTA_ZK_REVIEW.md U2.1 + design doc 2026-05-14-native-sol-private-pool-v2-integration.md + status note 2026-05-14-native-sol-v2-integration-status.md all reference sentinel, VAULT_ASSET_KIND_SOL=2, vanta2solvault PDA, system_instruction::transfer CPI, and exit_asset_id sentinel for TAG_UNSHIELD=6. operator exports isNativeSolAssetId + sentinel (Day 1). programs/vanta_private_pool_v2_spend/src/lib.rs preserves SOL_VAULT_SEED + sentinel derivation and reserved PDA-signed SOL CPI shape, but TAG6 is now runtime-gated by pool_state.verifier_wired and remains fail-closed before nullifier consume or CPI. Production surfaces remain strictly fail-closed (productionCustodyReadyForSol:false, blockers active, live evidence required per §12). New check is wired in package.json + zk:review-guards-check / private-pool-v2:verify / truth:privacy-claim-gate / zk:feedback-loop-check. References: design doc §11 + status note Post-Deployment Monitoring Checklist + §12."
 );

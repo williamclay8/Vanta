@@ -6,6 +6,7 @@ import {
   poseidon1,
   poseidon15,
   poseidon2,
+  poseidon6,
   poseidon8,
 } from "poseidon-lite";
 
@@ -726,20 +727,16 @@ export function deriveVantaPrivateCoreNullifier(
     throw new VantaPrivateCoreError("Witness commitment does not match note commitment.");
   }
 
-  const leafField = poseidon1([BigInt(commitment.value)]).toString(10);
   const owner = encodeBytes32ToPoseidonLimbs(note.ownerPublicKey);
   const secret = encodeBytes32ToPoseidonLimbs(note.noteSecret);
   const nonce = encodeBytes32ToPoseidonLimbs(note.noteNonce);
-  const rootBig = BigInt(witness.root);
-  const nullifierField = poseidon8([
+  const nullifierField = poseidon6([
     owner.hi,
     owner.lo,
     secret.hi,
     secret.lo,
     nonce.hi,
     nonce.lo,
-    rootBig,
-    BigInt(leafField),
   ]).toString(10);
 
   return {

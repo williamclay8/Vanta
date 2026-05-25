@@ -1164,7 +1164,8 @@ function hasStatefulSendFields(body) {
       optionalNonEmptyString(body.outputRoot) &&
       optionalNonEmptyString(body.recipientMemoCiphertextBodyHash) &&
       (!hasNonzeroChangeOutput || optionalNonEmptyString(body.changeMemoCiphertextBodyHash)) &&
-      optionalNonEmptyString(body.sendContextTag),
+      optionalNonEmptyString(body.sendContextTag) &&
+      optionalNonEmptyString(body.validUntilSlot),
   );
 }
 
@@ -1219,10 +1220,14 @@ function validateProtocolSettlementBody(body) {
     if (action === "swap") {
       requireNonEmptyString(body.inputRoot, "inputRoot");
       requireNonEmptyString(body.inputCommitment, "inputCommitment");
+      requireNonEmptyString(body.minOutputAmount, "minOutputAmount");
+      requireNonEmptyString(body.outputAmount, "outputAmount");
       requireNonEmptyString(body.outputCommitment, "outputCommitment");
       requireNonEmptyString(body.outputLeafIndex, "outputLeafIndex");
       requireNonEmptyString(body.outputRoot, "outputRoot");
+      requireNonEmptyString(body.slippageBps, "slippageBps");
       requireNonEmptyString(body.swapContextTag, "swapContextTag");
+      requireNonEmptyString(body.validUntilSlot, "validUntilSlot");
     }
     if (action === "unshield") {
       requireNonEmptyString(body.inputRoot, "inputRoot");
@@ -1268,10 +1273,12 @@ function validateProtocolSettlementBody(body) {
         typeof body.inputCommitment === "string" && body.inputCommitment.trim().length > 0
           ? body.inputCommitment
           : undefined,
+      minOutputAmount: optionalNonEmptyString(body.minOutputAmount),
       nullifierOrReplayCommitment: requireNonEmptyString(
         body.nullifierOrReplayCommitment,
         "nullifierOrReplayCommitment",
       ),
+      outputAmount: optionalNonEmptyString(body.outputAmount),
       outputCommitment:
         typeof body.outputCommitment === "string" && body.outputCommitment.trim().length > 0
           ? body.outputCommitment
@@ -1308,6 +1315,7 @@ function validateProtocolSettlementBody(body) {
           ? body.sendPublicInputHash
           : undefined,
       settlementCommitment: requireNonEmptyString(body.settlementCommitment, "settlementCommitment"),
+      slippageBps: optionalNonEmptyString(body.slippageBps),
       swapContextTag:
         typeof body.swapContextTag === "string" && body.swapContextTag.trim().length > 0
           ? body.swapContextTag
@@ -1317,6 +1325,7 @@ function validateProtocolSettlementBody(body) {
         body.swapPublicInputHash.trim().length > 0
           ? body.swapPublicInputHash
           : undefined,
+      validUntilSlot: optionalNonEmptyString(body.validUntilSlot),
       unshieldContextTag:
         typeof body.unshieldContextTag === "string" && body.unshieldContextTag.trim().length > 0
           ? body.unshieldContextTag
@@ -1855,7 +1864,9 @@ function protocolSettlementFingerprint({
   exitTermsCommitment,
   inputRoot,
   inputCommitment,
+  minOutputAmount,
   nullifierOrReplayCommitment,
+  outputAmount,
   outputCommitment,
   outputLeafIndex,
   outputRoot,
@@ -1873,8 +1884,10 @@ function protocolSettlementFingerprint({
   sendPublicInputHash,
   settlementId,
   settlementCommitment,
+  slippageBps,
   swapContextTag,
   swapPublicInputHash,
+  validUntilSlot,
   unshieldContextTag,
   unshieldPublicInputHash,
   shieldCapability,
@@ -1925,7 +1938,9 @@ function protocolSettlementFingerprint({
     exitTermsCommitment,
     inputRoot,
     inputCommitment,
+    minOutputAmount,
     nullifierOrReplayCommitment,
+    outputAmount,
     outputCommitment,
     outputLeafIndex,
     outputRoot,
@@ -1941,8 +1956,10 @@ function protocolSettlementFingerprint({
     sendContextTag,
     sendPublicInputHash,
     settlementCommitment,
+    slippageBps,
     swapContextTag,
     swapPublicInputHash,
+    validUntilSlot,
     unshieldContextTag,
     unshieldPublicInputHash,
   );
@@ -1983,6 +2000,7 @@ function assertProtocolReplayMatches(
     settlementCommitment,
     swapContextTag,
     swapPublicInputHash,
+    validUntilSlot,
     unshieldContextTag,
     unshieldPublicInputHash,
     shieldCapability,
@@ -2059,6 +2077,7 @@ function assertProtocolReplayMatches(
       settlementCommitment,
       swapContextTag,
       swapPublicInputHash,
+      validUntilSlot,
       unshieldContextTag,
       unshieldPublicInputHash,
       shieldCapability,
@@ -2878,7 +2897,9 @@ async function proveAndAcceptProtocolSettlement(body) {
     exitTermsCommitment,
     inputRoot,
     inputCommitment,
+    minOutputAmount,
     nullifierOrReplayCommitment,
+    outputAmount,
     outputCommitment,
     outputLeafIndex,
     outputRoot,
@@ -2896,8 +2917,10 @@ async function proveAndAcceptProtocolSettlement(body) {
     sendPublicInputHash,
     settlementId,
     settlementCommitment,
+    slippageBps,
     swapContextTag,
     swapPublicInputHash,
+    validUntilSlot,
     unshieldContextTag,
     unshieldPublicInputHash,
     shieldCapability,
@@ -2926,7 +2949,9 @@ async function proveAndAcceptProtocolSettlement(body) {
         exitTermsCommitment,
         inputRoot,
         inputCommitment,
+        minOutputAmount,
         nullifierOrReplayCommitment,
+        outputAmount,
         outputCommitment,
         outputLeafIndex,
         outputRoot,
@@ -2943,8 +2968,10 @@ async function proveAndAcceptProtocolSettlement(body) {
         sendContextTag,
         sendPublicInputHash,
         settlementCommitment,
+        slippageBps,
         swapContextTag,
         swapPublicInputHash,
+        validUntilSlot,
         unshieldContextTag,
         unshieldPublicInputHash,
         shieldCapability,
@@ -3125,6 +3152,7 @@ async function proveAndAcceptProtocolSettlement(body) {
         recipientOutputRoot: outputRoot,
         sendContextTag,
         ...(sendPublicInputHash ? { sendPublicInputHash } : {}),
+        validUntilSlot,
       });
     }
   } else if (action === "swap" && economicsMode === "committed-economics") {
@@ -3132,15 +3160,19 @@ async function proveAndAcceptProtocolSettlement(body) {
       economicsCommitment,
       inputCommitment,
       inputRoot,
+      minOutputAmount,
       nullifierOrReplayCommitment,
+      outputAmount,
       outputCommitment,
       outputLeafIndex,
       outputRoot,
       ownerCommitment,
       routeCommitment,
       settlementCommitment,
+      slippageBps,
       swapContextTag,
       swapPublicInputHash,
+      validUntilSlot,
     });
   } else if (action === "send" || action === "swap") {
     const targetAsset = asset;
@@ -3365,6 +3397,7 @@ async function proveAndAcceptProtocolSettlement(body) {
       settlementCommitment,
       swapContextTag,
       swapPublicInputHash,
+      validUntilSlot,
       unshieldContextTag,
       unshieldPublicInputHash,
       shieldCapability,

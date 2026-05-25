@@ -13,6 +13,7 @@ export type SolToShieldedRouteQuote = {
   inputAmount: string;
   inputAsset: "SOL";
   inputMintAddress: string;
+  minOutputAmount: string;
   outputAmount: string;
   outputAsset: Exclude<ShieldedSwapAssetKey, "SOL">;
   outputMintAddress: string;
@@ -33,6 +34,8 @@ export type SolToShieldedRouteReceipt = {
   adapterReceiptId: string;
   inputAsset: "SOL";
   inputMintAddress: string;
+  minOutputAmount: string;
+  outputAmount: string;
   outputLeafIndex: string;
   outputAsset: Exclude<ShieldedSwapAssetKey, "SOL">;
   outputMintAddress: string;
@@ -55,6 +58,7 @@ export type SolToShieldedRouteExecutionRequest = {
   consumedNoteId: string;
   inputAmount: string;
   inputMintAddress: string;
+  minOutputAmount: string;
   outputAmount: string;
   outputAsset: Exclude<ShieldedSwapAssetKey, "SOL">;
   outputMintAddress: string;
@@ -105,6 +109,7 @@ function createExpectedSolToShieldedProtocolSettlementRequest(args: {
     args.request.outputAsset,
     args.request.inputMintAddress,
     args.request.outputMintAddress,
+    args.request.minOutputAmount,
     args.request.quoteId,
     args.request.quoteExpiresAt,
     args.request.slippageBps,
@@ -167,6 +172,7 @@ function createExpectedSolToShieldedProtocolSettlementRequest(args: {
     args.request.transitionNoteId,
     args.request.outputNoteId,
   );
+  const validUntilSlot = String(args.request.quoteExpiresAt);
   const swapPublicInputHash = hashSolToShieldedRouteParts(
     "swap-public-input",
     inputRoot,
@@ -179,6 +185,7 @@ function createExpectedSolToShieldedProtocolSettlementRequest(args: {
     settlementCommitment,
     ownerCommitment,
     swapContextTag,
+    validUntilSlot,
   );
 
   return {
@@ -187,7 +194,9 @@ function createExpectedSolToShieldedProtocolSettlementRequest(args: {
     economicsMode: "committed-economics",
     inputCommitment,
     inputRoot,
+    minOutputAmount: args.request.minOutputAmount,
     nullifierOrReplayCommitment,
+    outputAmount: args.request.outputAmount,
     outputCommitment,
     outputLeafIndex: args.outputLeafIndex,
     outputRoot,
@@ -195,8 +204,10 @@ function createExpectedSolToShieldedProtocolSettlementRequest(args: {
     routeCommitment,
     settlementCommitment,
     settlementId,
+    slippageBps: String(args.request.slippageBps),
     swapContextTag,
     swapPublicInputHash,
+    validUntilSlot,
   };
 }
 
@@ -209,6 +220,8 @@ function parseSolToShieldedRouteReceipt(
     parsed.routeAdapter !== "sol-to-shielded-v1" ||
     parsed.inputAsset !== "SOL" ||
     typeof parsed.inputMintAddress !== "string" ||
+    typeof parsed.minOutputAmount !== "string" ||
+    typeof parsed.outputAmount !== "string" ||
     typeof parsed.outputLeafIndex !== "string" ||
     typeof parsed.outputAsset !== "string" ||
     typeof parsed.outputMintAddress !== "string" ||
@@ -252,6 +265,14 @@ export function assertSolToShieldedRouteReceipt(args: {
 
   if (receipt.outputAsset !== request.outputAsset) {
     throw new Error("SOL route adapter receipt output asset does not match the requested shielded asset.");
+  }
+
+  if (receipt.outputAmount !== request.outputAmount) {
+    throw new Error("SOL route adapter receipt output amount does not match the active quote.");
+  }
+
+  if (receipt.minOutputAmount !== request.minOutputAmount) {
+    throw new Error("SOL route adapter receipt minimum output amount does not match the active quote.");
   }
 
   if (receipt.outputMintAddress !== request.outputMintAddress) {
@@ -377,6 +398,7 @@ export async function fetchSolToShieldedRouteQuote(args: {
     typeof parsed.inputMintAddress !== "string" ||
     typeof parsed.outputMintAddress !== "string" ||
     typeof parsed.inputAmount !== "string" ||
+    typeof parsed.minOutputAmount !== "string" ||
     typeof parsed.outputAmount !== "string" ||
     typeof parsed.quoteId !== "string" ||
     typeof parsed.quoteTimestamp !== "number" ||
@@ -395,6 +417,7 @@ export async function fetchSolToShieldedRouteQuote(args: {
     inputAmount: parsed.inputAmount,
     inputAsset: "SOL",
     inputMintAddress: parsed.inputMintAddress,
+    minOutputAmount: parsed.minOutputAmount,
     outputAmount: parsed.outputAmount,
     outputAsset: parsed.outputAsset,
     outputMintAddress: parsed.outputMintAddress,
@@ -426,6 +449,7 @@ export async function requestSolToShieldedRouteExecution(
       inputAmount: args.inputAmount,
       inputAsset: "SOL",
       inputMintAddress: args.inputMintAddress,
+      minOutputAmount: args.minOutputAmount,
       outputAmount: args.outputAmount,
       outputAsset: args.outputAsset,
       outputMintAddress: args.outputMintAddress,

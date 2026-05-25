@@ -83,9 +83,18 @@ const configuredWifMintAddress = getOptionalEnvValue(
 const configuredKmnoMintAddress = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_MAINNET_KMNO_MINT,
 ) ?? (isMainnetCluster ? MAINNET_RECOGNIZED_MINTS.KMNO : null);
-const configuredVaultOwner = getOptionalEnvValue(
+// VITE_VANTA_MAINNET_VAULT_OWNER is legacy-only after the PDA custody path:
+// it may describe the historical operator wallet, but it is not live custody.
+const configuredLegacyVaultOwner = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_MAINNET_VAULT_OWNER,
 );
+export const legacyOperatorVaultOwner = configuredLegacyVaultOwner;
+export const programPdaCustodyRequired = true;
+export const liveShieldCustodyContract = {
+  legacyOperatorVaultOwner,
+  programPdaCustodyRequired: true,
+} as const;
+const configuredVaultOwner = null;
 const configuredVaultDerivationProgramId = getOptionalEnvValue(
   import.meta.env.VITE_VANTA_VAULT_DERIVATION_PROGRAM_ID,
 );
@@ -192,14 +201,16 @@ export type LiveShieldTokenAssetConfig = {
   productionCustodyReady: false;
 };
 
-const hasVaultOwnerPath = Boolean(configuredVaultOwner || configuredVaultDerivationProgramId);
+const hasVaultOwnerPath = Boolean(
+  configuredLegacyVaultOwner || configuredVaultDerivationProgramId,
+);
 
 export function isNativeSolShieldConfigured() {
-  return Boolean(configuredVaultOwner);
+  return Boolean(configuredVaultDerivationProgramId);
 }
 
 export function isNativeSolUnshieldConfigured() {
-  return Boolean(configuredVaultOwner && effectiveSolUnshieldOperatorUrl);
+  return Boolean(configuredVaultDerivationProgramId && effectiveSolUnshieldOperatorUrl);
 }
 
 function createLiveShieldTokenAssetConfig(args: {
@@ -217,20 +228,18 @@ function createLiveShieldTokenAssetConfig(args: {
   const adapterRequired = directShieldPolicy === "token-2022-adapter-required";
   const custodyModel = adapterRequired
     ? "token-2022-adapter-required"
-    : configuredVaultOwner
-      ? "operator-configured-wallet"
-      : configuredVaultDerivationProgramId
+    : configuredVaultDerivationProgramId || configuredLegacyVaultOwner
         ? "program-derived-vault-pda-blocked"
         : "unconfigured";
   const executionBlocker = adapterRequired
     ? "token-2022-adapter-required"
     : !args.configuredMintAddress
       ? "mainnet-lane-not-configured"
-      : configuredVaultOwner
-        ? null
-        : configuredVaultDerivationProgramId
+      : configuredVaultDerivationProgramId
           ? "program-vault-init-release-not-deployed"
-          : "mainnet-vault-owner-not-configured";
+          : configuredLegacyVaultOwner
+            ? "legacy-vault-owner-env-not-live-custody"
+            : "mainnet-vault-owner-not-configured";
 
   return {
     assetKey: args.assetKey,
@@ -247,10 +256,13 @@ function createLiveShieldTokenAssetConfig(args: {
     productionCustodyReady: false,
     symbol: args.assetKey,
     unshieldConfigured: Boolean(
-      args.configuredMintAddress && configuredVaultOwner && unshieldOperatorUrl && !adapterRequired,
+      args.configuredMintAddress &&
+        configuredVaultDerivationProgramId &&
+        unshieldOperatorUrl &&
+        !adapterRequired,
     ),
     unshieldOperatorUrl,
-    vaultOwner: configuredVaultOwner,
+    vaultOwner: configuredVaultOwner ?? configuredLegacyVaultOwner,
   };
 }
 

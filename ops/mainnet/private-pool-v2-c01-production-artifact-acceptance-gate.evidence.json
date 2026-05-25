@@ -50,6 +50,8 @@
     "referenceCurrentSourceAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
     "productionSourceLineageMode": "reviewed-beta18-h6-source-migration",
     "sourceAcirSha256": "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde",
+    "sourceFreezeRequired": true,
+    "frozenSourceCommitRefShape": "git:<reviewed-immutable-production-source-commit-ref>",
     "sourceReviewAcceptanceRequired": true,
     "sourceReviewAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
     "productionOutputManifestPreflightRequired": true,
@@ -63,6 +65,9 @@
   "currentAcceptedProductionBundle": {
     "status": "absent",
     "bundleRef": null,
+    "frozenSourceCommitRef": null,
+    "sourceTreeStatusRef": null,
+    "sourceFreezeReviewRef": null,
     "pinnedToolchainSourceRef": null,
     "reviewedToolchainBuildRef": null,
     "trustedSetupOrMitigationRef": null,
@@ -81,6 +86,7 @@
     "wrongVerifyingKeyNoMutationTestRef": null,
     "wrongVerifierProgramNoMutationTestRef": null,
     "sbfLiveLineageRef": null,
+    "verifierProgramUpgradeAuthorityStatusRef": null,
     "auditReviewerAcceptanceRef": null,
     "artifactReviewAttestationRef": null,
     "satisfiesProductionArtifactAcceptance": false
@@ -130,6 +136,7 @@
     "validatedWhenEnvVarPresent": true,
     "validates": [
       "reviewed beta18 H6 production source ACIR lineage",
+      "reviewed frozen source commit and source tree status refs",
       "external source-review acceptance",
       "production output-manifest preflight",
       "deterministic production artifact build receipt",
@@ -145,6 +152,7 @@
       "wrong-verifier-program no-mutation evidence",
       "five trim-normalized distinct mutation/no-mutation evidence refs",
       "SBF/live lineage evidence",
+      "verifier program upgrade-authority status ref",
       "audit/reviewer acceptance",
       "audit/reviewer reviewer identity, C01 scope, findings disposition, acceptedForC01, and satisfiesAuditReviewerAcceptance fields",
       "artifact producer and reviewer identity/scope attestation",
@@ -157,6 +165,18 @@
     {
       "id": "external-source-review-acceptance",
       "requiredRefShape": "review:<external-beta18-h6-source-migration-acceptance-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "frozen-production-source-commit",
+      "requiredRefShape": "git:<reviewed-immutable-production-source-commit-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "source-freeze-review",
+      "requiredRefShape": "review:<reviewed-source-freeze-acceptance-ref>",
       "currentRef": null,
       "satisfiesC01PositiveEvidence": false
     },
@@ -280,6 +300,7 @@
     "local /private/tmp Sunspot/Gnark outputs are comparison metadata only and cannot fill production currentRef fields",
     "production proof-format and production verifying-key refs must agree on circuit, reviewed beta18 H6 production source ACIR hash, proof format id, proof byte length, public-witness byte length, generated verifier public input count, and public input label",
     "production public-witness evidence must decode one private-spend-public-input-hash equal to the current H6 proof receipt public input and commitment before adapter or mutation evidence can promote",
+    "the production verifier lane must freeze a reviewed immutable source commit and source tree status before production bundle refs can promote",
     "reviewed source migration acceptance is required before a beta18 source-migration production bundle can promote source lineage",
     "production output-manifest preflight is required before the deterministic production artifact build receipt can cite returned proof/VK/public-witness refs",
     "reviewed deterministic production artifact build receipt is required before proof/VK/public-witness refs can promote into the production bundle",
@@ -288,6 +309,7 @@
     "valid mutation and invalid/wrong-input/wrong-key/wrong-program no-mutation evidence must run under the accepted verifier boundary",
     "valid mutation and each invalid/wrong-input/wrong-key/wrong-program no-mutation case must have distinct evidence refs",
     "production artifact bundle acceptance must include artifact producer identity, reviewer identity, review scope, and cross-refs to deterministic build, adapter, lineage, and audit acceptance refs",
+    "production artifact bundle acceptance must include verifier program upgrade-authority status as part of SBF/live lineage refs",
     "SBF/live lineage and audit/reviewer acceptance remain separate required refs"
   ],
   "satisfiesRequiredPositiveEvidence": {

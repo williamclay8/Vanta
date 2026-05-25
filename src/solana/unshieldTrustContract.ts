@@ -3,8 +3,8 @@ export const VANTA_UNSHIELD_TRUST_CONTRACT_VERSION =
 
 export type UnshieldTrustContract = {
   version: typeof VANTA_UNSHIELD_TRUST_CONTRACT_VERSION;
-  currentTruth: "operator-release Unshield beta";
-  currentReleaseModel: "operator-keypair-public-exit";
+  currentTruth: "program-relay Unshield beta";
+  currentReleaseModel: "program-tag-unshield-pda-cpi-fail-closed";
   claimControls: {
     fullyPrivateUnshieldClaim: false;
     liveProductionClaim: false;
@@ -21,6 +21,8 @@ export type UnshieldTrustContract = {
     sourceOnlyVerifierKeyPreflightReady: true;
     onchainUnshieldInstructionReady: false;
     tagUnshieldVaultAssetRegistryReleaseEnabled: false;
+    programPdaCustodyRequired: true;
+    operatorKeypairReleaseRemoved: true;
     // Native SOL TAG6 / program-owned SOL vault PDA + system CPI boundary (per design doc 2026-05-14-native-sol-private-pool-v2-integration.md §11 + status note Recommended Next Actions #7 + VANTA_ZK_REVIEW.md U2.1)
     nativeSolProgramOwnedVaultPdaReady: false;
     nativeSolSystemCpiReleaseReady: false;
@@ -49,8 +51,8 @@ export type UnshieldTrustContract = {
 export function getUnshieldTrustContract(): UnshieldTrustContract {
   return {
     version: VANTA_UNSHIELD_TRUST_CONTRACT_VERSION,
-    currentTruth: "operator-release Unshield beta",
-    currentReleaseModel: "operator-keypair-public-exit",
+    currentTruth: "program-relay Unshield beta",
+    currentReleaseModel: "program-tag-unshield-pda-cpi-fail-closed",
     claimControls: {
       fullyPrivateUnshieldClaim: false,
       liveProductionClaim: false,
@@ -67,6 +69,8 @@ export function getUnshieldTrustContract(): UnshieldTrustContract {
       sourceOnlyVerifierKeyPreflightReady: true,
       onchainUnshieldInstructionReady: false,
       tagUnshieldVaultAssetRegistryReleaseEnabled: false,
+    programPdaCustodyRequired: true,
+    operatorKeypairReleaseRemoved: true,
     // Long-term native SOL TAG6 boundary (program-owned SOL vault PDA + system_program::transfer CPI in TAG_UNSHIELD; asset_id=fixed sentinel). See extended wiring plan U2-NS.
     nativeSolProgramOwnedVaultPdaReady: false,
     nativeSolSystemCpiReleaseReady: false,
@@ -82,7 +86,7 @@ export function getUnshieldTrustContract(): UnshieldTrustContract {
       guardCommand: "npm run private-pool-v2:onchain-unshield-custody-check",
     },
     visibleStatusCopy:
-      "Unshield currently uses an operator-keypair public exit. The local TAG_UNSHIELD source ABI now preflights root, root-record, verifier-key, nullifier, vault-authority, vault-asset registry, and token-account shape but remains fail-closed and cannot release funds; production custody is not enabled until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists. For native SOL: long-term boundary is program-owned SOL vault PDA (lamports) + system_program CPI in TAG6 (fixed asset_id sentinel); current native SOL path remains operator-wallet + parallel notes (see native-sol-private-pool-v2-integration.md). (2026-05-14 update: test helper wiring + 3 checks PASS evidence now in lane-trust-worker lib.rs :39/42/1071/1122/2363 + mjs checks; surfaces fail-closed 'test helper only until live evidence per §12'.)",
+      "Unshield currently uses program-tag-unshield-pda-cpi-fail-closed source behavior. The operator no longer performs keypair public exits, and the local TAG_UNSHIELD source ABI preflights root, root-record, verifier-key, nullifier, vault-authority, vault-asset registry, and token-account shape but remains fail-closed and cannot release funds; production custody is not enabled until a program-owned vault + on-chain TAG_UNSHIELD proof-verified release exists. For native SOL: long-term boundary is program-owned SOL vault PDA (lamports) + system_program CPI in TAG6 (fixed asset_id sentinel); SPL release target is transfer_checked from a vault token account whose authority is the vanta2vault PDA.",
     // Native SOL TAG6 long-term boundary (fail-closed red-first; authoritative per 2026-05-14-native-sol-private-pool-v2-integration.md + status note)
     nativeSolLongTermBoundary: {
       targetReleaseModel: "program-owned-sol-vault-pda-system-cpi",
@@ -96,6 +100,7 @@ export function getUnshieldTrustContract(): UnshieldTrustContract {
       "npm run actions:memo-encryption-check",
       "npm run unshield:balance-ledger-check",
       "npm run private-pool-v2:onchain-unshield-custody-check",
+      "npm run private-pool-v2:pda-vault-custody-check",
       "npm run truth:privacy-claim-gate",
     ],
   };

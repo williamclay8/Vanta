@@ -9,6 +9,7 @@ const runbookPath = "docs/operator-runbook.md";
 const reviewPath = "VANTA_ZK_REVIEW.md";
 const artifactRequestPath =
   "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json";
+const humanHandoffPath = "ops/mainnet/private-pool-v2-c01-external-evidence-request.md";
 
 function fail(message) {
   console.error(`private-pool-v2 C01 external review handoff: FAIL - ${message}`);
@@ -55,6 +56,7 @@ const decision = read(decisionPath);
 const auditPackage = read(auditPackagePath);
 const runbook = read(runbookPath);
 const review = read(reviewPath);
+const humanHandoff = read(humanHandoffPath);
 const closureGate = readJson(packet.closureGateRef);
 const candidate = readJson(packet.candidatePacketRef);
 const artifactRequest = readJson(artifactRequestPath);
@@ -98,6 +100,8 @@ assert(
     "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
   "production verifier artifact request ref mismatch",
 );
+assert(packet.humanHandoffRef === humanHandoffPath, "human handoff ref mismatch");
+assertRefPath(packet.humanHandoffRef, "human handoff ref");
 assert(packet.closureGateRef === "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json", "closure gate ref mismatch");
 assert(candidate.status === "blocked-selected-groth16-tag3-solana-v0-production-evidence", "candidate must remain blocked");
 assert(closureGate.status === "blocked-no-complete-c01-verifier-evidence-chain", "closure gate must remain blocked");
@@ -213,7 +217,11 @@ for (const [index, [id, status, templateRef, gateRef, envVar, command]] of expec
 }
 
 assert(Array.isArray(packet.comparisonOnlyLocalEvidence), "comparisonOnlyLocalEvidence must be an array");
+const requestComparisonIds = new Set(
+  (artifactRequest.comparisonOnlyLocalEvidence ?? []).map((entry) => entry.id),
+);
 for (const entry of packet.comparisonOnlyLocalEvidence) {
+  assert(requestComparisonIds.has(entry.id), `${entry.id} comparison ref must also be mirrored in artifact request`);
   assertRefPath(entry.ref, `${entry.id} comparison ref`);
   includes(entry.truthBoundary, "not", `${entry.id} comparison truth boundary`);
 }
@@ -228,10 +236,15 @@ for (const marker of [
 }
 assertStringArray(packet.remainingBlockers, "remainingBlockers");
 for (const blocker of [
+  "no reviewed frozen source commit",
+  "no source freeze review acceptance",
   "no reviewed production output manifest",
   "no reviewed production artifact bundle",
   "no production verifier-adapter acceptance",
   "no SBF/live lineage acceptance",
+  "no deployed verifier program id/hash",
+  "no verifier program upgrade-authority status ref",
+  "no verifier-key record binding production VK hash to verifier program id",
   "no audit/reviewer acceptance",
   "no composite C01 verifier evidence closure validation",
 ]) {
@@ -262,6 +275,63 @@ for (const marker of [
   includes(packet.truthBoundary, marker, "handoff truth boundary");
 }
 
+for (const forbidden of [
+  "proofBytes",
+  "proofHex",
+  "verifyingKeyBytes",
+  "vkBytes",
+  "witnessBytes",
+  "provingKeyBytes",
+  "keypairBytes",
+  "signedTransactionBytes",
+  "-----BEGIN",
+  "bearer ",
+  "postgres://",
+  "postgresql://",
+]) {
+  assert(!humanHandoff.includes(forbidden), `human handoff must not contain forbidden marker ${forbidden}`);
+}
+
+for (const marker of [
+  "# C01 External Evidence Request",
+  "Status: request packet only.",
+  "selectedBackend: `groth16-tag3-solana-v0`",
+  "routeId: `sunspot-noir-acir-gnark-groth16-solana-v0`",
+  "target: `solana-c01-tag3-groth16-v0`",
+  "proofFormatId: `gnark-solana-native-proof-and-public-witness-v0`",
+  "requiredPublicInputValue: `0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b`",
+  "requiredPublicInputCommitment: `sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2`",
+  "## Frozen Lane Requirement",
+  "frozen source commit",
+  "source freeze review",
+  "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json",
+  "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
+  "## Local Source/Comparison Refs Already Filled",
+  "PRODUCTION_PRIVACY_AUDIT.md",
+  "AUDIT_2026-05-19.md",
+  "SECURITY_LIMITATIONS.md",
+  "VANTA_ZK_REVIEW.findings.json",
+  "ops/mainnet/private-pool-v2-c01-beta18-h6-source-migration-review.evidence.json",
+  "Keep every `requiredProductionOutputs[].currentRef` null",
+  "raw proof bytes",
+  "raw verifying-key bytes",
+  "signed transaction bytes",
+  "VANTA_C01_BETA18_H6_SOURCE_REVIEW_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
+  "VANTA_C01_PRODUCTION_OUTPUT_MANIFEST_ROOT=<returned-artifact-dir> npm run zk:c01-production-output-manifest-check",
+  "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH=<reviewed-refs-only-json> npm run zk:c01-deterministic-production-artifact-build-check",
+  "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check",
+  "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-verifier-adapter-acceptance-gate-check",
+  "VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
+  "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-audit-reviewer-acceptance-gate-check",
+  "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-adapter-json>",
+  "verifier program upgrade-authority status ref",
+  "verifier-key record binding production VK hash to verifier program id",
+  "proofVerifiedClaimAllowed",
+  "Do not wire `TAG_SPEND_WITH_PROOF` mutation",
+]) {
+  includes(humanHandoff, marker, humanHandoffPath);
+}
+
 assert(
   scripts["zk:c01-external-review-handoff-check"] ===
     "node scripts/check-vanta-private-pool-v2-c01-external-review-handoff.mjs",
@@ -285,7 +355,9 @@ for (const marker of [
   "deterministic production artifact build",
   "production output-manifest preflight",
   "production artifact bundle",
+  "frozen source commit",
   "verifier-adapter acceptance",
+  "verifier program upgrade-authority status",
   "SBF/live lineage acceptance",
   "audit/reviewer acceptance",
   "composite evidence-chain closure",

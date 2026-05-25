@@ -5,6 +5,8 @@ use anchor_lang::solana_program::{
 use crucible_fuzzer::*;
 use crucible_test_context::TxOutcome;
 use solana_keypair::Keypair;
+#[allow(deprecated)]
+use solana_poseidon::{hashv as poseidon_hashv, Endianness, Parameters};
 use solana_pubkey::Pubkey;
 use solana_signer::Signer;
 use std::rc::Rc;
@@ -17,6 +19,7 @@ const TAG_REGISTER_PROVENANCED_ROOT: u8 = 4;
 const TAG_REGISTER_VERIFIER_KEY: u8 = 5;
 const TAG_UNSHIELD: u8 = 6;
 const TAG_REGISTER_VAULT_ASSET: u8 = 7;
+const TAG_APPEND_TREE_LEAF: u8 = 9;
 
 const VERSION: u8 = 1;
 const POOL_MAGIC: &[u8; 8] = b"VNTA2POL";
@@ -26,6 +29,8 @@ const OUTPUT_MAGIC: &[u8; 8] = b"VNTA2OUT";
 const OUTPUT_RECORD_MAGIC: &[u8; 8] = b"VNTA2ORC";
 const ROOT_MAGIC: &[u8; 8] = b"VNTA2ROT";
 const ROOT_RECORD_MAGIC: &[u8; 8] = b"VNTA2RRC";
+const TREE_MAGIC: &[u8; 8] = b"VNTA2TRE";
+const TREE_LEAF_MARKER_MAGIC: &[u8; 8] = b"VNTA2LEF";
 const VERIFIER_KEY_MAGIC: &[u8; 8] = b"VNTA2VKY";
 const VAULT_ASSET_MAGIC: &[u8; 8] = b"VNTA2AST";
 
@@ -43,21 +48,28 @@ const VAULT_ASSET_MAGIC: &[u8; 8] = b"VNTA2AST";
 const NULLIFIER_MARKER_SEED: &[u8] = b"vanta2nul";
 const OUTPUT_RECORD_SEED: &[u8] = b"vanta2out";
 const ROOT_RECORD_SEED: &[u8] = b"vanta2root";
+const TREE_LEAF_MARKER_SEED: &[u8] = b"vanta2leaf";
 const VAULT_AUTHORITY_SEED: &[u8] = b"vanta2vault";
 const VERIFIER_KEY_SEED: &[u8] = b"vanta2vkey";
 const VAULT_ASSET_SEED: &[u8] = b"vanta2asset";
 
 const HEADER_LEN: usize = 16;
 const COUNT_OFFSET: usize = 12;
-const POOL_STATE_LEN: usize = 184;
+const POOL_STATE_LEN: usize = 224;
 const POOL_SPEND_COUNT_OFFSET: usize = 16;
 const POOL_AUTHORITY_OFFSET: usize = 24;
 const POOL_LAST_PUBLIC_INPUT_HASH_OFFSET: usize = 56;
 const POOL_NULLIFIER_SET_OFFSET: usize = 88;
 const POOL_OUTPUT_QUEUE_OFFSET: usize = 120;
 const POOL_ROOT_HISTORY_OFFSET: usize = 152;
+const POOL_TREE_STATE_OFFSET: usize = 184;
+const POOL_VERIFIER_WIRED_OFFSET: usize = POOL_TREE_STATE_OFFSET + HASH_LEN;
+const POOL_VERIFIER_NOT_WIRED: u8 = 0;
 
 const HASH_LEN: usize = 32;
+const MERKLE_TREE_DEPTH: usize = 20;
+const TREE_ZERO_NODE_COUNT: usize = MERKLE_TREE_DEPTH + 1;
+const TREE_CAPACITY: u64 = 1u64 << MERKLE_TREE_DEPTH;
 const EXIT_AMOUNT_LEN: usize = 8;
 const RESERVED_GROTH16_PROOF_LEN: usize = 256;
 const SPEND_WITH_PROOF_GNARK_PROOF_LEN: usize = 324;
@@ -82,6 +94,15 @@ const ROOT_RECORD_LEAF_INDEX_BASE_OFFSET: usize =
     ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN;
 const ROOT_RECORD_LEAF_COUNT_OFFSET: usize = ROOT_RECORD_LEAF_INDEX_BASE_OFFSET + 8;
 const ROOT_RECORD_TRANSITION_KIND_OFFSET: usize = ROOT_RECORD_LEAF_COUNT_OFFSET + 4;
+const TREE_STATE_LEN: usize = 736;
+const TREE_DEPTH_OFFSET: usize = HEADER_LEN + HASH_LEN;
+const TREE_NEXT_LEAF_INDEX_OFFSET: usize = TREE_DEPTH_OFFSET + 8;
+const TREE_CURRENT_ROOT_OFFSET: usize = TREE_NEXT_LEAF_INDEX_OFFSET + 8;
+const TREE_FRONTIER_OFFSET: usize = TREE_CURRENT_ROOT_OFFSET + HASH_LEN;
+const TREE_LEAF_MARKER_LEN: usize = HEADER_LEN + HASH_LEN * 2 + 8;
+const TREE_LEAF_MARKER_POOL_OFFSET: usize = HEADER_LEN;
+const TREE_LEAF_MARKER_LEAF_OFFSET: usize = TREE_LEAF_MARKER_POOL_OFFSET + HASH_LEN;
+const TREE_LEAF_MARKER_INDEX_OFFSET: usize = TREE_LEAF_MARKER_LEAF_OFFSET + HASH_LEN;
 const VERIFIER_KEY_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 3;
 const VERIFIER_KEY_POOL_OFFSET: usize = HEADER_LEN;
 const VERIFIER_KEY_HASH_OFFSET: usize = HEADER_LEN + HASH_LEN;
@@ -121,6 +142,8 @@ const ERR_VAULT_ASSET_MISMATCH: u32 = 19;
 const ERR_VAULT_TOKEN_ACCOUNT_MISMATCH: u32 = 20;
 const ERR_DESTINATION_TOKEN_ACCOUNT_MISMATCH: u32 = 21;
 const ERR_TOKEN_PROGRAM_MISMATCH: u32 = 22;
+const ERR_TREE_ROOT_MISMATCH: u32 = 28;
+const ERR_DUPLICATE_TREE_LEAF: u32 = 29;
 
 #[derive(Clone)]
 struct OutputRecord {
@@ -162,11 +185,13 @@ struct VantaPrivatePoolV2Spend {
     nullifier_set: Pubkey,
     output_queue: Pubkey,
     root_history: Pubkey,
+    tree_state: Pubkey,
     c01_verifier_program: Pubkey,
     wrong_pool_state: Pubkey,
     wrong_nullifier_set: Pubkey,
     wrong_output_queue: Pubkey,
     wrong_root_history: Pubkey,
+    wrong_tree_state: Pubkey,
     initialized: bool,
     state_error_code: Option<u32>,
     expected_count: usize,
@@ -175,6 +200,7 @@ struct VantaPrivatePoolV2Spend {
     accepted_roots: Vec<[u8; HASH_LEN]>,
     legacy_roots: Vec<[u8; HASH_LEN]>,
     root_records: Vec<RootRecord>,
+    appended_tree_leaves: Vec<[u8; HASH_LEN]>,
     registered_verifier_keys: Vec<[u8; HASH_LEN]>,
     registered_vault_assets: Vec<VaultAssetRecord>,
     output_records: Vec<OutputRecord>,
@@ -215,6 +241,7 @@ impl VantaPrivatePoolV2Spend {
         let nullifier_set = Pubkey::new_unique();
         let output_queue = Pubkey::new_unique();
         let root_history = Pubkey::new_unique();
+        let tree_state = Pubkey::new_unique();
         create_program_accounts(
             &mut ctx,
             &program_id,
@@ -222,6 +249,7 @@ impl VantaPrivatePoolV2Spend {
             nullifier_set,
             output_queue,
             root_history,
+            tree_state,
             4,
             4,
         );
@@ -230,10 +258,18 @@ impl VantaPrivatePoolV2Spend {
         let wrong_nullifier_set = Pubkey::new_unique();
         let wrong_output_queue = Pubkey::new_unique();
         let wrong_root_history = Pubkey::new_unique();
+        let wrong_tree_state = Pubkey::new_unique();
         create_system_account(&mut ctx, wrong_pool_state, POOL_STATE_LEN);
         create_system_account(&mut ctx, wrong_nullifier_set, fixed_slot_len(4, HASH_LEN));
         create_system_account(&mut ctx, wrong_output_queue, HEADER_LEN);
         create_system_account(&mut ctx, wrong_root_history, fixed_slot_len(4, HASH_LEN));
+        ctx.create_account()
+            .pubkey(wrong_tree_state)
+            .lamports(1_000_000)
+            .owner(program_id)
+            .size(TREE_STATE_LEN)
+            .create()
+            .unwrap();
 
         Self {
             ctx,
@@ -245,11 +281,13 @@ impl VantaPrivatePoolV2Spend {
             nullifier_set,
             output_queue,
             root_history,
+            tree_state,
             c01_verifier_program,
             wrong_pool_state,
             wrong_nullifier_set,
             wrong_output_queue,
             wrong_root_history,
+            wrong_tree_state,
             initialized: false,
             state_error_code: None,
             expected_count: 0,
@@ -258,6 +296,7 @@ impl VantaPrivatePoolV2Spend {
             accepted_roots: Vec::new(),
             legacy_roots: Vec::new(),
             root_records: Vec::new(),
+            appended_tree_leaves: Vec::new(),
             registered_verifier_keys: Vec::new(),
             registered_vault_assets: Vec::new(),
             output_records: Vec::new(),
@@ -338,6 +377,178 @@ impl VantaPrivatePoolV2Spend {
             self.accepted_roots.push(root);
             self.root_records.push(record);
         }
+    }
+
+    pub fn action_append_tree_leaf(&mut self, seed: u64) {
+        if !self.initialized
+            || self.state_error_code.is_some()
+            || self.accepted_roots.len() >= self.root_capacity
+        {
+            return;
+        }
+        let leaf_index = self.tree_next_leaf_index();
+        if leaf_index >= TREE_CAPACITY {
+            return;
+        }
+        let output_commitment = make_hash(seed, 91);
+        if self
+            .appended_tree_leaves
+            .iter()
+            .any(|seen| seen == &output_commitment)
+        {
+            return;
+        }
+        let previous_root = self.tree_current_root();
+        let Some(expected_root) =
+            compute_program_owned_append_root(&self.account_data(self.tree_state), leaf_index, &output_commitment)
+        else {
+            return;
+        };
+        let record = RootRecord {
+            sequence: self.accepted_roots.len() as u64,
+            previous_root,
+            accepted_root: expected_root,
+            transition_public_input_hash: make_hash(seed, 92),
+            leaf_index_base: leaf_index,
+            leaf_count: 1,
+            transition_kind: 9,
+        };
+        self.ensure_root_record_placeholder(&record.accepted_root);
+        self.ensure_tree_leaf_marker_placeholder(&output_commitment);
+        let accounts = self.tree_append_accounts(&record.accepted_root, &output_commitment);
+        let before = self.snapshot_account_metas(&accounts);
+        let outcome = self.call_authorized(
+            append_tree_leaf_data(&output_commitment, &record),
+            accounts.clone(),
+        );
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_success));
+        if outcome.is_some_and(|o| o.is_success()) {
+            self.accepted_roots.push(record.accepted_root);
+            self.root_records.push(record.clone());
+            self.appended_tree_leaves.push(output_commitment);
+            self.assert_tree_state(leaf_index + 1, &record.accepted_root);
+            self.assert_root_record(&record);
+            self.assert_tree_leaf_marker(&output_commitment, leaf_index);
+        } else {
+            fuzz_assert_eq!(
+                before,
+                self.snapshot_account_metas(&accounts),
+                "failed append mutated tree accounts"
+            );
+        }
+    }
+
+    pub fn action_append_tree_leaf_wrong_expected_root(&mut self, seed: u64) {
+        if !self.initialized || self.state_error_code.is_some() {
+            return;
+        }
+        let leaf_index = self.tree_next_leaf_index();
+        if leaf_index >= TREE_CAPACITY {
+            return;
+        }
+        let output_commitment = make_hash(seed, 93);
+        let Some(mut wrong_root) =
+            compute_program_owned_append_root(&self.account_data(self.tree_state), leaf_index, &output_commitment)
+        else {
+            return;
+        };
+        wrong_root[0] ^= 1;
+        let record = RootRecord {
+            sequence: self.accepted_roots.len() as u64,
+            previous_root: self.tree_current_root(),
+            accepted_root: wrong_root,
+            transition_public_input_hash: make_hash(seed, 94),
+            leaf_index_base: leaf_index,
+            leaf_count: 1,
+            transition_kind: 9,
+        };
+        let accounts = self.tree_append_accounts(&record.accepted_root, &output_commitment);
+        let before = self.snapshot_existing_account_metas(&accounts);
+        let outcome = self.call_authorized(append_tree_leaf_data(&output_commitment, &record), accounts.clone());
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+        fuzz_assert_eq!(
+            outcome.as_ref().and_then(TxOutcome::error_code),
+            Some(ERR_TREE_ROOT_MISMATCH)
+        );
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_existing_account_metas(&accounts),
+            "wrong expected root append mutated state"
+        );
+    }
+
+    pub fn action_append_tree_leaf_duplicate_leaf(&mut self, seed: u64) {
+        self.action_append_tree_leaf(seed);
+        if !self.initialized || self.state_error_code.is_some() || self.appended_tree_leaves.is_empty() {
+            return;
+        }
+        let output_commitment = *self.appended_tree_leaves.last().unwrap();
+        let leaf_index = self.tree_next_leaf_index();
+        if leaf_index >= TREE_CAPACITY || self.accepted_roots.len() >= self.root_capacity {
+            return;
+        }
+        let Some(expected_root) =
+            compute_program_owned_append_root(&self.account_data(self.tree_state), leaf_index, &output_commitment)
+        else {
+            return;
+        };
+        let record = RootRecord {
+            sequence: self.accepted_roots.len() as u64,
+            previous_root: self.tree_current_root(),
+            accepted_root: expected_root,
+            transition_public_input_hash: make_hash(seed, 95),
+            leaf_index_base: leaf_index,
+            leaf_count: 1,
+            transition_kind: 9,
+        };
+        self.ensure_root_record_placeholder(&record.accepted_root);
+        let accounts = self.tree_append_accounts(&record.accepted_root, &output_commitment);
+        let before = self.snapshot_existing_account_metas(&accounts);
+        let outcome = self.call_authorized(append_tree_leaf_data(&output_commitment, &record), accounts.clone());
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+        fuzz_assert_eq!(
+            outcome.as_ref().and_then(TxOutcome::error_code),
+            Some(ERR_DUPLICATE_TREE_LEAF)
+        );
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_existing_account_metas(&accounts),
+            "duplicate tree leaf append mutated state"
+        );
+    }
+
+    pub fn action_append_tree_leaf_wrong_tree_state(&mut self, seed: u64) {
+        if !self.initialized || self.state_error_code.is_some() {
+            return;
+        }
+        let output_commitment = make_hash(seed, 96);
+        let leaf_index = self.tree_next_leaf_index();
+        if leaf_index >= TREE_CAPACITY {
+            return;
+        }
+        let Some(expected_root) =
+            compute_program_owned_append_root(&self.account_data(self.tree_state), leaf_index, &output_commitment)
+        else {
+            return;
+        };
+        let record = RootRecord {
+            sequence: self.accepted_roots.len() as u64,
+            previous_root: self.tree_current_root(),
+            accepted_root: expected_root,
+            transition_public_input_hash: make_hash(seed, 97),
+            leaf_index_base: leaf_index,
+            leaf_count: 1,
+            transition_kind: 9,
+        };
+        let accounts = self.tree_append_accounts_with_wrong_tree(&record.accepted_root, &output_commitment);
+        let before = self.snapshot_existing_account_metas(&accounts);
+        let outcome = self.call_authorized(append_tree_leaf_data(&output_commitment, &record), accounts.clone());
+        fuzz_assert!(outcome.as_ref().is_some_and(TxOutcome::is_error));
+        fuzz_assert_eq!(
+            before,
+            self.snapshot_existing_account_metas(&accounts),
+            "wrong tree append mutated state"
+        );
     }
 
     pub fn action_register_root_wrong_lineage(&mut self, seed: u64) {
@@ -1581,9 +1792,18 @@ impl VantaPrivatePoolV2Spend {
             self.nullifier_set,
             self.output_queue,
             self.root_history,
+            self.tree_state,
             nullifier_capacity,
             root_capacity,
         );
+        self.ctx
+            .create_account()
+            .pubkey(self.wrong_tree_state)
+            .lamports(1_000_000)
+            .owner(self.program_id)
+            .size(TREE_STATE_LEN)
+            .create()
+            .unwrap();
         self.initialized = false;
         self.state_error_code = None;
         self.expected_count = 0;
@@ -1592,6 +1812,7 @@ impl VantaPrivatePoolV2Spend {
         self.accepted_roots.clear();
         self.legacy_roots.clear();
         self.root_records.clear();
+        self.appended_tree_leaves.clear();
         self.registered_verifier_keys.clear();
         self.registered_vault_assets.clear();
         self.output_records.clear();
@@ -1610,6 +1831,7 @@ impl VantaPrivatePoolV2Spend {
             self.accepted_roots.clear();
             self.legacy_roots.clear();
             self.root_records.clear();
+            self.appended_tree_leaves.clear();
             self.registered_verifier_keys.clear();
             self.registered_vault_assets.clear();
             self.output_records.clear();
@@ -1867,6 +2089,7 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new(self.nullifier_set, false),
             AccountMeta::new(self.output_queue, false),
             AccountMeta::new(self.root_history, false),
+            AccountMeta::new(self.tree_state, false),
             AccountMeta::new_readonly(self.operator_authority.pubkey(), true),
         ]
     }
@@ -2095,6 +2318,32 @@ impl VantaPrivatePoolV2Spend {
         ]
     }
 
+    fn tree_append_accounts(
+        &self,
+        accepted_root: &[u8; HASH_LEN],
+        output_commitment: &[u8; HASH_LEN],
+    ) -> Vec<AccountMeta> {
+        vec![
+            AccountMeta::new(self.pool_state, false),
+            AccountMeta::new(self.tree_state, false),
+            AccountMeta::new(self.root_history, false),
+            AccountMeta::new(self.root_record_pubkey(accepted_root), false),
+            AccountMeta::new(self.tree_leaf_marker_pubkey(output_commitment), false),
+            AccountMeta::new(self.operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
+        ]
+    }
+
+    fn tree_append_accounts_with_wrong_tree(
+        &self,
+        accepted_root: &[u8; HASH_LEN],
+        output_commitment: &[u8; HASH_LEN],
+    ) -> Vec<AccountMeta> {
+        let mut accounts = self.tree_append_accounts(accepted_root, output_commitment);
+        accounts[1] = AccountMeta::new(self.wrong_tree_state, false);
+        accounts
+    }
+
     fn verifier_key_registration_accounts_for_hash(
         &self,
         verifier_key_hash: &[u8; HASH_LEN],
@@ -2267,6 +2516,8 @@ impl VantaPrivatePoolV2Spend {
             self.account_data(self.nullifier_set),
             self.account_data(self.output_queue),
             self.account_data(self.root_history),
+            self.account_data(self.tree_state),
+            self.account_data(self.wrong_tree_state),
         ]
     }
 
@@ -2376,6 +2627,21 @@ impl VantaPrivatePoolV2Spend {
         self.ctx
             .create_account()
             .pubkey(record)
+            .lamports(0)
+            .owner(system_program::ID)
+            .size(0)
+            .create()
+            .unwrap();
+    }
+
+    fn ensure_tree_leaf_marker_placeholder(&mut self, output_commitment: &[u8; HASH_LEN]) {
+        let marker = self.tree_leaf_marker_pubkey(output_commitment);
+        if self.ctx.get_account(&marker).is_ok() {
+            return;
+        }
+        self.ctx
+            .create_account()
+            .pubkey(marker)
             .lamports(0)
             .owner(system_program::ID)
             .size(0)
@@ -2695,6 +2961,37 @@ impl VantaPrivatePoolV2Spend {
         );
     }
 
+    fn assert_tree_state(&self, next_leaf_index: u64, expected_root: &[u8; HASH_LEN]) {
+        let tree_data = self.account_data(self.tree_state);
+        fuzz_assert!(tree_data.len() >= TREE_STATE_LEN);
+        fuzz_assert_eq!(&tree_data[..8], TREE_MAGIC);
+        fuzz_assert_eq!(tree_data[8], VERSION);
+        fuzz_assert_eq!(read_u32(&tree_data, COUNT_OFFSET), 1);
+        fuzz_assert_eq!(tree_data[TREE_DEPTH_OFFSET], MERKLE_TREE_DEPTH as u8);
+        fuzz_assert_eq!(read_u64(&tree_data, TREE_NEXT_LEAF_INDEX_OFFSET), next_leaf_index);
+        fuzz_assert_eq!(
+            &tree_data[TREE_CURRENT_ROOT_OFFSET..TREE_CURRENT_ROOT_OFFSET + HASH_LEN],
+            expected_root
+        );
+    }
+
+    fn assert_tree_leaf_marker(&self, output_commitment: &[u8; HASH_LEN], leaf_index: u64) {
+        let marker_data = self.account_data(self.tree_leaf_marker_pubkey(output_commitment));
+        fuzz_assert!(marker_data.len() >= TREE_LEAF_MARKER_LEN);
+        fuzz_assert_eq!(&marker_data[..8], TREE_LEAF_MARKER_MAGIC);
+        fuzz_assert_eq!(marker_data[8], VERSION);
+        fuzz_assert_eq!(read_u32(&marker_data, COUNT_OFFSET), 1);
+        fuzz_assert_eq!(
+            &marker_data[TREE_LEAF_MARKER_POOL_OFFSET..TREE_LEAF_MARKER_POOL_OFFSET + HASH_LEN],
+            &self.pool_state.to_bytes()
+        );
+        fuzz_assert_eq!(
+            &marker_data[TREE_LEAF_MARKER_LEAF_OFFSET..TREE_LEAF_MARKER_LEAF_OFFSET + HASH_LEN],
+            output_commitment
+        );
+        fuzz_assert_eq!(read_u64(&marker_data, TREE_LEAF_MARKER_INDEX_OFFSET), leaf_index);
+    }
+
     fn assert_no_root_record_for_legacy_root(&self, accepted_root: &[u8; HASH_LEN]) {
         if let Ok(account) = self
             .ctx
@@ -2801,6 +3098,26 @@ impl VantaPrivatePoolV2Spend {
             &self.program_id,
         )
         .0
+    }
+
+    fn tree_leaf_marker_pubkey(&self, output_commitment: &[u8; HASH_LEN]) -> Pubkey {
+        Pubkey::find_program_address(
+            &[
+                TREE_LEAF_MARKER_SEED,
+                self.pool_state.as_ref(),
+                output_commitment,
+            ],
+            &self.program_id,
+        )
+        .0
+    }
+
+    fn tree_current_root(&self) -> [u8; HASH_LEN] {
+        read_hash(&self.account_data(self.tree_state), TREE_CURRENT_ROOT_OFFSET)
+    }
+
+    fn tree_next_leaf_index(&self) -> u64 {
+        read_u64(&self.account_data(self.tree_state), TREE_NEXT_LEAF_INDEX_OFFSET)
     }
 
     fn vault_authority_pubkey(&self, exit_asset_id: &[u8; HASH_LEN]) -> Pubkey {
@@ -3250,6 +3567,7 @@ fn create_program_accounts(
     nullifier_set: Pubkey,
     output_queue: Pubkey,
     root_history: Pubkey,
+    tree_state: Pubkey,
     nullifier_capacity: usize,
     root_capacity: usize,
 ) {
@@ -3281,6 +3599,13 @@ fn create_program_accounts(
         .size(fixed_slot_len(root_capacity, HASH_LEN))
         .create()
         .unwrap();
+    ctx.create_account()
+        .pubkey(tree_state)
+        .lamports(1_000_000)
+        .owner(*program_id)
+        .size(TREE_STATE_LEN)
+        .create()
+        .unwrap();
 }
 
 fn create_system_account(ctx: &mut TestContext, pubkey: Pubkey, size: usize) {
@@ -3303,4 +3628,65 @@ fn read_u32(data: &[u8], offset: usize) -> u32 {
 
 fn read_u64(data: &[u8], offset: usize) -> u64 {
     u64::from_le_bytes(data[offset..offset + 8].try_into().unwrap())
+}
+
+fn read_hash(data: &[u8], offset: usize) -> [u8; HASH_LEN] {
+    data[offset..offset + HASH_LEN].try_into().unwrap()
+}
+
+#[allow(deprecated)]
+fn poseidon_hash_leaf(leaf: &[u8; HASH_LEN]) -> Option<[u8; HASH_LEN]> {
+    poseidon_hashv(Parameters::Bn254X5, Endianness::BigEndian, &[leaf])
+        .ok()
+        .map(|hash| hash.to_bytes())
+}
+
+#[allow(deprecated)]
+fn poseidon_hash_node(left: &[u8; HASH_LEN], right: &[u8; HASH_LEN]) -> Option<[u8; HASH_LEN]> {
+    poseidon_hashv(Parameters::Bn254X5, Endianness::BigEndian, &[left, right])
+        .ok()
+        .map(|hash| hash.to_bytes())
+}
+
+fn compute_empty_tree_nodes() -> Option<[[u8; HASH_LEN]; TREE_ZERO_NODE_COUNT]> {
+    let mut zero_nodes = [[0u8; HASH_LEN]; TREE_ZERO_NODE_COUNT];
+    zero_nodes[0] = poseidon_hash_leaf(&[0u8; HASH_LEN])?;
+    for level in 1..TREE_ZERO_NODE_COUNT {
+        zero_nodes[level] = poseidon_hash_node(&zero_nodes[level - 1], &zero_nodes[level - 1])?;
+    }
+    Some(zero_nodes)
+}
+
+fn compute_program_owned_append_root(
+    tree_data: &[u8],
+    leaf_index: u64,
+    output_commitment: &[u8; HASH_LEN],
+) -> Option<[u8; HASH_LEN]> {
+    let zero_nodes = compute_empty_tree_nodes()?;
+    let mut frontier = [[0u8; HASH_LEN]; MERKLE_TREE_DEPTH];
+    for level in 0..MERKLE_TREE_DEPTH {
+        frontier[level] = read_hash(tree_data, TREE_FRONTIER_OFFSET + level * HASH_LEN);
+    }
+
+    let mut current = poseidon_hash_leaf(output_commitment)?;
+    for level in 0..MERKLE_TREE_DEPTH {
+        if ((leaf_index >> level) & 1) == 0 {
+            frontier[level] = current;
+            current = poseidon_hash_node(&current, &zero_nodes[level])?;
+        } else {
+            current = poseidon_hash_node(&frontier[level], &current)?;
+        }
+    }
+    Some(current)
+}
+
+fn append_tree_leaf_data(output_commitment: &[u8; HASH_LEN], record: &RootRecord) -> Vec<u8> {
+    let mut data = Vec::with_capacity(1 + HASH_LEN * 4 + 1);
+    data.push(TAG_APPEND_TREE_LEAF);
+    data.extend_from_slice(output_commitment);
+    data.extend_from_slice(&record.previous_root);
+    data.extend_from_slice(&record.accepted_root);
+    data.extend_from_slice(&record.transition_public_input_hash);
+    data.push(record.transition_kind);
+    data
 }

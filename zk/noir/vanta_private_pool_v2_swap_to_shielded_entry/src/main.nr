@@ -29,6 +29,45 @@ fn compute_input_commitment(
     ])
 }
 
+fn compute_output_commitment(
+    owner_commitment: Field,
+    output_asset_id_commitment: Field,
+    output_amount: u128,
+    output_blinding: Field,
+    output_derivation_tag: Field,
+) -> Field {
+    bn254::hash_5([
+        owner_commitment,
+        output_asset_id_commitment,
+        output_amount as Field,
+        output_blinding,
+        output_derivation_tag,
+    ])
+}
+
+fn compute_swap_economics_commitment(
+    input_asset_id_commitment: Field,
+    output_asset_id_commitment: Field,
+    input_amount: u128,
+    output_amount: u128,
+    min_output_amount: u128,
+    slippage_bps: u128,
+    economics_blinding: Field,
+) -> Field {
+    let asset_terms = bn254::hash_2([
+        input_asset_id_commitment,
+        output_asset_id_commitment,
+    ]);
+    let amount_terms = bn254::hash_4([
+        input_amount as Field,
+        output_amount as Field,
+        min_output_amount as Field,
+        slippage_bps as Field,
+    ]);
+
+    bn254::hash_3([asset_terms, amount_terms, economics_blinding])
+}
+
 fn hash_merkle_leaf(commitment: Field) -> Field {
     bn254::hash_1([commitment])
 }
@@ -107,7 +146,13 @@ fn bind_swap_public_inputs(
     output_root: Field,
     owner_commitment: Field,
     swap_context_tag: Field,
+    valid_until_slot: Field,
 ) -> Field {
+    let output_transition = bn254::hash_2([
+        output_leaf_index,
+        output_root,
+    ]);
+
     bn254::hash_12([
         request_version,
         input_root,
@@ -117,10 +162,10 @@ fn bind_swap_public_inputs(
         route_commitment,
         economics_commitment,
         output_commitment,
-        output_leaf_index,
-        output_root,
+        output_transition,
         owner_commitment,
         swap_context_tag,
+        valid_until_slot,
     ])
 }
 
@@ -140,6 +185,13 @@ fn main(
     settlement_commitment: Field,
     route_commitment: Field,
     economics_commitment: Field,
+    economics_blinding: Field,
+    output_asset_id_commitment: Field,
+    output_amount: u128,
+    min_output_amount: u128,
+    slippage_bps: u128,
+    output_blinding: Field,
+    output_derivation_tag: Field,
     output_commitment: Field,
     output_leaf_index: Field,
     output_root: Field,
@@ -147,6 +199,7 @@ fn main(
     output_append_path_direction_bits: [Field; MERKLE_DEPTH],
     owner_commitment: Field,
     swap_context_tag: Field,
+    valid_until_slot: Field,
     owner_secret: Field,
 ) {
     let computed_owner_commitment = compute_owner_commitment(owner_secret);
@@ -176,6 +229,28 @@ fn main(
     let computed_nullifier_or_replay_commitment =
         compute_nullifier_or_replay_commitment(input_commitment, owner_secret);
     assert(computed_nullifier_or_replay_commitment == nullifier_or_replay_commitment);
+
+    assert(output_amount >= min_output_amount);
+
+    let computed_economics_commitment = compute_swap_economics_commitment(
+        input_asset_id_commitment,
+        output_asset_id_commitment,
+        input_amount,
+        output_amount,
+        min_output_amount,
+        slippage_bps,
+        economics_blinding,
+    );
+    assert(computed_economics_commitment == economics_commitment);
+
+    let computed_output_commitment = compute_output_commitment(
+        owner_commitment,
+        output_asset_id_commitment,
+        output_amount,
+        output_blinding,
+        output_derivation_tag,
+    );
+    assert(computed_output_commitment == output_commitment);
 
     let computed_previous_root = compute_root_from_leaf(
         0,
@@ -209,6 +284,7 @@ fn main(
         output_root,
         owner_commitment,
         swap_context_tag,
+        valid_until_slot,
     );
 
     assert(computed_public_input_hash == swap_public_input_hash);

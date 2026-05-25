@@ -49,6 +49,8 @@
       "accepted verifier SBF hash or reviewed in-program verifier hash",
       "deployed spend program id",
       "deployed verifier program id",
+      "deployed verifier program id/hash",
+      "verifier program upgrade-authority status ref",
       "verifier-key record binding production VK hash to verifier program id",
       "spend/verifier deployment receipts",
       "pool reinitialization or migration receipt",
@@ -69,6 +71,7 @@
     "verifierKeyRecordRef": null,
     "spendProgramDeploymentRef": null,
     "verifierProgramDeploymentRef": null,
+    "verifierProgramUpgradeAuthorityStatusRef": null,
     "poolReinitializationOrMigrationRef": null,
     "verifierKeyRegistrationRef": null,
     "liveProofEnforcedSpendRef": null,
@@ -91,6 +94,8 @@
       "rebuilt spend SBF hash",
       "accepted verifier SBF hash",
       "deployed spend and verifier program ids",
+      "deployed verifier program id/hash",
+      "verifier program upgrade-authority status ref",
       "verifier-key record binding production VK hash to verifier program id",
       "deployment, migration, verifier-key registration, and proof-enforced path refs",
       "refs-only secret policy",
@@ -149,6 +154,12 @@
       "satisfiesC01PositiveEvidence": false
     },
     {
+      "id": "verifier-program-upgrade-authority-status",
+      "requiredRefShape": "authority:<deployed-verifier-program-upgrade-authority-status-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
       "id": "pool-reinitialization-or-migration",
       "requiredRefShape": "tx-or-review:<pool-reinit-or-migration-ref>",
       "currentRef": null,
@@ -171,6 +182,7 @@
     "SBF/live lineage refs must be references only; keypairs, secrets, signed transactions, raw proof bytes, raw VK bytes, raw witness bytes, and live private data stay out of git",
     "SBF/live lineage can promote only after reviewed production artifact bundle and production verifier-adapter acceptance refs exist",
     "accepted lineage must tie the rebuilt spend SBF hash, accepted verifier SBF hash, deployed program ids, verifier-key record, and tag-3 proof-enforced path to the same production proof/VK lineage",
+    "accepted lineage must include the deployed verifier program upgrade-authority status ref",
     "reviewer-accepted dry-run receipts can validate lineage shape but must still identify deployment/migration/verifier-key refs and the accepted proof-enforced path under review",
     "SBF/live lineage does not by itself prove audit/reviewer acceptance or C01 closure"
   ],
@@ -195,6 +207,8 @@
     "no rebuilt spend SBF hash accepted for deployed lineage",
     "no accepted verifier SBF hash or reviewed in-program verifier hash",
     "no deployed spend/verifier program ids",
+    "no deployed verifier program id/hash",
+    "no verifier program upgrade-authority status ref",
     "no verifier-key record binding production VK hash to verifier program id",
     "no deployment, reinitialization/migration, verifier-key registration, or proof-enforced path receipts",
     "no audit/reviewer acceptance"

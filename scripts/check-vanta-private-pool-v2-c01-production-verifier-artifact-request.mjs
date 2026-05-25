@@ -247,6 +247,9 @@ for (const [field, expected] of [
   ["requiresReviewedToolchainBuild", true],
   ["requiresTrustedSetupOrMitigation", true],
   ["requiresCurrentH6PublicInputBinding", true],
+  ["requiresDeployedVerifierProgramIdAndHash", true],
+  ["requiresVerifierProgramUpgradeAuthorityStatus", true],
+  ["requiresVerifierKeyRecordBinding", true],
   ["requiresRefsOnlyReturnedEvidence", true],
 ]) {
   assert(buildInputs[field] === expected, `artifactBuildInputs.${field} mismatch`);
@@ -255,8 +258,31 @@ for (const [field, expected] of [
   }
 }
 
+const laneFreeze = packet.laneFreezeRequirements ?? {};
+for (const [field, expected] of [
+  ["status", "blocked-no-reviewed-frozen-source-commit"],
+  ["requiredFrozenSourceCommitRefShape", "git:<reviewed-immutable-production-source-commit-ref>"],
+  ["requiredSourceTreeStatusRefShape", "review:<clean-source-tree-or-reviewed-diff-status-ref>"],
+  ["requiredSourceFreezeReviewRefShape", "review:<reviewed-source-freeze-acceptance-ref>"],
+  ["requiresFrozenSourceCommit", true],
+  ["requiresSourceTreeStatus", true],
+  ["requiresSourceFreezeReview", true],
+  ["requiresCircuitSourceAndAcirHashes", true],
+  ["requiresPublicInputLayoutFreeze", true],
+  ["requiresProofTupleFreeze", true],
+  ["requiresProductionVerifyingKeyHash", true],
+  ["currentFrozenSourceCommitRef", null],
+  ["currentSourceTreeStatusRef", null],
+  ["currentSourceFreezeReviewRef", null],
+  ["satisfiesLaneFreeze", false],
+]) {
+  assert(laneFreeze[field] === expected, `laneFreezeRequirements.${field} mismatch`);
+}
+
 const outputs = mapById(packet.requiredProductionOutputs, "requiredProductionOutputs");
 for (const [id, shape] of [
+  ["frozen-source-commit", "git:<reviewed-immutable-production-source-commit-ref>"],
+  ["source-freeze-review", "review:<reviewed-source-freeze-acceptance-ref>"],
   ["source-review-acceptance", "review:<external-beta18-h6-source-migration-acceptance-ref>"],
   ["deterministic-production-artifact-build-receipt", "build:<reviewed-deterministic-production-artifact-build-receipt-ref>"],
   ["production-output-manifest-preflight", "manifest:<refs-only-production-output-manifest-preflight-ref>"],
@@ -272,6 +298,13 @@ for (const [id, shape] of [
   ["current-h6-public-witness-artifact", "artifact:<current-h6-public-witness-values-ref-no-private-witness>"],
   ["verifier-adapter-acceptance", "adapter:<accepted-solana-groth16-verifier-adapter-or-program-ref>"],
   ["verifier-adapter-review-attestation", "review:<verifier-adapter-reviewer-identity-scope-attestation-ref>"],
+  ["deployed-verifier-program-id", "program:<deployed-verifier-program-id>"],
+  ["deployed-verifier-program-sbf-hash", "sha256:<deployed-verifier-program-sbf-hash>"],
+  ["verifier-program-upgrade-authority-status", "authority:<deployed-verifier-program-upgrade-authority-status-ref>"],
+  [
+    "tag5-verifier-key-record-binding",
+    "record:<tag5-verifier-key-record-binds-production-vk-hash-and-verifier-program-id-ref>",
+  ],
   ["valid-proof-mutation-test", "test:<valid-proof-mutates-nullifier-output-state-ref>"],
   ["invalid-proof-no-mutation-test", "test:<invalid-proof-leaves-account-bytes-unchanged-ref>"],
   ["wrong-public-input-no-mutation-test", "test:<wrong-public-input-hash-leaves-account-bytes-unchanged-ref>"],
@@ -285,6 +318,77 @@ for (const [id, shape] of [
   assert(output.requiredRefShape === shape, `${id} requiredRefShape mismatch`);
   assert(output.currentRef === null, `${id} currentRef must remain null`);
   assert(output.satisfiesC01PositiveEvidence === false, `${id} must not satisfy positive evidence`);
+}
+
+const expectedLocalAuditContextRefs = [
+  ["production-privacy-audit-source", "PRODUCTION_PRIVACY_AUDIT.md", "npm run privacy-audit:tracker-check"],
+  ["prior-audit-context", "AUDIT_2026-05-19.md", "npm run truth:privacy-claim-gate"],
+  ["security-limitations-context", "SECURITY_LIMITATIONS.md", "npm run truth:privacy-claim-gate"],
+  ["zk-findings-ledger-c01-source-refs", "VANTA_ZK_REVIEW.findings.json", "npm run zk:review-findings-ledger-check"],
+];
+const localAuditContextRefs = mapById(packet.localAuditContextRefs, "localAuditContextRefs");
+for (const [id, ref, command] of expectedLocalAuditContextRefs) {
+  const entry = localAuditContextRefs.get(id);
+  assert(entry, `missing local audit context ref ${id}`);
+  assert(entry.ref === ref, `${id} ref mismatch`);
+  assertRefPath(entry.ref, `${id} ref`);
+  assert(entry.command === command, `${id} command mismatch`);
+  includes(entry.truthBoundary, "not", `${id} truth boundary`);
+  includes(entry.truthBoundary, "not C01 closure", `${id} truth boundary`);
+}
+
+const comparisonOnlyLocalEvidence = mapById(packet.comparisonOnlyLocalEvidence, "comparisonOnlyLocalEvidence");
+for (const [id, ref, command] of [
+  ["h6-beta18-migration-probe", "ops/mainnet/private-pool-v2-c01-beta18-h6-migration-probe.evidence.json", "npm run zk:c01-beta18-h6-migration-probe-check"],
+  ["h6-source-migration-review-candidate", "ops/mainnet/private-pool-v2-c01-beta18-h6-source-migration-review.evidence.json", "npm run zk:c01-beta18-h6-source-migration-review-check"],
+  ["local-unsafe-generated-verifier-cpi", "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json", "npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check"],
+  ["fresh-local-sbf-abi", "programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so", "npm run private-pool-v2:sbf-abi-check"],
+  ...expectedLocalAuditContextRefs,
+]) {
+  const entry = comparisonOnlyLocalEvidence.get(id);
+  assert(entry, `missing comparison-only local evidence ${id}`);
+  assert(entry.ref === ref, `${id} comparison ref mismatch`);
+  assertRefPath(entry.ref, `${id} comparison ref`);
+  assert(entry.command === command, `${id} comparison command mismatch`);
+  includes(entry.truthBoundary, "not", `${id} comparison truth boundary`);
+}
+
+const refAcquisitionPlan = mapById(packet.refAcquisitionPlan, "refAcquisitionPlan");
+const expectedRefAcquisitionPlanIds = [
+  "lane-freeze-and-source-review",
+  "deterministic-build-and-output-manifest",
+  "production-proof-vk-public-witness-bundle",
+  "verifier-adapter-and-mutation-matrix",
+  "deployed-verifier-and-tag5-binding",
+  "sbf-live-lineage",
+  "audit-reviewer-acceptance",
+];
+assert(refAcquisitionPlan.size === expectedRefAcquisitionPlanIds.length, "refAcquisitionPlan length mismatch");
+const plannedOutputIds = new Set();
+for (const id of expectedRefAcquisitionPlanIds) {
+  const entry = refAcquisitionPlan.get(id);
+  assert(entry, `missing ref acquisition plan ${id}`);
+  assert(entry.status === "external-ref-required", `${id} status mismatch`);
+  assert(typeof entry.externalProducer === "string" && entry.externalProducer.length > 0, `${id} producer missing`);
+  assertStringArray(entry.requiredOutputIds, `${id}.requiredOutputIds`);
+  assertStringArray(entry.localSourceRefs, `${id}.localSourceRefs`);
+  assertStringArray(entry.fillTargets, `${id}.fillTargets`);
+  for (const outputId of entry.requiredOutputIds) {
+    assert(outputs.has(outputId), `${id} references unknown required output ${outputId}`);
+    assert(!plannedOutputIds.has(outputId), `${outputId} appears in multiple ref acquisition plans`);
+    plannedOutputIds.add(outputId);
+  }
+  for (const ref of entry.localSourceRefs) {
+    assertRefPath(ref, `${id}.localSourceRefs ${ref}`);
+  }
+  for (const ref of entry.fillTargets) {
+    assertRefPath(ref, `${id}.fillTargets ${ref}`);
+  }
+  assert(typeof entry.howToGet === "string" && entry.howToGet.length > 0, `${id} howToGet missing`);
+  includes(entry.truthBoundary, "not", `${id} truth boundary`);
+}
+for (const outputId of outputs.keys()) {
+  assert(plannedOutputIds.has(outputId), `required output ${outputId} missing from refAcquisitionPlan`);
 }
 
 const commands = mapById(packet.validationCommands, "validationCommands");
@@ -354,12 +458,17 @@ for (const marker of [
 }
 assertStringArray(packet.remainingBlockers, "remainingBlockers");
 for (const blocker of [
+  "no reviewed frozen source commit",
+  "no source freeze review acceptance",
   "no external source-review acceptance",
   "no reviewed production output manifest",
   "no deterministic reviewed production artifact build receipt",
   "no reviewed production artifact bundle",
   "no production verifier-adapter acceptance",
   "no production valid mutation or invalid/wrong-input/wrong-key/wrong-program no-mutation refs",
+  "no deployed verifier program id/hash",
+  "no verifier program upgrade-authority status ref",
+  "no tag-5 verifier-key record binding production VK hash to verifier program id",
   "no SBF/live lineage acceptance",
   "no audit/reviewer acceptance",
   "no composite C01 verifier evidence closure validation",
@@ -414,9 +523,11 @@ for (const marker of [
   "ready-for-external-production-verifier-artifact-request-blocked",
   "npm run zk:c01-production-verifier-artifact-request-check",
   "artifact producer",
+  "frozen source commit",
   "production proof-format/VK/public-witness",
   "npm run zk:c01-production-output-manifest-check",
   "verifier-adapter acceptance",
+  "verifier program upgrade-authority status",
   "mutation/no-mutation",
   "SBF/live lineage",
   "audit/reviewer acceptance",

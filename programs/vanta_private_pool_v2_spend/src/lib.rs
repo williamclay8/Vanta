@@ -1,3 +1,5 @@
+#[allow(deprecated)]
+use solana_poseidon::{hashv as poseidon_hashv, Endianness, Parameters};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
     entrypoint,
@@ -21,6 +23,49 @@ const TAG_REGISTER_PROVENANCED_ROOT: u8 = 4;
 const TAG_REGISTER_VERIFIER_KEY: u8 = 5;
 const TAG_UNSHIELD: u8 = 6;
 const TAG_REGISTER_VAULT_ASSET: u8 = 7; // future: register vault_asset_record (kind=SPL/SOL=2), SOL vault PDA creation, releaseEnabled flag (per design doc §11 + VANTA_ZK_REVIEW U2.1)
+const TAG_SHIELD: u8 = 8;
+const TAG_APPEND_TREE_LEAF: u8 = 9;
+
+mod spl_token {
+    pub mod instruction {
+        use solana_program::{
+            instruction::{AccountMeta, Instruction},
+            program_error::ProgramError,
+            pubkey::Pubkey,
+        };
+
+        pub fn transfer_checked(
+            token_program: &Pubkey,
+            source: &Pubkey,
+            mint: &Pubkey,
+            destination: &Pubkey,
+            authority: &Pubkey,
+            signers: &[&Pubkey],
+            amount: u64,
+            decimals: u8,
+        ) -> Result<Instruction, ProgramError> {
+            if !signers.is_empty() {
+                return Err(ProgramError::InvalidInstructionData);
+            }
+
+            let mut data = Vec::with_capacity(10);
+            data.push(12);
+            data.extend_from_slice(&amount.to_le_bytes());
+            data.push(decimals);
+
+            Ok(Instruction {
+                program_id: *token_program,
+                accounts: vec![
+                    AccountMeta::new(*source, false),
+                    AccountMeta::new_readonly(*mint, false),
+                    AccountMeta::new(*destination, false),
+                    AccountMeta::new_readonly(*authority, true),
+                ],
+                data,
+            })
+        }
+    }
+}
 
 const VERSION: u8 = 1;
 const POOL_MAGIC: &[u8; 8] = b"VNTA2POL";
@@ -30,11 +75,14 @@ const OUTPUT_MAGIC: &[u8; 8] = b"VNTA2OUT";
 const OUTPUT_RECORD_MAGIC: &[u8; 8] = b"VNTA2ORC";
 const ROOT_MAGIC: &[u8; 8] = b"VNTA2ROT";
 const ROOT_RECORD_MAGIC: &[u8; 8] = b"VNTA2RRC";
+const TREE_MAGIC: &[u8; 8] = b"VNTA2TRE";
+const TREE_LEAF_MARKER_MAGIC: &[u8; 8] = b"VNTA2LEF";
 const VERIFIER_KEY_MAGIC: &[u8; 8] = b"VNTA2VKY";
 const VAULT_ASSET_MAGIC: &[u8; 8] = b"VNTA2AST";
 const NULLIFIER_MARKER_SEED: &[u8] = b"vanta2nul";
 const OUTPUT_RECORD_SEED: &[u8] = b"vanta2out";
 const ROOT_RECORD_SEED: &[u8] = b"vanta2root";
+const TREE_LEAF_MARKER_SEED: &[u8] = b"vanta2leaf";
 const VAULT_AUTHORITY_SEED: &[u8] = b"vanta2vault";
 const VERIFIER_KEY_SEED: &[u8] = b"vanta2vkey";
 const VAULT_ASSET_SEED: &[u8] = b"vanta2asset";
@@ -81,15 +129,22 @@ fn vault_asset_record_pda(
 
 const HEADER_LEN: usize = 16;
 const COUNT_OFFSET: usize = 12;
-const POOL_STATE_LEN: usize = 184;
+const POOL_STATE_LEN: usize = 224;
 const POOL_SPEND_COUNT_OFFSET: usize = 16;
 const POOL_AUTHORITY_OFFSET: usize = 24;
 const POOL_LAST_PUBLIC_INPUT_HASH_OFFSET: usize = 56;
 const POOL_NULLIFIER_SET_OFFSET: usize = 88;
 const POOL_OUTPUT_QUEUE_OFFSET: usize = 120;
 const POOL_ROOT_HISTORY_OFFSET: usize = 152;
+const POOL_TREE_STATE_OFFSET: usize = 184;
+const POOL_VERIFIER_WIRED_OFFSET: usize = POOL_TREE_STATE_OFFSET + HASH_LEN;
+const POOL_VERIFIER_NOT_WIRED: u8 = 0;
+const POOL_VERIFIER_WIRED: u8 = 1;
 
 const HASH_LEN: usize = 32;
+const MERKLE_TREE_DEPTH: usize = 20;
+const TREE_ZERO_NODE_COUNT: usize = MERKLE_TREE_DEPTH + 1;
+const TREE_CAPACITY: u64 = 1u64 << MERKLE_TREE_DEPTH;
 const EXIT_AMOUNT_LEN: usize = 8;
 const RESERVED_GROTH16_PROOF_LEN: usize = 256;
 const SPEND_WITH_PROOF_GNARK_PROOF_LEN: usize = 324;
@@ -103,6 +158,14 @@ const GNARK_PUBLIC_WITNESS_ONE_PUBLIC_INPUT_HEADER: [u8; GNARK_PUBLIC_WITNESS_HE
 const SPEND_PAYLOAD_LEN: usize = 1 + HASH_LEN * 5;
 const REGISTER_ROOT_PAYLOAD_LEN: usize = 1 + HASH_LEN;
 const PROVENANCED_ROOT_PAYLOAD_LEN: usize = 1 + HASH_LEN * 3 + 8 + 4 + 1;
+const APPEND_TREE_LEAF_PAYLOAD_LEN: usize = 1 + HASH_LEN * 4 + 1;
+const SHIELD_ASSET_ID_OFFSET: usize = 0;
+const SHIELD_AMOUNT_OFFSET: usize = SHIELD_ASSET_ID_OFFSET + HASH_LEN;
+const SHIELD_OUTPUT_COMMITMENT_OFFSET: usize = SHIELD_AMOUNT_OFFSET + EXIT_AMOUNT_LEN;
+const SHIELD_PUBLIC_INPUT_HASH_OFFSET: usize = SHIELD_OUTPUT_COMMITMENT_OFFSET + HASH_LEN;
+const SHIELD_ASSET_KIND_OFFSET: usize = SHIELD_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN;
+const SHIELD_DECIMALS_OFFSET: usize = SHIELD_ASSET_KIND_OFFSET + 1;
+const SHIELD_PAYLOAD_LEN: usize = 1 + HASH_LEN * 3 + EXIT_AMOUNT_LEN + 2;
 const REGISTER_VERIFIER_KEY_PAYLOAD_LEN: usize = 1 + HASH_LEN * 2;
 const REGISTER_VAULT_ASSET_PAYLOAD_LEN: usize = 1 + HASH_LEN * 4 + 1;
 const SPEND_WITH_PROOF_PROOF_OFFSET: usize = HASH_LEN * 6;
@@ -129,6 +192,16 @@ const ROOT_RECORD_LEAF_INDEX_BASE_OFFSET: usize =
     ROOT_RECORD_TRANSITION_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN;
 const ROOT_RECORD_LEAF_COUNT_OFFSET: usize = ROOT_RECORD_LEAF_INDEX_BASE_OFFSET + 8;
 const ROOT_RECORD_TRANSITION_KIND_OFFSET: usize = ROOT_RECORD_LEAF_COUNT_OFFSET + 4;
+const TREE_STATE_LEN: usize = 736;
+const TREE_POOL_OFFSET: usize = HEADER_LEN;
+const TREE_DEPTH_OFFSET: usize = TREE_POOL_OFFSET + HASH_LEN;
+const TREE_NEXT_LEAF_INDEX_OFFSET: usize = TREE_DEPTH_OFFSET + 8;
+const TREE_CURRENT_ROOT_OFFSET: usize = TREE_NEXT_LEAF_INDEX_OFFSET + 8;
+const TREE_FRONTIER_OFFSET: usize = TREE_CURRENT_ROOT_OFFSET + HASH_LEN;
+const TREE_LEAF_MARKER_LEN: usize = HEADER_LEN + HASH_LEN * 2 + 8;
+const TREE_LEAF_MARKER_POOL_OFFSET: usize = HEADER_LEN;
+const TREE_LEAF_MARKER_LEAF_OFFSET: usize = TREE_LEAF_MARKER_POOL_OFFSET + HASH_LEN;
+const TREE_LEAF_MARKER_INDEX_OFFSET: usize = TREE_LEAF_MARKER_LEAF_OFFSET + HASH_LEN;
 const VERIFIER_KEY_ACCOUNT_LEN: usize = HEADER_LEN + HASH_LEN * 3;
 const VERIFIER_KEY_POOL_OFFSET: usize = HEADER_LEN;
 const VERIFIER_KEY_HASH_OFFSET: usize = HEADER_LEN + HASH_LEN;
@@ -189,6 +262,12 @@ const ERR_INVALID_ASSET_KIND: u32 = 23;
 // any future Crucible test asserting idempotency.
 const ERR_VAULT_ASSET_ALREADY_REGISTERED_WITH_DIFFERENT_PARAMS: u32 = 24;
 const ERR_ROOT_TRANSITION_NOOP: u32 = 25; // L6 fix (2026-05-22): TAG_REGISTER_PROVENANCED_ROOT no-op rejection
+const ERR_TREE_STATE_MISMATCH: u32 = 26;
+const ERR_TREE_CAPACITY_FULL: u32 = 27;
+const ERR_TREE_ROOT_MISMATCH: u32 = 28;
+const ERR_DUPLICATE_TREE_LEAF: u32 = 29;
+const ERR_TREE_LEAF_MARKER_MISMATCH: u32 = 30;
+const ERR_POSEIDON_HASH_FAILED: u32 = 31;
 const ERR_VAULT_PDA_MISMATCH: u32 = ERR_VAULT_AUTHORITY_MISMATCH;
 const ERR_SENTINEL_ASSET_ID_MISMATCH: u32 = ERR_VAULT_ASSET_MISMATCH;
 const ERR_UNSHIELD_NOT_WIRED: u32 = ERR_UNSHIELD_RELEASE_NOT_WIRED; // placeholder until Groth16 + tree_state fully integrated for TAG6
@@ -235,6 +314,8 @@ pub fn process_instruction(
         TAG_REGISTER_VERIFIER_KEY => process_register_verifier_key(program_id, accounts, rest),
         TAG_UNSHIELD => process_unshield(program_id, accounts, rest),
         TAG_REGISTER_VAULT_ASSET => process_register_vault_asset(program_id, accounts, rest), // prep stub (fail-closed until vault registry live)
+        TAG_SHIELD => process_shield(program_id, accounts, rest),
+        TAG_APPEND_TREE_LEAF => process_append_tree_leaf(program_id, accounts, rest),
         _ => Err(ProgramError::InvalidInstructionData),
     }
 }
@@ -249,6 +330,7 @@ fn process_init(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) -> P
     let nullifier_set = next_account_info(&mut account_iter)?;
     let output_queue = next_account_info(&mut account_iter)?;
     let root_history = next_account_info(&mut account_iter)?;
+    let tree_state = next_account_info(&mut account_iter)?;
     let authority = next_account_info(&mut account_iter)?;
 
     if !authority.is_signer {
@@ -259,6 +341,7 @@ fn process_init(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) -> P
     require_writable_program_account(program_id, nullifier_set)?;
     require_writable_program_account(program_id, output_queue)?;
     require_writable_program_account(program_id, root_history)?;
+    require_writable_program_account(program_id, tree_state)?;
 
     {
         let mut data = pool_state.try_borrow_mut_data()?;
@@ -278,13 +361,150 @@ fn process_init(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) -> P
             .copy_from_slice(output_queue.key.as_ref());
         data[POOL_ROOT_HISTORY_OFFSET..POOL_ROOT_HISTORY_OFFSET + HASH_LEN]
             .copy_from_slice(root_history.key.as_ref());
+        data[POOL_TREE_STATE_OFFSET..POOL_TREE_STATE_OFFSET + HASH_LEN]
+            .copy_from_slice(tree_state.key.as_ref());
+        data[POOL_VERIFIER_WIRED_OFFSET] = POOL_VERIFIER_NOT_WIRED;
     }
 
     init_fixed_slot_account(nullifier_set, NULLIFIER_MAGIC, HASH_LEN)?;
     init_output_index_account(output_queue)?;
     init_fixed_slot_account(root_history, ROOT_MAGIC, HASH_LEN)?;
+    init_tree_state_account(tree_state, pool_state)?;
 
     msg!("vanta_private_pool_v2_spend: initialized account headers");
+    Ok(())
+}
+
+fn process_append_tree_leaf(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    rest: &[u8],
+) -> ProgramResult {
+    if rest.len() + 1 != APPEND_TREE_LEAF_PAYLOAD_LEN {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let output_commitment = &rest[0..HASH_LEN];
+    let expected_previous_root = &rest[HASH_LEN..HASH_LEN * 2];
+    let expected_new_root = &rest[HASH_LEN * 2..HASH_LEN * 3];
+    let transition_public_input_hash = &rest[HASH_LEN * 3..HASH_LEN * 4];
+    let transition_kind = rest[HASH_LEN * 4];
+
+    if is_zero_hash(output_commitment)
+        || is_zero_hash(expected_previous_root)
+        || is_zero_hash(expected_new_root)
+        || is_zero_hash(transition_public_input_hash)
+        || transition_kind == 0
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let mut account_iter = accounts.iter();
+    let pool_state = next_account_info(&mut account_iter)?;
+    let tree_state = next_account_info(&mut account_iter)?;
+    let root_history = next_account_info(&mut account_iter)?;
+    let root_record = next_account_info(&mut account_iter)?;
+    let tree_leaf_marker = next_account_info(&mut account_iter)?;
+    let authority = next_account_info(&mut account_iter)?;
+    let system_program_info = next_account_info(&mut account_iter)?;
+
+    require_writable_program_account(program_id, pool_state)?;
+    require_writable_program_account(program_id, tree_state)?;
+    require_writable_program_account(program_id, root_history)?;
+    require_writable_account(root_record)?;
+    require_writable_account(tree_leaf_marker)?;
+    require_system_program(system_program_info)?;
+    if !authority.is_writable {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    let pool_data = pool_state.try_borrow_data()?;
+    let tree_data = tree_state.try_borrow_data()?;
+    let root_data = root_history.try_borrow_data()?;
+
+    require_pool_header(&pool_data)?;
+    require_authority(&pool_data, authority)?;
+    require_pool_tree_state_binding(&pool_data, tree_state)?;
+    require_pool_root_history_binding(&pool_data, root_history)?;
+    require_tree_state_header(&tree_data, pool_state)?;
+    require_fixed_slot_header(&root_data, ROOT_MAGIC, HASH_LEN)?;
+
+    let current_root = read_hash(&tree_data, TREE_CURRENT_ROOT_OFFSET)?;
+    if current_root.as_slice() != expected_previous_root {
+        return Err(ProgramError::Custom(ERR_TREE_ROOT_MISMATCH));
+    }
+
+    let leaf_index = read_u64(&tree_data, TREE_NEXT_LEAF_INDEX_OFFSET)?;
+    if leaf_index >= TREE_CAPACITY {
+        return Err(ProgramError::Custom(ERR_TREE_CAPACITY_FULL));
+    }
+
+    let (computed_root, next_frontier) =
+        compute_program_owned_append_root(&tree_data, leaf_index, output_commitment)?;
+    if computed_root.as_slice() != expected_new_root {
+        return Err(ProgramError::Custom(ERR_TREE_ROOT_MISMATCH));
+    }
+
+    if fixed_slot_contains(&root_data, HASH_LEN, &computed_root)? {
+        return Err(ProgramError::Custom(ERR_DUPLICATE_ROOT));
+    }
+
+    let root_count = read_count(&root_data)? as usize;
+    let root_capacity = fixed_slot_capacity(&root_data, HASH_LEN)?;
+    if root_count >= root_capacity {
+        return Err(ProgramError::Custom(ERR_ROOT_HISTORY_FULL));
+    }
+
+    require_root_record_available(program_id, pool_state, root_record, &computed_root)?;
+    require_tree_leaf_marker_available(
+        program_id,
+        pool_state,
+        tree_leaf_marker,
+        output_commitment,
+    )?;
+
+    drop(root_data);
+    drop(tree_data);
+    drop(pool_data);
+
+    ensure_root_record(
+        program_id,
+        pool_state,
+        root_record,
+        authority,
+        system_program_info,
+        root_count as u64,
+        expected_previous_root,
+        &computed_root,
+        transition_public_input_hash,
+        leaf_index,
+        1,
+        transition_kind,
+    )?;
+    ensure_tree_leaf_marker(
+        program_id,
+        pool_state,
+        tree_leaf_marker,
+        authority,
+        system_program_info,
+        output_commitment,
+        leaf_index,
+    )?;
+
+    let mut tree_data = tree_state.try_borrow_mut_data()?;
+    write_u64(&mut tree_data, TREE_NEXT_LEAF_INDEX_OFFSET, leaf_index + 1)?;
+    tree_data[TREE_CURRENT_ROOT_OFFSET..TREE_CURRENT_ROOT_OFFSET + HASH_LEN]
+        .copy_from_slice(&computed_root);
+    for (level, node) in next_frontier.iter().enumerate() {
+        let offset = TREE_FRONTIER_OFFSET + level * HASH_LEN;
+        tree_data[offset..offset + HASH_LEN].copy_from_slice(node);
+    }
+
+    let mut root_data = root_history.try_borrow_mut_data()?;
+    write_hash_slot(&mut root_data, root_count, HASH_LEN, &computed_root)?;
+    write_count(&mut root_data, root_count + 1)?;
+
+    msg!("vanta_private_pool_v2_spend: appended program-owned Poseidon Merkle tree leaf");
     Ok(())
 }
 
@@ -862,6 +1082,113 @@ fn process_register_root(
     Ok(())
 }
 
+fn process_shield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) -> ProgramResult {
+    if rest.len() + 1 != SHIELD_PAYLOAD_LEN {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let exit_asset_id: [u8; HASH_LEN] = rest
+        [SHIELD_ASSET_ID_OFFSET..SHIELD_ASSET_ID_OFFSET + HASH_LEN]
+        .try_into()
+        .map_err(|_| ProgramError::InvalidInstructionData)?;
+    let shield_amount = read_u64(rest, SHIELD_AMOUNT_OFFSET)?;
+    let output_commitment =
+        &rest[SHIELD_OUTPUT_COMMITMENT_OFFSET..SHIELD_OUTPUT_COMMITMENT_OFFSET + HASH_LEN];
+    let shield_public_input_hash =
+        &rest[SHIELD_PUBLIC_INPUT_HASH_OFFSET..SHIELD_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN];
+    let asset_kind = rest[SHIELD_ASSET_KIND_OFFSET];
+    let decimals = rest[SHIELD_DECIMALS_OFFSET];
+
+    if shield_amount == 0
+        || is_zero_hash(output_commitment)
+        || is_zero_hash(shield_public_input_hash)
+        || (asset_kind == VAULT_ASSET_KIND_SPL && is_zero_hash(&exit_asset_id))
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let mut account_iter = accounts.iter();
+    let pool_state = next_account_info(&mut account_iter)?;
+    let vault_asset_record = next_account_info(&mut account_iter)?;
+    let vault_authority = next_account_info(&mut account_iter)?;
+    let vault_token_account = next_account_info(&mut account_iter)?;
+    let mint = next_account_info(&mut account_iter)?;
+    let depositor = next_account_info(&mut account_iter)?;
+    let cpi_program = next_account_info(&mut account_iter)?;
+
+    require_readonly_program_account(program_id, pool_state)?;
+    require_readonly_program_account(program_id, vault_asset_record)?;
+    require_writable_account(depositor)?;
+
+    if asset_kind == VAULT_ASSET_KIND_SOL {
+        require_registered_sol_vault_asset(
+            program_id,
+            pool_state,
+            vault_asset_record,
+            vault_authority,
+        )?;
+        require_writable_account(vault_authority)?;
+        require_system_program(cpi_program)?;
+
+        let pool_data = pool_state.try_borrow_data()?;
+        require_pool_verifier_wired(&pool_data, ERR_PROOF_VERIFIER_NOT_WIRED)?;
+
+        let sol_vault_holding = vault_authority;
+        let transfer_ix =
+            system_instruction::transfer(depositor.key, sol_vault_holding.key, shield_amount);
+        invoke_signed(
+            &transfer_ix,
+            &[
+                depositor.clone(),
+                sol_vault_holding.clone(),
+                cpi_program.clone(),
+            ],
+            &[],
+        )?;
+        msg!("vanta_private_pool_v2_spend: shield runtime-gated path accepted native SOL into SOL vault PDA");
+    } else if asset_kind == VAULT_ASSET_KIND_SPL {
+        require_registered_spl_vault_asset(
+            program_id,
+            pool_state,
+            vault_asset_record,
+            vault_authority,
+            &exit_asset_id,
+            vault_token_account,
+            mint,
+            cpi_program,
+        )?;
+
+        let pool_data = pool_state.try_borrow_data()?;
+        require_pool_verifier_wired(&pool_data, ERR_PROOF_VERIFIER_NOT_WIRED)?;
+
+        let transfer_ix = spl_token::instruction::transfer_checked(
+            cpi_program.key,
+            depositor.key,
+            mint.key,
+            vault_token_account.key,
+            depositor.key,
+            &[],
+            shield_amount,
+            decimals,
+        )?;
+        solana_program::program::invoke(
+            &transfer_ix,
+            &[
+                depositor.clone(),
+                mint.clone(),
+                vault_token_account.clone(),
+                depositor.clone(),
+                cpi_program.clone(),
+            ],
+        )?;
+        msg!("vanta_private_pool_v2_spend: shield runtime-gated path accepted SPL into vault token account");
+    } else {
+        return Err(ProgramError::Custom(ERR_INVALID_ASSET_KIND));
+    }
+
+    Ok(())
+}
+
 /// process_register_vault_asset (TAG_REGISTER_VAULT_ASSET = 7) stub.
 /// Per design doc §11 data model + VANTA_ZK_REVIEW U2.1:
 /// - Creates/ inits vault_asset_record PDA ["vanta2asset", pool, asset_id] with kind (1=SPL, 2=SOL), releaseEnabled.
@@ -905,11 +1232,23 @@ fn process_register_vault_asset(
     {
         return Err(ProgramError::InvalidInstructionData);
     }
+    if asset_kind == VAULT_ASSET_KIND_SOL
+        && (exit_asset_id != NATIVE_SOL_ASSET_ID_SENTINEL.as_ref()
+            || !is_zero_hash(mint)
+            || vault_token_account != vault_authority.key.as_ref()
+            || token_program != system_program::ID.as_ref())
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
 
     let pool_data = pool_state.try_borrow_data()?;
     require_pool_header(&pool_data)?;
     require_authority(&pool_data, authority)?;
-    require_vault_authority(program_id, pool_state, vault_authority, exit_asset_id)?;
+    if asset_kind == VAULT_ASSET_KIND_SOL {
+        require_sol_vault_pda(program_id, pool_state, vault_authority)?;
+    } else {
+        require_vault_authority(program_id, pool_state, vault_authority, exit_asset_id)?;
+    }
 
     ensure_vault_asset_record(
         program_id,
@@ -1006,6 +1345,73 @@ fn require_sol_vault_pda(
     Ok(bump)
 }
 
+fn require_registered_sol_vault_asset(
+    program_id: &Pubkey,
+    pool_state: &AccountInfo,
+    vault_asset_record: &AccountInfo,
+    vault_authority: &AccountInfo,
+) -> ProgramResult {
+    require_sol_vault_pda(program_id, pool_state, vault_authority)?;
+    let asset_kind = require_vault_asset_record(
+        program_id,
+        pool_state,
+        vault_asset_record,
+        &NATIVE_SOL_ASSET_ID_SENTINEL,
+    )?;
+    if asset_kind != VAULT_ASSET_KIND_SOL {
+        return Err(ProgramError::Custom(ERR_INVALID_ASSET_KIND));
+    }
+
+    let asset_data = vault_asset_record.try_borrow_data()?;
+    if asset_data.len() >= VAULT_ASSET_ACCOUNT_LEN {
+        if &asset_data[VAULT_ASSET_MINT_OFFSET..VAULT_ASSET_MINT_OFFSET + HASH_LEN]
+            != &[0u8; HASH_LEN]
+            || &asset_data
+                [VAULT_ASSET_VAULT_AUTHORITY_OFFSET..VAULT_ASSET_VAULT_AUTHORITY_OFFSET + HASH_LEN]
+                != vault_authority.key.as_ref()
+            || &asset_data[VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET
+                ..VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET + HASH_LEN]
+                != vault_authority.key.as_ref()
+            || &asset_data[VAULT_ASSET_TOKEN_PROGRAM_OFFSET
+                ..VAULT_ASSET_TOKEN_PROGRAM_OFFSET + HASH_LEN]
+                != system_program::ID.as_ref()
+        {
+            return Err(ProgramError::Custom(ERR_VAULT_ASSET_MISMATCH));
+        }
+    }
+
+    Ok(())
+}
+
+fn require_registered_spl_vault_asset(
+    program_id: &Pubkey,
+    pool_state: &AccountInfo,
+    vault_asset_record: &AccountInfo,
+    vault_authority: &AccountInfo,
+    exit_asset_id: &[u8; HASH_LEN],
+    vault_token_account: &AccountInfo,
+    mint: &AccountInfo,
+    token_program: &AccountInfo,
+) -> ProgramResult {
+    require_vault_authority(program_id, pool_state, vault_authority, exit_asset_id)?;
+    let asset_kind =
+        require_vault_asset_record(program_id, pool_state, vault_asset_record, exit_asset_id)?;
+    if asset_kind != VAULT_ASSET_KIND_SPL {
+        return Err(ProgramError::Custom(ERR_INVALID_ASSET_KIND));
+    }
+
+    let asset_data = vault_asset_record.try_borrow_data()?;
+    require_spl_release_accounts(
+        &asset_data,
+        vault_token_account,
+        vault_token_account,
+        mint,
+        token_program,
+        vault_authority,
+        vault_authority.key.as_ref(),
+    )
+}
+
 /// Generalized preflight for vault asset record PDA (["vanta2asset", pool, asset_id])
 /// Returns the parsed asset_kind (u8) from a minimal layout: [magic8, ver, kind, ...]
 ///
@@ -1029,42 +1435,15 @@ fn require_vault_asset_record(
     require_readonly_account(vault_asset_record)?;
 
     let asset_data = vault_asset_record.try_borrow_data()?;
-    // !! CFG(TEST) GATE !!
-    // The block below is a *compile-time* sentinel bypass that only fires under `cargo test`
-    // builds (and never in the SBF binary deployed to mainnet). A build that accidentally
-    // enables `--cfg test` for an artifact destined for upload would expose this bypass live.
-    // Reviewers: confirm at deploy time that the artifact you are uploading was built
-    // *without* the test feature set. Long-term we plan to migrate this gate to a runtime
-    // `pool_state.verifier_wired: bool` flag toggled only by an authority-signed instruction
-    // post-audit (architecture backlog item A1 / R7A).
-    if cfg!(test)
-        && *expected_asset_id == NATIVE_SOL_ASSET_ID_SENTINEL
-        && asset_data.len() < VAULT_ASSET_ACCOUNT_LEN
-    {
-        // Sentinel bypass (per design doc): during prep / bootstrap allow minimal/uninit
-        // registry record for NATIVE_SOL_ASSET_ID_SENTINEL (zero bytes) to enable
-        // generalized preflights for kind=2 before full TAG_REGISTER_VAULT_ASSET wiring.
-        // Production semantics: a real release path requires (a) a valid registered entry
-        // (kind=2) and (b) the future `releaseEnabled` flag flipped to authorize release.
-        // Today the production check below requires releaseEnabled == 0 (the initial state
-        // written by TAG_REGISTER_VAULT_ASSET) because the actual release path is itself
-        // gated by ERR_UNSHIELD_NOT_WIRED until the verifier wires in.
-        if asset_data.len() < 10
-            || &asset_data[0..8] != VAULT_ASSET_MAGIC
-            || asset_data[8] != VERSION
-        {
-            return Ok(VAULT_ASSET_KIND_SOL);
-        }
-        return Ok(asset_data[9]);
-    }
-
     require_vault_asset_record_data(&asset_data, pool_state, expected_asset_id)?;
     // releaseEnabled semantics (current vs future):
     //   - WRITE: TAG_REGISTER_VAULT_ASSET writes `releaseEnabled = 0` (see line ~933).
     //   - READ (today): TAG_UNSHIELD requires `releaseEnabled == 0` here. Non-zero is
     //     reserved as a future "release-authorized" flag once the verifier is wired in;
+    //     production should eventually require releaseEnabled == 1, but only at the
+    //     same time the proof/root/nullifier path is real.
     //     the production-private migration must invert this check at the same time it
-    //     replaces the cfg!(test) gate below with a runtime authority flag.
+    //     wires real verifier/root/nullifier acceptance.
     //   - Until then the entire TAG_UNSHIELD release path returns ERR_UNSHIELD_NOT_WIRED
     //     after this check, so the inverted-looking comparison is intentionally fail-closed.
     if asset_data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] != 0 {
@@ -1353,11 +1732,47 @@ fn init_output_index_account(account: &AccountInfo) -> ProgramResult {
     Ok(())
 }
 
+fn init_tree_state_account(tree_state: &AccountInfo, pool_state: &AccountInfo) -> ProgramResult {
+    let mut data = tree_state.try_borrow_mut_data()?;
+    if data.len() < TREE_STATE_LEN {
+        return Err(ProgramError::AccountDataTooSmall);
+    }
+    require_uninitialized(&data[..])?;
+
+    let zero_nodes = compute_empty_tree_nodes()?;
+    data.fill(0);
+    data[..8].copy_from_slice(TREE_MAGIC);
+    data[8] = VERSION;
+    write_count(&mut data, 1)?;
+    data[TREE_POOL_OFFSET..TREE_POOL_OFFSET + HASH_LEN].copy_from_slice(pool_state.key.as_ref());
+    data[TREE_DEPTH_OFFSET] = MERKLE_TREE_DEPTH as u8;
+    write_u64(&mut data, TREE_NEXT_LEAF_INDEX_OFFSET, 0)?;
+    data[TREE_CURRENT_ROOT_OFFSET..TREE_CURRENT_ROOT_OFFSET + HASH_LEN]
+        .copy_from_slice(&zero_nodes[MERKLE_TREE_DEPTH]);
+    Ok(())
+}
+
 fn require_pool_header(data: &[u8]) -> ProgramResult {
     if data.len() < POOL_STATE_LEN || &data[..8] != POOL_MAGIC || data[8] != VERSION {
         return Err(ProgramError::Custom(ERR_INVALID_HEADER));
     }
     Ok(())
+}
+
+fn pool_verifier_wired(data: &[u8]) -> Result<bool, ProgramError> {
+    require_pool_header(data)?;
+    match data[POOL_VERIFIER_WIRED_OFFSET] {
+        POOL_VERIFIER_NOT_WIRED => Ok(false),
+        POOL_VERIFIER_WIRED => Ok(true),
+        _ => Err(ProgramError::InvalidAccountData),
+    }
+}
+
+fn require_pool_verifier_wired(data: &[u8], not_wired_error: u32) -> ProgramResult {
+    if pool_verifier_wired(data)? {
+        return Ok(());
+    }
+    Err(ProgramError::Custom(not_wired_error))
 }
 
 fn require_uninitialized(data: &[u8]) -> ProgramResult {
@@ -1405,6 +1820,33 @@ fn require_pool_root_history_binding(
         != *root_history.key.as_ref()
     {
         return Err(ProgramError::Custom(ERR_POOL_ACCOUNT_MISMATCH));
+    }
+    Ok(())
+}
+
+fn require_pool_tree_state_binding(pool_data: &[u8], tree_state: &AccountInfo) -> ProgramResult {
+    if pool_data[POOL_TREE_STATE_OFFSET..POOL_TREE_STATE_OFFSET + HASH_LEN]
+        != *tree_state.key.as_ref()
+    {
+        return Err(ProgramError::Custom(ERR_POOL_ACCOUNT_MISMATCH));
+    }
+    Ok(())
+}
+
+fn require_tree_state_header(data: &[u8], pool_state: &AccountInfo) -> ProgramResult {
+    if data.len() < TREE_STATE_LEN
+        || &data[..8] != TREE_MAGIC
+        || data[8] != VERSION
+        || read_count(data)? != 1
+        || data[TREE_DEPTH_OFFSET] != MERKLE_TREE_DEPTH as u8
+    {
+        return Err(ProgramError::Custom(ERR_INVALID_HEADER));
+    }
+    if data[TREE_POOL_OFFSET..TREE_POOL_OFFSET + HASH_LEN] != *pool_state.key.as_ref() {
+        return Err(ProgramError::Custom(ERR_TREE_STATE_MISMATCH));
+    }
+    if read_u64(data, TREE_NEXT_LEAF_INDEX_OFFSET)? > TREE_CAPACITY {
+        return Err(ProgramError::Custom(ERR_INVALID_HEADER));
     }
     Ok(())
 }
@@ -1820,6 +2262,221 @@ fn write_output_record(
         .copy_from_slice(output1);
     data[OUTPUT_RECORD_PUBLIC_INPUT_HASH_OFFSET..OUTPUT_RECORD_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN]
         .copy_from_slice(public_input_hash);
+    Ok(())
+}
+
+#[allow(deprecated)]
+fn poseidon_hash_leaf(leaf: &[u8]) -> Result<[u8; HASH_LEN], ProgramError> {
+    if leaf.len() != HASH_LEN {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+    poseidon_hashv(Parameters::Bn254X5, Endianness::BigEndian, &[leaf])
+        .map(|hash| hash.to_bytes())
+        .map_err(|_| ProgramError::Custom(ERR_POSEIDON_HASH_FAILED))
+}
+
+#[allow(deprecated)]
+fn poseidon_hash_node(left: &[u8], right: &[u8]) -> Result<[u8; HASH_LEN], ProgramError> {
+    if left.len() != HASH_LEN || right.len() != HASH_LEN {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+    poseidon_hashv(Parameters::Bn254X5, Endianness::BigEndian, &[left, right])
+        .map(|hash| hash.to_bytes())
+        .map_err(|_| ProgramError::Custom(ERR_POSEIDON_HASH_FAILED))
+}
+
+fn compute_empty_tree_nodes() -> Result<[[u8; HASH_LEN]; TREE_ZERO_NODE_COUNT], ProgramError> {
+    let mut zero_nodes = [[0u8; HASH_LEN]; TREE_ZERO_NODE_COUNT];
+    zero_nodes[0] = poseidon_hash_leaf(&[0u8; HASH_LEN])?;
+    for level in 1..TREE_ZERO_NODE_COUNT {
+        zero_nodes[level] = poseidon_hash_node(&zero_nodes[level - 1], &zero_nodes[level - 1])?;
+    }
+    Ok(zero_nodes)
+}
+
+fn compute_program_owned_append_root(
+    tree_data: &[u8],
+    leaf_index: u64,
+    output_commitment: &[u8],
+) -> Result<([u8; HASH_LEN], [[u8; HASH_LEN]; MERKLE_TREE_DEPTH]), ProgramError> {
+    let zero_nodes = compute_empty_tree_nodes()?;
+    let mut frontier = [[0u8; HASH_LEN]; MERKLE_TREE_DEPTH];
+    for level in 0..MERKLE_TREE_DEPTH {
+        frontier[level] = read_hash(tree_data, TREE_FRONTIER_OFFSET + level * HASH_LEN)?;
+    }
+
+    let mut current = poseidon_hash_leaf(output_commitment)?;
+    for level in 0..MERKLE_TREE_DEPTH {
+        if ((leaf_index >> level) & 1) == 0 {
+            frontier[level] = current;
+            current = poseidon_hash_node(&current, &zero_nodes[level])?;
+        } else {
+            let left = frontier[level];
+            if left.iter().all(|byte| *byte == 0) {
+                return Err(ProgramError::Custom(ERR_TREE_STATE_MISMATCH));
+            }
+            current = poseidon_hash_node(&left, &current)?;
+        }
+    }
+
+    Ok((current, frontier))
+}
+
+fn require_tree_leaf_marker_available(
+    program_id: &Pubkey,
+    pool_state: &AccountInfo,
+    tree_leaf_marker: &AccountInfo,
+    output_commitment: &[u8],
+) -> ProgramResult {
+    let (expected_marker, _) = Pubkey::find_program_address(
+        &[
+            TREE_LEAF_MARKER_SEED,
+            pool_state.key.as_ref(),
+            output_commitment,
+        ],
+        program_id,
+    );
+    if expected_marker != *tree_leaf_marker.key {
+        return Err(ProgramError::Custom(ERR_TREE_LEAF_MARKER_MISMATCH));
+    }
+
+    if tree_leaf_marker.owner == program_id {
+        let marker_data = tree_leaf_marker.try_borrow_data()?;
+        if marker_data.iter().all(|byte| *byte == 0) {
+            if marker_data.len() < TREE_LEAF_MARKER_LEN {
+                return Err(ProgramError::AccountDataTooSmall);
+            }
+            return Ok(());
+        }
+        require_tree_leaf_marker(&marker_data, pool_state, output_commitment)?;
+        return Err(ProgramError::Custom(ERR_DUPLICATE_TREE_LEAF));
+    }
+
+    if tree_leaf_marker.owner != &system_program::ID {
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    let marker_data = tree_leaf_marker.try_borrow_data()?;
+    if !marker_data.is_empty() || tree_leaf_marker.lamports() != 0 {
+        return Err(ProgramError::Custom(ERR_TREE_LEAF_MARKER_MISMATCH));
+    }
+    Ok(())
+}
+
+fn ensure_tree_leaf_marker<'a>(
+    program_id: &Pubkey,
+    pool_state: &AccountInfo<'a>,
+    tree_leaf_marker: &AccountInfo<'a>,
+    authority: &AccountInfo<'a>,
+    system_program_info: &AccountInfo<'a>,
+    output_commitment: &[u8],
+    leaf_index: u64,
+) -> ProgramResult {
+    let (expected_marker, bump) = Pubkey::find_program_address(
+        &[
+            TREE_LEAF_MARKER_SEED,
+            pool_state.key.as_ref(),
+            output_commitment,
+        ],
+        program_id,
+    );
+    if expected_marker != *tree_leaf_marker.key {
+        return Err(ProgramError::Custom(ERR_TREE_LEAF_MARKER_MISMATCH));
+    }
+
+    if tree_leaf_marker.owner == program_id {
+        let mut marker_data = tree_leaf_marker.try_borrow_mut_data()?;
+        if marker_data.iter().all(|byte| *byte == 0) {
+            return write_tree_leaf_marker(
+                &mut marker_data,
+                pool_state,
+                output_commitment,
+                leaf_index,
+            );
+        }
+        require_tree_leaf_marker(&marker_data, pool_state, output_commitment)?;
+        return Err(ProgramError::Custom(ERR_DUPLICATE_TREE_LEAF));
+    }
+
+    if tree_leaf_marker.owner != &system_program::ID {
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    {
+        let marker_data = tree_leaf_marker.try_borrow_data()?;
+        if !marker_data.is_empty() || tree_leaf_marker.lamports() != 0 {
+            return Err(ProgramError::Custom(ERR_TREE_LEAF_MARKER_MISMATCH));
+        }
+    }
+
+    let rent_lamports = Rent::get()?.minimum_balance(TREE_LEAF_MARKER_LEN);
+    let create_marker = system_instruction::create_account(
+        authority.key,
+        tree_leaf_marker.key,
+        rent_lamports,
+        TREE_LEAF_MARKER_LEN as u64,
+        program_id,
+    );
+    invoke_signed(
+        &create_marker,
+        &[
+            authority.clone(),
+            tree_leaf_marker.clone(),
+            system_program_info.clone(),
+        ],
+        &[&[
+            TREE_LEAF_MARKER_SEED,
+            pool_state.key.as_ref(),
+            output_commitment,
+            &[bump],
+        ]],
+    )?;
+
+    let mut marker_data = tree_leaf_marker.try_borrow_mut_data()?;
+    write_tree_leaf_marker(&mut marker_data, pool_state, output_commitment, leaf_index)
+}
+
+fn require_tree_leaf_marker(
+    marker_data: &[u8],
+    pool_state: &AccountInfo,
+    output_commitment: &[u8],
+) -> ProgramResult {
+    if marker_data.len() < TREE_LEAF_MARKER_LEN
+        || &marker_data[..8] != TREE_LEAF_MARKER_MAGIC
+        || marker_data[8] != VERSION
+        || read_count(marker_data)? != 1
+    {
+        return Err(ProgramError::Custom(ERR_INVALID_HEADER));
+    }
+    if marker_data[TREE_LEAF_MARKER_POOL_OFFSET..TREE_LEAF_MARKER_POOL_OFFSET + HASH_LEN]
+        != *pool_state.key.as_ref()
+        || &marker_data[TREE_LEAF_MARKER_LEAF_OFFSET..TREE_LEAF_MARKER_LEAF_OFFSET + HASH_LEN]
+            != output_commitment
+    {
+        return Err(ProgramError::Custom(ERR_TREE_LEAF_MARKER_MISMATCH));
+    }
+    Ok(())
+}
+
+fn write_tree_leaf_marker(
+    data: &mut [u8],
+    pool_state: &AccountInfo,
+    output_commitment: &[u8],
+    leaf_index: u64,
+) -> ProgramResult {
+    if data.len() < TREE_LEAF_MARKER_LEN || output_commitment.len() != HASH_LEN {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    data.fill(0);
+    data[..8].copy_from_slice(TREE_LEAF_MARKER_MAGIC);
+    data[8] = VERSION;
+    write_count(data, 1)?;
+    data[TREE_LEAF_MARKER_POOL_OFFSET..TREE_LEAF_MARKER_POOL_OFFSET + HASH_LEN]
+        .copy_from_slice(pool_state.key.as_ref());
+    data[TREE_LEAF_MARKER_LEAF_OFFSET..TREE_LEAF_MARKER_LEAF_OFFSET + HASH_LEN]
+        .copy_from_slice(output_commitment);
+    write_u64(data, TREE_LEAF_MARKER_INDEX_OFFSET, leaf_index)?;
     Ok(())
 }
 
@@ -2262,6 +2919,15 @@ fn read_u64(data: &[u8], offset: usize) -> Result<u64, ProgramError> {
     Ok(u64::from_le_bytes(bytes.try_into().unwrap()))
 }
 
+fn read_hash(data: &[u8], offset: usize) -> Result<[u8; HASH_LEN], ProgramError> {
+    let bytes = data
+        .get(offset..offset + HASH_LEN)
+        .ok_or(ProgramError::AccountDataTooSmall)?;
+    let mut value = [0u8; HASH_LEN];
+    value.copy_from_slice(bytes);
+    Ok(value)
+}
+
 fn write_u64(data: &mut [u8], offset: usize, value: u64) -> ProgramResult {
     let bytes = data
         .get_mut(offset..offset + 8)
@@ -2306,7 +2972,7 @@ fn emit_unshield_event(nullifier: &[u8; 32], root: &[u8; 32]) {
 /// 4.sol_vault_holding (w, *dedicated* PDA ["vanta2solvault", pool_state, NATIVE_SOL_ASSET_ID_SENTINEL]; program-owned lamports custody for kind=2)
 /// 5.destination(w, system) 6.system_program(ro) 7.signer(signer + writable for rent; any relayer)
 /// 8.nullifier_marker (w, PDA ["vanta2nul", pool_state, nullifier] for ensure/consume)
-/// Uses explicit SOL_VAULT_SEED + sentinel derivation in SOL branch; supports successful CPI + event in test helper mode.
+/// Uses explicit SOL_VAULT_SEED + sentinel derivation in SOL branch; release remains blocked by runtime verifier_wired plus verifier-not-wired truth.
 fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) -> ProgramResult {
     if rest.len() + 1 == UNSHIELD_PAYLOAD_LEN {
         return process_unshield_reserved_release_preflight(program_id, accounts, rest);
@@ -2338,6 +3004,7 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
     require_readonly_account(vault_asset_record)?;
     require_writable_account(sol_vault_holding)?;
     require_writable_account(destination)?;
+    require_writable_account(nullifier_marker)?;
     if !signer.is_signer {
         // allow relayer as fee payer (standard for shielded unshield)
     }
@@ -2363,7 +3030,7 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
     // while unsupported asset kinds should keep returning ERR_INVALID_ASSET_KIND.
     // Without this guard a future Groth16 verifier that accepts a proof over (nullifier=0, root=0,
     // public_inputs_hash=0) would derive a fixed nullifier marker PDA and unlock a double-spend
-    // vector. The fail-closed `cfg!(not(test))` gate below makes this defensive today; this check
+    // vector. The runtime verifier_wired gate below makes this defensive today; this check
     // preserves the same invariant once the verifier is wired in.
     if is_zero_hash(&nullifier)
         || is_zero_hash(public_inputs_hash)
@@ -2373,6 +3040,9 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
         return Err(ProgramError::InvalidInstructionData);
     }
 
+    let pool_data = pool_state.try_borrow_data()?;
+    require_pool_header(&pool_data)?;
+
     if asset_kind == VAULT_ASSET_KIND_SOL {
         if exit_asset_id != NATIVE_SOL_ASSET_ID_SENTINEL {
             return Err(ProgramError::Custom(ERR_SENTINEL_ASSET_ID_MISMATCH));
@@ -2381,7 +3051,7 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
 
         // SOL branch: *explicitly* derive holding PDA with dedicated SOL_VAULT_SEED + NATIVE_SOL_ASSET_ID_SENTINEL
         // (per task: use constants in SOL branch when kind==2; matches sol_vault_pda helper + design doc exact seeds).
-        let (expected_sol_vault, bump) = Pubkey::find_program_address(
+        let (expected_sol_vault, _bump) = Pubkey::find_program_address(
             &[
                 SOL_VAULT_SEED,
                 pool_state.key.as_ref(),
@@ -2402,72 +3072,99 @@ fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) 
         //    TODO: wire groth16-solana or Light verifier + vk hash from pool_state / vault_asset_record.
         //    if verifier acceptance fails { return Err(...) }
         //
-        // !! CFG(NOT(TEST)) GATE — PRODUCTION FAIL-CLOSED !!
-        // This early `return Err(ERR_UNSHIELD_NOT_WIRED)` is the only thing preventing lamport
-        // movement in the absence of a real on-chain verifier. It is a *compile-time* gate:
-        // SBF artifacts deployed to mainnet must be built *without* the `test` cfg, otherwise
-        // the cargo-test SOL release helper path below executes against real funds.
-        //
-        // Anyone modifying TAG_UNSHIELD must keep this guard the first statement after the
-        // PDA/preflight block and must not predicate it on any callable input. The long-term
-        // plan (architecture backlog A1 / R7A) is to replace this with a runtime
-        // `pool_state.verifier_wired` flag and remove the cfg gating entirely.
-        if cfg!(not(test)) {
-            return Err(ProgramError::Custom(ERR_UNSHIELD_NOT_WIRED));
-        }
-
-        // --- TEST HELPER SUCCESS PATH (reached only in cargo test / crucible for TAG6 SOL demonstration) ---
-        // 4. Consume nullifier via marker PDA (reuse spend path machinery; unified tree friendly)
-        //    require_nullifier_marker_available + ensure_nullifier_marker (signer/relayer funds creation if needed; no operator keypair).
-        require_nullifier_marker_available(program_id, pool_state, nullifier_marker, &nullifier)?;
-        ensure_nullifier_marker(
-            program_id,
-            pool_state,
-            nullifier_marker,
-            signer,
-            cpi_program,
-            &nullifier,
-        )?;
-
-        // 5. Improved SOL release path: system_program::transfer CPI *from the correct PDA*, signed with seeds.
-        //    Dedicated sol_vault_holding account required in accounts list. Core privacy: program-owned custody, zero operator keypair on funds.
-        //    Matches design doc Phase 4 + "program-owned-sol-vault-pda-system-cpi".
-        let exit_amount = u64::from_le_bytes(
-            exit_amount_bytes
-                .try_into()
-                .map_err(|_| ProgramError::InvalidInstructionData)?,
-        );
-        let transfer_ix =
-            system_instruction::transfer(sol_vault_holding.key, destination.key, exit_amount);
-        invoke_signed(
-            &transfer_ix,
-            &[
-                sol_vault_holding.clone(),
-                destination.clone(),
-                cpi_program.clone(),
-            ],
-            &[&[
-                SOL_VAULT_SEED,
-                pool_state.key.as_ref(),
-                &NATIVE_SOL_ASSET_ID_SENTINEL,
-                &[bump],
-            ]],
-        )?;
-
-        // 6. Emit minimal UnshieldEvent scaffolding (msg! with actual nullifier + root for indexer consumption in tests).
-        //    Privacy preserving; amount visible only via System transfer log (same as SPL).
-        let reconstructed_root: [u8; 32] = public_inputs_hash.try_into().unwrap_or([0u8; 32]);
-        emit_unshield_event(&nullifier, &reconstructed_root);
-        msg!("vanta_private_pool_v2_spend: unshield success (asset_kind=SOL=2, sentinel, program-owned PDA CPI, nullifier consumed)");
+        // Runtime fail-closed gate: initialized pools default verifier_wired=0. Even if a future
+        // reviewed setter flips this byte, this slice still returns not-wired until item 9 lands
+        // real verifier/root/public-input/nullifier acceptance before any marker consume or CPI.
+        require_pool_verifier_wired(&pool_data, ERR_UNSHIELD_NOT_WIRED)?;
+        Err(ProgramError::Custom(ERR_UNSHIELD_NOT_WIRED))
     } else if asset_kind == VAULT_ASSET_KIND_SPL {
         // SPL path (parallel future work per design): require token_program, derive token vault PDA ("vanta2vault" or kind-specific),
         // token::transfer_checked CPI signed by vault authority PDA, emit same UnshieldEvent shape.
-        return Err(ProgramError::Custom(ERR_UNSHIELD_NOT_WIRED));
+        Err(ProgramError::Custom(ERR_UNSHIELD_NOT_WIRED))
     } else {
-        return Err(ProgramError::Custom(ERR_INVALID_ASSET_KIND));
+        Err(ProgramError::Custom(ERR_INVALID_ASSET_KIND))
+    }
+}
+
+#[allow(dead_code)]
+fn invoke_sol_vault_transfer_reserved<'a>(
+    pool_state: &AccountInfo<'a>,
+    sol_vault_holding: &AccountInfo<'a>,
+    destination: &AccountInfo<'a>,
+    system_program_info: &AccountInfo<'a>,
+    exit_amount: u64,
+    bump: u8,
+) -> ProgramResult {
+    let transfer_ix =
+        system_instruction::transfer(sol_vault_holding.key, destination.key, exit_amount);
+    invoke_signed(
+        &transfer_ix,
+        &[
+            sol_vault_holding.clone(),
+            destination.clone(),
+            system_program_info.clone(),
+        ],
+        &[&[
+            SOL_VAULT_SEED,
+            pool_state.key.as_ref(),
+            &NATIVE_SOL_ASSET_ID_SENTINEL,
+            &[bump],
+        ]],
+    )
+}
+
+#[allow(dead_code)]
+fn invoke_spl_vault_transfer_checked_reserved<'a>(
+    program_id: &Pubkey,
+    pool_state: &AccountInfo<'a>,
+    vault_token_account: &AccountInfo<'a>,
+    mint: &AccountInfo<'a>,
+    destination_token_account: &AccountInfo<'a>,
+    vault_authority: &AccountInfo<'a>,
+    token_program: &AccountInfo<'a>,
+    exit_asset_id: [u8; HASH_LEN],
+    exit_amount: u64,
+    decimals: u8,
+) -> ProgramResult {
+    let (expected_authority, vault_bump) = Pubkey::find_program_address(
+        &[
+            VAULT_AUTHORITY_SEED,
+            pool_state.key.as_ref(),
+            &exit_asset_id,
+        ],
+        program_id,
+    );
+    if *vault_authority.key != expected_authority {
+        return Err(ProgramError::Custom(ERR_VAULT_AUTHORITY_MISMATCH));
     }
 
-    Ok(())
+    let transfer_ix = spl_token::instruction::transfer_checked(
+        token_program.key,
+        vault_token_account.key,
+        mint.key,
+        destination_token_account.key,
+        vault_authority.key,
+        &[],
+        exit_amount,
+        decimals,
+    )?;
+
+    invoke_signed(
+        &transfer_ix,
+        &[
+            vault_token_account.clone(),
+            mint.clone(),
+            destination_token_account.clone(),
+            vault_authority.clone(),
+            token_program.clone(),
+        ],
+        &[&[
+            VAULT_AUTHORITY_SEED,
+            pool_state.key.as_ref(),
+            &exit_asset_id,
+            &[vault_bump],
+        ]],
+    )
 }
 
 fn process_unshield_reserved_release_preflight(
@@ -2557,7 +3254,7 @@ fn process_unshield_reserved_release_preflight(
 
     // Future SOL-compatible release would use system_instruction::transfer(vault_authority.key, destination_token_account.key, exit_lamports);
     // The reserved SPL path intentionally stops before token CPI or custody movement.
-    msg!("vanta_private_pool_v2_spend: proof-shaped unshield release ABI passed verifier-key preflight for SPL; SPL token CPI release not wired in test helper (SOL TAG6 wired)");
+    msg!("vanta_private_pool_v2_spend: proof-shaped unshield release ABI passed verifier-key preflight for SPL; SPL token CPI release remains not wired");
     Err(ProgramError::Custom(ERR_UNSHIELD_RELEASE_NOT_WIRED))
 }
 
@@ -2585,6 +3282,7 @@ mod tests {
         let nullifier_set = Pubkey::new_unique();
         let output_queue = Pubkey::new_unique();
         let root_history = Pubkey::new_unique();
+        let tree_state = Pubkey::new_unique();
         let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &[1; HASH_LEN]);
         let output_record = output_record_pubkey(&program_id, &pool_state, &[5; HASH_LEN]);
         let system_program_id = system_program::ID;
@@ -2595,6 +3293,7 @@ mod tests {
         let mut output_lamports = 1_000_000;
         let mut output_record_lamports = 1_000_000;
         let mut root_lamports = 1_000_000;
+        let mut tree_lamports = 1_000_000;
         let mut marker_lamports = 1_000_000;
         let mut authority_lamports = 1_000_000;
         let mut impostor_lamports = 1_000_000;
@@ -2604,6 +3303,7 @@ mod tests {
         let mut output_data = vec![0; HEADER_LEN];
         let mut output_record_data = vec![0; OUTPUT_RECORD_PDA_LEN];
         let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut tree_data = vec![0; TREE_STATE_LEN];
         let mut marker_data = vec![0; NULLIFIER_MARKER_LEN];
         let mut signer_data = [];
         let mut system_data = [];
@@ -2641,6 +3341,14 @@ mod tests {
                 &mut root_lamports,
                 &mut root_data,
             );
+            let tree = account_info(
+                &tree_state,
+                &program_id,
+                true,
+                false,
+                &mut tree_lamports,
+                &mut tree_data,
+            );
             let authority_info = account_info(
                 &authority,
                 &program_id,
@@ -2649,7 +3357,7 @@ mod tests {
                 &mut authority_lamports,
                 &mut signer_data,
             );
-            let accounts = vec![pool, nullifier, output, roots, authority_info];
+            let accounts = vec![pool, nullifier, output, roots, tree, authority_info];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &[TAG_INIT]),
@@ -2768,16 +3476,19 @@ mod tests {
         let nullifier_set = Pubkey::new_unique();
         let output_queue = Pubkey::new_unique();
         let root_history = Pubkey::new_unique();
+        let tree_state = Pubkey::new_unique();
         let authority = Pubkey::new_unique();
         let mut pool_lamports = 1_000_000;
         let mut nullifier_lamports = 1_000_000;
         let mut output_lamports = 1_000_000;
         let mut root_lamports = 1_000_000;
+        let mut tree_lamports = 1_000_000;
         let mut authority_lamports = 1_000_000;
         let mut pool_data = vec![0; POOL_STATE_LEN];
         let mut nullifier_data = vec![0; HEADER_LEN + HASH_LEN * 4];
         let mut output_data = vec![0; HEADER_LEN];
         let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut tree_data = vec![0; TREE_STATE_LEN];
         let mut signer_data = [];
 
         {
@@ -2813,6 +3524,14 @@ mod tests {
                 &mut root_lamports,
                 &mut root_data,
             );
+            let tree = account_info(
+                &tree_state,
+                &program_id,
+                true,
+                false,
+                &mut tree_lamports,
+                &mut tree_data,
+            );
             let authority_info = account_info(
                 &authority,
                 &program_id,
@@ -2821,7 +3540,7 @@ mod tests {
                 &mut authority_lamports,
                 &mut signer_data,
             );
-            let accounts = vec![pool, nullifier, output, roots, authority_info];
+            let accounts = vec![pool, nullifier, output, roots, tree, authority_info];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &[TAG_INIT]),
@@ -2834,6 +3553,7 @@ mod tests {
             nullifier_data.clone(),
             output_data.clone(),
             root_data.clone(),
+            tree_data.clone(),
         );
 
         {
@@ -2869,6 +3589,14 @@ mod tests {
                 &mut root_lamports,
                 &mut root_data,
             );
+            let tree = account_info(
+                &tree_state,
+                &program_id,
+                true,
+                false,
+                &mut tree_lamports,
+                &mut tree_data,
+            );
             let authority_info = account_info(
                 &authority,
                 &program_id,
@@ -2877,7 +3605,7 @@ mod tests {
                 &mut authority_lamports,
                 &mut signer_data,
             );
-            let accounts = vec![pool, nullifier, output, roots, authority_info];
+            let accounts = vec![pool, nullifier, output, roots, tree, authority_info];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &[TAG_INIT]),
@@ -2885,7 +3613,10 @@ mod tests {
             );
         }
 
-        assert_eq!(before, (pool_data, nullifier_data, output_data, root_data));
+        assert_eq!(
+            before,
+            (pool_data, nullifier_data, output_data, root_data, tree_data)
+        );
     }
 
     #[test]
@@ -2896,6 +3627,7 @@ mod tests {
         let wrong_nullifier_set = Pubkey::new_unique();
         let output_queue = Pubkey::new_unique();
         let root_history = Pubkey::new_unique();
+        let tree_state = Pubkey::new_unique();
         let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &[1; HASH_LEN]);
         let output_record = output_record_pubkey(&program_id, &pool_state, &[5; HASH_LEN]);
         let system_program_id = system_program::ID;
@@ -2906,6 +3638,7 @@ mod tests {
         let mut output_lamports = 1_000_000;
         let mut output_record_lamports = 1_000_000;
         let mut root_lamports = 1_000_000;
+        let mut tree_lamports = 1_000_000;
         let mut marker_lamports = 1_000_000;
         let mut authority_lamports = 1_000_000;
         let mut system_lamports = 1_000_000;
@@ -2915,6 +3648,7 @@ mod tests {
         let mut output_data = vec![0; HEADER_LEN];
         let mut output_record_data = vec![0; OUTPUT_RECORD_PDA_LEN];
         let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut tree_data = vec![0; TREE_STATE_LEN];
         let mut marker_data = vec![0; NULLIFIER_MARKER_LEN];
         let mut signer_data = [];
         let mut system_data = [];
@@ -2952,6 +3686,14 @@ mod tests {
                 &mut root_lamports,
                 &mut root_data,
             );
+            let tree = account_info(
+                &tree_state,
+                &program_id,
+                true,
+                false,
+                &mut tree_lamports,
+                &mut tree_data,
+            );
             let authority_info = account_info(
                 &authority,
                 &program_id,
@@ -2960,7 +3702,7 @@ mod tests {
                 &mut authority_lamports,
                 &mut signer_data,
             );
-            let accounts = vec![pool, nullifier, output, roots, authority_info];
+            let accounts = vec![pool, nullifier, output, roots, tree, authority_info];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &[TAG_INIT]),
@@ -3080,6 +3822,7 @@ mod tests {
         let nullifier_set = Pubkey::new_unique();
         let output_queue = Pubkey::new_unique();
         let root_history = Pubkey::new_unique();
+        let tree_state = Pubkey::new_unique();
         let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &[1; HASH_LEN]);
         let output_record = output_record_pubkey(&program_id, &pool_state, &[5; HASH_LEN]);
         let duplicate_output_marker =
@@ -3094,6 +3837,7 @@ mod tests {
         let mut wrong_output_record_lamports = 1_000_000;
         let mut duplicate_output_marker_lamports = 1_000_000;
         let mut root_lamports = 1_000_000;
+        let mut tree_lamports = 1_000_000;
         let mut marker_lamports = 1_000_000;
         let mut authority_lamports = 1_000_000;
         let mut system_lamports = 1_000_000;
@@ -3103,6 +3847,7 @@ mod tests {
         let mut output_record_data = vec![0; OUTPUT_RECORD_PDA_LEN];
         let mut wrong_output_record_data = vec![0; OUTPUT_RECORD_PDA_LEN];
         let mut root_data = vec![0; HEADER_LEN + HASH_LEN * 4];
+        let mut tree_data = vec![0; TREE_STATE_LEN];
         let mut marker_data = vec![0; NULLIFIER_MARKER_LEN];
         let mut duplicate_output_marker_data = vec![0; NULLIFIER_MARKER_LEN];
         let mut signer_data = [];
@@ -3141,6 +3886,14 @@ mod tests {
                 &mut root_lamports,
                 &mut root_data,
             );
+            let tree = account_info(
+                &tree_state,
+                &program_id,
+                true,
+                false,
+                &mut tree_lamports,
+                &mut tree_data,
+            );
             let authority_info = account_info(
                 &authority,
                 &program_id,
@@ -3149,7 +3902,7 @@ mod tests {
                 &mut authority_lamports,
                 &mut signer_data,
             );
-            let accounts = vec![pool, nullifier, output, roots, authority_info];
+            let accounts = vec![pool, nullifier, output, roots, tree, authority_info];
 
             assert_eq!(
                 process_instruction(&program_id, &accounts, &[TAG_INIT]),
@@ -5336,7 +6089,598 @@ mod tests {
                 &token_program,
                 VAULT_ASSET_KIND_SPL,
             ),
-            Err(ProgramError::Custom(ERR_VAULT_ASSET_MISMATCH))
+            Err(ProgramError::Custom(
+                ERR_VAULT_ASSET_ALREADY_REGISTERED_WITH_DIFFERENT_PARAMS
+            ))
+        );
+    }
+
+    #[test]
+    fn append_tree_leaf_writes_program_owned_poseidon_root() {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let nullifier_set = Pubkey::new_unique();
+        let output_queue = Pubkey::new_unique();
+        let root_history = Pubkey::new_unique();
+        let tree_state = Pubkey::new_unique();
+        let authority = Pubkey::new_unique();
+        let system_program_id = system_program::ID;
+        let output_commitment = [7u8; HASH_LEN];
+        let transition_public_input_hash = [8u8; HASH_LEN];
+
+        let mut pool_lamports = 1_000_000u64;
+        let mut nullifier_lamports = 1_000_000u64;
+        let mut output_lamports = 1_000_000u64;
+        let mut root_lamports = 1_000_000u64;
+        let mut tree_lamports = 1_000_000u64;
+        let mut root_record_lamports = 1_000_000u64;
+        let mut marker_lamports = 1_000_000u64;
+        let mut authority_lamports = 1_000_000u64;
+        let mut system_lamports = 1_000_000u64;
+        let mut pool_data = vec![0u8; POOL_STATE_LEN];
+        let mut nullifier_data = vec![0u8; HEADER_LEN + HASH_LEN * 4];
+        let mut output_data = vec![0u8; HEADER_LEN];
+        let mut root_data = vec![0u8; HEADER_LEN + HASH_LEN * 4];
+        let mut tree_data = vec![0u8; TREE_STATE_LEN];
+        let mut root_record_data = vec![0u8; ROOT_RECORD_ACCOUNT_LEN];
+        let mut marker_data = vec![0u8; TREE_LEAF_MARKER_LEN];
+        let mut signer_data: Vec<u8> = vec![];
+        let mut system_data: Vec<u8> = vec![];
+
+        init_pool_for_tree_test(
+            &program_id,
+            &pool_state,
+            &nullifier_set,
+            &output_queue,
+            &root_history,
+            &tree_state,
+            &authority,
+            &mut pool_lamports,
+            &mut nullifier_lamports,
+            &mut output_lamports,
+            &mut root_lamports,
+            &mut tree_lamports,
+            &mut authority_lamports,
+            &mut pool_data,
+            &mut nullifier_data,
+            &mut output_data,
+            &mut root_data,
+            &mut tree_data,
+            &mut signer_data,
+        );
+
+        let previous_root = read_hash(&tree_data, TREE_CURRENT_ROOT_OFFSET).unwrap();
+        let (expected_root, _) =
+            compute_program_owned_append_root(&tree_data, 0, &output_commitment).unwrap();
+        let root_record = root_record_pubkey(&program_id, &pool_state, &expected_root);
+        let tree_leaf_marker =
+            tree_leaf_marker_pubkey(&program_id, &pool_state, &output_commitment);
+
+        {
+            let pool = account_info(
+                &pool_state,
+                &program_id,
+                true,
+                false,
+                &mut pool_lamports,
+                &mut pool_data,
+            );
+            let tree = account_info(
+                &tree_state,
+                &program_id,
+                true,
+                false,
+                &mut tree_lamports,
+                &mut tree_data,
+            );
+            let roots = account_info(
+                &root_history,
+                &program_id,
+                true,
+                false,
+                &mut root_lamports,
+                &mut root_data,
+            );
+            let record = account_info(
+                &root_record,
+                &program_id,
+                true,
+                false,
+                &mut root_record_lamports,
+                &mut root_record_data,
+            );
+            let marker = account_info(
+                &tree_leaf_marker,
+                &program_id,
+                true,
+                false,
+                &mut marker_lamports,
+                &mut marker_data,
+            );
+            let authority_info = account_info(
+                &authority,
+                &program_id,
+                true,
+                true,
+                &mut authority_lamports,
+                &mut signer_data,
+            );
+            let system_info = account_info(
+                &system_program_id,
+                &system_program_id,
+                false,
+                false,
+                &mut system_lamports,
+                &mut system_data,
+            );
+            let accounts = vec![
+                pool,
+                tree,
+                roots,
+                record,
+                marker,
+                authority_info,
+                system_info,
+            ];
+            let instruction = append_tree_leaf_instruction(
+                output_commitment,
+                previous_root,
+                expected_root,
+                transition_public_input_hash,
+                1,
+            );
+
+            assert_eq!(
+                process_instruction(&program_id, &accounts, &instruction),
+                Ok(())
+            );
+        }
+
+        assert_eq!(read_u64(&tree_data, TREE_NEXT_LEAF_INDEX_OFFSET), Ok(1));
+        assert_eq!(
+            &tree_data[TREE_CURRENT_ROOT_OFFSET..TREE_CURRENT_ROOT_OFFSET + HASH_LEN],
+            &expected_root
+        );
+        assert_eq!(read_count(&root_data), Ok(1));
+        assert_eq!(
+            &root_data[HEADER_LEN..HEADER_LEN + HASH_LEN],
+            &expected_root
+        );
+        assert_eq!(&root_record_data[..8], ROOT_RECORD_MAGIC);
+        assert_eq!(
+            read_u64(&root_record_data, ROOT_RECORD_LEAF_INDEX_BASE_OFFSET),
+            Ok(0)
+        );
+        assert_eq!(&marker_data[..8], TREE_LEAF_MARKER_MAGIC);
+        assert_eq!(read_u64(&marker_data, TREE_LEAF_MARKER_INDEX_OFFSET), Ok(0));
+    }
+
+    #[test]
+    fn append_tree_leaf_rejects_wrong_expected_root_without_mutation() {
+        let mut fixture = TreeAppendUnitFixture::new();
+        fixture.init();
+        let output_commitment = [7u8; HASH_LEN];
+        let previous_root = fixture.current_tree_root();
+        let (mut expected_root, _) =
+            compute_program_owned_append_root(&fixture.tree_data, 0, &output_commitment).unwrap();
+        expected_root[0] ^= 1;
+        let before = fixture.snapshot();
+
+        let result = fixture.call_append(
+            output_commitment,
+            previous_root,
+            expected_root,
+            [8u8; HASH_LEN],
+            1,
+        );
+
+        assert_eq!(result, Err(ProgramError::Custom(ERR_TREE_ROOT_MISMATCH)));
+        assert_eq!(before, fixture.snapshot());
+    }
+
+    #[test]
+    fn append_tree_leaf_rejects_wrong_tree_state_without_mutation() {
+        let mut fixture = TreeAppendUnitFixture::new();
+        fixture.init();
+        let output_commitment = [7u8; HASH_LEN];
+        let previous_root = fixture.current_tree_root();
+        let (expected_root, _) =
+            compute_program_owned_append_root(&fixture.tree_data, 0, &output_commitment).unwrap();
+        let before = fixture.snapshot();
+
+        let result = fixture.call_append_with_wrong_tree(
+            output_commitment,
+            previous_root,
+            expected_root,
+            [8u8; HASH_LEN],
+            1,
+        );
+
+        assert_eq!(result, Err(ProgramError::Custom(ERR_POOL_ACCOUNT_MISMATCH)));
+        assert_eq!(before, fixture.snapshot());
+    }
+
+    #[test]
+    fn append_tree_leaf_rejects_duplicate_leaf_without_mutation() {
+        let mut fixture = TreeAppendUnitFixture::new();
+        fixture.init();
+        let output_commitment = [7u8; HASH_LEN];
+        let previous_root = fixture.current_tree_root();
+        let (expected_root, _) =
+            compute_program_owned_append_root(&fixture.tree_data, 0, &output_commitment).unwrap();
+
+        assert_eq!(
+            fixture.call_append(
+                output_commitment,
+                previous_root,
+                expected_root,
+                [8u8; HASH_LEN],
+                1,
+            ),
+            Ok(())
+        );
+
+        let second_previous_root = fixture.current_tree_root();
+        let (second_expected_root, _) =
+            compute_program_owned_append_root(&fixture.tree_data, 1, &output_commitment).unwrap();
+        fixture.root_record_data.fill(0);
+        let before = fixture.snapshot();
+        let result = fixture.call_append(
+            output_commitment,
+            second_previous_root,
+            second_expected_root,
+            [9u8; HASH_LEN],
+            1,
+        );
+
+        assert_eq!(result, Err(ProgramError::Custom(ERR_DUPLICATE_TREE_LEAF)));
+        assert_eq!(before, fixture.snapshot());
+    }
+
+    #[test]
+    fn append_tree_leaf_rejects_capacity_without_mutation() {
+        let mut fixture = TreeAppendUnitFixture::new();
+        fixture.init();
+        write_u64(
+            &mut fixture.tree_data,
+            TREE_NEXT_LEAF_INDEX_OFFSET,
+            TREE_CAPACITY,
+        )
+        .unwrap();
+        let before = fixture.snapshot();
+        let result = fixture.call_append(
+            [7u8; HASH_LEN],
+            fixture.current_tree_root(),
+            [8u8; HASH_LEN],
+            [9u8; HASH_LEN],
+            1,
+        );
+
+        assert_eq!(result, Err(ProgramError::Custom(ERR_TREE_CAPACITY_FULL)));
+        assert_eq!(before, fixture.snapshot());
+    }
+
+    struct TreeAppendUnitFixture {
+        program_id: Pubkey,
+        pool_state: Pubkey,
+        nullifier_set: Pubkey,
+        output_queue: Pubkey,
+        root_history: Pubkey,
+        tree_state: Pubkey,
+        wrong_tree_state: Pubkey,
+        authority: Pubkey,
+        system_program_id: Pubkey,
+        pool_lamports: u64,
+        nullifier_lamports: u64,
+        output_lamports: u64,
+        root_lamports: u64,
+        tree_lamports: u64,
+        wrong_tree_lamports: u64,
+        root_record_lamports: u64,
+        marker_lamports: u64,
+        authority_lamports: u64,
+        system_lamports: u64,
+        pool_data: Vec<u8>,
+        nullifier_data: Vec<u8>,
+        output_data: Vec<u8>,
+        root_data: Vec<u8>,
+        tree_data: Vec<u8>,
+        wrong_tree_data: Vec<u8>,
+        root_record_data: Vec<u8>,
+        marker_data: Vec<u8>,
+        signer_data: Vec<u8>,
+        system_data: Vec<u8>,
+    }
+
+    impl TreeAppendUnitFixture {
+        fn new() -> Self {
+            Self {
+                program_id: Pubkey::new_unique(),
+                pool_state: Pubkey::new_unique(),
+                nullifier_set: Pubkey::new_unique(),
+                output_queue: Pubkey::new_unique(),
+                root_history: Pubkey::new_unique(),
+                tree_state: Pubkey::new_unique(),
+                wrong_tree_state: Pubkey::new_unique(),
+                authority: Pubkey::new_unique(),
+                system_program_id: system_program::ID,
+                pool_lamports: 1_000_000,
+                nullifier_lamports: 1_000_000,
+                output_lamports: 1_000_000,
+                root_lamports: 1_000_000,
+                tree_lamports: 1_000_000,
+                wrong_tree_lamports: 1_000_000,
+                root_record_lamports: 1_000_000,
+                marker_lamports: 1_000_000,
+                authority_lamports: 1_000_000,
+                system_lamports: 1_000_000,
+                pool_data: vec![0u8; POOL_STATE_LEN],
+                nullifier_data: vec![0u8; HEADER_LEN + HASH_LEN * 4],
+                output_data: vec![0u8; HEADER_LEN],
+                root_data: vec![0u8; HEADER_LEN + HASH_LEN * 4],
+                tree_data: vec![0u8; TREE_STATE_LEN],
+                wrong_tree_data: vec![0u8; TREE_STATE_LEN],
+                root_record_data: vec![0u8; ROOT_RECORD_ACCOUNT_LEN],
+                marker_data: vec![0u8; TREE_LEAF_MARKER_LEN],
+                signer_data: vec![],
+                system_data: vec![],
+            }
+        }
+
+        fn init(&mut self) {
+            init_pool_for_tree_test(
+                &self.program_id,
+                &self.pool_state,
+                &self.nullifier_set,
+                &self.output_queue,
+                &self.root_history,
+                &self.tree_state,
+                &self.authority,
+                &mut self.pool_lamports,
+                &mut self.nullifier_lamports,
+                &mut self.output_lamports,
+                &mut self.root_lamports,
+                &mut self.tree_lamports,
+                &mut self.authority_lamports,
+                &mut self.pool_data,
+                &mut self.nullifier_data,
+                &mut self.output_data,
+                &mut self.root_data,
+                &mut self.tree_data,
+                &mut self.signer_data,
+            );
+            self.wrong_tree_data.copy_from_slice(&self.tree_data);
+        }
+
+        fn current_tree_root(&self) -> [u8; HASH_LEN] {
+            read_hash(&self.tree_data, TREE_CURRENT_ROOT_OFFSET).unwrap()
+        }
+
+        fn snapshot(&self) -> Vec<Vec<u8>> {
+            vec![
+                self.pool_data.clone(),
+                self.root_data.clone(),
+                self.tree_data.clone(),
+                self.wrong_tree_data.clone(),
+                self.root_record_data.clone(),
+                self.marker_data.clone(),
+            ]
+        }
+
+        fn call_append(
+            &mut self,
+            output_commitment: [u8; HASH_LEN],
+            previous_root: [u8; HASH_LEN],
+            expected_root: [u8; HASH_LEN],
+            transition_public_input_hash: [u8; HASH_LEN],
+            transition_kind: u8,
+        ) -> ProgramResult {
+            self.call_append_inner(
+                false,
+                output_commitment,
+                previous_root,
+                expected_root,
+                transition_public_input_hash,
+                transition_kind,
+            )
+        }
+
+        fn call_append_with_wrong_tree(
+            &mut self,
+            output_commitment: [u8; HASH_LEN],
+            previous_root: [u8; HASH_LEN],
+            expected_root: [u8; HASH_LEN],
+            transition_public_input_hash: [u8; HASH_LEN],
+            transition_kind: u8,
+        ) -> ProgramResult {
+            self.call_append_inner(
+                true,
+                output_commitment,
+                previous_root,
+                expected_root,
+                transition_public_input_hash,
+                transition_kind,
+            )
+        }
+
+        fn call_append_inner(
+            &mut self,
+            use_wrong_tree: bool,
+            output_commitment: [u8; HASH_LEN],
+            previous_root: [u8; HASH_LEN],
+            expected_root: [u8; HASH_LEN],
+            transition_public_input_hash: [u8; HASH_LEN],
+            transition_kind: u8,
+        ) -> ProgramResult {
+            let tree_key = if use_wrong_tree {
+                self.wrong_tree_state
+            } else {
+                self.tree_state
+            };
+            let root_record =
+                root_record_pubkey(&self.program_id, &self.pool_state, &expected_root);
+            let tree_leaf_marker =
+                tree_leaf_marker_pubkey(&self.program_id, &self.pool_state, &output_commitment);
+            let pool = account_info(
+                &self.pool_state,
+                &self.program_id,
+                true,
+                false,
+                &mut self.pool_lamports,
+                &mut self.pool_data,
+            );
+            let tree = if use_wrong_tree {
+                account_info(
+                    &tree_key,
+                    &self.program_id,
+                    true,
+                    false,
+                    &mut self.wrong_tree_lamports,
+                    &mut self.wrong_tree_data,
+                )
+            } else {
+                account_info(
+                    &tree_key,
+                    &self.program_id,
+                    true,
+                    false,
+                    &mut self.tree_lamports,
+                    &mut self.tree_data,
+                )
+            };
+            let roots = account_info(
+                &self.root_history,
+                &self.program_id,
+                true,
+                false,
+                &mut self.root_lamports,
+                &mut self.root_data,
+            );
+            let record = account_info(
+                &root_record,
+                &self.program_id,
+                true,
+                false,
+                &mut self.root_record_lamports,
+                &mut self.root_record_data,
+            );
+            let marker = account_info(
+                &tree_leaf_marker,
+                &self.program_id,
+                true,
+                false,
+                &mut self.marker_lamports,
+                &mut self.marker_data,
+            );
+            let authority_info = account_info(
+                &self.authority,
+                &self.program_id,
+                true,
+                true,
+                &mut self.authority_lamports,
+                &mut self.signer_data,
+            );
+            let system_info = account_info(
+                &self.system_program_id,
+                &self.system_program_id,
+                false,
+                false,
+                &mut self.system_lamports,
+                &mut self.system_data,
+            );
+            let accounts = vec![
+                pool,
+                tree,
+                roots,
+                record,
+                marker,
+                authority_info,
+                system_info,
+            ];
+            let instruction = append_tree_leaf_instruction(
+                output_commitment,
+                previous_root,
+                expected_root,
+                transition_public_input_hash,
+                transition_kind,
+            );
+            process_instruction(&self.program_id, &accounts, &instruction)
+        }
+    }
+
+    fn init_pool_for_tree_test(
+        program_id: &Pubkey,
+        pool_state: &Pubkey,
+        nullifier_set: &Pubkey,
+        output_queue: &Pubkey,
+        root_history: &Pubkey,
+        tree_state: &Pubkey,
+        authority: &Pubkey,
+        pool_lamports: &mut u64,
+        nullifier_lamports: &mut u64,
+        output_lamports: &mut u64,
+        root_lamports: &mut u64,
+        tree_lamports: &mut u64,
+        authority_lamports: &mut u64,
+        pool_data: &mut [u8],
+        nullifier_data: &mut [u8],
+        output_data: &mut [u8],
+        root_data: &mut [u8],
+        tree_data: &mut [u8],
+        signer_data: &mut [u8],
+    ) {
+        let pool = account_info(
+            pool_state,
+            program_id,
+            true,
+            false,
+            pool_lamports,
+            pool_data,
+        );
+        let nullifier = account_info(
+            nullifier_set,
+            program_id,
+            true,
+            false,
+            nullifier_lamports,
+            nullifier_data,
+        );
+        let output = account_info(
+            output_queue,
+            program_id,
+            true,
+            false,
+            output_lamports,
+            output_data,
+        );
+        let roots = account_info(
+            root_history,
+            program_id,
+            true,
+            false,
+            root_lamports,
+            root_data,
+        );
+        let tree = account_info(
+            tree_state,
+            program_id,
+            true,
+            false,
+            tree_lamports,
+            tree_data,
+        );
+        let authority_info = account_info(
+            authority,
+            program_id,
+            false,
+            true,
+            authority_lamports,
+            signer_data,
+        );
+        let accounts = vec![pool, nullifier, output, roots, tree, authority_info];
+        assert_eq!(
+            process_instruction(program_id, &accounts, &[TAG_INIT]),
+            Ok(())
         );
     }
 
@@ -5436,6 +6780,22 @@ mod tests {
         .0
     }
 
+    fn tree_leaf_marker_pubkey(
+        program_id: &Pubkey,
+        pool_state: &Pubkey,
+        output_commitment: &[u8],
+    ) -> Pubkey {
+        Pubkey::find_program_address(
+            &[
+                TREE_LEAF_MARKER_SEED,
+                pool_state.as_ref(),
+                output_commitment,
+            ],
+            program_id,
+        )
+        .0
+    }
+
     fn spend_instruction() -> Vec<u8> {
         spend_instruction_with(
             [1; HASH_LEN],
@@ -5470,13 +6830,102 @@ mod tests {
         data
     }
 
-    // SOL TAG6 unshield path test (Crucible/fuzz ready, deepened).
-    // Verifies TAG_UNSHIELD=6 dispatch, sentinel + kind=2 preflights, *dedicated* sol_vault_holding PDA derivation using SOL_VAULT_SEED + NATIVE_SOL_ASSET_ID_SENTINEL,
-    // nullifier consume, successful system CPI release, and UnshieldEvent msg! scaffolding (with real values).
-    // In test mode (cargo test): full success path exercised. In SBF/deploy: fail-closed (cfg not(test)).
-    // Uses correct derived PDAs for happy-path accounts (robust vs previous skeleton).
+    fn append_tree_leaf_instruction(
+        output_commitment: [u8; HASH_LEN],
+        previous_root: [u8; HASH_LEN],
+        new_root: [u8; HASH_LEN],
+        transition_public_input_hash: [u8; HASH_LEN],
+        transition_kind: u8,
+    ) -> Vec<u8> {
+        let mut data = Vec::with_capacity(APPEND_TREE_LEAF_PAYLOAD_LEN);
+        data.push(TAG_APPEND_TREE_LEAF);
+        data.extend_from_slice(&output_commitment);
+        data.extend_from_slice(&previous_root);
+        data.extend_from_slice(&new_root);
+        data.extend_from_slice(&transition_public_input_hash);
+        data.push(transition_kind);
+        data
+    }
+
+    fn write_sol_vault_asset_record_data(
+        data: &mut [u8],
+        pool_state: &Pubkey,
+        exit_asset_id: &[u8; HASH_LEN],
+        sol_vault_holding: &Pubkey,
+        asset_kind: u8,
+    ) {
+        data.fill(0);
+        data[..8].copy_from_slice(VAULT_ASSET_MAGIC);
+        data[8] = VERSION;
+        write_count(data, 1).unwrap();
+        data[VAULT_ASSET_POOL_OFFSET..VAULT_ASSET_POOL_OFFSET + HASH_LEN]
+            .copy_from_slice(pool_state.as_ref());
+        data[VAULT_ASSET_EXIT_ASSET_ID_OFFSET..VAULT_ASSET_EXIT_ASSET_ID_OFFSET + HASH_LEN]
+            .copy_from_slice(exit_asset_id);
+        data[VAULT_ASSET_VAULT_AUTHORITY_OFFSET..VAULT_ASSET_VAULT_AUTHORITY_OFFSET + HASH_LEN]
+            .copy_from_slice(sol_vault_holding.as_ref());
+        data[VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET
+            ..VAULT_ASSET_VAULT_TOKEN_ACCOUNT_OFFSET + HASH_LEN]
+            .copy_from_slice(sol_vault_holding.as_ref());
+        data[VAULT_ASSET_TOKEN_PROGRAM_OFFSET..VAULT_ASSET_TOKEN_PROGRAM_OFFSET + HASH_LEN]
+            .copy_from_slice(system_program::ID.as_ref());
+        data[VAULT_ASSET_KIND_OFFSET] = asset_kind;
+        data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] = 0;
+    }
+
     #[test]
-    fn unshield_sol_sentinel_path_exercises_full_tag6_success_in_test_mode() {
+    fn tag_init_initializes_verifier_wired_to_zero() {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let nullifier_set = Pubkey::new_unique();
+        let output_queue = Pubkey::new_unique();
+        let root_history = Pubkey::new_unique();
+        let tree_state = Pubkey::new_unique();
+        let authority = Pubkey::new_unique();
+        let mut pool_lamports = 1_000_000;
+        let mut nullifier_lamports = 1_000_000;
+        let mut output_lamports = 1_000_000;
+        let mut root_lamports = 1_000_000;
+        let mut tree_lamports = 1_000_000;
+        let mut authority_lamports = 1_000_000;
+        let mut pool_data = vec![0u8; POOL_STATE_LEN];
+        let mut nullifier_data = vec![0u8; HEADER_LEN + HASH_LEN * 4];
+        let mut output_data = vec![0u8; HEADER_LEN];
+        let mut root_data = vec![0u8; HEADER_LEN + HASH_LEN * 4];
+        let mut tree_data = vec![0u8; TREE_STATE_LEN];
+        let mut signer_data = vec![];
+
+        init_pool_for_tree_test(
+            &program_id,
+            &pool_state,
+            &nullifier_set,
+            &output_queue,
+            &root_history,
+            &tree_state,
+            &authority,
+            &mut pool_lamports,
+            &mut nullifier_lamports,
+            &mut output_lamports,
+            &mut root_lamports,
+            &mut tree_lamports,
+            &mut authority_lamports,
+            &mut pool_data,
+            &mut nullifier_data,
+            &mut output_data,
+            &mut root_data,
+            &mut tree_data,
+            &mut signer_data,
+        );
+
+        assert_eq!(pool_data[POOL_VERIFIER_WIRED_OFFSET], POOL_VERIFIER_NOT_WIRED);
+        assert_eq!(pool_verifier_wired(&pool_data), Ok(false));
+    }
+
+    // SOL TAG6 unshield path test (Crucible/fuzz ready, deepened).
+    // Verifies TAG_UNSHIELD=6 dispatch, full kind=2 sentinel registry preflight, and
+    // the runtime verifier_wired=0 fail-closed boundary before nullifier consume or release CPI.
+    #[test]
+    fn unshield_sol_verifier_wired_zero_rejects_before_nullifier_or_release() {
         let program_id = Pubkey::new_unique();
         let pool_state = Pubkey::new_unique();
         let tree_state = Pubkey::new_unique();
@@ -5503,23 +6952,29 @@ mod tests {
         let mut signer_lamports = 2_000_000u64; // extra for rent funding in ensure_nullifier_marker
         let mut marker_lamports = 0u64;
 
-        // Minimal data for preflight (asset record with kind=SOL)
+        // Full registered vault-asset data for preflight (asset record with kind=SOL)
         let mut pool_data = vec![0u8; POOL_STATE_LEN];
         pool_data[..8].copy_from_slice(POOL_MAGIC);
         pool_data[8] = VERSION;
 
         let mut tree_data = vec![0u8; 128];
         let mut null_data = vec![0u8; 64];
-        let mut asset_rec_data = vec![0u8; 32];
-        asset_rec_data[..8].copy_from_slice(b"VNTA2AST");
-        asset_rec_data[8] = VERSION;
-        asset_rec_data[9] = VAULT_ASSET_KIND_SOL; // kind=2
+        let mut asset_rec_data = vec![0u8; VAULT_ASSET_ACCOUNT_LEN];
+        write_sol_vault_asset_record_data(
+            &mut asset_rec_data,
+            &pool_state,
+            &NATIVE_SOL_ASSET_ID_SENTINEL,
+            &sol_vault_holding_key,
+            VAULT_ASSET_KIND_SOL,
+        );
 
         let mut vault_data: Vec<u8> = vec![0; 0];
         let mut dest_data: Vec<u8> = vec![0; 0];
         let mut cpi_data: Vec<u8> = vec![0; 0];
         let mut signer_data: Vec<u8> = vec![0; 0];
         let mut marker_data: Vec<u8> = vec![0; NULLIFIER_MARKER_LEN];
+        let before_vault_lamports = vault_lamports;
+        let before_dest_lamports = dest_lamports;
 
         let pool = account_info(
             &pool_state,
@@ -5605,10 +7060,13 @@ mod tests {
         unshield_data.extend_from_slice(&[9u8; 32]); // public_inputs_hash
                                                      // no proof bytes
 
-        // In test mode: full path now succeeds (CPI + nullifier consumed + event emitted with real values)
         let result = process_instruction(&program_id, &accounts, &unshield_data);
-        assert_eq!(result, Ok(()));
-        // (In SBF build: would be ERR_UNSHIELD_NOT_WIRED; test helper demonstrates the wired SOL TAG6 path.)
+        assert_eq!(result, Err(ProgramError::Custom(ERR_UNSHIELD_NOT_WIRED)));
+        drop(accounts);
+
+        assert_eq!(vault_lamports, before_vault_lamports);
+        assert_eq!(dest_lamports, before_dest_lamports);
+        assert!(marker_data.iter().all(|byte| *byte == 0));
     }
 
     #[test]
@@ -5647,10 +7105,14 @@ mod tests {
             pool_data[8] = VERSION;
             let mut tree_data = vec![0u8; 128];
             let mut null_data = vec![0u8; 64];
-            let mut asset_rec_data = vec![0u8; 32];
-            asset_rec_data[..8].copy_from_slice(VAULT_ASSET_MAGIC);
-            asset_rec_data[8] = VERSION;
-            asset_rec_data[9] = VAULT_ASSET_KIND_SOL;
+            let mut asset_rec_data = vec![0u8; VAULT_ASSET_ACCOUNT_LEN];
+            write_sol_vault_asset_record_data(
+                &mut asset_rec_data,
+                &pool_state,
+                &NATIVE_SOL_ASSET_ID_SENTINEL,
+                &sol_vault_holding_key,
+                VAULT_ASSET_KIND_SOL,
+            );
             let mut vault_data: Vec<u8> = vec![0; 0];
             let mut dest_data: Vec<u8> = vec![0; 0];
             let mut cpi_data: Vec<u8> = vec![0; 0];
@@ -5927,10 +7389,15 @@ mod tests {
         pool_data[8] = VERSION;
         let mut tree_data = vec![0u8; 32];
         let mut null_data = vec![0u8; 32];
-        let mut asset_d = vec![0u8; 32];
-        asset_d[..8].copy_from_slice(b"VNTA2AST");
-        asset_d[8] = VERSION;
-        asset_d[9] = VAULT_ASSET_KIND_SOL;
+        let (expected_sol_vault_key, _) = sol_vault_pda(&program_id, &pool_state);
+        let mut asset_d = vec![0u8; VAULT_ASSET_ACCOUNT_LEN];
+        write_sol_vault_asset_record_data(
+            &mut asset_d,
+            &pool_state,
+            &NATIVE_SOL_ASSET_ID_SENTINEL,
+            &expected_sol_vault_key,
+            VAULT_ASSET_KIND_SOL,
+        );
         let mut vault_d = vec![0u8; 32];
         let mut dest_d = vec![0u8; 32];
         let mut cpi_d = vec![0u8; 32];
@@ -6062,10 +7529,14 @@ mod tests {
         let mut null_l = 1u64;
         let mut null_d = vec![0u8; 32];
         let mut asset_rec_l = 1u64;
-        let mut asset_d = vec![0u8; 32];
-        asset_d[..8].copy_from_slice(b"VNTA2AST");
-        asset_d[8] = VERSION;
-        asset_d[9] = 99u8;
+        let mut asset_d = vec![0u8; VAULT_ASSET_ACCOUNT_LEN];
+        write_sol_vault_asset_record_data(
+            &mut asset_d,
+            &pool_state,
+            &NATIVE_SOL_ASSET_ID_SENTINEL,
+            &sol_vault_key,
+            99u8,
+        );
         let mut vault_l = 1u64;
         let mut vault_d = vec![0u8; 32];
         let mut dest_l = 1u64;
@@ -6157,11 +7628,10 @@ mod tests {
         assert_eq!(res, Err(ProgramError::Custom(ERR_INVALID_ASSET_KIND)));
     }
 
-    // Additional dedicated success test for TAG6 SOL path (valid sentinel + kind=2, successful CPI with non-zero amount,
-    // nullifier consumed, UnshieldEvent emitted). Exercises the full improved release path in test helper mode.
-    // (fail cases for wrong kind / sentinel bypass / pda mismatch covered above).
+    // A future verifier setter must not make TAG6 release sufficient by itself. Until item 9 lands
+    // proof/root/public-input/nullifier acceptance, even verifier_wired=1 returns not-wired before mutation.
     #[test]
-    fn unshield_sol_valid_sentinel_kind2_successful_cpi_nullifier_consumed() {
+    fn unshield_sol_verifier_wired_one_still_rejects_until_verifier_acceptance() {
         let program_id = Pubkey::new_unique();
         let pool_state = Pubkey::new_unique();
         let tree_state = Pubkey::new_unique();
@@ -6191,19 +7661,26 @@ mod tests {
         let mut pool_data = vec![0u8; POOL_STATE_LEN];
         pool_data[..8].copy_from_slice(POOL_MAGIC);
         pool_data[8] = VERSION;
+        pool_data[POOL_VERIFIER_WIRED_OFFSET] = POOL_VERIFIER_WIRED;
 
         let mut tree_data = vec![0u8; 128];
         let mut null_data = vec![0u8; 64];
-        let mut asset_rec_data = vec![0u8; 32];
-        asset_rec_data[..8].copy_from_slice(b"VNTA2AST");
-        asset_rec_data[8] = VERSION;
-        asset_rec_data[9] = VAULT_ASSET_KIND_SOL;
+        let mut asset_rec_data = vec![0u8; VAULT_ASSET_ACCOUNT_LEN];
+        write_sol_vault_asset_record_data(
+            &mut asset_rec_data,
+            &pool_state,
+            &NATIVE_SOL_ASSET_ID_SENTINEL,
+            &sol_vault_holding_key,
+            VAULT_ASSET_KIND_SOL,
+        );
 
         let mut vault_data: Vec<u8> = vec![0; 0];
         let mut dest_data: Vec<u8> = vec![0; 0];
         let mut cpi_data: Vec<u8> = vec![0; 0];
         let mut signer_data: Vec<u8> = vec![0; 0];
         let mut marker_data: Vec<u8> = vec![0; NULLIFIER_MARKER_LEN];
+        let before_vault_lamports = vault_lamports;
+        let before_dest_lamports = dest_lamports;
 
         let pool = account_info(
             &pool_state,
@@ -6288,13 +7765,13 @@ mod tests {
         unshield_data.extend_from_slice(&exit_amount.to_le_bytes());
         unshield_data.extend_from_slice(&[7u8; 32]); // public hash (used as root proxy in emit)
 
-        // Note: in this raw AccountInfo unit test harness, invoke_signed system transfer succeeds (PDA seeds verified) but
-        // lamports deltas are not auto-applied to the &mut refs without full Solana runtime executor. The key verification
-        // is that the path reaches CPI + emit without error.
         let result = process_instruction(&program_id, &accounts, &unshield_data);
-        assert_eq!(result, Ok(()));
-        // Marker consumed (now program-owned with data), UnshieldEvent msg! with actual nullifier+root emitted for test indexer.
-        // (In full Crucible / bank tests, lamports transfer from sol_vault_holding to destination would be asserted.)
+        assert_eq!(result, Err(ProgramError::Custom(ERR_UNSHIELD_NOT_WIRED)));
+        drop(accounts);
+
+        assert_eq!(vault_lamports, before_vault_lamports);
+        assert_eq!(dest_lamports, before_dest_lamports);
+        assert!(marker_data.iter().all(|byte| *byte == 0));
     }
 
     // PDA derivation test exercising the new top-level sol_vault_pda / vault_asset_record_pda helpers.

@@ -2,7 +2,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { execFileSync } from "node:child_process";
-import { poseidon1, poseidon2, poseidon8, poseidon15 } from "poseidon-lite";
+import { poseidon1, poseidon2, poseidon6, poseidon8, poseidon15 } from "poseidon-lite";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
@@ -185,7 +185,7 @@ function createInvalidAmountRangeWitnessPackage(validWitnessPackage) {
     path: privateWitness.membership_path,
     pathDirectionBits: privateWitness.membership_path_direction_bits,
   });
-  const nullifier = deriveNullifier(privateWitness, stateRoot, leaf);
+  const nullifier = deriveNullifier(privateWitness);
   const consumeContextTag = poseidon8([
     BigInt(privateWitness.release_destination_hi),
     BigInt(privateWitness.release_destination_lo),
@@ -221,16 +221,14 @@ function createInvalidAmountRangeWitnessPackage(validWitnessPackage) {
   };
 }
 
-function deriveNullifier(privateWitness, stateRoot, leaf) {
-  return poseidon8([
+function deriveNullifier(privateWitness) {
+  return poseidon6([
     BigInt(privateWitness.owner_public_key_hi),
     BigInt(privateWitness.owner_public_key_lo),
     BigInt(privateWitness.note_secret_hi),
     BigInt(privateWitness.note_secret_lo),
     BigInt(privateWitness.note_nonce_hi),
     BigInt(privateWitness.note_nonce_lo),
-    BigInt(stateRoot),
-    BigInt(leaf),
   ]).toString(10);
 }
 

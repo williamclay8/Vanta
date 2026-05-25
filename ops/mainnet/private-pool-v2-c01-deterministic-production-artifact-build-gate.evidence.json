@@ -48,6 +48,8 @@
     "requiredProductionSourceAcirSha256": "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde",
     "sourceReviewAcceptanceRequired": true,
     "sourceReviewAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
+    "sourceFreezeRequired": true,
+    "frozenSourceCommitRefShape": "git:<reviewed-immutable-production-source-commit-ref>",
     "toolchainReviewRequired": true,
     "trustedSetupOrMitigationRequired": true,
     "deterministicRebuildRequired": true,
@@ -58,6 +60,9 @@
   "currentAcceptedDeterministicBuildReceipt": {
     "status": "absent",
     "buildReceiptRef": null,
+    "frozenSourceCommitRef": null,
+    "sourceTreeStatusRef": null,
+    "sourceFreezeReviewRef": null,
     "sourceReviewAcceptanceRef": null,
     "pinnedToolchainSourceRef": null,
     "reviewedToolchainBuildRef": null,
@@ -82,6 +87,7 @@
     "validatedWhenEnvVarPresent": true,
     "validates": [
       "external source-review acceptance ref",
+      "reviewed frozen source commit and source tree status refs",
       "pinned reviewed Sunspot/Gnark toolchain source",
       "reviewed reproducible toolchain build",
       "trusted setup or toxic-waste mitigation ref",
@@ -102,6 +108,18 @@
     {
       "id": "external-source-review-acceptance",
       "requiredRefShape": "review:<external-beta18-h6-source-migration-acceptance-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "frozen-production-source-commit",
+      "requiredRefShape": "git:<reviewed-immutable-production-source-commit-ref>",
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "source-freeze-review",
+      "requiredRefShape": "review:<reviewed-source-freeze-acceptance-ref>",
       "currentRef": null,
       "satisfiesC01PositiveEvidence": false
     },
@@ -174,6 +192,7 @@
   ],
   "promotionRules": [
     "deterministic build receipt refs must be references only; raw proof, verifying-key, proving-key, witness, keypair, secret, and signed transaction bytes stay out of git",
+    "the production verifier lane must freeze a reviewed immutable source commit and source tree status before deterministic artifact refs can promote",
     "source-review acceptance is required before a beta18 H6 source-migration build receipt can promote source lineage",
     "production setup or equivalent toxic-waste mitigation must be reviewed before proof/VK output refs can promote",
     "deterministic build output refs must agree on circuit, reviewed beta18 H6 production source ACIR hash, proof format id, proof byte length, public-witness byte length, generated verifier public input count, and public input label",
@@ -198,6 +217,7 @@
   },
   "remainingBlockers": [
     "no external source reviewer acceptance",
+    "no reviewed frozen source commit",
     "no reviewed compatible Sunspot/Noir/Gnark toolchain provenance",
     "no production setup or toxic-waste mitigation",
     "no deterministic reviewed production artifact build receipt",

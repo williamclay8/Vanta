@@ -24,10 +24,13 @@ if (
   fixtureMode !== "invalid-nullifier" &&
   fixtureMode !== "invalid-owner-secret-binding" &&
   fixtureMode !== "invalid-input-commitment-preimage" &&
+  fixtureMode !== "invalid-net-payout-conservation" &&
+  fixtureMode !== "invalid-net-payout-public-binding" &&
+  fixtureMode !== "invalid-relayer-fee-exceeds-amount" &&
   fixtureMode !== "invalid-amount-range"
 ) {
   console.error(
-    'Expected fixture mode "valid", "forged-input-membership", "invalid-binding", "invalid-nullifier", "invalid-owner-secret-binding", "invalid-input-commitment-preimage", or "invalid-amount-range".',
+    'Expected fixture mode "valid", "forged-input-membership", "invalid-binding", "invalid-nullifier", "invalid-owner-secret-binding", "invalid-input-commitment-preimage", "invalid-net-payout-conservation", "invalid-net-payout-public-binding", "invalid-relayer-fee-exceeds-amount", or "invalid-amount-range".',
   );
   process.exit(1);
 }

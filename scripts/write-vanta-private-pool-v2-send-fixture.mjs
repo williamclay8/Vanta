@@ -42,14 +42,20 @@ if (
   fixtureMode !== "invalid-amount-conservation" &&
   fixtureMode !== "invalid-amount-range" &&
   fixtureMode !== "invalid-binding" &&
+  fixtureMode !== "invalid-change-output-commitment-preimage" &&
   fixtureMode !== "invalid-input-commitment-preimage" &&
   fixtureMode !== "invalid-memo-ciphertext-hash" &&
   fixtureMode !== "invalid-nullifier" &&
   fixtureMode !== "invalid-owner-secret-binding" &&
+  fixtureMode !== "invalid-relayer-fee-conservation" &&
+  fixtureMode !== "invalid-relayer-fee-exceeds-input" &&
+  fixtureMode !== "invalid-relayer-fee-public-binding" &&
+  fixtureMode !== "invalid-valid-until-slot-public-binding" &&
+  fixtureMode !== "invalid-recipient-output-commitment-preimage" &&
   fixtureMode !== "invalid-output-root"
 ) {
   console.error(
-    'Expected fixture mode "valid", "forged-input-membership", "forged-recipient-append-path", "forged-change-append-path", "invalid-amount-conservation", "invalid-amount-range", "invalid-binding", "invalid-input-commitment-preimage", "invalid-memo-ciphertext-hash", "invalid-nullifier", "invalid-owner-secret-binding", or "invalid-output-root".',
+    'Expected fixture mode "valid", "forged-input-membership", "forged-recipient-append-path", "forged-change-append-path", "invalid-amount-conservation", "invalid-amount-range", "invalid-binding", "invalid-change-output-commitment-preimage", "invalid-input-commitment-preimage", "invalid-memo-ciphertext-hash", "invalid-nullifier", "invalid-owner-secret-binding", "invalid-relayer-fee-conservation", "invalid-relayer-fee-exceeds-input", "invalid-relayer-fee-public-binding", "invalid-valid-until-slot-public-binding", "invalid-recipient-output-commitment-preimage", or "invalid-output-root".',
   );
   process.exit(1);
 }

@@ -137,6 +137,7 @@ try {
     recipientOutputRoot: "field:recipient-root",
     sendContextTag: "field:send-context",
     sendPublicInputHash: "field:send-public-input-hash",
+    validUntilSlot: "1000250",
   });
 
   assert(request.intent === "private-send", "Expected private-send intent.");
@@ -167,6 +168,7 @@ try {
         "economics-commitment:field:economics",
         "owner-commitment:field:owner",
         "send-context-tag:field:send-context",
+        "valid-until-slot:1000250",
       ]),
     "Expected stable private-send proof public-input ordering.",
   );
@@ -208,6 +210,7 @@ try {
     recipientOutputCommitment: "field:recipient-output",
     recipientOutputRoot: "field:recipient-root",
     sendContextTag: "field:send-context",
+    validUntilSlot: "1000250",
   });
   assert(
     noChangeRequest.publicInputs.includes("change-output-commitment:0"),
@@ -236,6 +239,7 @@ try {
         recipientOutputCommitment: "field:recipient-output",
         recipientOutputRoot: "field:recipient-root",
         sendContextTag: "field:send-context",
+        validUntilSlot: "1000250",
       }),
     "change memo ciphertext body hash",
   );
@@ -257,6 +261,7 @@ try {
         recipientOutputCommitment: "field:recipient-output",
         recipientOutputRoot: "field:recipient-root",
         sendContextTag: "field:send-context",
+        validUntilSlot: "1000250",
       }),
     "nullifier",
   );
@@ -278,6 +283,7 @@ try {
         recipientOutputCommitment: "",
         recipientOutputRoot: "field:recipient-root",
         sendContextTag: "field:send-context",
+        validUntilSlot: "1000250",
       }),
     "recipient output commitment",
   );
@@ -306,6 +312,7 @@ try {
           recipientOutputCommitment: "field:recipient-output",
           recipientOutputRoot: "field:recipient-root",
           sendContextTag: "field:send-context",
+          validUntilSlot: "1000250",
         }),
       message,
     );
@@ -327,10 +334,33 @@ try {
         recipientOutputCommitment: "field:recipient-output",
         recipientOutputRoot: "field:recipient-root",
         sendContextTag: "field:send-context",
+        validUntilSlot: "1000250",
       }),
     "zero memo ciphertext body hash field",
   );
   console.log("private-pool-v2 send proof request memo ciphertext body hash guard: PASS");
+
+  await expectRejection(
+    () =>
+      createVantaPrivatePoolV2SendProofRequest({
+        assetIdCommitment: "field:asset",
+        changeLeafIndex: "43",
+        changeOutputRoot: "field:change-root",
+        economicsCommitment: "field:economics",
+        inputCommitment: "field:input-note",
+        inputRoot: "field:input-root",
+        nullifier: "field:nullifier",
+        ownerCommitment: "field:owner",
+        recipientLeafIndex: "42",
+        recipientMemoCiphertextBodyHash,
+        recipientOutputCommitment: "field:recipient-output",
+        recipientOutputRoot: "field:recipient-root",
+        sendContextTag: "field:send-context",
+        validUntilSlot: " ",
+      }),
+    "valid-until slot",
+  );
+  console.log("private-pool-v2 send proof request valid-until slot guard: PASS");
 } catch (error) {
   const stdout = String(error.stdout ?? "");
   const stderr = String(error.stderr ?? "");

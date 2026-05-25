@@ -38,6 +38,8 @@ assert.match(serverSource, /sendRawTransaction/);
 assert.match(serverSource, /routePlanHash/);
 assert.match(serverSource, /slippageBps/);
 assert.match(serverSource, /inputMintAddress/);
+assert.match(serverSource, /minOutputAmount/);
+assert.match(serverSource, /otherAmountThreshold/);
 assert.match(serverSource, /outputMintAddress/);
 assert.match(serverSource, /quoteExpiresAt/);
 assert.match(serverSource, /quoteTimestamp/);
@@ -323,6 +325,7 @@ async function main() {
     assert.equal(quote.venueName, "Jupiter");
     assert.equal(quote.venueFamily, "Aggregator");
     assert.equal(quote.inputMintAddress, "So11111111111111111111111111111111111111112");
+    assert.equal(typeof quote.minOutputAmount, "string");
     assert.equal(typeof quote.outputMintAddress, "string");
     assert.equal(typeof quote.routeProvider, "string");
     assert.equal(typeof quote.routePlanHash, "string");
@@ -337,6 +340,7 @@ async function main() {
         inputAmount: quote.inputAmount,
         inputAsset: "SOL",
         inputMintAddress: quote.inputMintAddress,
+        minOutputAmount: quote.minOutputAmount,
         outputAmount: quote.outputAmount,
         outputAsset: "USDC",
         outputMintAddress: quote.outputMintAddress,
@@ -365,6 +369,8 @@ async function main() {
     assert.equal(receipt.routeAdapter, "sol-to-shielded-v1");
     assert.equal(receipt.inputAsset, "SOL");
     assert.equal(receipt.inputMintAddress, quote.inputMintAddress);
+    assert.equal(receipt.minOutputAmount, quote.minOutputAmount);
+    assert.equal(receipt.outputAmount, quote.outputAmount);
     assert.equal(receipt.outputAsset, "USDC");
     assert.equal(receipt.outputMintAddress, quote.outputMintAddress);
     assert.equal(typeof receipt.outputLeafIndex, "string");

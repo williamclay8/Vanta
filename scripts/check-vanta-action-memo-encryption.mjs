@@ -417,6 +417,7 @@ try {
     recipientOutputRoot: "field:recipient-root",
     sendContextTag: "field:context",
     sendPublicInputHash: "field:send-public-input-hash",
+    validUntilSlot: "1000250",
   });
   assert(
     dualSendProofRequest.publicInputs.includes(

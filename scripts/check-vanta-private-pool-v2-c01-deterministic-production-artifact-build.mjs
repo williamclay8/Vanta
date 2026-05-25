@@ -176,6 +176,10 @@ function assertTemplate(template) {
   assert(template.routeId === gate.routeId, "template route mismatch");
   assert(template.secretPolicy === gate.secretPolicy, "template secret policy mismatch");
   assert(template.sourceLineage?.sourceReviewAcceptanceRef === null, "template source review ref must stay null");
+  assert(template.sourceLineage?.frozenSourceCommitRef === null, "template frozen source commit ref must stay null");
+  assert(template.sourceLineage?.sourceTreeStatusRef === null, "template source tree status ref must stay null");
+  assert(template.sourceLineage?.sourceFreezeReviewRef === null, "template source freeze review ref must stay null");
+  assert(template.sourceLineage?.sourceFreezeAccepted === false, "template must not claim source freeze acceptance");
   assert(
     template.sourceLineage?.reviewedSourceMigrationAccepted === false,
     "template must not claim reviewed source migration",
@@ -361,6 +365,10 @@ function assertReviewedDeterministicBuildReceipt(receipt, label) {
   assert(receipt.secretPolicy === gate.secretPolicy, `${label} secret policy mismatch`);
 
   const sourceLineage = receipt.sourceLineage ?? {};
+  assertRef(sourceLineage.frozenSourceCommitRef, `${label} frozen source commit ref`);
+  assertRef(sourceLineage.sourceTreeStatusRef, `${label} source tree status ref`);
+  assertRef(sourceLineage.sourceFreezeReviewRef, `${label} source freeze review ref`);
+  assert(sourceLineage.sourceFreezeAccepted === true, `${label} source freeze acceptance must be true`);
   assertRef(sourceLineage.sourceReviewAcceptanceRef, `${label} source review acceptance ref`);
   assert(
     sourceLineage.reviewedSourceMigrationAccepted === true,
@@ -670,6 +678,8 @@ assertAllowedKeys(shape, "required build receipt shape", [
   "requiredProductionSourceAcirSha256",
   "sourceReviewAcceptanceRequired",
   "sourceReviewAcceptanceGateRef",
+  "sourceFreezeRequired",
+  "frozenSourceCommitRefShape",
   "toolchainReviewRequired",
   "trustedSetupOrMitigationRequired",
   "deterministicRebuildRequired",
@@ -703,6 +713,8 @@ for (const [field, expected] of [
   ["requiredProductionSourceAcirSha256", reviewedBeta18H6SourceAcirSha256],
   ["sourceReviewAcceptanceRequired", true],
   ["sourceReviewAcceptanceGateRef", sourceReviewAcceptanceGatePath],
+  ["sourceFreezeRequired", true],
+  ["frozenSourceCommitRefShape", "git:<reviewed-immutable-production-source-commit-ref>"],
   ["toolchainReviewRequired", true],
   ["trustedSetupOrMitigationRequired", true],
   ["deterministicRebuildRequired", true],
@@ -722,6 +734,9 @@ const accepted = gate.currentAcceptedDeterministicBuildReceipt ?? {};
 assertAllowedKeys(accepted, "current accepted deterministic build receipt", [
   "status",
   "buildReceiptRef",
+  "frozenSourceCommitRef",
+  "sourceTreeStatusRef",
+  "sourceFreezeReviewRef",
   "sourceReviewAcceptanceRef",
   "pinnedToolchainSourceRef",
   "reviewedToolchainBuildRef",
@@ -740,6 +755,9 @@ assertAllowedKeys(accepted, "current accepted deterministic build receipt", [
 assert(accepted.status === "absent", "accepted deterministic build receipt must be absent");
 assertNullRefs(accepted, "accepted deterministic build receipt", [
   "buildReceiptRef",
+  "frozenSourceCommitRef",
+  "sourceTreeStatusRef",
+  "sourceFreezeReviewRef",
   "sourceReviewAcceptanceRef",
   "pinnedToolchainSourceRef",
   "reviewedToolchainBuildRef",
@@ -784,6 +802,7 @@ assert(external.validatedWhenEnvVarPresent === true, "external build receipt mus
 assertStringArray(external.validates, "external build validation validates");
 for (const marker of [
   "external source-review acceptance ref",
+  "reviewed frozen source commit and source tree status refs",
   "pinned reviewed Sunspot/Gnark toolchain source",
   "reviewed reproducible toolchain build",
   "trusted setup or toxic-waste mitigation ref",
@@ -815,6 +834,8 @@ assertTemplate(template);
 const criteria = mapById(gate.acceptanceCriteria, "acceptance criteria");
 for (const [id, shapeRef] of [
   ["external-source-review-acceptance", "review:<external-beta18-h6-source-migration-acceptance-ref>"],
+  ["frozen-production-source-commit", "git:<reviewed-immutable-production-source-commit-ref>"],
+  ["source-freeze-review", "review:<reviewed-source-freeze-acceptance-ref>"],
   ["pinned-reviewed-toolchain-source", "source:<pinned-reviewed-sunspot-gnark-source-or-release-ref>"],
   ["reproducible-toolchain-build-review", "review:<reproducible-toolchain-build-review-ref>"],
   ["trusted-setup-or-toxic-waste-mitigation", "setup:<reviewed-ceremony-or-toxic-waste-mitigation-ref>"],
@@ -837,6 +858,7 @@ for (const [id, shapeRef] of [
 assertStringArray(gate.promotionRules, "promotionRules");
 for (const rule of [
   "deterministic build receipt refs must be references only; raw proof, verifying-key, proving-key, witness, keypair, secret, and signed transaction bytes stay out of git",
+  "the production verifier lane must freeze a reviewed immutable source commit and source tree status before deterministic artifact refs can promote",
   "source-review acceptance is required before a beta18 H6 source-migration build receipt can promote source lineage",
   "production setup or equivalent toxic-waste mitigation must be reviewed before proof/VK output refs can promote",
   "deterministic build output refs must agree on circuit, reviewed beta18 H6 production source ACIR hash, proof format id, proof byte length, public-witness byte length, generated verifier public input count, and public input label",
@@ -868,6 +890,7 @@ assertEvidenceFlags(
 assertStringArray(gate.remainingBlockers, "remainingBlockers");
 for (const blocker of [
   "no external source reviewer acceptance",
+  "no reviewed frozen source commit",
   "no reviewed compatible Sunspot/Noir/Gnark toolchain provenance",
   "no production setup or toxic-waste mitigation",
   "no deterministic reviewed production artifact build receipt",

@@ -116,6 +116,7 @@ type PendingSwapBridge = {
     quoteExpiresAt: number;
     quoteId: string;
     quoteTimestamp: number;
+    minOutputAmount?: string;
     routePlanHash?: string;
     routeProvider?: string;
     slippageBps?: number;
@@ -803,6 +804,8 @@ export function SwapPage() {
         consumedNoteId: pendingSwapBridge.input.noteId,
         inputAmount: pendingSwapBridge.input.amountDisplay,
         inputMintAddress: pendingSwapBridge.venue.inputMintAddress ?? VANTA_NATIVE_SOL_ASSET_ID,
+        minOutputAmount:
+          pendingSwapBridge.venue.minOutputAmount ?? pendingSwapBridge.output.amountDisplay,
         outputAmount: pendingSwapBridge.output.amountDisplay,
         outputAsset: pendingSwapBridge.output.asset as Exclude<ShieldedSwapAssetKey, "SOL">,
         outputMintAddress: pendingSwapBridge.venue.outputMintAddress ?? pendingSwapBridge.output.assetId,
@@ -898,6 +901,8 @@ export function SwapPage() {
       inputAmount: pendingSwapBridge.input.amountDisplay,
       inputAsset: "USDC",
       mintAddress: pendingSwapBridge.input.mintAddress,
+      minOutputAmount:
+        pendingSwapBridge.venue.minOutputAmount ?? pendingSwapBridge.output.amountDisplay,
       outputAmount: pendingSwapBridge.output.amountDisplay,
       outputAsset: "SOL",
       outputNoteId: lastSwapSummary.outputNoteId,
@@ -906,6 +911,7 @@ export function SwapPage() {
       quoteId: pendingSwapBridge.venue.quoteId,
       quoteTimestamp: pendingSwapBridge.venue.quoteTimestamp,
       requester: walletAddress,
+      slippageBps: pendingSwapBridge.venue.slippageBps ?? 0,
       transitionNoteId: pendingSpentMarker.transitionNoteId,
       transitionStateSignature: transitionSignature,
       vaultOwner: pendingSwapBridge.vaultOwner,
@@ -1332,9 +1338,12 @@ export function SwapPage() {
             name: "Meteora",
             network: "Mainnet",
             poolAddress: pendingSwapBridge.venue.poolAddress,
+            minOutputAmount:
+              pendingSwapBridge.venue.minOutputAmount ?? pendingSwapBridge.output.amountDisplay,
             quoteId: pendingSwapBridge.venue.quoteId,
             quoteTimestamp: pendingSwapBridge.venue.quoteTimestamp,
             quoteExpiresAt: pendingSwapBridge.venue.quoteExpiresAt,
+            slippageBps: pendingSwapBridge.venue.slippageBps ?? 0,
           },
         },
         { persist: false },
@@ -1395,12 +1404,14 @@ export function SwapPage() {
         inputAmount: args.note.amount.toString(),
         inputAsset: "USDC",
         mintAddress: liveShieldAsset.mintAddress!,
+        minOutputAmount: args.swapQuote.minOutputAmount,
         outputAmount: args.swapQuote.outputAmount,
         outputAsset: "SOL",
         owner: args.shieldAccountState.owner,
         quoteExpiresAt: args.swapQuote.quoteExpiresAt,
         quoteId: args.swapQuote.quoteId,
         quoteTimestamp: args.swapQuote.quoteTimestamp,
+        slippageBps: args.swapQuote.slippageBps,
         venueFamily: args.swapQuote.venueFamily,
         venueName: args.swapQuote.venueName,
         venueNetwork: args.swapQuote.venueNetwork,
@@ -1446,9 +1457,11 @@ export function SwapPage() {
         name: args.swapQuote.venueName,
         network: args.swapQuote.venueNetwork,
         poolAddress: args.swapQuote.venuePoolAddress,
+        minOutputAmount: args.swapQuote.minOutputAmount,
         quoteId: args.swapQuote.quoteId,
         quoteTimestamp: args.swapQuote.quoteTimestamp,
         quoteExpiresAt: args.swapQuote.quoteExpiresAt,
+        slippageBps: args.swapQuote.slippageBps,
       },
     });
     setLastSwapSummary({
@@ -1535,12 +1548,14 @@ export function SwapPage() {
         inputAmount: args.note.amount.toString(),
         inputAsset: "SOL",
         mintAddress: VANTA_NATIVE_SOL_ASSET_ID,
+        minOutputAmount: args.swapQuote.minOutputAmount,
         outputAmount: args.swapQuote.outputAmount,
         outputAsset: args.swapQuote.outputAsset,
         owner: args.shieldAccountState.owner,
         quoteExpiresAt: args.swapQuote.quoteExpiresAt,
         quoteId: args.swapQuote.quoteId,
         quoteTimestamp: args.swapQuote.quoteTimestamp,
+        slippageBps: args.swapQuote.slippageBps,
         venueFamily: args.swapQuote.venueFamily,
         venueName: args.swapQuote.venueName,
         venueNetwork: args.swapQuote.venueNetwork,
@@ -1588,6 +1603,7 @@ export function SwapPage() {
         network: args.swapQuote.venueNetwork,
         outputMintAddress: args.swapQuote.outputMintAddress,
         poolAddress: args.swapQuote.venuePoolAddress ?? "",
+        minOutputAmount: args.swapQuote.minOutputAmount,
         quoteId: args.swapQuote.quoteId,
         quoteTimestamp: args.swapQuote.quoteTimestamp,
         quoteExpiresAt: args.swapQuote.quoteExpiresAt,

@@ -101,18 +101,14 @@ fn derive_nullifier(
     note_secret_lo: Field,
     note_nonce_hi: Field,
     note_nonce_lo: Field,
-    state_root: Field,
-    merkle_leaf: Field,
 ) -> Field {
-    bn254::hash_8([
+    bn254::hash_6([
         owner_public_key_hi,
         owner_public_key_lo,
         note_secret_hi,
         note_secret_lo,
         note_nonce_hi,
         note_nonce_lo,
-        state_root,
-        merkle_leaf,
     ])
 }
 
@@ -246,8 +242,6 @@ fn main(
         note_secret_lo,
         note_nonce_hi,
         note_nonce_lo,
-        state_root,
-        leaf,
     );
     assert(computed_nullifier == nullifier);
     let computed_leaf_index = compute_leaf_index(membership_path_direction_bits);

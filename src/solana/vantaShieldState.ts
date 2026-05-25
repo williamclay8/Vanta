@@ -334,6 +334,7 @@ export type VantaSwapNote = {
   inputAmount: number;
   inputAsset: VantaShieldTokenAsset | "SOL";
   kind: "swap";
+  minOutputAmount?: number;
   noteId: string;
   outputAmount: number;
   outputAsset: VantaShieldTokenAsset | "SOL";
@@ -342,6 +343,7 @@ export type VantaSwapNote = {
   quoteExpiresAt?: number;
   quoteId?: string;
   quoteTimestamp?: number;
+  slippageBps?: number;
   stateSignature: string;
   vaultOwner: string;
   venueFamily?: "Aggregator" | "DLMM";
@@ -607,6 +609,7 @@ type SwapMemoPayload = {
   inputAsset: VantaShieldTokenAsset | "SOL";
   kind: "swap";
   mintAddress: string;
+  minOutputAmount?: string;
   noteId?: string;
   outputAmount: string;
   outputAsset: VantaShieldTokenAsset | "SOL";
@@ -615,6 +618,7 @@ type SwapMemoPayload = {
   quoteExpiresAt?: number;
   quoteId?: string;
   quoteTimestamp?: number;
+  slippageBps?: number;
   vaultOwner: string;
   venueFamily?: "Aggregator" | "DLMM";
   venueName?: string;
@@ -630,6 +634,7 @@ type SwapMemoWirePayload = {
   ii: VantaShieldTokenAsset | "SOL";
   k: "swap";
   ma: string;
+  mo?: string;
   ni: string;
   oa: string;
   oi: VantaShieldTokenAsset | "SOL";
@@ -638,6 +643,7 @@ type SwapMemoWirePayload = {
   qe?: number;
   qi?: string;
   qt?: number;
+  sb?: number;
   vf?: "Aggregator" | "DLMM";
   vn?: string;
   vo: string;
@@ -1106,6 +1112,7 @@ function createSwapNoteId(payload: Omit<SwapMemoPayload, "kind" | "noteId" | "ou
     mintAddress: payload.mintAddress,
     outputAmount: payload.outputAmount,
     outputAsset: payload.outputAsset,
+    minOutputAmount: payload.minOutputAmount ?? "no_min_output",
     owner: payload.owner,
     quoteId: payload.quoteId ?? "no_quote",
     vaultOwner: payload.vaultOwner,
@@ -1622,6 +1629,7 @@ export function createPreparedSwapMemo(
       ii: payload.inputAsset,
       k: "swap",
       ma: payload.mintAddress,
+      mo: payload.minOutputAmount,
       ni: noteId,
       oa: payload.outputAmount,
       oi: payload.outputAsset,
@@ -1630,6 +1638,7 @@ export function createPreparedSwapMemo(
       qe: payload.quoteExpiresAt,
       qi: payload.quoteId,
       qt: payload.quoteTimestamp,
+      sb: payload.slippageBps,
       vf: payload.venueFamily,
       vn: payload.venueName,
       vo: payload.vaultOwner,
@@ -2270,6 +2279,7 @@ export function parseSwapMemo(
     const mintAddress = parsed.mintAddress ?? parsed.ma;
     const vaultOwner = parsed.vaultOwner ?? parsed.vo;
     const inputAmount = parsed.inputAmount ?? parsed.ia;
+    const minOutputAmount = parsed.minOutputAmount ?? parsed.mo;
     const outputAmount = parsed.outputAmount ?? parsed.oa;
     const createdAt = parsed.createdAt ?? parsed.ca;
     const consumedNoteId = parsed.consumedNoteId ?? parsed.cn;
@@ -2280,6 +2290,7 @@ export function parseSwapMemo(
     const quoteExpiresAt = parsed.quoteExpiresAt ?? parsed.qe;
     const quoteId = parsed.quoteId ?? parsed.qi;
     const quoteTimestamp = parsed.quoteTimestamp ?? parsed.qt;
+    const slippageBps = parsed.slippageBps ?? parsed.sb;
     const venueFamily = parsed.venueFamily ?? parsed.vf;
     const venueName = parsed.venueName ?? parsed.vn;
     const venueNetwork = parsed.venueNetwork ?? parsed.vw;
@@ -2306,11 +2317,15 @@ export function parseSwapMemo(
     }
 
     const parsedInputAmount = Number(inputAmount);
+    const parsedMinOutputAmount =
+      typeof minOutputAmount === "string" ? Number(minOutputAmount) : undefined;
     const parsedOutputAmount = Number(outputAmount);
 
     if (
       !Number.isFinite(parsedInputAmount) ||
       parsedInputAmount <= 0 ||
+      (parsedMinOutputAmount !== undefined &&
+        (!Number.isFinite(parsedMinOutputAmount) || parsedMinOutputAmount <= 0)) ||
       !Number.isFinite(parsedOutputAmount) ||
       parsedOutputAmount <= 0
     ) {
@@ -2327,6 +2342,7 @@ export function parseSwapMemo(
       inputAmount: parsedInputAmount,
       inputAsset,
       kind: "swap",
+      minOutputAmount: parsedMinOutputAmount,
       noteId: typeof noteId === "string" ? noteId : undefined,
       outputAmount: parsedOutputAmount,
       outputAsset,
@@ -2340,6 +2356,10 @@ export function parseSwapMemo(
       quoteTimestamp:
         typeof quoteTimestamp === "number" && Number.isFinite(quoteTimestamp)
           ? quoteTimestamp
+          : undefined,
+      slippageBps:
+        typeof slippageBps === "number" && Number.isFinite(slippageBps)
+          ? slippageBps
           : undefined,
       stateSignature,
       vaultOwner,

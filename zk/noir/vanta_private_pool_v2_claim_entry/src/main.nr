@@ -92,13 +92,15 @@ fn bind_claim_public_inputs(
     destination: Field,
     relayer_id: Field,
     relayer_fee: u128,
+    net_payout: u128,
     quote_expires_at_slot: Field,
 ) -> Field {
     let input_membership = bn254::hash_3([tree_id, leaf_index, input_root]);
-    let claim_terms = bn254::hash_4([
+    let claim_terms = bn254::hash_5([
         destination,
         relayer_id,
         relayer_fee as Field,
+        net_payout as Field,
         quote_expires_at_slot,
     ]);
 
@@ -133,6 +135,7 @@ fn main(
     destination: Field,
     relayer_id: Field,
     relayer_fee: u128,
+    net_payout: u128,
     quote_expires_at_slot: Field,
     owner_secret: Field,
     input_blinding: Field,
@@ -165,6 +168,9 @@ fn main(
     let computed_nullifier = compute_nullifier(input_commitment, owner_secret);
     assert(computed_nullifier == nullifier);
 
+    assert(relayer_fee <= amount);
+    assert(amount as Field == net_payout as Field + relayer_fee as Field);
+
     let computed_public_input_hash = bind_claim_public_inputs(
         request_version,
         asset_id,
@@ -178,6 +184,7 @@ fn main(
         destination,
         relayer_id,
         relayer_fee,
+        net_payout,
         quote_expires_at_slot,
     );
 

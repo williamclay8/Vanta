@@ -123,6 +123,137 @@ try {
     console.log("invalid-input-commitment-preimage fixture: expected failure observed");
   }
 
+  writeFixture("invalid-output-commitment-preimage");
+  console.log("invalid-output-commitment-preimage fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-output-commitment-preimage fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-output-commitment-preimage fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-output-commitment-preimage fixture: expected failure observed");
+  }
+
+  writeFixture("invalid-economics-commitment-preimage");
+  console.log("invalid-economics-commitment-preimage fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-economics-commitment-preimage fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-economics-commitment-preimage fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-economics-commitment-preimage fixture: expected failure observed");
+  }
+
+  writeFixture("invalid-output-amount-economics-binding");
+  console.log("invalid-output-amount-economics-binding fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-output-amount-economics-binding fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-output-amount-economics-binding fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-output-amount-economics-binding fixture: expected failure observed");
+  }
+
+  writeFixture("invalid-min-output-amount-binding");
+  console.log("invalid-min-output-amount-binding fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-min-output-amount-binding fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-min-output-amount-binding fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-min-output-amount-binding fixture: expected failure observed");
+  }
+
+  writeFixture("invalid-slippage-bps-binding");
+  console.log("invalid-slippage-bps-binding fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-slippage-bps-binding fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-slippage-bps-binding fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-slippage-bps-binding fixture: expected failure observed");
+  }
+
+  writeFixture("invalid-output-below-min-output");
+  console.log("invalid-output-below-min-output fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-output-below-min-output fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-output-below-min-output fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-output-below-min-output fixture: expected failure observed");
+  }
+
+  writeFixture("valid-output-equals-min-output");
+  console.log("valid-output-equals-min-output fixture write: PASS");
+  printCapturedOutput(runNargo(["execute"]));
+  console.log("valid-output-equals-min-output fixture: PASS");
+
+  writeFixture("invalid-valid-until-slot-public-binding");
+  console.log("invalid-valid-until-slot-public-binding fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-valid-until-slot-public-binding fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-valid-until-slot-public-binding fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-valid-until-slot-public-binding fixture: expected failure observed");
+  }
+
   writeFixture("invalid-output-root");
   console.log("invalid-output-root fixture write: PASS");
 

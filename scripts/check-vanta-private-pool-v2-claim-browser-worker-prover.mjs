@@ -95,6 +95,7 @@ function claimWitnessInputFromFixture(fixture) {
     leaf_index: stringify(witness.leaf_index),
     membership_path: witness.membership_path.map(stringify),
     membership_path_direction_bits: witness.membership_path_direction_bits.map(stringify),
+    net_payout: stringify(witness.net_payout),
     nullifier: stringify(witness.nullifier),
     owner_commitment: stringify(witness.owner_commitment),
     owner_secret: stringify(witness.owner_secret),

@@ -584,6 +584,7 @@ function parseSwapMemo(memo, stateSignature) {
     const mintAddress = parsed.mintAddress ?? parsed.ma;
     const vaultOwner = parsed.vaultOwner ?? parsed.vo;
     const inputAmount = parsed.inputAmount ?? parsed.ia;
+    const minOutputAmount = parsed.minOutputAmount ?? parsed.mo;
     const outputAmount = parsed.outputAmount ?? parsed.oa;
     const createdAt = parsed.createdAt ?? parsed.ca;
     const consumedNoteId = parsed.consumedNoteId ?? parsed.cn;
@@ -594,6 +595,7 @@ function parseSwapMemo(memo, stateSignature) {
     const quoteExpiresAt = parsed.quoteExpiresAt ?? parsed.qe;
     const quoteId = parsed.quoteId ?? parsed.qi;
     const quoteTimestamp = parsed.quoteTimestamp ?? parsed.qt;
+    const slippageBps = parsed.slippageBps ?? parsed.sb;
     const venueFamily = parsed.venueFamily ?? parsed.vf;
     const venueName = parsed.venueName ?? parsed.vn;
     const venueNetwork = parsed.venueNetwork ?? parsed.vw;
@@ -619,11 +621,15 @@ function parseSwapMemo(memo, stateSignature) {
     }
 
     const parsedInputAmount = Number(inputAmount);
+    const parsedMinOutputAmount =
+      typeof minOutputAmount === "string" ? Number(minOutputAmount) : undefined;
     const parsedOutputAmount = Number(outputAmount);
 
     if (
       !Number.isFinite(parsedInputAmount) ||
       parsedInputAmount <= 0 ||
+      (parsedMinOutputAmount !== undefined &&
+        (!Number.isFinite(parsedMinOutputAmount) || parsedMinOutputAmount <= 0)) ||
       !Number.isFinite(parsedOutputAmount) ||
       parsedOutputAmount <= 0
     ) {
@@ -641,6 +647,7 @@ function parseSwapMemo(memo, stateSignature) {
       inputAsset,
       kind: "swap",
       mintAddress,
+      minOutputAmount: parsedMinOutputAmount,
       noteId: typeof noteId === "string" ? noteId : undefined,
       outputAmount: parsedOutputAmount,
       outputAsset,
@@ -654,6 +661,10 @@ function parseSwapMemo(memo, stateSignature) {
       quoteTimestamp:
         typeof quoteTimestamp === "number" && Number.isFinite(quoteTimestamp)
           ? quoteTimestamp
+          : undefined,
+      slippageBps:
+        typeof slippageBps === "number" && Number.isFinite(slippageBps)
+          ? slippageBps
           : undefined,
       stateSignature,
       venueFamily:
@@ -1391,6 +1402,8 @@ export function assertEligibleSwapTransition(args) {
     transition.quoteId !== args.quoteId ||
     transition.quoteTimestamp !== args.quoteTimestamp ||
     transition.quoteExpiresAt !== args.quoteExpiresAt ||
+    transition.minOutputAmount !== Number(args.minOutputAmount) ||
+    transition.slippageBps !== args.slippageBps ||
     transition.venueName !== args.venueName ||
     transition.venueFamily !== args.venueFamily ||
     transition.venueNetwork !== args.venueNetwork ||

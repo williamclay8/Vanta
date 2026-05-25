@@ -88,7 +88,9 @@ function toWitnessJson(witness, memoCiphertextBodyHashes) {
       memoCiphertextBodyHashes.changeMemoCiphertextBodyHash,
     change_memo_ciphertext_body_hash_field:
       witness.change_memo_ciphertext_body_hash_field.toString(10),
+    change_output_blinding: witness.change_output_blinding.toString(10),
     change_output_commitment: witness.change_output_commitment.toString(10),
+    change_output_derivation_tag: witness.change_output_derivation_tag.toString(10),
     change_output_root: witness.change_output_root.toString(10),
     economics_blinding: witness.economics_blinding.toString(10),
     economics_commitment: witness.economics_commitment.toString(10),
@@ -105,6 +107,7 @@ function toWitnessJson(witness, memoCiphertextBodyHashes) {
     nullifier: witness.nullifier.toString(10),
     owner_commitment: witness.owner_commitment.toString(10),
     owner_secret: witness.owner_secret.toString(10),
+    relayer_fee: witness.relayer_fee.toString(10),
     recipient_amount: witness.recipient_amount.toString(10),
     recipient_append_path: witness.recipient_append_path.map((entry) => entry.toString(10)),
     recipient_append_path_direction_bits: witness.recipient_append_path_direction_bits.map(
@@ -115,10 +118,14 @@ function toWitnessJson(witness, memoCiphertextBodyHashes) {
       memoCiphertextBodyHashes.recipientMemoCiphertextBodyHash,
     recipient_memo_ciphertext_body_hash_field:
       witness.recipient_memo_ciphertext_body_hash_field.toString(10),
+    recipient_owner_commitment: witness.recipient_owner_commitment.toString(10),
+    recipient_output_blinding: witness.recipient_output_blinding.toString(10),
     recipient_output_commitment: witness.recipient_output_commitment.toString(10),
+    recipient_output_derivation_tag: witness.recipient_output_derivation_tag.toString(10),
     recipient_output_root: witness.recipient_output_root.toString(10),
     request_version: witness.request_version.toString(10),
     send_context_tag: witness.send_context_tag.toString(10),
+    valid_until_slot: witness.valid_until_slot.toString(10),
   };
 }
 
@@ -195,6 +202,7 @@ try {
       computeVantaPrivatePoolV2SendInputCommitment,
       computeVantaPrivatePoolV2SendNullifier,
       computeVantaPrivatePoolV2SendOwnerCommitment,
+      computeVantaPrivatePoolV2SendOutputCommitment,
       createVantaPrivatePoolV2SendCircuitFixture,
       createVantaPrivatePoolV2SendCircuitFixtureFromWitnessInput,
     },
@@ -224,9 +232,26 @@ try {
     input_derivation_tag: 8809n,
     owner_commitment: ownerCommitment,
   };
+  const recipientAmount = 4300n;
+  const changeAmount = 2400n;
+  const relayerFee = 300n;
+  const recipientOutputPreimage = {
+    asset_id_commitment: inputCommitmentPreimage.asset_id_commitment,
+    output_amount: recipientAmount,
+    output_blinding: 9701n,
+    output_derivation_tag: 9702n,
+    owner_commitment: 4404n,
+  };
+  const changeOutputPreimage = {
+    asset_id_commitment: inputCommitmentPreimage.asset_id_commitment,
+    output_amount: changeAmount,
+    output_blinding: 9801n,
+    output_derivation_tag: 9802n,
+    owner_commitment: ownerCommitment,
+  };
   const witnessBase = {
     asset_id_commitment: inputCommitmentPreimage.asset_id_commitment,
-    change_amount: 2700n,
+    change_amount: changeAmount,
     change_leaf_index: 44n,
     change_memo_ciphertext_body_hash_field: BigInt(
       deriveVantaPrivatePoolV2MemoCiphertextBodyHashField(
@@ -234,7 +259,11 @@ try {
         "change memo ciphertext body hash",
       ),
     ),
-    change_output_commitment: 9702n,
+    change_output_blinding: changeOutputPreimage.output_blinding,
+    change_output_commitment: computeVantaPrivatePoolV2SendOutputCommitment(
+      changeOutputPreimage,
+    ),
+    change_output_derivation_tag: changeOutputPreimage.output_derivation_tag,
     economics_blinding: 2222n,
     input_amount: inputCommitmentPreimage.input_amount,
     input_blinding: inputCommitmentPreimage.input_blinding,
@@ -247,7 +276,8 @@ try {
     membership_path_direction_bits: [],
     owner_commitment: ownerCommitment,
     owner_secret: ownerSecret,
-    recipient_amount: 4300n,
+    relayer_fee: relayerFee,
+    recipient_amount: recipientAmount,
     recipient_leaf_index: 43n,
     recipient_memo_ciphertext_body_hash_field: BigInt(
       deriveVantaPrivatePoolV2MemoCiphertextBodyHashField(
@@ -255,9 +285,15 @@ try {
         "recipient memo ciphertext body hash",
       ),
     ),
-    recipient_output_commitment: 9701n,
+    recipient_owner_commitment: recipientOutputPreimage.owner_commitment,
+    recipient_output_blinding: recipientOutputPreimage.output_blinding,
+    recipient_output_commitment: computeVantaPrivatePoolV2SendOutputCommitment(
+      recipientOutputPreimage,
+    ),
+    recipient_output_derivation_tag: recipientOutputPreimage.output_derivation_tag,
     request_version: 1702n,
     send_context_tag: 6606n,
+    valid_until_slot: 1000300n,
   };
   const economicsWitness = {
     ...witnessBase,
@@ -322,27 +358,78 @@ try {
     nullifier: computeVantaPrivatePoolV2SendNullifier(witnessWithRoots),
   };
   const witnessJson = toWitnessJson(witness, memoCiphertextBodyHashes);
-  const duplicateChangeOutputTree = buildVantaPrivatePoolV2SparseMerkleTree({
+  const duplicateOutputAmount = (witness.input_amount - witness.relayer_fee) / 2n;
+  const duplicateOutputPreimage = {
+    asset_id_commitment: witness.asset_id_commitment,
+    output_amount: duplicateOutputAmount,
+    output_blinding: 9901n,
+    output_derivation_tag: 9902n,
+    owner_commitment: witness.owner_commitment,
+  };
+  const duplicateOutputCommitment = computeVantaPrivatePoolV2SendOutputCommitment(
+    duplicateOutputPreimage,
+  );
+  const duplicateEconomicsWitness = {
+    ...witness,
+    change_amount: duplicateOutputAmount,
+    change_output_blinding: duplicateOutputPreimage.output_blinding,
+    change_output_commitment: duplicateOutputCommitment,
+    change_output_derivation_tag: duplicateOutputPreimage.output_derivation_tag,
+    recipient_amount: duplicateOutputAmount,
+    recipient_owner_commitment: duplicateOutputPreimage.owner_commitment,
+    recipient_output_blinding: duplicateOutputPreimage.output_blinding,
+    recipient_output_commitment: duplicateOutputCommitment,
+    recipient_output_derivation_tag: duplicateOutputPreimage.output_derivation_tag,
+  };
+  const duplicateWithEconomics = {
+    ...duplicateEconomicsWitness,
+    economics_commitment: computeVantaPrivatePoolV2SendEconomicsCommitment(
+      duplicateEconomicsWitness,
+    ),
+  };
+  const duplicateRecipientTree = buildVantaPrivatePoolV2SparseMerkleTree({
     leaves: [
       {
-        leafIndex: witness.input_leaf_index,
-        leafValue: witness.input_commitment,
+        leafIndex: duplicateWithEconomics.input_leaf_index,
+        leafValue: duplicateWithEconomics.input_commitment,
       },
       {
-        leafIndex: witness.recipient_leaf_index,
-        leafValue: witness.recipient_output_commitment,
-      },
-      {
-        leafIndex: witness.change_leaf_index,
-        leafValue: witness.recipient_output_commitment,
+        leafIndex: duplicateWithEconomics.recipient_leaf_index,
+        leafValue: duplicateWithEconomics.recipient_output_commitment,
       },
     ],
   });
+  const duplicateChangeOutputTree = buildVantaPrivatePoolV2SparseMerkleTree({
+    leaves: [
+      {
+        leafIndex: duplicateWithEconomics.input_leaf_index,
+        leafValue: duplicateWithEconomics.input_commitment,
+      },
+      {
+        leafIndex: duplicateWithEconomics.recipient_leaf_index,
+        leafValue: duplicateWithEconomics.recipient_output_commitment,
+      },
+      {
+        leafIndex: duplicateWithEconomics.change_leaf_index,
+        leafValue: duplicateWithEconomics.change_output_commitment,
+      },
+    ],
+  });
+  const duplicateWithRoots = {
+    ...duplicateWithEconomics,
+    change_append_path: duplicateRecipientTree.pathForLeaf(
+      duplicateWithEconomics.change_leaf_index,
+    ),
+    change_append_path_direction_bits: directionBitsForLeafIndex(
+      duplicateWithEconomics.change_leaf_index,
+    ),
+    change_output_root: duplicateChangeOutputTree.root,
+    recipient_output_root: duplicateRecipientTree.root,
+  };
   const duplicateOutputWitnessJson = toWitnessJson(
     {
-      ...witness,
-      change_output_commitment: witness.recipient_output_commitment,
-      change_output_root: duplicateChangeOutputTree.root,
+      ...duplicateWithRoots,
+      nullifier: computeVantaPrivatePoolV2SendNullifier(duplicateWithRoots),
     },
     memoCiphertextBodyHashes,
   );
@@ -357,6 +444,12 @@ try {
     fixture.proofRequest.circuitPublicInputs?.[0] ===
       `send-public-input-hash:${fixture.sendPublicInputHash.toString(10)}`,
     "Custom Send witness proof request must bind the derived circuit public input.",
+  );
+  assert(
+    fixture.proofRequest.publicInputs.includes(
+      `valid-until-slot:${witness.valid_until_slot.toString(10)}`,
+    ),
+    "Custom Send witness proof request must expose the bound valid-until slot.",
   );
   console.log("private-pool-v2 Send witness input builder: PASS");
 

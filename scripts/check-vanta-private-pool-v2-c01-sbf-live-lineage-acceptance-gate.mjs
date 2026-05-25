@@ -230,6 +230,7 @@ function assertTemplate(template) {
   assertAllowedKeys(template.liveEvidence, "template live evidence", [
     "spendProgramDeploymentRef",
     "verifierProgramDeploymentRef",
+    "verifierProgramUpgradeAuthorityStatusRef",
     "poolReinitializationOrMigrationRef",
     "verifierKeyRegistrationRef",
     "liveProofEnforcedSpendRef",
@@ -240,6 +241,7 @@ function assertTemplate(template) {
   assertNullRefs(template.liveEvidence, "template live evidence", [
     "spendProgramDeploymentRef",
     "verifierProgramDeploymentRef",
+    "verifierProgramUpgradeAuthorityStatusRef",
     "poolReinitializationOrMigrationRef",
     "verifierKeyRegistrationRef",
     "liveProofEnforcedSpendRef",
@@ -344,6 +346,7 @@ function assertReviewedLineageAcceptance(acceptance, label) {
   for (const field of [
     "spendProgramDeploymentRef",
     "verifierProgramDeploymentRef",
+    "verifierProgramUpgradeAuthorityStatusRef",
     "poolReinitializationOrMigrationRef",
     "verifierKeyRegistrationRef",
   ]) {
@@ -555,6 +558,7 @@ for (const marker of [
   "accepted verifier SBF hash",
   "deployed spend program id",
   "deployed verifier program id",
+  "verifier program upgrade-authority status ref",
   "live proof-enforced tag-3 receipt or reviewer-accepted dry-run receipt",
 ]) {
   includes([...shape.requiredPrerequisites, ...shape.requiredLineageRefs].join("\n"), marker, "required shape");
@@ -573,6 +577,7 @@ assertAllowedKeys(accepted, "current accepted SBF/live lineage", [
   "verifierKeyRecordRef",
   "spendProgramDeploymentRef",
   "verifierProgramDeploymentRef",
+  "verifierProgramUpgradeAuthorityStatusRef",
   "poolReinitializationOrMigrationRef",
   "verifierKeyRegistrationRef",
   "liveProofEnforcedSpendRef",
@@ -592,6 +597,7 @@ assertNullRefs(accepted, "accepted SBF/live lineage", [
   "verifierKeyRecordRef",
   "spendProgramDeploymentRef",
   "verifierProgramDeploymentRef",
+  "verifierProgramUpgradeAuthorityStatusRef",
   "poolReinitializationOrMigrationRef",
   "verifierKeyRegistrationRef",
   "liveProofEnforcedSpendRef",
@@ -618,6 +624,8 @@ for (const marker of [
   "rebuilt spend SBF hash",
   "accepted verifier SBF hash",
   "deployed spend and verifier program ids",
+  "deployed verifier program id/hash",
+  "verifier program upgrade-authority status ref",
   "verifier-key record binding production VK hash to verifier program id",
   "deployment, migration, verifier-key registration, and proof-enforced path refs",
   "refs-only secret policy",
@@ -645,6 +653,7 @@ for (const id of [
   "deployed-verifier-program-id",
   "verifier-key-record-binding",
   "spend-and-verifier-deployment-receipts",
+  "verifier-program-upgrade-authority-status",
   "pool-reinitialization-or-migration",
   "verifier-key-registration",
   "proof-enforced-path-or-reviewer-dry-run",
@@ -659,6 +668,7 @@ for (const rule of [
   "SBF/live lineage refs must be references only; keypairs, secrets, signed transactions, raw proof bytes, raw VK bytes, raw witness bytes, and live private data stay out of git",
   "SBF/live lineage can promote only after reviewed production artifact bundle and production verifier-adapter acceptance refs exist",
   "accepted lineage must tie the rebuilt spend SBF hash, accepted verifier SBF hash, deployed program ids, verifier-key record, and tag-3 proof-enforced path to the same production proof/VK lineage",
+  "accepted lineage must include the deployed verifier program upgrade-authority status ref",
   "SBF/live lineage does not by itself prove audit/reviewer acceptance or C01 closure",
 ]) {
   assert(gate.promotionRules?.includes(rule), `missing promotion rule ${rule}`);
@@ -675,6 +685,8 @@ for (const blocker of [
   "no rebuilt spend SBF hash accepted for deployed lineage",
   "no accepted verifier SBF hash or reviewed in-program verifier hash",
   "no deployed spend/verifier program ids",
+  "no deployed verifier program id/hash",
+  "no verifier program upgrade-authority status ref",
   "no verifier-key record binding production VK hash to verifier program id",
   "no deployment, reinitialization/migration, verifier-key registration, or proof-enforced path receipts",
   "no audit/reviewer acceptance",

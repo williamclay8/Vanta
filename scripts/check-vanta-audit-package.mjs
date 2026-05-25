@@ -141,6 +141,7 @@ const requiredPhrases = [
   "npm run zk:c01-verifier-adapter-test-candidate-check",
   "npm run zk:c01-verifier-adapter-seam-check",
   "npm run zk:c01-positive-proof-verified-claim-gate-check",
+  "npm run private-pool-v2:groth16-verifier-cpi-check",
   "npm run zk:c01-verifier-backend-decision-check",
   "npm run private-pool-v2:remote-proof-artifact-boundary-check",
   "npm run pay:verify",

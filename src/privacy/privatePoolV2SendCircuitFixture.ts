@@ -1,4 +1,4 @@
-import { poseidon1, poseidon2, poseidon4, poseidon5, poseidon12 } from "poseidon-lite";
+import { poseidon1, poseidon2, poseidon3, poseidon4, poseidon5, poseidon12 } from "poseidon-lite";
 import {
   buildVantaPrivatePoolV2SparseMerkleTree,
   directionBitsForLeafIndex,
@@ -11,13 +11,15 @@ import {
 import type { VantaPrivatePoolV2ProofRequest } from "./privatePoolV2Types";
 
 export const VANTA_PRIVATE_POOL_V2_SEND_CIRCUIT_FIXTURE_VERSION =
-  "vanta-private-pool-v2-send-circuit-fixture-0.2" as const;
+  "vanta-private-pool-v2-send-circuit-fixture-0.3" as const;
 
 export type VantaPrivatePoolV2SendCircuitWitness = {
   asset_id_commitment: bigint;
   change_leaf_index: bigint;
   change_amount: bigint;
+  change_output_blinding: bigint;
   change_output_commitment: bigint;
+  change_output_derivation_tag: bigint;
   change_output_root: bigint;
   economics_blinding: bigint;
   economics_commitment: bigint;
@@ -32,6 +34,7 @@ export type VantaPrivatePoolV2SendCircuitWitness = {
   nullifier: bigint;
   owner_commitment: bigint;
   owner_secret: bigint;
+  relayer_fee: bigint;
   change_memo_ciphertext_body_hash_field: bigint;
   change_append_path: readonly bigint[];
   change_append_path_direction_bits: readonly bigint[];
@@ -40,10 +43,14 @@ export type VantaPrivatePoolV2SendCircuitWitness = {
   recipient_leaf_index: bigint;
   recipient_append_path: readonly bigint[];
   recipient_append_path_direction_bits: readonly bigint[];
+  recipient_owner_commitment: bigint;
+  recipient_output_blinding: bigint;
   recipient_output_commitment: bigint;
+  recipient_output_derivation_tag: bigint;
   recipient_output_root: bigint;
   request_version: bigint;
   send_context_tag: bigint;
+  valid_until_slot: bigint;
 };
 
 export type VantaPrivatePoolV2SendCircuitFixture = {
@@ -65,7 +72,9 @@ export type VantaPrivatePoolV2SendCircuitWitnessInput = {
   change_leaf_index: bigint | string;
   change_memo_ciphertext_body_hash: string;
   change_memo_ciphertext_body_hash_field: bigint | string;
+  change_output_blinding: bigint | string;
   change_output_commitment: bigint | string;
+  change_output_derivation_tag: bigint | string;
   change_output_root: bigint | string;
   economics_blinding: bigint | string;
   economics_commitment: bigint | string;
@@ -80,16 +89,21 @@ export type VantaPrivatePoolV2SendCircuitWitnessInput = {
   nullifier: bigint | string;
   owner_commitment: bigint | string;
   owner_secret: bigint | string;
+  relayer_fee: bigint | string;
   recipient_amount: bigint | string;
   recipient_append_path: readonly (bigint | string)[];
   recipient_append_path_direction_bits: readonly (bigint | string)[];
   recipient_leaf_index: bigint | string;
   recipient_memo_ciphertext_body_hash: string;
   recipient_memo_ciphertext_body_hash_field: bigint | string;
+  recipient_owner_commitment: bigint | string;
+  recipient_output_blinding: bigint | string;
   recipient_output_commitment: bigint | string;
+  recipient_output_derivation_tag: bigint | string;
   recipient_output_root: bigint | string;
   request_version: bigint | string;
   send_context_tag: bigint | string;
+  valid_until_slot: bigint | string;
 };
 
 export type VantaPrivatePoolV2SendCircuitNoirInputs = {
@@ -99,7 +113,9 @@ export type VantaPrivatePoolV2SendCircuitNoirInputs = {
   change_append_path_direction_bits: string[];
   change_leaf_index: string;
   change_memo_ciphertext_body_hash_field: string;
+  change_output_blinding: string;
   change_output_commitment: string;
+  change_output_derivation_tag: string;
   change_output_root: string;
   economics_blinding: string;
   economics_commitment: string;
@@ -114,16 +130,21 @@ export type VantaPrivatePoolV2SendCircuitNoirInputs = {
   nullifier: string;
   owner_commitment: string;
   owner_secret: string;
+  relayer_fee: string;
   recipient_amount: string;
   recipient_append_path: string[];
   recipient_append_path_direction_bits: string[];
   recipient_leaf_index: string;
   recipient_memo_ciphertext_body_hash_field: string;
+  recipient_owner_commitment: string;
+  recipient_output_blinding: string;
   recipient_output_commitment: string;
+  recipient_output_derivation_tag: string;
   recipient_output_root: string;
   request_version: string;
   send_context_tag: string;
   send_public_input_hash: string;
+  valid_until_slot: string;
 };
 
 export type VantaPrivatePoolV2SendCircuitFixtureMode =
@@ -134,16 +155,23 @@ export type VantaPrivatePoolV2SendCircuitFixtureMode =
   | "invalid-amount-conservation"
   | "invalid-amount-range"
   | "invalid-binding"
+  | "invalid-change-output-commitment-preimage"
   | "invalid-input-commitment-preimage"
   | "invalid-memo-ciphertext-hash"
   | "invalid-nullifier"
   | "invalid-owner-secret-binding"
+  | "invalid-relayer-fee-conservation"
+  | "invalid-relayer-fee-exceeds-input"
+  | "invalid-relayer-fee-public-binding"
+  | "invalid-valid-until-slot-public-binding"
+  | "invalid-recipient-output-commitment-preimage"
   | "invalid-output-root";
 
 const DEFAULT_WITNESS_ECONOMICS = {
-  change_amount: 1250n,
+  change_amount: 1150n,
   economics_blinding: 1203n,
   input_amount: 5000n,
+  relayer_fee: 100n,
   recipient_amount: 3750n,
 };
 
@@ -156,6 +184,20 @@ const DEFAULT_INPUT_COMMITMENT_PREIMAGE = {
   input_amount: DEFAULT_WITNESS_ECONOMICS.input_amount,
   input_blinding: 808n,
   input_derivation_tag: 809n,
+  owner_commitment: DEFAULT_OWNER_COMMITMENT,
+};
+const DEFAULT_RECIPIENT_OUTPUT_PREIMAGE = {
+  asset_id_commitment: DEFAULT_INPUT_COMMITMENT_PREIMAGE.asset_id_commitment,
+  output_amount: DEFAULT_WITNESS_ECONOMICS.recipient_amount,
+  output_blinding: 910n,
+  output_derivation_tag: 911n,
+  owner_commitment: 303n,
+};
+const DEFAULT_CHANGE_OUTPUT_PREIMAGE = {
+  asset_id_commitment: DEFAULT_INPUT_COMMITMENT_PREIMAGE.asset_id_commitment,
+  output_amount: DEFAULT_WITNESS_ECONOMICS.change_amount,
+  output_blinding: 1010n,
+  output_derivation_tag: 1011n,
   owner_commitment: DEFAULT_OWNER_COMMITMENT,
 };
 
@@ -191,7 +233,11 @@ const DEFAULT_WITNESS_BASE = {
   asset_id_commitment: DEFAULT_INPUT_COMMITMENT_PREIMAGE.asset_id_commitment,
   change_leaf_index: 7n,
   change_amount: DEFAULT_WITNESS_ECONOMICS.change_amount,
-  change_output_commitment: 1001n,
+  change_output_blinding: DEFAULT_CHANGE_OUTPUT_PREIMAGE.output_blinding,
+  change_output_commitment: computeVantaPrivatePoolV2SendOutputCommitment(
+    DEFAULT_CHANGE_OUTPUT_PREIMAGE,
+  ),
+  change_output_derivation_tag: DEFAULT_CHANGE_OUTPUT_PREIMAGE.output_derivation_tag,
   economics_blinding: DEFAULT_WITNESS_ECONOMICS.economics_blinding,
   economics_commitment: computeVantaPrivatePoolV2SendEconomicsCommitment(
     DEFAULT_WITNESS_ECONOMICS,
@@ -215,9 +261,16 @@ const DEFAULT_WITNESS_BASE = {
   ),
   recipient_amount: DEFAULT_WITNESS_ECONOMICS.recipient_amount,
   recipient_leaf_index: 6n,
-  recipient_output_commitment: 909n,
+  recipient_owner_commitment: DEFAULT_RECIPIENT_OUTPUT_PREIMAGE.owner_commitment,
+  recipient_output_blinding: DEFAULT_RECIPIENT_OUTPUT_PREIMAGE.output_blinding,
+  recipient_output_commitment: computeVantaPrivatePoolV2SendOutputCommitment(
+    DEFAULT_RECIPIENT_OUTPUT_PREIMAGE,
+  ),
+  recipient_output_derivation_tag: DEFAULT_RECIPIENT_OUTPUT_PREIMAGE.output_derivation_tag,
+  relayer_fee: DEFAULT_WITNESS_ECONOMICS.relayer_fee,
   request_version: 101n,
   send_context_tag: 1102n,
+  valid_until_slot: 1_000_250n,
 };
 
 const DEFAULT_TREE = buildVantaPrivatePoolV2SendTrees(DEFAULT_WITNESS_BASE);
@@ -261,7 +314,9 @@ const SEND_WITNESS_FIELDS = [
   "change_leaf_index",
   "change_memo_ciphertext_body_hash",
   "change_memo_ciphertext_body_hash_field",
+  "change_output_blinding",
   "change_output_commitment",
+  "change_output_derivation_tag",
   "change_output_root",
   "economics_blinding",
   "economics_commitment",
@@ -276,16 +331,21 @@ const SEND_WITNESS_FIELDS = [
   "nullifier",
   "owner_commitment",
   "owner_secret",
+  "relayer_fee",
   "recipient_amount",
   "recipient_append_path",
   "recipient_append_path_direction_bits",
   "recipient_leaf_index",
   "recipient_memo_ciphertext_body_hash",
   "recipient_memo_ciphertext_body_hash_field",
+  "recipient_owner_commitment",
+  "recipient_output_blinding",
   "recipient_output_commitment",
+  "recipient_output_derivation_tag",
   "recipient_output_root",
   "request_version",
   "send_context_tag",
+  "valid_until_slot",
 ] as const;
 
 function toCircuitString(value: bigint) {
@@ -412,16 +472,43 @@ export function computeVantaPrivatePoolV2SendInputCommitment(
   ]);
 }
 
+export function computeVantaPrivatePoolV2SendOutputCommitment({
+  asset_id_commitment,
+  output_amount,
+  output_blinding,
+  output_derivation_tag,
+  owner_commitment,
+}: {
+  asset_id_commitment: bigint;
+  output_amount: bigint;
+  output_blinding: bigint;
+  output_derivation_tag: bigint;
+  owner_commitment: bigint;
+}) {
+  return poseidon5([
+    owner_commitment,
+    asset_id_commitment,
+    output_amount,
+    output_blinding,
+    output_derivation_tag,
+  ]);
+}
+
 export function computeVantaPrivatePoolV2SendEconomicsCommitment(
   witness: Pick<
     VantaPrivatePoolV2SendCircuitWitness,
-    "input_amount" | "recipient_amount" | "change_amount" | "economics_blinding"
+    | "input_amount"
+    | "recipient_amount"
+    | "change_amount"
+    | "relayer_fee"
+    | "economics_blinding"
   >,
 ) {
-  return poseidon4([
+  return poseidon5([
     witness.input_amount,
     witness.recipient_amount,
     witness.change_amount,
+    witness.relayer_fee,
     witness.economics_blinding,
   ]);
 }
@@ -501,6 +588,11 @@ export function computeVantaPrivatePoolV2SendPublicInputHash(
     witness.recipient_memo_ciphertext_body_hash_field,
     witness.change_memo_ciphertext_body_hash_field,
   ]);
+  const economicsTerms = poseidon3([
+    witness.economics_commitment,
+    witness.relayer_fee,
+    witness.valid_until_slot,
+  ]);
 
   return poseidon12([
     witness.request_version,
@@ -510,7 +602,7 @@ export function computeVantaPrivatePoolV2SendPublicInputHash(
     witness.recipient_output_commitment,
     witness.change_output_commitment,
     witness.asset_id_commitment,
-    witness.economics_commitment,
+    economicsTerms,
     witness.owner_commitment,
     witness.send_context_tag,
     outputTransition,
@@ -554,9 +646,17 @@ export function normalizeVantaPrivatePoolV2SendCircuitWitnessInput(input: unknow
       input.change_memo_ciphertext_body_hash_field,
       "change_memo_ciphertext_body_hash_field",
     ),
+    change_output_blinding: normalizeWitnessField(
+      input.change_output_blinding,
+      "change_output_blinding",
+    ),
     change_output_commitment: normalizeWitnessField(
       input.change_output_commitment,
       "change_output_commitment",
+    ),
+    change_output_derivation_tag: normalizeWitnessField(
+      input.change_output_derivation_tag,
+      "change_output_derivation_tag",
     ),
     change_output_root: normalizeWitnessField(input.change_output_root, "change_output_root"),
     economics_blinding: normalizeWitnessField(input.economics_blinding, "economics_blinding"),
@@ -581,6 +681,7 @@ export function normalizeVantaPrivatePoolV2SendCircuitWitnessInput(input: unknow
     nullifier: normalizeWitnessField(input.nullifier, "nullifier"),
     owner_commitment: normalizeWitnessField(input.owner_commitment, "owner_commitment"),
     owner_secret: normalizeWitnessField(input.owner_secret, "owner_secret"),
+    relayer_fee: normalizeWitnessAmount(input.relayer_fee, "relayer_fee"),
     recipient_amount: normalizeWitnessAmount(input.recipient_amount, "recipient_amount"),
     recipient_append_path: normalizeWitnessFieldArray(
       input.recipient_append_path,
@@ -598,9 +699,21 @@ export function normalizeVantaPrivatePoolV2SendCircuitWitnessInput(input: unknow
       input.recipient_memo_ciphertext_body_hash_field,
       "recipient_memo_ciphertext_body_hash_field",
     ),
+    recipient_owner_commitment: normalizeWitnessField(
+      input.recipient_owner_commitment,
+      "recipient_owner_commitment",
+    ),
+    recipient_output_blinding: normalizeWitnessField(
+      input.recipient_output_blinding,
+      "recipient_output_blinding",
+    ),
     recipient_output_commitment: normalizeWitnessField(
       input.recipient_output_commitment,
       "recipient_output_commitment",
+    ),
+    recipient_output_derivation_tag: normalizeWitnessField(
+      input.recipient_output_derivation_tag,
+      "recipient_output_derivation_tag",
     ),
     recipient_output_root: normalizeWitnessField(
       input.recipient_output_root,
@@ -608,6 +721,7 @@ export function normalizeVantaPrivatePoolV2SendCircuitWitnessInput(input: unknow
     ),
     request_version: normalizeWitnessField(input.request_version, "request_version"),
     send_context_tag: normalizeWitnessField(input.send_context_tag, "send_context_tag"),
+    valid_until_slot: normalizeWitnessField(input.valid_until_slot, "valid_until_slot"),
   };
 
   assertDirectionBits(witness.membership_path_direction_bits, "membership_path_direction_bits");
@@ -652,12 +766,43 @@ export function normalizeVantaPrivatePoolV2SendCircuitWitnessInput(input: unknow
     throw new Error("Send witness nullifier must match the owner secret.");
   }
 
-  if (witness.input_amount !== witness.recipient_amount + witness.change_amount) {
+  if (
+    witness.input_amount !==
+    witness.recipient_amount + witness.change_amount + witness.relayer_fee
+  ) {
     throw new Error("Send witness amount conservation must hold.");
   }
 
   if (computeVantaPrivatePoolV2SendEconomicsCommitment(witness) !== witness.economics_commitment) {
     throw new Error("Send witness economics commitment must match amounts and blinding.");
+  }
+
+  if (
+    computeVantaPrivatePoolV2SendOutputCommitment({
+      asset_id_commitment: witness.asset_id_commitment,
+      output_amount: witness.recipient_amount,
+      output_blinding: witness.recipient_output_blinding,
+      output_derivation_tag: witness.recipient_output_derivation_tag,
+      owner_commitment: witness.recipient_owner_commitment,
+    }) !== witness.recipient_output_commitment
+  ) {
+    throw new Error(
+      "Send witness recipient_output_commitment must match the recipient output note preimage.",
+    );
+  }
+
+  if (
+    computeVantaPrivatePoolV2SendOutputCommitment({
+      asset_id_commitment: witness.asset_id_commitment,
+      output_amount: witness.change_amount,
+      output_blinding: witness.change_output_blinding,
+      output_derivation_tag: witness.change_output_derivation_tag,
+      owner_commitment: witness.owner_commitment,
+    }) !== witness.change_output_commitment
+  ) {
+    throw new Error(
+      "Send witness change_output_commitment must match the change output note preimage.",
+    );
   }
 
   if (
@@ -769,6 +914,20 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
             ...witness,
             input_blinding: witness.input_blinding + 1n,
           }
+      : mode === "invalid-relayer-fee-conservation"
+        ? createInvalidRelayerFeeConservationWitness(witness)
+      : mode === "invalid-relayer-fee-exceeds-input"
+        ? createInvalidRelayerFeeExceedsInputWitness(witness)
+      : mode === "invalid-recipient-output-commitment-preimage"
+        ? {
+            ...witness,
+            recipient_output_blinding: witness.recipient_output_blinding + 1n,
+          }
+      : mode === "invalid-change-output-commitment-preimage"
+        ? {
+            ...witness,
+            change_output_blinding: witness.change_output_blinding + 1n,
+          }
       : mode === "invalid-nullifier"
         ? {
             ...witness,
@@ -786,7 +945,19 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
           }
         : witness;
   const publicHashWitness =
-    mode === "invalid-memo-ciphertext-hash" ? witness : circuitWitness;
+    mode === "invalid-memo-ciphertext-hash"
+      ? witness
+      : mode === "invalid-relayer-fee-public-binding"
+        ? {
+            ...witness,
+            relayer_fee: witness.relayer_fee + 1n,
+          }
+        : mode === "invalid-valid-until-slot-public-binding"
+          ? {
+              ...witness,
+              valid_until_slot: witness.valid_until_slot + 1n,
+            }
+        : circuitWitness;
   const validPublicHash = computeVantaPrivatePoolV2SendPublicInputHash(publicHashWitness);
   const resolvedMemoCiphertextBodyHashes = {
     ...DEFAULT_MEMO_CIPHERTEXT_BODY_HASHES,
@@ -823,6 +994,7 @@ export function createVantaPrivatePoolV2SendCircuitFixture({
     recipientOutputRoot: toCircuitString(publicHashWitness.recipient_output_root),
     sendContextTag: toCircuitString(publicHashWitness.send_context_tag),
     sendPublicInputHash: toCircuitString(validPublicHash),
+    validUntilSlot: toCircuitString(publicHashWitness.valid_until_slot),
   });
 
   return {
@@ -855,7 +1027,9 @@ export function createVantaPrivatePoolV2SendCircuitNoirInputs(
     change_memo_ciphertext_body_hash_field: toCircuitString(
       witness.change_memo_ciphertext_body_hash_field,
     ),
+    change_output_blinding: toCircuitString(witness.change_output_blinding),
     change_output_commitment: toCircuitString(witness.change_output_commitment),
+    change_output_derivation_tag: toCircuitString(witness.change_output_derivation_tag),
     change_output_root: toCircuitString(witness.change_output_root),
     economics_blinding: toCircuitString(witness.economics_blinding),
     economics_commitment: toCircuitString(witness.economics_commitment),
@@ -870,6 +1044,7 @@ export function createVantaPrivatePoolV2SendCircuitNoirInputs(
     nullifier: toCircuitString(witness.nullifier),
     owner_commitment: toCircuitString(witness.owner_commitment),
     owner_secret: toCircuitString(witness.owner_secret),
+    relayer_fee: toCircuitString(witness.relayer_fee),
     recipient_amount: toCircuitString(witness.recipient_amount),
     recipient_append_path: witness.recipient_append_path.map(toCircuitString),
     recipient_append_path_direction_bits:
@@ -878,11 +1053,17 @@ export function createVantaPrivatePoolV2SendCircuitNoirInputs(
     recipient_memo_ciphertext_body_hash_field: toCircuitString(
       witness.recipient_memo_ciphertext_body_hash_field,
     ),
+    recipient_owner_commitment: toCircuitString(witness.recipient_owner_commitment),
+    recipient_output_blinding: toCircuitString(witness.recipient_output_blinding),
     recipient_output_commitment: toCircuitString(witness.recipient_output_commitment),
+    recipient_output_derivation_tag: toCircuitString(
+      witness.recipient_output_derivation_tag,
+    ),
     recipient_output_root: toCircuitString(witness.recipient_output_root),
     request_version: toCircuitString(witness.request_version),
     send_context_tag: toCircuitString(witness.send_context_tag),
     send_public_input_hash: toCircuitString(fixture.sendPublicInputHash),
+    valid_until_slot: toCircuitString(witness.valid_until_slot),
   };
 }
 
@@ -929,7 +1110,7 @@ function createInvalidAmountRangeWitness(
   const rangeOverflowWitness = {
     ...witness,
     input_amount: outOfRangeInputAmount,
-    recipient_amount: outOfRangeInputAmount - witness.change_amount,
+    recipient_amount: outOfRangeInputAmount - witness.change_amount - witness.relayer_fee,
   };
 
   return {
@@ -938,6 +1119,38 @@ function createInvalidAmountRangeWitness(
       rangeOverflowWitness,
     ),
     input_commitment: computeVantaPrivatePoolV2SendInputCommitment(rangeOverflowWitness),
+  };
+}
+
+function createInvalidRelayerFeeConservationWitness(
+  witness: VantaPrivatePoolV2SendCircuitWitness,
+): VantaPrivatePoolV2SendCircuitWitness {
+  const unbalancedWitness = {
+    ...witness,
+    relayer_fee: witness.relayer_fee + 1n,
+  };
+
+  return {
+    ...unbalancedWitness,
+    economics_commitment: computeVantaPrivatePoolV2SendEconomicsCommitment(
+      unbalancedWitness,
+    ),
+  };
+}
+
+function createInvalidRelayerFeeExceedsInputWitness(
+  witness: VantaPrivatePoolV2SendCircuitWitness,
+): VantaPrivatePoolV2SendCircuitWitness {
+  const invalidFeeWitness = {
+    ...witness,
+    relayer_fee: witness.input_amount + 1n,
+  };
+
+  return {
+    ...invalidFeeWitness,
+    economics_commitment: computeVantaPrivatePoolV2SendEconomicsCommitment(
+      invalidFeeWitness,
+    ),
   };
 }
 
@@ -1017,6 +1230,7 @@ export function serializeVantaPrivatePoolV2SendCircuitFixtureToToml(
   return [
     `send_public_input_hash = "${fixture.sendPublicInputHash.toString(10)}"`,
     `request_version = "${witness.request_version.toString(10)}"`,
+    `valid_until_slot = "${witness.valid_until_slot.toString(10)}"`,
     `input_root = "${witness.input_root.toString(10)}"`,
     `input_commitment = "${witness.input_commitment.toString(10)}"`,
     `input_leaf_index = "${witness.input_leaf_index.toString(10)}"`,
@@ -1031,6 +1245,11 @@ export function serializeVantaPrivatePoolV2SendCircuitFixtureToToml(
     `send_context_tag = "${witness.send_context_tag.toString(10)}"`,
     `recipient_memo_ciphertext_body_hash_field = "${witness.recipient_memo_ciphertext_body_hash_field.toString(10)}"`,
     `change_memo_ciphertext_body_hash_field = "${witness.change_memo_ciphertext_body_hash_field.toString(10)}"`,
+    `recipient_owner_commitment = "${witness.recipient_owner_commitment.toString(10)}"`,
+    `recipient_output_blinding = "${witness.recipient_output_blinding.toString(10)}"`,
+    `recipient_output_derivation_tag = "${witness.recipient_output_derivation_tag.toString(10)}"`,
+    `change_output_blinding = "${witness.change_output_blinding.toString(10)}"`,
+    `change_output_derivation_tag = "${witness.change_output_derivation_tag.toString(10)}"`,
     `recipient_leaf_index = "${witness.recipient_leaf_index.toString(10)}"`,
     `recipient_output_root = "${witness.recipient_output_root.toString(10)}"`,
     `recipient_append_path = [${witness.recipient_append_path.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
@@ -1042,6 +1261,7 @@ export function serializeVantaPrivatePoolV2SendCircuitFixtureToToml(
     `input_amount = "${witness.input_amount.toString(10)}"`,
     `recipient_amount = "${witness.recipient_amount.toString(10)}"`,
     `change_amount = "${witness.change_amount.toString(10)}"`,
+    `relayer_fee = "${witness.relayer_fee.toString(10)}"`,
     `economics_blinding = "${witness.economics_blinding.toString(10)}"`,
     `owner_secret = "${witness.owner_secret.toString(10)}"`,
     `input_blinding = "${witness.input_blinding.toString(10)}"`,

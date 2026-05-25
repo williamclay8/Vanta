@@ -206,6 +206,10 @@ function assertBundleTemplate(template) {
     template.sourceLineage?.requiredProductionSourceAcirSha256 === shape.sourceAcirSha256,
     "template production source ACIR hash mismatch",
   );
+  assert(template.sourceLineage?.frozenSourceCommitRef === null, "template frozen source commit ref must stay null");
+  assert(template.sourceLineage?.sourceTreeStatusRef === null, "template source tree status ref must stay null");
+  assert(template.sourceLineage?.sourceFreezeReviewRef === null, "template source freeze review ref must stay null");
+  assert(template.sourceLineage?.sourceFreezeAccepted === false, "template must not claim source freeze acceptance");
   assert(template.sourceLineage?.sourceReviewAcceptanceRef === null, "template source review acceptance ref must stay null");
   assert(
     template.sourceLineage?.reviewedSourceMigrationAccepted === false,
@@ -258,6 +262,22 @@ function assertBundleTemplate(template) {
   assert(
     template.publicInputBinding?.matchesCurrentH6ProofReceipt === false,
     "template must not claim H6 binding",
+  );
+  assertNullRefs(template.sbfLiveLineage, "template SBF/live lineage", [
+    "sbfLiveLineageRef",
+    "rebuiltSpendSbfSha256",
+    "acceptedVerifierSbfSha256",
+    "deployedSpendProgramId",
+    "deployedVerifierProgramId",
+    "tag5ProductionVerifierKeyRegistrationRef",
+    "verifierProgramUpgradeAuthorityStatusRef",
+    "verifierKeyRecordBindingRef",
+    "reinitializationOrMigrationReceiptRef",
+    "liveProofEnforcedTag3ReceiptRef",
+  ]);
+  assert(
+    template.sbfLiveLineage?.satisfiesSbfLiveLineage === false,
+    "template must not claim SBF/live lineage",
   );
   assertNullRefs(template.auditReviewerAcceptance, "template audit/reviewer acceptance", [
     "auditReviewerAcceptanceRef",
@@ -348,6 +368,10 @@ function assertReviewedProductionBundle(bundle, label) {
   );
 
   const sourceLineage = bundle.sourceLineage ?? {};
+  assertRef(sourceLineage.frozenSourceCommitRef, `${label} frozen source commit ref`);
+  assertRef(sourceLineage.sourceTreeStatusRef, `${label} source tree status ref`);
+  assertRef(sourceLineage.sourceFreezeReviewRef, `${label} source freeze review ref`);
+  assert(sourceLineage.sourceFreezeAccepted === true, `${label} source freeze acceptance must be true`);
   assert(sourceLineage.requiredCurrentSourceAcirRef === currentSourceAcirRef, `${label} source ACIR ref mismatch`);
   assert(
     sourceLineage.requiredCurrentSourceAcirSha256 === shape.referenceCurrentSourceAcirSha256,
@@ -463,6 +487,8 @@ function assertReviewedProductionBundle(bundle, label) {
     "deployedSpendProgramId",
     "deployedVerifierProgramId",
     "tag5ProductionVerifierKeyRegistrationRef",
+    "verifierProgramUpgradeAuthorityStatusRef",
+    "verifierKeyRecordBindingRef",
     "reinitializationOrMigrationReceiptRef",
     "liveProofEnforcedTag3ReceiptRef",
   ]) {
@@ -721,6 +747,8 @@ assertAllowedKeys(shape, "required production bundle shape", [
   "referenceCurrentSourceAcirSha256",
   "productionSourceLineageMode",
   "sourceAcirSha256",
+  "sourceFreezeRequired",
+  "frozenSourceCommitRefShape",
   "sourceReviewAcceptanceRequired",
   "sourceReviewAcceptanceGateRef",
   "productionOutputManifestPreflightRequired",
@@ -754,6 +782,8 @@ for (const [field, expected] of [
   ["referenceCurrentSourceAcirSha256", acquisition.sourceCircuit?.compiledAcirSha256],
   ["productionSourceLineageMode", "reviewed-beta18-h6-source-migration"],
   ["sourceAcirSha256", reviewedBeta18H6SourceAcirSha256],
+  ["sourceFreezeRequired", true],
+  ["frozenSourceCommitRefShape", "git:<reviewed-immutable-production-source-commit-ref>"],
   ["sourceReviewAcceptanceRequired", true],
   ["sourceReviewAcceptanceGateRef", sourceReviewAcceptanceGatePath],
   ["productionOutputManifestPreflightRequired", true],
@@ -792,6 +822,9 @@ const accepted = packet.currentAcceptedProductionBundle ?? {};
 assertAllowedKeys(accepted, "current accepted production bundle", [
   "status",
   "bundleRef",
+  "frozenSourceCommitRef",
+  "sourceTreeStatusRef",
+  "sourceFreezeReviewRef",
   "pinnedToolchainSourceRef",
   "reviewedToolchainBuildRef",
   "trustedSetupOrMitigationRef",
@@ -810,6 +843,7 @@ assertAllowedKeys(accepted, "current accepted production bundle", [
   "wrongVerifyingKeyNoMutationTestRef",
   "wrongVerifierProgramNoMutationTestRef",
   "sbfLiveLineageRef",
+  "verifierProgramUpgradeAuthorityStatusRef",
   "auditReviewerAcceptanceRef",
   "artifactReviewAttestationRef",
   "satisfiesProductionArtifactAcceptance",
@@ -817,6 +851,9 @@ assertAllowedKeys(accepted, "current accepted production bundle", [
 assert(accepted.status === "absent", "accepted production bundle must be absent");
 assertNullRefs(accepted, "accepted production bundle", [
   "bundleRef",
+  "frozenSourceCommitRef",
+  "sourceTreeStatusRef",
+  "sourceFreezeReviewRef",
   "pinnedToolchainSourceRef",
   "reviewedToolchainBuildRef",
   "trustedSetupOrMitigationRef",
@@ -835,6 +872,7 @@ assertNullRefs(accepted, "accepted production bundle", [
   "wrongVerifyingKeyNoMutationTestRef",
   "wrongVerifierProgramNoMutationTestRef",
   "sbfLiveLineageRef",
+  "verifierProgramUpgradeAuthorityStatusRef",
   "auditReviewerAcceptanceRef",
   "artifactReviewAttestationRef",
 ]);
@@ -1044,6 +1082,7 @@ assert(externalValidation.validatedWhenEnvVarPresent === true, "external bundle 
 assertStringArray(externalValidation.validates, "external bundle validation validates");
 for (const marker of [
   "reviewed beta18 H6 production source ACIR lineage",
+  "reviewed frozen source commit and source tree status refs",
   "external source-review acceptance",
   "production output-manifest preflight",
   "deterministic production artifact build receipt",
@@ -1059,6 +1098,7 @@ for (const marker of [
   "wrong-verifier-program no-mutation evidence",
   "five trim-normalized distinct mutation/no-mutation evidence refs",
   "SBF/live lineage evidence",
+  "verifier program upgrade-authority status ref",
   "audit/reviewer acceptance",
   "audit/reviewer reviewer identity, C01 scope, findings disposition, acceptedForC01, and satisfiesAuditReviewerAcceptance fields",
   "artifact producer and reviewer identity/scope attestation",
@@ -1082,6 +1122,8 @@ assertBundleTemplate(bundleTemplate);
 const criteria = mapById(packet.acceptanceCriteria, "acceptance criteria");
 for (const [id, shapeRef] of [
   ["external-source-review-acceptance", "review:<external-beta18-h6-source-migration-acceptance-ref>"],
+  ["frozen-production-source-commit", "git:<reviewed-immutable-production-source-commit-ref>"],
+  ["source-freeze-review", "review:<reviewed-source-freeze-acceptance-ref>"],
   ["production-output-manifest-preflight", "manifest:<refs-only-production-output-manifest-preflight-ref>"],
   ["deterministic-production-artifact-build-receipt", "build:<reviewed-deterministic-production-artifact-build-receipt-ref>"],
   ["pinned-reviewed-toolchain-source", "source:<pinned-reviewed-sunspot-gnark-source-or-release-ref>"],
@@ -1115,6 +1157,7 @@ for (const rule of [
   "local /private/tmp Sunspot/Gnark outputs are comparison metadata only and cannot fill production currentRef fields",
   "production proof-format and production verifying-key refs must agree on circuit, reviewed beta18 H6 production source ACIR hash, proof format id, proof byte length, public-witness byte length, generated verifier public input count, and public input label",
   "production public-witness evidence must decode one private-spend-public-input-hash equal to the current H6 proof receipt public input and commitment before adapter or mutation evidence can promote",
+  "the production verifier lane must freeze a reviewed immutable source commit and source tree status before production bundle refs can promote",
   "reviewed source migration acceptance is required before a beta18 source-migration production bundle can promote source lineage",
   "production output-manifest preflight is required before the deterministic production artifact build receipt can cite returned proof/VK/public-witness refs",
   "reviewed deterministic production artifact build receipt is required before proof/VK/public-witness refs can promote into the production bundle",
@@ -1123,6 +1166,7 @@ for (const rule of [
   "valid mutation and invalid/wrong-input/wrong-key/wrong-program no-mutation evidence must run under the accepted verifier boundary",
   "valid mutation and each invalid/wrong-input/wrong-key/wrong-program no-mutation case must have distinct evidence refs",
   "production artifact bundle acceptance must include artifact producer identity, reviewer identity, review scope, and cross-refs to deterministic build, adapter, lineage, and audit acceptance refs",
+  "production artifact bundle acceptance must include verifier program upgrade-authority status as part of SBF/live lineage refs",
   "SBF/live lineage and audit/reviewer acceptance remain separate required refs",
 ]) {
   assert(packet.promotionRules.includes(rule), `missing promotion rule ${rule}`);

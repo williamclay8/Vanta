@@ -120,6 +120,60 @@ try {
     console.log("invalid-input-commitment-preimage fixture: expected failure observed");
   }
 
+  writeFixture("invalid-net-payout-conservation");
+  console.log("invalid-net-payout-conservation fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-net-payout-conservation fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-net-payout-conservation fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-net-payout-conservation fixture: expected failure observed");
+  }
+
+  writeFixture("invalid-net-payout-public-binding");
+  console.log("invalid-net-payout-public-binding fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-net-payout-public-binding fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-net-payout-public-binding fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-net-payout-public-binding fixture: expected failure observed");
+  }
+
+  writeFixture("invalid-relayer-fee-exceeds-amount");
+  console.log("invalid-relayer-fee-exceeds-amount fixture write: PASS");
+
+  try {
+    printCapturedOutput(runNargo(["execute"]));
+    throw new Error("invalid-relayer-fee-exceeds-amount fixture unexpectedly succeeded");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "invalid-relayer-fee-exceeds-amount fixture unexpectedly succeeded"
+    ) {
+      throw error;
+    }
+
+    printExpectedFailure(error);
+    console.log("invalid-relayer-fee-exceeds-amount fixture: expected failure observed");
+  }
+
   writeFixture("invalid-amount-range");
   console.log("invalid-amount-range fixture write: PASS");
 

@@ -5200,6 +5200,7 @@ dependencies = [
  "libafl",
  "libafl_bolts",
  "solana-keypair",
+ "solana-poseidon",
  "solana-pubkey 3.0.0",
  "solana-signer",
 ]

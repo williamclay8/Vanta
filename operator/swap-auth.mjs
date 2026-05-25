@@ -1,7 +1,7 @@
 import { createPublicKey, verify as verifySignature } from "node:crypto";
 import { PublicKey } from "@solana/web3.js";
 
-export const VANTA_SWAP_INTENT_VERSION = "v2";
+export const VANTA_SWAP_INTENT_VERSION = "v3";
 export const VANTA_SWAP_INTENT_TTL_MS = 5 * 60 * 1000;
 
 const ED25519_SPKI_PREFIX = Buffer.from("302a300506032b6570032100", "hex");
@@ -17,6 +17,7 @@ export function parseSignedSwapIntent(body) {
     inputAsset,
     issuedAt,
     mintAddress,
+    minOutputAmount,
     outputAmount,
     outputAsset,
     outputNoteId,
@@ -27,6 +28,7 @@ export function parseSignedSwapIntent(body) {
     requestId,
     requester,
     signature,
+    slippageBps,
     transitionNoteId,
     transitionStateSignature,
     venueFamily,
@@ -42,6 +44,7 @@ export function parseSignedSwapIntent(body) {
     typeof inputAmount !== "string" ||
     inputAsset !== "USDC" ||
     typeof mintAddress !== "string" ||
+    typeof minOutputAmount !== "string" ||
     typeof outputAmount !== "string" ||
     outputAsset !== "SOL" ||
     typeof outputNoteId !== "string" ||
@@ -52,6 +55,7 @@ export function parseSignedSwapIntent(body) {
     typeof requestId !== "string" ||
     typeof requester !== "string" ||
     typeof signature !== "string" ||
+    typeof slippageBps !== "number" ||
     typeof transitionNoteId !== "string" ||
     typeof transitionStateSignature !== "string" ||
     venueFamily !== "DLMM" ||
@@ -62,6 +66,7 @@ export function parseSignedSwapIntent(body) {
     version !== VANTA_SWAP_INTENT_VERSION ||
     typeof issuedAt !== "number" ||
     !Number.isFinite(issuedAt) ||
+    !Number.isFinite(slippageBps) ||
     !Number.isFinite(quoteTimestamp) ||
     !Number.isFinite(quoteExpiresAt)
   ) {
@@ -74,6 +79,7 @@ export function parseSignedSwapIntent(body) {
     inputAsset,
     issuedAt,
     mintAddress,
+    minOutputAmount,
     outputAmount,
     outputAsset,
     outputNoteId,
@@ -84,6 +90,7 @@ export function parseSignedSwapIntent(body) {
     requestId,
     requester,
     signature,
+    slippageBps,
     transitionNoteId,
     transitionStateSignature,
     venueFamily,
@@ -111,10 +118,12 @@ export function formatSwapIntentMessage(payload) {
     `inputAsset:${payload.inputAsset}`,
     `inputAmount:${payload.inputAmount}`,
     `outputAsset:${payload.outputAsset}`,
+    `minOutputAmount:${payload.minOutputAmount}`,
     `outputAmount:${payload.outputAmount}`,
     `quoteId:${payload.quoteId}`,
     `quoteTimestamp:${payload.quoteTimestamp}`,
     `quoteExpiresAt:${payload.quoteExpiresAt}`,
+    `slippageBps:${payload.slippageBps}`,
     `venueName:${payload.venueName}`,
     `venueFamily:${payload.venueFamily}`,
     `venueNetwork:${payload.venueNetwork}`,

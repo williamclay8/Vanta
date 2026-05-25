@@ -26,8 +26,10 @@ requireMarkers(
   program,
   [
     "const TAG_REGISTER_PROVENANCED_ROOT: u8 = 4;",
+    "const TAG_APPEND_TREE_LEAF: u8 = 9;",
     "const ROOT_RECORD_MAGIC: &[u8; 8] = b\"VNTA2RRC\";",
     "const ROOT_RECORD_SEED: &[u8] = b\"vanta2root\";",
+    "program-owned Poseidon Merkle tree",
     "const ROOT_RECORD_ACCOUNT_LEN",
     "const ERR_ROOT_RECORD_MISMATCH: u32 = 18;",
     "TAG_REGISTER_PROVENANCED_ROOT =>",

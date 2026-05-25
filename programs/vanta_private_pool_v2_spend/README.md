@@ -12,7 +12,7 @@ This is intentionally minimal:
 - no proof verification
 
 It records the public transcript from an operator-accepted off-chain private spend packet: an accepted root, one nullifier marker PDA, one deterministic output record PDA, two output commitments, and a public input hash.
-The program now fail-closes writes behind the operator authority captured during init. It also reserves a source-only program-owned root provenance record for future proof paths, but it still does not verify proofs or prove that the accepted root came from a correct program-owned Merkle transition.
+The program now fail-closes writes behind the operator authority captured during init. It also reserves a source-only program-owned root provenance record for future proof paths and a local program-owned Poseidon Merkle tree append lane, but it still does not verify proofs, does not prove a private spend witness, and does not prove that an off-chain spend witness is valid.
 
 ## Instructions
 
@@ -20,13 +20,14 @@ Instruction data is byte-packed.
 
 ### `0` - init
 
-Initializes the headers of four already-created, program-owned, writable accounts and binds the pool to those exact child accounts:
+Initializes the headers of five already-created, program-owned, writable accounts and binds the pool to those exact child accounts:
 
 1. `pool_state`
 2. `nullifier_set`
 3. `output_queue`
 4. `root_history`
-5. `operator_authority` signer, read-only
+5. `tree_state`
+6. `operator_authority` signer, read-only
 
 The init instruction is exactly one byte:
 
@@ -38,10 +39,12 @@ Init is one-time for zeroed accounts. Reinitialization is rejected instead of al
 
 Minimum account data sizes:
 
-- `pool_state`: 184 bytes
+- `pool_state`: 224 bytes. Byte offset `216` is `verifier_wired`, initialized to `0`
+  by tag `0`; no public setter is exposed in this slice.
 - `nullifier_set`: `16 + 32 * slot_count` bytes
 - `output_queue`: 16-byte output index header
 - `root_history`: `16 + 32 * slot_count` bytes
+- `tree_state`: 736 bytes
 
 ### `2` - register root
 
@@ -99,7 +102,42 @@ Behavior:
 - rejects duplicate accepted roots
 - rejects writes when the fixed-slot root history account is full
 
-This is provenance metadata only. It is not proof that the root transition is correct, not a program-owned Merkle tree, and not on-chain verifier evidence.
+This is provenance metadata only. It is not proof that the root transition is correct, not the program-owned Poseidon Merkle tree append lane, and not on-chain verifier evidence.
+
+### `9` - append program-owned Merkle tree leaf
+
+Appends one output commitment into the local program-owned Poseidon Merkle tree and records the resulting root provenance.
+
+Append-tree accounts:
+
+1. `pool_state` writable
+2. `tree_state` writable, program-owned, bound in `pool_state`
+3. `root_history` writable, program-owned, bound in `pool_state`
+4. `root_record` writable PDA derived from `["vanta2root", pool_state, expectedNewRoot]`
+5. `tree_leaf_marker` writable PDA derived from `["vanta2leaf", pool_state, outputCommitment]`
+6. `operator_authority` writable signer when PDAs are created; must match the pubkey stored during init
+7. `system_program` read-only
+
+Append-tree instruction data is exactly 130 bytes:
+
+```text
+[9, outputCommitment:32, expectedPreviousRoot:32, expectedNewRoot:32, transitionPublicInputHash:32, transitionKind:1]
+```
+
+Behavior:
+
+- verifies the stored operator authority signed the append
+- verifies the supplied `tree_state` and `root_history` match the pubkeys stored in `pool_state` during init
+- maintains a depth 20 frontier inside the program-owned `tree_state` account
+- hashes leaves and internal nodes with Solana Poseidon using the BN254 X5 parameter set and big-endian field encoding
+- requires `expectedPreviousRoot` to match the current program-owned tree root
+- recomputes the next root in-program and rejects `expectedNewRoot` drift
+- creates or verifies a program-owned root provenance record for `expectedNewRoot` with `leafCount = 1`
+- creates or verifies a duplicate-leaf marker at `["vanta2leaf", pool_state, outputCommitment]`
+- appends `expectedNewRoot` into the bound fixed-slot root history
+- rejects duplicate leaves, duplicate roots, wrong tree accounts, stale previous roots, and full-tree appends
+
+This lane makes root evolution program-owned, but it is still not a proof verifier. It does not verify a private spend witness, does not prove note membership, and does not make the current proof-carrying spend or unshield release paths production-ready.
 
 ### `5` - register verifier key
 
@@ -207,9 +245,9 @@ C01 verifier backend contract:
 - a future positive verifier lane must use `production-verifying-key-hash` evidence and replace the fail-closed custom error `14` boundary with reviewed verifier tests
 - guard: `npm run zk:c01-production-verifier-backend-candidate-check`
 
-### `6` (TAG_UNSHIELD) - proof-shaped unshield release preflight (TAG6 native SOL wired in test helper via system CPI; SPL path still reserved/not-wired. Per design doc §11 + VANTA_ZK_REVIEW U2.1 + 2026-05-14 status note)
+### `6` (TAG_UNSHIELD) - proof-shaped unshield release preflight (TAG6 native SOL/SPL release still fail-closed. Per design doc §11 + VANTA_ZK_REVIEW U2.1 + 2026-05-14 status note)
 
-TAG6 + native SOL support implemented in the test helper (system_instruction::transfer CPI from program-owned vault PDA for VAULT_ASSET_KIND_SOL=2 + sentinel asset_id). Full production program (when deployed) will use dedicated ["vanta2solvault", pool_state, sentinel] PDA for lamports holding, generalized accounts (system_program), and UnshieldEvent emission. No operator keypair ever signs the funds transfer. Relayer submits user-constructed tx only. Sentinel bypasses zero preflights. Test helper demonstrates the exact private custody path; SPL token release remains not-wired in this scope.
+TAG6 + native SOL support now preflights a full vault-asset registry record for `VAULT_ASSET_KIND_SOL=2` and the sentinel asset id. The dedicated `["vanta2solvault", pool_state, sentinel]` PDA remains the canonical lamports holder, and no operator keypair signs funds transfer. Release is blocked by runtime state instead of build flags: initialized pools store `verifier_wired = 0`, and tag `6` returns custom error `15` before nullifier consume or SOL/SPL CPI. Even if a future reviewed authority path sets `verifier_wired = 1`, this slice still returns error `15` until item 9 wires real verifier/root/public-input/nullifier acceptance.
 
 Unshield preflight accounts:
 
@@ -241,6 +279,7 @@ Behavior today:
 - preflights the deterministic nullifier marker PDA without creating or mutating it
 - preflights the deterministic vault-authority PDA
 - preflights the deterministic vault-asset registry PDA
+- requires the pool's runtime `verifier_wired` byte to be enabled before any future release attempt, but still returns custom error `15` in this slice
 - preflights SPL mint/token-account ownership and mint shape without invoking the token program
 - The registry record stores `releaseEnabled = 0`; tag `6` requires that disabled value today
 - returns custom error `15` after root/root-record/verifier-key/nullifier/vault-asset/token-account preflight and before mutating accounts
@@ -319,3 +358,12 @@ cargo check --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml
 - `20`: supplied Unshield vault token account does not match the registered mint/vault authority
 - `21`: supplied Unshield destination token account does not match the registered mint/exit destination
 - `22`: supplied Unshield token program or mint account does not match the expected token-account ownership boundary
+- `23`: supplied vault asset kind is not accepted by the current source scaffold
+- `24`: supplied vault asset registration mismatches an existing vault-asset record
+- `25`: supplied root transition is a no-op
+- `26`: supplied Merkle tree state account does not match the initialized pool binding or tree header
+- `27`: program-owned Merkle tree capacity is full
+- `28`: supplied Merkle tree previous or new root does not match the in-program transition
+- `29`: supplied output commitment was already appended to the program-owned Merkle tree
+- `30`: supplied tree leaf marker PDA or account content does not match `["vanta2leaf", pool_state, outputCommitment]`
+- `31`: Poseidon hashing failed before a tree append could be accepted

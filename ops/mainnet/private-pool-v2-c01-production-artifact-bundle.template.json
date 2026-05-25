@@ -6,6 +6,10 @@
   "secretPolicy": "refs-only-no-raw-proof-vk-witness-pk-keypair-secret-or-signed-transaction-bytes",
   "purpose": "Refs-only template for the reviewed C01 production artifact bundle. Copy this shape into a reviewed external bundle file, fill only artifact/review/test/lineage refs plus hashes and booleans, then validate it with VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check.",
   "sourceLineage": {
+    "frozenSourceCommitRef": null,
+    "sourceTreeStatusRef": null,
+    "sourceFreezeReviewRef": null,
+    "sourceFreezeAccepted": false,
     "requiredCurrentSourceAcirRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json",
     "requiredCurrentSourceAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
     "requiredProductionSourceLineageMode": "reviewed-beta18-h6-source-migration",
@@ -82,6 +86,8 @@
     "deployedSpendProgramId": null,
     "deployedVerifierProgramId": null,
     "tag5ProductionVerifierKeyRegistrationRef": null,
+    "verifierProgramUpgradeAuthorityStatusRef": null,
+    "verifierKeyRecordBindingRef": null,
     "reinitializationOrMigrationReceiptRef": null,
     "liveProofEnforcedTag3ReceiptRef": null,
     "satisfiesSbfLiveLineage": false

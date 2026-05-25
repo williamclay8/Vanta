@@ -143,6 +143,7 @@ try {
     createVantaPrivatePoolV2SendCircuitFixture,
   } = await import(pathToFileURL(join(tempJsDir, "privatePoolV2SendCircuitFixture.js")).href);
   const {
+    computeVantaPrivatePoolV2SwapToShieldedEconomicsCommitment,
     computeVantaPrivatePoolV2SwapToShieldedPublicInputHash,
     computeVantaPrivatePoolV2SwapToShieldedRootFromLeaf,
     createVantaPrivatePoolV2SwapToShieldedCircuitFixture,
@@ -267,10 +268,11 @@ try {
     claimWitness.leaf_index,
     claimWitness.input_root,
   ]);
-  const claimTerms = poseidon4([
+  const claimTerms = poseidon5([
     claimWitness.destination,
     claimWitness.relayer_id,
     claimWitness.relayer_fee,
+    claimWitness.net_payout,
     claimWitness.quote_expires_at_slot,
   ]);
   assert(inputMembership > 0n, "Expected claim input membership to be derived.");
@@ -310,6 +312,7 @@ try {
       "economics-commitment",
       "owner-commitment",
       "send-context-tag",
+      "valid-until-slot",
     ],
     "send",
   );
@@ -338,6 +341,7 @@ try {
   assertValue(sendMap, "economics-commitment", sendWitness.economics_commitment, "send");
   assertValue(sendMap, "owner-commitment", sendWitness.owner_commitment, "send");
   assertValue(sendMap, "send-context-tag", sendWitness.send_context_tag, "send");
+  assertValue(sendMap, "valid-until-slot", sendWitness.valid_until_slot, "send");
 
   const sendOutputTransition = poseidon4([
     sendWitness.recipient_leaf_index,
@@ -348,6 +352,11 @@ try {
   const sendMemoCiphertextBinding = poseidon2([
     sendWitness.recipient_memo_ciphertext_body_hash_field,
     sendWitness.change_memo_ciphertext_body_hash_field,
+  ]);
+  const sendEconomicsFreshnessBinding = poseidon3([
+    sendWitness.economics_commitment,
+    sendWitness.relayer_fee,
+    sendWitness.valid_until_slot,
   ]);
   const sendRecipientPreviousRoot = computeVantaPrivatePoolV2SendRootFromLeaf({
     leafValue: 0n,
@@ -373,6 +382,10 @@ try {
   assert(
     sendMemoCiphertextBinding > 0n,
     "Expected send memo ciphertext body hash binding to be derived.",
+  );
+  assert(
+    sendEconomicsFreshnessBinding > 0n,
+    "Expected send economics and valid-until slot binding to be derived.",
   );
   assert(
     sendRecipientPreviousRoot === sendWitness.input_root,
@@ -541,6 +554,7 @@ try {
       "output-root",
       "owner-commitment",
       "swap-context-tag",
+      "valid-until-slot",
     ],
     "swap-to-shielded",
   );
@@ -570,6 +584,12 @@ try {
   assertValue(swapMap, "output-root", swapWitness.output_root, "swap-to-shielded");
   assertValue(swapMap, "owner-commitment", swapWitness.owner_commitment, "swap-to-shielded");
   assertValue(swapMap, "swap-context-tag", swapWitness.swap_context_tag, "swap-to-shielded");
+  assertValue(
+    swapMap,
+    "valid-until-slot",
+    swapWitness.valid_until_slot,
+    "swap-to-shielded",
+  );
 
   const swapPreviousRoot = computeVantaPrivatePoolV2SwapToShieldedRootFromLeaf({
     leafValue: 0n,
@@ -581,15 +601,29 @@ try {
     path: swapWitness.output_append_path,
     pathDirectionBits: swapWitness.output_append_path_direction_bits,
   });
+  const swapOutputTransition = poseidon2([
+    swapWitness.output_leaf_index,
+    swapWitness.output_root,
+  ]);
   assert(
     swapPreviousRoot === swapWitness.input_root,
     "Expected swap output append path to prove an empty slot under input root.",
   );
   assert(swapOutputRoot === swapWitness.output_root, "Expected swap output root to derive from append path.");
+  assert(swapOutputTransition > 0n, "Expected swap output transition to be derived.");
   assert(
     leafIndexFromDirectionBits(swapWitness.output_append_path_direction_bits) ===
       swapWitness.output_leaf_index,
     "Expected swap output append path bits to bind output leaf index.",
+  );
+  assert(
+    swapWitness.output_amount >= swapWitness.min_output_amount,
+    "Expected swap output amount to satisfy the committed minimum output amount.",
+  );
+  assert(
+    computeVantaPrivatePoolV2SwapToShieldedEconomicsCommitment(swapWitness) ===
+      swapWitness.economics_commitment,
+    "Expected swap economics commitment to bind input/output amounts, minimum output, slippage, and asset commitments.",
   );
   assert(
     computeVantaPrivatePoolV2SwapToShieldedPublicInputHash(swapWitness) ===

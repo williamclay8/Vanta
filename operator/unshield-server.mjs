@@ -4,16 +4,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@solana/client";
-import { loadKeypairFromEnv } from "@solana/client/server";
-import {
-  Connection,
-  Keypair,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SystemProgram,
-  Transaction,
-  sendAndConfirmTransaction,
-} from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import {
   assertFreshUnshieldIntent,
   parseSignedUnshieldIntent,
@@ -44,8 +35,6 @@ import {
   validateTitanGatewayConfig,
 } from "./titan-gateway-advisory.mjs";
 import {
-  assertEligibleDirectSolUnshieldRelease,
-  assertEligibleDirectUnshieldRelease,
   assertEligibleSwapTransition,
   fetchConstrainedOnchainUnshieldContext,
 } from "./vanta-onchain-state.mjs";
@@ -199,7 +188,6 @@ const vaultOwner =
   clusterEnv("VAULT_OWNER") ??
   nonEmptyEnv("VANTA_VAULT_OWNER") ??
   nonEmptyEnv("VITE_VANTA_VAULT_OWNER");
-const vaultSignerSecretKeyEnvName = clusterEnvName("VAULT_SIGNER_SECRET_KEY");
 
 if (!mintAddress) {
   throw new Error(
@@ -821,12 +809,14 @@ export async function handleUnshieldOperatorRequest(request, response) {
         JSON.stringify({
           inputAmount: quote.inputAmount,
           inputAsset: "USDC",
+          minOutputAmount: quote.minOutputAmount,
           outputAmount: quote.outputAmount,
           outputAsset: "SOL",
           pairLabel: quote.pairLabel,
           quoteExpiresAt: quote.quoteExpiresAt,
           quoteId: quote.quoteId,
           quoteTimestamp: quote.quoteTimestamp,
+          slippageBps: quote.slippageBps,
           venueFamily: quote.venueFamily,
           venueName: quote.venueName,
           venueNetwork: quote.venueNetwork,
@@ -1464,6 +1454,7 @@ export async function handleUnshieldOperatorRequest(request, response) {
       const body = await readJsonBody(request);
       const intent = parseSignedSwapIntent(body);
       const parsedInputAmount = Number(intent.inputAmount);
+      const parsedMinOutputAmount = Number(intent.minOutputAmount);
       const parsedOutputAmount = Number(intent.outputAmount);
 
       if (
@@ -1474,8 +1465,11 @@ export async function handleUnshieldOperatorRequest(request, response) {
         intent.outputAsset !== "SOL" ||
         !Number.isFinite(parsedInputAmount) ||
         parsedInputAmount <= 0 ||
+        !Number.isFinite(parsedMinOutputAmount) ||
+        parsedMinOutputAmount <= 0 ||
         !Number.isFinite(parsedOutputAmount) ||
-        parsedOutputAmount <= 0
+        parsedOutputAmount <= 0 ||
+        parsedOutputAmount < parsedMinOutputAmount
       ) {
         throw new Error("Invalid authenticated swap request.");
       }
@@ -1504,12 +1498,17 @@ export async function handleUnshieldOperatorRequest(request, response) {
       logTitanAdvisoryComparison(titanAdvisory, "/swap");
 
       if (
+        intent.slippageBps !== latestVenueQuote.slippageBps ||
         intent.venueName !== latestVenueQuote.venueName ||
         intent.venueFamily !== latestVenueQuote.venueFamily ||
         intent.venueNetwork !== latestVenueQuote.venueNetwork ||
         intent.venuePoolAddress !== latestVenueQuote.poolAddress
       ) {
         throw new Error("Meteora venue context no longer matches the constrained swap lane.");
+      }
+
+      if (Number(latestVenueQuote.outputAmount) < parsedMinOutputAmount) {
+        throw new Error("Meteora quote output is below the wallet-authorized minimum output amount.");
       }
 
       assertMeteoraExecutionDrift({
@@ -1528,6 +1527,7 @@ export async function handleUnshieldOperatorRequest(request, response) {
           client,
           consumedNoteId: intent.consumedNoteId,
           inputAmount: intent.inputAmount,
+          minOutputAmount: intent.minOutputAmount,
           mintAddress,
           outputAmount: intent.outputAmount,
           outputNoteId: intent.outputNoteId,
@@ -1535,6 +1535,7 @@ export async function handleUnshieldOperatorRequest(request, response) {
           quoteExpiresAt: intent.quoteExpiresAt,
           quoteId: intent.quoteId,
           quoteTimestamp: intent.quoteTimestamp,
+          slippageBps: intent.slippageBps,
           transitionNoteId: intent.transitionNoteId,
           transitionStateSignature: intent.transitionStateSignature,
           vaultOwner,
@@ -1555,6 +1556,7 @@ export async function handleUnshieldOperatorRequest(request, response) {
         inputAmount: intent.inputAmount,
         inputAsset: "USDC",
         mintAddress,
+        minOutputAmount: intent.minOutputAmount,
         outputAmount: intent.outputAmount,
         outputAsset: "SOL",
         outputNoteId: intent.outputNoteId,
@@ -1563,6 +1565,7 @@ export async function handleUnshieldOperatorRequest(request, response) {
         quoteId: intent.quoteId,
         quoteTimestamp: intent.quoteTimestamp,
         requestId: intent.requestId,
+        slippageBps: intent.slippageBps,
         transitionNoteId: intent.transitionNoteId,
         titanAdvisory,
         transitionStateSignature: intent.transitionStateSignature,
@@ -1638,86 +1641,26 @@ export async function handleUnshieldOperatorRequest(request, response) {
         throw new Error("This SOL unshield transition has already been finalized.");
       }
 
-      assertDirectSolUnshieldReleaseIntent(intent);
-
-      const onchainContext = await fetchConstrainedOnchainUnshieldContext({
-        client,
-        mintAddress,
-        owner: intent.owner,
-        vaultOwner,
-      });
-
-      assertEligibleDirectSolUnshieldRelease({
-        amount: intent.amount,
-        assetId: intent.assetId,
-        context: onchainContext,
-        consumedNoteId: intent.consumedNoteId,
-        destinationOwner: intent.destinationOwner,
-        owner: intent.owner,
-        vaultOwner,
-      });
-
-      const keypair = loadWeb3KeypairFromEnv(vaultSignerSecretKeyEnvName);
-      const signerAddress = keypair.publicKey.toBase58();
-
-      if (signerAddress !== vaultOwner) {
-        throw new Error("Configured operator signer does not match the Vanta vault owner.");
-      }
-
-      inFlightSolUnshieldRequestIds.add(intent.requestId);
-
-      let signature;
-
-      try {
-        signature = await sendAndConfirmTransaction(
-          web3Connection,
-          new Transaction().add(
-            SystemProgram.transfer({
-              fromPubkey: keypair.publicKey,
-              lamports: solAmountToLamports(parsedAmount),
-              toPubkey: new PublicKey(intent.destinationOwner),
-            }),
-          ),
-          [keypair],
-          {
-            commitment: "confirmed",
-          },
-        );
-      } finally {
-        inFlightSolUnshieldRequestIds.delete(intent.requestId);
-      }
-
-      processedSolUnshieldRequestIds.add(intent.requestId);
-      processedSolUnshieldNoteIds.add(intent.consumedNoteId);
-      processedSolUnshieldTransitionNoteIds.add(intent.transitionNoteId);
-      const releaseReceipt = createUnshieldOperatorReleaseReceipt({
+      const releaseReceipt = buildTagUnshieldProgramReleaseReceipt({
+        asset: "SOL",
         consumedNoteId: intent.consumedNoteId,
         intent,
-        releaseSignature: signature,
+        programTxSignature: null,
         transitionNoteId: intent.transitionNoteId,
-      });
-      solUnshieldRecords.recordRelease({
-        amount: intent.amount,
-        asset: "SOL",
-        assetId: intent.assetId,
-        completedAt: Date.now(),
-        consumedNoteId: intent.consumedNoteId,
-        destinationOwner: intent.destinationOwner,
-        owner: intent.owner,
-        releaseSignature: signature,
-        requestId: intent.requestId,
-        transitionNoteId: intent.transitionNoteId,
-        vaultOwner,
       });
 
       writeCorsHeaders(response);
-      response.writeHead(200, { "Content-Type": "application/json" });
+      response.writeHead(503, { "Content-Type": "application/json" });
       response.end(
         JSON.stringify({
+          blocked: true,
           consumedNoteId: intent.consumedNoteId,
+          reason:
+            "TAG_UNSHIELD program relay is fail-closed until on-chain proof/root/nullifier verification is wired.",
+          releaseModel: "program-tag-unshield-pda-cpi-fail-closed",
           releaseReceipt,
           requestId: intent.requestId,
-          signature,
+          signature: null,
         }),
       );
     } catch (error) {
@@ -1786,83 +1729,27 @@ export async function handleUnshieldOperatorRequest(request, response) {
       throw new Error("This unshield transition has already been finalized.");
     }
 
-    assertDirectUnshieldReleaseIntent(intent);
-
-    const onchainContext = await fetchConstrainedOnchainUnshieldContext({
-      client,
-      mintAddress: intent.mintAddress,
-      owner: intent.owner,
-      vaultOwner,
-    });
-
-    assertEligibleDirectUnshieldRelease({
-      amount: intent.amount,
-      context: onchainContext,
-      destinationOwner: intent.destinationOwner,
-      mintAddress: intent.mintAddress,
-      noteId: intent.noteId,
-      owner: intent.owner,
-      vaultOwner,
-    });
-
-    const keypair = await loadKeypairFromEnv(vaultSignerSecretKeyEnvName);
-    const signerAddress = keypair.signer.address.toString();
-
-    if (signerAddress !== vaultOwner) {
-      throw new Error("Configured operator signer does not match the Vanta vault owner.");
-    }
-
-    inFlightRequestIds.add(intent.requestId);
-
-    let signature;
-
-    try {
-      signature = await client.helpers
-        .splToken({
-          mint: intent.mintAddress,
-          tokenProgram: "auto",
-        })
-        .sendTransfer({
-          amount: intent.amount,
-          authority: keypair.signer,
-          destinationOwner: intent.destinationOwner,
-          sourceOwner: vaultOwner,
-        });
-    } finally {
-      inFlightRequestIds.delete(intent.requestId);
-    }
-
-    processedRequestIds.add(intent.requestId);
-    processedNoteIds.add(intent.noteId);
-    processedTransitionNoteIds.add(intent.transitionNoteId);
-    const releaseReceipt = createUnshieldOperatorReleaseReceipt({
+    const releaseReceipt = buildTagUnshieldProgramReleaseReceipt({
+      asset: "SPL",
       consumedNoteId: intent.noteId,
       intent,
-      releaseSignature: signature.toString(),
+      programTxSignature: null,
       transitionNoteId: intent.transitionNoteId,
-    });
-    releaseRecords.recordRelease({
-      amount: intent.amount,
-      completedAt: Date.now(),
-      consumedNoteId: intent.noteId,
-      destinationOwner: intent.destinationOwner,
-      mintAddress: intent.mintAddress,
-      owner: intent.owner,
-      releaseSignature: signature.toString(),
-      requestId: intent.requestId,
-      transitionNoteId: intent.transitionNoteId,
-      vaultOwner,
     });
 
     writeCorsHeaders(response);
-    response.writeHead(200, { "Content-Type": "application/json" });
+    response.writeHead(503, { "Content-Type": "application/json" });
     response.end(
       JSON.stringify({
+        blocked: true,
         consumedNoteId: intent.noteId,
+        reason:
+          "TAG_UNSHIELD program relay is fail-closed until on-chain proof/root/nullifier verification is wired.",
+        releaseModel: "program-tag-unshield-pda-cpi-fail-closed",
         releaseReceipt,
         noteId: intent.noteId,
         requestId: intent.requestId,
-        signature: signature.toString(),
+        signature: null,
       }),
     );
   } catch (error) {
@@ -1876,20 +1763,25 @@ export async function handleUnshieldOperatorRequest(request, response) {
   }
 }
 
-function createUnshieldOperatorReleaseReceipt(args) {
-  const proofStatus = "not-provided-wallet-authorized-public-exit";
+function buildTagUnshieldProgramReleaseReceipt(args) {
+  const proofStatus = "program-tag-unshield-relay-fail-closed";
   const intentHash = hashReleaseIntent(args.intent);
+  const programTxSignature = args.programTxSignature;
 
   return {
-    kind: "vanta-unshield-operator-release-receipt-v1",
+    kind: "vanta-unshield-program-release-receipt-v1",
     requestId: args.intent.requestId,
     consumedNoteId: args.consumedNoteId,
     transitionNoteId: args.transitionNoteId,
-    releaseSignature: args.releaseSignature,
+    asset: args.asset,
+    programInstructionTag: "TAG_UNSHIELD",
+    programTxSignature,
+    releaseSignature: programTxSignature,
     releaseIntentHash: intentHash,
+    releaseModel: "program-tag-unshield-pda-cpi-fail-closed",
     proofStatus,
-    replayStatus: "accepted-first-use",
-    spendabilityBasis: "canonical-spendable-note-ledger",
+    replayStatus: "not-consumed-no-program-tx",
+    spendabilityBasis: "pending-onchain-root-proof-nullifier-verification",
   };
 }
 
@@ -1914,18 +1806,6 @@ function hashReleaseIntent(intent) {
     .digest("hex")}`;
 }
 
-function assertDirectUnshieldReleaseIntent(intent) {
-  if (intent.transitionNoteId !== `direct:${intent.noteId}`) {
-    throw new Error("Operator-direct unshield requires a direct wallet-signed note reference.");
-  }
-}
-
-function assertDirectSolUnshieldReleaseIntent(intent) {
-  if (intent.transitionNoteId !== `direct:${intent.consumedNoteId}`) {
-    throw new Error("Operator-direct SOL unshield requires a direct wallet-signed note reference.");
-  }
-}
-
 async function waitForEligibleSwapTransition(args) {
   let lastError = null;
 
@@ -1942,12 +1822,14 @@ async function waitForEligibleSwapTransition(args) {
         consumedNoteId: args.consumedNoteId,
         context: onchainContext,
         inputAmount: args.inputAmount,
+        minOutputAmount: args.minOutputAmount,
         outputAmount: args.outputAmount,
         outputNoteId: args.outputNoteId,
         owner: args.owner,
         quoteExpiresAt: args.quoteExpiresAt,
         quoteId: args.quoteId,
         quoteTimestamp: args.quoteTimestamp,
+        slippageBps: args.slippageBps,
         transitionNoteId: args.transitionNoteId,
         venueFamily: args.venueFamily,
         venueName: args.venueName,
@@ -2014,10 +1896,12 @@ async function verifySwapTransitionBySignature(args) {
         payload.noteId === args.transitionNoteId &&
         payload.outputNoteId === args.outputNoteId &&
         payload.inputAmount === args.inputAmount &&
+        payload.minOutputAmount === args.minOutputAmount &&
         payload.outputAmount === args.outputAmount &&
         payload.quoteId === args.quoteId &&
         payload.quoteTimestamp === args.quoteTimestamp &&
         payload.quoteExpiresAt === args.quoteExpiresAt &&
+        payload.slippageBps === args.slippageBps &&
         payload.venueName === args.venueName &&
         payload.venueFamily === args.venueFamily &&
         payload.venueNetwork === args.venueNetwork &&
@@ -2074,6 +1958,7 @@ function parseSwapMemoPayload(memo) {
     return {
       consumedNoteId: parsed.consumedNoteId ?? parsed.cn,
       inputAmount: parsed.inputAmount ?? parsed.ia,
+      minOutputAmount: parsed.minOutputAmount ?? parsed.mo,
       mintAddress: parsed.mintAddress ?? parsed.ma,
       noteId: parsed.noteId ?? parsed.ni,
       outputAmount: parsed.outputAmount ?? parsed.oa,
@@ -2082,6 +1967,7 @@ function parseSwapMemoPayload(memo) {
       quoteExpiresAt: parsed.quoteExpiresAt ?? parsed.qe,
       quoteId: parsed.quoteId ?? parsed.qi,
       quoteTimestamp: parsed.quoteTimestamp ?? parsed.qt,
+      slippageBps: parsed.slippageBps ?? parsed.sb,
       vaultOwner: parsed.vaultOwner ?? parsed.vo,
       venueFamily: parsed.venueFamily ?? parsed.vf,
       venueName: parsed.venueName ?? parsed.vn,
@@ -4652,34 +4538,15 @@ function stripQuotes(value) {
   return value;
 }
 
-function solAmountToLamports(amount) {
-  const lamports = Math.round(amount * LAMPORTS_PER_SOL);
-
-  if (!Number.isSafeInteger(lamports) || lamports <= 0) {
-    throw new Error("Invalid SOL amount for constrained release.");
-  }
-
-  return lamports;
-}
-
 function evaluateSolUnshieldLaneHealth() {
   const checks = [];
 
   checks.push({ check: "rpc-endpoint", ready: Boolean(endpoint) });
   checks.push({ check: "token-mint", ready: Boolean(mintAddress) });
   checks.push({ check: "vault-owner", ready: Boolean(vaultOwner) });
-
-  let signerAddress = null;
-  try {
-    signerAddress = loadWeb3KeypairFromEnv(vaultSignerSecretKeyEnvName).publicKey.toBase58();
-  } catch {
-    signerAddress = null;
-  }
-
-  checks.push({ check: "vault-signer", ready: Boolean(signerAddress) });
   checks.push({
-    check: "vault-signer-matches-owner",
-    ready: Boolean(signerAddress && signerAddress === vaultOwner),
+    check: "tag-unshield-program-relay",
+    ready: false,
   });
 
   const ready = checks.every((check) => check.ready);
@@ -4688,29 +4555,12 @@ function evaluateSolUnshieldLaneHealth() {
     checks,
     endpoint: "/unshield/sol",
     kind: "vanta-sol-unshield-operator-health",
-    note: ready
-      ? "SOL unshield operator endpoint is configured for signed mainnet release."
-      : "SOL unshield operator endpoint is reachable but not fully configured for release.",
+    note:
+      "SOL unshield operator endpoint is reachable, but direct keypair release is removed and TAG_UNSHIELD relay remains fail-closed until verifier/root/nullifier wiring is real.",
     ready,
-    releaseModel: "operator-signed-mainnet-sol-transfer",
-    signerAddress,
+    releaseModel: "program-tag-unshield-pda-cpi-fail-closed",
+    signerAddress: null,
     status: ready ? "ready" : "blocked",
-    version: "vanta-sol-unshield-operator-health-0.1",
+    version: "vanta-sol-unshield-operator-health-0.2",
   };
-}
-
-function loadWeb3KeypairFromEnv(envKey) {
-  const raw = process.env[envKey];
-
-  if (!raw) {
-    throw new Error(`${envKey} is required for SOL unshield release.`);
-  }
-
-  const parsed = JSON.parse(raw);
-
-  if (!Array.isArray(parsed)) {
-    throw new Error(`${envKey} must be a JSON array of secret key bytes.`);
-  }
-
-  return Keypair.fromSecretKey(Uint8Array.from(parsed));
 }

@@ -77,7 +77,9 @@ export type VantaCommittedEconomicsSettlementTerms = {
   exitTermsCommitment?: string;
   inputRoot?: string;
   inputCommitment?: string;
+  minOutputAmount?: string;
   nullifierOrReplayCommitment: string;
+  outputAmount?: string;
   outputCommitment?: string;
   outputLeafIndex?: string;
   outputRoot?: string;
@@ -92,10 +94,12 @@ export type VantaCommittedEconomicsSettlementTerms = {
   sendContextTag?: string;
   sendPublicInputHash?: string;
   settlementCommitment: string;
+  slippageBps?: string;
   swapContextTag?: string;
   swapPublicInputHash?: string;
   unshieldContextTag?: string;
   unshieldPublicInputHash?: string;
+  validUntilSlot?: string;
 };
 
 export type VantaRawProtocolSettlementRequest = {
@@ -117,7 +121,9 @@ export type VantaRawProtocolSettlementRequest = {
   changeOutputRoot?: never;
   inputRoot?: never;
   inputCommitment?: never;
+  minOutputAmount?: never;
   nullifierOrReplayCommitment?: never;
+  outputAmount?: never;
   outputCommitment?: never;
   outputLeafIndex?: never;
   outputRoot?: never;
@@ -134,10 +140,12 @@ export type VantaRawProtocolSettlementRequest = {
   sendPublicInputHash?: never;
   settlementId: string;
   settlementCommitment?: never;
+  slippageBps?: never;
   swapContextTag?: never;
   swapPublicInputHash?: never;
   unshieldContextTag?: never;
   unshieldPublicInputHash?: never;
+  validUntilSlot?: never;
   shieldCapability?: VantaProtocolShieldCapability | null;
   shieldSettlementEvidence?: VantaProtocolShieldSettlementEvidence | null;
   shieldRouteEvidence?: VantaProtocolShieldRouteEvidence | null;
@@ -171,16 +179,21 @@ type VantaCommittedEconomicsSendSettlementTerms = VantaCommittedEconomicsSettlem
   recipientMemoCiphertextBodyHash: string;
   sendContextTag: string;
   sendPublicInputHash: string;
+  validUntilSlot: string;
 };
 
 type VantaCommittedEconomicsSwapSettlementTerms = VantaCommittedEconomicsSettlementTerms & {
   inputCommitment: string;
   inputRoot: string;
+  minOutputAmount: string;
+  outputAmount: string;
   outputCommitment: string;
   outputLeafIndex: string;
   outputRoot: string;
   swapContextTag: string;
   swapPublicInputHash: string;
+  slippageBps: string;
+  validUntilSlot: string;
 };
 
 type VantaActualPrivateCommittedEconomicsSendSettlementTerms =
@@ -676,15 +689,19 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
         economicsCommitment: request.economicsCommitment,
         inputCommitment: request.inputCommitment,
         inputRoot: request.inputRoot,
+        minOutputAmount: request.minOutputAmount,
         nullifierOrReplayCommitment: request.nullifierOrReplayCommitment,
+        outputAmount: request.outputAmount,
         outputCommitment: request.outputCommitment,
         outputLeafIndex: request.outputLeafIndex,
         outputRoot: request.outputRoot,
         ownerCommitment: request.ownerCommitment,
         routeCommitment: request.routeCommitment,
         settlementCommitment: request.settlementCommitment,
+        slippageBps: request.slippageBps,
         swapContextTag: request.swapContextTag,
         swapPublicInputHash: request.swapPublicInputHash,
+        validUntilSlot: request.validUntilSlot,
       });
       requireProtocolSettlementCondition(
         proofReceipt?.intent === "swap-to-shielded",
@@ -707,12 +724,16 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
       for (const [fieldName, fieldValue] of [
         ["inputCommitment", request.inputCommitment],
         ["inputRoot", request.inputRoot],
+        ["minOutputAmount", request.minOutputAmount],
+        ["outputAmount", request.outputAmount],
         ["outputCommitment", request.outputCommitment],
         ["outputLeafIndex", request.outputLeafIndex],
         ["outputRoot", request.outputRoot],
         ["routeCommitment", request.routeCommitment],
+        ["slippageBps", request.slippageBps],
         ["swapContextTag", request.swapContextTag],
         ["swapPublicInputHash", request.swapPublicInputHash],
+        ["validUntilSlot", request.validUntilSlot],
       ] as const) {
         requireProtocolSettlementCondition(
           typeof fieldValue === "string" && fieldValue.trim().length > 0,
@@ -737,7 +758,8 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
         typeof request.recipientMemoCiphertextBodyHash === "string" &&
         (!hasNonzeroStatefulChangeOutput ||
           typeof request.changeMemoCiphertextBodyHash === "string") &&
-        typeof request.sendContextTag === "string";
+        typeof request.sendContextTag === "string" &&
+        typeof request.validUntilSlot === "string";
       const actualPrivateSendRequest =
         typeof request.acceptedRoot === "string" &&
         typeof request.assetCohort === "string" &&
@@ -776,6 +798,7 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
           recipientOutputRoot: request.outputRoot!,
           sendContextTag: request.sendContextTag!,
           sendPublicInputHash: request.sendPublicInputHash,
+          validUntilSlot: request.validUntilSlot!,
         });
         requireProtocolSettlementCondition(
           proofReceipt?.publicInputCommitment ===
@@ -792,6 +815,7 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
           ["recipientMemoCiphertextBodyHash", request.recipientMemoCiphertextBodyHash],
           ["sendContextTag", request.sendContextTag],
           ["sendPublicInputHash", request.sendPublicInputHash],
+          ["validUntilSlot", request.validUntilSlot],
         ] as const) {
           requireProtocolSettlementCondition(
             typeof fieldValue === "string" && fieldValue.trim().length > 0,
@@ -939,7 +963,9 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
   exitTermsCommitment,
   inputRoot,
   inputCommitment,
+  minOutputAmount,
   nullifierOrReplayCommitment,
+  outputAmount,
   outputCommitment,
   outputLeafIndex,
   outputRoot,
@@ -956,8 +982,10 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
   sendPublicInputHash,
   settlementCommitment,
   settlementId,
+  slippageBps,
   swapContextTag,
   swapPublicInputHash,
+  validUntilSlot,
   unshieldContextTag,
   unshieldPublicInputHash,
   shieldCapability,
@@ -986,7 +1014,9 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
       ...(exitTermsCommitment ? { exitTermsCommitment } : {}),
       ...(inputRoot ? { inputRoot } : {}),
       ...(inputCommitment ? { inputCommitment } : {}),
+      ...(minOutputAmount ? { minOutputAmount } : {}),
       ...(nullifierOrReplayCommitment ? { nullifierOrReplayCommitment } : {}),
+      ...(outputAmount ? { outputAmount } : {}),
       ...(outputCommitment ? { outputCommitment } : {}),
       ...(outputLeafIndex ? { outputLeafIndex } : {}),
       ...(outputRoot ? { outputRoot } : {}),
@@ -1002,8 +1032,10 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
       ...(sendContextTag ? { sendContextTag } : {}),
       ...(sendPublicInputHash ? { sendPublicInputHash } : {}),
       ...(settlementCommitment ? { settlementCommitment } : {}),
+      ...(slippageBps ? { slippageBps } : {}),
       ...(swapContextTag ? { swapContextTag } : {}),
       ...(swapPublicInputHash ? { swapPublicInputHash } : {}),
+      ...(validUntilSlot ? { validUntilSlot } : {}),
       ...(unshieldContextTag ? { unshieldContextTag } : {}),
       ...(unshieldPublicInputHash ? { unshieldPublicInputHash } : {}),
       settlementId,
@@ -1043,7 +1075,9 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
       exitTermsCommitment,
       inputRoot,
       inputCommitment,
+      minOutputAmount,
       nullifierOrReplayCommitment,
+      outputAmount,
       outputCommitment,
       outputLeafIndex,
       outputRoot,
@@ -1060,8 +1094,10 @@ export async function requestVantaPrivatePoolV2ProtocolSettlement({
       sendPublicInputHash,
       settlementCommitment,
       settlementId,
+      slippageBps,
       swapContextTag,
       swapPublicInputHash,
+      validUntilSlot,
       unshieldContextTag,
       unshieldPublicInputHash,
       shieldCapability,

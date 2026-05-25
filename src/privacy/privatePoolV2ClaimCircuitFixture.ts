@@ -1,4 +1,4 @@
-import { poseidon1, poseidon2, poseidon3, poseidon4, poseidon5, poseidon11 } from "poseidon-lite";
+import { poseidon1, poseidon2, poseidon3, poseidon5, poseidon11 } from "poseidon-lite";
 import {
   buildVantaPrivatePoolV2SparseMerkleTree,
   directionBitsForLeafIndex,
@@ -26,6 +26,7 @@ export type VantaPrivatePoolV2ClaimCircuitWitness = {
   leaf_index: bigint;
   membership_path: readonly bigint[];
   membership_path_direction_bits: readonly bigint[];
+  net_payout: bigint;
   nullifier: bigint;
   owner_commitment: bigint;
   owner_secret: bigint;
@@ -53,6 +54,7 @@ export type VantaPrivatePoolV2ClaimCircuitWitnessInput = {
   leaf_index: bigint | string;
   membership_path: readonly (bigint | string)[];
   membership_path_direction_bits: readonly (bigint | string)[];
+  net_payout: bigint | string;
   nullifier: bigint | string;
   owner_commitment: bigint | string;
   owner_secret: bigint | string;
@@ -75,6 +77,7 @@ export type VantaPrivatePoolV2ClaimCircuitNoirInputs = {
   leaf_index: string;
   membership_path: string[];
   membership_path_direction_bits: string[];
+  net_payout: string;
   nullifier: string;
   owner_commitment: string;
   owner_secret: string;
@@ -91,7 +94,10 @@ export type VantaPrivatePoolV2ClaimCircuitFixtureMode =
   | "invalid-binding"
   | "invalid-input-commitment-preimage"
   | "invalid-nullifier"
+  | "invalid-net-payout-conservation"
+  | "invalid-net-payout-public-binding"
   | "invalid-owner-secret-binding"
+  | "invalid-relayer-fee-exceeds-amount"
   | "invalid-amount-range";
 
 const CLAIM_WITNESS_FIELDS = [
@@ -105,6 +111,7 @@ const CLAIM_WITNESS_FIELDS = [
   "leaf_index",
   "membership_path",
   "membership_path_direction_bits",
+  "net_payout",
   "nullifier",
   "owner_commitment",
   "owner_secret",
@@ -143,6 +150,7 @@ const DEFAULT_WITNESS_BASE = {
   leaf_index: 5n,
   membership_path: [] as readonly bigint[],
   membership_path_direction_bits: [] as readonly bigint[],
+  net_payout: DEFAULT_INPUT_COMMITMENT_PREIMAGE.amount - 100n,
   owner_commitment: DEFAULT_OWNER_COMMITMENT,
   owner_secret: DEFAULT_OWNER_SECRET,
   quote_expires_at_slot: 1_000_150n,
@@ -354,10 +362,11 @@ export function computeVantaPrivatePoolV2ClaimPublicInputHash(
     witness.leaf_index,
     witness.input_root,
   ]);
-  const claimTerms = poseidon4([
+  const claimTerms = poseidon5([
     witness.destination,
     witness.relayer_id,
     witness.relayer_fee,
+    witness.net_payout,
     witness.quote_expires_at_slot,
   ]);
 
@@ -399,6 +408,7 @@ export function normalizeVantaPrivatePoolV2ClaimCircuitWitnessInput(
       input.membership_path_direction_bits,
       "membership_path_direction_bits",
     ),
+    net_payout: normalizeU128WitnessField(input.net_payout, "net_payout"),
     nullifier: normalizeWitnessField(input.nullifier, "nullifier"),
     owner_commitment: normalizeWitnessField(input.owner_commitment, "owner_commitment"),
     owner_secret: normalizeWitnessField(input.owner_secret, "owner_secret"),
@@ -440,6 +450,14 @@ export function normalizeVantaPrivatePoolV2ClaimCircuitWitnessInput(
     throw new Error("Claim witness nullifier must match the input commitment and owner secret.");
   }
 
+  if (witness.relayer_fee > witness.amount) {
+    throw new Error("Claim witness relayer_fee must not exceed amount.");
+  }
+
+  if (witness.net_payout + witness.relayer_fee !== witness.amount) {
+    throw new Error("Claim witness net_payout plus relayer_fee must equal amount.");
+  }
+
   return witness;
 }
 
@@ -468,13 +486,32 @@ export function createVantaPrivatePoolV2ClaimCircuitFixture({
           ...witness,
           input_blinding: witness.input_blinding + 1n,
         }
+      : mode === "invalid-net-payout-conservation"
+      ? {
+          ...witness,
+          net_payout: witness.net_payout + 1n,
+        }
+      : mode === "invalid-net-payout-public-binding"
+      ? witness
+      : mode === "invalid-relayer-fee-exceeds-amount"
+      ? {
+          ...witness,
+          relayer_fee: witness.amount + 1n,
+        }
       : mode === "invalid-amount-range"
       ? {
           ...witness,
           amount: 1n << 128n,
         }
       : witness;
-  const validPublicHash = computeVantaPrivatePoolV2ClaimPublicInputHash(circuitWitness);
+  const publicHashWitness =
+    mode === "invalid-net-payout-public-binding"
+      ? {
+          ...witness,
+          net_payout: witness.net_payout + 1n,
+        }
+      : circuitWitness;
+  const validPublicHash = computeVantaPrivatePoolV2ClaimPublicInputHash(publicHashWitness);
   const proofRequest = createVantaPrivatePoolV2ClaimProofRequest({
     amountBaseUnits: circuitWitness.amount,
     claimPublicInputHash: toCircuitString(validPublicHash),
@@ -515,6 +552,7 @@ export function createVantaPrivatePoolV2ClaimCircuitNoirInputs(
     leaf_index: toCircuitString(witness.leaf_index),
     membership_path: witness.membership_path.map(toCircuitString),
     membership_path_direction_bits: witness.membership_path_direction_bits.map(toCircuitString),
+    net_payout: toCircuitString(witness.net_payout),
     nullifier: toCircuitString(witness.nullifier),
     owner_commitment: toCircuitString(witness.owner_commitment),
     owner_secret: toCircuitString(witness.owner_secret),
@@ -543,6 +581,7 @@ export function serializeVantaPrivatePoolV2ClaimCircuitFixtureToToml(
     `input_root = "${witness.input_root.toString(10)}"`,
     `membership_path = [${witness.membership_path.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
     `membership_path_direction_bits = [${witness.membership_path_direction_bits.map((value) => `"${value.toString(10)}"`).join(", ")}]`,
+    `net_payout = "${witness.net_payout.toString(10)}"`,
     `nullifier = "${witness.nullifier.toString(10)}"`,
     `destination = "${witness.destination.toString(10)}"`,
     `relayer_id = "${witness.relayer_id.toString(10)}"`,

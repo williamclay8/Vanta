@@ -132,6 +132,7 @@ function localSwapProofPublicInputCommitment({
   settlementCommitment,
   swapContextTag,
   swapPublicInputHash,
+  validUntilSlot,
 }) {
   const serializedRequest = JSON.stringify({
     amountBaseUnits: "1",
@@ -151,6 +152,7 @@ function localSwapProofPublicInputCommitment({
       `output-root:${outputRoot}`,
       `owner-commitment:${ownerCommitment}`,
       `swap-context-tag:${swapContextTag}`,
+      `valid-until-slot:${validUntilSlot}`,
     ],
   });
 
@@ -522,7 +524,8 @@ async function requestJupiterQuote({ inputAmount, outputAsset }) {
     quoteResponse.inputMint !== nativeSolMint ||
     quoteResponse.outputMint !== asset.mintAddress ||
     typeof quoteResponse.inAmount !== "string" ||
-    typeof quoteResponse.outAmount !== "string"
+    typeof quoteResponse.outAmount !== "string" ||
+    typeof quoteResponse.otherAmountThreshold !== "string"
   ) {
     throw new Error("Jupiter returned an invalid SOL-to-shielded quote.");
   }
@@ -548,10 +551,12 @@ async function requestJupiterQuote({ inputAmount, outputAsset }) {
     quoteExpiresAt,
   );
   const outputAmount = atomicToDecimal(quoteResponse.outAmount, asset.decimals);
+  const minOutputAmount = atomicToDecimal(quoteResponse.otherAmountThreshold, asset.decimals);
   const quote = {
     inputAmount,
     inputAsset: "SOL",
     inputMintAddress: nativeSolMint,
+    minOutputAmount,
     outputAmount,
     outputAsset: asset.symbol,
     outputMintAddress: asset.mintAddress,
@@ -672,6 +677,7 @@ async function requestProtocolSettlement({ body, outputLeafIndex, publicSwapSign
     body.outputAsset,
     body.inputMintAddress,
     body.outputMintAddress,
+    quoteEntry.quote.minOutputAmount,
     body.quoteId,
     body.quoteExpiresAt,
     body.slippageBps,
@@ -713,6 +719,7 @@ async function requestProtocolSettlement({ body, outputLeafIndex, publicSwapSign
     routeCommitment,
   );
   const swapContextTag = hashHex("swap-context", body.transitionNoteId, body.outputNoteId);
+  const validUntilSlot = String(body.quoteExpiresAt);
   const swapPublicInputHash = hashHex(
     "swap-public-input",
     inputRoot,
@@ -725,6 +732,7 @@ async function requestProtocolSettlement({ body, outputLeafIndex, publicSwapSign
     settlementCommitment,
     ownerCommitment,
     swapContextTag,
+    validUntilSlot,
   );
   const expectedSettlementRequest = {
     action: "swap",
@@ -732,7 +740,9 @@ async function requestProtocolSettlement({ body, outputLeafIndex, publicSwapSign
     economicsMode: "committed-economics",
     inputCommitment,
     inputRoot,
+    minOutputAmount: quoteEntry.quote.minOutputAmount,
     nullifierOrReplayCommitment,
+    outputAmount: body.outputAmount,
     outputCommitment,
     outputLeafIndex,
     outputRoot,
@@ -740,8 +750,10 @@ async function requestProtocolSettlement({ body, outputLeafIndex, publicSwapSign
     routeCommitment,
     settlementCommitment,
     settlementId,
+    slippageBps: String(body.slippageBps),
     swapContextTag,
     swapPublicInputHash,
+    validUntilSlot,
   };
 
   if (executionMode === "mock") {
@@ -788,7 +800,9 @@ async function requestProtocolSettlement({ body, outputLeafIndex, publicSwapSign
       economicsMode: "committed-economics",
       inputCommitment,
       inputRoot,
+      minOutputAmount: quoteEntry.quote.minOutputAmount,
       nullifierOrReplayCommitment,
+      outputAmount: body.outputAmount,
       outputCommitment,
       outputLeafIndex,
       outputRoot,
@@ -796,8 +810,10 @@ async function requestProtocolSettlement({ body, outputLeafIndex, publicSwapSign
       routeCommitment,
       settlementCommitment,
       settlementId,
+      slippageBps: String(body.slippageBps),
       swapContextTag,
       swapPublicInputHash,
+      validUntilSlot,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -890,6 +906,7 @@ async function handleExecute(body) {
     quoteEntry.quote.inputMintAddress !== body.inputMintAddress ||
     quoteEntry.quote.outputMintAddress !== body.outputMintAddress ||
     quoteEntry.quote.inputAmount !== body.inputAmount ||
+    quoteEntry.quote.minOutputAmount !== body.minOutputAmount ||
     quoteEntry.quote.outputAmount !== body.outputAmount ||
     quoteEntry.quote.quoteTimestamp !== body.quoteTimestamp ||
     quoteEntry.quote.quoteExpiresAt !== body.quoteExpiresAt ||
@@ -921,6 +938,8 @@ async function handleExecute(body) {
     adapterReceiptId: hashHex("adapter-receipt", body.quoteId, publicSwapSignature),
     inputAsset: "SOL",
     inputMintAddress: body.inputMintAddress,
+    minOutputAmount: quoteEntry.quote.minOutputAmount,
+    outputAmount: body.outputAmount,
     outputLeafIndex,
     outputAsset: body.outputAsset,
     outputMintAddress: body.outputMintAddress,
@@ -946,6 +965,7 @@ async function handleExecute(body) {
     {
       adapterReceiptId: receipt.adapterReceiptId,
       inputAmount: body.inputAmount,
+      minOutputAmount: quoteEntry.quote.minOutputAmount,
       outputAmount: body.outputAmount,
       outputAsset: body.outputAsset,
       publicSwapSignature,

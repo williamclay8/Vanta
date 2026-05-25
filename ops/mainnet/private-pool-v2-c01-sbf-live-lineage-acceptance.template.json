@@ -33,6 +33,7 @@
   "liveEvidence": {
     "spendProgramDeploymentRef": null,
     "verifierProgramDeploymentRef": null,
+    "verifierProgramUpgradeAuthorityStatusRef": null,
     "poolReinitializationOrMigrationRef": null,
     "verifierKeyRegistrationRef": null,
     "liveProofEnforcedSpendRef": null,

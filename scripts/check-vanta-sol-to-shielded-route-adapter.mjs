@@ -44,6 +44,8 @@ assert.match(
 );
 for (const marker of [
   "inputMintAddress",
+  "minOutputAmount",
+  "outputAmount",
   "outputLeafIndex",
   "outputMintAddress",
   "outputNoteId",

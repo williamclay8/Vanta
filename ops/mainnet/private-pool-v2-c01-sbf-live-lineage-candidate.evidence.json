@@ -52,6 +52,7 @@
       "rebuilt spend SBF hash for the exact accepted source",
       "accepted verifier SBF hash or reviewed in-program verifier hash for the exact production VK",
       "deployed spend program id and verifier program id",
+      "deployed verifier program upgrade-authority status ref",
       "verifier-key record binding the production-verifying-key-hash to the deployed verifier program id"
     ],
     "requiredLiveEvidence": [
@@ -68,6 +69,7 @@
     "verifierProgramSbfHash": null,
     "spendProgramId": null,
     "verifierProgramId": null,
+    "verifierProgramUpgradeAuthorityStatusRef": null,
     "deploymentSignatureRef": null,
     "reinitializationSignatureRef": null,
     "verifierKeyRegistrationSignatureRef": null,
@@ -93,7 +95,7 @@
     "sbfAbiCommand": "npm run private-pool-v2:sbf-abi-check",
     "spendProgramSbf": {
       "path": "programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so",
-      "sha256": "sha256:fe314c80b2dc15d13aca8a82b4baad894ee6817213ef05d9b91b9891ac636ed4",
+      "sha256": "sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55",
       "rebuiltLocally": true,
       "deployedProgramId": null,
       "deploymentSignatureRef": null,
@@ -213,6 +215,12 @@
       "satisfiesSbfLiveLineage": false
     },
     {
+      "id": "verifier-program-upgrade-authority-status",
+      "requiredRefShape": "authority:<deployed-verifier-program-upgrade-authority-status-ref>",
+      "currentRef": null,
+      "satisfiesSbfLiveLineage": false
+    },
+    {
       "id": "pool-reinitialization-or-migration",
       "requiredRefShape": "tx:<pool-state-reinit-or-migration-signature-ref>",
       "currentRef": null,
@@ -241,7 +249,7 @@
     "local SBF ABI freshness can be required before deployment work but cannot fill live-lineage refs",
     "local /private/tmp generated verifier SBF hashes are comparison-only and cannot fill production verifier-program refs",
     "SBF/live lineage can promote only after the reviewed production artifact bundle, production proof format, production verifying key, and verifier adapter acceptance exist",
-    "live or reviewer-accepted receipts must tie the deployed spend program, deployed verifier program, verifier-key record, and tag-3 proof-enforced path to the same source ACIR and production VK hash",
+    "live or reviewer-accepted receipts must tie the deployed spend program, deployed verifier program, verifier program upgrade-authority status, verifier-key record, and tag-3 proof-enforced path to the same source ACIR and production VK hash",
     "audit/reviewer acceptance remains a separate required ref even if live lineage exists"
   ],
   "satisfiesRequiredPositiveEvidence": {

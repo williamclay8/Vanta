@@ -94,6 +94,7 @@ function swapWitnessInputFromFixture(fixture) {
   const stringify = (value) => value.toString(10);
 
   return {
+    economics_blinding: stringify(witness.economics_blinding),
     economics_commitment: stringify(witness.economics_commitment),
     input_amount: stringify(witness.input_amount),
     input_asset_id_commitment: stringify(witness.input_asset_id_commitment),
@@ -104,10 +105,15 @@ function swapWitnessInputFromFixture(fixture) {
     input_root: stringify(witness.input_root),
     membership_path: witness.membership_path.map(stringify),
     membership_path_direction_bits: witness.membership_path_direction_bits.map(stringify),
+    min_output_amount: stringify(witness.min_output_amount),
     nullifier_or_replay_commitment: stringify(witness.nullifier_or_replay_commitment),
+    output_amount: stringify(witness.output_amount),
     output_append_path: witness.output_append_path.map(stringify),
     output_append_path_direction_bits: witness.output_append_path_direction_bits.map(stringify),
+    output_asset_id_commitment: stringify(witness.output_asset_id_commitment),
+    output_blinding: stringify(witness.output_blinding),
     output_commitment: stringify(witness.output_commitment),
+    output_derivation_tag: stringify(witness.output_derivation_tag),
     output_leaf_index: stringify(witness.output_leaf_index),
     output_root: stringify(witness.output_root),
     owner_commitment: stringify(witness.owner_commitment),
@@ -115,7 +121,9 @@ function swapWitnessInputFromFixture(fixture) {
     request_version: stringify(witness.request_version),
     route_commitment: stringify(witness.route_commitment),
     settlement_commitment: stringify(witness.settlement_commitment),
+    slippage_bps: stringify(witness.slippage_bps),
     swap_context_tag: stringify(witness.swap_context_tag),
+    valid_until_slot: stringify(witness.valid_until_slot),
   };
 }
 

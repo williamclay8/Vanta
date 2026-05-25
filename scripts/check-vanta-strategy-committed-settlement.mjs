@@ -188,6 +188,21 @@ assert.equal(swapRequest.nullifierOrReplayCommitment, packet.swap.inputNullifier
 assert.equal(swapRequest.outputCommitment, packet.swap.outputCommitment);
 assert.equal(swapRequest.outputRoot, packet.swap.resultingRoot);
 assert.equal(swapRequest.swapPublicInputHash, packet.swap.proofPublicInputs.swap_economic_terms_hash);
+assert.match(
+  swapRequest.minOutputAmount,
+  /^0x[0-9a-f]{64}$/u,
+  "swap request must carry only a committed minimum output amount handle",
+);
+assert.match(
+  swapRequest.outputAmount,
+  /^0x[0-9a-f]{64}$/u,
+  "swap request must carry only a committed output amount handle",
+);
+assert.match(
+  swapRequest.slippageBps,
+  /^0x[0-9a-f]{64}$/u,
+  "swap request must carry only a committed slippage handle",
+);
 
 const serialized = JSON.stringify(committedRequests);
 for (const rawTerm of [
@@ -208,7 +223,6 @@ for (const rawTerm of [
   "encryptedPayload",
   "sendAmount",
   "inputAmount",
-  "outputAmount",
 ]) {
   assert.ok(!serialized.includes(rawTerm), `Strategy committed settlement leaked raw term: ${rawTerm}`);
 }

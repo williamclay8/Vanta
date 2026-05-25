@@ -16,6 +16,7 @@
   "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
   "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
   "productionVerifierArtifactRequestRef": "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
+  "humanHandoffRef": "ops/mainnet/private-pool-v2-c01-external-evidence-request.md",
   "closureGateRef": "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json",
   "currentRequiredShape": {
     "target": "solana-c01-tag3-groth16-v0",
@@ -42,7 +43,7 @@
       "gateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
       "envVar": "VANTA_C01_BETA18_H6_SOURCE_REVIEW_ACCEPTANCE_PATH",
       "validationCommand": "VANTA_C01_BETA18_H6_SOURCE_REVIEW_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
-      "requiredReturn": "reviewer acceptance or rejection of the beta18 H6 source migration delta, including reviewer identity/scope refs",
+      "requiredReturn": "reviewer acceptance or rejection of the beta18 H6 source migration delta, including frozen source commit, source tree status, source freeze review, and reviewer identity/scope refs",
       "truthBoundary": "Source-review acceptance is a prerequisite for production artifact review, but it is not production proof/VK evidence, adapter acceptance, SBF/live lineage, audit acceptance, or C01 closure."
     },
     {
@@ -62,7 +63,7 @@
       "gateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
       "envVar": "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH",
       "validationCommand": "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH=<reviewed-refs-only-json> npm run zk:c01-deterministic-production-artifact-build-check",
-      "requiredReturn": "reviewed reproducible Sunspot/Gnark build receipt, setup or toxic-waste mitigation refs, output manifest refs for proof, VK, public witness, verifier artifacts, and artifact producer/reviewer identity-scope attestation",
+      "requiredReturn": "reviewed reproducible Sunspot/Gnark build receipt, frozen source commit/tree status refs, setup or toxic-waste mitigation refs, output manifest refs for proof, VK, public witness, verifier artifacts, and artifact producer/reviewer identity-scope attestation",
       "truthBoundary": "Deterministic artifact build acceptance is a prerequisite for artifact bundle review, but it is not verifier-adapter acceptance, SBF/live lineage, audit acceptance, or C01 closure."
     },
     {
@@ -72,7 +73,7 @@
       "gateRef": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
       "envVar": "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH",
       "validationCommand": "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check",
-      "requiredReturn": "reviewed production proof-format, VK hash, current H6 public-input binding, adapter, valid-proof mutation plus invalid-proof, wrong-public-input, wrong-verifying-key, and wrong-verifier-program no-mutation refs, lineage, audit refs, and artifact producer/reviewer identity-scope attestation in one refs-only production artifact bundle",
+      "requiredReturn": "reviewed frozen source commit, production proof-format, VK hash, current H6 public-input binding, adapter, valid-proof mutation plus invalid-proof, wrong-public-input, wrong-verifying-key, and wrong-verifier-program no-mutation refs, lineage, audit refs, and artifact producer/reviewer identity-scope attestation in one refs-only production artifact bundle",
       "truthBoundary": "The bundle must be reviewed and validated before promotion; this handoff manifest does not supply it."
     },
     {
@@ -92,7 +93,7 @@
       "gateRef": "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance-gate.evidence.json",
       "envVar": "VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH",
       "validationCommand": "VANTA_C01_SBF_LIVE_LINEAGE_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
-      "requiredReturn": "rebuilt spend/verifier SBF hashes, deployed program ids, verifier-key registration, deployment/reinit/migration refs, and live proof-enforced or reviewer-accepted dry-run receipt refs",
+      "requiredReturn": "rebuilt spend SBF hash, deployed verifier program id/hash, verifier program upgrade-authority status ref, deployed spend program id, verifier-key registration, verifier-key record binding production VK hash to verifier program id, deployment/reinit/migration refs, and live proof-enforced or reviewer-accepted dry-run receipt refs",
       "truthBoundary": "Fresh local SBF ABI and local H6 SBF rehearsal are comparison evidence only, not SBF/live lineage."
     },
     {
@@ -124,6 +125,12 @@
       "truthBoundary": "Local H6-preserving Sunspot/Gnark route evidence only; not production source lineage, setup, proof-format, VK, adapter, mutation/no-mutation, SBF/live, audit, or closure."
     },
     {
+      "id": "h6-source-migration-review-candidate",
+      "ref": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-migration-review.evidence.json",
+      "command": "npm run zk:c01-beta18-h6-source-migration-review-check",
+      "truthBoundary": "Repo-local reviewable source delta only; not external source-review acceptance or production source lineage."
+    },
+    {
       "id": "local-unsafe-generated-verifier-cpi",
       "ref": "ops/mainnet/private-pool-v2-c01-verifier-adapter-test-candidate.evidence.json",
       "command": "npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check",
@@ -134,6 +141,30 @@
       "ref": "programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so",
       "command": "npm run private-pool-v2:sbf-abi-check",
       "truthBoundary": "Fresh local SBF ABI only; not redeployed, reinitialized, live, or accepted lineage."
+    },
+    {
+      "id": "production-privacy-audit-source",
+      "ref": "PRODUCTION_PRIVACY_AUDIT.md",
+      "command": "npm run privacy-audit:tracker-check",
+      "truthBoundary": "Local audit source of truth for blocker taxonomy and remediation ordering only; not external source-review acceptance, not production artifact evidence, not verifier-adapter acceptance, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure."
+    },
+    {
+      "id": "prior-audit-context",
+      "ref": "AUDIT_2026-05-19.md",
+      "command": "npm run truth:privacy-claim-gate",
+      "truthBoundary": "Prior local audit context only; not current external acceptance, not production artifact evidence, not verifier-adapter acceptance, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure."
+    },
+    {
+      "id": "security-limitations-context",
+      "ref": "SECURITY_LIMITATIONS.md",
+      "command": "npm run truth:privacy-claim-gate",
+      "truthBoundary": "Local fail-closed and claim-boundary context only; not external source-review acceptance, not production artifact evidence, not verifier-adapter acceptance, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure."
+    },
+    {
+      "id": "zk-findings-ledger-c01-source-refs",
+      "ref": "VANTA_ZK_REVIEW.findings.json",
+      "command": "npm run zk:review-findings-ledger-check",
+      "truthBoundary": "Repo-local findings ledger and source-review ref map only; not production artifact evidence, not verifier-adapter acceptance, not deployed verifier evidence, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure."
     }
   ],
   "forbiddenReviewerPacketContents": [
@@ -149,12 +180,17 @@
     "provider credentials"
   ],
   "remainingBlockers": [
+    "no reviewed frozen source commit",
+    "no source freeze review acceptance",
     "no external source-review acceptance",
     "no reviewed production output manifest",
     "no deterministic reviewed production artifact build receipt",
     "no reviewed production artifact bundle",
     "no production verifier-adapter acceptance",
     "no production valid mutation or invalid/wrong-input/wrong-key/wrong-program no-mutation refs",
+    "no deployed verifier program id/hash",
+    "no verifier program upgrade-authority status ref",
+    "no verifier-key record binding production VK hash to verifier program id",
     "no SBF/live lineage acceptance",
     "no audit/reviewer acceptance",
     "no composite C01 verifier evidence closure validation"

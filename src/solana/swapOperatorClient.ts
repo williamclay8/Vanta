@@ -4,12 +4,14 @@ import type { SignedSwapIntent } from "@/solana/swapAuth";
 export type SwapQuote = {
   inputAmount: string;
   inputAsset: "USDC";
+  minOutputAmount: string;
   outputAmount: string;
   outputAsset: "SOL";
   pairLabel: string;
   quoteExpiresAt: number;
   quoteId: string;
   quoteTimestamp: number;
+  slippageBps: number;
   venueFamily: "DLMM";
   venueName: "Meteora";
   venueNetwork: "Mainnet";
@@ -102,9 +104,11 @@ export async function fetchSwapQuote(inputAmount: string): Promise<SwapQuote> {
   if (
     typeof parsed.quoteId !== "string" ||
     typeof parsed.inputAmount !== "string" ||
+    typeof parsed.minOutputAmount !== "string" ||
     typeof parsed.outputAmount !== "string" ||
     typeof parsed.quoteTimestamp !== "number" ||
     typeof parsed.quoteExpiresAt !== "number" ||
+    typeof parsed.slippageBps !== "number" ||
     typeof parsed.venuePoolAddress !== "string" ||
     typeof parsed.pairLabel !== "string" ||
     parsed.venueName !== "Meteora" ||
@@ -117,12 +121,14 @@ export async function fetchSwapQuote(inputAmount: string): Promise<SwapQuote> {
   return {
     inputAmount: parsed.inputAmount,
     inputAsset: "USDC",
+    minOutputAmount: parsed.minOutputAmount,
     outputAmount: parsed.outputAmount,
     outputAsset: "SOL",
     pairLabel: parsed.pairLabel,
     quoteExpiresAt: parsed.quoteExpiresAt,
     quoteId: parsed.quoteId,
     quoteTimestamp: parsed.quoteTimestamp,
+    slippageBps: parsed.slippageBps,
     venueFamily: "DLMM",
     venueName: "Meteora",
     venueNetwork: "Mainnet",

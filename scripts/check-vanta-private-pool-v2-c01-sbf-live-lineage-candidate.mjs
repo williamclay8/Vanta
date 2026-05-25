@@ -285,6 +285,7 @@ assertStringArray(shape.requiredLiveEvidence, "required lineage shape requiredLi
 for (const marker of [
   "rebuilt spend SBF hash for the exact accepted source",
   "deployed spend program id and verifier program id",
+  "deployed verifier program upgrade-authority status ref",
   "reinitialization or migration transaction signatures",
   "live proof-enforced tag-3 transaction or reviewer-accepted dry-run receipt",
 ]) {
@@ -302,6 +303,7 @@ assertAllowedKeys(current, "current live lineage", [
   "verifierProgramSbfHash",
   "spendProgramId",
   "verifierProgramId",
+  "verifierProgramUpgradeAuthorityStatusRef",
   "deploymentSignatureRef",
   "reinitializationSignatureRef",
   "verifierKeyRegistrationSignatureRef",
@@ -316,6 +318,7 @@ for (const field of [
   "verifierProgramSbfHash",
   "spendProgramId",
   "verifierProgramId",
+  "verifierProgramUpgradeAuthorityStatusRef",
   "deploymentSignatureRef",
   "reinitializationSignatureRef",
   "verifierKeyRegistrationSignatureRef",
@@ -409,7 +412,7 @@ assertAllowedKeys(rehearsalSpendSbf, "local H6 rehearsal spend SBF", [
 ]);
 assert(rehearsalSpendSbf.path === shape.spendProgramSbfPath, "local H6 rehearsal spend SBF path mismatch");
 assert(
-  rehearsalSpendSbf.sha256 === "sha256:fe314c80b2dc15d13aca8a82b4baad894ee6817213ef05d9b91b9891ac636ed4",
+  rehearsalSpendSbf.sha256 === "sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55",
   "local H6 rehearsal spend SBF hash mismatch",
 );
 assert(rehearsalSpendSbf.rebuiltLocally === true, "local H6 rehearsal spend SBF must be rebuilt locally");
@@ -615,6 +618,7 @@ for (const id of [
   "accepted-verifier-program-sbf",
   "spend-program-deploy",
   "verifier-program-deploy",
+  "verifier-program-upgrade-authority-status",
   "pool-reinitialization-or-migration",
   "verifier-key-registration",
   "live-proof-enforced-path-receipt",
@@ -624,6 +628,14 @@ for (const id of [
   assert(entry, `lineage acceptance criteria missing ${id}`);
   assert(entry.currentRef === null, `lineage acceptance criteria ${id} currentRef must stay null`);
   assert(entry.satisfiesSbfLiveLineage === false, `lineage acceptance criteria ${id} must not satisfy live lineage`);
+}
+
+assertStringArray(packet.promotionRules, "promotionRules");
+for (const marker of [
+  "verifier program upgrade-authority status",
+  "same source ACIR and production VK hash",
+]) {
+  includes(packet.promotionRules.join("\n"), marker, "promotion rules");
 }
 
 for (const [field, expected] of [

@@ -22,13 +22,21 @@ if (
   fixtureMode !== "forged-input-membership" &&
   fixtureMode !== "forged-output-append-path" &&
   fixtureMode !== "invalid-binding" &&
+  fixtureMode !== "invalid-economics-commitment-preimage" &&
   fixtureMode !== "invalid-input-commitment-preimage" &&
+  fixtureMode !== "invalid-min-output-amount-binding" &&
   fixtureMode !== "invalid-nullifier" &&
+  fixtureMode !== "invalid-output-amount-economics-binding" &&
+  fixtureMode !== "invalid-output-below-min-output" &&
+  fixtureMode !== "invalid-output-commitment-preimage" &&
   fixtureMode !== "invalid-owner-secret-binding" &&
+  fixtureMode !== "invalid-slippage-bps-binding" &&
+  fixtureMode !== "valid-output-equals-min-output" &&
+  fixtureMode !== "invalid-valid-until-slot-public-binding" &&
   fixtureMode !== "invalid-output-root"
 ) {
   console.error(
-    'Expected fixture mode "valid", "forged-input-membership", "forged-output-append-path", "invalid-binding", "invalid-input-commitment-preimage", "invalid-nullifier", "invalid-owner-secret-binding", or "invalid-output-root".',
+    'Expected fixture mode "valid", "forged-input-membership", "forged-output-append-path", "invalid-binding", "invalid-economics-commitment-preimage", "invalid-input-commitment-preimage", "invalid-min-output-amount-binding", "invalid-nullifier", "invalid-output-amount-economics-binding", "invalid-output-below-min-output", "invalid-output-commitment-preimage", "invalid-owner-secret-binding", "invalid-slippage-bps-binding", "valid-output-equals-min-output", "invalid-valid-until-slot-public-binding", or "invalid-output-root".',
   );
   process.exit(1);
 }

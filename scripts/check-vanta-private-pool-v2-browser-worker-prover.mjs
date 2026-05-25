@@ -92,7 +92,9 @@ function sendWitnessInputFromFixture(fixture) {
     change_memo_ciphertext_body_hash_field: stringify(
       witness.change_memo_ciphertext_body_hash_field,
     ),
+    change_output_blinding: stringify(witness.change_output_blinding),
     change_output_commitment: stringify(witness.change_output_commitment),
+    change_output_derivation_tag: stringify(witness.change_output_derivation_tag),
     change_output_root: stringify(witness.change_output_root),
     economics_blinding: stringify(witness.economics_blinding),
     economics_commitment: stringify(witness.economics_commitment),
@@ -107,6 +109,7 @@ function sendWitnessInputFromFixture(fixture) {
     nullifier: stringify(witness.nullifier),
     owner_commitment: stringify(witness.owner_commitment),
     owner_secret: stringify(witness.owner_secret),
+    relayer_fee: stringify(witness.relayer_fee),
     recipient_amount: stringify(witness.recipient_amount),
     recipient_append_path: witness.recipient_append_path.map(stringify),
     recipient_append_path_direction_bits:
@@ -116,10 +119,14 @@ function sendWitnessInputFromFixture(fixture) {
     recipient_memo_ciphertext_body_hash_field: stringify(
       witness.recipient_memo_ciphertext_body_hash_field,
     ),
+    recipient_owner_commitment: stringify(witness.recipient_owner_commitment),
+    recipient_output_blinding: stringify(witness.recipient_output_blinding),
     recipient_output_commitment: stringify(witness.recipient_output_commitment),
+    recipient_output_derivation_tag: stringify(witness.recipient_output_derivation_tag),
     recipient_output_root: stringify(witness.recipient_output_root),
     request_version: stringify(witness.request_version),
     send_context_tag: stringify(witness.send_context_tag),
+    valid_until_slot: stringify(witness.valid_until_slot),
   };
 }
 

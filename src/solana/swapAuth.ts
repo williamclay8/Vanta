@@ -1,6 +1,6 @@
 export const VANTA_SWAP_INTENT_TTL_MS = 5 * 60 * 1000;
 
-const VANTA_SWAP_INTENT_VERSION = "v2";
+const VANTA_SWAP_INTENT_VERSION = "v3";
 
 export type SwapIntentPayload = {
   consumedNoteId: string;
@@ -8,6 +8,7 @@ export type SwapIntentPayload = {
   inputAsset: "USDC";
   issuedAt: number;
   mintAddress: string;
+  minOutputAmount: string;
   outputAmount: string;
   outputAsset: "SOL";
   outputNoteId: string;
@@ -17,6 +18,7 @@ export type SwapIntentPayload = {
   quoteTimestamp: number;
   requestId: string;
   requester: string;
+  slippageBps: number;
   transitionNoteId: string;
   transitionStateSignature: string;
   vaultOwner: string;
@@ -57,10 +59,12 @@ export function formatSwapIntentMessage(payload: SwapIntentPayload) {
     `inputAsset:${payload.inputAsset}`,
     `inputAmount:${payload.inputAmount}`,
     `outputAsset:${payload.outputAsset}`,
+    `minOutputAmount:${payload.minOutputAmount}`,
     `outputAmount:${payload.outputAmount}`,
     `quoteId:${payload.quoteId}`,
     `quoteTimestamp:${payload.quoteTimestamp}`,
     `quoteExpiresAt:${payload.quoteExpiresAt}`,
+    `slippageBps:${payload.slippageBps}`,
     `venueName:${payload.venueName}`,
     `venueFamily:${payload.venueFamily}`,
     `venueNetwork:${payload.venueNetwork}`,

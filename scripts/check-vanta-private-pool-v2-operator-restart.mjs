@@ -224,20 +224,25 @@ async function loadFixtureRuntime() {
     recipientOutputRoot: sendRecipientCommitment.merkleRoot,
     sendContextTag: "field:restart-send-context-tag",
     sendPublicInputHash: "field:restart-send-public-input-hash",
+    validUntilSlot: "1000250",
   });
   const swapRequest = createVantaPrivatePoolV2SwapToShieldedProofRequest({
     economicsCommitment: "field:restart-swap-economics-commitment",
     inputCommitment: sendRecipientCommitment.commitment,
     inputRoot: sendChangeCommitment.merkleRoot,
+    minOutputAmount: "4700",
     nullifierOrReplayCommitment: "field:restart-swap-nullifier",
+    outputAmount: "4800",
     outputCommitment: swapOutputCommitment.commitment,
     outputLeafIndex: String(swapOutputCommitment.leafIndex),
     outputRoot: swapOutputCommitment.merkleRoot,
     ownerCommitment: "field:restart-swap-owner-commitment",
     routeCommitment: "field:restart-swap-route-commitment",
     settlementCommitment: "field:restart-swap-settlement-commitment",
+    slippageBps: "50",
     swapContextTag: "field:restart-swap-context-tag",
     swapPublicInputHash: "field:restart-swap-public-input-hash",
+    validUntilSlot: "1000275",
   });
   const unshieldRequest = createVantaPrivatePoolV2UnshieldProofRequest({
     economicsCommitment: "field:restart-unshield-economics-commitment",

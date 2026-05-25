@@ -110,6 +110,7 @@ export function createStrategyPrivateRailCommittedSettlementRequests({
     );
     const recipientLeafIndex = leafIndexFor(packetIndex * 2 + 1);
     const changeLeafIndex = leafIndexFor(packetIndex * 2 + 2);
+    const sendValidUntilSlot = (1_000_250 + packetIndex).toString(10);
     const sendRouteHandleCommitment = routeHandleCommitmentFor("send", packet);
     const sendQuoteHandleCommitment = quoteHandleCommitmentFor("send", packet);
 
@@ -153,6 +154,7 @@ export function createStrategyPrivateRailCommittedSettlementRequests({
       sendPublicInputHash: packet.send.proofPublicInputs.send_economic_terms_hash,
       settlementCommitment: sendSettlementCommitment,
       settlementId: sendSettlementId,
+      validUntilSlot: sendValidUntilSlot,
     });
 
     const swapEconomicsCommitment = hashCommitment(
@@ -171,6 +173,22 @@ export function createStrategyPrivateRailCommittedSettlementRequests({
     );
     const swapRouteHandleCommitment = routeHandleCommitmentFor("swap", packet);
     const swapQuoteHandleCommitment = quoteHandleCommitmentFor("swap", packet);
+    const swapMinOutputAmountHandle = hashCommitment(
+      STRATEGY_PRIVATE_RAIL_COMMITTED_SETTLEMENT_VERSION,
+      "swap-min-output-amount-handle",
+      packet.swap.proofPublicInputs.swap_economic_terms_hash,
+    );
+    const swapOutputAmountHandle = hashCommitment(
+      STRATEGY_PRIVATE_RAIL_COMMITTED_SETTLEMENT_VERSION,
+      "swap-output-amount-handle",
+      packet.swap.proofPublicInputs.swap_economic_terms_hash,
+    );
+    const swapSlippageBpsHandle = hashCommitment(
+      STRATEGY_PRIVATE_RAIL_COMMITTED_SETTLEMENT_VERSION,
+      "swap-slippage-bps-handle",
+      packet.swap.proofPublicInputs.swap_economic_terms_hash,
+    );
+    const swapValidUntilSlot = (1_000_275 + packetIndex).toString(10);
 
     requests.push({
       action: "swap",
@@ -178,7 +196,9 @@ export function createStrategyPrivateRailCommittedSettlementRequests({
       economicsMode: "committed-economics",
       inputCommitment: packet.swap.inputCommitment,
       inputRoot: packet.swap.inputRoot,
+      minOutputAmount: swapMinOutputAmountHandle,
       nullifierOrReplayCommitment: packet.swap.inputNullifier,
+      outputAmount: swapOutputAmountHandle,
       outputCommitment: packet.swap.outputCommitment,
       outputLeafIndex: leafIndexFor(packetIndex + 1),
       outputRoot: packet.swap.resultingRoot,
@@ -192,6 +212,7 @@ export function createStrategyPrivateRailCommittedSettlementRequests({
       routeHandleCommitment: swapRouteHandleCommitment,
       settlementCommitment: swapSettlementCommitment,
       settlementId: swapSettlementId,
+      slippageBps: swapSlippageBpsHandle,
       swapContextTag: hashCommitment(
         STRATEGY_PRIVATE_RAIL_COMMITTED_SETTLEMENT_VERSION,
         "swap-context",
@@ -200,6 +221,7 @@ export function createStrategyPrivateRailCommittedSettlementRequests({
         packet.swap.outputCommitment,
       ),
       swapPublicInputHash: packet.swap.proofPublicInputs.swap_economic_terms_hash,
+      validUntilSlot: swapValidUntilSlot,
     });
   });
 

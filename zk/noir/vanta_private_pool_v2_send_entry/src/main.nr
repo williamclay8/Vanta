@@ -26,16 +26,34 @@ fn compute_input_commitment(
     ])
 }
 
+fn compute_output_commitment(
+    output_owner_commitment: Field,
+    asset_id_commitment: Field,
+    output_amount: u128,
+    output_blinding: Field,
+    output_derivation_tag: Field,
+) -> Field {
+    bn254::hash_5([
+        output_owner_commitment,
+        asset_id_commitment,
+        output_amount as Field,
+        output_blinding,
+        output_derivation_tag,
+    ])
+}
+
 fn compute_send_economics_commitment(
     input_amount: u128,
     recipient_amount: u128,
     change_amount: u128,
+    relayer_fee: u128,
     economics_blinding: Field,
 ) -> Field {
-    bn254::hash_4([
+    bn254::hash_5([
         input_amount as Field,
         recipient_amount as Field,
         change_amount as Field,
+        relayer_fee as Field,
         economics_blinding,
     ])
 }
@@ -114,6 +132,8 @@ fn bind_send_public_inputs(
     change_output_commitment: Field,
     asset_id_commitment: Field,
     economics_commitment: Field,
+    relayer_fee: u128,
+    valid_until_slot: Field,
     owner_commitment: Field,
     send_context_tag: Field,
     recipient_memo_ciphertext_body_hash_field: Field,
@@ -133,6 +153,11 @@ fn bind_send_public_inputs(
         recipient_memo_ciphertext_body_hash_field,
         change_memo_ciphertext_body_hash_field,
     ]);
+    let economics_terms = bn254::hash_3([
+        economics_commitment,
+        relayer_fee as Field,
+        valid_until_slot,
+    ]);
 
     bn254::hash_12([
         request_version,
@@ -142,7 +167,7 @@ fn bind_send_public_inputs(
         recipient_output_commitment,
         change_output_commitment,
         asset_id_commitment,
-        economics_commitment,
+        economics_terms,
         owner_commitment,
         send_context_tag,
         output_transition,
@@ -165,6 +190,7 @@ fn main(
     economics_commitment: Field,
     owner_commitment: Field,
     send_context_tag: Field,
+    valid_until_slot: Field,
     recipient_memo_ciphertext_body_hash_field: Field,
     change_memo_ciphertext_body_hash_field: Field,
     recipient_leaf_index: Field,
@@ -178,7 +204,13 @@ fn main(
     input_amount: u128,
     recipient_amount: u128,
     change_amount: u128,
+    relayer_fee: u128,
     economics_blinding: Field,
+    recipient_owner_commitment: Field,
+    recipient_output_blinding: Field,
+    recipient_output_derivation_tag: Field,
+    change_output_blinding: Field,
+    change_output_derivation_tag: Field,
     owner_secret: Field,
     input_blinding: Field,
     input_derivation_tag: Field,
@@ -210,15 +242,38 @@ fn main(
     let computed_nullifier = compute_nullifier(input_commitment, owner_secret);
     assert(computed_nullifier == nullifier);
 
-    assert(input_amount == recipient_amount + change_amount);
+    assert(relayer_fee <= input_amount);
+    assert(
+        input_amount as Field
+            == recipient_amount as Field + change_amount as Field + relayer_fee as Field,
+    );
 
     let computed_economics_commitment = compute_send_economics_commitment(
         input_amount,
         recipient_amount,
         change_amount,
+        relayer_fee,
         economics_blinding,
     );
     assert(computed_economics_commitment == economics_commitment);
+
+    let computed_recipient_output_commitment = compute_output_commitment(
+        recipient_owner_commitment,
+        asset_id_commitment,
+        recipient_amount,
+        recipient_output_blinding,
+        recipient_output_derivation_tag,
+    );
+    assert(computed_recipient_output_commitment == recipient_output_commitment);
+
+    let computed_change_output_commitment = compute_output_commitment(
+        owner_commitment,
+        asset_id_commitment,
+        change_amount,
+        change_output_blinding,
+        change_output_derivation_tag,
+    );
+    assert(computed_change_output_commitment == change_output_commitment);
 
     let computed_recipient_previous_root = compute_root_from_leaf(
         0,
@@ -267,6 +322,8 @@ fn main(
         change_output_commitment,
         asset_id_commitment,
         economics_commitment,
+        relayer_fee,
+        valid_until_slot,
         owner_commitment,
         send_context_tag,
         recipient_memo_ciphertext_body_hash_field,

@@ -58,7 +58,9 @@ for (const expectedField of [
   "economicsCommitment",
   "inputCommitment",
   "inputRoot",
+  "minOutputAmount",
   "nullifierOrReplayCommitment",
+  "outputAmount",
   "outputCommitment",
   "outputLeafIndex",
   "outputRoot",
@@ -66,6 +68,7 @@ for (const expectedField of [
   "routeCommitment",
   "settlementCommitment",
   "settlementId",
+  "slippageBps",
   "swapContextTag",
   "swapPublicInputHash",
 ]) {

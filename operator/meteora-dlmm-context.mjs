@@ -143,7 +143,9 @@ function createSwapQuoteId(args) {
   return `swap_quote_${Buffer.from(
     [
       args.inputAmount,
+      args.minOutputAmount,
       args.outputAmount,
+      args.slippageBps,
       args.venueFamily,
       args.venuePoolAddress,
       args.quoteTimestamp,
@@ -602,9 +604,13 @@ export async function fetchMeteoraDlmmQuote(args) {
   const outputDecimals = getMintDecimals(args.outputMint);
   const formattedInputAmount = Number(args.inputAmount).toFixed(inputDecimals);
   const formattedOutputAmount = outputAmount.toFixed(outputDecimals);
+  const slippageBps = validation.config.maxExecutionDriftBps;
+  const minOutputAmount = outputAmount * Math.max(0, 10_000 - slippageBps) / 10_000;
+  const formattedMinOutputAmount = minOutputAmount.toFixed(outputDecimals);
 
   return {
     inputAmount: formattedInputAmount,
+    minOutputAmount: formattedMinOutputAmount,
     outputAmount: formattedOutputAmount,
     outputMint: args.outputMint,
     pairLabel: pool.pairLabel,
@@ -612,13 +618,16 @@ export async function fetchMeteoraDlmmQuote(args) {
     quoteExpiresAt: quoteTimestamp + validation.config.quoteTtlMs,
     quoteId: createSwapQuoteId({
       inputAmount: formattedInputAmount,
+      minOutputAmount: formattedMinOutputAmount,
       outputAmount: formattedOutputAmount,
       quoteTimestamp,
+      slippageBps,
       venueFamily: SWAP_VENUE_FAMILY,
       venuePoolAddress: pool.poolAddress,
     }),
     quoteTimestamp,
     sourceTimestamp: pool.sourceTimestamp,
+    slippageBps,
     venueFamily: SWAP_VENUE_FAMILY,
     venueName: SWAP_VENUE_NAME,
     venueNetwork: SWAP_NETWORK,

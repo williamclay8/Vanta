@@ -16,3 +16,4 @@ unexpected_cfgs = "allow"
 
 [dependencies]
 solana-program = "2.3.0"
+solana-poseidon = "3.1.14"

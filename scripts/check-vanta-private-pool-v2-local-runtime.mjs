@@ -317,6 +317,7 @@ try {
     recipientOutputRoot: sendRecipientPlanningCommitment.merkleRoot,
     sendContextTag: "field:send-context-tag",
     sendPublicInputHash: "field:send-public-input-hash",
+    validUntilSlot: "1000250",
   });
   const sendProof = await prover.prove(sendProofRequest);
   assert(
@@ -578,15 +579,19 @@ try {
     economicsCommitment: "field:swap-economics-commitment",
     inputCommitment: swapInputPlanningCommitment.commitment,
     inputRoot: swapInputPlanningCommitment.merkleRoot,
+    minOutputAmount: "4700",
     nullifierOrReplayCommitment: "field:swap-nullifier",
+    outputAmount: "4800",
     outputCommitment: swapOutputPlanningCommitment.commitment,
     outputLeafIndex: String(swapOutputPlanningCommitment.leafIndex),
     outputRoot: swapOutputPlanningCommitment.merkleRoot,
     ownerCommitment: "field:swap-owner-commitment",
     routeCommitment: "field:swap-route-commitment",
     settlementCommitment: "field:swap-settlement-commitment",
+    slippageBps: "50",
     swapContextTag: "field:swap-context-tag",
     swapPublicInputHash: "field:swap-public-input-hash",
+    validUntilSlot: "1000275",
   });
   const swapProof = await prover.prove(swapProofRequest);
   assert(

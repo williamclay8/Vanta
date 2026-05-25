@@ -14,7 +14,7 @@ const baseInput = {
   humanApprovedSummary: true,
   intentKind: "swap-intent",
   issuedAt: now,
-  message: "vanta:swap-intent:v2\nrequestId:req_123\namount:12.50",
+  message: "vanta:swap-intent:v3\nrequestId:req_123\namount:12.50",
   owner: "wallet_abc",
   recipient: "operator_vault",
   requestId: "req_123",
@@ -28,7 +28,7 @@ assert.equal(summary.intentKind, "swap-intent");
 assert.equal(summary.requiresNonceOrRequestId, true);
 assert.equal(summary.requiresWalletMessageApproval, true);
 assert.equal(summary.requiresHumanApproval, true);
-assert.ok(summary.messagePreview.includes("vanta:swap-intent:v2"));
+assert.ok(summary.messagePreview.includes("vanta:swap-intent:v3"));
 
 assert.deepEqual(validateWalletMessageIntentSafetySummary(summary, baseInput), {
   accepted: true,

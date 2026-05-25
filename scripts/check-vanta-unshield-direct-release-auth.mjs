@@ -65,16 +65,31 @@ for (const forbidden of [
   );
 }
 
-for (const required of [
+for (const forbidden of [
   "assertDirectUnshieldReleaseIntent",
   "assertDirectSolUnshieldReleaseIntent",
   "Operator-direct unshield requires a direct wallet-signed note reference.",
   "Operator-direct SOL unshield requires a direct wallet-signed note reference.",
   "not-provided-wallet-authorized-public-exit",
+  "SystemProgram.transfer({",
+  ".sendTransfer({",
+]) {
+  assert.ok(
+    !unshieldServerSource.includes(forbidden),
+    `Unshield operator must not preserve direct-release marker after PDA relay cutover: ${forbidden}.`,
+  );
+}
+
+for (const required of [
+  "buildTagUnshieldProgramReleaseReceipt",
+  "program-tag-unshield-pda-cpi-fail-closed",
+  "TAG_UNSHIELD",
+  "programTxSignature",
+  "pending-onchain-root-proof-nullifier-verification",
 ]) {
   assert.ok(
     unshieldServerSource.includes(required),
-    `Unshield operator direct-release guard missing ${required}.`,
+    `Unshield operator program relay guard missing ${required}.`,
   );
 }
 

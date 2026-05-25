@@ -3,7 +3,6 @@ import { spawn } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
 import { join, resolve } from "node:path";
-import { Keypair } from "@solana/web3.js";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const solUnshieldOperatorHealthSource = readFileSync(
@@ -12,8 +11,7 @@ const solUnshieldOperatorHealthSource = readFileSync(
 );
 const unshieldServerSource = readFileSync(resolve(repoRoot, "operator/unshield-server.mjs"), "utf8");
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-sol-unshield-operator-"));
-const readyKeypair = Keypair.generate();
-const blockedKeypair = Keypair.generate();
+const fixtureVaultOwner = "11111111111111111111111111111111";
 
 function printStatus(message) {
   console.log(message);
@@ -43,9 +41,7 @@ function createOperatorEnv({ port, signer, vaultOwner }) {
     SOLANA_RPC_URL: "https://api.mainnet-beta.solana.com",
     VANTA_MAINNET_TOKEN_MINT: "So11111111111111111111111111111111111111112",
     VANTA_MAINNET_VAULT_OWNER: vaultOwner,
-    VANTA_MAINNET_VAULT_SIGNER_SECRET_KEY: signer
-      ? JSON.stringify(Array.from(signer.secretKey))
-      : "",
+    VANTA_MAINNET_VAULT_SIGNER_SECRET_KEY: signer ? "legacy-unused" : "",
     VANTA_SOLANA_CLUSTER: "mainnet-beta",
     VANTA_PRIVATE_CORE_CONSUME_STORE_PATH: join(tempRoot, `consumes-${port}.json`),
     VANTA_PRIVATE_CORE_PROOF_STORE_PATH: join(tempRoot, `proofs-${port}.json`),
@@ -151,22 +147,28 @@ try {
   );
 
   const readyPort = await reservePort();
-  const blockedPort = await reservePort();
 
   await withOperator(
     createOperatorEnv({
       port: readyPort,
-      signer: readyKeypair,
-      vaultOwner: readyKeypair.publicKey.toBase58(),
+      signer: null,
+      vaultOwner: fixtureVaultOwner,
     }),
     async (baseUrl) => {
       const health = await requestJson(baseUrl, "/health/sol-unshield");
-      assert.equal(health.status, 200, health.text);
-      assert.equal(health.body?.ready, true, "Expected configured SOL unshield health.");
+      assert.equal(health.status, 503, health.text);
+      assert.equal(health.body?.ready, false, "Expected SOL unshield health to fail closed.");
       assert.equal(health.body?.endpoint, "/unshield/sol");
-      assert.equal(health.body?.releaseModel, "operator-signed-mainnet-sol-transfer");
-      assert.equal(health.body?.signerAddress, readyKeypair.publicKey.toBase58());
-      printStatus("SOL unshield operator health ready: PASS");
+      assert.equal(health.body?.releaseModel, "program-tag-unshield-pda-cpi-fail-closed");
+      assert.equal(health.body?.signerAddress, null);
+      assert.equal(
+        health.body?.checks?.some(
+          (check) => check.check === "tag-unshield-program-relay" && check.ready === false,
+        ),
+        true,
+        "Expected SOL health to expose fail-closed TAG_UNSHIELD relay status.",
+      );
+      printStatus("SOL unshield operator health fail-closed: PASS");
 
       const malformed = await requestJson(baseUrl, "/unshield/sol", {
         body: JSON.stringify({}),
@@ -191,27 +193,6 @@ try {
       assert.equal(tokenRecords.body?.consumedNoteIds, undefined);
       assert.equal(tokenRecords.body?.records, undefined);
       printStatus("Token unshield hashed record state endpoint: PASS");
-    },
-  );
-
-  await withOperator(
-    createOperatorEnv({
-      port: blockedPort,
-      signer: blockedKeypair,
-      vaultOwner: readyKeypair.publicKey.toBase58(),
-    }),
-    async (baseUrl) => {
-      const health = await requestJson(baseUrl, "/health/sol-unshield");
-      assert.equal(health.status, 503, health.text);
-      assert.equal(health.body?.ready, false, "Expected mismatched signer health to be blocked.");
-      assert.equal(
-        health.body?.checks?.some(
-          (check) => check.check === "vault-signer-matches-owner" && check.ready === false,
-        ),
-        true,
-        "Expected SOL health to expose signer/vault mismatch.",
-      );
-      printStatus("SOL unshield operator health signer mismatch: PASS");
     },
   );
 
@@ -243,10 +224,10 @@ try {
     );
     assert.equal(
       health.body?.checks?.some(
-        (check) => check.check === "vault-signer" && check.ready === false,
+        (check) => check.check === "tag-unshield-program-relay" && check.ready === false,
       ),
       true,
-      "Expected SOL health to remain blocked without a signer secret.",
+      "Expected SOL health to remain blocked until TAG_UNSHIELD relay is wired.",
     );
     printStatus("SOL unshield missing vault-owner health: PASS");
   });
