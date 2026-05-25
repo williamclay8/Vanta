@@ -9,16 +9,24 @@
 
 ## Status
 
-`plan-open-awaiting-approval`
+`implemented-verified-local`
 
-No code implementation has started for this item. Clay approval is required after this plan is posted.
+Clay approved this item on 2026-05-25. The local indexer API, guard, docs, and tracker truth updates are implemented and verified locally.
 
 ## Current Repo Truth
 
 - `src/solana/vantaShieldViewingKey.ts` already derives encrypted view tags for AEAD memo packets.
 - `operator/private-pool-v2-service-network.mjs` already stores local Send discovery packets and supports an exact `encryptedViewTag` query used by the local proof-bound handoff fixture.
+- `operator/private-pool-v2-service-network.mjs` now also supports authenticated `/v1/send-discovery/view-tags` prefix-bucket pull with stable cursor pagination, exact full-tag query rejection, forbidden query fields, and `productionReady: false` status blockers.
 - `scripts/check-vanta-private-pool-v2-send-discovery-indexer-handoff.mjs` proves local packet ingest/query, proof-bound body-hash handoff, duplicate rejection, forbidden field rejection, and restart persistence.
 - That existing exact-tag path is still local-only, not a deployed query-private recipient pull channel, and not production recipient discovery.
+
+## Delivered
+
+- Added `npm run indexer:view-tag-pull-check`.
+- Added `/v1/send-discovery/view-tags` on the Private Pool v2 indexer with `vtag:<4-12 lowercase hex prefix>` policy, recorded-slot/packet-id cursor ordering, local JSON restart persistence, exact full-tag query rejection, and candidate packet sanitization.
+- Extended Send discovery packet/query rejection for raw IP/header, auth token, sender/recipient wallet, owner public-key/secret, amount, plaintext memo, proof bytes, witness, note blinding, and private input fields.
+- Added local-only `viewTagPull` status with blockers for deployed service, retention/log-redaction evidence, anonymous/public read posture, and reviewer acceptance.
 
 ## Planned Files
 
@@ -57,6 +65,20 @@ No code implementation has started for this item. Clay approval is required afte
 ## Red-First Evidence
 
 - 2026-05-25: `npm run indexer:view-tag-pull-check` fails before implementation with `npm error Missing script: "indexer:view-tag-pull-check"`.
+- 2026-05-25: after package wiring, `npm run indexer:view-tag-pull-check` failed before endpoint implementation because Send discovery status did not expose view-tag prefix pull as local-only/not-production-ready.
+
+## Verified Evidence
+
+- 2026-05-25: `npm run indexer:view-tag-pull-check`: PASS
+- 2026-05-25: `npm run private-pool-v2:send-discovery-indexer-handoff-check`: PASS after sandbox localhost-bind rerun with approval
+- 2026-05-25: `npm run private-pool-v2:service-network-check`: PASS
+- 2026-05-25: `npm run send:direct-viewing-key-exchange-check`: PASS
+- 2026-05-25: `npm run relayer:privacy-transport-check`: PASS after replacing a literal private-key-header negative fixture with runtime construction so the repo-wide secret scanner stays strict
+- 2026-05-25: `npm run mainnet:secret-handling-check`: PASS
+- 2026-05-25: `npm run truth:privacy-claim-gate`: PASS; privacy/mainnet/production claim flags remain false
+- 2026-05-25: `npm run privacy-audit:tracker-check`: PASS
+- 2026-05-25: `npm run build`: PASS
+- 2026-05-25: `git diff --check`: PASS
 
 ## Planned Script
 
@@ -89,7 +111,7 @@ This plan is for a local indexer API and evidence gate. It does not deploy a rec
 
 ## Lumi
 
-- Local: tracker-only Band 6 item 19 plan and red-first missing-script evidence recorded locally; no code implementation yet.
-- Committed: latest branch head after this tracker-only plan slice; use `git log` for the exact commit.
-- Pushed: `origin/codex/ppa-program-004-runtime-verifier-wired` after this tracker-only plan slice; use `git status` for sync.
+- Local: Band 6 item 19 local indexer view-tag prefix pull API, guard, docs, and tracker truth updates are implemented locally.
+- Committed: latest branch head after the PPA-DISCOVERY-001 implementation slice; use `git log` for the exact commit.
+- Pushed: `origin/codex/ppa-program-004-runtime-verifier-wired` after the PPA-DISCOVERY-001 implementation slice; use `git status` for sync.
 - Deployed/live: not deployed/live.

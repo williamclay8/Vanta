@@ -713,7 +713,7 @@ for (const phrase of [
 
 for (const phrase of [
   "Vanta Threat Model",
-  "Last validated against repo-local code: 2026-05-14.",
+  "Last validated against repo-local code: 2026-05-25.",
   "Vanta production privacy is not enabled",
   "It does not claim anonymous, untraceable, fully private, production-ready, or live mainnet-private settlement.",
   "A remote prover or prover relay must be explicit opt-in.",
@@ -726,6 +726,8 @@ for (const phrase of [
   "destinationOwner !== requester",
   "A program-owned shared tree is not deployed.",
   "Recipient discovery is not production deployed.",
+  "The local indexer now exposes an authenticated view-tag prefix-bucket pull endpoint",
+  "it does not prove query privacy",
   "Clay approved hybrid discovery on 2026-05-14.",
   "Clay approved the proof-bound fresh-address exit direction on 2026-05-14.",
   "legacy v1 plaintext memo history",

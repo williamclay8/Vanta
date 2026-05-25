@@ -542,6 +542,16 @@ It verifies the role snapshot boundary can use a role-specific database URL such
 
 When `NODE_ENV=production`, every role service refuses to boot without its role bearer token and restart storage configuration. This prevents accidental stateless or unauthenticated production startup, but does not replace the production database/restore evidence gate.
 
+The indexer has a local Send-discovery view-tag prefix pull contract:
+
+```bash
+npm run indexer:view-tag-pull-check
+```
+
+It verifies `/v1/send-discovery/view-tags` on the authenticated Private Pool v2 indexer. The endpoint accepts `viewTagPrefix=vtag:<4-12 lowercase hex prefix>`, optional `audience`, `fromSlot`, `limit`, and a stable cursor; it rejects exact full encrypted-view-tag queries plus sender, recipient wallet, owner public key, amount, raw IP/header, auth-token, proof, witness, owner-secret, note-blinding, and private-input fields. Responses remain local-only candidate packet refs and proof-bound ciphertext body hashes with `productionReady: false`.
+
+This is not deployed recipient discovery, not query privacy, not anonymous/public read posture, not retention/log-redaction evidence, and not reviewer acceptance. Keep the existing exact `encryptedViewTag` packet query for local verifier-mirrored fixture checks only.
+
 The relayer has an additional local privacy-transport contract:
 
 ```bash

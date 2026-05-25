@@ -2148,7 +2148,7 @@ production_privacy_audit_remediation:
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired includes d1de01d8 on 2026-05-25."
             deployed_live: "not-deployed-live"
     - id: band-6-recipient-discovery
-      status: active-item-19-plan-open-awaiting-approval
+      status: active-item-19-implemented-verified-local
       rule: "Band 6 may start only after Band 5 is landed or explicitly blocked. Do not claim production recipient discovery, query privacy, anonymity, or production privacy from local indexer API work."
       items:
         - id: PPA-DISCOVERY-001
@@ -2157,7 +2157,7 @@ production_privacy_audit_remediation:
           title: "Add a view-tag prefix pull API on the Private Pool v2 indexer"
           severity: high
           owner_lane: recipient-discovery
-          status: plan-open-awaiting-approval
+          status: implemented-verified-local
           source_refs:
             - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
             - "PRODUCTION_PRIVACY_AUDIT.md#SEND-production-gap-list"
@@ -2170,8 +2170,14 @@ production_privacy_audit_remediation:
           current_truth:
             - "src/solana/vantaShieldViewingKey.ts already derives encrypted view tags from the viewing key, ephemeral public key, memo prefix, and shared secret."
             - "operator/private-pool-v2-service-network.mjs already has local send-discovery packet storage and an exact encryptedViewTag query path for local proof-bound handoff fixtures."
+            - "operator/private-pool-v2-service-network.mjs now also exposes authenticated /v1/send-discovery/view-tags prefix-bucket pull for local candidate packet discovery with cursor pagination, exact full-tag query rejection, redacted query fields, and productionReady=false status."
             - "The existing path is still marked local-only/not-production recipient discovery, requires the role-service auth boundary, and is not a deployed query-private recipient pull channel."
-            - "R9A/R9B/R9C local discovery scaffolds exist, but production recipient discovery remains pending until an indexer-side view-tag pull API and deployment/reviewer evidence exist."
+            - "R9A/R9B/R9C local discovery scaffolds and the local view-tag prefix pull API exist, but production recipient discovery remains pending until deployment, retention/log-redaction, public or anonymous read posture, legacy v1 memo, and reviewer evidence exist."
+          implementation_summary:
+            - "Added npm run indexer:view-tag-pull-check and scripts/check-vanta-indexer-view-tag-pull.mjs."
+            - "Added /v1/send-discovery/view-tags on the Private Pool v2 indexer with vtag:<4-12 lowercase hex prefix> policy, recordedAtSlot/packetId cursor ordering, persisted local JSON snapshot support, and exact full encryptedViewTag query rejection."
+            - "Extended local discovery packet/query redaction so raw IP/header, auth token, sender/recipient wallet, owner public key/secret, amount, proof bytes, witness, note blinding, plaintext memo, and private inputs fail closed."
+            - "Status surfaces now expose viewTagPull implemented locally with productionReady=false and blockers for deployed service, retention/log-redaction evidence, anonymous/public read posture, and reviewer acceptance."
           planned_files:
             - "operator/private-pool-v2-service-network.mjs"
             - "operator/private-pool-v2-indexer-server.mjs"
@@ -2202,6 +2208,18 @@ production_privacy_audit_remediation:
             - "Status truth: indexer status exposes viewTagPullImplemented=true and productionReady=false with blockers for deployed service, retention/log-redaction evidence, anonymous/public read posture, and reviewer acceptance."
           red_first_evidence:
             - "2026-05-25: npm run indexer:view-tag-pull-check fails before implementation with npm Missing script: indexer:view-tag-pull-check."
+            - "2026-05-25: after package wiring, npm run indexer:view-tag-pull-check failed before endpoint implementation because send-discovery status did not expose viewTagPull local-only/not-production-ready status."
+          verified_evidence:
+            - "2026-05-25: npm run indexer:view-tag-pull-check: PASS"
+            - "2026-05-25: npm run private-pool-v2:send-discovery-indexer-handoff-check: PASS after sandbox localhost-bind rerun with approval; existing exact-tag local fixture remains intact."
+            - "2026-05-25: npm run private-pool-v2:service-network-check: PASS"
+            - "2026-05-25: npm run send:direct-viewing-key-exchange-check: PASS"
+            - "2026-05-25: npm run relayer:privacy-transport-check: PASS after replacing a literal private-key-header negative fixture with runtime construction so the repo-wide secret scanner stays strict."
+            - "2026-05-25: npm run mainnet:secret-handling-check: PASS"
+            - "2026-05-25: npm run truth:privacy-claim-gate: PASS; privacyClaimsAllowed=false, mainnetReady=false, productionReady=false, privateSettlementPrivacyClaimAllowed=false, and shieldPrivacyClaimAllowed=false remain fail-closed."
+            - "2026-05-25: npm run privacy-audit:tracker-check: PASS"
+            - "2026-05-25: npm run build: PASS"
+            - "2026-05-25: git diff --check: PASS"
           planned_new_script: "npm run indexer:view-tag-pull-check"
           planned_test_cases:
             - "Prefix query returns a deterministic page of matching candidate packets and a next cursor when more matches exist."
@@ -2220,14 +2238,14 @@ production_privacy_audit_remediation:
             - "npm run privacy-audit:tracker-check"
             - "npm run build"
             - "git diff --check"
-          approval_gate: "Tracker plan opened on 2026-05-25. Code changes require Clay approval after this PPA-DISCOVERY-001 plan is posted."
-          remaining_truth_boundary: "This plan is for a local indexer API and evidence gate. It will not by itself deploy a recipient discovery service, provide query privacy, migrate legacy v1 memos, prove anonymity, provide audit acceptance, or make Send production-private/mainnet-ready."
+          approval_gate: "Clay approved PPA-DISCOVERY-001 implementation on 2026-05-25 after the tracker plan and red-first evidence were posted."
+          remaining_truth_boundary: "This implemented slice is a local indexer API and evidence gate. It does not deploy a recipient discovery service, provide query privacy, migrate legacy v1 memos, prove anonymity, provide audit acceptance, or make Send production-private/mainnet-ready."
           blockers:
             - "Production recipient discovery still requires deployed indexer service evidence, retention/log-redaction evidence, public or anonymous read posture, external reviewer acceptance, and later legacy v1 memo migration."
           lumi:
-            local: "Tracker-only Band 6 item 19 plan entry and red-first missing-script evidence recorded locally; no code implementation yet."
-            committed: "latest branch head after this tracker-only plan slice; use git log for the exact commit."
-            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only plan slice; use git status for sync."
+            local: "Band 6 item 19 local indexer view-tag prefix pull API, guard, docs, and tracker truth updates are implemented locally."
+            committed: "latest branch head after the PPA-DISCOVERY-001 implementation slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after the PPA-DISCOVERY-001 implementation slice; use git status for sync."
             deployed_live: "not-deployed-live"
 
 audit_completion_checklist:
@@ -2257,5 +2275,5 @@ next_safe_slices:
   - "PPA-RELAYER-001 / Band 5 item 16 is accepted-noop/evidence-local: current source already has Postgres-backed Private Pool v2 rate limiting and durable nullifier replay store gates, but no live production settlement/anonymity/audit claim is lifted."
   - "PPA-RELAYER-002 / Band 5 item 17 is implemented-verified-local for randomized jitter and batching. It remains not deployed/live and does not satisfy Tor/blinded-token relayer protection."
   - "PPA-RELAYER-003 / Band 5 item 18 is implemented-verified-local for a fail-closed Tor/blinded-token privacy-transport evidence gate. It is not live Tor, not live blinded-token submission, not production privacy, not IP privacy proof, not anonymity evidence, not audit acceptance, and not mainnet readiness."
-  - "PPA-DISCOVERY-001 / Band 6 item 19 is tracker-open with a plan awaiting Clay approval for a view-tag prefix pull API on the indexer; no code implementation has started, and production recipient discovery remains blocked."
+  - "PPA-DISCOVERY-001 / Band 6 item 19 is implemented-verified-local for an authenticated indexer view-tag prefix pull API. It is not deployed/live/reviewed, does not prove query privacy, and production recipient discovery remains blocked on deployed service, retention/log-redaction, public or anonymous read posture, legacy v1 memo migration/segregation, and reviewer acceptance evidence."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."

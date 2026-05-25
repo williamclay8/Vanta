@@ -318,6 +318,7 @@
     "send:production-privacy-claim-gate": "node scripts/check-vanta-send-production-privacy-claim-gate.mjs",
     "send:discovery-migration-policy-check": "node scripts/check-vanta-send-discovery-migration-policy.mjs",
     "send:discovery-indexer-handoff-check": "node scripts/check-vanta-private-pool-v2-send-discovery-indexer-handoff.mjs",
+    "indexer:view-tag-pull-check": "node scripts/check-vanta-indexer-view-tag-pull.mjs",
     "send:direct-viewing-key-exchange-check": "node scripts/check-vanta-send-direct-viewing-key-exchange.mjs",
     "send:output-commitment-binding-check": "npm run private-pool-v2:send-circuit-check",
     "claim:relayer-fee-bound-check": "npm run private-pool-v2:send-circuit-check && npm run private-pool-v2:claim-circuit-check && npm run zk:circuit-soundness-lint",

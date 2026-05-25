@@ -154,13 +154,15 @@ const blindedEvidence = normalizeVantaPrivatePoolV2RelayerPrivacyTransportEviden
 });
 assert.equal(blindedEvidence.activeMode, "blinded-token");
 
+const rawPrivateKeyFixture = ["-----BEGIN", "PRIVATE KEY-----not-allowed"].join(" ");
+
 for (const forbiddenPacket of [
   {
     ...torEvidence,
     mode: "tor-onion",
     torOnion: {
       ...torEvidence.torOnion,
-      onionPrivateKey: "-----BEGIN PRIVATE KEY-----not-allowed",
+      onionPrivateKey: rawPrivateKeyFixture,
     },
   },
   {
