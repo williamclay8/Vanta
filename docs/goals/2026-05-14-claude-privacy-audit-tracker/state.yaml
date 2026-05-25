@@ -2483,6 +2483,58 @@ production_privacy_audit_remediation:
             committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
             deployed_live: "not-deployed-live"
+    - id: band-8-compliance-ops
+      status: tracker-open-blocked-on-compliance-direction
+      rule: "Band 8 contains legal/compliance and ops publication decisions. Do not implement screening, jurisdiction limits, public scope changes, runbook publication, or launch-status changes without explicit Clay/legal/compliance approval."
+      items:
+        - id: PPA-COMPLIANCE-001
+          audit_section: "Band 8 item 24 - OFAC sanctions screening on unshield destinations"
+          remediation_order: 24
+          title: "Record unshield destination screening compliance decision blocker"
+          severity: critical
+          owner_lane: compliance-ops
+          status: blocked-on-compliance-decision
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#Threat-model"
+            - "SECURITY_LIMITATIONS.md#Required-before-mainnet"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-compliance-001-unshield-destination-screening-decision-plan.md"
+          current_truth:
+            - "The audit calls sanctions screening on unshield destinations a launch blocker for any US-tied operator posture."
+            - "The repo does not have an accepted legal/compliance decision proving whether Vanta should implement destination screening or accept jurisdiction limits."
+            - "This is not a purely technical choice; it affects product availability, user promises, public documentation, operations, and incident response."
+          planned_files:
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-compliance-001-unshield-destination-screening-decision-plan.md"
+          decision_needed:
+            - "Implement destination screening for unshield destinations."
+            - "Or accept documented jurisdiction limits and record what product, operator, and launch scope those limits impose."
+          external_refs_needed:
+            - "Legal/compliance decision ref naming the selected path."
+            - "Jurisdiction/operator posture ref."
+            - "If implementing screening: sanctioned-address data source/provider ref, update cadence ref, failure-mode policy ref, false-positive review process ref, retention/logging policy ref, and reviewer acceptance ref."
+            - "If accepting jurisdiction limits: documented jurisdiction exclusion/refusal policy ref, user-facing scope ref, operator runbook ref, and reviewer acceptance ref."
+            - "Public-copy/status-surface review ref if any user-facing limitation wording changes."
+          planned_follow_up_after_approval:
+            - "Reject missing legal/compliance decision ref."
+            - "Reject missing jurisdiction/operator posture ref."
+            - "If screening is selected, reject missing provider/source refs, update cadence, fail-closed behavior, false-positive process, retention/logging policy, or reviewer acceptance."
+            - "If jurisdiction limits are selected, reject missing exclusion/refusal policy, public scope wording, operator runbook, or reviewer acceptance."
+            - "Reject evidence packets with raw private data, owner secrets, viewing key plaintext, note blindings, private keys, or credential-bearing URLs."
+            - "Keep truth gates locked unless all prior audit, verifier, SBF/live, bounty, anonymity, and compliance refs exist."
+          blocker_before_implementation:
+            - "This item is blocked on Clay/legal/compliance direction."
+            - "Implementing a sanctions-screening path, choosing a provider, storing screening results, changing user-facing scope, or accepting jurisdiction limits all need explicit approval before code or public-copy edits."
+          plan_verification:
+            - "npm run privacy-audit:tracker-check"
+            - "git diff --check"
+          approval_gate: "Tracker-only Band 8 item 24 slice opened on 2026-05-25. Follow-up code/public-copy/evidence-gate work requires explicit direction approval."
+          remaining_truth_boundary: "This tracker item does not implement sanctions screening, select a provider, create legal approval, change user-facing jurisdiction scope, move a claim gate, deploy services, or change launch status."
+          lumi:
+            local: "Tracker-only Band 8 item 24 decision blocker is recorded in this slice."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
 
 audit_completion_checklist:
   path: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-completion-audit.md"
@@ -2516,4 +2568,5 @@ next_safe_slices:
   - "PPA-AUDIT-001 / Band 7 item 21 is tracker-open but blocked on Clay choosing and contracting two independent external audit firms, one ZK specialist and one Solana program specialist; repo-local work can prepare refs-only gates but cannot create signed engagement, scope, report, or reviewer acceptance refs."
   - "PPA-AUDIT-002 / Band 7 item 22 is tracker-open but blocked on Clay approving the bug bounty provider/intake path, budget, legal/safe-harbor posture, triage owners, scope, and public launch timing; repo-local work can prepare refs-only gates but cannot create live bounty facts."
   - "PPA-AUDIT-003 / Band 7 item 23 is tracker-open but blocked on accepted audit refs, bug bounty live refs, C01 verifier closure, SBF/live lineage, deployed verifier id/hash, tag-5 binding, reviewer signoff, and live anonymity-set evidence at or above 1024 distinct commitments; claim gates must remain locked."
+  - "PPA-COMPLIANCE-001 / Band 8 item 24 is tracker-open but blocked on Clay/legal/compliance direction: implement unshield destination screening or accept documented jurisdiction limits. Do not implement provider calls, storage, public copy, or launch-scope changes without explicit approval."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."
