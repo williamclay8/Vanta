@@ -778,9 +778,9 @@ production_privacy_audit_remediation:
             - "No new product/privacy blocker for this item. Existing wider audit blockers still apply."
           lumi:
             local: "Implementation, fixture, npm wiring, and verification evidence are local only."
-            committed: "not-committed"
-            pushed: "not-pushed"
-            deployed_live: "not-deployed-live"
+            committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
+            deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
         - id: PPA-SEND-SWAP-001
           audit_section: "SEND/SWAP - output commitments are opaque in-circuit"
           remediation_order: 2
@@ -855,9 +855,9 @@ production_privacy_audit_remediation:
             - "No new product/privacy blocker for this item. Existing wider audit blockers still apply."
           lumi:
             local: "Implementation, fixture, npm wiring, and verification evidence are local only."
-            committed: "not-committed"
-            pushed: "not-pushed"
-            deployed_live: "not-deployed-live"
+            committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
+            deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
         - id: PPA-SEND-CLAIM-001
           audit_section: "SEND/CLAIM - relayer fee and net payout not enforced in-circuit"
           remediation_order: 3
@@ -925,9 +925,9 @@ production_privacy_audit_remediation:
             - "No new product/privacy blocker for this item. Existing wider audit blockers still apply."
           lumi:
             local: "Implementation, fixture, npm wiring, and verification evidence are local only."
-            committed: "not-committed"
-            pushed: "not-pushed"
-            deployed_live: "not-deployed-live"
+            committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
+            deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
         - id: PPA-SEND-SWAP-002
           audit_section: "SEND/SWAP - valid_until_slot freshness not bound in-circuit"
           remediation_order: 4
@@ -1005,9 +1005,9 @@ production_privacy_audit_remediation:
             - "No new product/privacy blocker for this item. Existing wider audit blockers still apply."
           lumi:
             local: "Implementation, fixture, npm wiring, and verification evidence are local only."
-            committed: "not-committed"
-            pushed: "not-pushed"
-            deployed_live: "not-deployed-live"
+            committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
+            deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
         - id: PPA-SWAP-001
           audit_section: "SWAP - output amount, minimum output, slippage, and economics commitment are not bound in-circuit"
           remediation_order: 5
@@ -1098,9 +1098,9 @@ production_privacy_audit_remediation:
           remaining_truth_boundary: "This binds local Swap output_amount, min_output_amount, slippage_bps, and economics_commitment into the circuit/proof-request/operator/client surfaces. It does not prove Jupiter's actual output on chain, enforce on-chain slippage, prevent MEV/sandwich exposure, rotate liquidity signers, prove live anonymity, lift privacy claims, or make Swap production-private, audited, trustless, mainnet-ready, or proof-verified on chain."
           lumi:
             local: "PPA-SWAP-001 implementation, fixtures, npm wiring, tracker/audit notes, and verification evidence are local only."
-            committed: "not-committed"
-            pushed: "not-pushed"
-            deployed_live: "not-deployed-live"
+            committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
+            deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
     - id: band-2-on-chain-program
       status: active
       rule: "Band 2 starts only after Band 1 stabilization; each item still requires a tracker entry, posted plan, and Clay approval before code edits."
@@ -1201,9 +1201,9 @@ production_privacy_audit_remediation:
           remaining_truth_boundary: "This implements local program-owned tree append/root-history correctness for a one-leaf append lane. It does not wire Shield deposits into the tree, Send two-output appends, verifier CPI acceptance, program-owned vault custody, TAG_UNSHIELD release, live anonymity, external audit, production deployment, or any privacy/mainnet-ready claim. The SBF build warning for sol_poseidon requires live/runtime confirmation before production reliance."
           lumi:
             local: "PPA-PROGRAM-001 implementation, local SBF rebuild, guard wiring, docs, tracker evidence, and local verification are local only."
-            committed: "not-committed"
-            pushed: "not-pushed"
-            deployed_live: "not-deployed-live"
+            committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
+            deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
         - id: PPA-PROGRAM-002
           audit_section: "Band 2 item 7 - process_shield for SOL/SPL with PDA vault custody"
           remediation_order: 7
@@ -1316,9 +1316,9 @@ production_privacy_audit_remediation:
           remaining_truth_boundary: "This local implementation does not remove the production fail-closed release guard or claim live custody/private production readiness. Until on-chain verifier, root verification, public input binding, nullifier consumption, SBF/live lineage, and external review are real, PDA release remains unaudited and must not be callable in production. releaseEnabled stays 0 and production should only require releaseEnabled == 1 when the proof/root/nullifier path is real."
           lumi:
             local: "PPA-PROGRAM-002 implementation, guard wiring, status/trust/security limitations, and local verification are local only."
-            committed: "not-committed"
-            pushed: "not-pushed"
-            deployed_live: "not-deployed-live"
+            committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
+            deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
         - id: PPA-PROGRAM-003
           audit_section: "Band 2 item 8 - verifier CPI for TAG_SPEND_WITH_PROOF"
           remediation_order: 8
@@ -1391,9 +1391,9 @@ production_privacy_audit_remediation:
           remaining_truth_boundary: "This tracker entry does not implement proof verification. TAG_SPEND_WITH_PROOF must remain fail-closed and production privacy/proof-verified claims must remain blocked until verifier, SBF/live lineage, anonymity, and external review gates are satisfied."
           lumi:
             local: "Tracker-only plan/blocker entry is local only."
-            committed: "not-committed"
-            pushed: "not-pushed"
-            deployed_live: "not-deployed-live"
+            committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
+            deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
         - id: PPA-UNSHIELD-002
           audit_section: "Band 2 item 9 - TAG_UNSHIELD SPL path and SOL proof verification"
           remediation_order: 9
@@ -1477,9 +1477,9 @@ production_privacy_audit_remediation:
           remaining_truth_boundary: "This tracker entry does not implement proof-verified TAG_UNSHIELD release. SOL and SPL release must remain fail-closed until verifier, root/public-input binding, nullifier consume, SBF/live lineage, TAG6 §12 live evidence, anonymity evidence, and external review gates are satisfied."
           lumi:
             local: "Tracker-only blocker entry is local only."
-            committed: "not-committed"
-            pushed: "not-pushed"
-            deployed_live: "not-deployed-live"
+            committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
+            deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
         - id: PPA-PROGRAM-004
           audit_section: "Band 2 item 10 - cfg(test) gates must become runtime verifier_wired state"
           remediation_order: 10
@@ -1551,9 +1551,9 @@ production_privacy_audit_remediation:
           remaining_truth_boundary: "This local runtime-gate migration reduces build-flag risk only. It does not enable proof-verified TAG_UNSHIELD release, SPL/SOL custody release, privacy claims, mainnet readiness, anonymity evidence, external audit acceptance, or deployment/live claims."
           lumi:
             local: "Implemented and verified locally."
-            committed: "not-committed"
-            pushed: "not-pushed"
-            deployed_live: "not-deployed-live"
+            committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
+            deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
     - id: band-3-verifier-ceremony
       status: active-evidence-contract-tightened-local-blocked-external
       rule: "Band 3 can start only because Band 2 items 8 and 9 are explicitly blocked on verifier/root/nullifier evidence and item 10 is implemented-verified-local. Do not promote proof-verified or production-private claims from backend selection alone."
@@ -1617,9 +1617,9 @@ production_privacy_audit_remediation:
           remaining_truth_boundary: "This item only records an existing backend decision as audit evidence. It does not create a Groth16 proof artifact, production verifying-key hash, ceremony output, verifier program, verifier-adapter acceptance test, valid tag 3 proof success, SBF/live lineage, audit acceptance, nullifier/root binding, release readiness, production-private readiness, or any privacy claim lift."
           lumi:
             local: "Accepted-noop/evidence-local tracker status recorded locally only."
-            committed: "not-committed"
-            pushed: "not-pushed"
-            deployed_live: "not-deployed-live"
+            committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
+            deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
         - id: PPA-VERIFIER-002
           audit_section: "Band 3 item 12 - If Groth16: run public powers-of-tau ceremony, >= 50 contributors. Register verifier keys."
           remediation_order: 12
@@ -1689,9 +1689,9 @@ production_privacy_audit_remediation:
           remaining_truth_boundary: "This tracker item does not run a ceremony, generate or accept production proof/VK artifacts, register verifier keys on chain, wire proof acceptance, enable releases, lift privacy claims, or establish production-private/mainnet/audit readiness."
           lumi:
             local: "Tracker plan approval marker recorded locally only; implementation remains blocked before ceremony/build/registration work."
-            committed: "not-committed"
-            pushed: "not-pushed"
-            deployed_live: "not-deployed-live"
+            committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
+            deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
         - id: PPA-VERIFIER-003
           audit_section: "Band 3 item 13 - Deploy and audit the verifier program"
           remediation_order: 13
@@ -1859,9 +1859,9 @@ production_privacy_audit_remediation:
           remaining_truth_boundary: "This tracker item does not deploy a verifier program, audit a verifier, accept production artifacts, accept SBF/live lineage, register verifier keys on chain, wire proof acceptance, enable releases, lift privacy claims, or establish production-private/mainnet/audit readiness. It only makes the missing external evidence harder to blur."
           lumi:
             local: "Refs-only C01 external evidence contract tightened locally, including frozen source commit/source tree status and verifier program upgrade-authority status as required refs, and the fail-closed Groth16 verifier-CPI guard is present/passing; accepted refs remain null and implementation remains blocked before deployment/audit evidence exists."
-            committed: "not-committed"
-            pushed: "not-pushed"
-            deployed_live: "not-deployed-live"
+            committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
+            deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
 
 audit_completion_checklist:
   path: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-completion-audit.md"
