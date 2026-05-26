@@ -17,6 +17,7 @@
   "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
   "productionVerifierArtifactRequestRef": "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
   "humanHandoffRef": "ops/mainnet/private-pool-v2-c01-external-evidence-request.md",
+  "requestBundleRef": "ops/mainnet/private-pool-v2-c01-external-review-request-bundle.evidence.json",
   "closureGateRef": "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json",
   "currentRequiredShape": {
     "target": "solana-c01-tag3-groth16-v0",
@@ -140,7 +141,9 @@
       "id": "fresh-local-sbf-abi",
       "ref": "programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so",
       "command": "npm run private-pool-v2:sbf-abi-check",
-      "truthBoundary": "Fresh local SBF ABI only; not redeployed, reinitialized, live, or accepted lineage."
+      "refIsIgnoredBuildArtifact": true,
+      "cleanCiMayMissRef": true,
+      "truthBoundary": "Fresh local SBF ABI only; ignored local build artifact may be absent on clean CI; not redeployed, reinitialized, live, or accepted lineage."
     },
     {
       "id": "production-privacy-audit-source",

@@ -69,7 +69,7 @@ const packets = {
       fullyPrivate: false,
       productionReady: false,
       safeClaim:
-        "Send has a canonical ledger gate, repo-checked no-witness proof-artifact operator boundary, v2 viewing-key AEAD action memos in the live pages, local dual-AEAD recipient/change memo scaffolding, local Private Pool v2 proof-request/circuit binding for recipient/change memo ciphertext body hashes, local verifier-mirrored discovery handoff coverage, and fresh-v2-only production claim scope for Send history, but recipient discovery is still incomplete, browser Send execution is blocked until a local proof artifact is available, and the lane is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
+        "Send has a canonical ledger gate, repo-checked no-witness proof-artifact operator boundary, v2 viewing-key AEAD action memos in the live pages, local dual-AEAD recipient/change memo scaffolding, local Private Pool v2 proof-request/circuit binding for recipient/change memo ciphertext body hashes, local verifier-mirrored discovery handoff coverage, fresh-v2-only production claim scope for Send history, and local legacy-v1 migration tooling, but recipient discovery is still incomplete, legacy v1 history still lacks reviewed migration or segregation evidence, browser Send execution is blocked until a local proof artifact is available, and the lane is not production-private until live shared-pool, relayer, anonymity, replay, redaction, and review gates pass.",
     },
     honestyNote:
       "Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in SECURITY_LIMITATIONS.md.",
@@ -83,6 +83,7 @@ const packets = {
     sendDiscoveryHandoff: {
       blockerIds: [
         "send-memo-indexer-body-hash-handoff-not-deployed",
+        "legacy-v1-send-history-reviewed-migration-or-segregation-evidence-missing",
       ],
       claimBoundary:
         "local encrypted-view-tag index only; not production recipient discovery",
@@ -99,11 +100,14 @@ const packets = {
       freshV2OnlyClaimScoped: true,
       legacyV1EligibleForProductionPrivacyClaims: false,
       legacyV1ParseCompatible: true,
+      localMigrationToolingCovered: true,
       migrated: false,
       productionReady: false,
+      reviewedMigrationOrSegregationEvidence: false,
+      segregatedWithReviewedEvidence: false,
       scopeBoundary:
         "production Send privacy claims are scoped to fresh v2 AEAD sends unless legacy v1 plaintext history is migrated or segregated with reviewed evidence",
-      status: "fresh-v2-only-production-claim-scope",
+      status: "local-migration-tooling-only-reviewed-evidence-missing",
       version: "vanta-send-history-privacy-scope-0.1",
     },
     proofTranscriptFields: [
@@ -142,6 +146,7 @@ const packets = {
       "npm run private-core:send-nullifier-replay-no-witness-check",
       "npm run private-core:send-committed-settlement-check",
       "npm run actions:memo-encryption-check",
+      "npm run actions:legacy-v1-send-memo-migration-check",
       "npm run private-pool-v2:send-proof-request-check",
       "npm run private-pool-v2:send-circuit-check",
       "npm run private-pool-v2:public-input-hash-alignment-check",
@@ -241,6 +246,7 @@ if (packet.action === "send") {
   packet.remainingBlockers = [
     ...packet.remainingBlockers,
     "send-memo-indexer-body-hash-handoff-not-deployed",
+    "legacy-v1-send-history-reviewed-migration-or-segregation-evidence-missing",
   ];
 }
 
@@ -300,10 +306,20 @@ if (checkMode) {
       "Send packet safe claim must mention local verifier-mirrored discovery handoff coverage.",
     );
     assert.ok(
+      packet.claimBoundary?.safeClaim.includes("local legacy-v1 migration tooling"),
+      "Send packet safe claim must mention local legacy-v1 migration tooling.",
+    );
+    assert.ok(
       packet.sendDiscoveryHandoff?.blockerIds?.includes(
         "send-memo-indexer-body-hash-handoff-not-deployed",
       ),
       "Send packet must expose the memo/indexer handoff blocker id.",
+    );
+    assert.ok(
+      packet.sendDiscoveryHandoff?.blockerIds?.includes(
+        "legacy-v1-send-history-reviewed-migration-or-segregation-evidence-missing",
+      ),
+      "Send packet must expose the reviewed legacy v1 migration/segregation evidence blocker id.",
     );
     assert.ok(
       !packet.sendDiscoveryHandoff?.blockerIds?.includes(
@@ -313,13 +329,22 @@ if (checkMode) {
     );
     assert.ok(
       packet.remainingBlockers.includes("send-memo-indexer-body-hash-handoff-not-deployed") &&
+        packet.remainingBlockers.includes(
+          "legacy-v1-send-history-reviewed-migration-or-segregation-evidence-missing",
+        ) &&
         !packet.remainingBlockers.includes("legacy-v1-send-history-migration-not-scoped"),
-      "Send packet remainingBlockers must include only the remaining deployed discovery blocker id.",
+      "Send packet remainingBlockers must include deployed discovery and reviewed legacy-v1 evidence blocker ids.",
     );
     assert.equal(packet.legacyHistoryScope?.freshV2OnlyClaimScoped, true);
     assert.equal(packet.legacyHistoryScope?.legacyV1EligibleForProductionPrivacyClaims, false);
+    assert.equal(packet.legacyHistoryScope?.localMigrationToolingCovered, true);
     assert.equal(packet.legacyHistoryScope?.migrated, false);
+    assert.equal(packet.legacyHistoryScope?.reviewedMigrationOrSegregationEvidence, false);
     assert.ok(packet.verificationCommands.includes("npm run actions:memo-encryption-check"));
+    assert.ok(
+      packet.verificationCommands.includes("npm run actions:legacy-v1-send-memo-migration-check"),
+      "Send packet must name the legacy v1 Send migration guard.",
+    );
     assert.ok(packet.verificationCommands.includes("npm run send:discovery-indexer-handoff-check"));
     assert.ok(
       packet.verificationCommands.includes("npm run private-pool-v2:send-circuit-check"),

@@ -24,9 +24,20 @@ for (const ref of [
   "docs/operator-runbook.md#private-pool-v2-operator",
   "docs/operator-runbook.md#readiness-truth",
   "docs/mainnet-deployment-runbook.md#monitoring-and-incident-response",
+  "docs/incident-response-runbook.md#stop-or-suspend",
+  "docs/incident-response-runbook.md#secret-safe-debugging",
+  "docs/key-custody-runbook.md#emergency-freeze",
   "runbook/disable-private-pool-v2-services-and-beta-actions",
 ]) {
   assert.ok(evidence.checkedRunbookRefs.includes(ref), `Missing incident workflow runbook ref: ${ref}.`);
+}
+
+for (const ref of [
+  "docs/incident-response-runbook.md",
+  "docs/key-custody-runbook.md",
+  "docs/threat-model.md",
+]) {
+  assert.ok(evidence.runbookPublicationRefs?.includes(ref), `Missing incident workflow publication ref: ${ref}.`);
 }
 
 for (const service of [
@@ -43,6 +54,7 @@ for (const service of [
 }
 
 for (const assertion of [
+  "follow docs/incident-response-runbook.md for stop, preserve, debug, disclosure, recovery, and post-incident review",
   "stop bounded beta/live actions before debugging",
   "preserve logs and evidence refs without copying secrets",
   "avoid unapproved real-funds actions",

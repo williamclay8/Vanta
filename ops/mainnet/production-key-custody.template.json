@@ -14,13 +14,21 @@
     "VANTA_KEY_ROTATION_RUNBOOK_REF",
     "VANTA_KEY_REVOCATION_RUNBOOK_REF",
     "VANTA_KEY_ACCESS_AUDIT_LOG_REF",
-    "VANTA_CUSTODY_REVIEW_REF"
+    "VANTA_CUSTODY_REVIEW_REF",
+    "VANTA_KEY_CUSTODY_RUNBOOK_REF",
+    "VANTA_INCIDENT_RESPONSE_RUNBOOK_REF"
+  ],
+  "runbookPublicationRefs": [
+    "docs/key-custody-runbook.md",
+    "docs/incident-response-runbook.md",
+    "docs/threat-model.md"
   ],
   "requiredControls": [
     "no private keys, seed phrases, or keypair files in git or chat",
     "least-privilege production service identities",
     "documented backup and recovery policy for Shield viewing-key material",
     "documented rotation and revocation workflow",
+    "documented incident-response and emergency-freeze workflow",
     "access-audit log reference",
     "custody reviewer decision reference"
   ],
@@ -32,7 +40,9 @@
     "rotationRunbookRecorded": false,
     "revocationRunbookRecorded": false,
     "accessAuditLogRecorded": false,
-    "custodyReviewRecorded": false
+    "custodyReviewRecorded": false,
+    "incidentResponseRunbookRecorded": true,
+    "keyCustodyRunbookRecorded": true
   },
   "forbiddenInGit": [
     "private keys",

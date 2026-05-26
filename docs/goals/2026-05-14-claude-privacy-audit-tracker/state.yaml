@@ -39,9 +39,9 @@ rules:
   no_production_private_claims_without_positive_proof_and_live_receipts: true
 
 lumi:
-  local: "Tracker, N1/N2/N3/N5, R4A, R6A (native SOL Phase 2 sentinel migration closure + TAG6 runtime verifier_wired gate + TAG6 toolkit as canonical §12 pre-deploy + live evidence mechanism), R8A, R9A/R9B/R9C, R10A/R10B, R11A, R12 (legacy v1 + native sol WSOL quarantine/migration), R13-R16, R19 local/source-level receipts exist; use git status for current dirt. PPA-PROGRAM-004 is implemented and verified locally: pool_state.verifier_wired is initialized to 0, no live setter exists, cfg-test TAG6 release helpers are removed, TAG6 remains fail-closed before nullifier consume/CPI even if the flag is manually set, and the TAG6 toolkit remains the official §12 pre-deploy/live-evidence mechanism. PPA-VERIFIER-001 Band 3 item 11 is accepted-noop/evidence-local: existing C01 evidence selects groth16-tag3-solana-v0 as backend direction only, with no production proof-format, VK, adapter, SBF/live, audit, or privacy-claim lift. PPA-VERIFIER-002 Band 3 item 12 tracker plan is approved locally as a doc-only truth marker and remains blocked before implementation on external public ceremony/reviewed setup, production artifact build/VK refs, and tag-5 registration receipts. PPA-VERIFIER-003 Band 3 item 13 evidence-contract hardening is committed/pushed/website-live as docs/guard status at c922a52b0da2d7be7b44e79121a8bf64f49c993b: the C01 artifact request, deterministic build gate, production bundle template, SBF/live, handoff, and closure gates explicitly require reviewed frozen source commit/source tree status refs, deployed verifier program id/hash, verifier program upgrade-authority status ref, and tag-5 verifier-key record binding production VK hash to verifier program id; accepted refs remain null and external reviewed production artifact bundle, verifier-adapter acceptance, SBF/live lineage, proof-enforced receipt, and audit/reviewer acceptance remain blocked."
-  committed: "Recorded deploy baseline c922a52b0da2d7be7b44e79121a8bf64f49c993b (Map C01 external evidence refs) is committed; prior audit-remediation implementation commits include 995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates) and a2fa72a4fd048826982974ffdcae7c6a0a942140 (Tighten audit readiness wording)."
-  pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main both point to c922a52b0da2d7be7b44e79121a8bf64f49c993b as of 2026-05-25."
+  local: "Tracker, N1/N2/N3/N5, R4A, R6A (native SOL Phase 2 sentinel migration closure + TAG6 runtime verifier_wired gate + TAG6 toolkit as canonical §12 pre-deploy + live evidence mechanism), R8A, R9A/R9B/R9C, R10A/R10B, R11A, R12 (legacy v1 + native sol WSOL quarantine/migration), R13-R16, R19 local/source-level receipts exist; use git status for current dirt. PPA-DISCOVERY-002 Band 6 item 20 is implemented and verified locally for local legacy v1 Send memo migration/segregation tooling; it does not rewrite on-chain memo history, deploy recipient discovery, provide reviewed migration/segregation evidence, or lift Send production privacy claims. PPA-PROGRAM-004 is implemented and verified locally: pool_state.verifier_wired is initialized to 0, no live setter exists, cfg-test TAG6 release helpers are removed, TAG6 remains fail-closed before nullifier consume/CPI even if the flag is manually set, and the TAG6 toolkit remains the official §12 pre-deploy/live-evidence mechanism. PPA-VERIFIER-001 Band 3 item 11 is accepted-noop/evidence-local: existing C01 evidence selects groth16-tag3-solana-v0 as backend direction only, with no production proof-format, VK, adapter, SBF/live, audit, or privacy-claim lift. PPA-VERIFIER-002 Band 3 item 12 tracker plan is approved locally as a doc-only truth marker and remains blocked before implementation on external public ceremony/reviewed setup, production artifact build/VK refs, and tag-5 registration receipts. PPA-VERIFIER-003 Band 3 item 13 evidence-contract hardening is committed/pushed/website-live as docs/guard status at c922a52b0da2d7be7b44e79121a8bf64f49c993b, with a new local outbound request-bundle slice verified locally: the C01 artifact request, deterministic build gate, production bundle template, SBF/live, handoff, closure gates, and sha256-pinned outbound send-list explicitly require reviewed frozen source commit/source tree status refs, deployed verifier program id/hash, verifier program upgrade-authority status ref, and tag-5 verifier-key record binding production VK hash to verifier program id; accepted refs remain null and external reviewed production artifact bundle, verifier-adapter acceptance, SBF/live lineage, proof-enforced receipt, and audit/reviewer acceptance remain blocked."
+  committed: "Recorded deploy baseline c922a52b0da2d7be7b44e79121a8bf64f49c993b (Map C01 external evidence refs) is committed; prior audit-remediation implementation commits include 995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates) and a2fa72a4fd048826982974ffdcae7c6a0a942140 (Tighten audit readiness wording). PPA-DISCOVERY-002 is committed on codex/ppa-program-004-runtime-verifier-wired after the local legacy v1 Send migration guard slice."
+  pushed: "origin/codex/ppa-program-004-runtime-verifier-wired includes the PPA-DISCOVERY-002 local legacy v1 Send migration guard slice as of 2026-05-25; origin/main still points to the latest website-live baseline unless separately merged."
   deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 is live deploy dep-d8a8op7aqgkc73ap4gn0 at commit c922a52b0da2d7be7b44e79121a8bf64f49c993b on 2026-05-25; live meta, public audit discovery, and live anonymity-set probes pass. Public audit manifest still records liveDeploymentVerified=false and pending re-attestation after deploy drift. Spend-program SBF, proof verifier, custody, private-settlement, recipient-discovery service, and anonymity evidence remain blocked or not live-verified; no live TAG6 releases or production program."
 
 audit_findings:
@@ -1201,7 +1201,7 @@ production_privacy_audit_remediation:
               - "npm run private-pool-v2:live-anonymity-set-probe-check: PASS; currentDistinctCommitments=2, minimumDistinctCommitments=1024, and depthBelowThreshold=true remain fail-closed."
           remaining_truth_boundary: "This implements local program-owned tree append/root-history correctness for a one-leaf append lane. It does not wire Shield deposits into the tree, Send two-output appends, verifier CPI acceptance, program-owned vault custody, TAG_UNSHIELD release, live anonymity, external audit, production deployment, or any privacy/mainnet-ready claim. The SBF build warning for sol_poseidon requires live/runtime confirmation before production reliance."
           lumi:
-            local: "PPA-PROGRAM-001 implementation, local SBF rebuild, guard wiring, docs, tracker evidence, and local verification are local only."
+            local: "PPA-PROGRAM-001 source, local SBF rebuild, guard wiring, docs, tracker evidence, and local verification are committed and pushed on this branch; on-chain deployment/live/audit evidence remains absent."
             committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
             deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
@@ -1316,7 +1316,7 @@ production_privacy_audit_remediation:
             - "npm run private-pool-v2:live-anonymity-set-probe-check: PASS; currentDistinctCommitments=2, minimumDistinctCommitments=1024, and depthBelowThreshold=true remain fail-closed."
           remaining_truth_boundary: "This local implementation does not remove the production fail-closed release guard or claim live custody/private production readiness. Until on-chain verifier, root verification, public input binding, nullifier consumption, SBF/live lineage, and external review are real, PDA release remains unaudited and must not be callable in production. releaseEnabled stays 0 and production should only require releaseEnabled == 1 when the proof/root/nullifier path is real."
           lumi:
-            local: "PPA-PROGRAM-002 implementation, guard wiring, status/trust/security limitations, and local verification are local only."
+            local: "PPA-PROGRAM-002 source, guard wiring, status/trust/security limitations, and local verification are committed and pushed on this branch; on-chain deployment/live/audit evidence remains absent."
             committed: "995b24ba9a5615e435ee638b0b139ea84ef2d446 (Harden privacy audit remediation gates)"
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at 995b24ba9a5615e435ee638b0b139ea84ef2d446 on 2026-05-25"
             deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a876kt8o5s73etj9d0 at commit 995b24ba on 2026-05-25; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, and production privacy remain not deployed/live."
@@ -1711,6 +1711,7 @@ production_privacy_audit_remediation:
             - "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance-gate.evidence.json"
             - "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json"
             - "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json"
+            - "ops/mainnet/private-pool-v2-c01-external-review-request-bundle.evidence.json"
             - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-verifier-003-verifier-program-deploy-audit-plan.md"
           current_truth:
             - "Band 3 item 11 selected groth16-tag3-solana-v0 as backend direction only."
@@ -1720,6 +1721,8 @@ production_privacy_audit_remediation:
             - "After Clay approved the freeze-lane slice, the deterministic build, production bundle, handoff, artifact request, and closure surfaces now require a reviewed frozen source commit, source tree status, and source freeze review refs before returned production artifact refs can promote."
             - "The local comparison-only H6 SBF lineage rehearsal spend-program SBF hash now matches the fresh local SBF ABI binary hash sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55; this is still not deployed/live lineage."
             - "The human-readable Ref Source Map slice is committed, pushed, and website-live at c922a52b0da2d7be7b44e79121a8bf64f49c993b / Render deploy dep-d8a8op7aqgkc73ap4gn0; this is docs/guard hygiene only and does not provide accepted external refs."
+            - "The outbound production verifier artifact request now carries checked reviewerLocalPrecursorRefs for the local reviewer starting point: repo https://github.com/williamclay8/Vanta.git, branch codex/ppa-program-004-runtime-verifier-wired, review start commit git:d5a71b6a8a5bb40cd0fc0407c9e6b5d9b9f414a5, clean collection status, current circuit/source/prover/ACIR hashes, H6 public-input binding, and local spend SBF comparison hash sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55. These refs are comparison-only and do not fill accepted external evidence."
+            - "The outbound request-bundle slice adds ops/mainnet/private-pool-v2-c01-external-review-request-bundle.evidence.json as a sha256-pinned send-list for the human handoff, artifact request, external handoff, reviewed-return templates, acceptance gates, and local audit context files. It is checked by npm run zk:c01-external-review-request-bundle-check and is only request metadata, not accepted external evidence."
             - "The current frozen source commit, accepted verifier adapter, SBF/live lineage, deployed verifier program id/hash, verifier program upgrade-authority status ref, proof-enforced tag-3 receipt, and audit/reviewer acceptance refs are absent."
             - "No privacy, production-ready, mainnet-ready, audited, or proof-verified claim may be lifted by this item."
           planned_files:
@@ -1729,6 +1732,7 @@ production_privacy_audit_remediation:
             - "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build.template.json"
             - "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json"
             - "ops/mainnet/private-pool-v2-c01-external-evidence-request.md"
+            - "ops/mainnet/private-pool-v2-c01-external-review-request-bundle.evidence.json"
             - "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json"
             - "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json"
             - "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json"
@@ -1743,6 +1747,7 @@ production_privacy_audit_remediation:
             - "scripts/check-vanta-private-pool-v2-c01-sbf-live-lineage-candidate.mjs"
             - "scripts/check-vanta-private-pool-v2-c01-sbf-live-lineage-acceptance-gate.mjs"
             - "scripts/check-vanta-private-pool-v2-c01-external-review-handoff.mjs"
+            - "scripts/check-vanta-private-pool-v2-c01-external-review-request-bundle.mjs"
             - "scripts/check-vanta-private-pool-v2-c01-verifier-evidence-closure-gate.mjs"
             - "scripts/check-vanta-private-pool-v2-groth16-verifier-cpi.mjs"
             - "package.json"
@@ -1751,9 +1756,10 @@ production_privacy_audit_remediation:
             - "After item 12 external artifact/VK evidence exists, add or tighten refs-only acceptance fixtures that reject missing reviewed frozen source commit/source tree status, missing reviewed production artifact bundle, missing accepted verifier adapter/program ref, missing rebuilt verifier SBF hash, missing deployed verifier program id, missing verifier program upgrade-authority status ref, missing tag-5 verifier-key registration, missing proof-enforced tag-3 receipt or reviewer-accepted dry-run, missing reviewer identity/scope/finding disposition, raw proof/VK/witness/keypair/signed-transaction bytes, and mismatched spend/verifier/VK lineage."
           planned_new_or_updated_scripts:
             - "Added npm run private-pool-v2:groth16-verifier-cpi-check as the missing PRODUCTION_PRIVACY_AUDIT.md appendix fail-closed guard for tag-3 Groth16 verifier CPI drift."
+            - "Added npm run zk:c01-external-review-request-bundle-check as the sha256-pinned outbound send-list guard for the external C01 artifact producer/reviewer packet set."
             - "Deterministic build, production bundle, handoff, request, and closure checkers now require reviewed frozen source commit/source tree status refs before env-supplied production evidence can promote."
             - "Existing refs-only intake scripts were tightened to require deployed verifier program id/hash, verifier program upgrade-authority status ref, tag-5 verifier-key binding, and cross-packet closure invariants without accepting any default external refs."
-            - "Use C01 gates and the new guard: zk:c01-production-verifier-artifact-request-check, zk:c01-production-artifact-acceptance-gate-check, zk:c01-verifier-adapter-acceptance-gate-check, zk:c01-sbf-live-lineage-acceptance-gate-check, zk:c01-audit-reviewer-acceptance-gate-check, zk:c01-verifier-evidence-closure-gate-check, zk:c01-external-review-handoff-check, zk:c01-positive-proof-verified-claim-gate-check, private-pool-v2:groth16-verifier-cpi-check, truth:privacy-claim-gate, and privacy-audit:tracker-check."
+            - "Use C01 gates and the new guard: zk:c01-production-verifier-artifact-request-check, zk:c01-production-artifact-acceptance-gate-check, zk:c01-verifier-adapter-acceptance-gate-check, zk:c01-sbf-live-lineage-acceptance-gate-check, zk:c01-audit-reviewer-acceptance-gate-check, zk:c01-verifier-evidence-closure-gate-check, zk:c01-external-review-handoff-check, zk:c01-external-review-request-bundle-check, zk:c01-positive-proof-verified-claim-gate-check, private-pool-v2:groth16-verifier-cpi-check, truth:privacy-claim-gate, and privacy-audit:tracker-check."
           planned_test_cases:
             - "Default gates prove verifier-adapter acceptance, SBF/live lineage, audit/reviewer acceptance, and verifier evidence closure remain blocked with refs null."
             - "Default gates prove frozen source commit/source tree status refs remain null and do not satisfy deterministic build, production bundle, or C01 closure evidence."
@@ -1774,7 +1780,9 @@ production_privacy_audit_remediation:
               - "Composite closure gate now cross-checks deployed verifier program id/hash, verifier program upgrade-authority status ref, and verifier-key binding across the production bundle and SBF/live lineage acceptance."
               - "Composite closure gate now rejects closure without a reviewed frozen source commit and source freeze review refs in the production bundle."
               - "Human-readable external evidence request added at ops/mainnet/private-pool-v2-c01-external-evidence-request.md; external-review handoff guard now requires it and scans it for forbidden raw proof/VK/witness/key/secret/transaction material markers."
+              - "Sha256-pinned outbound request bundle added at ops/mainnet/private-pool-v2-c01-external-review-request-bundle.evidence.json; it lists the exact handoff/request/template/gate/audit-context files to send externally and keeps all required returned refs null."
               - "Fail-closed Groth16 verifier-CPI guard added at scripts/check-vanta-private-pool-v2-groth16-verifier-cpi.mjs; it pins the tag-3 ABI, verifier-key-to-verifier-program binding, host not-wired behavior, and external blocker chain without accepting production refs."
+              - "Production verifier artifact request now includes checked reviewerLocalPrecursorRefs so an external reviewer has concrete local starting refs while all requiredProductionOutputs[].currentRef entries remain null."
             verification:
               - "npm run zk:c01-production-verifier-artifact-request-check: PASS"
               - "npm run zk:c01-production-artifact-acceptance-gate-check: PASS"
@@ -1784,11 +1792,13 @@ production_privacy_audit_remediation:
               - "npm run zk:c01-audit-reviewer-acceptance-gate-check: PASS"
               - "npm run zk:c01-verifier-evidence-closure-gate-check: PASS"
               - "npm run zk:c01-external-review-handoff-check: PASS"
+              - "npm run zk:c01-external-review-request-bundle-check: PASS; sha256-pinned outbound send-list validates and accepted refs remain null."
               - "npm run zk:c01-external-review-handoff-check initially failed after the human handoff was added because the markdown included the forbidden marker bearer ; wording was changed to authorization-token material and the guard then passed."
               - "npm run zk:c01-positive-proof-verified-claim-gate-check: PASS; remains blocked-no-tag3-valid-proof-success."
               - "npm run private-pool-v2:groth16-verifier-cpi-check: PASS; status=blocked-fail-closed, proofVerifiedClaimAllowed=false, c01VerifierReady=false."
+              - "2026-05-25 reviewer-local-precursor refresh: npm run zk:c01-production-verifier-artifact-request-check, npm run zk:c01-external-review-handoff-check, npm run zk:c01-verifier-evidence-closure-gate-check, and npm run private-pool-v2:groth16-verifier-cpi-check all passed; accepted external refs remained null and the verifier CPI guard remained blocked-fail-closed."
               - "Post-source-map release hygiene: commit c922a52b0da2d7be7b44e79121a8bf64f49c993b pushed to origin/codex/ppa-program-004-runtime-verifier-wired and origin/main; Render deploy dep-d8a8op7aqgkc73ap4gn0 live; public live meta-description, audit discovery, and live anonymity-set probe passed with privacy/mainnet/production claims still false."
-              - "Compact appendix runner covering the 34 currently present PRODUCTION_PRIVACY_AUDIT.md appendix commands: PASS; only relayer:jitter-and-batching-check and indexer:view-tag-pull-check remain absent/not claimed."
+              - "2026-05-25T23:07Z compact appendix runner covering all 36 PRODUCTION_PRIVACY_AUDIT.md appendix commands: PASS; relayer:jitter-and-batching-check and indexer:view-tag-pull-check are now present and passed locally."
             negative_intake_verification:
               - "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=ops/mainnet/private-pool-v2-c01-production-artifact-bundle.template.json npm run zk:c01-production-artifact-acceptance-gate-check: expected FAIL; template rejected as external production artifact bundle."
               - "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance.template.json npm run zk:c01-verifier-adapter-acceptance-gate-check: expected FAIL; template rejected as external verifier-adapter acceptance."
@@ -1797,8 +1807,8 @@ production_privacy_audit_remediation:
               - "Composite closure with all four template paths: expected FAIL; rejected before closure."
               - "Composite closure with only VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH supplied: expected FAIL; rejected with all C01 closure env vars must be supplied together."
             full_predeploy_suite_after_human_handoff:
-              run_on: "2026-05-25"
-              status: "all present appendix scripts passed; two future appendix scripts absent and not claimed green."
+              run_on: "2026-05-25T23:02:14Z to 2026-05-25T23:07:27Z"
+              status: "all 36 PRODUCTION_PRIVACY_AUDIT.md appendix commands are present in package.json and passed sequentially."
               present_base_commands_passed:
                 - "npm run truth:privacy-claim-gate"
                 - "npm run zk:circuit-soundness-lint"
@@ -1835,12 +1845,12 @@ production_privacy_audit_remediation:
                 - "npm run private-pool-v2:groth16-verifier-cpi-check"
                 - "npm run private-pool-v2:pda-vault-custody-check"
                 - "npm run private-pool-v2:program-merkle-tree-check"
+                - "npm run relayer:jitter-and-batching-check"
+                - "npm run indexer:view-tag-pull-check"
               truth_boundary_observed:
                 - "truth:privacy-claim-gate PASS; privacyClaimsAllowed=false, mainnetReady=false, productionReady=false."
                 - "private-pool-v2:live-anonymity-set-probe-check PASS; currentDistinctCommitments=2, minimumDistinctCommitments=1024, depthBelowThreshold=true."
-              missing_future_appendix_scripts:
-                - "npm run relayer:jitter-and-batching-check"
-                - "npm run indexer:view-tag-pull-check"
+              missing_future_appendix_scripts: []
           blocker_before_implementation:
             - "Item 12 external public ceremony/setup, deterministic production artifact bundle, production proof/VK/public-witness refs, and production verifying-key hash are absent."
             - "A reviewed frozen production source commit, source tree status, and source freeze review ref are absent."
@@ -1852,19 +1862,758 @@ production_privacy_audit_remediation:
             - "npm run zk:c01-audit-reviewer-acceptance-gate-check: PASS; remains blocked-no-audit-reviewer-acceptance."
             - "npm run zk:c01-verifier-evidence-closure-gate-check: PASS; remains blocked-no-complete-c01-verifier-evidence-chain."
             - "npm run zk:c01-external-review-handoff-check: PASS; handoff remains refs-only."
+            - "npm run zk:c01-external-review-request-bundle-check: PASS; sha256-pinned outbound send-list validates and accepted refs remain null."
+            - "npm run zk:c01-production-verifier-artifact-request-check: PASS; reviewerLocalPrecursorRefs are checked as comparison-only and do not satisfy lane freeze or C01 positive evidence."
             - "npm run zk:c01-positive-proof-verified-claim-gate-check: PASS; remains blocked-no-tag3-valid-proof-success."
             - "npm run private-pool-v2:groth16-verifier-cpi-check: PASS; remains blocked/fail-closed and pins missing external evidence before any verifier wiring claim."
             - "npm run truth:privacy-claim-gate: PASS; privacyClaimsAllowed=false, mainnetReady=false, productionReady=false."
             - "npm run privacy-audit:tracker-check: PASS"
             - "git diff --check: PASS"
-            - "Compact appendix runner covering the 34 currently present PRODUCTION_PRIVACY_AUDIT.md appendix commands: PASS."
+            - "2026-05-25T23:07Z compact appendix runner covering all 36 PRODUCTION_PRIVACY_AUDIT.md appendix commands: PASS."
           approval_gate: "Tracker plan opened on 2026-05-25. Clay approved the plan in-thread on 2026-05-25 with \"Plan approved\" and then explicitly asked to work on external Band 3 evidence. Clay approved the freeze-lane slice on 2026-05-25 with \"slice approved\". The local work is limited to refs-only evidence-contract hardening. Implementation remains blocked before verifier deployment, tag-5 registration, proof-enforced receipts, audit/reviewer acceptance, verifier wiring, release, or claim-lift work until reviewed frozen source commit/source tree status, reviewed production artifact bundle, accepted verifier adapter/program evidence, SBF/live lineage, deployed verifier program id/hash, verifier program upgrade-authority status ref, verifier-key binding, and reviewer acceptance refs exist."
           remaining_truth_boundary: "This tracker item does not deploy a verifier program, audit a verifier, accept production artifacts, accept SBF/live lineage, register verifier keys on chain, wire proof acceptance, enable releases, lift privacy claims, or establish production-private/mainnet/audit readiness. It only makes the missing external evidence harder to blur."
           lumi:
-            local: "Refs-only C01 external evidence contract tightened, including frozen source commit/source tree status, verifier program upgrade-authority status, tag-5 binding, and guarded Ref Source Map requirements; accepted refs remain null and implementation remains blocked before deployment/audit evidence exists."
+            local: "Refs-only C01 external evidence contract tightened, including frozen source commit/source tree status, verifier program upgrade-authority status, tag-5 binding, guarded Ref Source Map requirements, and a local sha256-pinned outbound request-bundle slice verified locally; accepted refs remain null and implementation remains blocked before deployment/audit evidence exists."
             committed: "c922a52b0da2d7be7b44e79121a8bf64f49c993b (Map C01 external evidence refs)"
             pushed: "origin/codex/ppa-program-004-runtime-verifier-wired and origin/main at c922a52b0da2d7be7b44e79121a8bf64f49c993b on 2026-05-25"
             deployed_live: "Render Vanta website service srv-d7j3ggqqqhas739for80 live deploy dep-d8a8op7aqgkc73ap4gn0 at commit c922a52b0 on 2026-05-25; public live meta-description, public audit discovery, and live anonymity-set probe passed; on-chain spend/verifier programs, TAG5/TAG6, SBF/live lineage, accepted external verifier refs, and production privacy remain not deployed/live."
+    - id: band-4-anonymity-set-bootstrap
+      status: tracker-open-blocked-on-band-1-3-external-acceptance
+      rule: "Band 4 is continuous work, but the audit gates it on Bands 1-3 having externally accepted production evidence. Do not run closed-alpha deposits, publish anonymity claims, or mark public beta ready while C01 verifier/artifact/SBF/live/audit evidence is absent."
+      items:
+        - id: PPA-ANON-001
+          audit_section: "Band 4 item 14 - closed alpha fixed-denomination anonymity bootstrap"
+          remediation_order: 14
+          title: "Plan closed-alpha operator-bonded fixed-cohort shield deposits after verifier/custody evidence"
+          severity: critical
+          owner_lane: anonymity-set-bootstrap
+          status: blocked-on-band-1-3-external-acceptance
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#What-must-be-true-before-Vanta-can-say-production-private"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-anon-001-closed-alpha-bootstrap-plan.md"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml#architecture_backlog-A6"
+          current_truth:
+            - "The live anonymity probe remains below threshold at 2 observed commitments versus a 1024 minimum threshold."
+            - "Bands 1-3 do not yet have externally accepted production verifier/artifact/SBF/live/audit evidence."
+            - "PPA-PROGRAM-003, PPA-UNSHIELD-002, PPA-VERIFIER-002, and PPA-VERIFIER-003 remain blocked on verifier/root/nullifier, production artifact, SBF/live lineage, deployed verifier program id/hash, verifier-key binding, and reviewer acceptance refs."
+            - "Closed-alpha deposits would be premature until proof-verified Shield/Send/Unshield paths and custody lineage are externally accepted."
+          planned_files_after_unblock:
+            - "ops/mainnet/closed-alpha-anonymity-bootstrap.evidence.json"
+            - "scripts/check-vanta-private-pool-v2-anonymity-set-readiness.mjs"
+            - "scripts/check-vanta-live-anonymity-set-probe.mjs"
+            - "public/.well-known/vanta-audit.json"
+            - "src/readiness/mainnetPrivateSettlementStatus.mjs"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+          planned_fixtures_after_unblock:
+            - "Refs-only closed-alpha cohort packet rejects missing verifier/artifact/SBF-live/audit refs."
+            - "Fixed-denomination cohort packet rejects mixed denomination, mixed asset, unbonded operator deposits, and non-program-owned custody deposits."
+            - "Live probe evidence rejects currentDistinctCommitments below 1024 or non-fail-closed claim flags."
+          planned_new_or_updated_scripts:
+            - "npm run private-pool-v2:anonymity-set-readiness-check"
+            - "npm run private-pool-v2:live-anonymity-set-probe-check"
+            - "npm run private-pool-v2:production-privacy-reviewer-packet-check"
+          blocker_before_implementation:
+            - "Externally accepted Band 1-3 production evidence is absent."
+            - "No deployed verifier program id/hash, tag-5 verifier-key binding, SBF/live lineage, proof-enforced tag-3 receipt, or reviewer acceptance refs exist."
+            - "No approval exists to perform live/operator-bonded shield deposits or any real-funds/mainnet action."
+          plan_verification:
+            - "npm run private-pool-v2:anonymity-set-readiness-check"
+            - "npm run private-pool-v2:live-anonymity-set-probe-check"
+            - "npm run truth:privacy-claim-gate"
+            - "npm run privacy-audit:tracker-check"
+          approval_gate: "Tracker entry opened on 2026-05-25 as blocked-before-implementation. Any live closed-alpha deposit, operator bond, real-funds action, public cohort claim, or claim-gate change requires Clay approval after Bands 1-3 external evidence exists."
+          remaining_truth_boundary: "This tracker entry does not start a closed alpha, generate deposits, prove anonymity, lift claims, or create production-private readiness. It only records that Band 4 item 14 is blocked until verifier/custody/live/audit evidence exists."
+          lumi:
+            local: "Tracker-only blocked entry added and verified locally."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
+        - id: PPA-ANON-002
+          audit_section: "Band 4 item 15 - public beta gated on anonymity-set probe staying >= 1024"
+          remediation_order: 15
+          title: "Plan public-beta anonymity threshold gate after closed-alpha depth is real"
+          severity: critical
+          owner_lane: anonymity-set-bootstrap
+          status: blocked-on-ppa-anon-001-and-live-threshold-evidence
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-anon-002-public-beta-threshold-plan.md"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-r11a-live-anonymity-set-probe.md"
+          current_truth:
+            - "The live probe command exists and must remain fail-closed while currentDistinctCommitments is below 1024."
+            - "Public beta cannot be gated on a threshold that the live manifest does not satisfy."
+            - "The public audit manifest still must not claim anonymity/private/production readiness before accepted verifier/custody/audit evidence and sustained depth evidence exist."
+          planned_files_after_unblock:
+            - "public/.well-known/vanta-audit.json"
+            - "scripts/check-vanta-live-anonymity-set-probe.mjs"
+            - "scripts/check-vanta-privacy-claim-gate.mjs"
+            - "src/readiness/mainnetPrivateSettlementStatus.mjs"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+          planned_fixtures_after_unblock:
+            - "Probe rejects depth below 1024."
+            - "Probe rejects stale threshold evidence, missing measurement window, non-public manifest refs, or anonymityClaimAllowed=true without matching verifier/custody/audit refs."
+            - "Truth gate rejects public beta readiness if any Band 1-4 dependency is missing."
+          planned_new_or_updated_scripts:
+            - "npm run private-pool-v2:live-anonymity-set-probe-check"
+            - "npm run truth:privacy-claim-gate"
+          blocker_before_implementation:
+            - "PPA-ANON-001 closed-alpha fixed-cohort depth is not live."
+            - "Live distinct commitment count remains below 1024."
+            - "Bands 1-3 accepted production evidence remains absent."
+          plan_verification:
+            - "npm run private-pool-v2:live-anonymity-set-probe-check"
+            - "npm run truth:privacy-claim-gate"
+            - "npm run privacy-audit:tracker-check"
+          approval_gate: "Tracker entry opened on 2026-05-25 as blocked-before-implementation. Public beta gating, manifest re-attestation, anonymity claim changes, or production claim changes require Clay approval after sustained live threshold and accepted reviewer evidence exists."
+          remaining_truth_boundary: "This tracker entry does not mark public beta ready, does not lift anonymity claims, and does not alter the live manifest. It only records the Band 4 item 15 blocker chain."
+          lumi:
+            local: "Tracker-only blocked entry added and verified locally."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
+    - id: band-5-relayer-maturity
+      status: active-item-18-implemented-verified-local
+      rule: "Band 5 may only advance after Band 4 items are explicitly blocked/deferred. Do not claim timing privacy, relayer maturity, Tor/blinded-token protection, production privacy, or live private settlement from local relayer controls."
+      items:
+        - id: PPA-RELAYER-001
+          audit_section: "Band 5 item 16 - Postgres-backed nullifier + rate-limit"
+          remediation_order: 16
+          title: "Record existing Postgres-backed nullifier replay and rate-limit evidence"
+          severity: high
+          owner_lane: relayer-ops
+          status: accepted-noop-evidence-local
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#Relayer--ops"
+            - "AUDIT_2026-05-19.md#M2"
+            - "operator/private-pool-v2-server.mjs"
+            - "src/privacy/postgresNullifierReplayStore.mjs"
+            - "src/ops/vantaRateLimit.mjs"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-relayer-001-postgres-nullifier-rate-limit.md"
+          current_truth:
+            - "Private Pool v2 production mode requires VANTA_PRIVATE_POOL_V2_DATABASE_URL before operator startup."
+            - "When databaseUrl is present, the operator uses createPostgresRateLimiterFromDatabaseUrl for a postgres-durable-shared-window rate limiter."
+            - "When databaseUrl is present, the operator uses createPostgresNullifierReplayStoreFromDatabaseUrl for durable nullifier replay enforcement."
+            - "The Postgres nullifier store uses transactional insert-on-conflict behavior and unique indexes for global nullifier plus context/request idempotency."
+            - "This is source/local/evidence-packet coverage only, not live production settlement or anonymity evidence."
+          planned_files:
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-relayer-001-postgres-nullifier-rate-limit.md"
+          acceptance_evidence:
+            disposition: "accepted-noop: existing source and gates already satisfy the source-level Band 5 item 16 requirement."
+            verification:
+              - "npm run nullifier:replay-guard-check: PASS"
+              - "npm run ops:rate-limit-check: PASS"
+              - "npm run mainnet:nullifier-replay-evidence-check: PASS"
+              - "npm run private-pool-v2:role-storage-check: PASS"
+          remaining_truth_boundary: "This does not prove live production settlement, multi-replica relayer behavior, provider-side rate limiting, Tor/blinded-token protection, timing privacy, anonymity, or audit acceptance."
+          approval_gate: "Accepted-noop/evidence-local entry opened on 2026-05-25 because current source and existing gates already cover the local requirement; no code implementation requested for this item."
+          lumi:
+            local: "Tracker-only accepted-noop evidence entry added and verified locally."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
+        - id: PPA-RELAYER-002
+          audit_section: "Band 5 item 17 - Randomized jitter + batching"
+          remediation_order: 17
+          title: "Add relayer randomized delay windows and batch submission controls"
+          severity: high
+          owner_lane: relayer-ops
+          status: implemented-verified-local
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#Relayer--ops"
+            - "PRODUCTION_PRIVACY_AUDIT.md#SEND-production-gap-list"
+            - "PRODUCTION_PRIVACY_AUDIT.md#UNSHIELD-production-gap-list"
+            - "operator/private-pool-v2-service-network.mjs"
+            - "operator/private-pool-v2-relayer-server.mjs"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-relayer-002-jitter-batching-plan.md"
+          planned_files:
+            - "operator/private-pool-v2-service-network.mjs"
+            - "operator/private-pool-v2-relayer-server.mjs"
+            - "src/privacy/privatePoolV2RelayerQueue.mjs"
+            - "scripts/check-vanta-private-pool-v2-relayer-jitter-batching.mjs"
+            - "docs/threat-model.md"
+            - "SECURITY_LIMITATIONS.md"
+            - "package.json"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-relayer-002-jitter-batching-plan.md"
+          planned_fixtures:
+            - "Deterministic fake-clock scheduler proves Send submissions are queued for a randomized delay inside the configured 30-180s window before relayer submission."
+            - "Deterministic fake-clock scheduler proves Unshield release relay requests are queued for a randomized delay inside the configured 30s-1h window before relay."
+            - "Batching fixture proves multiple ready Send submissions are grouped into a single batch envelope when load and account limits allow."
+            - "No-secret fixture proves queued/batched records reject or redact proof bytes, witness material, owner secrets, note blindings, auth tokens, raw IP addresses, and private keys."
+            - "Fail-closed production fixture proves jitter/batching cannot be disabled in production without an explicit env guard and tracker-visible status."
+          planned_new_script: "npm run relayer:jitter-and-batching-check"
+          planned_test_cases:
+            - "Default local/test mode can use deterministic jitter for reproducible checks."
+            - "Production mode requires nonzero jitter windows for Send and Unshield."
+            - "Invalid window configuration rejects zero, negative, inverted, or out-of-policy windows."
+            - "Ready queue drains in deadline order and preserves request idempotency/replay keys."
+            - "Batch envelopes contain account/proof-reference metadata only and do not persist witness/secret/plaintext payloads."
+            - "Threat model documents timing-correlation limits and delay-window distribution without claiming anonymity."
+          verification_after_approval:
+            - "npm run relayer:jitter-and-batching-check"
+            - "npm run private-pool-v2:service-network-check"
+            - "npm run mainnet:secret-handling-check"
+            - "npm run truth:privacy-claim-gate"
+            - "npm run privacy-audit:tracker-check"
+            - "npm run build"
+            - "git diff --check"
+          implementation_evidence:
+            - "src/privacy/privatePoolV2RelayerQueue.mjs implements deterministic Send/Unshield jitter windows, deadline-ordered ready queues, Send batch envelopes, idempotency-key replay rejection, production nonzero-window guards, and no-secret queued metadata validation."
+            - "operator/private-pool-v2-service-network.mjs exposes relayerTimingControls on relayer readiness, persists relayQueue metadata with the relayer snapshot, and adds relay-queue status/drain endpoints while keeping productionReady false."
+            - "scripts/check-vanta-private-pool-v2-relayer-jitter-batching.mjs is the new regression fixture for jitter windows, batching, idempotency, no-secret queued records, production fail-closed config, docs, package wiring, and tracker evidence."
+            - "docs/threat-model.md and SECURITY_LIMITATIONS.md document timing-correlation limits without lifting privacy, anonymity, production, audit, or mainnet claims."
+          acceptance_evidence:
+            disposition: "implemented-verified-local"
+            verification:
+              - "npm run relayer:jitter-and-batching-check: PASS"
+              - "npm run private-pool-v2:service-network-check: PASS"
+              - "npm run mainnet:secret-handling-check: PASS"
+              - "npm run truth:privacy-claim-gate: PASS"
+              - "npm run privacy-audit:tracker-check: PASS"
+              - "npm run build: PASS"
+              - "git diff --check: PASS"
+          approval_gate: "Clay approved the PPA-RELAYER-002 plan in thread on 2026-05-25 before implementation."
+          remaining_truth_boundary: "This local implementation reduces source-level timing-correlation risk and guards production config shape, but it does not prove anonymity, Tor/blinded-token protection, live relayer maturity, production-private readiness, audit acceptance, or mainnet readiness."
+          lumi:
+            local: "Relayer jitter/batching source, docs, npm script, and tracker evidence are implemented locally in this slice."
+            committed: "b2d94cfb Add relayer jitter batching guard."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired includes b2d94cfb."
+            deployed_live: "not-deployed-live"
+        - id: PPA-RELAYER-003
+          audit_section: "Band 5 item 18 - Tor / blinded-token relayer path"
+          remediation_order: 18
+          title: "Add relayer privacy-transport gate for Tor or blinded-token ingress"
+          severity: high
+          owner_lane: relayer-ops
+          status: implemented-verified-local
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#Relayer--ops"
+            - "PRODUCTION_PRIVACY_AUDIT.md#SEND-production-gap-list"
+            - "operator/private-pool-v2-service-network.mjs"
+            - "operator/private-pool-v2-relayer-server.mjs"
+            - "docs/threat-model.md"
+            - "SECURITY_LIMITATIONS.md"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-relayer-003-tor-blinded-token-plan.md"
+          planned_files:
+            - "src/privacy/privatePoolV2RelayerPrivacyTransport.mjs"
+            - "operator/private-pool-v2-service-network.mjs"
+            - "scripts/check-vanta-private-pool-v2-relayer-privacy-transport.mjs"
+            - "docs/threat-model.md"
+            - "SECURITY_LIMITATIONS.md"
+            - "docs/operator-runbook.md"
+            - "package.json"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-relayer-003-tor-blinded-token-plan.md"
+          planned_fixtures:
+            - "Production config fixture proves a relayer cannot report privacyTransportReady unless exactly one approved ingress mode is configured: tor-onion or blinded-token."
+            - "Tor-onion evidence fixture accepts refs-only onion service evidence, onion host fingerprint, reverse-proxy redaction evidence, and reviewer acceptance refs while rejecting raw secrets, bearer tokens, private keys, and onion private-key material."
+            - "Blinded-token evidence fixture accepts refs-only issuer/verifier/token-family/replay-cache evidence and rejects raw token preimages, bearer tokens, and wallet/user identifiers."
+            - "No-IP-persistence fixture proves relay queue/status/receipt metadata cannot store ip, x-forwarded-for, cf-connecting-ip, rawIpAddress, user agent, auth token, or raw token fields."
+            - "Fail-closed local status fixture proves source surfaces say local privacy-transport contract only and keep productionReady false until external deployment/reviewer evidence is present."
+          planned_new_script: "npm run relayer:privacy-transport-check"
+          planned_test_cases:
+            - "Default local/test mode reports privacyTransportReady false and does not claim Tor or blinded-token protection."
+            - "Production mode rejects missing privacy transport configuration."
+            - "Production mode rejects ambiguous configuration where both Tor and blinded-token paths are marked active."
+            - "Production mode rejects evidence packets without deployment refs, log-redaction refs, retention-policy refs, and reviewer acceptance refs."
+            - "Status and runbook surfaces expose only refs and redacted handles, never raw IPs, blinded token preimages, onion private keys, auth tokens, proof bytes, witnesses, owner secrets, or note blindings."
+            - "Threat model documents that the local gate is not live Tor, not live blinded-token submission, not anonymity-set evidence, not audit acceptance, and not production privacy."
+          verification_after_approval:
+            - "npm run relayer:privacy-transport-check"
+            - "npm run relayer:jitter-and-batching-check"
+            - "npm run private-pool-v2:service-network-check"
+            - "npm run mainnet:secret-handling-check"
+            - "npm run truth:privacy-claim-gate"
+            - "npm run privacy-audit:tracker-check"
+            - "npm run build"
+            - "git diff --check"
+          delivered:
+            - "Added `src/privacy/privatePoolV2RelayerPrivacyTransport.mjs` as the refs-only Tor/blinded-token privacy-transport contract."
+            - "Production relayer startup now requires `VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_ENABLED=true`, exactly one mode (`tor-onion` or `blinded-token`), and refs-only deployment/log-redaction/retention/reviewer evidence."
+            - "Relayer readiness now exposes `relayerPrivacyTransport` with supported modes, forbidden persistence fields, `privacyTransportReady`, and `productionReady: false`."
+            - "Relayer queued metadata now rejects raw IP, `x-forwarded-for`, `cf-connecting-ip`, user-agent, auth-token, raw-token, token-preimage, and blinded-token-preimage fields."
+            - "Docs/runbook/threat-model/security limitations now state the gate is not live Tor, not live blinded-token submission, not anonymity evidence, not audit acceptance, and not production privacy."
+          verification:
+            - "npm run relayer:privacy-transport-check: PASS"
+            - "npm run relayer:jitter-and-batching-check: PASS"
+            - "npm run private-pool-v2:service-network-check: PASS"
+            - "npm run mainnet:secret-handling-check: PASS"
+            - "npm run truth:privacy-claim-gate: PASS"
+            - "npm run privacy-audit:tracker-check: PASS"
+            - "npm run build: PASS"
+            - "npm run security:limitations-check: PASS"
+            - "npm run operator:runbook-check: PASS"
+            - "git diff --check: PASS"
+          approval_gate: "Clay approved the PPA-RELAYER-003 plan in thread on 2026-05-25 before implementation."
+          remaining_truth_boundary: "This local gate makes the relayer privacy-transport requirement executable and fail-closed, but it is not live Tor, not live blinded-token submission, not production privacy, not IP privacy proof, not anonymity evidence, not audit acceptance, and not mainnet readiness."
+          blockers:
+            - "Live Tor hidden-service deployment or blinded-token issuer/verifier infrastructure requires external provider/deployment approval."
+            - "Reviewer acceptance is required before any Tor/blinded-token protection claim can move beyond local source/evidence-contract status."
+          lumi:
+            local: "Relayer privacy-transport source, docs, npm script, and tracker evidence are implemented locally in this slice."
+            committed: "8db388d8b49558ba8fda45c482ef7f4336c1f47c Add relayer privacy transport gate; d1de01d8 Record relayer privacy transport status."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired includes d1de01d8 on 2026-05-25."
+            deployed_live: "not-deployed-live"
+    - id: band-6-recipient-discovery
+      status: active-item-20-implemented-verified-local
+      rule: "Band 6 may start only after Band 5 is landed or explicitly blocked. Do not claim production recipient discovery, query privacy, anonymity, or production privacy from local indexer API work."
+      items:
+        - id: PPA-DISCOVERY-001
+          audit_section: "Band 6 item 19 - View-tag pull API on the indexer"
+          remediation_order: 19
+          title: "Add a view-tag prefix pull API on the Private Pool v2 indexer"
+          severity: high
+          owner_lane: recipient-discovery
+          status: implemented-verified-local
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#SEND-production-gap-list"
+            - "AUDIT_2026-05-19.md#H1"
+            - "SECURITY_LIMITATIONS.md"
+            - "src/solana/vantaShieldViewingKey.ts"
+            - "operator/private-pool-v2-service-network.mjs"
+            - "scripts/check-vanta-private-pool-v2-send-discovery-indexer-handoff.mjs"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-discovery-001-view-tag-pull-api-plan.md"
+          current_truth:
+            - "src/solana/vantaShieldViewingKey.ts already derives encrypted view tags from the viewing key, ephemeral public key, memo prefix, and shared secret."
+            - "operator/private-pool-v2-service-network.mjs already has local send-discovery packet storage and an exact encryptedViewTag query path for local proof-bound handoff fixtures."
+            - "operator/private-pool-v2-service-network.mjs now also exposes authenticated /v1/send-discovery/view-tags prefix-bucket pull for local candidate packet discovery with cursor pagination, exact full-tag query rejection, redacted query fields, and productionReady=false status."
+            - "The existing path is still marked local-only/not-production recipient discovery, requires the role-service auth boundary, and is not a deployed query-private recipient pull channel."
+            - "R9A/R9B/R9C local discovery scaffolds and the local view-tag prefix pull API exist, but production recipient discovery remains pending until deployment, retention/log-redaction, public or anonymous read posture, legacy v1 memo, and reviewer evidence exist."
+          implementation_summary:
+            - "Added npm run indexer:view-tag-pull-check and scripts/check-vanta-indexer-view-tag-pull.mjs."
+            - "Added /v1/send-discovery/view-tags on the Private Pool v2 indexer with vtag:<4-12 lowercase hex prefix> policy, recordedAtSlot/packetId cursor ordering, persisted local JSON snapshot support, and exact full encryptedViewTag query rejection."
+            - "Extended local discovery packet/query redaction so raw IP/header, auth token, sender/recipient wallet, owner public key/secret, amount, proof bytes, witness, note blinding, plaintext memo, and private inputs fail closed."
+            - "Status surfaces now expose viewTagPull implemented locally with productionReady=false and blockers for deployed service, retention/log-redaction evidence, anonymous/public read posture, and reviewer acceptance."
+          planned_files:
+            - "operator/private-pool-v2-service-network.mjs"
+            - "operator/private-pool-v2-indexer-server.mjs"
+            - "src/solana/vantaShieldViewingKey.ts"
+            - "src/solana/vantaShieldState.ts"
+            - "scripts/check-vanta-indexer-view-tag-pull.mjs"
+            - "scripts/check-vanta-private-pool-v2-send-discovery-indexer-handoff.mjs"
+            - "docs/threat-model.md"
+            - "SECURITY_LIMITATIONS.md"
+            - "docs/operator-runbook.md"
+            - "package.json"
+            - "PRODUCTION_PRIVACY_AUDIT.md"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-discovery-001-view-tag-pull-api-plan.md"
+          planned_design:
+            - "Add a red-first indexer:view-tag-pull-check that fails until the indexer exposes the new view-tag prefix pull contract and package wiring."
+            - "Add a recipient pull endpoint for view-tag prefix queries that returns a batch of matching encrypted discovery packets with stable cursor pagination and recordedAtSlot ordering."
+            - "Require prefix-based pull semantics for the new endpoint rather than a single full encryptedViewTag lookup, so recipients fetch a bucket of candidate packets instead of proving the exact packet they own."
+            - "Reject sender, recipient wallet, owner public key, raw IP, auth token, plaintext memo, amount, owner secret, witness, proof bytes, and private input fields in indexed packets and API responses."
+            - "Keep all status surfaces productionReady=false and claimBoundary local-only until the deployed discovery service, retention/log-redaction policy, public/anonymous read posture, and reviewer acceptance exist."
+            - "Preserve the existing exact-tag local handoff endpoint only as a local verifier-mirrored fixture path; do not promote it as production recipient discovery."
+          planned_fixtures:
+            - "Red-first fixture: npm run indexer:view-tag-pull-check fails before the script/package wiring and prefix pull endpoint exist."
+            - "Valid prefix pull: multiple packets sharing a view-tag prefix are returned as a bucket with cursor pagination and without sender/recipient identity fields."
+            - "Invalid prefix: malformed, too-short, too-long, exact full-tag, and non-hex prefixes reject without changing indexer state."
+            - "No-private-fields: packet ingest and pull responses reject or omit raw IPs, forwarding headers, wallet identifiers, plaintext memos, amounts, proof bytes, witnesses, owner secrets, note blindings, auth tokens, and raw private inputs."
+            - "Persistence/restart: prefix-queryable discovery packets survive an indexer restart without widening productionReady or claim boundaries."
+            - "Status truth: indexer status exposes viewTagPullImplemented=true and productionReady=false with blockers for deployed service, retention/log-redaction evidence, anonymous/public read posture, and reviewer acceptance."
+          red_first_evidence:
+            - "2026-05-25: npm run indexer:view-tag-pull-check fails before implementation with npm Missing script: indexer:view-tag-pull-check."
+            - "2026-05-25: after package wiring, npm run indexer:view-tag-pull-check failed before endpoint implementation because send-discovery status did not expose viewTagPull local-only/not-production-ready status."
+          verified_evidence:
+            - "2026-05-25: npm run indexer:view-tag-pull-check: PASS"
+            - "2026-05-25: npm run private-pool-v2:send-discovery-indexer-handoff-check: PASS after sandbox localhost-bind rerun with approval; existing exact-tag local fixture remains intact."
+            - "2026-05-25: npm run private-pool-v2:service-network-check: PASS"
+            - "2026-05-25: npm run send:direct-viewing-key-exchange-check: PASS"
+            - "2026-05-25: npm run relayer:privacy-transport-check: PASS after replacing a literal private-key-header negative fixture with runtime construction so the repo-wide secret scanner stays strict."
+            - "2026-05-25: npm run mainnet:secret-handling-check: PASS"
+            - "2026-05-25: npm run truth:privacy-claim-gate: PASS; privacyClaimsAllowed=false, mainnetReady=false, productionReady=false, privateSettlementPrivacyClaimAllowed=false, and shieldPrivacyClaimAllowed=false remain fail-closed."
+            - "2026-05-25: npm run privacy-audit:tracker-check: PASS"
+            - "2026-05-25: npm run build: PASS"
+            - "2026-05-25: git diff --check: PASS"
+          planned_new_script: "npm run indexer:view-tag-pull-check"
+          planned_test_cases:
+            - "Prefix query returns a deterministic page of matching candidate packets and a next cursor when more matches exist."
+            - "Prefix query cannot filter by recipient wallet, recipient owner public key, sender, amount, or user identifier."
+            - "Response packets contain refs and proof-bound ciphertext body hashes only, not plaintext note material or network identifiers."
+            - "New pull endpoint rejects exact full encrypted view tags if the prefix is narrower than the policy bucket."
+            - "Existing local exact-tag handoff fixture remains local-only and does not become a production discovery claim."
+            - "Truth gates continue to report privacyClaimsAllowed=false, productionReady=false, and recipient-discovery blockers."
+          verification_after_approval:
+            - "npm run indexer:view-tag-pull-check"
+            - "npm run private-pool-v2:send-discovery-indexer-handoff-check"
+            - "npm run private-pool-v2:service-network-check"
+            - "npm run send:direct-viewing-key-exchange-check"
+            - "npm run mainnet:secret-handling-check"
+            - "npm run truth:privacy-claim-gate"
+            - "npm run privacy-audit:tracker-check"
+            - "npm run build"
+            - "git diff --check"
+          approval_gate: "Clay approved PPA-DISCOVERY-001 implementation on 2026-05-25 after the tracker plan and red-first evidence were posted."
+          remaining_truth_boundary: "This implemented slice is a local indexer API and evidence gate. It does not deploy a recipient discovery service, provide query privacy, migrate legacy v1 memos, prove anonymity, provide audit acceptance, or make Send production-private/mainnet-ready."
+          blockers:
+            - "Production recipient discovery still requires deployed indexer service evidence, retention/log-redaction evidence, public or anonymous read posture, external reviewer acceptance, and later legacy v1 memo migration."
+          lumi:
+            local: "Band 6 item 19 local indexer view-tag prefix pull API, guard, docs, and tracker truth updates are implemented locally."
+            committed: "latest branch head after the PPA-DISCOVERY-001 implementation slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after the PPA-DISCOVERY-001 implementation slice; use git status for sync."
+            deployed_live: "not-deployed-live"
+        - id: PPA-DISCOVERY-002
+          audit_section: "Band 6 item 20 - Force-migrate legacy v1 memos"
+          remediation_order: 20
+          title: "Add local legacy v1 Send memo migration and segregation evidence"
+          severity: high
+          owner_lane: recipient-discovery
+          status: implemented-verified-local
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#SEND-production-gap-list"
+            - "SECURITY_LIMITATIONS.md"
+            - "src/solana/vantaShieldState.ts"
+            - "scripts/check-vanta-legacy-v1-memo-quarantine.mjs"
+            - "scripts/check-vanta-send-discovery-migration-policy.mjs"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-discovery-002-legacy-v1-send-memo-migration-plan.md"
+          current_truth:
+            - "Legacy v1 Send plaintext memo history is parse-compatible and quarantined; local tooling can create sanitized v2 discovery metadata or segregation-required records, but reviewed migration/segregation evidence is still missing."
+            - "Fresh Send action memos use v2 viewing-key AEAD and fail closed without viewing-key material."
+            - "Existing Send status/trust surfaces keep legacy v1 plaintext history ineligible for production privacy claims unless migrated or segregated with reviewed evidence."
+            - "Historical on-chain plaintext memo content cannot be rewritten; any migration can only create v2 encrypted discovery packets and/or segregation records for future review."
+          planned_files:
+            - "src/solana/vantaShieldState.ts"
+            - "src/readiness/sendMainnetProductionStatus.mjs"
+            - "scripts/print-vanta-protocol-trust-packet.mjs"
+            - "scripts/check-vanta-send-discovery-migration-policy.mjs"
+            - "scripts/check-vanta-legacy-v1-memo-quarantine.mjs"
+            - "scripts/check-vanta-legacy-v1-send-memo-migration.mjs"
+            - "package.json"
+            - "PRODUCTION_PRIVACY_AUDIT.md"
+            - "SECURITY_LIMITATIONS.md"
+            - "docs/threat-model.md"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-discovery-002-legacy-v1-send-memo-migration-plan.md"
+          planned_design:
+            - "Add a red-first actions:legacy-v1-send-memo-migration-check package script."
+            - "Add a local one-time migration packet helper for parse-compatible legacy v1 Send memos that requires recipient/change viewing-key material before re-encrypting to v2 dual-AEAD discovery packets."
+            - "Add segregation-required results for missing viewing keys, malformed legacy payloads, fresh v2 memos, and non-Send v1 prefixes."
+            - "Emit only ciphertext body hashes, encrypted view tags, migration refs, and review metadata; do not persist plaintext memo payloads, viewing-key plaintext, owner secrets, note blindings, proofs, or witnesses."
+            - "Keep productionReady=false and privacy claims locked until reviewed migration/segregation evidence, deployed recipient discovery, retention/log-redaction evidence, anonymous/public read posture, and reviewer acceptance exist."
+          planned_fixtures:
+            - "Red-first: npm run actions:legacy-v1-send-memo-migration-check fails before script/package wiring."
+            - "Eligible v1 Send memo plus recipient/change viewing keys returns v2 recipient/change discovery handoff metadata."
+            - "Missing recipient viewing key returns segregation-required with no v2 packet."
+            - "Missing change viewing key for nonzero change returns segregation-required with no partial migration."
+            - "Fresh v2 Send memo is not re-migrated."
+            - "Malformed legacy v1 memo and non-Send legacy prefixes are segregated, not promoted."
+            - "Status/trust surfaces keep legacyV1EligibleForProductionPrivacyClaims=false, productionReady=false, privacyClaimAllowed=false, and reviewedMigrationOrSegregationEvidence=false."
+          red_first_evidence:
+            - "2026-05-25: npm run actions:legacy-v1-send-memo-migration-check fails before implementation with npm Missing script: actions:legacy-v1-send-memo-migration-check."
+          implementation_summary:
+            - "Added createLegacyV1SendMemoMigrationPacket in src/solana/vantaShieldState.ts for local legacy v1 Send migration/segregation packets."
+            - "Eligible parse-compatible legacy v1 Send memos can produce sanitized v2 recipient/change discovery metadata when recipient/change viewing-key material is present."
+            - "Missing viewing-key material, malformed legacy payloads, fresh v2 memos, and non-Send memos produce not-applicable or segregation-required results instead of claim promotion."
+            - "Send production status, trust packet, lane trust contract, security limitations, threat model, and audit tracker now keep reviewed legacy v1 migration/segregation evidence as an explicit blocker."
+          planned_new_script: "npm run actions:legacy-v1-send-memo-migration-check"
+          verified_evidence:
+            - "2026-05-25: npm run actions:legacy-v1-send-memo-migration-check: PASS"
+            - "2026-05-25: npm run actions:legacy-v1-memo-quarantine-check: PASS"
+            - "2026-05-25: npm run mainnet:send-production-check: PASS"
+            - "2026-05-25: npm run actions:memo-encryption-check: PASS"
+            - "2026-05-25: npm run send:discovery-migration-policy-check: PASS"
+            - "2026-05-25: npm run send:trust-packet-check: PASS"
+            - "2026-05-25: npm run lanes:trust-contract-check: PASS"
+            - "2026-05-25: npm run send:direct-viewing-key-exchange-check: PASS"
+            - "2026-05-25: npm run indexer:view-tag-pull-check: PASS"
+            - "2026-05-25: npm run security:limitations-check: PASS"
+            - "2026-05-25: npm run privacy-audit:tracker-check: PASS"
+            - "2026-05-25: npm run truth:privacy-claim-gate: PASS"
+            - "2026-05-25: npm run docs:source-of-truth-check: PASS after aligning the guard to the threat-model 2026-05-25 validation marker."
+            - "2026-05-25: npm run build: PASS"
+            - "2026-05-25: git diff --check: PASS"
+          verification_after_approval:
+            - "npm run actions:legacy-v1-send-memo-migration-check"
+            - "npm run actions:legacy-v1-memo-quarantine-check"
+            - "npm run actions:memo-encryption-check"
+            - "npm run send:discovery-migration-policy-check"
+            - "npm run send:direct-viewing-key-exchange-check"
+            - "npm run indexer:view-tag-pull-check"
+            - "npm run truth:privacy-claim-gate"
+            - "npm run privacy-audit:tracker-check"
+            - "npm run build"
+            - "git diff --check"
+          approval_gate: "Clay approved PPA-DISCOVERY-002 implementation on 2026-05-25 after the tracker plan and red-first missing-script evidence were posted."
+          remaining_truth_boundary: "This implemented slice is local migration/segregation tooling and claim-boundary evidence only. It does not rewrite historical on-chain memos, deploy recipient discovery, provide query privacy, prove anonymity, provide reviewer acceptance, or make Send production-private/mainnet-ready."
+          blockers:
+            - "Production recipient discovery still requires deployed service evidence, retention/log-redaction evidence, public or anonymous read posture, external reviewer acceptance, and reviewed legacy v1 migration or segregation evidence."
+          lumi:
+            local: "Band 6 item 20 local legacy v1 Send migration/segregation helper, guard, docs, and tracker truth updates are implemented locally."
+            committed: "committed on codex/ppa-program-004-runtime-verifier-wired after the PPA-DISCOVERY-002 implementation slice; use git log for the exact branch head."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired includes the PPA-DISCOVERY-002 implementation slice; use git status for sync."
+            deployed_live: "not-deployed-live"
+    - id: band-7-audit-launch
+      status: tracker-open-blocked-on-external-audit-engagement
+      rule: "Band 7 requires external reviewer/legal/commercial facts. Do not claim audit acceptance, launch readiness, proof-verified privacy, or claim-gate release from repo-local tracker or evidence-gate work."
+      items:
+        - id: PPA-AUDIT-001
+          audit_section: "Band 7 item 21 - contract two independent audit firms"
+          remediation_order: 21
+          title: "Open the two-firm external audit engagement evidence path"
+          severity: critical
+          owner_lane: external-review
+          status: blocked-external-plan-open
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#Audit"
+            - "AUDIT_2026-05-19.md#Required-external-validation"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-audit-001-two-firm-audit-engagement-plan.md"
+          current_truth:
+            - "The repo has no accepted external refs proving two independent audit firms are contracted."
+            - "The ZK audit lane must cover circuit source/ACIR hash, public-input layout, proof tuple, production VK hash, verifier adapter evidence, artifact bundle, and Send/Swap output binding."
+            - "The Solana program audit lane must cover spend/verifier SBF lineage, PDA vault custody, TAG_REGISTER_VAULT_ASSET, TAG_REGISTER_VERIFIER_KEY, TAG_SPEND_WITH_PROOF, TAG_UNSHIELD, nullifier/root ordering, token/SOL CPI release shape, and runtime verifier gate behavior."
+            - "Band 3 external artifact/verifier/SBF/live/reviewer refs remain absent, so audit engagement planning cannot be treated as audit acceptance."
+          planned_files:
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-audit-001-two-firm-audit-engagement-plan.md"
+          external_refs_needed:
+            - "ZK audit firm identity ref, independence/conflict disclosure ref, signed engagement/SOW acceptance ref, and scope ref."
+            - "Solana audit firm identity ref, independence/conflict disclosure ref, signed engagement/SOW acceptance ref, and scope ref."
+            - "Reviewer packet receipt refs, finding register refs, finding disposition refs, final report or acceptance-letter refs, and reviewer signoff refs."
+            - "Refs-only evidence packet path with no raw proof, witness, private key, bearer credential, signed transaction, or live private data."
+          planned_follow_up_after_approval:
+            - "Add a fail-closed refs-only audit engagement evidence gate under ops/mainnet/ and scripts/."
+            - "Reject missing both firms, only one firm, same-firm reuse, generic review scope, missing independence disclosure, missing signed engagement acceptance, missing finding disposition, missing reviewer signoff, and secret-bearing packets."
+            - "Keep truth gates fail-closed until accepted audit refs, verifier evidence, SBF/live lineage, and live anonymity evidence all exist."
+          blocker_before_completion:
+            - "Clay must choose and contract two independent external reviewers through the appropriate legal/commercial path."
+            - "Named firms or reviewers, budget/terms approval, signed acceptance refs, and reviewer-owned deliverable refs are absent."
+            - "Repo-local work can prepare request packets and intake gates, but cannot create the external contracting facts."
+          plan_verification:
+            - "npm run privacy-audit:tracker-check"
+            - "git diff --check"
+          approval_gate: "Clay approved opening this tracker-only Band 7 item 21 slice on 2026-05-25. Follow-up code/evidence-gate work remains a separate approved implementation slice."
+          remaining_truth_boundary: "This tracker item does not contract auditors, open a bounty, publish a report, accept reviewer findings, change public claims, deploy programs, register verifier keys, release funds, or make any privacy/audit/launch claim true."
+          lumi:
+            local: "Tracker-only Band 7 item 21 plan is recorded in this slice."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
+        - id: PPA-AUDIT-002
+          audit_section: "Band 7 item 22 - bug bounty live from launch"
+          remediation_order: 22
+          title: "Open the bug bounty launch evidence path"
+          severity: critical
+          owner_lane: external-review
+          status: blocked-external-plan-open
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#Audit"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-audit-002-bug-bounty-launch-plan.md"
+          current_truth:
+            - "The repo has no accepted external refs proving a bug bounty is live, funded, scoped, triaged, or legally approved."
+            - "Band 7 item 22 depends on external program facts: platform or hosted intake, scope, rules, payout budget, safe harbor, triage ownership, disclosure policy, severity matrix, and public launch URL."
+            - "A repo-local plan can define the evidence contract, but it cannot make the bounty live."
+          planned_files:
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-audit-002-bug-bounty-launch-plan.md"
+          external_refs_needed:
+            - "Bug bounty platform or public intake URL ref."
+            - "Scope ref covering Vanta web/app, operator services, Private Pool v2 programs, verifier/adaptor evidence, proof lanes, custody/release paths, relayer/indexer/prover/verifier services, and relevant infrastructure."
+            - "Out-of-scope/refusal policy ref for spam, social engineering, physical attacks, denial-of-service, public data scraping, and duplicate reports."
+            - "Safe-harbor/legal approval ref."
+            - "Payout budget and severity matrix ref."
+            - "Triage owner/on-call/SLA ref."
+            - "Report handling, disclosure, duplicate, embargo, and fix-verification policy refs."
+            - "Launch timing ref proving the bounty is live no later than the launch event it is meant to cover."
+            - "Reviewer acceptance ref that the bounty scope matches the audit blockers and does not imply audit acceptance by itself."
+          planned_follow_up_after_approval:
+            - "Add a fail-closed refs-only bug bounty launch evidence gate under ops/mainnet/ and scripts/."
+            - "Reject missing public intake URL, scope gaps, missing safe-harbor/legal approval, missing payout/severity matrix, missing triage owner/SLA, missing disclosure policy, stale launch timing, generic reviewer acceptance, and secret-bearing packets."
+            - "Keep truth gates fail-closed until independent audit refs, bounty live refs, verifier evidence, SBF/live lineage, and live anonymity evidence all exist."
+          blocker_before_completion:
+            - "Clay must approve the bounty provider/intake path, budget, legal/safe-harbor posture, triage owners, scope, and public launch timing."
+            - "If a third-party platform is used, provider-side setup and public URL evidence are external facts."
+            - "Repo-local work can prepare request packets and intake gates, but cannot create the external bounty launch facts."
+          plan_verification:
+            - "npm run privacy-audit:tracker-check"
+            - "git diff --check"
+          approval_gate: "Tracker-only Band 7 item 22 slice opened on 2026-05-25. Follow-up code/evidence-gate work remains a separate approved implementation slice."
+          remaining_truth_boundary: "This tracker item does not open a live bounty, allocate payout budget, create a safe-harbor policy, publish a public intake URL, accept reports, move a claim gate, deploy programs, or change launch status."
+          lumi:
+            local: "Tracker-only Band 7 item 22 plan is recorded in this slice."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
+        - id: PPA-AUDIT-003
+          audit_section: "Band 7 item 23 - lift privacy-claim gate only after audits plus anonymity threshold"
+          remediation_order: 23
+          title: "Record claim-gate lift blockers and required evidence"
+          severity: critical
+          owner_lane: external-review
+          status: blocked-on-audit-bounty-verifier-lineage-anonymity-evidence
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#TLDR--the-seven-things-that-gate-every-lane"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-audit-003-claim-gate-lift-blocker-plan.md"
+          current_truth:
+            - "The claim gates must remain locked."
+            - "Current repo/local evidence does not include accepted independent audit refs, complete verifier evidence closure, SBF/live lineage, deployed verifier program id/hash, tag-5 verifier-key binding, live proof-enforced receipt, reviewer acceptance, or live anonymity-set evidence at the required threshold."
+            - "The live anonymity-set probe has historically reported currentDistinctCommitments=2 against minimumDistinctCommitments=1024."
+            - "No repo-local tracker/docs work may move claim gates."
+          planned_files:
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-audit-003-claim-gate-lift-blocker-plan.md"
+          external_refs_needed:
+            - "Accepted ZK audit refs and accepted Solana program audit refs."
+            - "Bug bounty live refs from PPA-AUDIT-002."
+            - "Complete C01 verifier evidence closure refs: reviewed production artifact bundle, verifier adapter/program acceptance, SBF/live lineage, deployed verifier program id/hash, verifier program upgrade-authority status, tag-5 verifier-key binding, proof-enforced tag-3 receipt or reviewer-accepted dry-run, and audit/reviewer acceptance."
+            - "Live anonymity-set evidence proving the active cohort meets or exceeds 1024 distinct commitments with fresh measurement metadata."
+            - "Claim-gate reviewer signoff tying the exact public copy, manifest booleans, operator status, and readiness surfaces to the accepted evidence refs."
+            - "Public manifest re-attestation ref if any public claim flag changes."
+          existing_guards_to_keep_locked:
+            - "npm run truth:privacy-claim-gate"
+            - "npm run private-pool-v2:live-anonymity-set-probe-check"
+            - "npm run zk:c01-positive-proof-verified-claim-gate-check"
+            - "npm run zk:c01-verifier-evidence-closure-gate-check"
+          planned_follow_up_after_approval:
+            - "Reject claim-gate lift if either independent audit lane is missing."
+            - "Reject claim-gate lift if bug bounty live refs are missing."
+            - "Reject claim-gate lift if C01 verifier evidence closure is incomplete."
+            - "Reject claim-gate lift if live distinct commitments are below 1024, stale, unreviewed, or not scoped to the active cohort."
+            - "Reject claim-gate lift if public manifest, status surfaces, and user-facing copy drift from the accepted evidence refs."
+            - "Reject secret-bearing evidence packets."
+          blocker_before_completion:
+            - "Independent audit acceptance, bug bounty live evidence, verifier/SBF/live lineage, and live anonymity-set threshold evidence are absent."
+            - "Any claim-gate change requires explicit Clay approval after those refs exist."
+          plan_verification:
+            - "npm run privacy-audit:tracker-check"
+            - "npm run truth:privacy-claim-gate"
+            - "git diff --check"
+          approval_gate: "Tracker-only Band 7 item 23 slice opened on 2026-05-25. No claim-gate code or public-copy change is planned for this slice."
+          remaining_truth_boundary: "This tracker item does not lift any claim gate, re-attest the public manifest, change public copy, accept audit evidence, accept verifier evidence, create live anonymity evidence, deploy programs, or change launch status."
+          lumi:
+            local: "Tracker-only Band 7 item 23 plan is recorded in this slice."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
+    - id: band-8-compliance-ops
+      status: tracker-open-blocked-on-compliance-direction
+      rule: "Band 8 contains legal/compliance and ops publication decisions. Do not implement screening, jurisdiction limits, public scope changes, runbook publication, or launch-status changes without explicit Clay/legal/compliance approval."
+      items:
+        - id: PPA-COMPLIANCE-001
+          audit_section: "Band 8 item 24 - OFAC sanctions screening on unshield destinations"
+          remediation_order: 24
+          title: "Record unshield destination screening compliance decision blocker"
+          severity: critical
+          owner_lane: compliance-ops
+          status: blocked-on-compliance-decision
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#Threat-model"
+            - "SECURITY_LIMITATIONS.md#Required-before-mainnet"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-compliance-001-unshield-destination-screening-decision-plan.md"
+          current_truth:
+            - "The audit calls sanctions screening on unshield destinations a launch blocker for any US-tied operator posture."
+            - "The repo does not have an accepted legal/compliance decision proving whether Vanta should implement destination screening or accept jurisdiction limits."
+            - "This is not a purely technical choice; it affects product availability, user promises, public documentation, operations, and incident response."
+          planned_files:
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-compliance-001-unshield-destination-screening-decision-plan.md"
+          decision_needed:
+            - "Implement destination screening for unshield destinations."
+            - "Or accept documented jurisdiction limits and record what product, operator, and launch scope those limits impose."
+          external_refs_needed:
+            - "Legal/compliance decision ref naming the selected path."
+            - "Jurisdiction/operator posture ref."
+            - "If implementing screening: sanctioned-address data source/provider ref, update cadence ref, failure-mode policy ref, false-positive review process ref, retention/logging policy ref, and reviewer acceptance ref."
+            - "If accepting jurisdiction limits: documented jurisdiction exclusion/refusal policy ref, user-facing scope ref, operator runbook ref, and reviewer acceptance ref."
+            - "Public-copy/status-surface review ref if any user-facing limitation wording changes."
+          planned_follow_up_after_approval:
+            - "Reject missing legal/compliance decision ref."
+            - "Reject missing jurisdiction/operator posture ref."
+            - "If screening is selected, reject missing provider/source refs, update cadence, fail-closed behavior, false-positive process, retention/logging policy, or reviewer acceptance."
+            - "If jurisdiction limits are selected, reject missing exclusion/refusal policy, public scope wording, operator runbook, or reviewer acceptance."
+            - "Reject evidence packets with raw private data, owner secrets, viewing key plaintext, note blindings, private keys, or credential-bearing URLs."
+            - "Keep truth gates locked unless all prior audit, verifier, SBF/live, bounty, anonymity, and compliance refs exist."
+          blocker_before_implementation:
+            - "This item is blocked on Clay/legal/compliance direction."
+            - "Implementing a sanctions-screening path, choosing a provider, storing screening results, changing user-facing scope, or accepting jurisdiction limits all need explicit approval before code or public-copy edits."
+          plan_verification:
+            - "npm run privacy-audit:tracker-check"
+            - "git diff --check"
+          approval_gate: "Tracker-only Band 8 item 24 slice opened on 2026-05-25. Follow-up code/public-copy/evidence-gate work requires explicit direction approval."
+          remaining_truth_boundary: "This tracker item does not implement sanctions screening, select a provider, create legal approval, change user-facing jurisdiction scope, move a claim gate, deploy services, or change launch status."
+          lumi:
+            local: "Tracker-only Band 8 item 24 decision blocker is recorded in this slice."
+            committed: "latest branch head after this tracker-only slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this tracker-only slice; use git status for sync."
+            deployed_live: "not-deployed-live"
+        - id: PPA-COMPLIANCE-002
+          audit_section: "Band 8 item 25 - threat model, incident-response runbook, and key-custody runbook published"
+          remediation_order: 25
+          title: "Publish Band 8 threat/incident/key-custody publication guard"
+          severity: high
+          owner_lane: compliance-ops
+          status: implemented-verified-local
+          source_refs:
+            - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+            - "PRODUCTION_PRIVACY_AUDIT.md#Threat-model"
+            - "PRODUCTION_PRIVACY_AUDIT.md#Key-custody-and-secrets"
+            - "SECURITY_LIMITATIONS.md#Required-before-mainnet"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-compliance-002-threat-incident-key-custody-publication-plan.md"
+          current_evidence:
+            - "docs/threat-model.md exists and was last validated against repo-local code on 2026-05-25."
+            - "docs/mainnet-deployment-runbook.md has a Monitoring And Incident Response section."
+            - "docs/operator-runbook.md references monitoring and incident-response expectations."
+            - "ops/mainnet/production-incident-workflow.evidence.json exists as a refs-only incident workflow evidence surface."
+            - "ops/mainnet/production-key-custody.template.json exists as a refs-only key-custody intake template."
+            - "docs/incident-response-runbook.md now records the stop/suspend, evidence-preservation, secret-safe debugging, disclosure, recovery, and post-incident review flow."
+            - "docs/key-custody-runbook.md now records refs-only custody surfaces, access approval, multisig/HSM/Turnkey ref expectations, rotation, revocation, emergency freeze, break-glass, and access-audit expectations."
+          implemented_files:
+            - "docs/threat-model.md"
+            - "docs/incident-response-runbook.md"
+            - "docs/key-custody-runbook.md"
+            - "docs/docs-source-of-truth.md"
+            - "docs/mainnet-deployment-runbook.md"
+            - "docs/operator-runbook.md"
+            - "docs/mainnet-external-gates.md"
+            - "SECURITY_LIMITATIONS.md"
+            - "ops/mainnet/production-incident-workflow.evidence.json"
+            - "ops/mainnet/production-key-custody.template.json"
+            - "scripts/check-vanta-band8-ops-publication.mjs"
+            - "scripts/check-vanta-docs-source-of-truth.mjs"
+            - "scripts/check-vanta-production-incident-workflow-evidence.mjs"
+            - "package.json"
+            - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml"
+          implemented_new_script: "npm run compliance:ops-publication-check"
+          planned_test_cases:
+            - "Fail if docs/threat-model.md is missing, stale, or loses current no-overclaim boundaries."
+            - "Fail if docs/incident-response-runbook.md is missing or omits stop/suspend, preserve evidence, secret-safe debugging, disclosure, recovery, and post-incident review steps."
+            - "Fail if docs/key-custody-runbook.md is missing or omits key roles, multisig/HSM/Turnkey custody refs, rotation, revocation, access audit, emergency freeze, break-glass controls, and no-secret handling."
+            - "Fail if runbooks claim audit acceptance, production custody, live privacy, or launch readiness without matching refs."
+            - "Fail if runbooks contain private keys, seed phrases, signed transaction material, bearer credentials, owner secrets, viewing key plaintext, or note blindings."
+            - "Fail if SECURITY_LIMITATIONS.md, docs/mainnet-external-gates.md, and runbooks disagree on external refs required before claim-gate movement."
+          verification_after_approval:
+            - "npm run compliance:ops-publication-check"
+            - "npm run docs:source-of-truth-check"
+            - "npm run operator:runbook-check"
+            - "npm run security:limitations-check"
+            - "npm run mainnet:external-gates-production-claim-check"
+            - "npm run privacy-audit:tracker-check"
+            - "npm run truth:privacy-claim-gate"
+            - "npm run build"
+            - "git diff --check"
+          verification_completed:
+            - "All verification_after_approval commands passed locally on 2026-05-25."
+          approval_and_truth_boundary:
+            - "Clay approved implementation on 2026-05-25 before the runbooks, refs, and guard script were added."
+            - "Legal/compliance/custody review remains separate external evidence and must not be implied by local docs publication."
+          approval_gate: "Clay approved the PPA-COMPLIANCE-002 implementation plan on 2026-05-25."
+          remaining_truth_boundary: "This repo-local slice publishes operator-trusted beta incident-response and key-custody runbooks plus a fail-closed publication guard. It does not prove legal/compliance/custody review, create custody authority, satisfy external reviewer acceptance, move claim gates, deploy services, or change launch status."
+          lumi:
+            local: "Band 8 item 25 docs, refs, and compliance:ops-publication-check are recorded locally in this slice."
+            committed: "latest branch head after this implementation slice; use git log for the exact commit."
+            pushed: "origin/codex/ppa-program-004-runtime-verifier-wired after this implementation slice; use git status for sync."
+            deployed_live: "not-deployed-live"
 
 audit_completion_checklist:
   path: "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-completion-audit.md"
@@ -1888,4 +2637,16 @@ next_safe_slices:
   - "PPA-VERIFIER-001 / Band 3 item 11 is accepted-noop/evidence-local: groth16-tag3-solana-v0 is the recorded backend direction only, with production proof-format/VK/adapter/SBF/live/audit evidence still pending. Next safe slice is a plan for Band 3 item 12."
   - "PPA-VERIFIER-002 / Band 3 item 12 is tracker-approved as a doc-only blocked-before-implementation plan for public Groth16 ceremony/setup, production verifying-key evidence, and tag-5 verifier-key registration; do not edit evidence gates/scripts or attempt ceremony/build/registration until external ceremony/setup, production artifact/VK refs, registration receipts, SBF/live lineage, and review evidence exist."
   - "PPA-VERIFIER-003 / Band 3 item 13 is evidence-contract-tightened and the Ref Source Map slice is committed/pushed/website-live at c922a52b0 / dep-d8a8op7aqgkc73ap4gn0, with a fail-closed Groth16 verifier-CPI guard, but remains blocked before verifier-program deployment, SBF/live lineage, and audit/reviewer acceptance; do not attempt deployment, tag-5 registration, proof-enforced receipts, audit/reviewer intake, verifier wiring, release, or claim-lift work until reviewed production artifact bundle, accepted verifier adapter/program evidence, SBF/live lineage, deployed verifier program id/hash, verifier program upgrade-authority status ref, verifier-key binding, and reviewer acceptance refs exist."
+  - "PPA-ANON-001 / Band 4 item 14 is tracker-open but blocked before closed-alpha deposits on Bands 1-3 externally accepted production evidence, proof-verified custody/release lineage, reviewer acceptance, and explicit live/real-funds approval."
+  - "PPA-ANON-002 / Band 4 item 15 is tracker-open but blocked before public beta/anonymity claims on PPA-ANON-001, sustained live currentDistinctCommitments >= 1024, accepted verifier/custody/audit evidence, and explicit claim-gate approval."
+  - "PPA-RELAYER-001 / Band 5 item 16 is accepted-noop/evidence-local: current source already has Postgres-backed Private Pool v2 rate limiting and durable nullifier replay store gates, but no live production settlement/anonymity/audit claim is lifted."
+  - "PPA-RELAYER-002 / Band 5 item 17 is implemented-verified-local for randomized jitter and batching. It remains not deployed/live and does not satisfy Tor/blinded-token relayer protection."
+  - "PPA-RELAYER-003 / Band 5 item 18 is implemented-verified-local for a fail-closed Tor/blinded-token privacy-transport evidence gate. It is not live Tor, not live blinded-token submission, not production privacy, not IP privacy proof, not anonymity evidence, not audit acceptance, and not mainnet readiness."
+  - "PPA-DISCOVERY-001 / Band 6 item 19 is implemented-verified-local for an authenticated indexer view-tag prefix pull API. It is not deployed/live/reviewed, does not prove query privacy, and production recipient discovery remains blocked on deployed service, retention/log-redaction, public or anonymous read posture, legacy v1 memo migration/segregation, and reviewer acceptance evidence."
+  - "PPA-DISCOVERY-002 / Band 6 item 20 is implemented-verified-local for local legacy v1 Send memo migration/segregation tooling. It does not rewrite historical on-chain memos, deploy recipient discovery, provide reviewed migration/segregation evidence, or lift production privacy claims."
+  - "PPA-AUDIT-001 / Band 7 item 21 is tracker-open but blocked on Clay choosing and contracting two independent external audit firms, one ZK specialist and one Solana program specialist; repo-local work can prepare refs-only gates but cannot create signed engagement, scope, report, or reviewer acceptance refs."
+  - "PPA-AUDIT-002 / Band 7 item 22 is tracker-open but blocked on Clay approving the bug bounty provider/intake path, budget, legal/safe-harbor posture, triage owners, scope, and public launch timing; repo-local work can prepare refs-only gates but cannot create live bounty facts."
+  - "PPA-AUDIT-003 / Band 7 item 23 is tracker-open but blocked on accepted audit refs, bug bounty live refs, C01 verifier closure, SBF/live lineage, deployed verifier id/hash, tag-5 binding, reviewer signoff, and live anonymity-set evidence at or above 1024 distinct commitments; claim gates must remain locked."
+  - "PPA-COMPLIANCE-001 / Band 8 item 24 is tracker-open but blocked on Clay/legal/compliance direction: implement unshield destination screening or accept documented jurisdiction limits. Do not implement provider calls, storage, public copy, or launch-scope changes without explicit approval."
+  - "PPA-COMPLIANCE-002 / Band 8 item 25 is implemented-verified-local for operator-trusted beta threat, incident-response, and key-custody publication docs plus compliance:ops-publication-check. It is not external legal/compliance/custody review, custody authority, deployed evidence, reviewer acceptance, or launch-status movement."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."

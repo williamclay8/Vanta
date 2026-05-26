@@ -57,7 +57,7 @@ This implements local program-owned tree append/root-history correctness for a o
 
 ## Lumi
 
-- Local: PPA-PROGRAM-001 implementation, local SBF rebuild, guard wiring, docs, tracker evidence, and local verification are local only.
-- Committed: not committed.
-- Pushed: not pushed.
-- Deployed/live: not deployed or live verified.
+- Local: PPA-PROGRAM-001 source, local SBF rebuild, guard wiring, docs, tracker evidence, and local verification are committed and pushed on this branch; on-chain deployment/live/audit evidence remains absent.
+- Committed: `995b24ba9a5615e435ee638b0b139ea84ef2d446` (`Harden privacy audit remediation gates`).
+- Pushed: `origin/codex/ppa-program-004-runtime-verifier-wired` and `origin/main` at `995b24ba9a5615e435ee638b0b139ea84ef2d446` on 2026-05-25.
+- Deployed/live: Render Vanta website service `srv-d7j3ggqqqhas739for80` live deploy `dep-d8a876kt8o5s73etj9d0` at commit `995b24ba` on 2026-05-25; on-chain spend/verifier programs, tag `5`/tag `6`, SBF/live lineage, and production privacy remain not deployed/live.

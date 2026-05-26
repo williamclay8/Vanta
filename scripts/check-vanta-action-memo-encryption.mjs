@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 import { poseidon2 } from "poseidon-lite";
 
 const repoRoot = resolve(import.meta.dirname, "..");
+mkdirSync(resolve(repoRoot, ".tmp"), { recursive: true });
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-action-memo-encryption-"));
 const tempTsDir = join(tempRoot, "ts");
 const tempJsDir = join(tempRoot, "js");
@@ -235,6 +236,7 @@ try {
     VANTA_SPENT_MARKER_MEMO_PREFIX_V2,
     VANTA_SWAP_MEMO_PREFIX_V2,
     VANTA_UNSHIELD_MEMO_PREFIX_V2,
+    createLegacyV1SendMemoMigrationPacket,
     createPreparedSendDualAeadMemo,
     createPreparedSendMemo,
     createPreparedSolUnshieldMemo,
@@ -321,6 +323,72 @@ try {
     parsedLegacyV1Send.memoPrivacyScope === "legacy-v1-plaintext-history" &&
       parsedLegacyV1Send.productionPrivacyScopeEligible === false,
     "Send v1 plaintext memo reads must be segregated from fresh-v2 production privacy claims.",
+  );
+  const missingRecipientMigration = createLegacyV1SendMemoMigrationPacket({
+    changeViewingPublicKey: senderViewingKey.publicKey,
+    memo: legacySendMemoText,
+    stateSignature: "send-v1",
+  });
+  assert(
+    missingRecipientMigration.status === "segregation-required" &&
+      missingRecipientMigration.reason === "missing-recipient-viewing-public-key" &&
+      missingRecipientMigration.reviewedMigrationOrSegregationEvidence === false,
+    "Legacy Send migration must segregate v1 history when recipient viewing-key material is missing.",
+  );
+  const missingChangeMigration = createLegacyV1SendMemoMigrationPacket({
+    memo: legacySendMemoText,
+    recipientViewingPublicKey: recipientViewingKey.publicKey,
+    stateSignature: "send-v1",
+  });
+  assert(
+    missingChangeMigration.status === "segregation-required" &&
+      missingChangeMigration.reason === "missing-change-viewing-public-key",
+    "Legacy Send migration must segregate nonzero-change history when change viewing-key material is missing.",
+  );
+  const migratedLegacySend = createLegacyV1SendMemoMigrationPacket({
+    changeViewingPublicKey: senderViewingKey.publicKey,
+    memo: legacySendMemoText,
+    migrationRunId: "local-migration-fixture",
+    recipientViewingPublicKey: recipientViewingKey.publicKey,
+    stateSignature: "send-v1",
+  });
+  assert(
+    migratedLegacySend.status === "local-v2-discovery-packet-created" &&
+      migratedLegacySend.segregationRequired === false &&
+      migratedLegacySend.productionReady === false &&
+      migratedLegacySend.reviewedMigrationOrSegregationEvidence === false &&
+      /^sha256:[0-9a-f]{64}$/u.test(migratedLegacySend.recipientMemoCiphertextBodyHash ?? "") &&
+      /^sha256:[0-9a-f]{64}$/u.test(migratedLegacySend.changeMemoCiphertextBodyHash ?? "") &&
+      /^vtag:[0-9a-f]{16}$/u.test(migratedLegacySend.recipientMemo?.encryptedViewTag ?? "") &&
+      /^vtag:[0-9a-f]{16}$/u.test(migratedLegacySend.changeMemo?.encryptedViewTag ?? ""),
+    "Legacy Send migration must create sanitized v2 discovery handoff metadata without production readiness.",
+  );
+  const migratedLegacySendJson = JSON.stringify(migratedLegacySend);
+  for (const forbidden of [recipient, sendPayload.owner, sendPayload.amount, sendPayload.changeAmount]) {
+    assert(
+      !migratedLegacySendJson.includes(forbidden),
+      `Legacy Send migration packet must not expose plaintext field ${forbidden}.`,
+    );
+  }
+  const freshV2Migration = createLegacyV1SendMemoMigrationPacket({
+    memo: sendMemoText,
+    recipientViewingPublicKey: recipientViewingKey.publicKey,
+    stateSignature: "send-v2",
+  });
+  assert(
+    freshV2Migration.status === "not-applicable" &&
+      freshV2Migration.reason === "fresh-v2-send-memo-not-remigrated",
+    "Fresh v2 Send memos must not be remigrated.",
+  );
+  const malformedLegacyMigration = createLegacyV1SendMemoMigrationPacket({
+    memo: `${VANTA_SEND_MEMO_PREFIX_V1}{bad-json`,
+    recipientViewingPublicKey: recipientViewingKey.publicKey,
+    stateSignature: "bad-v1",
+  });
+  assert(
+    malformedLegacyMigration.status === "segregation-required" &&
+      malformedLegacyMigration.reason === "malformed-legacy-v1-send-memo-segregation-required",
+    "Malformed legacy Send memos must be segregated rather than promoted.",
   );
   const sendHistoryScopePolicy = getVantaSendHistoryPrivacyScopePolicy();
   assert(

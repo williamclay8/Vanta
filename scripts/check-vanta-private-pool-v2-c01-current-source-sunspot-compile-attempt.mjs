@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { unpack } from "msgpackr";
@@ -17,6 +17,8 @@ const currentSourceAcirPath =
   "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json";
 const expectedCurrentAcirSha256 =
   "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9";
+const expectedCurrentAcirBytecodeHash =
+  "sha256:6ab8f6a90eb551bf02e1b313ede919a6e4aefd8740e70728cce641fdfc2c8d04";
 const liveProbeEnvVar = "VANTA_C01_SUNSPOT_COMPILE_LIVE";
 const sunspotBinEnvVar = "VANTA_C01_SUNSPOT_BIN";
 const sunspotCompileAttemptEnvVar = "VANTA_C01_SUNSPOT_COMPILE_ATTEMPT";
@@ -44,8 +46,8 @@ function includes(source, marker, label) {
   assert(source.includes(marker), `${label} missing marker: ${marker}`);
 }
 
-function sha256(path) {
-  return `sha256:${createHash("sha256").update(readFileSync(resolve(repoRoot, path))).digest("hex")}`;
+function sha256String(value) {
+  return `sha256:${createHash("sha256").update(value).digest("hex")}`;
 }
 
 function assertStringArray(value, label) {
@@ -63,6 +65,7 @@ function decodeCurrentBytecodeObservation() {
 
   return {
     noirVersion: acir.noir_version,
+    acirBytecodeHash: sha256String(acir.bytecode),
     decompressedByteLength: bytes.byteLength,
     first32Hex: bytes.subarray(0, 32).toString("hex"),
     firstByteHex: bytes.subarray(0, 1).toString("hex"),
@@ -180,20 +183,20 @@ assert(preflight.currentSourceSunspotCompileAttemptRef === packetPath, "prefligh
 assert(acquisition.currentSourceSunspotCompileAttemptRef === packetPath, "acquisition packet must reference current-source compile attempt");
 assert(devProbe.routeId === packet.routeId, "dev-probe route mismatch");
 
-const acirStat = statSync(resolve(repoRoot, currentSourceAcirPath));
+const observed = decodeCurrentBytecodeObservation();
 const sourceCircuit = packet.sourceCircuit ?? {};
 assert(sourceCircuit.repoPath === "zk/noir/vanta_private_pool_v2_actual_private_spend_entry", "source repoPath mismatch");
 assert(sourceCircuit.compiledAcirRef === currentSourceAcirPath, "source ACIR ref mismatch");
-assert(sourceCircuit.compiledAcirByteLength === acirStat.size, "source ACIR byte length mismatch");
-assert(sourceCircuit.compiledAcirSha256 === sha256(currentSourceAcirPath), "source ACIR hash mismatch");
-assert(sourceCircuit.compiledAcirSha256 === expectedCurrentAcirSha256, "expected current ACIR hash mismatch");
+assert(sourceCircuit.compiledAcirByteLength === 1840868, "recorded source ACIR byte length mismatch");
+assert(sourceCircuit.compiledAcirSha256 === expectedCurrentAcirSha256, "recorded source ACIR hash mismatch");
+assert(sourceCircuit.compiledAcirBytecodeHash === expectedCurrentAcirBytecodeHash, "source ACIR bytecode hash mismatch");
+assert(observed.acirBytecodeHash === sourceCircuit.compiledAcirBytecodeHash, "current source ACIR bytecode hash mismatch");
 assert(sourceCircuit.noirVersion === "1.0.0-beta.19", "source Noir version mismatch");
 assert(sourceCircuit.publicInputLabel === "private-spend-public-input-hash", "source public input label mismatch");
 for (const marker of ["current repo source ACIR", "beta18 shim artifacts", "do not match"]) {
   includes(sourceCircuit.truthBoundary ?? "", marker, "sourceCircuit truth boundary");
 }
 
-const observed = decodeCurrentBytecodeObservation();
 const currentObservation = packet.currentSourceBytecodeObservation ?? {};
 assert(currentObservation.encoding === "base64-gzip-bytecode", "current bytecode encoding mismatch");
 assert(currentObservation.decompressedByteLength === observed.decompressedByteLength, "current bytecode decompressed length mismatch");

@@ -41,10 +41,14 @@ function assertStringArray(value, label) {
   }
 }
 
-function assertRefPath(path, label) {
+function assertRepoLocalPathShape(path, label) {
   assert(typeof path === "string" && path.length > 0, `${label} must be a non-empty path`);
   assert(!path.includes("://"), `${label} must be repo-local, not a URL`);
   assert(!path.startsWith("../") && !path.includes("/../"), `${label} must stay inside repo`);
+}
+
+function assertRefPath(path, label) {
+  assertRepoLocalPathShape(path, label);
   assert(existsSync(resolve(repoRoot, path)), `${label} missing referenced file ${path}`);
 }
 
@@ -222,7 +226,14 @@ const requestComparisonIds = new Set(
 );
 for (const entry of packet.comparisonOnlyLocalEvidence) {
   assert(requestComparisonIds.has(entry.id), `${entry.id} comparison ref must also be mirrored in artifact request`);
-  assertRefPath(entry.ref, `${entry.id} comparison ref`);
+  if (entry.id === "fresh-local-sbf-abi") {
+    assertRepoLocalPathShape(entry.ref, `${entry.id} comparison ref`);
+    assert(entry.refIsIgnoredBuildArtifact === true, `${entry.id} must mark the SBF ref as an ignored build artifact`);
+    assert(entry.cleanCiMayMissRef === true, `${entry.id} must mark clean CI as allowed to miss the local SBF ref`);
+    includes(entry.truthBoundary, "ignored local build artifact", `${entry.id} comparison truth boundary`);
+  } else {
+    assertRefPath(entry.ref, `${entry.id} comparison ref`);
+  }
   includes(entry.truthBoundary, "not", `${entry.id} comparison truth boundary`);
 }
 assertStringArray(packet.forbiddenReviewerPacketContents, "forbiddenReviewerPacketContents");
@@ -306,6 +317,14 @@ for (const marker of [
   "source freeze review",
   "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json",
   "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
+  "## Local Reviewer Starting Point",
+  "reviewerLocalPrecursorRefs",
+  "reviewStartCommitRef: `git:d5a71b6a8a5bb40cd0fc0407c9e6b5d9b9f414a5`",
+  "treeStatusAtCollection: `clean`",
+  "current source sha256: `sha256:363d7dffa7ba03698a8bdbe2d48a6f13cf32ddeb7326fb997ff9cff63db8bf96`",
+  "current ACIR sha256: `sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9`",
+  "local spend SBF comparison hash: `sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55`",
+  "These are comparison-only reviewer starting refs.",
   "## Local Source/Comparison Refs Already Filled",
   "PRODUCTION_PRIVACY_AUDIT.md",
   "AUDIT_2026-05-19.md",
