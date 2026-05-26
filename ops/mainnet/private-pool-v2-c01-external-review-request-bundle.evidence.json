@@ -203,7 +203,7 @@
       "id": "security-limitations",
       "group": "local-audit-context",
       "path": "SECURITY_LIMITATIONS.md",
-      "sha256": "sha256:a21e8926a019711ef98bc73317ac482d66a474c2b1caed942ee54a45f8138f9b",
+      "sha256": "sha256:91de30869e25206b5feefd8798dffd09eb1137cb256d02aa77f8a521b683f536",
       "requiredFor": "Fail-closed claim-boundary context.",
       "truthBoundary": "Local limitations context only; not external acceptance."
     },
