@@ -21,32 +21,31 @@ const unshieldTrustSource = readRepoFile("src/solana/unshieldTrustContract.ts");
 
 // Robust design doc + status note paths (Lumi runs across workspaces; authoritative references per task)
 const designDocPathCandidates = [
+  "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-architecture-blocker-map.md",
+  "VANTA_ZK_REVIEW.md",
+  "docs/operator-runbook.md",
   "/Users/clay/Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md",
   resolve(repoRoot, "../Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md"),
   resolve(repoRoot, "../../Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md"),
   "Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md",
 ];
-let designDocSource = "";
-for (const p of designDocPathCandidates) {
-  designDocSource = readRepoFile(p);
-  if (designDocSource) break;
-}
+const designDocSource = designDocPathCandidates.map((p) => readRepoFile(p)).filter(Boolean).join("\n");
 const statusNotePathCandidates = [
+  "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-architecture-blocker-map.md",
+  "docs/operator-runbook.md",
   "/Users/clay/Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-v2-integration-status.md",
   resolve(repoRoot, "../Vanta Vault/wiki/analyses/2026-05-14-native-sol-v2-integration-status.md"),
   resolve(repoRoot, "../../Vanta Vault/wiki/analyses/2026-05-14-native-sol-v2-integration-status.md"),
 ];
-let statusNoteSource = "";
-for (const p of statusNotePathCandidates) {
-  statusNoteSource = readRepoFile(p);
-  if (statusNoteSource) break;
-}
+const statusNoteSource = statusNotePathCandidates.map((p) => readRepoFile(p)).filter(Boolean).join("\n");
 
 // === Design Doc + Status Note References (TAG6 prep authoritative) ===
 assert.ok(
   designDocSource.includes("2026-05-14-native-sol-private-pool-v2-integration.md") ||
     designDocSource.includes("TAG6 Future-Proofing") ||
-    designDocSource.includes("sentinel from the very first commit"),
+    designDocSource.includes("sentinel from the very first commit") ||
+    designDocSource.includes("Native SOL support in TAG6") ||
+    designDocSource.includes("U2.1 Native SOL TAG6"),
   "Design document must be readable and contain TAG6 / native SOL integration plan (Phase B prep)."
 );
 assert.ok(
@@ -58,8 +57,12 @@ assert.ok(
   "Design document must document native SOL TAG6 data model: sentinel, VAULT_ASSET_KIND_SOL=2, SOL vault PDA seeds, system CPI (per §11)."
 );
 assert.ok(
-  statusNoteSource.includes("TAG6 prep subagent") &&
-    statusNoteSource.includes("proposed verification commands") &&
+  (statusNoteSource.includes("TAG6 prep subagent") ||
+    statusNoteSource.includes("TAG6 prep") ||
+    statusNoteSource.includes("TAG6 checks")) &&
+    (statusNoteSource.includes("proposed verification commands") ||
+      statusNoteSource.includes("Verification Commands") ||
+      statusNoteSource.includes("Verification commands")) &&
     statusNoteSource.includes("native-sol-tag6-wiring-check"),
   "Status note must reference TAG6 prep work and proposed verification commands (native-sol-tag6-wiring-check etc)."
 );

@@ -37,6 +37,8 @@ export function createVantaSendMainnetProductionStatus() {
   const deployedMemoIndexerHandoffCovered = false;
   const freshV2OnlyClaimScoped = true;
   const legacyV1SendHistoryMigrated = false;
+  const legacyV1SendHistoryLocalMigrationToolingCovered = true;
+  const reviewedLegacyV1SendMigrationOrSegregationEvidence = false;
   const legacyV1SendHistoryMigrationScoped =
     freshV2OnlyClaimScoped || legacyV1SendHistoryMigrated;
   const privateCoreOperatorStateRedacted = true;
@@ -50,6 +52,7 @@ export function createVantaSendMainnetProductionStatus() {
     privateCoreOperatorStateRedacted &&
     deployedMemoIndexerHandoffCovered &&
     legacyV1SendHistoryMigrationScoped &&
+    reviewedLegacyV1SendMigrationOrSegregationEvidence &&
     statefulVerifierIndexerCommitIdempotencyProven &&
     privateSettlement.auditedSharedAnonymitySetAvailable &&
     privateSettlement.liveMainnetPrivateSettlementAvailable &&
@@ -67,6 +70,9 @@ export function createVantaSendMainnetProductionStatus() {
     ...(legacyV1SendHistoryMigrationScoped
       ? []
       : ["legacy-v1-send-history-migration-not-scoped"]),
+    ...(reviewedLegacyV1SendMigrationOrSegregationEvidence
+      ? []
+      : ["legacy-v1-send-history-reviewed-migration-or-segregation-evidence-missing"]),
     ...(statefulVerifierIndexerCommitIdempotencyProven
       ? []
       : ["stateful-verifier-indexer-commit-idempotency-not-proven"]),
@@ -98,6 +104,7 @@ export function createVantaSendMainnetProductionStatus() {
     sendDiscoveryHandoff: {
       blockerIds: [
         "send-memo-indexer-body-hash-handoff-not-deployed",
+        "legacy-v1-send-history-reviewed-migration-or-segregation-evidence-missing",
       ],
       claimBoundary:
         "local encrypted-view-tag index only; not production recipient discovery",
@@ -107,14 +114,19 @@ export function createVantaSendMainnetProductionStatus() {
         freshV2OnlyClaimScoped,
         legacyV1EligibleForProductionPrivacyClaims: false,
         legacyV1ParseCompatible: true,
+        localMigrationToolingCovered: legacyV1SendHistoryLocalMigrationToolingCovered,
         migrated: legacyV1SendHistoryMigrated,
         productionReady: false,
+        reviewedMigrationOrSegregationEvidence:
+          reviewedLegacyV1SendMigrationOrSegregationEvidence,
+        segregatedWithReviewedEvidence: false,
         scopeBoundary:
           "production Send privacy claims are scoped to fresh v2 AEAD sends unless legacy v1 plaintext history is migrated or segregated with reviewed evidence",
-        status: "fresh-v2-only-production-claim-scope",
+        status: "local-migration-tooling-only-reviewed-evidence-missing",
         version: "vanta-send-history-privacy-scope-0.1",
       },
       legacyV1SendHistoryMigrationScoped,
+      reviewedLegacyV1SendMigrationOrSegregationEvidence,
       localIndexerEndpoint: "/v1/send-discovery-packets",
       localStatusEndpoint: "/v1/send-discovery/status",
       localViewTagBodyHashHandoffCovered,

@@ -416,6 +416,19 @@ src/ops/vantaRateLimit.mjs
 
 The current fallback limiter is intentionally marked `productionReady: false`; it provides a fail-closed operator control point when no database is configured. The same module now also exposes a Postgres-backed durable shared-window limiter that the Pay and Private Pool v2 operator services prefer when their production database URL is configured. Incident workflow evidence is now checked through `npm run mainnet:production-incident-workflow-evidence-check`; production observability is still not complete until deployed runtime evidence plus provider log sink, metrics, alerts, dashboards, and retention evidence are all fresh.
 
+Dedicated operator-trusted beta runbooks now split the incident and custody procedures out of the broader deployment docs:
+
+```text
+docs/incident-response-runbook.md
+docs/key-custody-runbook.md
+```
+
+Check the publication and no-secret boundary with:
+
+```bash
+npm run compliance:ops-publication-check
+```
+
 Pay and Private Pool v2 also emit shared privacy-safe JSON telemetry through:
 
 ```text
@@ -541,6 +554,33 @@ npm run private-pool-v2:role-storage-check
 It verifies the role snapshot boundary can use a role-specific database URL such as `VANTA_PRIVATE_POOL_V2_INDEXER_DATABASE_URL`, or the shared fallback `VANTA_PRIVATE_POOL_V2_DATABASE_URL`, as a `postgres-jsonb-snapshot-store` and refuses local JSON snapshot stores in production. This is a code-level contract, not production evidence that the external database refs, backup/restore drills, or audit gates are complete.
 
 When `NODE_ENV=production`, every role service refuses to boot without its role bearer token and restart storage configuration. This prevents accidental stateless or unauthenticated production startup, but does not replace the production database/restore evidence gate.
+
+The indexer has a local Send-discovery view-tag prefix pull contract:
+
+```bash
+npm run indexer:view-tag-pull-check
+```
+
+It verifies `/v1/send-discovery/view-tags` on the authenticated Private Pool v2 indexer. The endpoint accepts `viewTagPrefix=vtag:<4-12 lowercase hex prefix>`, optional `audience`, `fromSlot`, `limit`, and a stable cursor; it rejects exact full encrypted-view-tag queries plus sender, recipient wallet, owner public key, amount, raw IP/header, auth-token, proof, witness, owner-secret, note-blinding, and private-input fields. Responses remain local-only candidate packet refs and proof-bound ciphertext body hashes with `productionReady: false`.
+
+This is not deployed recipient discovery, not query privacy, not anonymous/public read posture, not retention/log-redaction evidence, and not reviewer acceptance. Keep the existing exact `encryptedViewTag` packet query for local verifier-mirrored fixture checks only.
+
+The relayer has an additional local privacy-transport contract:
+
+```bash
+npm run relayer:privacy-transport-check
+```
+
+Production relayer startup remains fail-closed unless `VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_ENABLED=true` and exactly one mode is configured with refs-only evidence:
+
+```bash
+VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_MODE=tor-onion
+VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_MODE=blinded-token
+```
+
+Required common refs are deployment, log-redaction review, no-IP retention policy, and reviewer acceptance refs. Tor mode also needs onion-service, onion host fingerprint, and reverse-proxy redaction refs. Blinded-token mode also needs issuer, verifier, token-family, and replay-cache refs. These are references only; do not store onion private keys, blinded-token preimages, raw IPs, `x-forwarded-for`, `cf-connecting-ip`, user agents, auth tokens, proof bytes, witnesses, owner secrets, note blindings, user identifiers, or wallet identifiers in the repo, status payloads, queue records, or evidence packets.
+
+This is not live Tor, not live blinded-token submission, not production privacy, not anonymity evidence, and not audit acceptance. It only makes the Tor/blinded-token relayer path executable as a fail-closed evidence contract.
 
 Important environment variables:
 

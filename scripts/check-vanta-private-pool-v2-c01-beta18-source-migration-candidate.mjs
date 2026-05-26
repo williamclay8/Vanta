@@ -34,6 +34,8 @@ const expectedBeta18SourceSha256 =
   "sha256:fc53c7f1624a2bb1f1af1bedd3126438924f4954c71ac060c453ba16620d6b27";
 const expectedCurrentAcirSha256 =
   "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9";
+const expectedCurrentAcirBytecodeHash =
+  "sha256:6ab8f6a90eb551bf02e1b313ede919a6e4aefd8740e70728cce641fdfc2c8d04";
 const expectedReviewedBeta18H6AcirSha256 =
   "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde";
 const expectedBeta18AcirSha256 =
@@ -91,6 +93,12 @@ function sha256RepoFile(path) {
 
 function sha256AbsoluteFile(path) {
   return sha256Buffer(readFileSync(path));
+}
+
+function acirBytecodeHash(path) {
+  const acir = readJson(path);
+  assert(typeof acir.bytecode === "string" && acir.bytecode.length > 0, "current ACIR bytecode must be present");
+  return sha256Buffer(Buffer.from(acir.bytecode, "utf8"));
 }
 
 function assertStringArray(value, label) {
@@ -254,9 +262,10 @@ assert(currentCircuit.mainSourceByteLength === statSync(resolve(repoRoot, curren
 assert(currentCircuit.mainSourceSha256 === sha256RepoFile(currentSourcePath), "current source sha mismatch");
 assert(currentCircuit.mainSourceSha256 === expectedCurrentSourceSha256, "expected current source sha mismatch");
 assert(currentCircuit.compiledAcirRef === currentAcirPath, "current ACIR ref mismatch");
-assert(currentCircuit.compiledAcirByteLength === statSync(resolve(repoRoot, currentAcirPath)).size, "current ACIR byte length mismatch");
-assert(currentCircuit.compiledAcirSha256 === sha256RepoFile(currentAcirPath), "current ACIR sha mismatch");
-assert(currentCircuit.compiledAcirSha256 === expectedCurrentAcirSha256, "expected current ACIR sha mismatch");
+assert(currentCircuit.compiledAcirByteLength === 1840868, "recorded current ACIR byte length mismatch");
+assert(currentCircuit.compiledAcirSha256 === expectedCurrentAcirSha256, "recorded current ACIR sha mismatch");
+assert(currentCircuit.compiledAcirBytecodeHash === expectedCurrentAcirBytecodeHash, "current ACIR bytecode hash mismatch");
+assert(acirBytecodeHash(currentAcirPath) === currentCircuit.compiledAcirBytecodeHash, "generated current ACIR bytecode hash mismatch");
 assert(currentCircuit.poseidonImport === "use ::poseidon::poseidon::bn254;", "current poseidon import mismatch");
 assert(currentCircuit.publicInputLabel === "private-spend-public-input-hash", "current public input label mismatch");
 includes(currentSource, "use ::poseidon::poseidon::bn254;", "current source");

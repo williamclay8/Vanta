@@ -1,0 +1,405 @@
+{
+  "version": "vanta-private-pool-v2-c01-external-review-request-bundle-0.1",
+  "checkedAt": "2026-05-25T00:00:00.000Z",
+  "status": "ready-for-external-c01-review-request-bundle-blocked",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "selectedBackendStatus": "selected-pending-production-evidence",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "productionReady": false,
+  "mainnetReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "proofVerifiedClaimAllowed": false,
+  "productionArtifactsReady": false,
+  "verifierAdapterReady": false,
+  "sbfLiveLineageReady": false,
+  "auditReviewerAccepted": false,
+  "secretPolicy": "refs-only-no-raw-proof-vk-witness-pk-keypair-secret-live-private-data-or-signed-transaction-bytes",
+  "purpose": "Sha256-pinned outbound send-list for the external C01 artifact producer and reviewer. This packet identifies the repo-local work order, reviewed-return templates, acceptance gates, and local audit context that should be sent before any callable mutation path is considered.",
+  "bundleHashPolicy": {
+    "hashAlgorithm": "sha256",
+    "hashesCover": "repo-local outbound files listed in outboundFiles",
+    "selfHashOmitted": true,
+    "selfHashOmittedReason": "Avoids self-referential hash churn; validate this file with npm run zk:c01-external-review-request-bundle-check.",
+    "rawArtifactStorageAllowed": false,
+    "acceptedExternalRefsStillNull": true
+  },
+  "humanHandoffRef": "ops/mainnet/private-pool-v2-c01-external-evidence-request.md",
+  "artifactRequestRef": "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
+  "externalReviewHandoffRef": "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json",
+  "closureGateRef": "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json",
+  "currentRequiredShape": {
+    "target": "solana-c01-tag3-groth16-v0",
+    "tag": 3,
+    "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+    "proofSystem": "groth16",
+    "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+    "proofByteLength": 324,
+    "publicWitnessByteLength": 44,
+    "verifierInstructionDataByteLength": 368,
+    "publicInputLabel": "private-spend-public-input-hash",
+    "requiredPublicInputValue": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "requiredPublicInputCommitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2",
+    "referenceCurrentSourceAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
+    "productionSourceLineageMode": "reviewed-beta18-h6-source-migration",
+    "sourceAcirSha256": "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde",
+    "verifyingKeyHashKind": "production-verifying-key-hash"
+  },
+  "outboundFiles": [
+    {
+      "id": "human-evidence-request",
+      "group": "work-order",
+      "path": "ops/mainnet/private-pool-v2-c01-external-evidence-request.md",
+      "sha256": "sha256:75f6a720d9798020b7c4f136b9d86393ca56c326eb1f3acc3e0756bd2c0c2758",
+      "requiredFor": "Human-readable C01 external evidence request and ref source map.",
+      "truthBoundary": "Outbound work order only; not reviewed external evidence or C01 closure."
+    },
+    {
+      "id": "artifact-request",
+      "group": "work-order",
+      "path": "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
+      "sha256": "sha256:71c9dc65b78add4de5d67eca38366accb75af8b1c318071b65cbd50628861016",
+      "requiredFor": "Machine-readable production verifier artifact request.",
+      "truthBoundary": "Refs-only request packet; not production artifact evidence, and accepted production outputs remain null."
+    },
+    {
+      "id": "external-review-handoff",
+      "group": "work-order",
+      "path": "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json",
+      "sha256": "sha256:8ed2c4400b3b7dbd4287bbf80db72ad8cf51f0c03451463b3f6c019a4906a3b4",
+      "requiredFor": "Reviewer order, validation commands, and returned packet expectations.",
+      "truthBoundary": "Reviewer routing only; not external acceptance."
+    },
+    {
+      "id": "source-review-acceptance-template",
+      "group": "reviewed-return-template",
+      "path": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance.template.json",
+      "sha256": "sha256:8c25c00576fc76fbb3c0e427cd2298155f43c7990b7b62762981b4f55074352f",
+      "requiredFor": "Returned source-review acceptance packet shape.",
+      "truthBoundary": "Template only; not source-review acceptance."
+    },
+    {
+      "id": "deterministic-build-template",
+      "group": "reviewed-return-template",
+      "path": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build.template.json",
+      "sha256": "sha256:abdc5afd336804168c561acaf5d73259e48872feb45e08de4ffcf81f00306f86",
+      "requiredFor": "Returned deterministic production artifact build packet shape.",
+      "truthBoundary": "Template only; not deterministic artifact build evidence."
+    },
+    {
+      "id": "production-artifact-bundle-template",
+      "group": "reviewed-return-template",
+      "path": "ops/mainnet/private-pool-v2-c01-production-artifact-bundle.template.json",
+      "sha256": "sha256:9749af70f183bbd308d59494cf1fb8e6f5f82cf8febda7feade58be98bfb69fe",
+      "requiredFor": "Returned production artifact bundle packet shape.",
+      "truthBoundary": "Template only; not production artifact bundle evidence."
+    },
+    {
+      "id": "verifier-adapter-acceptance-template",
+      "group": "reviewed-return-template",
+      "path": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance.template.json",
+      "sha256": "sha256:ab41ac364a370d89ae339db6db53467bb3905128af2fbc15714afa7a4941038a",
+      "requiredFor": "Returned verifier adapter or verifier program acceptance packet shape.",
+      "truthBoundary": "Template only; not verifier-adapter acceptance."
+    },
+    {
+      "id": "sbf-live-lineage-template",
+      "group": "reviewed-return-template",
+      "path": "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance.template.json",
+      "sha256": "sha256:5a11bd67a33719e5bf1dfa4380130595ac3871d87a3d7e9290c50fa393fc0e7a",
+      "requiredFor": "Returned SBF/live lineage acceptance packet shape.",
+      "truthBoundary": "Template only; not SBF/live lineage."
+    },
+    {
+      "id": "audit-reviewer-acceptance-template",
+      "group": "reviewed-return-template",
+      "path": "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance.template.json",
+      "sha256": "sha256:d38c361ea2706b54f674c69e3875853deeff9417776f7d0c398692f08199ae44",
+      "requiredFor": "Returned audit/reviewer acceptance packet shape.",
+      "truthBoundary": "Template only; not audit/reviewer acceptance."
+    },
+    {
+      "id": "source-review-acceptance-gate",
+      "group": "acceptance-gate",
+      "path": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
+      "sha256": "sha256:be8d7cdbee9adfa19092f25b54f3246b0796fa0135c33b7555ba8b530c68a41a",
+      "requiredFor": "Source-review acceptance validation contract.",
+      "truthBoundary": "Gate contract only; not source-review acceptance, and default status remains blocked."
+    },
+    {
+      "id": "production-output-manifest-preflight",
+      "group": "acceptance-gate",
+      "path": "ops/mainnet/private-pool-v2-c01-production-output-manifest-preflight.evidence.json",
+      "sha256": "sha256:502117a0de2ae15d4f227953494664c893b051204039b2bda89e49e64e33095f",
+      "requiredFor": "Refs-only production output manifest preflight.",
+      "truthBoundary": "Preflight contract only; not production proof-format or VK evidence."
+    },
+    {
+      "id": "deterministic-build-gate",
+      "group": "acceptance-gate",
+      "path": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
+      "sha256": "sha256:c3c25bd31e2447e37ee928e6975f8b321c76c501b9d0e61f21090053fb9ac5be",
+      "requiredFor": "Deterministic production artifact build validation contract.",
+      "truthBoundary": "Gate contract only; not deterministic artifact build evidence, and the default template remains non-evidence."
+    },
+    {
+      "id": "production-artifact-acceptance-gate",
+      "group": "acceptance-gate",
+      "path": "ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json",
+      "sha256": "sha256:827981c20ca1107b8c3b0e7b05a57bb45ace120017922cb86729b09424a8ed65",
+      "requiredFor": "Production artifact bundle validation contract.",
+      "truthBoundary": "Gate contract only; not production artifact acceptance."
+    },
+    {
+      "id": "verifier-adapter-acceptance-gate",
+      "group": "acceptance-gate",
+      "path": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
+      "sha256": "sha256:b845d4321a3853c87d5c10799f30f0b10eb01466dd1f96ded0744e18de726a47",
+      "requiredFor": "Verifier adapter/program acceptance validation contract.",
+      "truthBoundary": "Gate contract only; not verifier-adapter acceptance."
+    },
+    {
+      "id": "sbf-live-lineage-acceptance-gate",
+      "group": "acceptance-gate",
+      "path": "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance-gate.evidence.json",
+      "sha256": "sha256:210e56383437c2ba6fc86144f199096697b05d731c4e3cb243a1eec651b62045",
+      "requiredFor": "SBF/live lineage acceptance validation contract.",
+      "truthBoundary": "Gate contract only; not SBF/live lineage acceptance."
+    },
+    {
+      "id": "audit-reviewer-acceptance-gate",
+      "group": "acceptance-gate",
+      "path": "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance-gate.evidence.json",
+      "sha256": "sha256:dd53b1576d4fc80f22228e797444967779302ebcb3bb466b75b9438e5994e751",
+      "requiredFor": "Audit/reviewer acceptance validation contract.",
+      "truthBoundary": "Gate contract only; not audit/reviewer acceptance."
+    },
+    {
+      "id": "verifier-evidence-closure-gate",
+      "group": "acceptance-gate",
+      "path": "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json",
+      "sha256": "sha256:90fbb81f84759a7b2a56c74945249989e3bf57a7b184e29cfef007f3f2423b3e",
+      "requiredFor": "Composite C01 verifier evidence closure validation contract.",
+      "truthBoundary": "Gate contract only; not C01 closure, and default closure remains blocked."
+    },
+    {
+      "id": "production-privacy-audit",
+      "group": "local-audit-context",
+      "path": "PRODUCTION_PRIVACY_AUDIT.md",
+      "sha256": "sha256:faa986ad998ab893abf32c9b44428afc6228df28dc5a6a26e7ba5f5b95f22709",
+      "requiredFor": "Current blocker taxonomy and remediation ordering.",
+      "truthBoundary": "Local audit context only; not external acceptance."
+    },
+    {
+      "id": "prior-audit-context",
+      "group": "local-audit-context",
+      "path": "AUDIT_2026-05-19.md",
+      "sha256": "sha256:3251048a8c8406f2f1e04ea87b9d58eaf5b1139af3e03358c77f1413194dec85",
+      "requiredFor": "Prior inherited privacy and verifier-boundary findings.",
+      "truthBoundary": "Local audit context only; not external acceptance."
+    },
+    {
+      "id": "security-limitations",
+      "group": "local-audit-context",
+      "path": "SECURITY_LIMITATIONS.md",
+      "sha256": "sha256:91de30869e25206b5feefd8798dffd09eb1137cb256d02aa77f8a521b683f536",
+      "requiredFor": "Fail-closed claim-boundary context.",
+      "truthBoundary": "Local limitations context only; not external acceptance."
+    },
+    {
+      "id": "zk-findings-ledger",
+      "group": "local-audit-context",
+      "path": "VANTA_ZK_REVIEW.findings.json",
+      "sha256": "sha256:2e9153141782c9e9bf1ad19623db9defee52a43684ecefeec66636a52ab0f21f",
+      "requiredFor": "C01/H08 finding refs and stale-control map.",
+      "truthBoundary": "Local findings ledger only; not external acceptance."
+    },
+    {
+      "id": "verifier-backend-decision",
+      "group": "local-audit-context",
+      "path": "docs/zk/c01-production-verifier-backend-decision.md",
+      "sha256": "sha256:45ce7db47a51003044357f1ca729d90d22080d7898deefbaba29d797bd32f3b2",
+      "requiredFor": "Selected backend direction and current reviewer command map.",
+      "truthBoundary": "Decision packet only; not selected-backend positive evidence."
+    },
+    {
+      "id": "audit-package",
+      "group": "local-audit-context",
+      "path": "docs/audit-package.md",
+      "sha256": "sha256:bd5dfe969c0a72fb2ade455bcd69ee7bedad7bcc43cb144e892c2088444f4faf",
+      "requiredFor": "Audit package pointers to current C01 gates.",
+      "truthBoundary": "Local package index only; not audit/reviewer acceptance."
+    }
+  ],
+  "requiredReturnedExternalRefs": [
+    {
+      "id": "reviewed-frozen-source-commit",
+      "requiredRefShape": "git:<reviewed-immutable-production-source-commit-ref>",
+      "expectedSource": "external source reviewer",
+      "fillTargets": [
+        "sourceLineage.frozenSourceCommitRef in deterministic build and production artifact bundle packets"
+      ],
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "source-tree-status",
+      "requiredRefShape": "review:<clean-source-tree-or-reviewed-diff-status-ref>",
+      "expectedSource": "external source reviewer",
+      "fillTargets": [
+        "sourceLineage.sourceTreeStatusRef in deterministic build and production artifact bundle packets"
+      ],
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "source-freeze-review",
+      "requiredRefShape": "review:<reviewed-source-freeze-acceptance-ref>",
+      "expectedSource": "external source reviewer",
+      "fillTargets": [
+        "sourceLineage.sourceFreezeReviewRef and sourceFreezeAccepted=true"
+      ],
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-artifact-bundle",
+      "requiredRefShape": "bundle:<reviewed-production-proof-vk-public-witness-adapter-test-lineage-audit-refs>",
+      "expectedSource": "external artifact producer and reviewer",
+      "fillTargets": [
+        "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-bundle-json>"
+      ],
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-proof-format-artifact",
+      "requiredRefShape": "artifact:<actual-private-spend-groth16-proof-format-ref>",
+      "expectedSource": "external artifact producer",
+      "fillTargets": [
+        "production artifact bundle proofFormatArtifactRef"
+      ],
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "production-verifying-key-hash",
+      "requiredRefShape": "sha256:<production-verifying-key-hash>",
+      "expectedSource": "external artifact producer and reviewer",
+      "fillTargets": [
+        "production artifact bundle verifierKeyHash",
+        "tag-5 verifier-key registration"
+      ],
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "verifier-adapter-program-acceptance",
+      "requiredRefShape": "adapter:<accepted-solana-groth16-verifier-adapter-or-program-ref>",
+      "expectedSource": "external reviewer",
+      "fillTargets": [
+        "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-adapter-json>"
+      ],
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "deployed-verifier-program-id",
+      "requiredRefShape": "program:<deployed-verifier-program-id>",
+      "expectedSource": "deployment operator or reviewer after explicit deploy approval",
+      "fillTargets": [
+        "SBF/live lineage packet deployedVerifierProgramId",
+        "production artifact bundle deployedVerifierProgramId"
+      ],
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "deployed-verifier-program-sbf-hash",
+      "requiredRefShape": "sha256:<deployed-verifier-program-sbf-hash>",
+      "expectedSource": "reviewer dump of deployed executable bytes",
+      "fillTargets": [
+        "SBF/live lineage packet deployedVerifierProgramSbfHash",
+        "production artifact bundle acceptedVerifierSbfSha256"
+      ],
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "verifier-program-upgrade-authority-status",
+      "requiredRefShape": "authority:<deployed-verifier-program-upgrade-authority-status-ref>",
+      "expectedSource": "deployment reviewer",
+      "fillTargets": [
+        "SBF/live lineage packet verifierProgramUpgradeAuthorityStatusRef",
+        "production artifact bundle verifierProgramUpgradeAuthorityStatusRef"
+      ],
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "tag5-verifier-key-record-binding",
+      "requiredRefShape": "record:<tag5-verifier-key-record-binds-production-vk-hash-and-verifier-program-id-ref>",
+      "expectedSource": "reviewer decode of [b\"vanta2vkey\", pool_state, verifierKeyHash] after approved tag-5 registration",
+      "fillTargets": [
+        "SBF/live lineage packet verifierKeyRecordBindingRef",
+        "production artifact bundle verifierKeyRecordBindingRef"
+      ],
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "proof-enforced-tag3-or-reviewer-dry-run",
+      "requiredRefShape": "tx-or-review:<live-proof-enforced-tag3-or-reviewer-dry-run-ref>",
+      "expectedSource": "external reviewer after artifact, adapter, and lineage refs exist",
+      "fillTargets": [
+        "SBF/live lineage packet liveProofEnforcedTag3ReceiptRef or reviewerAcceptedDryRunRef"
+      ],
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    },
+    {
+      "id": "audit-reviewer-acceptance",
+      "requiredRefShape": "audit-or-review:<selected-verifier-backend-accepted-for-c01-ref>",
+      "expectedSource": "external audit/reviewer",
+      "fillTargets": [
+        "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-audit-json>"
+      ],
+      "currentRef": null,
+      "satisfiesC01PositiveEvidence": false
+    }
+  ],
+  "canonicalCommands": [
+    "npm run zk:c01-external-review-request-bundle-check",
+    "npm run zk:c01-external-review-handoff-check",
+    "npm run zk:c01-production-verifier-artifact-request-check",
+    "npm run zk:c01-production-artifact-acceptance-gate-check",
+    "npm run zk:c01-verifier-adapter-acceptance-gate-check",
+    "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
+    "npm run zk:c01-audit-reviewer-acceptance-gate-check",
+    "npm run zk:c01-verifier-evidence-closure-gate-check",
+    "npm run private-pool-v2:groth16-verifier-cpi-check"
+  ],
+  "forbiddenReviewerPacketContents": [
+    "raw proof bytes",
+    "raw verifying-key bytes",
+    "raw witness bytes",
+    "proving key bytes",
+    "keypair material",
+    "private keys",
+    "seed phrases",
+    "signed transaction bytes",
+    "live private user data",
+    "provider credentials",
+    "authorization-token material"
+  ],
+  "promotionBoundary": {
+    "doNotWireCallableMutationPathFromThisBundle": true,
+    "doNotFillAcceptedRefsFromRepoLocalHashes": true,
+    "requiresReviewedReturnedPackets": true,
+    "requiresCompositeClosureGate": true,
+    "productionReadyMustRemainFalse": true,
+    "privacyClaimAllowedMustRemainFalse": true
+  },
+  "truthBoundary": "This is a sha256-pinned outbound C01 external review request bundle. It helps obtain external refs, but it is not reviewed frozen source, not source-freeze acceptance, not production proof-format evidence, not production verifying-key evidence, not verifier-adapter acceptance, not valid mutation evidence, not invalid/wrong-input/wrong-key/wrong-program no-mutation evidence, not deployed verifier evidence, not tag-5 verifier-key binding, not SBF/live lineage, not audit/reviewer acceptance, not C01 closure, not a callable mutation path, and not production-private readiness."
+}

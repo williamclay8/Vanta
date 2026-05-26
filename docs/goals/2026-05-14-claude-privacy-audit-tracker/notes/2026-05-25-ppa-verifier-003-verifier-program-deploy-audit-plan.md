@@ -34,6 +34,7 @@ After Clay's explicit 2026-05-25 request to work on external Band 3 evidence, th
 - `ops/mainnet/private-pool-v2-c01-sbf-live-lineage-candidate.evidence.json` now records the fresh local comparison-only spend SBF hash `sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55`; this still has `satisfiesSbfLiveLineage=false`.
 - `ops/mainnet/private-pool-v2-c01-external-evidence-request.md` now gives external producers/reviewers a concise refs-only work order for the same handoff without changing accepted refs or promotion rules.
 - `ops/mainnet/private-pool-v2-c01-external-evidence-request.md` now includes a guarded Ref Source Map that names where each required returned ref comes from and which reviewed packet field it fills. The map explicitly says current repo-local command output is comparison evidence only and must not populate accepted refs without a reviewed returned packet.
+- `ops/mainnet/private-pool-v2-c01-external-review-request-bundle.evidence.json` now gives the external artifact producer/reviewer a sha256-pinned send-list for the human handoff, machine-readable request/handoff packets, reviewed-return templates, acceptance gates, and local audit context files. It is checked by `npm run zk:c01-external-review-request-bundle-check` and remains outbound request metadata only.
 
 ## Planned Files
 
@@ -44,6 +45,7 @@ After Clay's explicit 2026-05-25 request to work on external Band 3 evidence, th
 - `ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json`
 - `ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json`
 - `ops/mainnet/private-pool-v2-c01-external-evidence-request.md`
+- `ops/mainnet/private-pool-v2-c01-external-review-request-bundle.evidence.json`
 - `ops/mainnet/private-pool-v2-c01-production-artifact-acceptance-gate.evidence.json`
 - `ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json`
 - `ops/mainnet/private-pool-v2-c01-sbf-live-lineage-candidate.evidence.json`
@@ -56,6 +58,7 @@ After Clay's explicit 2026-05-25 request to work on external Band 3 evidence, th
 - `scripts/check-vanta-private-pool-v2-c01-sbf-live-lineage-candidate.mjs`
 - `scripts/check-vanta-private-pool-v2-c01-sbf-live-lineage-acceptance-gate.mjs`
 - `scripts/check-vanta-private-pool-v2-c01-external-review-handoff.mjs`
+- `scripts/check-vanta-private-pool-v2-c01-external-review-request-bundle.mjs`
 - `scripts/check-vanta-private-pool-v2-c01-verifier-evidence-closure-gate.mjs`
 - `scripts/check-vanta-private-pool-v2-groth16-verifier-cpi.mjs`
 - `package.json`
@@ -89,6 +92,7 @@ Use existing gates:
 - `npm run zk:c01-audit-reviewer-acceptance-gate-check`
 - `npm run zk:c01-verifier-evidence-closure-gate-check`
 - `npm run zk:c01-external-review-handoff-check`
+- `npm run zk:c01-external-review-request-bundle-check`
 - `npm run zk:c01-positive-proof-verified-claim-gate-check`
 - `npm run private-pool-v2:groth16-verifier-cpi-check`
 - `npm run truth:privacy-claim-gate`
@@ -158,6 +162,7 @@ The frozen source commit, source tree status, and source-freeze review refs are 
 - `npm run zk:c01-audit-reviewer-acceptance-gate-check`: PASS; remains blocked-no-audit-reviewer-acceptance.
 - `npm run zk:c01-verifier-evidence-closure-gate-check`: PASS; remains blocked-no-complete-c01-verifier-evidence-chain.
 - `npm run zk:c01-external-review-handoff-check`: PASS; handoff remains refs-only.
+- `npm run zk:c01-external-review-request-bundle-check`: PASS; sha256-pinned outbound send-list validates and accepted refs remain null.
 - `npm run zk:c01-external-review-handoff-check`: PASS after adding `ops/mainnet/private-pool-v2-c01-external-evidence-request.md` as a required human handoff companion; an initial wording containing the forbidden marker `bearer ` failed and was reworded before acceptance.
 - `npm run zk:c01-positive-proof-verified-claim-gate-check`: PASS; remains blocked-no-tag3-valid-proof-success.
 - `npm run private-pool-v2:groth16-verifier-cpi-check`: PASS; pins the tag-3 Groth16 CPI ABI, verifier-key-to-verifier-program binding, host-side fail-closed behavior, and missing external production artifact/adapter/SBF-live/audit blockers.
@@ -167,12 +172,12 @@ The frozen source commit, source tree status, and source-freeze review refs are 
 
 ## Full Appendix Verification After Human Handoff
 
-After adding the human-readable external evidence request, the existing audit appendix pre-deploy commands were re-run on 2026-05-25. All present scripts passed:
+After adding the human-readable external evidence request, and after the later relayer/indexer guard slices landed, the existing audit appendix pre-deploy commands were re-run on 2026-05-25. All 36 current appendix scripts passed sequentially:
 
 - Base appendix: `truth:privacy-claim-gate`, `zk:circuit-soundness-lint`, all five PPv2 circuit checks, `private-core:send-check`, `private-core:swap-check`, `zk:c01-positive-proof-verified-claim-gate-check`, `private-pool-v2:onchain-unshield-custody-check`, `private-pool-v2:root-provenance-check`, `private-pool-v2:service-network-check`, `private-pool-v2:role-storage-check`, `mainnet:role-service-replay-evidence-check`, `mainnet:secret-handling-check`, `public:live-meta-description-check`, `private-pool-v2:live-anonymity-set-probe-check`, `public:audit-discovery-check`, `frontend:operator-env-exposure-check`, `unshield:public-exit-surface-check`, `send:direct-viewing-key-exchange-check`, `actions:legacy-v1-memo-quarantine-check`, `private-vault:crypto-check`, `docs:source-of-truth-check`, and `build`.
-- Band 1/2/3 appendix aliases present today: `send:output-commitment-binding-check`, `swap:output-commitment-binding-check`, `swap:economics-binding-check`, `private-core-unshield:nullifier-binding-fixture-check`, `claim:relayer-fee-bound-check`, `private-pool-v2:groth16-verifier-cpi-check`, `private-pool-v2:pda-vault-custody-check`, and `private-pool-v2:program-merkle-tree-check`.
+- Additional appendix aliases present today: `send:output-commitment-binding-check`, `swap:output-commitment-binding-check`, `swap:economics-binding-check`, `private-core-unshield:nullifier-binding-fixture-check`, `claim:relayer-fee-bound-check`, `private-pool-v2:groth16-verifier-cpi-check`, `private-pool-v2:pda-vault-custody-check`, `private-pool-v2:program-merkle-tree-check`, `relayer:jitter-and-batching-check`, and `indexer:view-tag-pull-check`.
 - Fail-closed truth preserved: `truth:privacy-claim-gate` still reports `privacyClaimsAllowed=false`, `mainnetReady=false`, and `productionReady=false`; the live anonymity probe still reports `currentDistinctCommitments=2` and `minimumDistinctCommitments=1024`.
-- Appendix scripts not present yet and therefore not claimed green: `relayer:jitter-and-batching-check` and `indexer:view-tag-pull-check`. The verifier CPI guard is now present and passing as a fail-closed guard before any verifier wiring claim. The relayer and indexer scripts belong to later Bands 5 and 6.
+- Appendix presence: 36/36 current `PRODUCTION_PRIVACY_AUDIT.md` appendix commands are present in `package.json` and passed locally in the sequential runner ending `2026-05-25T23:07:27Z`. The verifier CPI guard remains a fail-closed guard before any verifier wiring claim, and the relayer/indexer checks remain local drift guards rather than external evidence acceptance.
 
 ## Approved Groth16 Verifier CPI Guard Slice
 
@@ -194,7 +199,7 @@ This is not verifier deployment, not production proof acceptance, not SBF/live l
 Verification:
 
 - `npm run private-pool-v2:groth16-verifier-cpi-check`: PASS; `status=blocked-fail-closed`, `proofVerifiedClaimAllowed=false`, `c01VerifierReady=false`.
-- Compact appendix runner covering the 34 currently present appendix commands: PASS, including the new Groth16 verifier-CPI guard; only future `relayer:jitter-and-batching-check` and `indexer:view-tag-pull-check` remain absent/not claimed.
+- 2026-05-25T23:07Z compact appendix runner covering all 36 current `PRODUCTION_PRIVACY_AUDIT.md` appendix commands: PASS, including the Groth16 verifier-CPI, relayer jitter/batching, and indexer view-tag guards.
 
 ## Continuation Negative Intake Verification
 
@@ -226,6 +231,30 @@ On 2026-05-25, the human-readable external evidence request gained a refs-only s
 - audit/reviewer acceptance
 
 This is still a handoff aid only. It does not fill accepted refs, does not deploy a verifier, does not register tag-5, does not accept artifact/adapter/lineage/audit packets, and does not lift any proof-verified or privacy claim.
+
+## Continuation Reviewer Starting Point
+
+On 2026-05-25, the outbound production verifier artifact request gained a checked `reviewerLocalPrecursorRefs` section so external reviewers have a concrete starting point without treating local command output as accepted evidence:
+
+- repo: `https://github.com/williamclay8/Vanta.git`
+- branch: `codex/ppa-program-004-runtime-verifier-wired`
+- review start commit: `git:d5a71b6a8a5bb40cd0fc0407c9e6b5d9b9f414a5`
+- collection tree status: `clean`
+- current circuit source hash: `sha256:363d7dffa7ba03698a8bdbe2d48a6f13cf32ddeb7326fb997ff9cff63db8bf96`
+- current prover hash: `sha256:2c62fa9b0a7bfb32c98fb89fc5fbc90211d67b017066eb5555da8f0da20d890e`
+- current ACIR hash: `sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9`
+- beta18 H6 candidate source hash: `sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430`
+- local spend SBF comparison hash: `sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55`
+
+The production verifier artifact request checker now requires this section and its truth boundary. It remains comparison-only reviewer context: not reviewed frozen source, not source-freeze acceptance, not production proof/VK/public-witness evidence, not verifier-adapter acceptance, not deployed verifier evidence, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure.
+
+Verification:
+
+- `npm run zk:c01-production-verifier-artifact-request-check`: PASS
+- `npm run zk:c01-external-review-handoff-check`: PASS
+- `npm run zk:c01-external-review-request-bundle-check`: PASS; sha256-pinned outbound send-list validates and accepted refs remain null.
+- `npm run zk:c01-verifier-evidence-closure-gate-check`: PASS; default closure remains blocked with accepted refs null.
+- `npm run private-pool-v2:groth16-verifier-cpi-check`: PASS; `status=blocked-fail-closed`, `proofVerifiedClaimAllowed=false`, `c01VerifierReady=false`.
 
 ## Post-Source-Map Release Hygiene
 

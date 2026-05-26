@@ -22,6 +22,15 @@ import { dirname, resolve } from "node:path";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import { poseidon2 } from "poseidon-lite";
+import {
+  assertProductionRelayerJitterBatchingConfig,
+  buildVantaPrivatePoolV2RelayerTimingControlsStatus,
+  createVantaPrivatePoolV2RelayerQueue,
+} from "../src/privacy/privatePoolV2RelayerQueue.mjs";
+import {
+  assertProductionRelayerPrivacyTransportConfig,
+  buildVantaPrivatePoolV2RelayerPrivacyTransportStatus,
+} from "../src/privacy/privatePoolV2RelayerPrivacyTransport.mjs";
 import { createVantaPrivatePoolV2SolanaRelayerSubmitterFromEnv } from "../src/privacy/privatePoolV2SolanaRelayerSubmission.mjs";
 import { createPrivatePoolV2RoleSnapshotStore } from "../src/storage/vantaPrivatePoolV2RoleSnapshotStore.mjs";
 
@@ -34,6 +43,58 @@ const sendDiscoveryClaimBoundary =
 const sendDiscoveryBlockerIds = [
   "send-memo-indexer-body-hash-handoff-not-deployed",
 ];
+const sendDiscoveryViewTagPullClaimBoundary =
+  "local view-tag prefix pull only; not production recipient discovery";
+const sendDiscoveryViewTagPullBlockerIds = [
+  "view-tag-pull-service-not-deployed",
+  "view-tag-pull-retention-log-redaction-review-missing",
+  "view-tag-pull-anonymous-public-read-posture-not-reviewed",
+  "view-tag-pull-reviewer-acceptance-missing",
+];
+const sendDiscoveryViewTagPrefixPolicy = Object.freeze({
+  format: "vtag:<4-12 lowercase hex prefix>",
+  maxHexNibbles: 12,
+  minHexNibbles: 4,
+  rejectsFullEncryptedViewTag: true,
+});
+const sendDiscoveryViewTagPullAllowedQueryFields = Object.freeze([
+  "audience",
+  "cursor",
+  "fromSlot",
+  "limit",
+  "viewTagPrefix",
+]);
+const sendDiscoveryViewTagPullForbiddenQueryFields = Object.freeze([
+  "amount",
+  "amountBaseUnits",
+  "authToken",
+  "authorization",
+  "cf-connecting-ip",
+  "encryptedViewTag",
+  "ip",
+  "owner",
+  "ownerPubkey",
+  "ownerPublicKey",
+  "ownerSecret",
+  "plaintextMemo",
+  "privateInputs",
+  "proof",
+  "proofBytes",
+  "rawIpAddress",
+  "rawPrivateInputs",
+  "recipient",
+  "recipientAddress",
+  "recipientOwnerPublicKey",
+  "recipientWallet",
+  "sender",
+  "senderWallet",
+  "token",
+  "user-agent",
+  "userAgent",
+  "wallet",
+  "witness",
+  "x-forwarded-for",
+]);
 const sendLegacyHistoryScope = {
   freshV2OnlyClaimScoped: true,
   legacyV1EligibleForProductionPrivacyClaims: false,
@@ -353,25 +414,53 @@ function assertSendDiscoveryRawFieldsAbsent(value, path = []) {
     "amount",
     "amountBaseUnits",
     "asset",
+    "authToken",
+    "authorization",
+    "bearer",
+    "cf-connecting-ip",
     "changeAmount",
     "depositSignature",
     "inputCommitment",
     "inputLeafIndex",
+    "ip",
     "memo",
     "mintAddress",
+    "noteBlinding",
+    "note_blinding",
     "owner",
     "ownerPubkey",
+    "ownerPublicKey",
+    "ownerSecret",
+    "owner_secret",
     "plaintext",
     "plaintextMemo",
     "privateInputs",
+    "proof",
+    "proofArtifact",
+    "proofBytes",
+    "proof_artifact",
+    "proof_bytes",
+    "rawIpAddress",
     "rawPrivateInputs",
     "recipient",
     "recipientAddress",
+    "recipientOwnerPublicKey",
+    "recipientWallet",
     "seedPhrase",
+    "sender",
+    "senderWallet",
     "serializedTransaction",
+    "token",
+    "tokenPreimage",
+    "user-agent",
+    "userAgent",
     "vaultOwner",
+    "viewingKeyPlaintext",
+    "viewingSecretKey",
+    "wallet",
     "walletPrivateKey",
     "witness",
+    "x-forwarded-for",
   ]);
 
   for (const [key, nested] of Object.entries(value)) {
@@ -504,6 +593,149 @@ function normalizeSendDiscoveryPacket(packet) {
   };
 }
 
+function normalizeSendDiscoveryViewTagPrefix(value) {
+  const prefix = assertNonEmptyString(value, "viewTagPrefix");
+  const match = /^vtag:([0-9a-f]+)$/u.exec(prefix);
+  if (!match) {
+    throw new Error(
+      `Private Pool v2 view-tag pull requires ${sendDiscoveryViewTagPrefixPolicy.format}.`,
+    );
+  }
+
+  const hexPrefix = match[1];
+  if (
+    hexPrefix.length < sendDiscoveryViewTagPrefixPolicy.minHexNibbles ||
+    hexPrefix.length > sendDiscoveryViewTagPrefixPolicy.maxHexNibbles ||
+    hexPrefix.length === 16
+  ) {
+    throw new Error(
+      `Private Pool v2 view-tag pull prefix must be ${sendDiscoveryViewTagPrefixPolicy.format} and never a full encrypted tag.`,
+    );
+  }
+
+  return prefix;
+}
+
+function assertSendDiscoveryViewTagPullQueryAllowed(searchParams) {
+  const allowedFields = new Set(sendDiscoveryViewTagPullAllowedQueryFields);
+  const forbiddenFields = new Set(
+    sendDiscoveryViewTagPullForbiddenQueryFields.map((key) => key.toLowerCase()),
+  );
+  for (const key of searchParams.keys()) {
+    if (forbiddenFields.has(key.toLowerCase())) {
+      throw new Error(`Private Pool v2 view-tag pull query forbids ${key}.`);
+    }
+    if (!allowedFields.has(key)) {
+      throw new Error(`Private Pool v2 view-tag pull query does not support ${key}.`);
+    }
+  }
+}
+
+function parseSendDiscoveryViewTagPullLimit(value) {
+  if (value === undefined || value === null || value === "") {
+    return 25;
+  }
+  if (!/^(0|[1-9][0-9]*)$/u.test(String(value))) {
+    throw new Error("Private Pool v2 view-tag pull limit must be a positive integer.");
+  }
+  const limit = Number(value);
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+    throw new Error("Private Pool v2 view-tag pull limit must be between 1 and 100.");
+  }
+  return limit;
+}
+
+function encodeSendDiscoveryViewTagPullCursor(record) {
+  return Buffer.from(
+    JSON.stringify({
+      packetId: record.packetId,
+      recordedAtSlot: record.recordedAtSlot.toString(),
+    }),
+    "utf8",
+  ).toString("base64url");
+}
+
+function decodeSendDiscoveryViewTagPullCursor(value) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(Buffer.from(String(value), "base64url").toString("utf8"));
+  } catch (error) {
+    throw new Error("Private Pool v2 view-tag pull cursor is invalid.", { cause: error });
+  }
+
+  if (
+    !parsed ||
+    typeof parsed !== "object" ||
+    !/^(0|[1-9][0-9]*)$/u.test(String(parsed.recordedAtSlot ?? "")) ||
+    !/^0x[0-9a-f]{64}$/u.test(String(parsed.packetId ?? ""))
+  ) {
+    throw new Error("Private Pool v2 view-tag pull cursor is invalid.");
+  }
+
+  return {
+    packetId: String(parsed.packetId),
+    recordedAtSlot: BigInt(String(parsed.recordedAtSlot)),
+  };
+}
+
+function compareSendDiscoveryPacketsForPull(left, right) {
+  if (left.recordedAtSlot !== right.recordedAtSlot) {
+    return left.recordedAtSlot < right.recordedAtSlot ? -1 : 1;
+  }
+  return left.packetId.localeCompare(right.packetId);
+}
+
+function isAfterSendDiscoveryViewTagPullCursor(record, cursor) {
+  if (!cursor) {
+    return true;
+  }
+  return (
+    record.recordedAtSlot > cursor.recordedAtSlot ||
+    (record.recordedAtSlot === cursor.recordedAtSlot && record.packetId > cursor.packetId)
+  );
+}
+
+function sanitizeSendDiscoveryPacketForPull(record) {
+  return {
+    audience: record.audience,
+    claimBoundary: record.claimBoundary,
+    encryptedViewTag: record.encryptedViewTag,
+    memoCiphertextBodyHash: record.memoCiphertextBodyHash,
+    memoCiphertextRef: record.memoCiphertextRef,
+    outputCommitment: record.outputCommitment,
+    outputLeafIndex: record.outputLeafIndex,
+    outputRoot: record.outputRoot,
+    packetId: record.packetId,
+    productionReady: false,
+    proofBoundMemoCiphertextBodyHash: record.proofBoundMemoCiphertextBodyHash,
+    proofReceiptId: record.proofReceiptId,
+    proofReceiptPublicInputCommitment: record.proofReceiptPublicInputCommitment,
+    recordedAtSlot: record.recordedAtSlot,
+    sendPublicInputHash: record.sendPublicInputHash,
+    treeId: record.treeId,
+    version: record.version,
+  };
+}
+
+function sendDiscoveryViewTagPullStatusPayload(packetCount) {
+  return {
+    blockerIds: sendDiscoveryViewTagPullBlockerIds,
+    claimBoundary: sendDiscoveryViewTagPullClaimBoundary,
+    allowedQueryFields: sendDiscoveryViewTagPullAllowedQueryFields,
+    forbiddenQueryFields: sendDiscoveryViewTagPullForbiddenQueryFields,
+    implemented: true,
+    localPacketCount: packetCount,
+    prefixPolicy: sendDiscoveryViewTagPrefixPolicy,
+    productionReady: false,
+    queryMode: "prefix-bucket",
+    version: `${sendDiscoveryPacketVersion}:view-tag-pull-0.1`,
+  };
+}
+
 function sendDiscoveryStatusPayload(packetCount) {
   return {
     blockerIds: sendDiscoveryBlockerIds,
@@ -514,6 +746,7 @@ function sendDiscoveryStatusPayload(packetCount) {
     localPacketCount: packetCount,
     productionReady: false,
     version: sendDiscoveryPacketVersion,
+    viewTagPull: sendDiscoveryViewTagPullStatusPayload(packetCount),
   };
 }
 
@@ -539,6 +772,13 @@ function basePayload(role) {
       productionReady: false,
     },
     version: serviceVersion,
+    ...(role === "relayer"
+      ? {
+          relayerPrivacyTransport:
+            buildVantaPrivatePoolV2RelayerPrivacyTransportStatus(process.env),
+          relayerTimingControls: buildVantaPrivatePoolV2RelayerTimingControlsStatus(process.env),
+        }
+      : {}),
     warnings: [
       "This service is a separated Private Pool v2 runtime surface, not audited production proving infrastructure.",
       "Keep productionReady and mainnetReady false until deployed services, secret refs, production smoke evidence, audit, legal/custody review, and explicit mainnet funds approval are complete.",
@@ -592,6 +832,11 @@ function assertProductionRoleConfig(role) {
     throw new Error(
       `Private Pool v2 ${role} production service requires ${storeEnv}, ${roleConfig[role].databaseEnv}, or VANTA_PRIVATE_POOL_V2_DATABASE_URL.`,
     );
+  }
+
+  if (role === "relayer") {
+    assertProductionRelayerJitterBatchingConfig(process.env);
+    assertProductionRelayerPrivacyTransportConfig(process.env);
   }
 }
 
@@ -950,6 +1195,30 @@ function createIndexerState({ snapshotStore, storePath } = {}) {
           (!encryptedViewTag || record.encryptedViewTag === encryptedViewTag),
       );
     },
+    async listSendDiscoveryViewTagPullPackets({
+      audience,
+      cursor = null,
+      fromSlot = 0n,
+      limit = 25,
+      viewTagPrefix,
+    }) {
+      await ensureLoaded();
+      const matchingRecords = sendDiscoveryPackets
+        .filter(
+          (record) =>
+            record.recordedAtSlot >= fromSlot &&
+            record.encryptedViewTag.startsWith(viewTagPrefix) &&
+            (!audience || record.audience === audience),
+        )
+        .sort(compareSendDiscoveryPacketsForPull)
+        .filter((record) => isAfterSendDiscoveryViewTagPullCursor(record, cursor));
+      const page = matchingRecords.slice(0, limit);
+      const nextRecord = matchingRecords[limit] ?? null;
+      return {
+        nextCursor: nextRecord ? encodeSendDiscoveryViewTagPullCursor(page[page.length - 1]) : null,
+        packets: page.map((record) => sanitizeSendDiscoveryPacketForPull(record)),
+      };
+    },
     async registerNullifier({ nullifier, spentAtSlot = 1_000_000n }) {
       await ensureLoaded();
       if (nullifiers.has(nullifier)) {
@@ -1029,6 +1298,7 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
   let quotes = new Map();
   let claims = new Map();
   let privateSpends = new Map();
+  const relayQueue = createVantaPrivatePoolV2RelayerQueue({ env: process.env });
   const liveSolanaSubmitter =
     process.env.VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMISSION_MODE === "live"
       ? createVantaPrivatePoolV2SolanaRelayerSubmitterFromEnv(process.env)
@@ -1050,6 +1320,7 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
         submission,
       ]),
     );
+    relayQueue.replaceRecords(snapshot.relayQueue ?? []);
     loaded = true;
   }
 
@@ -1058,6 +1329,7 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
       claims: [...claims.values()],
       privateSpends: [...privateSpends.values()],
       quotes: [...quotes.values()],
+      relayQueue: relayQueue.snapshot(),
     };
     if (snapshotStore) {
       await snapshotStore.save(snapshot);
@@ -1090,6 +1362,17 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
       const claim = {
         quote,
         relayerId: String(quote.relayerId),
+        relaySchedule: relayQueue.enqueueRelaySubmission({
+          idempotencyKey: key,
+          kind: "unshield",
+          metadata: {
+            estimatedFeeBaseUnits: String(quote.estimatedFeeBaseUnits),
+            expiresAtSlot: String(quote.expiresAtSlot),
+            quoteKey: key,
+            relayerId: String(quote.relayerId),
+            serializedTransactionRef: hashHex(serviceVersion, "claim-serialized-transaction", String(serializedTransaction)),
+          },
+        }),
         serializedTransaction: String(serializedTransaction),
         signature: hashHex(serviceVersion, "claim", key, String(serializedTransaction)),
       };
@@ -1126,6 +1409,22 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
         ...(expectedAccountRefs ? { expectedAccounts: expectedAccountRefs } : {}),
         ...(expectedPublicInputRefs ? { expectedPublicInputs: expectedPublicInputRefs } : {}),
       };
+      const relaySchedule = relayQueue.enqueueRelaySubmission({
+        idempotencyKey: key,
+        kind: "send",
+        metadata: {
+          ...(expectedAccountRefs ? { expectedAccounts: expectedAccountRefs } : {}),
+          ...(expectedPublicInputRefs ? { expectedPublicInputs: expectedPublicInputRefs } : {}),
+          proofReceiptId: String(proofReceiptId),
+          publicInputCommitment: String(publicInputCommitment),
+          serializedTransactionRef: hashHex(
+            serviceVersion,
+            "private-spend-serialized-transaction",
+            String(serializedTransaction),
+          ),
+          settlementId: String(settlementId),
+        },
+      });
       const liveSubmission = liveSolanaSubmitter
         ? await liveSolanaSubmitter.submitPrivateSpend(liveSubmissionRequest)
         : null;
@@ -1135,16 +1434,24 @@ function createRelayerState({ snapshotStore, storePath } = {}) {
             relayerId: liveSubmission.relayerId,
             signature: liveSubmission.signature,
             submittedBy: liveSubmission.submittedBy,
+            relaySchedule,
           }
         : {
             ...liveSubmissionRequest,
             relayerId: `vanta-service-relayer:${hashHex(serviceVersion, "private-spend", String(settlementId)).slice(2, 18)}`,
             signature: hashHex(serviceVersion, "private-spend", key, String(serializedTransaction)),
             submittedBy: "relayer",
+            relaySchedule,
           };
       privateSpends.set(key, submission);
       await save();
       return submission;
+    },
+    relayQueueStatus() {
+      return relayQueue.status();
+    },
+    drainRelayQueue({ kind, maxBatchSize, nowMs } = {}) {
+      return relayQueue.drainReadyBatches({ kind, maxBatchSize, nowMs });
     },
   };
 }
@@ -1774,6 +2081,37 @@ if (request.method === "POST" && url.pathname === "/v1/commitments") {
       return true;
     }
 
+    if (request.method === "GET" && url.pathname === "/v1/send-discovery/view-tags") {
+      assertSendDiscoveryViewTagPullQueryAllowed(url.searchParams);
+      const audience = url.searchParams.get("audience") ?? undefined;
+      if (audience !== undefined && !["recipient", "change"].includes(audience)) {
+        throw new Error("Private Pool v2 view-tag pull audience must be recipient or change.");
+      }
+      const fromSlot = toBigInt(url.searchParams.get("fromSlot") ?? "0");
+      if (fromSlot < 0n) {
+        throw new Error("Private Pool v2 view-tag pull fromSlot must be non-negative.");
+      }
+      const limit = parseSendDiscoveryViewTagPullLimit(url.searchParams.get("limit"));
+      const viewTagPrefix = normalizeSendDiscoveryViewTagPrefix(url.searchParams.get("viewTagPrefix"));
+      const cursor = decodeSendDiscoveryViewTagPullCursor(url.searchParams.get("cursor"));
+      const packets = await indexerState.listSendDiscoveryPackets();
+      const page = await indexerState.listSendDiscoveryViewTagPullPackets({
+        audience,
+        cursor,
+        fromSlot,
+        limit,
+        viewTagPrefix,
+      });
+      sendJson(response, 200, {
+        ...basePayload(role),
+        nextCursor: page.nextCursor,
+        packets: page.packets,
+        sendDiscovery: sendDiscoveryStatusPayload(packets.length),
+        viewTagPull: sendDiscoveryViewTagPullStatusPayload(packets.length),
+      });
+      return true;
+    }
+
     if (request.method === "GET" && url.pathname === "/v1/send-discovery-packets") {
       const audience = url.searchParams.get("audience") ?? undefined;
       const encryptedViewTag = url.searchParams.get("encryptedViewTag") ?? undefined;
@@ -1925,6 +2263,28 @@ if (request.method === "POST" && url.pathname === "/v1/commitments") {
     if (request.method === "POST" && request.url === "/v1/private-spends/submit") {
       const body = await readRequestBody(request);
       sendJson(response, 200, await relayerState.submitPrivateSpend(body));
+      return true;
+    }
+
+    if (request.method === "GET" && request.url === "/v1/relay-queue/status") {
+      sendJson(response, 200, {
+        ...basePayload(role),
+        relayQueue: relayerState.relayQueueStatus(),
+      });
+      return true;
+    }
+
+    if (request.method === "POST" && request.url === "/v1/relay-queue/drain") {
+      const body = await readRequestBody(request);
+      sendJson(response, 200, {
+        ...basePayload(role),
+        batches: relayerState.drainRelayQueue({
+          kind: body.kind,
+          maxBatchSize: body.maxBatchSize === undefined ? undefined : Number(body.maxBatchSize),
+          nowMs: body.nowMs === undefined ? undefined : Number(body.nowMs),
+        }),
+        relayQueue: relayerState.relayQueueStatus(),
+      });
       return true;
     }
 

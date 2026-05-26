@@ -39,8 +39,40 @@ Use the machine-readable handoff first:
 
 - `ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json`
 - `ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json`
+- `ops/mainnet/private-pool-v2-c01-external-review-request-bundle.evidence.json`
 
 The handoff and request packets are refs-only. They define the required returned packet shapes but do not supply accepted refs.
+
+## Outbound Request Bundle
+
+Use `ops/mainnet/private-pool-v2-c01-external-review-request-bundle.evidence.json` as the send-list before engaging the external artifact producer or reviewer. It pins the repo-local handoff files, reviewed-return templates, acceptance gates, and local audit context files by `sha256:` hash so the recipient can confirm they are reviewing the intended packet set.
+
+Validate the send-list locally with:
+
+```bash
+npm run zk:c01-external-review-request-bundle-check
+```
+
+This bundle is only an outbound request manifest. It is not reviewed frozen source, not source-freeze acceptance, not production proof/VK/public-witness evidence, not verifier-adapter acceptance, not deployed verifier evidence, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure.
+
+## Local Reviewer Starting Point
+
+These local refs are now copied into `reviewerLocalPrecursorRefs` in the machine-readable request so an external reviewer does not have to rediscover the starting point:
+
+- repo: `https://github.com/williamclay8/Vanta.git`
+- branch: `codex/ppa-program-004-runtime-verifier-wired`
+- reviewStartCommitRef: `git:d5a71b6a8a5bb40cd0fc0407c9e6b5d9b9f414a5`
+- treeStatusAtCollection: `clean`
+- current source: `zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr`
+- current source sha256: `sha256:363d7dffa7ba03698a8bdbe2d48a6f13cf32ddeb7326fb997ff9cff63db8bf96`
+- current prover: `zk/noir/vanta_private_pool_v2_actual_private_spend_entry/Prover.toml`
+- current prover sha256: `sha256:2c62fa9b0a7bfb32c98fb89fc5fbc90211d67b017066eb5555da8f0da20d890e`
+- current ACIR: `zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json`
+- current ACIR sha256: `sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9`
+- beta18 H6 candidate source sha256: `sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430`
+- local spend SBF comparison hash: `sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55`
+
+These are comparison-only reviewer starting refs. They are not reviewed frozen source, not source-freeze acceptance, not production proof/VK/public-witness evidence, not verifier-adapter acceptance, not deployed verifier evidence, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure.
 
 ## Local Source/Comparison Refs Already Filled
 

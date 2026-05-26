@@ -249,10 +249,31 @@ const gateRepoRoot = gateResolve(import.meta.dirname, "..");
 function gateRead(p) {
   try { return gateReadFile(gateResolve(gateRepoRoot, p), "utf8"); } catch { return ""; }
 }
+function gateReadFirst(paths) {
+  for (const p of paths) {
+    const source = gateRead(p);
+    if (source) return source;
+  }
+  return "";
+}
 const gateUnshieldStatus = gateRead("src/readiness/unshieldMainnetProductionStatus.mjs");
 const gateUnshieldTrust = gateRead("src/solana/unshieldTrustContract.ts");
-const gateDesign = gateRead("/Users/clay/Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md") || gateRead("Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md");
-const gateStatusNote = gateRead("/Users/clay/Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-v2-integration-status.md") || gateRead("Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-v2-integration-status.md");
+const gateDesign = gateReadFirst([
+  "/Users/clay/Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md",
+  "../Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md",
+  "../../Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md",
+  "Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-private-pool-v2-integration.md",
+  "docs/operator-runbook.md",
+  "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-architecture-blocker-map.md",
+]);
+const gateStatusNote = gateReadFirst([
+  "/Users/clay/Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-v2-integration-status.md",
+  "../Vanta Vault/wiki/analyses/2026-05-14-native-sol-v2-integration-status.md",
+  "../../Vanta Vault/wiki/analyses/2026-05-14-native-sol-v2-integration-status.md",
+  "Desktop/Vanta Vault/wiki/analyses/2026-05-14-native-sol-v2-integration-status.md",
+  "docs/operator-runbook.md",
+  "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-14-architecture-blocker-map.md",
+]);
 
 assert.ok(
   gateUnshieldStatus.includes("productionCustodyReadyForSol: false") &&

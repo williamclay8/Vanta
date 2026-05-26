@@ -358,6 +358,10 @@ const sourceCircuit = packet.sourceCircuit ?? {};
 assert(sourceCircuit.path === route.sourceCircuit?.path, "source circuit path mismatch");
 assert(sourceCircuit.compiledAcirRef === route.sourceCircuit?.compiledAcirRef, "compiled ACIR ref mismatch");
 assert(sourceCircuit.compiledAcirSha256 === route.sourceCircuit?.compiledAcirSha256, "compiled ACIR hash mismatch");
+assert(
+  sourceCircuit.compiledAcirBytecodeHash === route.sourceCircuit?.compiledAcirBytecodeHash,
+  "compiled ACIR bytecode hash mismatch",
+);
 assert(sourceCircuit.compressedWitnessRef === route.sourceCircuit?.compressedWitnessRef, "compressed witness ref mismatch");
 assert(sourceCircuit.compressedWitnessHashStored === false, "packet must not store witness hash");
 assert(sourceCircuit.compressedWitnessValuesStored === false, "packet must not store witness values");

@@ -151,12 +151,14 @@ Production deployment must preserve:
 - authenticated readiness checks
 - privacy-preserving telemetry
 - rate-limit evidence
-- incident response refs
+- incident response refs, including `docs/incident-response-runbook.md`
+- key-custody freeze refs, including `docs/key-custody-runbook.md`
 - audit-event retention refs
 
 The main checked commands on this lane are:
 
 ```bash
+npm run compliance:ops-publication-check
 npm run mainnet:observability-sink-check
 npm run ops:safe-telemetry-check
 npm run ops:rate-limit-check
@@ -169,6 +171,8 @@ Incident response on this repo means:
 - do not leak secrets while debugging
 - do not run unapproved real-funds actions
 - refresh sanitized evidence only after the incident state is understood
+
+Use `docs/incident-response-runbook.md` for the dedicated stop/suspend, evidence-preservation, secret-safe debugging, disclosure, recovery, and post-incident review flow. Use `docs/key-custody-runbook.md` when the incident touches signers, fee wallets, viewing-key material, custody refs, or emergency freeze controls.
 
 ## Backup And Restore
 

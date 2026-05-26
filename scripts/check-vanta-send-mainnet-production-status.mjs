@@ -52,13 +52,20 @@ assert.equal(status.sendDiscoveryHandoff.freshV2OnlyClaimScoped, true);
 assert.equal(status.sendDiscoveryHandoff.legacyV1SendHistoryMigrationScoped, true);
 assert.equal(status.sendDiscoveryHandoff.legacyHistoryScope?.migrated, false);
 assert.equal(status.sendDiscoveryHandoff.legacyHistoryScope?.legacyV1EligibleForProductionPrivacyClaims, false);
-assert.equal(status.sendDiscoveryHandoff.legacyHistoryScope?.status, "fresh-v2-only-production-claim-scope");
+assert.equal(status.sendDiscoveryHandoff.legacyHistoryScope?.localMigrationToolingCovered, true);
+assert.equal(status.sendDiscoveryHandoff.legacyHistoryScope?.reviewedMigrationOrSegregationEvidence, false);
+assert.equal(status.sendDiscoveryHandoff.legacyHistoryScope?.segregatedWithReviewedEvidence, false);
+assert.equal(
+  status.sendDiscoveryHandoff.legacyHistoryScope?.status,
+  "local-migration-tooling-only-reviewed-evidence-missing",
+);
 assert.equal(status.privateCoreOperatorStateRedacted, true);
 assert.equal(status.statefulVerifierIndexerCommitIdempotencyProven, false);
 assert.ok(
   sendStatusSource.includes("deployedMemoIndexerHandoffCovered &&") &&
-    sendStatusSource.includes("legacyV1SendHistoryMigrationScoped &&"),
-  "Send productionReady formula must include deployed discovery handoff and legacy v1 migration gates.",
+    sendStatusSource.includes("legacyV1SendHistoryMigrationScoped &&") &&
+    sendStatusSource.includes("reviewedLegacyV1SendMigrationOrSegregationEvidence &&"),
+  "Send productionReady formula must include deployed discovery handoff, legacy v1 migration scope, and reviewed legacy evidence gates.",
 );
 
 const expectedBlockers = [
@@ -66,6 +73,7 @@ const expectedBlockers = [
   "no-exact-send-bounded-approval-window",
   ...(status.currentApproval.approvalWindowStatus === "active" ? [] : ["bounded-approval-window-expired"]),
   "send-memo-indexer-body-hash-handoff-not-deployed",
+  "legacy-v1-send-history-reviewed-migration-or-segregation-evidence-missing",
   "stateful-verifier-indexer-commit-idempotency-not-proven",
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
@@ -105,6 +113,7 @@ for (const [key, command] of Object.entries({
 for (const phrase of [
   "Deploy the verifier-mirrored memo/indexer handoff proving opaque memo bodies match proof-bound sha256: body hashes",
   "Keep production Send privacy claims scoped to fresh v2 AEAD sends",
+  "reviewed evidence",
 ]) {
   assert.ok(
     status.requiredBeforeProduction.includes(phrase) ||
@@ -117,7 +126,7 @@ for (const phrase of [
   "deployed memo/indexer handoff proving opaque memo bodies match proof-bound sha256: body hashes",
   "explicit fresh-v2-only production claim scope",
   "local verifier-mirrored discovery handoff coverage",
-  "legacy v1 plaintext Send history remains excluded from production privacy claims",
+  "legacy v1 plaintext Send history remains excluded from production privacy claims unless migrated or segregated with reviewed evidence",
 ]) {
   assert.ok(status.truth.includes(phrase), `Send status truth missing phrase: ${phrase}`);
 }
