@@ -1,6 +1,6 @@
 # Vanta Security Limitations
 
-Last validated against repo-local code: 2026-05-14. Website deployment evidence was refreshed for commit `7635c9b`; live SBF, on-chain verifier, custody, and private-settlement evidence remain blocked.
+Last validated against repo-local code: 2026-05-25. Website deployment evidence was refreshed for commit `7635c9b`; live SBF, on-chain verifier, custody, and private-settlement evidence remain blocked. The 2026-05-24 production-privacy audit (`PRODUCTION_PRIVACY_AUDIT.md`) and the 2026-05-25 delta (`PRODUCTION_PRIVACY_AUDIT_DELTA.md`) confirm Band 1 circuit fixes have landed, a program-owned Poseidon/BN254 Merkle tree is implemented behind `TAG_APPEND_TREE_LEAF = 9`, `TAG_SHIELD = 8` accepts PDA custody under a runtime `pool_state.verifier_wired` gate that defaults to 0, and the operator-keypair unshield release path has been removed (replaced with an HTTP 503 `program-tag-unshield-pda-cpi-fail-closed` response). A residual shield-verifier-CPI gap is tracked at `npm run private-pool-v2:shield-verifier-cpi-gap-check` and the UnshieldPage carries an `unshield-withdrawals-paused-banner` guarded by `npm run unshield:paused-banner-check`. None of these movements unlock production-private claims.
 
 This page says what Vanta is allowed to claim today.
 
