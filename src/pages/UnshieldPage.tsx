@@ -2158,7 +2158,8 @@ export function UnshieldPage() {
           <span className="eyebrow product-intro__eyebrow">Move out</span>
           <h2>Unshield</h2>
           <p className="product-intro__lede">
-            Get your shielded assets back to your regular wallet.
+            Withdraw to your regular wallet once the on-chain verifier ships.
+            Withdrawals are paused in this build — see below.
           </p>
           <p className="product-intro__meta">
             Beta. Only to the wallet you used to shield them.
@@ -2191,9 +2192,12 @@ export function UnshieldPage() {
           that no single key can move shielded funds. Withdrawals will resume
           once the on-chain proof verifier is deployed and {" "}
           <code>pool_state.verifier_wired</code> can be flipped through a
-          reviewed, audited setter. Until then the operator returns
-          {" "}<code>HTTP 503</code> for every unshield request — this is the
-          intended fail-closed posture, not an outage.
+          reviewed, audited setter. There is no fixed ship date yet — progress
+          follows the Band 3 verifier ceremony on our{" "}
+          <Link to="/docs/roadmap">roadmap</Link>. Until then the operator
+          returns {" "}<code>HTTP 503</code> for every unshield request — this
+          is the intended fail-closed posture, not an outage.{" "}
+          <Link to="/docs/security">Read current security limits</Link>.
         </p>
       </aside>
 
