@@ -65,6 +65,27 @@ Review artifacts and receipts are also security-sensitive when they imply livene
 - Local browser data loss can make browser-local records unavailable; recovery without operator-side records or reviewed recovery flows must not be implied.
 - Legacy v1 plaintext memo history can remain linkable and must be migrated, quarantined, or explicitly excluded from any privacy claim.
 
+## Post-Quantum Cryptographic Exposure
+
+Vanta's current cryptographic stack assumes a classical-computer adversary. Several primitives become breakable in the presence of a cryptographically relevant quantum computer (CRQC). NIST and most major standards bodies place CRQC arrival in a 10-20 year horizon, but this is a long-tail risk and **harvest-now-decrypt-later** (HNDL) attacks accumulate exposure starting today for any ciphertext that's stored or transmitted in public-readable form.
+
+The current Vanta exposure by primitive:
+
+- **Groth16 over BN254** (planned `TAG_SPEND_WITH_PROOF` / `TAG_UNSHIELD` verifier backend, per `docs/zk/c01-production-verifier-backend-decision.md`). Groth16 soundness relies on the discrete-log assumption on BN254. A CRQC running Shor's algorithm can in principle forge proofs. This is a future-risk consideration, not a today-risk: the verifier program is not yet deployed, and the same vulnerability applies to every production SNARK in deployment today (Tornado Cash, Aztec v1, Mina pre-Hyper-K, etc.). The privacy-claim gate must already remain fail-closed for unrelated reasons until the verifier ships; tracking this exposure does not change current claims.
+- **Ed25519 signatures** (Solana). Quantum-breakable. Affects every on-chain transaction Vanta produces, including future `TAG_SHIELD` deposits, `TAG_SPEND_WITH_PROOF` submissions, and any operator-signed instruction. Mitigation is out of scope for Vanta — it's a Solana-wide migration story.
+- **X25519 viewing-key memo encryption** (`src/solana/vantaShieldViewingKey.ts`). Used to derive a shared secret for the AEAD seal of recipient-discovery memos. **This is the most exposed surface for HNDL**: every encrypted memo currently written into the recipient-discovery channel is permanently readable to any adversary who records the ciphertext today and decrypts when a CRQC exists. The mitigation path (tracked under `PPA-PQC-001`) is a hybrid X25519 + ML-KEM-768 KEM construction, matching the Signal PQXDH / Apple iMessage PQ3 / Cloudflare TLS-PQ hybrid pattern.
+- **Argon2id + AES-GCM-SHA256** vault encryption (`src/privateVault/privateVaultCrypto.ts`). Grover's algorithm halves the effective security level for symmetric primitives, which is well within the safety margin at 256-bit keys. No migration required.
+- **Poseidon / BN254 commitments** in shielded notes. Poseidon is a hash function, so the symmetric-Grover argument applies — no migration required.
+- **SHA-256** in fallback hash chains. Symmetric, Grover-safe at current key sizes.
+
+The PQC migration order, tracked in the privacy-audit kanban:
+
+1. `PPA-PQC-001` — hybrid X25519 + ML-KEM-768 KEM for the viewing-key memo channel. Addresses the HNDL exposure on encrypted recipient discovery. Refs-only design contract today; implementation deferred until library selection and key-versioning design are reviewed.
+2. `PPA-PQC-002` — lattice-based SNARK research tracking (Aztec Hyper-K, lattice-Plonk variants, hash-based STARKs). Watch the field; do not migrate the Noir circuits today.
+3. (Out of scope) Ed25519 → ML-DSA migration is a Solana platform issue, not a Vanta protocol issue.
+
+These items are explicit non-blockers for the current production-private claim gate. They are tracked here so the threat model reflects honest long-horizon exposure and so the work can be sequenced before a CRQC is plausible. Auditors and partners doing due diligence will ask about PQC posture; this section is the truthful answer.
+
 ## Required Before Production-Private Claims
 
 Before Vanta can claim production-private, proof-verified, program-owned custody, fresh-exit privacy, shared-tree privacy, or live anonymity, all of the following must have positive evidence:
