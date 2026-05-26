@@ -1133,6 +1133,21 @@ fn process_shield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) ->
         let pool_data = pool_state.try_borrow_data()?;
         require_pool_verifier_wired(&pool_data, ERR_PROOF_VERIFIER_NOT_WIRED)?;
 
+        // VANTA-PPA-NEW-001 (shield-verifier-cpi-gap):
+        // When `pool_state.verifier_wired` flips from 0 → 1 in a future diff,
+        // this function MUST also invoke the Shield Groth16 verifier CPI
+        // BEFORE the lamports transfer below. The current implementation
+        // trusts the depositor to construct a valid `output_commitment`
+        // off-chain, so a user who shields against a future-incompatible
+        // commitment scheme would lose their note (their deposit lands in
+        // the PDA but their note never proves valid).
+        //
+        // Acceptance contract: the diff that adds a `verifier_wired = 1`
+        // setter must also (a) invoke a Shield verifier CPI here whose
+        // acceptance gates the transfer, (b) remove this marker, and
+        // (c) flip `npm run private-pool-v2:shield-verifier-cpi-gap-check`
+        // from PASS-acknowledging-gap → PASS-cpi-wired.
+
         let sol_vault_holding = vault_authority;
         let transfer_ix =
             system_instruction::transfer(depositor.key, sol_vault_holding.key, shield_amount);
@@ -1160,6 +1175,11 @@ fn process_shield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) ->
 
         let pool_data = pool_state.try_borrow_data()?;
         require_pool_verifier_wired(&pool_data, ERR_PROOF_VERIFIER_NOT_WIRED)?;
+
+        // VANTA-PPA-NEW-001 (shield-verifier-cpi-gap): see SOL branch above.
+        // SPL shield has the same gap — when verifier_wired flips, the SPL
+        // verifier CPI must be added here before the transfer_checked CPI
+        // below, and the gap-check guard updated accordingly.
 
         let transfer_ix = spl_token::instruction::transfer_checked(
             cpi_program.key,
