@@ -18,6 +18,7 @@
   "purpose": "Outbound refs-only artifact-producer request for C01 production verifier evidence. This packet gives an external producer or reviewer the exact source inputs, current H6 public input binding, required returned refs, validation commands, and comparison-only local evidence boundaries for the selected Sunspot/Gnark Groth16 tag-3 route.",
   "artifactAcquisitionPacketRef": "ops/mainnet/private-pool-v2-c01-sunspot-gnark-artifact-acquisition.packet.json",
   "externalReviewHandoffRef": "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json",
+  "externalReviewRequestBundleRef": "ops/mainnet/private-pool-v2-c01-external-review-request-bundle.evidence.json",
   "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
   "sourceReviewPacketRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-migration-review.evidence.json",
   "sourceReviewAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",

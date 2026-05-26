@@ -39,8 +39,21 @@ Use the machine-readable handoff first:
 
 - `ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json`
 - `ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json`
+- `ops/mainnet/private-pool-v2-c01-external-review-request-bundle.evidence.json`
 
 The handoff and request packets are refs-only. They define the required returned packet shapes but do not supply accepted refs.
+
+## Outbound Request Bundle
+
+Use `ops/mainnet/private-pool-v2-c01-external-review-request-bundle.evidence.json` as the send-list before engaging the external artifact producer or reviewer. It pins the repo-local handoff files, reviewed-return templates, acceptance gates, and local audit context files by `sha256:` hash so the recipient can confirm they are reviewing the intended packet set.
+
+Validate the send-list locally with:
+
+```bash
+npm run zk:c01-external-review-request-bundle-check
+```
+
+This bundle is only an outbound request manifest. It is not reviewed frozen source, not source-freeze acceptance, not production proof/VK/public-witness evidence, not verifier-adapter acceptance, not deployed verifier evidence, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure.
 
 ## Local Reviewer Starting Point
 

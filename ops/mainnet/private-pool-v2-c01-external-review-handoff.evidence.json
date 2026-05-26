@@ -17,6 +17,7 @@
   "candidatePacketRef": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
   "productionVerifierArtifactRequestRef": "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
   "humanHandoffRef": "ops/mainnet/private-pool-v2-c01-external-evidence-request.md",
+  "requestBundleRef": "ops/mainnet/private-pool-v2-c01-external-review-request-bundle.evidence.json",
   "closureGateRef": "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json",
   "currentRequiredShape": {
     "target": "solana-c01-tag3-groth16-v0",
