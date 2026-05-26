@@ -117,7 +117,7 @@ assert.ok(
 
 assert.equal(discovery.schemaVersion, "vanta-public-audit-discovery-0.1");
 assert.equal(discovery.path, "/.well-known/vanta-audit.json");
-assert.equal(discovery.generatedAt, "2026-05-20");
+assert.equal(discovery.generatedAt, "2026-05-26");
 assert.equal(discovery.auditClaimAllowed, false);
 assert.equal(discovery.thirdPartyAuditAccepted, false);
 assert.equal(discovery.productionReady, false);
@@ -131,12 +131,12 @@ assert.equal(discovery.liveDeploymentVerified, false);
 // "pending re-attestation" status until a follow-up live verification rerun records
 // the current live commit and asset hash.
 assert.deepEqual(discovery.websiteDeployment, {
-  status: "pending-reattestation-after-2026-05-14-deploy-drift",
-  lastVerifiedCommit: "7635c9b641a505379b82e74a6679986dbabc55fe",
-  lastVerifiedAt: "2026-05-14T22:05:07Z",
+  status: "last-verified-website-deploy",
+  lastVerifiedCommit: "bf3ee40a034e0bbb3550c07532b6c96bddfcc7dc",
+  lastVerifiedAt: "2026-05-26T01:04:05Z",
   liveUrl: "https://vantaprivacy.xyz",
   truthBoundary:
-    "The last externally verified website deploy referenced commit 7635c9b641a505379b82e74a6679986dbabc55fe and the asset hash assets/index-C5gkBpDx.js. The current live site is serving a newer asset; re-attestation against the current commit and asset hash is required before this record can be cited as live evidence. Render service / deploy identifiers have been moved out of the public manifest. Private settlement, SBF, verifier, custody, and anonymity evidence remain blocked.",
+    "This records the website bundle attested at commit bf3ee40a034e0bbb3550c07532b6c96bddfcc7dc with asset hash assets/index-C0Eqol52.js from the 2026-05-26 pre-deploy build verification. Live URL must serve this commit after the next Render deploy before citing as live evidence. Private settlement, SBF, verifier, custody, and anonymity evidence remain blocked.",
 });
 assert.equal(discovery.privacyClaimAllowed, false);
 assert.equal(discovery.anonymityClaimAllowed, false);
