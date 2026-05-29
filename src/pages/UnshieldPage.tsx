@@ -2985,8 +2985,8 @@ export function UnshieldPage() {
 
 
 
-              <div className="unshield-ticket__action">
-                <p className="shield-helper">{validationMessage}</p>
+              <p className="shield-helper unshield-validation">{validationMessage}</p>
+              <div className="unshield-ticket__action unshield-ticket__action--primary">
                 <button
                   className="button button-primary"
                   type="button"
@@ -3012,10 +3012,13 @@ export function UnshieldPage() {
             </div>
           </div>
 
-              <PrivacySummary
-                items={UNSHIELD_PRIVACY_SUMMARY_ITEMS}
-                note="Beta. Operator can see funds until program-owned release ships."
-              />
+              <details className="unshield-truth-drawer">
+                <summary>Privacy summary</summary>
+                <PrivacySummary
+                  items={UNSHIELD_PRIVACY_SUMMARY_ITEMS}
+                  note="Beta. Operator can see funds until program-owned release ships."
+                />
+              </details>
 
               <details className="unshield-advanced-toggle">
                 <summary>Advanced</summary>

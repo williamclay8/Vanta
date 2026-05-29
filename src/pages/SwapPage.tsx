@@ -2022,14 +2022,20 @@ export function SwapPage() {
                 <span>{quoteStatusLabel}</span>
               </div>
 
-              <p className="shield-helper shield-helper--meta">{routeLabel}</p>
-              <p className="shield-helper shield-helper--meta">{routeTruthLabel}</p>
-              <p className="shield-helper">{validationMessage}</p>
+              <details className="swap-truth-drawer">
+                <summary>Route details</summary>
+                <p className="shield-helper shield-helper--meta">{routeLabel}</p>
+                <p className="shield-helper shield-helper--meta">{routeTruthLabel}</p>
+              </details>
+              <p className="shield-helper swap-validation">{validationMessage}</p>
 
-              <PrivacySummary
-                items={SWAP_PRIVACY_SUMMARY_ITEMS}
-                note="Swap production privacy is locked until route adapters, verifier-backed settlement, audit, and operator gates pass."
-              />
+              <details className="swap-truth-drawer">
+                <summary>Privacy summary</summary>
+                <PrivacySummary
+                  items={SWAP_PRIVACY_SUMMARY_ITEMS}
+                  note="Swap production privacy is locked until route adapters, verifier-backed settlement, audit, and operator gates pass."
+                />
+              </details>
 
               <SwapAdvancedPanel
                 maxSlippageLabel={formatSwapSlippage(quoteSlippageBps)}
@@ -2103,7 +2109,7 @@ export function SwapPage() {
                 )}
               </section>
 
-              <div className="shield-form__actions">
+              <div className="shield-form__actions shield-form__actions--primary">
                 <button
                   className="button button-primary"
                   type="button"

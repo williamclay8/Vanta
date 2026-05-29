@@ -584,3 +584,295 @@ body.vanta-refresh .dashboard-focus-card__chips span {
     min-height: 0;
   }
 }
+
+/* Shared lane truth drawer styling */
+.swap-page .swap-truth-drawer,
+.unshield-page .unshield-truth-drawer {
+  border: 1px dashed var(--v-border-strong);
+  border-radius: var(--v-r-sm);
+  padding: 10px 12px;
+  color: var(--v-muted);
+}
+
+.swap-page .swap-truth-drawer summary,
+.unshield-page .unshield-truth-drawer summary,
+.swap-page [data-vanta-swap-advanced-panel] summary {
+  cursor: pointer;
+  font-family: var(--v-font-label);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--v-muted-strong);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.swap-page .swap-truth-drawer[open] summary,
+.unshield-page .unshield-truth-drawer[open] summary {
+  margin-bottom: 8px;
+}
+
+.swap-page .swap-validation,
+.unshield-page .unshield-validation {
+  font-size: 0.86rem;
+  color: var(--v-muted-strong);
+}
+
+/* Swap lane — mobile-first pass (P2) */
+@media (max-width: 640px) {
+  .swap-page .lane-flow-indicator {
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .swap-page .lane-flow-step {
+    min-height: 44px;
+    padding: 10px 5px;
+    border-radius: 12px;
+  }
+
+  .swap-page .lane-flow-step span {
+    justify-content: center;
+    width: 100%;
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .swap-page .swap-coming-soon {
+    margin-inline: 16px;
+  }
+
+  .swap-page .swap-module {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .swap-page .swap-module__label-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .swap-page .swap-route-card__row {
+    gap: 10px;
+  }
+
+  .swap-page .swap-route-card .swap-asset-select,
+  .swap-page .swap-route-card .swap-amount-controls input {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .swap-page .swap-route-card .swap-max-btn {
+    min-height: 44px;
+  }
+
+  .swap-page .swap-recent-swaps__card .button {
+    min-height: 44px;
+    width: 100%;
+  }
+
+  .swap-page .shield-form {
+    padding-bottom: 76px;
+  }
+
+  .swap-page .shield-form__actions--primary {
+    position: sticky;
+    bottom: 0;
+    z-index: 6;
+    margin: 8px -12px -12px;
+    padding: 12px 12px max(12px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--v-border);
+    background:
+      linear-gradient(180deg, rgba(11, 16, 24, 0.88), rgba(11, 16, 24, 0.98));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .swap-page .shield-form__actions--primary .button-primary {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
+/* Unshield lane — mobile-first pass (P2) */
+@media (max-width: 640px) {
+  .unshield-page .lane-flow-indicator {
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .unshield-page .lane-flow-step {
+    min-height: 44px;
+    padding: 10px 6px;
+    border-radius: 12px;
+  }
+
+  .unshield-page .lane-flow-step span {
+    justify-content: center;
+    width: 100%;
+    font-size: 0.58rem;
+    letter-spacing: 0.07em;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .unshield-page .unshield-paused-banner {
+    margin-inline: 16px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .unshield-page .unshield-ticket {
+    padding-bottom: 76px;
+  }
+
+  .unshield-page .swap-module {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .unshield-page .swap-module__label-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .unshield-page .unshield-ticket__field .send-asset-field select,
+  .unshield-page .unshield-ticket__field .amount-field input {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .unshield-page .unshield-ticket__field .amount-field .button-ghost {
+    min-height: 44px;
+  }
+
+  .unshield-page .unshield-destination-card__row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .unshield-page .unshield-advanced-toggle summary,
+  .unshield-page [data-vanta-unshield-advanced-panel] summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .unshield-page .unshield-ticket__action--primary {
+    position: sticky;
+    bottom: 0;
+    z-index: 6;
+    grid-template-columns: 1fr;
+    margin: 8px -12px -12px;
+    padding: 12px 12px max(12px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--v-border);
+    background:
+      linear-gradient(180deg, rgba(11, 16, 24, 0.88), rgba(11, 16, 24, 0.98));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .unshield-page .unshield-ticket__action--primary .button-primary {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
+/* Pay lane — mobile-first pass (P2) */
+@media (max-width: 640px) {
+  .pay-page .lane-flow-indicator {
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .pay-page .lane-flow-step {
+    min-height: 44px;
+    padding: 10px 5px;
+    border-radius: 12px;
+  }
+
+  .pay-page .lane-flow-step span {
+    justify-content: center;
+    width: 100%;
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .pay-page .pay-request-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pay-page .pay-hero-badges {
+    align-items: stretch;
+  }
+
+  .pay-page .pay-advanced-settings summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pay-page .pay-mode-control {
+    grid-template-columns: 1fr;
+  }
+
+  .pay-page .pay-mode-control button {
+    min-height: 44px;
+    width: 100%;
+  }
+
+  .pay-page .pay-request-meta dd {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .pay-page .pay-form--minimal {
+    padding-bottom: 88px;
+  }
+
+  .pay-page .pay-form__actions--primary {
+    position: sticky;
+    bottom: 0;
+    z-index: 6;
+    display: grid;
+    gap: 8px;
+    margin: 8px -12px -12px;
+    padding: 12px 12px max(12px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--v-border);
+    background:
+      linear-gradient(180deg, rgba(11, 16, 24, 0.88), rgba(11, 16, 24, 0.98));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .pay-page .pay-form__actions--primary .button-primary {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .pay-page .pay-primary-actions .button {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+@media (min-width: 641px) {
+  .swap-page .swap-truth-drawer summary,
+  .unshield-page .unshield-truth-drawer summary,
+  .swap-page [data-vanta-swap-advanced-panel] summary,
+  .pay-page .pay-advanced-settings summary {
+    min-height: 0;
+  }
+}

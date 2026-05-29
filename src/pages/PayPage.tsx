@@ -497,14 +497,12 @@ export function PayPage() {
                       </label>
                     </div>
                   </details>
-                  <PayButton
-                    type="submit"
-                  >
-                    Create payment request
-                  </PayButton>
-                  <small className="pay-submit-note">
-                    Creates a test payment request. Completion generates a local receipt packet for review.
-                  </small>
+                  <div className="pay-form__actions pay-form__actions--primary">
+                    <PayButton type="submit">Create payment request</PayButton>
+                    <small className="pay-submit-note">
+                      Creates a test payment request. Completion generates a local receipt packet for review.
+                    </small>
+                  </div>
                 </form>
               </section>
 
