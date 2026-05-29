@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
+import { VantaBootSplash } from "@/components/VantaBootSplash";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 const ProductAppRoot = lazy(() =>
   import("@/ProductAppRoot").then((m) => ({ default: m.ProductAppRoot })),
@@ -72,7 +73,7 @@ const ActualPrivateSettlementPage = lazy(() =>
 
 function App() {
   return (
-    <Suspense fallback={<div className="app-shell">Loading…</div>}>
+    <Suspense fallback={<VantaBootSplash />}>
       <RouteErrorBoundary>
         <Routes>
           <Route path="/" element={<HomePage />} />

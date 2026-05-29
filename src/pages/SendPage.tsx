@@ -1855,7 +1855,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 walletPrompt="Wallet approval"
                 signingMode="Transaction approval"
                 rows={[
-                  { label: "Action", value: "Record a constrained Send transition" },
+                  { label: "Action", value: "Send privately from shielded balance" },
                   { label: "Asset", value: selectedAsset },
                   {
                     label: "Amount",
@@ -1878,7 +1878,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               tone="processing"
               phase="confirmed"
               title="Send in progress"
-              message="Recording the constrained Send transition from your shielded balance."
+              message="Encrypting and submitting your send privately. This usually takes a few seconds."
               progress
               floating
             >
@@ -1893,7 +1893,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               tone="processing"
               phase="confirmed"
               title="Updating your private balance"
-              message="Confirming the spent marker and resolving the next spendable note set, including any residual change note."
+              message="Securing your updated balance and preparing the next spendable notes."
               progress
               floating
             >
@@ -1908,7 +1908,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               tone="error"
               phase="failed"
               title="Send failed"
-              message="Your shielded balance was not changed. Try again."
+              message="Your shielded balance was not changed. Review the details below and try again."
               floating
             >
               {flowError && <p className="shield-helper shield-helper--error">{flowError}</p>}
@@ -1932,8 +1932,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
               title="Send complete"
               message={
                 lastSentAmount !== null && lastRecipient
-                  ? `${formatBalance(lastSentAmount, "USDC")} was recorded from shielded state for recipient ${lastRecipient}.`
-                  : "The constrained Vanta send note was confirmed."
+                  ? `${formatBalance(lastSentAmount, "USDC")} sent privately to ${lastRecipient}.`
+                  : "Your private send was confirmed."
               }
               floating
             >

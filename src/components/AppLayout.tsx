@@ -5,6 +5,7 @@ import {
   createMobileWalletOpenLinks,
   shouldShowMobileWalletPrompt,
 } from "@/components/MobileWalletOpenPrompt";
+import { VantaBootSplash } from "@/components/VantaBootSplash";
 import { VantaStatusChip } from "@/components/VantaStatusChip";
 import { useWalletState } from "@/data/context/WalletContext";
 import { getPeerOnrampAvailability } from "@/peer/peerConfig";
@@ -596,13 +597,7 @@ export function AppLayout() {
       </header>
 
       <main className="app-content app-content--minimal" data-route-path={location.pathname}>
-        <Suspense
-          fallback={
-            <div className="app-content__route-loading" role="status">
-              Loading route...
-            </div>
-          }
-        >
+        <Suspense fallback={<VantaBootSplash label="Loading route" />}>
           <Outlet />
         </Suspense>
       </main>

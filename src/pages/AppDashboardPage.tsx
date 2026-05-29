@@ -1,4 +1,13 @@
 import { Link } from "react-router-dom";
+import { AssetChip } from "@/components/AssetChip";
+import { DashboardActivityTimeline } from "@/components/dashboard/DashboardActivityTimeline";
+import { DashboardAllocationRing } from "@/components/dashboard/DashboardAllocationRing";
+import { DashboardSparkline } from "@/components/dashboard/DashboardSparkline";
+import {
+  buildAllocationSlices,
+  buildSparklinePoints,
+  mapLifecycleActivities,
+} from "@/components/dashboard/dashboardVizUtils";
 import { VantaStatusChip } from "@/components/VantaStatusChip";
 import { formatVantaSolAmount } from "@/solana/solAmountFormat";
 import { useVantaPositionSummary } from "@/solana/useVantaPositionSummary";
@@ -28,30 +37,6 @@ function formatShieldedTokenPosition(value: number, symbol: string) {
   })} ${symbol}`;
 }
 
-function formatRelativeTime(timestamp: number | null) {
-  if (!timestamp) {
-    return "No activity yet";
-  }
-
-  const elapsedMs = Date.now() - timestamp;
-  const elapsedMinutes = Math.round(elapsedMs / 60_000);
-
-  if (elapsedMinutes < 1) {
-    return "Just now";
-  }
-
-  if (elapsedMinutes < 60) {
-    return `${elapsedMinutes} min ago`;
-  }
-
-  const elapsedHours = Math.round(elapsedMinutes / 60);
-  if (elapsedHours < 48) {
-    return `${elapsedHours} hr ago`;
-  }
-
-  return new Date(timestamp).toLocaleDateString();
-}
-
 export function AppDashboardPage() {
   const positionSummary = useVantaPositionSummary();
 
@@ -79,6 +64,21 @@ export function AppDashboardPage() {
           primaryShieldedTokenPosition.symbol,
         );
   const primaryBalanceUnit = hasShieldedSol ? "SOL" : primaryShieldedTokenPosition.symbol;
+
+  const allocationSlices = buildAllocationSlices({
+    shieldedSolBalance,
+    tokenPositions: shieldedTokenPositions,
+  });
+  const portfolioTotal =
+    shieldedSolBalance +
+    shieldedTokenPositions.reduce((sum, position) => sum + position.balance, 0);
+  const sparklinePoints = buildSparklinePoints(
+    portfolioTotal,
+    positionSummary.recentLifecycleActivities,
+  );
+  const activityItems = mapLifecycleActivities(positionSummary.recentLifecycleActivities, 5);
+  const balanceTrendPositive =
+    sparklinePoints.length === 0 || sparklinePoints[sparklinePoints.length - 1] >= sparklinePoints[0];
 
   const statusLine = isValueUnavailable
     ? "Balances are temporarily unavailable. Retry from Shield once the local view refreshes."
@@ -151,12 +151,18 @@ export function AppDashboardPage() {
             </div>
             <p className="dashboard-cockpit__balance-note">{statusLine}</p>
           </div>
+          <div className="dashboard-cockpit__viz">
+            <DashboardSparkline points={sparklinePoints} positive={balanceTrendPositive} />
+            <DashboardAllocationRing slices={allocationSlices} />
+          </div>
         </div>
 
         <div className="dashboard-cockpit__metrics">
           <article className="v-metric">
-            <div className="v-metric__label">Shielded {primaryShieldedTokenPosition.symbol}</div>
-            <div className="v-metric__value">
+            <div className="v-metric__label">
+              Shielded <AssetChip symbol={primaryShieldedTokenPosition.symbol} />
+            </div>
+            <div className={["v-metric__value", hasSpendableShieldedValue ? "v-pos" : ""].filter(Boolean).join(" ")}>
               {isValueUnavailable
                 ? "Unavailable"
                 : formatShieldedTokenPosition(
@@ -174,8 +180,10 @@ export function AppDashboardPage() {
             )}
           </article>
           <article className="v-metric">
-            <div className="v-metric__label">Shielded SOL</div>
-            <div className="v-metric__value">
+            <div className="v-metric__label">
+              Shielded <AssetChip symbol="SOL" />
+            </div>
+            <div className={["v-metric__value", hasShieldedSol ? "v-pos" : ""].filter(Boolean).join(" ")}>
               {isValueUnavailable ? "Unavailable" : formatVantaSolAmount(shieldedSolBalance)}
             </div>
             <div className="v-metric__sub">
@@ -184,7 +192,14 @@ export function AppDashboardPage() {
           </article>
           <article className="v-metric">
             <div className="v-metric__label">Spendable notes</div>
-            <div className="v-metric__value">{spendableNoteCount}</div>
+            <div
+              className={[
+                "v-metric__value",
+                positionSummary.registryRefreshing ? "v-pending" : spendableNoteCount > 0 ? "v-pos" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >{spendableNoteCount}</div>
             <div className="v-metric__sub">
               {positionSummary.spendableNoteCount} token · {positionSummary.spendableShieldedSolNoteCount} SOL
             </div>
@@ -232,13 +247,7 @@ export function AppDashboardPage() {
 
       <div className="dashboard-cockpit__activity v-metric">
         <div className="v-metric__label">Recent activity</div>
-        <div className="dashboard-cockpit__activity-row">
-          <div>
-            <strong>{positionSummary.latestActionLabel}</strong>
-            <div className="v-metric__sub">{formatRelativeTime(positionSummary.latestActionTimestamp)}</div>
-          </div>
-          <span className="v-chip v-chip--beta">{positionSummary.networkLabel}</span>
-        </div>
+        <DashboardActivityTimeline items={activityItems} />
       </div>
 
       <Link className="v-proof-drawer dashboard-cockpit__proof-link" to="/app/proof">
