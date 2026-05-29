@@ -1767,10 +1767,13 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 </button>
               </div>
 
-              <PrivacySummary
-                items={SEND_PRIVACY_SUMMARY_ITEMS}
-                note="Send production privacy is locked until live evidence, approval, audit, replay, and operator gates pass."
-              />
+              <details className="send-truth-drawer">
+                <summary>Privacy summary</summary>
+                <PrivacySummary
+                  items={SEND_PRIVACY_SUMMARY_ITEMS}
+                  note="Send production privacy is locked until live evidence, approval, audit, replay, and operator gates pass."
+                />
+              </details>
 
               <details
                 className="send-advanced-panel"
@@ -1815,11 +1818,11 @@ export function SendPage({ dashboard = false }: SendPageProps) {
                 </div>
               </details>
 
-              <p className="shield-helper" data-vanta-send-ledger-gate-status>
+              <p className="shield-helper send-validation" data-vanta-send-ledger-gate-status>
                 {sendHelperMessage}
               </p>
 
-              <div className="shield-form__actions">
+              <div className="shield-form__actions shield-form__actions--primary">
                 <button
                   className="button button-primary"
                   data-vanta-send-primary-action
