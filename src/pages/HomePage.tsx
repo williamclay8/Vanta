@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { AnonymityDepthDisclosure } from "@/components/AnonymityDepthDisclosure";
 import { BrandMark } from "@/components/BrandMark";
 import { LandingLiveStrip } from "@/components/LandingLiveStrip";
 
@@ -194,14 +193,13 @@ export function HomePage() {
       <section className="landing-minimal__hero">
         <div className="landing-minimal__hero-shell">
           <div className="landing-minimal__hero-copy">
-            <div className="landing-minimal__kicker">Private Solana, in beta</div>
+            <div className="landing-minimal__kicker">Private Solana · beta</div>
             <h1>
-              Shield, send, and exit.
-              <span> Privately.</span>
+              Move on Solana.
+              <span> No one watching.</span>
             </h1>
             <p>
-              Open the app to shield assets and use the beta lanes. Operator-trusted,
-              not yet audited, no production-privacy claim made.
+              Shield, send, swap, and exit from a private balance. Beta on devnet — production privacy is not enabled yet.
             </p>
 
             <div className="landing-minimal__actions">
@@ -220,7 +218,12 @@ export function HomePage() {
 
       <LandingLiveStrip />
 
-      <AnonymityDepthDisclosure />
+      <section className="landing-minimal__proof-link-panel" aria-label="Proof and readiness">
+        <Link className="v-proof-drawer landing-minimal__proof-link" to="/app/proof">
+          <span>Proof details — anonymity readiness, lane locks, and verification commands</span>
+          <span aria-hidden="true">→</span>
+        </Link>
+      </section>
 
       <section
         className="landing-minimal__panel landing-minimal__panel--narrative"

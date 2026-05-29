@@ -1,0 +1,216 @@
+/* ============================================================================
+   vanta-theme-refresh.css  —  additive, drop-in visual refresh layer
+   ----------------------------------------------------------------------------
+   Implements the audit's recommended direction (trader-first feel) WITHOUT
+   editing the 9,511-line src/styles.css. Two parts:
+
+     PART A  Design tokens + new utility classes — GLOBAL and purely additive
+             (all names are NEW, so nothing existing can break). Adopt the
+             utilities incrementally in JSX.
+
+     PART B  Component refinements (confident CTA, calmer data surfaces, less
+             glass) — SCOPED under `body.vanta-refresh`, so they are OFF by
+             default and reversible by toggling one class.
+
+   INTEGRATION
+     1. import after the main stylesheet:        import "@/styles.css";
+                                                  import "@/vanta-theme-refresh.css";
+     2. preview Part B live:  add class "vanta-refresh" to <body> (or the app root).
+     3. promote to permanent: fold PART A tokens into a real token module and let
+        styles.css consume them; reconcile DESIGN.md (see note below).
+
+   DESIGN.md DRIFT NOTE
+     DESIGN.md declares accent #00e5c8 but the app ships #77f2d4. This file treats
+     the SHIPPED value (#77f2d4) as canonical and exposes it as --v-accent.
+     Update DESIGN.md to match, or change --v-accent here — but pick ONE.
+   ============================================================================ */
+
+/* ====================== PART A — TOKENS (global, additive) ================= */
+:root {
+  /* brand (canonical = shipped value) */
+  --v-accent:           #77f2d4;
+  --v-accent-strong:    #5fe9c6;
+  --v-accent-press:     #46d9b8;
+  --v-accent-soft:      rgba(119, 242, 212, 0.12);
+  --v-accent-line:      rgba(119, 242, 212, 0.40);
+
+  /* secondary / premium ledger tone (kept from existing palette) */
+  --v-gold:             #e4c781;
+  --v-gold-soft:        rgba(228, 199, 129, 0.12);
+
+  /* SEMANTIC DATA COLORS — the missing layer that makes it read as a trading product */
+  --v-pos:              #46e08a;   /* gains / inbound / success value */
+  --v-pos-soft:         rgba(70, 224, 138, 0.12);
+  --v-neg:              #ff6f6f;   /* losses / outbound */
+  --v-neg-soft:         rgba(255, 111, 111, 0.12);
+  --v-pending:          #ffc957;   /* processing / awaiting confirmation */
+  --v-pending-soft:     rgba(255, 201, 87, 0.12);
+  --v-info:             #9bbdff;   /* informational / verified */
+  --v-info-soft:        rgba(155, 189, 255, 0.12);
+
+  /* surfaces — solid + elevated (crisp data) rather than heavy glass */
+  --v-bg:               #04060a;
+  --v-panel:            #0b1018;
+  --v-panel-2:          #0f151e;
+  --v-panel-3:          #131b25;
+  --v-border:           rgba(243, 247, 242, 0.09);
+  --v-border-strong:    rgba(243, 247, 242, 0.16);
+
+  /* text */
+  --v-text:             #f3f7f2;
+  --v-muted:            #8b9997;
+  --v-muted-strong:     rgba(243, 247, 242, 0.72);
+
+  /* type roles (mirror DESIGN.md) */
+  --v-font-display:     "Syne", system-ui, sans-serif;
+  --v-font-body:        "Manrope", system-ui, sans-serif;
+  --v-font-label:       "Space Grotesk", system-ui, sans-serif;
+  --v-font-mono:        "Space Mono", ui-monospace, monospace;
+
+  /* radius / spacing / elevation / motion */
+  --v-r-sm: 8px;  --v-r-md: 12px;  --v-r-lg: 18px;
+  --v-space-xs: 8px; --v-space-sm: 12px; --v-space-md: 16px; --v-space-lg: 24px; --v-space-xl: 32px;
+  --v-elev-1: 0 8px 24px rgba(0, 0, 0, 0.28);
+  --v-elev-2: 0 16px 40px rgba(0, 0, 0, 0.34);
+  --v-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --v-dur: 180ms;
+}
+
+/* ---- value text: sign-aware color (use on any number) ---- */
+.v-pos { color: var(--v-pos); }
+.v-neg { color: var(--v-neg); }
+.v-pending { color: var(--v-pending); }
+.v-info { color: var(--v-info); }
+.v-num { font-variant-numeric: tabular-nums; font-family: var(--v-font-mono); }
+
+/* ---- status chip (calm beta truth, live state, semantic states) ---- */
+.v-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--v-font-label);
+  font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 4px 9px; border-radius: 999px;
+  border: 1px solid var(--v-border); color: var(--v-muted-strong);
+}
+.v-chip--live    { color: var(--v-accent);  border-color: var(--v-accent-line); background: var(--v-accent-soft); }
+.v-chip--beta    { color: var(--v-gold);    border-color: rgba(228,199,129,0.35); background: var(--v-gold-soft); }
+.v-chip--pos     { color: var(--v-pos);     border-color: rgba(70,224,138,0.30);  background: var(--v-pos-soft); }
+.v-chip--pending { color: var(--v-pending); border-color: rgba(255,201,87,0.30);  background: var(--v-pending-soft); }
+.v-chip__dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* ---- metric / balance cards (solid, scannable) ---- */
+.v-metric {
+  background: var(--v-panel-2); border: 1px solid var(--v-border);
+  border-radius: var(--v-r-md); padding: 12px 13px;
+}
+.v-metric__label { font-family: var(--v-font-label); font-size: 0.62rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--v-muted); }
+.v-metric__value { font-size: 1.2rem; font-weight: 700; margin-top: 5px; font-variant-numeric: tabular-nums; }
+.v-metric__sub   { font-size: 0.68rem; color: var(--v-muted); margin-top: 2px; }
+
+.v-balance {
+  font-family: var(--v-font-display); font-weight: 800;
+  letter-spacing: -0.03em; line-height: 1; font-size: clamp(2rem, 6vw, 2.6rem);
+  font-variant-numeric: tabular-nums;
+}
+.v-balance small { font-size: 0.45em; color: var(--v-muted); font-weight: 600; font-family: var(--v-font-body); }
+
+/* ---- action tile (fast, inviting) ---- */
+.v-tile {
+  position: relative; display: block; text-align: left;
+  border: 1px solid var(--v-border); border-radius: var(--v-r-md);
+  background: var(--v-panel-2); padding: 13px 12px;
+  transition: border-color var(--v-dur) var(--v-ease), transform var(--v-dur) var(--v-ease);
+}
+.v-tile:hover { border-color: var(--v-border-strong); transform: translateY(-2px); }
+.v-tile__icon {
+  width: 30px; height: 30px; border-radius: 9px; display: inline-flex;
+  align-items: center; justify-content: center;
+  background: var(--v-accent-soft); color: var(--v-accent); margin-bottom: 9px;
+}
+.v-tile--swap .v-tile__icon { background: var(--v-gold-soft); color: var(--v-gold); }
+.v-tile__title { font-family: var(--v-font-display); font-weight: 700; font-size: 0.98rem; margin: 0; }
+.v-tile__sub   { font-size: 0.68rem; color: var(--v-muted); }
+.v-tile__badge { position: absolute; top: 11px; right: 11px; font-family: var(--v-font-label); font-size: 0.55rem; letter-spacing: 0.10em; text-transform: uppercase; color: var(--v-accent); }
+
+/* ---- proof drawer (where reviewer detail goes to hide) ---- */
+.v-proof-drawer {
+  display: flex; align-items: center; justify-content: space-between;
+  border: 1px dashed var(--v-border-strong); border-radius: var(--v-r-md);
+  padding: 11px 13px; color: var(--v-muted); font-size: 0.78rem; cursor: pointer;
+  transition: border-color var(--v-dur) var(--v-ease), color var(--v-dur) var(--v-ease);
+}
+.v-proof-drawer:hover { border-color: var(--v-accent-line); color: var(--v-muted-strong); }
+
+/* ---- reassurance note (calm progress / safety copy) ---- */
+.v-reassure {
+  display: flex; gap: 9px; align-items: flex-start;
+  background: var(--v-accent-soft); border: 1px solid var(--v-accent-line);
+  border-radius: var(--v-r-sm); padding: 10px 11px;
+  font-size: 0.76rem; color: var(--v-muted-strong);
+}
+
+/* ---- satisfying success moment ---- */
+.v-success-ring {
+  width: 54px; height: 54px; border-radius: 50%;
+  background: var(--v-accent-soft); border: 1px solid var(--v-accent-line);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--v-accent); font-size: 1.5rem;
+  animation: v-pop 420ms var(--v-ease) both;
+}
+@keyframes v-pop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+@keyframes v-countup-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.v-animate-in { animation: v-countup-fade 320ms var(--v-ease) both; }
+@media (prefers-reduced-motion: reduce) {
+  .v-success-ring, .v-animate-in { animation: none; }
+}
+
+/* ====================== PART B — REFINEMENTS (opt-in) ====================== */
+/* Activate by adding class "vanta-refresh" to <body>. Reversible. */
+
+/* Confident, scarce primary action */
+body.vanta-refresh .button-primary {
+  background: linear-gradient(180deg, #d4fff5 0%, var(--v-accent) 100%);
+  color: #04130f;
+  box-shadow: 0 0 0 1px var(--v-accent-line), 0 10px 26px rgba(119, 242, 212, 0.20);
+}
+body.vanta-refresh .button-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #d4fff5 0%, var(--v-accent-strong) 100%);
+  transform: translateY(-1px);
+}
+body.vanta-refresh .button-primary:active:not(:disabled) { transform: scale(0.97); }
+
+/* Calmer data surfaces: trade heavy glass for solid, crisp panels.
+   Targets the dashboard panels by their existing class names. */
+body.vanta-refresh .dashboard-trust-packet,
+body.vanta-refresh .dashboard-verification-card,
+body.vanta-refresh .dashboard-action-card,
+body.vanta-refresh .dashboard-next-step-card,
+body.vanta-refresh .dashboard-release-card,
+body.vanta-refresh .position-summary,
+body.vanta-refresh .status-panel {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: var(--v-panel-2);
+  border: 1px solid var(--v-border);
+  box-shadow: var(--v-elev-1);
+}
+
+/* Action tiles lift on hover for an inviting, fast feel */
+body.vanta-refresh .dashboard-action-card {
+  transition: border-color var(--v-dur) var(--v-ease), transform var(--v-dur) var(--v-ease);
+}
+body.vanta-refresh .dashboard-action-card:hover {
+  border-color: var(--v-border-strong);
+  transform: translateY(-2px);
+}
+
+/* Eyebrows/labels use the label font consistently */
+body.vanta-refresh .eyebrow { font-family: var(--v-font-label); }
+
+/* Quiet the beta chips so truth stays present without shouting */
+body.vanta-refresh .dashboard-focus-card__chips span {
+  font-family: var(--v-font-label);
+  font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--v-muted-strong);
+  border: 1px solid var(--v-border);
+  background: transparent;
+}

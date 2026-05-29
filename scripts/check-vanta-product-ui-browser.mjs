@@ -77,14 +77,8 @@ function runBrowserBatch() {
       checks: [
         { kind: "url_contains", text: "/app/shield" },
         { kind: "selector_visible", selector: ".app-header" },
-        { kind: "selector_visible", selector: ".system-status-strip" },
-        { kind: "text_visible", text: "Trust status" },
-        { kind: "text_visible", text: "Shield: Claim locked" },
-        { kind: "text_visible", text: "Send: Claim locked" },
-        { kind: "text_visible", text: "Swap: Claim locked" },
-        { kind: "text_visible", text: "Unshield: Claim locked" },
-        { kind: "text_visible", text: "Strategy: Claim locked" },
-        { kind: "text_visible", text: "Pay: Claim locked" },
+        { kind: "selector_visible", selector: "[data-vanta-status-chip]" },
+        { kind: "text_visible", text: "Beta" },
         { kind: "text_visible", text: "Shield" },
         { kind: "selector_visible", selector: ".recovery-panel" },
         { kind: "text_visible", text: "Advanced shield settings" },
@@ -98,14 +92,8 @@ function runBrowserBatch() {
       checks: [
         { kind: "url_contains", text: "/app/shield" },
         { kind: "selector_visible", selector: ".app-header" },
-        { kind: "selector_visible", selector: ".system-status-strip" },
-        { kind: "text_visible", text: "Trust status" },
-        { kind: "text_visible", text: "Shield: Claim locked" },
-        { kind: "text_visible", text: "Send: Claim locked" },
-        { kind: "text_visible", text: "Swap: Claim locked" },
-        { kind: "text_visible", text: "Unshield: Claim locked" },
-        { kind: "text_visible", text: "Strategy: Claim locked" },
-        { kind: "text_visible", text: "Pay: Claim locked" },
+        { kind: "selector_visible", selector: "[data-vanta-status-chip]" },
+        { kind: "text_visible", text: "Beta" },
         { kind: "text_visible", text: "Shield" },
         { kind: "no_console_errors" },
       ],
@@ -162,15 +150,30 @@ function runBrowserBatch() {
       action: "assert",
       checks: [
         { kind: "url_contains", text: "/app/dashboard" },
-        { kind: "selector_visible", selector: ".dashboard-trust-hero" },
+        { kind: "selector_visible", selector: ".dashboard-page--cockpit" },
+        { kind: "selector_visible", selector: ".dashboard-cockpit__balance-card" },
+        { kind: "selector_visible", selector: ".dashboard-next-step-card" },
+        { kind: "selector_visible", selector: ".dashboard-cockpit__proof-link" },
+        { kind: "text_visible", text: "Your shielded portfolio" },
+        { kind: "text_visible", text: "Shielded balance" },
+        { kind: "text_visible", text: "Spendable notes" },
+        { kind: "no_console_errors" },
+      ],
+    },
+    { action: "navigate", url: `${baseUrl}/app/proof` },
+    { action: "wait_for", condition: "network_idle" },
+    {
+      action: "assert",
+      checks: [
+        { kind: "url_contains", text: "/app/proof" },
+        { kind: "selector_visible", selector: ".proof-lane-trust" },
         { kind: "selector_visible", selector: ".dashboard-trust-packet" },
         { kind: "selector_visible", selector: ".dashboard-verification-card" },
-        { kind: "selector_visible", selector: ".dashboard-next-step-card" },
-        { kind: "text_visible", text: "What Vanta can honestly prove right now" },
+        { kind: "selector_visible", selector: ".landing-depth-disclosure" },
+        { kind: "text_visible", text: "Trust status" },
+        { kind: "text_visible", text: "Shield: Claim locked" },
         { kind: "text_visible", text: "Latest Trust Packet" },
         { kind: "text_visible", text: "Reviewer Verification" },
-        { kind: "text_visible", text: "Verified SOL shield state" },
-        { kind: "text_visible", text: "Actionable notes" },
         { kind: "no_console_errors" },
       ],
     },
@@ -180,14 +183,8 @@ function runBrowserBatch() {
       action: "assert",
       checks: [
         { kind: "url_contains", text: "/app/shield" },
-        { kind: "selector_visible", selector: ".system-status-strip" },
-        { kind: "text_visible", text: "Trust status" },
-        { kind: "text_visible", text: "Shield: Claim locked" },
-        { kind: "text_visible", text: "Send: Claim locked" },
-        { kind: "text_visible", text: "Swap: Claim locked" },
-        { kind: "text_visible", text: "Unshield: Claim locked" },
-        { kind: "text_visible", text: "Strategy: Claim locked" },
-        { kind: "text_visible", text: "Pay: Claim locked" },
+        { kind: "selector_visible", selector: "[data-vanta-status-chip]" },
+        { kind: "text_visible", text: "Beta" },
         { kind: "text_visible", text: "Shield" },
         { kind: "no_console_errors" },
       ],
@@ -216,14 +213,8 @@ function runBrowserBatch() {
       action: "assert",
       checks: [
         { kind: "url_contains", text: "/app/strategy" },
-        { kind: "selector_visible", selector: ".system-status-strip" },
-        { kind: "text_visible", text: "Trust status" },
-        { kind: "text_visible", text: "Shield: Claim locked" },
-        { kind: "text_visible", text: "Send: Claim locked" },
-        { kind: "text_visible", text: "Swap: Claim locked" },
-        { kind: "text_visible", text: "Unshield: Claim locked" },
-        { kind: "text_visible", text: "Strategy: Claim locked" },
-        { kind: "text_visible", text: "Pay: Claim locked" },
+        { kind: "selector_visible", selector: "[data-vanta-status-chip]" },
+        { kind: "text_visible", text: "Beta" },
         { kind: "text_visible", text: "Strategy" },
         { kind: "no_console_errors" },
       ],
@@ -251,14 +242,8 @@ function runBrowserBatch() {
       action: "assert",
       checks: [
         { kind: "url_contains", text: "/app/pay" },
-        { kind: "selector_visible", selector: ".system-status-strip" },
-        { kind: "text_visible", text: "Trust status" },
-        { kind: "text_visible", text: "Shield: Claim locked" },
-        { kind: "text_visible", text: "Send: Claim locked" },
-        { kind: "text_visible", text: "Swap: Claim locked" },
-        { kind: "text_visible", text: "Unshield: Claim locked" },
-        { kind: "text_visible", text: "Strategy: Claim locked" },
-        { kind: "text_visible", text: "Pay: Claim locked" },
+        { kind: "selector_visible", selector: "[data-vanta-status-chip]" },
+        { kind: "text_visible", text: "Beta" },
         { kind: "text_visible", text: "Pay" },
         { kind: "no_console_errors" },
       ],
@@ -833,7 +818,7 @@ function assertSendRecipientValidation() {
               input.placeholder === "Recipient wallet address" &&
               !input.placeholder.includes(".sol") &&
               helper instanceof HTMLElement &&
-              helperText.includes(".sol resolution") &&
+              (helperText.includes(".sol resolution") || helperText.includes(".sol names")) &&
               status instanceof HTMLElement &&
               statusText.includes("Solana name resolution required") &&
               statusText.includes("Paste the resolved Solana wallet address") &&
@@ -1278,10 +1263,10 @@ function assertActionTabsStayMinimal() {
 function assertLaneFlowIndicators() {
   const cases = [
     {
-      activeText: "Choose asset",
+      activeText: "Choose",
       ariaLabel: "Shield flow",
       expectedActiveCount: 1,
-      labels: ["Choose asset", "Approve", "Private note"],
+      labels: ["Choose", "Approve", "Private note"],
       route: "/app/shield",
     },
     {
@@ -1509,7 +1494,7 @@ function assertAssetPickerGrids() {
   }
 }
 
-function assertSystemStatusStripLayout() {
+function assertAppStatusChipLayout() {
   for (const route of ["/app/shield", "/app/send", "/app/swap", "/app/unshield", "/app/strategy", "/app/pay"]) {
     for (const width of [1440, 768, 390, 360, 320]) {
       execFileSync(
@@ -1532,63 +1517,55 @@ function assertSystemStatusStripLayout() {
           "--json",
           "eval",
           `(() => {
-            const strip = document.querySelector(".system-status-strip");
+            const chip = document.querySelector("[data-vanta-status-chip]");
             const header = document.querySelector(".app-header");
             const tabs = document.querySelector(".app-header__tabs");
             const bodyText = document.body.innerText;
 
             if (
-              !(strip instanceof HTMLElement) ||
+              !(chip instanceof HTMLElement) ||
               !(header instanceof HTMLElement) ||
               !(tabs instanceof HTMLElement)
             ) {
               return {
                 ok: false,
-                reason: "system status strip, app header, or tabs missing",
+                reason: "status chip, app header, or tabs missing",
                 route: window.location.pathname,
                 width: window.innerWidth,
               };
             }
 
-            const stripRect = strip.getBoundingClientRect();
+            const chipRect = chip.getBoundingClientRect();
             const headerRect = header.getBoundingClientRect();
             const tabsRect = tabs.getBoundingClientRect();
             const documentOverflow =
               Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) -
               window.innerWidth;
-            const stripOverflow = strip.scrollWidth - strip.clientWidth;
+            const chipOverflow = chip.scrollWidth - chip.clientWidth;
             const headerOverflow = header.scrollWidth - header.clientWidth;
-            const stripBeforeHeader = stripRect.bottom <= headerRect.top + 2;
+            const chipInsideHeader =
+              chipRect.top >= headerRect.top - 2 &&
+              chipRect.bottom <= headerRect.bottom + 2;
             const tabsReachable =
               tabsRect.width > 0 &&
               tabsRect.height > 0 &&
               tabsRect.top < window.innerHeight &&
               tabsRect.bottom > 0;
-            const requiredStatusMarkers = [
-              "Shield: Claim locked",
-              "Send: Claim locked",
-              "Swap: Claim locked",
-              "Unshield: Claim locked",
-              "Strategy: Claim locked",
-              "Pay: Claim locked",
-            ];
-            const missingMarkers = requiredStatusMarkers.filter((marker) => !bodyText.includes(marker));
+            const hasBetaChip = bodyText.toLowerCase().includes("beta");
 
             return {
               ok:
                 documentOverflow <= 2 &&
-                stripOverflow <= 2 &&
+                chipOverflow <= 2 &&
                 headerOverflow <= 2 &&
-                stripBeforeHeader &&
+                chipInsideHeader &&
                 tabsReachable &&
-                missingMarkers.length === 0,
+                hasBetaChip,
+              chipInsideHeader,
               documentOverflow,
+              hasBetaChip,
               headerOverflow,
-              headerTop: headerRect.top,
-              missingMarkers,
               route: window.location.pathname,
-              stripBottom: stripRect.bottom,
-              stripOverflow,
               tabsReachable,
               width: window.innerWidth,
             };
@@ -1602,7 +1579,7 @@ function assertSystemStatusStripLayout() {
       const value = typeof rawValue === "string" ? JSON.parse(rawValue) : rawValue;
 
       if (!value.ok) {
-        throw new Error(`System status strip layout failed: ${JSON.stringify(value)}`);
+        throw new Error(`App status chip layout failed: ${JSON.stringify(value)}`);
       }
     }
   }
@@ -1774,7 +1751,7 @@ try {
   assertActionTabsStayMinimal();
   assertLaneFlowIndicators();
   assertAssetPickerGrids();
-  assertSystemStatusStripLayout();
+  assertAppStatusChipLayout();
   assertUnshieldAssetSelectorStaysCompact();
   console.log("vanta product ui browser check: PASS");
 } catch (error) {

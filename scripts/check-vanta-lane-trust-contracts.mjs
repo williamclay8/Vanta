@@ -173,9 +173,10 @@ const laneTrustStatusSource = requireMarkers("src/trust/laneTrustStatus.ts", [
   "Pay",
 ]);
 
-const systemStatusStripSource = requireMarkers("src/components/SystemStatusStrip.tsx", [
+const proofLaneTrustPanelSource = requireMarkers("src/components/ProofLaneTrustPanel.tsx", [
   "getLaneTrustStatuses",
   "system-status-strip",
+  "proof-lane-trust",
   "aria-label=\"Vanta lane trust status\"",
   "Beta · receipts where available ·",
   "claim locks active",
@@ -189,8 +190,15 @@ const systemStatusStripSource = requireMarkers("src/components/SystemStatusStrip
 ]);
 
 const appLayoutSource = requireMarkers("src/components/AppLayout.tsx", [
-  "SystemStatusStrip",
-  "<SystemStatusStrip showBetaMode={isBetaMode} />",
+  "VantaStatusChip",
+  "<VantaStatusChip />",
+]);
+
+const proofPageSource = requireMarkers("src/pages/ProofPage.tsx", [
+  "ProofLaneTrustPanel",
+  "ProofTrustPanels",
+  "AnonymityDepthDisclosure",
+  "data-proof-route=\"/app/proof\"",
 ]);
 
 const strategyPageSource = requireMarkers("src/pages/StrategyPage.tsx", [
@@ -226,8 +234,9 @@ requireMarkers("src/styles.css", [
 ]);
 
 checkBannedClaims("src/trust/laneTrustStatus.ts", laneTrustStatusSource);
-checkBannedClaims("src/components/SystemStatusStrip.tsx", systemStatusStripSource);
+checkBannedClaims("src/components/ProofLaneTrustPanel.tsx", proofLaneTrustPanelSource);
 checkBannedClaims("src/components/AppLayout.tsx", appLayoutSource);
+checkBannedClaims("src/pages/ProofPage.tsx", proofPageSource);
 checkBannedClaims("src/pages/StrategyPage.tsx", strategyPageSource);
 checkBannedClaims("src/pages/PayPage.tsx", payPageSource);
 checkBannedClaims("src/components/PayReceiptPacketCard.tsx", payReceiptPacketCardSource);

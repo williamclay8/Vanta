@@ -63,6 +63,7 @@ const RecoverySettingsPage = lazy(() =>
 const PrivacyReviewPage = lazy(() =>
   import("@/pages/PrivacyReviewPage").then((m) => ({ default: m.PrivacyReviewPage })),
 );
+const ProofPage = lazy(() => import("@/pages/ProofPage").then((m) => ({ default: m.ProofPage })));
 const ActualPrivateSettlementPage = lazy(() =>
   import("@/pages/ActualPrivateSettlementPage").then((m) => ({
     default: m.ActualPrivateSettlementPage,
@@ -97,6 +98,7 @@ function App() {
             <Route path="launch" element={<LaunchPage />} />
             <Route path="settings/recovery" element={<RecoverySettingsPage />} />
             <Route path="privacy-review" element={<PrivacyReviewPage />} />
+            <Route path="proof" element={<ProofPage />} />
             <Route path="actual-private-settlement" element={<ActualPrivateSettlementPage />} />
             <Route path="*" element={<NotFoundPage surface="app" />} />
           </Route>

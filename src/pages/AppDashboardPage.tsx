@@ -1,15 +1,7 @@
 import { Link } from "react-router-dom";
-import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
+import { VantaStatusChip } from "@/components/VantaStatusChip";
 import { formatVantaSolAmount } from "@/solana/solAmountFormat";
 import { useVantaPositionSummary } from "@/solana/useVantaPositionSummary";
-
-type DashboardActionCard = {
-  badge: string;
-  detail: string;
-  href: string;
-  label: string;
-  title: string;
-};
 
 function formatUsdcAmount(value: number) {
   if (value > 0 && value < 0.01) {
@@ -36,12 +28,32 @@ function formatShieldedTokenPosition(value: number, symbol: string) {
   })} ${symbol}`;
 }
 
+function formatRelativeTime(timestamp: number | null) {
+  if (!timestamp) {
+    return "No activity yet";
+  }
+
+  const elapsedMs = Date.now() - timestamp;
+  const elapsedMinutes = Math.round(elapsedMs / 60_000);
+
+  if (elapsedMinutes < 1) {
+    return "Just now";
+  }
+
+  if (elapsedMinutes < 60) {
+    return `${elapsedMinutes} min ago`;
+  }
+
+  const elapsedHours = Math.round(elapsedMinutes / 60);
+  if (elapsedHours < 48) {
+    return `${elapsedHours} hr ago`;
+  }
+
+  return new Date(timestamp).toLocaleDateString();
+}
+
 export function AppDashboardPage() {
   const positionSummary = useVantaPositionSummary();
-  const {
-    privateCoreReleaseHandoffState,
-    privateCoreReleasePackageState,
-  } = usePrivacyFlow();
 
   const shieldedBalance = positionSummary.shieldedBalance;
   const shieldedTokenPositions = positionSummary.shieldedTokenPositions;
@@ -52,272 +64,137 @@ export function AppDashboardPage() {
       symbol: positionSummary.liveAsset,
     };
   const shieldedSolBalance = positionSummary.shieldedSolBalance;
-  const pendingRecoveredShieldedSolBalance = positionSummary.pendingRecoveredShieldedSolBalance;
-  const confirmedShieldedSolBalance = positionSummary.confirmedShieldedSolBalance;
   const spendableNoteCount = positionSummary.totalActionableNoteCount;
 
   const isValueUnavailable = Boolean(positionSummary.registryError);
   const hasShieldedSol = shieldedSolBalance > 0;
   const hasSpendableShieldedValue = spendableNoteCount > 0 || hasShieldedSol;
-  const stageLabel = isValueUnavailable
-    ? "State unavailable"
-    : positionSummary.registryRefreshing
-      ? "Refreshing state"
-      : !positionSummary.walletConnected
-    ? "Connect a wallet"
-    : hasShieldedSol
-      ? "Verified SOL shield state available"
-      : hasSpendableShieldedValue
-        ? "Spendable state available"
-        : shieldedBalance > 0
-          ? "Shielded state present"
-          : "Ready to test Shield";
+
+  const primaryBalanceValue = hasShieldedSol
+    ? formatVantaSolAmount(shieldedSolBalance)
+    : isValueUnavailable
+      ? "Unavailable"
+      : formatShieldedTokenPosition(
+          primaryShieldedTokenPosition.balance,
+          primaryShieldedTokenPosition.symbol,
+        );
+  const primaryBalanceUnit = hasShieldedSol ? "SOL" : primaryShieldedTokenPosition.symbol;
 
   const statusLine = isValueUnavailable
-    ? "Vanta could not refresh the local shielded-state view. Values below are temporarily unavailable."
+    ? "Balances are temporarily unavailable. Retry from Shield once the local view refreshes."
     : positionSummary.registryRefreshing
-      ? "Refreshing the local shielded-state view before treating balances as current."
+      ? "Refreshing your shielded balance."
       : !positionSummary.walletConnected
-    ? "Connect wallet to start the private-core flow."
-    : hasShieldedSol
-      ? "Verified spendable SOL notes are available. Review the SOL exit lane while remembering production privacy is not enabled."
-      : hasSpendableShieldedValue
-        ? "Spendable shielded state is available. Choose the lane you want to test next."
-        : shieldedBalance > 0
-          ? "Value is shielded, but there is no current spendable note."
-          : "No shielded test position yet. Start with Shield to create one.";
-
-  const releaseStatus =
-    privateCoreReleasePackageState?.packageStatusLabel ??
-    privateCoreReleaseHandoffState?.handoffStatusLabel ??
-    "Release package unavailable";
-  const releaseNote =
-    privateCoreReleasePackageState?.packagePrimaryNote ??
-    privateCoreReleaseHandoffState?.handoffPrimaryNote ??
-    "The primary send to unshield lane has not assembled a final package yet.";
-
-  const primaryHref =
-    privateCoreReleasePackageState?.packageStatusLabel === "Release package ready"
-      ? "/app/unshield"
-      : privateCoreReleaseHandoffState?.nextActionHref;
-  const primaryLabel =
-    privateCoreReleasePackageState?.packageStatusLabel === "Release package ready"
-      ? "Review package"
-      : privateCoreReleaseHandoffState?.nextActionLabel ?? "Open primary lane";
+        ? "Connect a wallet to shield assets and start moving privately."
+        : hasSpendableShieldedValue
+          ? "Your private balance is ready. Send, swap, or exit when you choose."
+          : shieldedBalance > 0 || hasShieldedSol
+            ? "Value is shielded. Recover or add spendable notes to send or exit."
+            : "Shield assets to start your private balance on Solana.";
 
   const primaryNextStep = !positionSummary.walletConnected
     ? { href: "/app/shield", label: "Connect and Shield" }
     : hasShieldedSol
-      ? { href: "/app/unshield", label: "Review SOL exit" }
+      ? { href: "/app/unshield", label: "Exit to wallet" }
       : hasSpendableShieldedValue
-        ? { href: "/app/send", label: "Review Send" }
-        : { href: "/app/shield", label: "Start with Shield" };
+        ? { href: "/app/send", label: "Send privately" }
+        : { href: "/app/shield", label: "Shield assets" };
 
-  const packageIdentity =
-    privateCoreReleasePackageState?.packageIdentityLabel ??
-    "No package identity yet";
-  const packageGate =
-    privateCoreReleasePackageState?.gateStatusLabel ??
-    "Gate not available";
-  const packageGenerated =
-    privateCoreReleasePackageState?.summaryGeneratedLabel ??
-    "Generated after a package exists";
-  const packageLineage =
-    privateCoreReleasePackageState?.lineageSummaryLabel ??
-    privateCoreReleaseHandoffState?.noteSummary ??
-    "Lineage appears after send and unshield evidence exist";
-
-  const trustPacketFacts = [
-    {
-      label: "Packet",
-      value: packageIdentity,
-      detail: `${releaseStatus} · ${packageGenerated}`,
-    },
-    {
-      label: "Gate",
-      value: packageGate,
-      detail: privateCoreReleasePackageState?.gatePrimaryNote ?? releaseNote,
-    },
-    {
-      label: "Lineage",
-      value: packageLineage,
-      detail: "Connects proof, send, release, and operator status when available.",
-    },
-    {
-      label: "Boundary",
-      value: "Beta/test settlement",
-      detail: "Production privacy is not enabled. Not anonymous, untraceable, or live private settlement.",
-    },
-  ];
-
-  const verificationSurfaces = [
-    {
-      command: "private-core:operator-status",
-      purpose: "Human operator state",
-    },
-    {
-      command: "private-core:operator-status-json",
-      purpose: "Machine-readable state",
-    },
-    {
-      command: "private-core:release-package",
-      purpose: "Trust packet summary",
-    },
-    {
-      command: "private-core:release-package-json",
-      purpose: "Trust packet JSON",
-    },
-  ];
-
-  const actions: DashboardActionCard[] = [
+  const actions = [
     {
       badge: shieldedBalance > 0 || hasShieldedSol ? "Ready" : "Start",
-      detail: shieldedBalance > 0 || hasShieldedSol
-        ? "Add more value or recover a new shielded state."
-        : "Create the first test shielded position.",
       href: "/app/shield",
-      label: "Open Shield",
+      sub: "Add private funds",
       title: "Shield",
+      variant: "shield",
     },
     {
-      badge: hasSpendableShieldedValue ? "Available" : "Needs notes",
-      detail: hasSpendableShieldedValue
-        ? "Use spendable shielded state for a private handoff test."
-        : "Send unlocks after a spendable shielded note exists.",
+      badge: hasSpendableShieldedValue ? "Ready" : "Needs notes",
       href: "/app/send",
-      label: "Open Send",
+      sub: "Pay privately",
       title: "Send",
+      variant: "send",
     },
     {
-      badge: hasShieldedSol || hasSpendableShieldedValue ? "Available" : "Needs state",
-      detail: hasShieldedSol
-        ? "Return available shielded SOL through the constrained exit lane."
-        : hasSpendableShieldedValue
-          ? "Exit spendable shielded value when the lane is selected."
-          : "Unshield appears once shielded state is available.",
-      href: "/app/unshield",
-      label: "Open Unshield",
-      title: "Unshield",
-    },
-    {
-      badge: hasSpendableShieldedValue ? "Available" : "Needs notes",
-      detail: hasSpendableShieldedValue
-        ? "Swap spendable shielded value through the current output lane."
-        : "Swap needs spendable shielded state first.",
+      badge: "Soon",
       href: "/app/swap",
-      label: "Open Swap",
+      sub: "Private swap",
       title: "Swap",
+      variant: "swap",
     },
-  ];
+    {
+      badge: hasShieldedSol || hasSpendableShieldedValue ? "Ready" : "Needs state",
+      href: "/app/unshield",
+      sub: "Exit to wallet",
+      title: "Unshield",
+      variant: "unshield",
+    },
+  ] as const;
 
   return (
-    <section className="dashboard-page dashboard-page--minimal">
-      <div className="dashboard-trust-hero">
-        <div className="dashboard-focus-card__copy">
-          <span className="eyebrow">Trust Status</span>
-          <h2>What Vanta can honestly prove right now</h2>
-          <p>
-            This is the counterparty-facing truth surface: beta state, usable lane,
-            receipt package, and the verification boundary before anyone trusts a
-            private settlement.
-          </p>
+    <section className="dashboard-page dashboard-page--cockpit">
+      <div className="dashboard-cockpit__topline">
+        <div className="dashboard-cockpit__title-block">
+          <span className="eyebrow">Private balance</span>
+          <h2>Your shielded portfolio</h2>
+        </div>
+        <VantaStatusChip />
+      </div>
 
-          <div className="dashboard-focus-card__chips">
-            <span>Beta</span>
-            <span>No production funds</span>
-            <span>Receipt-backed where available</span>
-            <span>{positionSummary.networkLabel}</span>
-            <span>{stageLabel}</span>
-            {positionSummary.latestActionTimestamp ? (
-              <span>{positionSummary.latestActionLabel}</span>
-            ) : null}
+      <div className="dashboard-cockpit__balance-card">
+        <div className="dashboard-cockpit__balance-row">
+          <div>
+            <div className="v-metric__label">Shielded balance</div>
+            <div className="v-balance dashboard-cockpit__balance-value">
+              {primaryBalanceValue}{" "}
+              <small>{primaryBalanceUnit}</small>
+            </div>
+            <p className="dashboard-cockpit__balance-note">{statusLine}</p>
           </div>
         </div>
 
-        <div className="dashboard-trust-packet" aria-label="Latest trust packet">
-          <span className="eyebrow">Latest Trust Packet</span>
-          <h3>{releaseStatus}</h3>
-          <p>{releaseNote}</p>
-          <dl>
-            {trustPacketFacts.map((fact) => (
-              <div key={fact.label}>
-                <dt>{fact.label}</dt>
-                <dd>
-                  <strong>{fact.value}</strong>
-                  <small>{fact.detail}</small>
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </div>
-
-      <div className="dashboard-readiness-row">
-        <div className="dashboard-focus-card__stats" aria-label="Current local state">
-          <article>
-            <span>Shielded {primaryShieldedTokenPosition.symbol}</span>
-            <strong>
+        <div className="dashboard-cockpit__metrics">
+          <article className="v-metric">
+            <div className="v-metric__label">Shielded {primaryShieldedTokenPosition.symbol}</div>
+            <div className="v-metric__value">
               {isValueUnavailable
                 ? "Unavailable"
                 : formatShieldedTokenPosition(
                     primaryShieldedTokenPosition.balance,
                     primaryShieldedTokenPosition.symbol,
                   )}
-            </strong>
+            </div>
             {shieldedTokenPositions.length > 1 && (
-              <small>
+              <div className="v-metric__sub">
                 {shieldedTokenPositions
                   .slice(1)
                   .map((position) => formatShieldedTokenPosition(position.balance, position.symbol))
                   .join(" · ")}
-              </small>
-            )}
-          </article>
-          <article>
-            <span>Verified SOL shield state</span>
-            <strong>{isValueUnavailable ? "Unavailable" : formatVantaSolAmount(shieldedSolBalance)}</strong>
-            {pendingRecoveredShieldedSolBalance > 0 && (
-              <small>
-                Pending recovery: {formatVantaSolAmount(pendingRecoveredShieldedSolBalance)}
-              </small>
-            )}
-            {confirmedShieldedSolBalance > 0 && pendingRecoveredShieldedSolBalance > 0 && (
-              <small>{formatVantaSolAmount(confirmedShieldedSolBalance)} resolved on-chain</small>
-            )}
-          </article>
-          <article>
-            <span>Actionable notes</span>
-            <strong>{spendableNoteCount}</strong>
-            <small>
-              {positionSummary.spendableNoteCount} token · {positionSummary.spendableShieldedSolNoteCount} SOL
-            </small>
-          </article>
-        </div>
-
-        <div className="dashboard-verification-card" aria-label="Reviewer verification surfaces">
-          <span className="eyebrow">Reviewer Verification</span>
-          <h3>Operator-visible, beta-truthful, reproducible</h3>
-          <p>
-            A reviewer or counterparty should be able to inspect the packet and run
-            the matching operator/status command instead of trusting marketing copy.
-          </p>
-          <Link className="button button-primary" to={primaryHref ?? "/app/send"}>
-            {privateCoreReleasePackageState ? "Verify packet" : "Create packet"}
-          </Link>
-          <div className="dashboard-verification-card__commands">
-            {verificationSurfaces.map((surface) => (
-              <div key={surface.command}>
-                <code>npm run {surface.command}</code>
-                <small>{surface.purpose}</small>
               </div>
-            ))}
-          </div>
+            )}
+          </article>
+          <article className="v-metric">
+            <div className="v-metric__label">Shielded SOL</div>
+            <div className="v-metric__value">
+              {isValueUnavailable ? "Unavailable" : formatVantaSolAmount(shieldedSolBalance)}
+            </div>
+            <div className="v-metric__sub">
+              {positionSummary.spendableShieldedSolNoteCount} spendable SOL notes
+            </div>
+          </article>
+          <article className="v-metric">
+            <div className="v-metric__label">Spendable notes</div>
+            <div className="v-metric__value">{spendableNoteCount}</div>
+            <div className="v-metric__sub">
+              {positionSummary.spendableNoteCount} token · {positionSummary.spendableShieldedSolNoteCount} SOL
+            </div>
+          </article>
         </div>
       </div>
 
-      <div className="dashboard-next-step-card">
+      <div className="dashboard-next-step-card dashboard-cockpit__next-step">
         <div>
-          <span className="eyebrow">Next Step</span>
+          <span className="eyebrow">Next action</span>
           <h3>{primaryNextStep.label}</h3>
           <p>{statusLine}</p>
         </div>
@@ -326,47 +203,48 @@ export function AppDashboardPage() {
         </Link>
       </div>
 
-      <div className="dashboard-release-card">
-        <div>
-          <span className="eyebrow">Reviewer Package</span>
-          <h3>{releaseStatus}</h3>
-          <p>{releaseNote}</p>
-        </div>
-
-        <div className="dashboard-release-card__meta">
-          <small>
-            {privateCoreReleasePackageState?.packageIdentityLabel ??
-              "Primary send -> unshield package"}
-          </small>
-          <div className="dashboard-release-card__actions">
-            {primaryHref ? (
-              <Link className="button button-primary" to={primaryHref}>
-                {primaryLabel}
-              </Link>
-            ) : (
-              <button className="button button-primary" type="button" disabled>
-                {primaryLabel}
-              </button>
-            )}
-            <Link className="button button-ghost" to="/app/unshield">
-              Open handoff
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="dashboard-actions dashboard-actions--minimal">
+      <div className="dashboard-cockpit__tiles" aria-label="Primary Vanta actions">
         {actions.map((action) => (
-          <article key={action.title} className="dashboard-action-card dashboard-action-card--minimal">
-            <span>{action.badge}</span>
-            <h3>{action.title}</h3>
-            <p>{action.detail}</p>
-            <Link className="button button-ghost" to={action.href}>
-              {action.label}
-            </Link>
-          </article>
+          <Link
+            key={action.title}
+            className={[
+              "v-tile",
+              "dashboard-action-card",
+              "dashboard-action-card--minimal",
+              action.variant === "swap" ? "v-tile--swap" : null,
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            to={action.href}
+          >
+            <span className="v-tile__badge">{action.badge}</span>
+            <span className="v-tile__icon" aria-hidden="true">
+              {action.variant === "shield" ? "↓" : null}
+              {action.variant === "send" ? "→" : null}
+              {action.variant === "swap" ? "⇄" : null}
+              {action.variant === "unshield" ? "↑" : null}
+            </span>
+            <h3 className="v-tile__title">{action.title}</h3>
+            <span className="v-tile__sub">{action.sub}</span>
+          </Link>
         ))}
       </div>
+
+      <div className="dashboard-cockpit__activity v-metric">
+        <div className="v-metric__label">Recent activity</div>
+        <div className="dashboard-cockpit__activity-row">
+          <div>
+            <strong>{positionSummary.latestActionLabel}</strong>
+            <div className="v-metric__sub">{formatRelativeTime(positionSummary.latestActionTimestamp)}</div>
+          </div>
+          <span className="v-chip v-chip--beta">{positionSummary.networkLabel}</span>
+        </div>
+      </div>
+
+      <Link className="v-proof-drawer dashboard-cockpit__proof-link" to="/app/proof">
+        <span>Proof details — trust packet, lane locks, and verification commands</span>
+        <span aria-hidden="true">→</span>
+      </Link>
     </section>
   );
 }

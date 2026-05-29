@@ -25,9 +25,9 @@ colors:
   text: "#e8faf8"
   muted: "#6a8a92"
   mutedStrong: "rgba(232, 250, 248, 0.74)"
-  accent: "#00e5c8"
-  accentSoft: "rgba(0, 229, 200, 0.12)"
-  success: "#00e5c8"
+  accent: "#77f2d4"
+  accentSoft: "rgba(119, 242, 212, 0.12)"
+  success: "#77f2d4"
 typography:
   display:
     fontFamily: "Syne"
@@ -126,7 +126,7 @@ The dominant feeling should be premium, restrained, and operationally serious. V
 
 ## Colors
 
-The current visual identity is a dark control-plane palette with a single neon-mint accent.
+The current visual identity is a dark control-plane palette with a single neon-mint accent (`#77f2d4`).
 
 - `bg` is the canonical black-ink foundation.
 - `accent` is reserved for action, success, and strategic emphasis.
@@ -185,6 +185,9 @@ Core component families are:
 - merchant settlement cards
 - preview and approval packets
 - operator/reviewer evidence surfaces
+- proof surface (`/app/proof`) for lane locks, trust packets, anonymity readiness, and verification commands
+
+Trader-facing surfaces (dashboard and action lanes) lead with balances, next actions, and plain-language progress. Reviewer material lives on the Proof surface, linked from a calm beta status chip in the app header.
 
 Each component must answer three questions quickly:
 

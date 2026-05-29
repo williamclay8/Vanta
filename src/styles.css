@@ -753,8 +753,8 @@ select:focus {
   position: relative;
   z-index: 90;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: "brand tabs wallet";
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "brand tabs status wallet";
   align-items: center;
   gap: 16px;
   margin: 0 auto 28px;
@@ -1146,6 +1146,52 @@ select:focus {
   justify-self: end;
   min-width: 0;
   max-width: 100%;
+}
+
+.app-header__status {
+  grid-area: status;
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+}
+
+.vanta-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(228, 199, 129, 0.35);
+  background: rgba(228, 199, 129, 0.12);
+  color: #e4c781;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition:
+    border-color 180ms var(--ease-out),
+    transform 180ms var(--ease-out);
+}
+
+.vanta-status-chip:hover,
+.vanta-status-chip:focus-visible {
+  border-color: rgba(228, 199, 129, 0.55);
+  transform: translateY(-1px);
+}
+
+.vanta-status-chip__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.vanta-status-chip__label {
+  white-space: nowrap;
 }
 
 .app-header__account-trigger {
@@ -1992,6 +2038,170 @@ select:focus {
 .dashboard-page--minimal {
   width: min(1120px, 100%);
   max-width: 1120px;
+}
+
+.dashboard-page--cockpit {
+  width: min(1120px, 100%);
+  max-width: 1120px;
+  gap: 14px;
+}
+
+.dashboard-cockpit__topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dashboard-cockpit__title-block h2 {
+  margin: 8px 0 0;
+  font-family: "Syne", sans-serif;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  letter-spacing: -0.03em;
+}
+
+.dashboard-cockpit__balance-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(243, 247, 242, 0.12);
+  background: var(--v-panel-3, #131b25);
+  box-shadow: var(--v-elev-1, 0 8px 24px rgba(0, 0, 0, 0.28));
+}
+
+.dashboard-cockpit__balance-note {
+  margin: 10px 0 0;
+  max-width: 48ch;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.dashboard-cockpit__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dashboard-cockpit__next-step {
+  margin-top: 2px;
+}
+
+.dashboard-cockpit__tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dashboard-cockpit__tiles .v-tile {
+  color: inherit;
+  text-decoration: none;
+}
+
+.dashboard-cockpit__activity-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.dashboard-cockpit__activity-row strong {
+  display: block;
+  font-size: 0.92rem;
+}
+
+.dashboard-cockpit__proof-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.proof-page {
+  display: grid;
+  gap: 14px;
+  width: min(980px, 100%);
+}
+
+.proof-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.proof-page__header h2 {
+  margin: 8px 0 10px;
+  font-family: "Syne", sans-serif;
+  font-size: clamp(1.5rem, 2.8vw, 2rem);
+  letter-spacing: -0.03em;
+}
+
+.proof-page__header p,
+.proof-page__footer-note {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.proof-lane-trust {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(243, 247, 242, 0.09);
+  background: rgba(8, 13, 20, 0.92);
+}
+
+.proof-lane-trust__header h3 {
+  margin: 8px 0;
+  font-family: "Syne", sans-serif;
+}
+
+.proof-lane-trust__header p,
+.proof-lane-trust__summary {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.proof-lane-trust__lanes {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.landing-minimal__proof-link-panel {
+  width: min(980px, calc(100% - 40px));
+  margin: 0 auto 18px;
+}
+
+.landing-minimal__proof-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  .dashboard-cockpit__metrics,
+  .dashboard-cockpit__tiles,
+  .proof-lane-trust__lanes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard-cockpit__topline {
+    flex-direction: column;
+  }
+
+  .dashboard-cockpit__metrics,
+  .dashboard-cockpit__tiles,
+  .proof-lane-trust__lanes {
+    grid-template-columns: 1fr;
+  }
+
+  .proof-page__header {
+    flex-direction: column;
+  }
 }
 
 .dashboard-trust-hero,
@@ -8931,15 +9141,20 @@ select:focus {
   }
 
   .app-header {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
-      "brand wallet"
-      "tabs tabs";
+      "brand status wallet"
+      "tabs tabs tabs";
     gap: 12px;
   }
 
   .app-header__brand {
     grid-area: brand;
+  }
+
+  .app-header__status {
+    grid-area: status;
+    justify-self: end;
   }
 
   .beta-mode-banner {
@@ -9111,15 +9326,20 @@ select:focus {
 
 @media (max-width: 980px) {
   .app-header {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
-      "brand wallet"
-      "tabs tabs";
+      "brand status wallet"
+      "tabs tabs tabs";
     gap: 12px;
   }
 
   .app-header__brand {
     grid-area: brand;
+  }
+
+  .app-header__status {
+    grid-area: status;
+    justify-self: end;
   }
 
   .app-header__tabs-rail {
@@ -9152,15 +9372,20 @@ select:focus {
   }
 
   .app-header {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
-      "brand wallet"
-      "tabs tabs";
+      "brand status wallet"
+      "tabs tabs tabs";
     gap: 12px;
   }
 
   .app-header__brand {
     grid-area: brand;
+  }
+
+  .app-header__status {
+    grid-area: status;
+    justify-self: end;
   }
 
   .app-header__tabs-rail {
