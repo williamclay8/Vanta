@@ -1,5 +1,5 @@
-import type { ComponentProps } from "react";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
+import type { VantaPrivateCoreStatePanelProps } from "@/components/privateCore/buildPrivateCoreStatePanelProps";
 import type {
   VantaPrivateCoreHoldState,
   VantaPrivateCoreReleaseCandidateState,
@@ -20,8 +20,6 @@ export type PrivateCoreDemoStep = {
   status: string;
   summary: string;
 };
-
-type StatePanelProps = ComponentProps<typeof VantaPrivateCoreStatePanel>;
 
 export type UnshieldReleaseWorkflowPanelProps = {
   latestPrivateCoreOperatorConsume: VantaPrivateCoreOperatorConsumeRecord | null | undefined;
@@ -48,7 +46,7 @@ export type UnshieldReleaseWorkflowPanelProps = {
   runPrivateCoreReplayAttempt: () => unknown;
   runPrivateCoreUnshield: () => unknown;
   setPrivateCoreActionPending: (value: boolean) => void;
-  statePanelProps: StatePanelProps;
+  statePanelProps: VantaPrivateCoreStatePanelProps;
 };
 
 export function UnshieldReleaseWorkflowPanel({

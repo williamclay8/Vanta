@@ -1,10 +1,8 @@
-import type { ComponentProps } from "react";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
-
-type StatePanelProps = ComponentProps<typeof VantaPrivateCoreStatePanel>;
+import type { VantaPrivateCoreStatePanelProps } from "@/components/privateCore/buildPrivateCoreStatePanelProps";
 
 export type SendOperatorStatePanelProps = {
-  statePanelProps: StatePanelProps;
+  statePanelProps: VantaPrivateCoreStatePanelProps;
 };
 
 export function SendOperatorStatePanel({ statePanelProps }: SendOperatorStatePanelProps) {

@@ -338,7 +338,7 @@ export type RecentShieldContext = {
   };
 };
 
-type PrivacyFlowContextValue = {
+export type PrivacyFlowContextValue = {
   privatePoolV2ProtocolSettlementStatus: VantaPrivatePoolV2ProtocolSettlementState;
   privateCoreOwner: { publicKey: string };
   privateCoreRecentShield: VantaPrivateCoreShieldState | null;
