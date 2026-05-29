@@ -3,6 +3,7 @@ import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { LaneProgressiveSection } from "@/components/LaneProgressiveSection";
 import { SendContextBanner } from "@/components/SendContextBanner";
+import { SendOperatorStatePanel } from "@/components/SendOperatorStatePanel";
 import { SendWorkspaceCard } from "@/components/SendWorkspaceCard";
 import {
   SendProofLanePanel,
@@ -17,7 +18,6 @@ import {
 import { NotePicker, type NotePickerOption } from "@/components/NotePicker";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { SendReceiptModal, type SendReceiptModalDetails } from "@/components/SendReceiptModal";
-import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
 import { isBetaMode } from "@/config/deploymentMode";
 import { usePrivacyFlow, type PrivacyAssetKey } from "@/data/context/PrivacyFlowContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
@@ -1767,290 +1767,210 @@ export function SendPage({ dashboard = false }: SendPageProps) {
       )}
 
       <LaneProgressiveSection summary="Full private-core operator state (reviewer)" variant="reviewer">
-        <VantaPrivateCoreStatePanel
-        compact
-        holdState={privateCoreHoldState}
-        releaseCandidateState={privateCoreReleaseCandidateState}
-        releaseHandoffState={privateCoreReleaseHandoffState}
-        releasePackageState={privateCoreReleasePackageState}
-        releaseWorkflowState={privateCoreReleaseWorkflowState}
-        sendState={privateCoreSendState}
-        swapState={privateCoreSwapState}
-        operatorCurrentRoot={privateCoreOperatorCurrentRoot}
-        operatorConsumeError={privateCoreOperatorConsumeError}
-        operatorConsumes={privateCoreOperatorConsumes}
-        operatorLatestConsume={privateCoreOperatorLatestConsume}
-        operatorLatestConsumeProof={privateCoreOperatorLatestConsumeProof}
-        operatorLatestProof={privateCoreOperatorLatestProof}
-        operatorLatestRelease={privateCoreOperatorLatestRelease}
-        operatorLatestReleaseProof={privateCoreOperatorLatestReleaseProof}
-        operatorLatestRoot={privateCoreOperatorLatestRoot}
-        operatorLatestSend={privateCoreOperatorLatestSend}
-        operatorLatestSendLinkedProof={privateCoreOperatorLatestSendLinkedProof}
-        operatorLatestSendProof={privateCoreOperatorLatestSendProof}
-        operatorLatestSwap={privateCoreOperatorLatestSwap}
-        operatorLatestSwapLinkedProof={privateCoreOperatorLatestSwapLinkedProof}
-        operatorLatestSwapProof={privateCoreOperatorLatestSwapProof}
-        operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
-        operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
-        operatorContractMirrorPrimaryNote={privateCoreOperatorContractMirrorPrimaryNote}
-        operatorContractMirrorStatusLabel={privateCoreOperatorContractMirrorStatusLabel}
-        operatorReleaseBoundaryPrimaryNote={privateCoreOperatorReleaseBoundaryPrimaryNote}
-        operatorReleaseBoundaryStatusLabel={privateCoreOperatorReleaseBoundaryStatusLabel}
-        operatorRequiredLanesPrimaryNote={privateCoreOperatorRequiredLanesPrimaryNote}
-        operatorRequiredLanesStatusLabel={privateCoreOperatorRequiredLanesStatusLabel}
-        operatorZkV1ShippingPrimaryNote={privateCoreOperatorZkV1ShippingPrimaryNote}
-        operatorZkV1ShippingStatusLabel={privateCoreOperatorZkV1ShippingStatusLabel}
-        operatorSendBoundaryPrimaryNote={privateCoreOperatorSendBoundaryPrimaryNote}
-        operatorSendBoundaryStatusLabel={privateCoreOperatorSendBoundaryStatusLabel}
-        operatorSendContinuityPrimaryNote={privateCoreOperatorSendContinuityPrimaryNote}
-        operatorSendContinuityStatusLabel={privateCoreOperatorSendContinuityStatusLabel}
-        operatorSwapBoundaryPrimaryNote={privateCoreOperatorSwapBoundaryPrimaryNote}
-        operatorSwapBoundaryStatusLabel={privateCoreOperatorSwapBoundaryStatusLabel}
-        operatorSwapContinuityPrimaryNote={privateCoreOperatorSwapContinuityPrimaryNote}
-        operatorSwapContinuityStatusLabel={privateCoreOperatorSwapContinuityStatusLabel}
-        operatorSupportedSendLaneKind={privateCoreOperatorSupportedSendLaneKind}
-        operatorSupportedSendLaneNote={privateCoreOperatorSupportedSendLaneNote}
-        operatorSupportedSendLaneStatus={privateCoreOperatorSupportedSendLaneStatus}
-        operatorSupportedSendLaneVersion={privateCoreOperatorSupportedSendLaneVersion}
-        operatorSupportedSendV1Decision={privateCoreOperatorSupportedSendV1Decision}
-        operatorSupportedSendV1DecisionNote={privateCoreOperatorSupportedSendV1DecisionNote}
-        operatorSupportedUnshieldLaneKind={privateCoreOperatorSupportedUnshieldLaneKind}
-        operatorSupportedUnshieldLaneNote={privateCoreOperatorSupportedUnshieldLaneNote}
-        operatorSupportedUnshieldLaneStatus={privateCoreOperatorSupportedUnshieldLaneStatus}
-        operatorSupportedUnshieldLaneVersion={privateCoreOperatorSupportedUnshieldLaneVersion}
-        operatorSupportedUnshieldV1Decision={privateCoreOperatorSupportedUnshieldV1Decision}
-        operatorSupportedUnshieldV1DecisionNote={
-          privateCoreOperatorSupportedUnshieldV1DecisionNote
-        }
-        operatorSupportedReleaseLaneKind={privateCoreOperatorSupportedReleaseLaneKind}
-        operatorSupportedReleaseLaneNote={privateCoreOperatorSupportedReleaseLaneNote}
-        operatorSupportedReleaseLaneStatus={privateCoreOperatorSupportedReleaseLaneStatus}
-        operatorSupportedReleaseLaneVersion={privateCoreOperatorSupportedReleaseLaneVersion}
-        operatorSupportedSwapLaneKind={privateCoreOperatorSupportedSwapLaneKind}
-        operatorSupportedSwapLaneNote={privateCoreOperatorSupportedSwapLaneNote}
-        operatorSupportedSwapLaneStatus={privateCoreOperatorSupportedSwapLaneStatus}
-        operatorSupportedSwapLaneVersion={privateCoreOperatorSupportedSwapLaneVersion}
-        operatorSupportedSwapV1Decision={privateCoreOperatorSupportedSwapV1Decision}
-        operatorSupportedSwapV1DecisionNote={privateCoreOperatorSupportedSwapV1DecisionNote}
-        operatorSupportedSwapV1Role={privateCoreOperatorSupportedSwapV1Role}
-        operatorSupportedSwapV1RoleNote={privateCoreOperatorSupportedSwapV1RoleNote}
-        operatorSupportedSwapVenue={privateCoreOperatorSupportedSwapVenue}
-        operatorSupportedSwapOutputModel={privateCoreOperatorSupportedSwapOutputModel}
-        operatorSupportedSwapResultingRootBasis={privateCoreOperatorSupportedSwapResultingRootBasis}
-        operatorSupportedSwapInputRootPolicy={privateCoreOperatorSupportedSwapInputRootPolicy}
-        operatorSupportedSwapOutputRegistrationPolicy={
-          privateCoreOperatorSupportedSwapOutputRegistrationPolicy
-        }
-        operatorSupportedReleaseV1Decision={privateCoreOperatorSupportedReleaseV1Decision}
-        operatorSupportedReleaseV1DecisionNote={
-          privateCoreOperatorSupportedReleaseV1DecisionNote
-        }
-        operatorSupportedFlowKind={privateCoreOperatorSupportedFlowKind}
-        operatorSupportedFlowNote={privateCoreOperatorSupportedFlowNote}
-        operatorSupportedFlowStatus={privateCoreOperatorSupportedFlowStatus}
-        operatorSupportedFlowVersion={privateCoreOperatorSupportedFlowVersion}
-        operatorSupportedZkV1ScopeDecision={privateCoreOperatorSupportedZkV1ScopeDecision}
-        operatorSupportedZkV1ScopeNote={privateCoreOperatorSupportedZkV1ScopeNote}
-        operatorSupportedZkV1RequiredLanes={privateCoreOperatorSupportedZkV1RequiredLanes}
-        operatorSupportedZkV1RequiredLanesNote={privateCoreOperatorSupportedZkV1RequiredLanesNote}
-        operatorZkV1FinishLineStatusLabel={privateCoreOperatorZkV1FinishLineStatusLabel}
-        operatorZkV1FinishLinePrimaryNote={privateCoreOperatorZkV1FinishLinePrimaryNote}
-        operatorSupportedAssetSymbol={privateCoreOperatorSupportedAssetSymbol}
-        operatorSupportedEnvironment={privateCoreOperatorSupportedEnvironment}
-        operatorSupportedNoteSchema={privateCoreOperatorSupportedNoteSchema}
-        operatorSupportedNoteVersion={privateCoreOperatorSupportedNoteVersion}
-        operatorSupportedRootRegistrationProvenance={
-          privateCoreOperatorSupportedRootRegistrationProvenance
-        }
-        operatorSupportedSendResultingRootBasis={
-          privateCoreOperatorSupportedSendResultingRootBasis
-        }
-        operatorSupportedSendInputRootPolicy={
-          privateCoreOperatorSupportedSendInputRootPolicy
-        }
-        operatorSupportedSendOutputRegistrationPolicy={
-          privateCoreOperatorSupportedSendOutputRegistrationPolicy
-        }
-        operatorSupportedRecipientModel={privateCoreOperatorSupportedRecipientModel}
-        operatorSupportedReleaseDestinationModel={
-          privateCoreOperatorSupportedReleaseDestinationModel
-        }
-        operatorSupportedProofSystem={privateCoreOperatorSupportedProofSystem}
-        operatorSupportedUnshieldCircuit={privateCoreOperatorSupportedUnshieldCircuit}
-        operatorSupportedSendCircuit={privateCoreOperatorSupportedSendCircuit}
-        operatorSupportedUnshieldMerkleDepth={privateCoreOperatorSupportedUnshieldMerkleDepth}
-        operatorSupportedSendMerkleDepth={privateCoreOperatorSupportedSendMerkleDepth}
-        operatorSupportedReleaseAuthorizationBasis={
-          privateCoreOperatorSupportedReleaseAuthorizationBasis
-        }
-        operatorSupportedReleaseRootPolicy={privateCoreOperatorSupportedReleaseRootPolicy}
-        operatorSupportedReleaseExecutionModel={
-          privateCoreOperatorSupportedReleaseExecutionModel
-        }
-        operatorSupportedReleaseAtomicityModel={
-          privateCoreOperatorSupportedReleaseAtomicityModel
-        }
-        operatorSupportedReleasePersistenceModel={
-          privateCoreOperatorSupportedReleasePersistenceModel
-        }
-        operatorOwnerAuthorizationMode={privateCoreOperatorOwnerAuthorizationMode}
-        operatorOwnerAuthorizationDecision={privateCoreOperatorOwnerAuthorizationDecision}
-        operatorOwnerAuthorizationDecisionNote={privateCoreOperatorOwnerAuthorizationDecisionNote}
-        operatorSourceArtifactTruthBasis={privateCoreOperatorSourceArtifactTruthBasis}
-        operatorProvingArtifactTruthBasis={privateCoreOperatorProvingArtifactTruthBasis}
-        operatorSourceProvingRelationship={privateCoreOperatorSourceProvingRelationship}
-        operatorNullifierKeyMode={privateCoreOperatorNullifierKeyMode}
-        operatorProvingHashLane={privateCoreOperatorProvingHashLane}
-        operatorCurrentRootLinkedProof={privateCoreOperatorCurrentRootLinkedProof}
-        operatorCurrentRootProofLinkStatus={privateCoreOperatorCurrentRootProofLinkStatus}
-        operatorSendResultingRootLinkedProof={privateCoreOperatorSendResultingRootLinkedProof}
-        operatorSendResultingRootRecord={privateCoreOperatorSendResultingRootRecord}
-        operatorSendResultingRootPrimaryNote={privateCoreOperatorSendResultingRootPrimaryNote}
-        operatorSendResultingRootRegistrationPrimaryNote={
-          privateCoreOperatorSendResultingRootRegistrationPrimaryNote
-        }
-        operatorSendResultingRootRegistrationStatusLabel={
-          privateCoreOperatorSendResultingRootRegistrationStatusLabel
-        }
-        operatorSendResultingRootProofLinkStatus={privateCoreOperatorSendResultingRootProofLinkStatus}
-        operatorSendResultingRootStatusLabel={privateCoreOperatorSendResultingRootStatusLabel}
-        operatorSwapResultingRootLinkedProof={privateCoreOperatorSwapResultingRootLinkedProof}
-        operatorSwapResultingRootRecord={privateCoreOperatorSwapResultingRootRecord}
-        operatorSwapResultingRootPrimaryNote={privateCoreOperatorSwapResultingRootPrimaryNote}
-        operatorSwapResultingRootRegistrationPrimaryNote={
-          privateCoreOperatorSwapResultingRootRegistrationPrimaryNote
-        }
-        operatorSwapResultingRootRegistrationStatusLabel={
-          privateCoreOperatorSwapResultingRootRegistrationStatusLabel
-        }
-        operatorSwapResultingRootProofLinkStatus={
-          privateCoreOperatorSwapResultingRootProofLinkStatus
-        }
-        operatorSwapResultingRootStatusLabel={privateCoreOperatorSwapResultingRootStatusLabel}
-        operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
-        operatorProofError={privateCoreOperatorProofError}
-        operatorProofs={privateCoreOperatorProofs}
-        operatorProofSendLinkStatus={privateCoreOperatorProofSendLinkStatus}
-        operatorProofSwapLinkStatus={privateCoreOperatorProofSwapLinkStatus}
-        operatorProofReleaseLinkStatus={privateCoreOperatorProofReleaseLinkStatus}
-        operatorReleaseError={privateCoreOperatorReleaseError}
-        operatorReleases={privateCoreOperatorReleases}
-        operatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}
-        operatorRootError={privateCoreOperatorRootError}
-        operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
-        operatorRoots={privateCoreOperatorRoots}
-        operatorContractStateVersion={privateCoreOperatorContractStateVersion}
-        operatorContractVersion={privateCoreOperatorContractVersion}
-        operatorContractSummaryVersion={privateCoreOperatorContractSummaryVersion}
-        operatorStatusVersion={privateCoreOperatorStatusVersion}
-        operatorStatusKind={privateCoreOperatorStatusKind}
-        operatorSnapshotVersion={privateCoreOperatorSnapshotVersion}
-        operatorSnapshotKind={privateCoreOperatorSnapshotKind}
-        operatorSupportedStatusNote={privateCoreOperatorSupportedStatusNote}
-        operatorSupportedStatusTransport={privateCoreOperatorSupportedStatusTransport}
-        operatorSupportedStatusEndpoint={privateCoreOperatorSupportedStatusEndpoint}
-        operatorSupportedStatusGateVersion={privateCoreOperatorSupportedStatusGateVersion}
-        operatorSupportedStatusGateKind={privateCoreOperatorSupportedStatusGateKind}
-        operatorSupportedStatusGateNote={privateCoreOperatorSupportedStatusGateNote}
-        operatorSupportedStatusGateTransport={privateCoreOperatorSupportedStatusGateTransport}
-        operatorSupportedStatusGateEndpoint={privateCoreOperatorSupportedStatusGateEndpoint}
-        operatorSupportedSnapshotGateVersion={privateCoreOperatorSupportedSnapshotGateVersion}
-        operatorSupportedSnapshotGateKind={privateCoreOperatorSupportedSnapshotGateKind}
-        operatorSupportedSnapshotGateNote={privateCoreOperatorSupportedSnapshotGateNote}
-        operatorSupportedSnapshotGateTransport={
-          privateCoreOperatorSupportedSnapshotGateTransport
-        }
-        operatorSupportedSnapshotGateEndpoint={
-          privateCoreOperatorSupportedSnapshotGateEndpoint
-        }
-        operatorSupportedShippingDecisionGateVersion={
-          privateCoreOperatorSupportedShippingDecisionGateVersion
-        }
-        operatorSupportedShippingDecisionGateKind={
-          privateCoreOperatorSupportedShippingDecisionGateKind
-        }
-        operatorSupportedShippingDecisionGateNote={
-          privateCoreOperatorSupportedShippingDecisionGateNote
-        }
-        operatorSupportedShippingDecisionGateTransport={
-          privateCoreOperatorSupportedShippingDecisionGateTransport
-        }
-        operatorSupportedShippingDecisionGateEndpoint={
-          privateCoreOperatorSupportedShippingDecisionGateEndpoint
-        }
-        operatorSupportedShippingDecisionTransport={
-          privateCoreOperatorSupportedShippingDecisionTransport
-        }
-        operatorSupportedShippingDecisionEndpoint={
-          privateCoreOperatorSupportedShippingDecisionEndpoint
-        }
-        operatorSupportedShippingArtifactGateVersion={
-          privateCoreOperatorSupportedShippingArtifactGateVersion
-        }
-        operatorSupportedShippingArtifactGateKind={
-          privateCoreOperatorSupportedShippingArtifactGateKind
-        }
-        operatorSupportedShippingArtifactGateNote={
-          privateCoreOperatorSupportedShippingArtifactGateNote
-        }
-        operatorSupportedShippingArtifactGateTransport={
-          privateCoreOperatorSupportedShippingArtifactGateTransport
-        }
-        operatorSupportedShippingArtifactGateEndpoint={
-          privateCoreOperatorSupportedShippingArtifactGateEndpoint
-        }
-        operatorSupportedSnapshotNote={privateCoreOperatorSupportedSnapshotNote}
-        operatorSupportedSnapshotTransport={privateCoreOperatorSupportedSnapshotTransport}
-        operatorSupportedSnapshotEndpoint={privateCoreOperatorSupportedSnapshotEndpoint}
-        operatorSupportedShippingArtifactNote={
-          privateCoreOperatorSupportedShippingArtifactNote
-        }
-        operatorSupportedShippingArtifactTransport={privateCoreOperatorSupportedShippingArtifactTransport}
-        operatorSupportedShippingArtifactEndpoint={privateCoreOperatorSupportedShippingArtifactEndpoint}
-        operatorSupportedReleaseCandidateVersion={
-          privateCoreOperatorSupportedReleaseCandidateVersion
-        }
-        operatorSupportedReleaseCandidateKind={privateCoreOperatorSupportedReleaseCandidateKind}
-        operatorSupportedReleaseCandidateNote={privateCoreOperatorSupportedReleaseCandidateNote}
-        operatorSupportedReleaseCandidateGateVersion={
-          privateCoreOperatorSupportedReleaseCandidateGateVersion
-        }
-        operatorSupportedReleaseCandidateGateKind={
-          privateCoreOperatorSupportedReleaseCandidateGateKind
-        }
-        operatorSupportedReleaseCandidateGateNote={
-          privateCoreOperatorSupportedReleaseCandidateGateNote
-        }
-        operatorSupportedReleaseCandidateGateTransport={
-          privateCoreOperatorSupportedReleaseCandidateGateTransport
-        }
-        operatorSupportedReleaseCandidateGateEndpoint={
-          privateCoreOperatorSupportedReleaseCandidateGateEndpoint
-        }
-        operatorSupportedReleaseCandidateTransport={
-          privateCoreOperatorSupportedReleaseCandidateTransport
-        }
-        operatorSupportedReleaseCandidateEndpoint={
-          privateCoreOperatorSupportedReleaseCandidateEndpoint
-        }
-        operatorShippingArtifactVersion={privateCoreOperatorShippingArtifactVersion}
-        operatorShippingArtifactKind={privateCoreOperatorShippingArtifactKind}
-        operatorShippingDecisionVersion={privateCoreOperatorShippingDecisionVersion}
-        operatorShippingDecisionKind={privateCoreOperatorShippingDecisionKind}
-        operatorSupportedShippingDecisionNote={
-          privateCoreOperatorSupportedShippingDecisionNote
-        }
-        operatorSendError={privateCoreOperatorSendError}
-        operatorSends={privateCoreOperatorSends}
-        operatorSendProofError={privateCoreOperatorSendProofError}
-        operatorSendProofs={privateCoreOperatorSendProofs}
-        operatorSwaps={privateCoreOperatorSwaps}
-        operatorSwapProofs={privateCoreOperatorSwapProofs}
-        operatorSummaryUpdatedAt={privateCoreOperatorSummaryUpdatedAt}
-        shieldState={privateCoreRecentShield}
-        title="Vanta Private Core send state"
-        unshieldState={privateCoreUnshieldState}
+        <SendOperatorStatePanel
+          statePanelProps={{
+            compact: true,
+            holdState: privateCoreHoldState,
+            releaseCandidateState: privateCoreReleaseCandidateState,
+            releaseHandoffState: privateCoreReleaseHandoffState,
+            releasePackageState: privateCoreReleasePackageState,
+            releaseWorkflowState: privateCoreReleaseWorkflowState,
+            sendState: privateCoreSendState,
+            swapState: privateCoreSwapState,
+            operatorCurrentRoot: privateCoreOperatorCurrentRoot,
+            operatorConsumeError: privateCoreOperatorConsumeError,
+            operatorConsumes: privateCoreOperatorConsumes,
+            operatorLatestConsume: privateCoreOperatorLatestConsume,
+            operatorLatestConsumeProof: privateCoreOperatorLatestConsumeProof,
+            operatorLatestProof: privateCoreOperatorLatestProof,
+            operatorLatestRelease: privateCoreOperatorLatestRelease,
+            operatorLatestReleaseProof: privateCoreOperatorLatestReleaseProof,
+            operatorLatestRoot: privateCoreOperatorLatestRoot,
+            operatorLatestSend: privateCoreOperatorLatestSend,
+            operatorLatestSendLinkedProof: privateCoreOperatorLatestSendLinkedProof,
+            operatorLatestSendProof: privateCoreOperatorLatestSendProof,
+            operatorLatestSwap: privateCoreOperatorLatestSwap,
+            operatorLatestSwapLinkedProof: privateCoreOperatorLatestSwapLinkedProof,
+            operatorLatestSwapProof: privateCoreOperatorLatestSwapProof,
+            operatorBoundaryPrimaryNote: privateCoreOperatorBoundaryPrimaryNote,
+            operatorBoundaryStatusLabel: privateCoreOperatorBoundaryStatusLabel,
+            operatorContractMirrorPrimaryNote: privateCoreOperatorContractMirrorPrimaryNote,
+            operatorContractMirrorStatusLabel: privateCoreOperatorContractMirrorStatusLabel,
+            operatorReleaseBoundaryPrimaryNote: privateCoreOperatorReleaseBoundaryPrimaryNote,
+            operatorReleaseBoundaryStatusLabel: privateCoreOperatorReleaseBoundaryStatusLabel,
+            operatorRequiredLanesPrimaryNote: privateCoreOperatorRequiredLanesPrimaryNote,
+            operatorRequiredLanesStatusLabel: privateCoreOperatorRequiredLanesStatusLabel,
+            operatorZkV1ShippingPrimaryNote: privateCoreOperatorZkV1ShippingPrimaryNote,
+            operatorZkV1ShippingStatusLabel: privateCoreOperatorZkV1ShippingStatusLabel,
+            operatorSendBoundaryPrimaryNote: privateCoreOperatorSendBoundaryPrimaryNote,
+            operatorSendBoundaryStatusLabel: privateCoreOperatorSendBoundaryStatusLabel,
+            operatorSendContinuityPrimaryNote: privateCoreOperatorSendContinuityPrimaryNote,
+            operatorSendContinuityStatusLabel: privateCoreOperatorSendContinuityStatusLabel,
+            operatorSwapBoundaryPrimaryNote: privateCoreOperatorSwapBoundaryPrimaryNote,
+            operatorSwapBoundaryStatusLabel: privateCoreOperatorSwapBoundaryStatusLabel,
+            operatorSwapContinuityPrimaryNote: privateCoreOperatorSwapContinuityPrimaryNote,
+            operatorSwapContinuityStatusLabel: privateCoreOperatorSwapContinuityStatusLabel,
+            operatorSupportedSendLaneKind: privateCoreOperatorSupportedSendLaneKind,
+            operatorSupportedSendLaneNote: privateCoreOperatorSupportedSendLaneNote,
+            operatorSupportedSendLaneStatus: privateCoreOperatorSupportedSendLaneStatus,
+            operatorSupportedSendLaneVersion: privateCoreOperatorSupportedSendLaneVersion,
+            operatorSupportedSendV1Decision: privateCoreOperatorSupportedSendV1Decision,
+            operatorSupportedSendV1DecisionNote: privateCoreOperatorSupportedSendV1DecisionNote,
+            operatorSupportedUnshieldLaneKind: privateCoreOperatorSupportedUnshieldLaneKind,
+            operatorSupportedUnshieldLaneNote: privateCoreOperatorSupportedUnshieldLaneNote,
+            operatorSupportedUnshieldLaneStatus: privateCoreOperatorSupportedUnshieldLaneStatus,
+            operatorSupportedUnshieldLaneVersion: privateCoreOperatorSupportedUnshieldLaneVersion,
+            operatorSupportedUnshieldV1Decision: privateCoreOperatorSupportedUnshieldV1Decision,
+            operatorSupportedUnshieldV1DecisionNote: privateCoreOperatorSupportedUnshieldV1DecisionNote,
+            operatorSupportedReleaseLaneKind: privateCoreOperatorSupportedReleaseLaneKind,
+            operatorSupportedReleaseLaneNote: privateCoreOperatorSupportedReleaseLaneNote,
+            operatorSupportedReleaseLaneStatus: privateCoreOperatorSupportedReleaseLaneStatus,
+            operatorSupportedReleaseLaneVersion: privateCoreOperatorSupportedReleaseLaneVersion,
+            operatorSupportedSwapLaneKind: privateCoreOperatorSupportedSwapLaneKind,
+            operatorSupportedSwapLaneNote: privateCoreOperatorSupportedSwapLaneNote,
+            operatorSupportedSwapLaneStatus: privateCoreOperatorSupportedSwapLaneStatus,
+            operatorSupportedSwapLaneVersion: privateCoreOperatorSupportedSwapLaneVersion,
+            operatorSupportedSwapV1Decision: privateCoreOperatorSupportedSwapV1Decision,
+            operatorSupportedSwapV1DecisionNote: privateCoreOperatorSupportedSwapV1DecisionNote,
+            operatorSupportedSwapV1Role: privateCoreOperatorSupportedSwapV1Role,
+            operatorSupportedSwapV1RoleNote: privateCoreOperatorSupportedSwapV1RoleNote,
+            operatorSupportedSwapVenue: privateCoreOperatorSupportedSwapVenue,
+            operatorSupportedSwapOutputModel: privateCoreOperatorSupportedSwapOutputModel,
+            operatorSupportedSwapResultingRootBasis: privateCoreOperatorSupportedSwapResultingRootBasis,
+            operatorSupportedSwapInputRootPolicy: privateCoreOperatorSupportedSwapInputRootPolicy,
+            operatorSupportedSwapOutputRegistrationPolicy: privateCoreOperatorSupportedSwapOutputRegistrationPolicy,
+            operatorSupportedReleaseV1Decision: privateCoreOperatorSupportedReleaseV1Decision,
+            operatorSupportedReleaseV1DecisionNote: privateCoreOperatorSupportedReleaseV1DecisionNote,
+            operatorSupportedFlowKind: privateCoreOperatorSupportedFlowKind,
+            operatorSupportedFlowNote: privateCoreOperatorSupportedFlowNote,
+            operatorSupportedFlowStatus: privateCoreOperatorSupportedFlowStatus,
+            operatorSupportedFlowVersion: privateCoreOperatorSupportedFlowVersion,
+            operatorSupportedZkV1ScopeDecision: privateCoreOperatorSupportedZkV1ScopeDecision,
+            operatorSupportedZkV1ScopeNote: privateCoreOperatorSupportedZkV1ScopeNote,
+            operatorSupportedZkV1RequiredLanes: privateCoreOperatorSupportedZkV1RequiredLanes,
+            operatorSupportedZkV1RequiredLanesNote: privateCoreOperatorSupportedZkV1RequiredLanesNote,
+            operatorZkV1FinishLineStatusLabel: privateCoreOperatorZkV1FinishLineStatusLabel,
+            operatorZkV1FinishLinePrimaryNote: privateCoreOperatorZkV1FinishLinePrimaryNote,
+            operatorSupportedAssetSymbol: privateCoreOperatorSupportedAssetSymbol,
+            operatorSupportedEnvironment: privateCoreOperatorSupportedEnvironment,
+            operatorSupportedNoteSchema: privateCoreOperatorSupportedNoteSchema,
+            operatorSupportedNoteVersion: privateCoreOperatorSupportedNoteVersion,
+            operatorSupportedRootRegistrationProvenance: privateCoreOperatorSupportedRootRegistrationProvenance,
+            operatorSupportedSendResultingRootBasis: privateCoreOperatorSupportedSendResultingRootBasis,
+            operatorSupportedSendInputRootPolicy: privateCoreOperatorSupportedSendInputRootPolicy,
+            operatorSupportedSendOutputRegistrationPolicy: privateCoreOperatorSupportedSendOutputRegistrationPolicy,
+            operatorSupportedRecipientModel: privateCoreOperatorSupportedRecipientModel,
+            operatorSupportedReleaseDestinationModel: privateCoreOperatorSupportedReleaseDestinationModel,
+            operatorSupportedProofSystem: privateCoreOperatorSupportedProofSystem,
+            operatorSupportedUnshieldCircuit: privateCoreOperatorSupportedUnshieldCircuit,
+            operatorSupportedSendCircuit: privateCoreOperatorSupportedSendCircuit,
+            operatorSupportedUnshieldMerkleDepth: privateCoreOperatorSupportedUnshieldMerkleDepth,
+            operatorSupportedSendMerkleDepth: privateCoreOperatorSupportedSendMerkleDepth,
+            operatorSupportedReleaseAuthorizationBasis: privateCoreOperatorSupportedReleaseAuthorizationBasis,
+            operatorSupportedReleaseRootPolicy: privateCoreOperatorSupportedReleaseRootPolicy,
+            operatorSupportedReleaseExecutionModel: privateCoreOperatorSupportedReleaseExecutionModel,
+            operatorSupportedReleaseAtomicityModel: privateCoreOperatorSupportedReleaseAtomicityModel,
+            operatorSupportedReleasePersistenceModel: privateCoreOperatorSupportedReleasePersistenceModel,
+            operatorOwnerAuthorizationMode: privateCoreOperatorOwnerAuthorizationMode,
+            operatorOwnerAuthorizationDecision: privateCoreOperatorOwnerAuthorizationDecision,
+            operatorOwnerAuthorizationDecisionNote: privateCoreOperatorOwnerAuthorizationDecisionNote,
+            operatorSourceArtifactTruthBasis: privateCoreOperatorSourceArtifactTruthBasis,
+            operatorProvingArtifactTruthBasis: privateCoreOperatorProvingArtifactTruthBasis,
+            operatorSourceProvingRelationship: privateCoreOperatorSourceProvingRelationship,
+            operatorNullifierKeyMode: privateCoreOperatorNullifierKeyMode,
+            operatorProvingHashLane: privateCoreOperatorProvingHashLane,
+            operatorCurrentRootLinkedProof: privateCoreOperatorCurrentRootLinkedProof,
+            operatorCurrentRootProofLinkStatus: privateCoreOperatorCurrentRootProofLinkStatus,
+            operatorSendResultingRootLinkedProof: privateCoreOperatorSendResultingRootLinkedProof,
+            operatorSendResultingRootRecord: privateCoreOperatorSendResultingRootRecord,
+            operatorSendResultingRootPrimaryNote: privateCoreOperatorSendResultingRootPrimaryNote,
+            operatorSendResultingRootRegistrationPrimaryNote: privateCoreOperatorSendResultingRootRegistrationPrimaryNote,
+            operatorSendResultingRootRegistrationStatusLabel: privateCoreOperatorSendResultingRootRegistrationStatusLabel,
+            operatorSendResultingRootProofLinkStatus: privateCoreOperatorSendResultingRootProofLinkStatus,
+            operatorSendResultingRootStatusLabel: privateCoreOperatorSendResultingRootStatusLabel,
+            operatorSwapResultingRootLinkedProof: privateCoreOperatorSwapResultingRootLinkedProof,
+            operatorSwapResultingRootRecord: privateCoreOperatorSwapResultingRootRecord,
+            operatorSwapResultingRootPrimaryNote: privateCoreOperatorSwapResultingRootPrimaryNote,
+            operatorSwapResultingRootRegistrationPrimaryNote: privateCoreOperatorSwapResultingRootRegistrationPrimaryNote,
+            operatorSwapResultingRootRegistrationStatusLabel: privateCoreOperatorSwapResultingRootRegistrationStatusLabel,
+            operatorSwapResultingRootProofLinkStatus: privateCoreOperatorSwapResultingRootProofLinkStatus,
+            operatorSwapResultingRootStatusLabel: privateCoreOperatorSwapResultingRootStatusLabel,
+            operatorProofConsumeLinkStatus: privateCoreOperatorProofConsumeLinkStatus,
+            operatorProofError: privateCoreOperatorProofError,
+            operatorProofs: privateCoreOperatorProofs,
+            operatorProofSendLinkStatus: privateCoreOperatorProofSendLinkStatus,
+            operatorProofSwapLinkStatus: privateCoreOperatorProofSwapLinkStatus,
+            operatorProofReleaseLinkStatus: privateCoreOperatorProofReleaseLinkStatus,
+            operatorReleaseError: privateCoreOperatorReleaseError,
+            operatorReleases: privateCoreOperatorReleases,
+            operatorRootCurrentnessLabel: privateCoreOperatorRootCurrentnessLabel,
+            operatorRootError: privateCoreOperatorRootError,
+            operatorRootRegistrationStatus: privateCoreOperatorRootRegistrationStatus,
+            operatorRoots: privateCoreOperatorRoots,
+            operatorContractStateVersion: privateCoreOperatorContractStateVersion,
+            operatorContractVersion: privateCoreOperatorContractVersion,
+            operatorContractSummaryVersion: privateCoreOperatorContractSummaryVersion,
+            operatorStatusVersion: privateCoreOperatorStatusVersion,
+            operatorStatusKind: privateCoreOperatorStatusKind,
+            operatorSnapshotVersion: privateCoreOperatorSnapshotVersion,
+            operatorSnapshotKind: privateCoreOperatorSnapshotKind,
+            operatorSupportedStatusNote: privateCoreOperatorSupportedStatusNote,
+            operatorSupportedStatusTransport: privateCoreOperatorSupportedStatusTransport,
+            operatorSupportedStatusEndpoint: privateCoreOperatorSupportedStatusEndpoint,
+            operatorSupportedStatusGateVersion: privateCoreOperatorSupportedStatusGateVersion,
+            operatorSupportedStatusGateKind: privateCoreOperatorSupportedStatusGateKind,
+            operatorSupportedStatusGateNote: privateCoreOperatorSupportedStatusGateNote,
+            operatorSupportedStatusGateTransport: privateCoreOperatorSupportedStatusGateTransport,
+            operatorSupportedStatusGateEndpoint: privateCoreOperatorSupportedStatusGateEndpoint,
+            operatorSupportedSnapshotGateVersion: privateCoreOperatorSupportedSnapshotGateVersion,
+            operatorSupportedSnapshotGateKind: privateCoreOperatorSupportedSnapshotGateKind,
+            operatorSupportedSnapshotGateNote: privateCoreOperatorSupportedSnapshotGateNote,
+            operatorSupportedSnapshotGateTransport: privateCoreOperatorSupportedSnapshotGateTransport,
+            operatorSupportedSnapshotGateEndpoint: privateCoreOperatorSupportedSnapshotGateEndpoint,
+            operatorSupportedShippingDecisionGateVersion: privateCoreOperatorSupportedShippingDecisionGateVersion,
+            operatorSupportedShippingDecisionGateKind: privateCoreOperatorSupportedShippingDecisionGateKind,
+            operatorSupportedShippingDecisionGateNote: privateCoreOperatorSupportedShippingDecisionGateNote,
+            operatorSupportedShippingDecisionGateTransport: privateCoreOperatorSupportedShippingDecisionGateTransport,
+            operatorSupportedShippingDecisionGateEndpoint: privateCoreOperatorSupportedShippingDecisionGateEndpoint,
+            operatorSupportedShippingDecisionTransport: privateCoreOperatorSupportedShippingDecisionTransport,
+            operatorSupportedShippingDecisionEndpoint: privateCoreOperatorSupportedShippingDecisionEndpoint,
+            operatorSupportedShippingArtifactGateVersion: privateCoreOperatorSupportedShippingArtifactGateVersion,
+            operatorSupportedShippingArtifactGateKind: privateCoreOperatorSupportedShippingArtifactGateKind,
+            operatorSupportedShippingArtifactGateNote: privateCoreOperatorSupportedShippingArtifactGateNote,
+            operatorSupportedShippingArtifactGateTransport: privateCoreOperatorSupportedShippingArtifactGateTransport,
+            operatorSupportedShippingArtifactGateEndpoint: privateCoreOperatorSupportedShippingArtifactGateEndpoint,
+            operatorSupportedSnapshotNote: privateCoreOperatorSupportedSnapshotNote,
+            operatorSupportedSnapshotTransport: privateCoreOperatorSupportedSnapshotTransport,
+            operatorSupportedSnapshotEndpoint: privateCoreOperatorSupportedSnapshotEndpoint,
+            operatorSupportedShippingArtifactNote: privateCoreOperatorSupportedShippingArtifactNote,
+            operatorSupportedShippingArtifactTransport: privateCoreOperatorSupportedShippingArtifactTransport,
+            operatorSupportedShippingArtifactEndpoint: privateCoreOperatorSupportedShippingArtifactEndpoint,
+            operatorSupportedReleaseCandidateVersion: privateCoreOperatorSupportedReleaseCandidateVersion,
+            operatorSupportedReleaseCandidateKind: privateCoreOperatorSupportedReleaseCandidateKind,
+            operatorSupportedReleaseCandidateNote: privateCoreOperatorSupportedReleaseCandidateNote,
+            operatorSupportedReleaseCandidateGateVersion: privateCoreOperatorSupportedReleaseCandidateGateVersion,
+            operatorSupportedReleaseCandidateGateKind: privateCoreOperatorSupportedReleaseCandidateGateKind,
+            operatorSupportedReleaseCandidateGateNote: privateCoreOperatorSupportedReleaseCandidateGateNote,
+            operatorSupportedReleaseCandidateGateTransport: privateCoreOperatorSupportedReleaseCandidateGateTransport,
+            operatorSupportedReleaseCandidateGateEndpoint: privateCoreOperatorSupportedReleaseCandidateGateEndpoint,
+            operatorSupportedReleaseCandidateTransport: privateCoreOperatorSupportedReleaseCandidateTransport,
+            operatorSupportedReleaseCandidateEndpoint: privateCoreOperatorSupportedReleaseCandidateEndpoint,
+            operatorShippingArtifactVersion: privateCoreOperatorShippingArtifactVersion,
+            operatorShippingArtifactKind: privateCoreOperatorShippingArtifactKind,
+            operatorShippingDecisionVersion: privateCoreOperatorShippingDecisionVersion,
+            operatorShippingDecisionKind: privateCoreOperatorShippingDecisionKind,
+            operatorSupportedShippingDecisionNote: privateCoreOperatorSupportedShippingDecisionNote,
+            operatorSendError: privateCoreOperatorSendError,
+            operatorSends: privateCoreOperatorSends,
+            operatorSendProofError: privateCoreOperatorSendProofError,
+            operatorSendProofs: privateCoreOperatorSendProofs,
+            operatorSwaps: privateCoreOperatorSwaps,
+            operatorSwapProofs: privateCoreOperatorSwapProofs,
+            operatorSummaryUpdatedAt: privateCoreOperatorSummaryUpdatedAt,
+            shieldState: privateCoreRecentShield,
+            title: "Vanta Private Core send state",
+            unshieldState: privateCoreUnshieldState,
+          }}
         />
       </LaneProgressiveSection>
     </section>
