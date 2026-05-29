@@ -214,3 +214,69 @@ body.vanta-refresh .dashboard-focus-card__chips span {
   border: 1px solid var(--v-border);
   background: transparent;
 }
+
+/* Swap coming-soon preview (P2): intentional lane, not a broken form */
+.swap-coming-soon {
+  display: grid;
+  gap: var(--v-space-md);
+  margin: 0 0 var(--v-space-lg);
+  padding: var(--v-space-md) var(--v-space-lg);
+  border: 1px solid var(--v-border);
+  border-radius: var(--v-r-lg);
+  background: linear-gradient(180deg, var(--v-panel-3) 0%, var(--v-panel-2) 100%);
+  box-shadow: var(--v-elev-1);
+}
+.swap-coming-soon__header h3 {
+  margin: 10px 0 6px;
+  font-family: var(--v-font-display);
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+.swap-coming-soon__header p {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 0.82rem;
+  color: var(--v-muted-strong);
+  line-height: 1.45;
+}
+.swap-coming-soon__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--v-space-sm);
+}
+.swap-coming-soon__actions .v-tile {
+  text-decoration: none;
+  color: inherit;
+}
+.swap-coming-soon__truth {
+  font-size: 0.74rem;
+  color: var(--v-muted);
+}
+.swap-coming-soon__truth summary {
+  cursor: pointer;
+  font-family: var(--v-font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--v-muted-strong);
+}
+.swap-preview-shell {
+  position: relative;
+}
+.swap-preview-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, rgba(4, 6, 10, 0.18) 100%);
+  z-index: 1;
+}
+.swap-preview-shell .shield-form__actions {
+  position: relative;
+  z-index: 2;
+}
+@media (max-width: 640px) {
+  .swap-coming-soon__actions {
+    grid-template-columns: 1fr;
+  }
+}

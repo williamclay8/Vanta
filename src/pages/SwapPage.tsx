@@ -64,6 +64,7 @@ import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
 import type { AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { QuoteCountdownBar, type QuoteCountdownBarTone } from "@/components/QuoteCountdownBar";
+import { SwapComingSoonPanel } from "@/components/SwapComingSoonPanel";
 import { SwapAdvancedPanel } from "@/components/SwapAdvancedPanel";
 import { SwapReceiptModal, type SwapReceiptModalDetails } from "@/components/SwapReceiptModal";
 import { TransactionStatusToast } from "@/components/TransactionStatusToast";
@@ -1736,7 +1737,8 @@ export function SwapPage() {
   if (!walletConnected) {
     validationMessage = "Connect a wallet to swap.";
   } else if (isBetaMode) {
-    validationMessage = "Beta mode — Swap is visible but live routes are paused.";
+    validationMessage =
+      "Swap routes are in preview. Explore the flow below, or shield assets while live routes finish rollout.";
   } else if (sourcePairCapability.status !== "live") {
     validationMessage =
       sourcePairCapability.blockers[0] ??
@@ -1809,7 +1811,7 @@ export function SwapPage() {
   const quoteSlippageBps =
     quote && "slippageBps" in quote ? quote.slippageBps : null;
   const swapPrimaryActionLabel = isBetaMode
-    ? "Beta mode"
+    ? "Coming soon"
     : isReady
       ? `Swap ${formatAssetAmount(parsedAmount, selectedSourceAsset)} for ${formatAssetAmount(
           expectedOutputAmount,
@@ -1860,9 +1862,9 @@ export function SwapPage() {
     <section className="send-page swap-page">
       <div className="module-page__hero send-page__hero product-intro">
         <div>
-          <span className="eyebrow product-intro__eyebrow">Guarded beta</span>
+          <span className="eyebrow product-intro__eyebrow">Trade privately</span>
           <h2>Swap</h2>
-          <p>Swap inside your private balance.</p>
+          <p>Exchange shielded assets without leaving your private balance.</p>
         </div>
 
         <div
@@ -1871,14 +1873,17 @@ export function SwapPage() {
             swapTrustContract.claimControls.productionPrivacyClaimsLocked
           }
         >
-          <strong>Beta — routes are constrained</strong>
+          <strong>Route preview</strong>
+          <p>Build the trade, quote, and receipt shape before live settlement opens.</p>
           <details>
-            <summary>Technical status</summary>
+            <summary>Technical status · Guarded beta</summary>
             <p>Current truth: {swapTrustContract.currentTruth}.</p>
             <p>{swapTrustContract.visibleStatusCopy}</p>
           </details>
         </div>
       </div>
+
+      {isBetaMode ? <SwapComingSoonPanel trustCopy={swapTrustContract.visibleStatusCopy} /> : null}
 
       <LaneFlowIndicator
         ariaLabel="Swap flow"
@@ -1900,7 +1905,7 @@ export function SwapPage() {
           </div>
 
           <div className="shield-form swap-widget">
-            <div className="swap-module">
+            <div className={`swap-module${isBetaMode ? " swap-preview-shell" : ""}`}>
               <QuoteCountdownBar
                 label={quoteStatusLabel}
                 progressPercent={quoteProgressPercent}
