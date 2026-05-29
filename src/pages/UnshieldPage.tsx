@@ -5,7 +5,7 @@ import {
   useWalletSession,
 } from "@solana/react-hooks";
 import { isBetaMode } from "@/config/deploymentMode";
-import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
+import { UnshieldReleaseWorkflowPanel } from "@/components/UnshieldReleaseWorkflowPanel";
 import { LaneProgressiveSection } from "@/components/LaneProgressiveSection";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
@@ -2214,625 +2214,235 @@ export function UnshieldPage() {
 
       {showPrivateReleaseCard && (
       <LaneProgressiveSection summary="Private release workflow (reviewer)" variant="reviewer">
-      <article className="send-card" style={{ marginBottom: 24 }}>
-        <div className="shield-card__header">
-        <div>
-          <span>Private release</span>
-          <h3>Unshield lane</h3>
-        </div>
-          <small>
-            {privateCoreRecentShield
-              ? privateCoreOperatorBoundaryStatusLabel ?? "Ready for consume"
-              : "Shield first"}
-          </small>
-        </div>
-
-        <p className="shield-review-note">
-          Recover the held private note, generate the release proof, and move value back to the
-          public balance once.
-        </p>
-
-        <div className="review-list" style={{ marginBottom: 16 }}>
-          {privateCoreDemoSteps.map((step, index) => (
-            <div className="review-row" key={step.label}>
-              <span>{`${index + 1}. ${step.label}`}</span>
-              <strong>
-                {step.status === "done" ? `Done · ${step.summary}` : step.summary}
-              </strong>
-            </div>
-          ))}
-          <div className="review-row">
-            <span>5. Exact release candidate</span>
-            <strong>
-              {privateCoreReleaseCandidateState
-                ? `${privateCoreReleaseCandidateState.lifecycleStatusLabel} · ${privateCoreReleaseCandidateState.lifecyclePrimaryNote}`
-                : privateCoreSendCompleted
-                  ? "Awaiting exact candidate summary"
-                  : "Available after primary private send"}
-            </strong>
-          </div>
-          <div className="review-row">
-            <span>6. Operator boundary</span>
-            <strong>
-              {privateCoreOperatorBoundaryStatusLabel
-                ? `${privateCoreOperatorBoundaryStatusLabel} · ${privateCoreOperatorBoundaryPrimaryNote ?? "No note"}`
-                : "Awaiting operator summary"}
-            </strong>
-          </div>
-          <div className="review-row">
-            <span>7. Release workflow</span>
-            <strong>
-              {privateCoreReleaseWorkflowState
-                ? `${privateCoreReleaseWorkflowState.shipStatusLabel} · ${privateCoreReleaseWorkflowState.shipPrimaryNote}`
-                : privateCoreSendCompleted
-                  ? "Awaiting release workflow summary"
-                  : "Available after primary private send"}
-            </strong>
-          </div>
-          <div className="review-row">
-            <span>8. Release handoff</span>
-            <strong>
-              {privateCoreReleaseHandoffState
-                ? `${privateCoreReleaseHandoffState.handoffStatusLabel} · ${privateCoreReleaseHandoffState.handoffPrimaryNote}`
-                : privateCoreSendCompleted
-                  ? "Awaiting release handoff summary"
-                  : "Available after primary private send"}
-            </strong>
-          </div>
-          <div className="review-row">
-            <span>9. Release package</span>
-            <strong>
-              {privateCoreReleaseHandoffState
-                ? `${privateCoreReleaseHandoffState.packageStatusLabel} · ${privateCoreReleaseHandoffState.packagePrimaryNote}`
-                : privateCoreSendCompleted
-                  ? "Awaiting release package summary"
-                  : "Available after primary private send"}
-            </strong>
-          </div>
-        </div>
-
-        <VantaPrivateCoreStatePanel
-          compact
-          holdState={privateCoreHoldState}
-          releaseCandidateState={privateCoreReleaseCandidateState}
-          releaseHandoffState={privateCoreReleaseHandoffState}
-          releasePackageState={privateCoreReleasePackageState}
-          releaseWorkflowState={privateCoreReleaseWorkflowState}
-          sendState={privateCoreSendState}
-          swapState={privateCoreSwapState}
-          operatorCurrentRoot={privateCoreOperatorCurrentRoot}
-          operatorConsumeError={privateCoreOperatorConsumeError}
-          operatorConsumes={privateCoreOperatorConsumes}
-          operatorLatestConsume={privateCoreOperatorLatestConsume}
-          operatorLatestConsumeProof={privateCoreOperatorLatestConsumeProof}
-          operatorLatestProof={privateCoreOperatorLatestProof}
-          operatorLatestRelease={privateCoreOperatorLatestRelease}
-          operatorLatestReleaseProof={privateCoreOperatorLatestReleaseProof}
-          operatorLatestRoot={privateCoreOperatorLatestRoot}
-          operatorLatestSend={privateCoreOperatorLatestSend}
-          operatorLatestSendLinkedProof={privateCoreOperatorLatestSendLinkedProof}
-          operatorLatestSendProof={privateCoreOperatorLatestSendProof}
-          operatorLatestSwap={privateCoreOperatorLatestSwap}
-          operatorLatestSwapLinkedProof={privateCoreOperatorLatestSwapLinkedProof}
-          operatorLatestSwapProof={privateCoreOperatorLatestSwapProof}
-          operatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
-          operatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
-          operatorContractMirrorPrimaryNote={privateCoreOperatorContractMirrorPrimaryNote}
-          operatorContractMirrorStatusLabel={privateCoreOperatorContractMirrorStatusLabel}
-          operatorReleaseBoundaryPrimaryNote={privateCoreOperatorReleaseBoundaryPrimaryNote}
-          operatorReleaseBoundaryStatusLabel={privateCoreOperatorReleaseBoundaryStatusLabel}
-          operatorRequiredLanesPrimaryNote={privateCoreOperatorRequiredLanesPrimaryNote}
-          operatorRequiredLanesStatusLabel={privateCoreOperatorRequiredLanesStatusLabel}
-          operatorZkV1ShippingPrimaryNote={privateCoreOperatorZkV1ShippingPrimaryNote}
-          operatorZkV1ShippingStatusLabel={privateCoreOperatorZkV1ShippingStatusLabel}
-          operatorSendBoundaryPrimaryNote={privateCoreOperatorSendBoundaryPrimaryNote}
-          operatorSendBoundaryStatusLabel={privateCoreOperatorSendBoundaryStatusLabel}
-          operatorSendContinuityPrimaryNote={privateCoreOperatorSendContinuityPrimaryNote}
-          operatorSendContinuityStatusLabel={privateCoreOperatorSendContinuityStatusLabel}
-          operatorSwapBoundaryPrimaryNote={privateCoreOperatorSwapBoundaryPrimaryNote}
-          operatorSwapBoundaryStatusLabel={privateCoreOperatorSwapBoundaryStatusLabel}
-          operatorSwapContinuityPrimaryNote={privateCoreOperatorSwapContinuityPrimaryNote}
-          operatorSwapContinuityStatusLabel={privateCoreOperatorSwapContinuityStatusLabel}
-          operatorSupportedSendLaneKind={privateCoreOperatorSupportedSendLaneKind}
-          operatorSupportedSendLaneNote={privateCoreOperatorSupportedSendLaneNote}
-          operatorSupportedSendLaneStatus={privateCoreOperatorSupportedSendLaneStatus}
-          operatorSupportedSendLaneVersion={privateCoreOperatorSupportedSendLaneVersion}
-          operatorSupportedSendV1Decision={privateCoreOperatorSupportedSendV1Decision}
-          operatorSupportedSendV1DecisionNote={privateCoreOperatorSupportedSendV1DecisionNote}
-          operatorSupportedUnshieldLaneKind={privateCoreOperatorSupportedUnshieldLaneKind}
-          operatorSupportedUnshieldLaneNote={privateCoreOperatorSupportedUnshieldLaneNote}
-          operatorSupportedUnshieldLaneStatus={privateCoreOperatorSupportedUnshieldLaneStatus}
-          operatorSupportedUnshieldLaneVersion={privateCoreOperatorSupportedUnshieldLaneVersion}
-          operatorSupportedUnshieldV1Decision={privateCoreOperatorSupportedUnshieldV1Decision}
-          operatorSupportedUnshieldV1DecisionNote={
-            privateCoreOperatorSupportedUnshieldV1DecisionNote
-          }
-          operatorSupportedReleaseLaneKind={privateCoreOperatorSupportedReleaseLaneKind}
-          operatorSupportedReleaseLaneNote={privateCoreOperatorSupportedReleaseLaneNote}
-          operatorSupportedReleaseLaneStatus={privateCoreOperatorSupportedReleaseLaneStatus}
-          operatorSupportedReleaseLaneVersion={privateCoreOperatorSupportedReleaseLaneVersion}
-          operatorSupportedSwapLaneKind={privateCoreOperatorSupportedSwapLaneKind}
-          operatorSupportedSwapLaneNote={privateCoreOperatorSupportedSwapLaneNote}
-          operatorSupportedSwapLaneStatus={privateCoreOperatorSupportedSwapLaneStatus}
-          operatorSupportedSwapLaneVersion={privateCoreOperatorSupportedSwapLaneVersion}
-          operatorSupportedSwapV1Decision={privateCoreOperatorSupportedSwapV1Decision}
-          operatorSupportedSwapV1DecisionNote={privateCoreOperatorSupportedSwapV1DecisionNote}
-          operatorSupportedSwapV1Role={privateCoreOperatorSupportedSwapV1Role}
-          operatorSupportedSwapV1RoleNote={privateCoreOperatorSupportedSwapV1RoleNote}
-          operatorSupportedSwapVenue={privateCoreOperatorSupportedSwapVenue}
-          operatorSupportedSwapOutputModel={privateCoreOperatorSupportedSwapOutputModel}
-          operatorSupportedSwapResultingRootBasis={privateCoreOperatorSupportedSwapResultingRootBasis}
-          operatorSupportedSwapInputRootPolicy={privateCoreOperatorSupportedSwapInputRootPolicy}
-          operatorSupportedSwapOutputRegistrationPolicy={
-            privateCoreOperatorSupportedSwapOutputRegistrationPolicy
-          }
-          operatorSupportedReleaseV1Decision={privateCoreOperatorSupportedReleaseV1Decision}
-          operatorSupportedReleaseV1DecisionNote={
-            privateCoreOperatorSupportedReleaseV1DecisionNote
-          }
-          operatorSupportedFlowKind={privateCoreOperatorSupportedFlowKind}
-          operatorSupportedFlowNote={privateCoreOperatorSupportedFlowNote}
-          operatorSupportedFlowStatus={privateCoreOperatorSupportedFlowStatus}
-          operatorSupportedFlowVersion={privateCoreOperatorSupportedFlowVersion}
-          operatorSupportedZkV1ScopeDecision={privateCoreOperatorSupportedZkV1ScopeDecision}
-          operatorSupportedZkV1ScopeNote={privateCoreOperatorSupportedZkV1ScopeNote}
-          operatorSupportedZkV1RequiredLanes={privateCoreOperatorSupportedZkV1RequiredLanes}
-          operatorSupportedZkV1RequiredLanesNote={privateCoreOperatorSupportedZkV1RequiredLanesNote}
-          operatorZkV1FinishLineStatusLabel={privateCoreOperatorZkV1FinishLineStatusLabel}
-          operatorZkV1FinishLinePrimaryNote={privateCoreOperatorZkV1FinishLinePrimaryNote}
-          operatorSupportedAssetSymbol={privateCoreOperatorSupportedAssetSymbol}
-          operatorSupportedEnvironment={privateCoreOperatorSupportedEnvironment}
-          operatorSupportedNoteSchema={privateCoreOperatorSupportedNoteSchema}
-          operatorSupportedNoteVersion={privateCoreOperatorSupportedNoteVersion}
-          operatorSupportedRootRegistrationProvenance={
-            privateCoreOperatorSupportedRootRegistrationProvenance
-          }
-          operatorSupportedSendResultingRootBasis={
-            privateCoreOperatorSupportedSendResultingRootBasis
-          }
-          operatorSupportedSendInputRootPolicy={
-            privateCoreOperatorSupportedSendInputRootPolicy
-          }
-          operatorSupportedSendOutputRegistrationPolicy={
-            privateCoreOperatorSupportedSendOutputRegistrationPolicy
-          }
-          operatorSupportedRecipientModel={privateCoreOperatorSupportedRecipientModel}
-          operatorSupportedReleaseDestinationModel={
-            privateCoreOperatorSupportedReleaseDestinationModel
-          }
-          operatorSupportedProofSystem={privateCoreOperatorSupportedProofSystem}
-          operatorSupportedUnshieldCircuit={privateCoreOperatorSupportedUnshieldCircuit}
-          operatorSupportedSendCircuit={privateCoreOperatorSupportedSendCircuit}
-          operatorSupportedUnshieldMerkleDepth={privateCoreOperatorSupportedUnshieldMerkleDepth}
-          operatorSupportedSendMerkleDepth={privateCoreOperatorSupportedSendMerkleDepth}
-          operatorSupportedReleaseAuthorizationBasis={
-            privateCoreOperatorSupportedReleaseAuthorizationBasis
-          }
-          operatorSupportedReleaseRootPolicy={privateCoreOperatorSupportedReleaseRootPolicy}
-          operatorSupportedReleaseExecutionModel={
-            privateCoreOperatorSupportedReleaseExecutionModel
-          }
-          operatorSupportedReleaseAtomicityModel={
-            privateCoreOperatorSupportedReleaseAtomicityModel
-          }
-          operatorSupportedReleasePersistenceModel={
-            privateCoreOperatorSupportedReleasePersistenceModel
-          }
-          operatorOwnerAuthorizationMode={privateCoreOperatorOwnerAuthorizationMode}
-          operatorOwnerAuthorizationDecision={privateCoreOperatorOwnerAuthorizationDecision}
-          operatorOwnerAuthorizationDecisionNote={privateCoreOperatorOwnerAuthorizationDecisionNote}
-          operatorSourceArtifactTruthBasis={privateCoreOperatorSourceArtifactTruthBasis}
-          operatorProvingArtifactTruthBasis={privateCoreOperatorProvingArtifactTruthBasis}
-          operatorSourceProvingRelationship={privateCoreOperatorSourceProvingRelationship}
-          operatorNullifierKeyMode={privateCoreOperatorNullifierKeyMode}
-          operatorProvingHashLane={privateCoreOperatorProvingHashLane}
-          operatorCurrentRootLinkedProof={privateCoreOperatorCurrentRootLinkedProof}
-          operatorCurrentRootProofLinkStatus={privateCoreOperatorCurrentRootProofLinkStatus}
-          operatorSendResultingRootLinkedProof={privateCoreOperatorSendResultingRootLinkedProof}
-          operatorSendResultingRootRecord={privateCoreOperatorSendResultingRootRecord}
-          operatorSendResultingRootPrimaryNote={privateCoreOperatorSendResultingRootPrimaryNote}
-          operatorSendResultingRootRegistrationPrimaryNote={
-            privateCoreOperatorSendResultingRootRegistrationPrimaryNote
-          }
-          operatorSendResultingRootRegistrationStatusLabel={
-            privateCoreOperatorSendResultingRootRegistrationStatusLabel
-          }
-          operatorSendResultingRootProofLinkStatus={privateCoreOperatorSendResultingRootProofLinkStatus}
-          operatorSendResultingRootStatusLabel={privateCoreOperatorSendResultingRootStatusLabel}
-          operatorSwapResultingRootLinkedProof={privateCoreOperatorSwapResultingRootLinkedProof}
-          operatorSwapResultingRootRecord={privateCoreOperatorSwapResultingRootRecord}
-          operatorSwapResultingRootPrimaryNote={privateCoreOperatorSwapResultingRootPrimaryNote}
-          operatorSwapResultingRootRegistrationPrimaryNote={
-            privateCoreOperatorSwapResultingRootRegistrationPrimaryNote
-          }
-          operatorSwapResultingRootRegistrationStatusLabel={
-            privateCoreOperatorSwapResultingRootRegistrationStatusLabel
-          }
-          operatorSwapResultingRootProofLinkStatus={
-            privateCoreOperatorSwapResultingRootProofLinkStatus
-          }
-          operatorSwapResultingRootStatusLabel={privateCoreOperatorSwapResultingRootStatusLabel}
-          operatorProofConsumeLinkStatus={privateCoreOperatorProofConsumeLinkStatus}
-          operatorProofError={privateCoreOperatorProofError}
-          operatorProofs={privateCoreOperatorProofs}
-          operatorProofSendLinkStatus={privateCoreOperatorProofSendLinkStatus}
-          operatorProofSwapLinkStatus={privateCoreOperatorProofSwapLinkStatus}
-          operatorProofReleaseLinkStatus={privateCoreOperatorProofReleaseLinkStatus}
-          operatorReleaseError={privateCoreOperatorReleaseError}
-          operatorReleases={privateCoreOperatorReleases}
-          operatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}
-          operatorRootError={privateCoreOperatorRootError}
-          operatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
-          operatorRoots={privateCoreOperatorRoots}
-          operatorContractStateVersion={privateCoreOperatorContractStateVersion}
-          operatorContractVersion={privateCoreOperatorContractVersion}
-          operatorContractSummaryVersion={privateCoreOperatorContractSummaryVersion}
-          operatorStatusVersion={privateCoreOperatorStatusVersion}
-          operatorStatusKind={privateCoreOperatorStatusKind}
-          operatorSnapshotVersion={privateCoreOperatorSnapshotVersion}
-          operatorSnapshotKind={privateCoreOperatorSnapshotKind}
-          operatorSupportedStatusNote={privateCoreOperatorSupportedStatusNote}
-          operatorSupportedStatusTransport={privateCoreOperatorSupportedStatusTransport}
-          operatorSupportedStatusEndpoint={privateCoreOperatorSupportedStatusEndpoint}
-          operatorSupportedStatusGateVersion={privateCoreOperatorSupportedStatusGateVersion}
-          operatorSupportedStatusGateKind={privateCoreOperatorSupportedStatusGateKind}
-          operatorSupportedStatusGateNote={privateCoreOperatorSupportedStatusGateNote}
-          operatorSupportedStatusGateTransport={
-            privateCoreOperatorSupportedStatusGateTransport
-          }
-          operatorSupportedStatusGateEndpoint={
-            privateCoreOperatorSupportedStatusGateEndpoint
-          }
-          operatorSupportedSnapshotGateVersion={
-            privateCoreOperatorSupportedSnapshotGateVersion
-          }
-          operatorSupportedSnapshotGateKind={privateCoreOperatorSupportedSnapshotGateKind}
-          operatorSupportedSnapshotGateNote={privateCoreOperatorSupportedSnapshotGateNote}
-          operatorSupportedSnapshotGateTransport={
-            privateCoreOperatorSupportedSnapshotGateTransport
-          }
-          operatorSupportedSnapshotGateEndpoint={
-            privateCoreOperatorSupportedSnapshotGateEndpoint
-          }
-          operatorSupportedShippingDecisionGateVersion={
-            privateCoreOperatorSupportedShippingDecisionGateVersion
-          }
-          operatorSupportedShippingDecisionGateKind={
-            privateCoreOperatorSupportedShippingDecisionGateKind
-          }
-          operatorSupportedShippingDecisionGateNote={
-            privateCoreOperatorSupportedShippingDecisionGateNote
-          }
-          operatorSupportedShippingDecisionGateTransport={
-            privateCoreOperatorSupportedShippingDecisionGateTransport
-          }
-          operatorSupportedShippingDecisionGateEndpoint={
-            privateCoreOperatorSupportedShippingDecisionGateEndpoint
-          }
-          operatorSupportedShippingDecisionTransport={
-            privateCoreOperatorSupportedShippingDecisionTransport
-          }
-          operatorSupportedShippingDecisionEndpoint={
-            privateCoreOperatorSupportedShippingDecisionEndpoint
-          }
-          operatorSupportedShippingArtifactGateVersion={
-            privateCoreOperatorSupportedShippingArtifactGateVersion
-          }
-          operatorSupportedShippingArtifactGateKind={
-            privateCoreOperatorSupportedShippingArtifactGateKind
-          }
-          operatorSupportedShippingArtifactGateNote={
-            privateCoreOperatorSupportedShippingArtifactGateNote
-          }
-          operatorSupportedShippingArtifactGateTransport={
-            privateCoreOperatorSupportedShippingArtifactGateTransport
-          }
-          operatorSupportedShippingArtifactGateEndpoint={
-            privateCoreOperatorSupportedShippingArtifactGateEndpoint
-          }
-          operatorSupportedSnapshotNote={privateCoreOperatorSupportedSnapshotNote}
-          operatorSupportedSnapshotTransport={privateCoreOperatorSupportedSnapshotTransport}
-          operatorSupportedSnapshotEndpoint={privateCoreOperatorSupportedSnapshotEndpoint}
-          operatorSupportedShippingArtifactNote={
-            privateCoreOperatorSupportedShippingArtifactNote
-          }
-          operatorSupportedShippingArtifactTransport={privateCoreOperatorSupportedShippingArtifactTransport}
-          operatorSupportedShippingArtifactEndpoint={privateCoreOperatorSupportedShippingArtifactEndpoint}
-          operatorSupportedReleaseCandidateVersion={
-            privateCoreOperatorSupportedReleaseCandidateVersion
-          }
-          operatorSupportedReleaseCandidateKind={privateCoreOperatorSupportedReleaseCandidateKind}
-          operatorSupportedReleaseCandidateNote={privateCoreOperatorSupportedReleaseCandidateNote}
-          operatorSupportedReleaseCandidateGateVersion={
-            privateCoreOperatorSupportedReleaseCandidateGateVersion
-          }
-          operatorSupportedReleaseCandidateGateKind={
-            privateCoreOperatorSupportedReleaseCandidateGateKind
-          }
-          operatorSupportedReleaseCandidateGateNote={
-            privateCoreOperatorSupportedReleaseCandidateGateNote
-          }
-          operatorSupportedReleaseCandidateGateTransport={
-            privateCoreOperatorSupportedReleaseCandidateGateTransport
-          }
-          operatorSupportedReleaseCandidateGateEndpoint={
-            privateCoreOperatorSupportedReleaseCandidateGateEndpoint
-          }
-          operatorSupportedReleaseCandidateTransport={
-            privateCoreOperatorSupportedReleaseCandidateTransport
-          }
-          operatorSupportedReleaseCandidateEndpoint={
-            privateCoreOperatorSupportedReleaseCandidateEndpoint
-          }
-          operatorShippingArtifactVersion={privateCoreOperatorShippingArtifactVersion}
-          operatorShippingArtifactKind={privateCoreOperatorShippingArtifactKind}
-          operatorShippingDecisionVersion={privateCoreOperatorShippingDecisionVersion}
-          operatorShippingDecisionKind={privateCoreOperatorShippingDecisionKind}
-          operatorSupportedShippingDecisionNote={
-            privateCoreOperatorSupportedShippingDecisionNote
-          }
-          operatorSendError={privateCoreOperatorSendError}
-          operatorSends={privateCoreOperatorSends}
-          operatorSendProofError={privateCoreOperatorSendProofError}
-          operatorSendProofs={privateCoreOperatorSendProofs}
-          operatorSwaps={privateCoreOperatorSwaps}
-          operatorSwapProofs={privateCoreOperatorSwapProofs}
-          operatorSummaryUpdatedAt={privateCoreOperatorSummaryUpdatedAt}
-          shieldState={privateCoreRecentShield}
-          title="Vanta Private Core unshield state"
-          unshieldState={privateCoreUnshieldState}
+        <UnshieldReleaseWorkflowPanel
+          latestPrivateCoreOperatorConsume={latestPrivateCoreOperatorConsume}
+          latestPrivateCoreOperatorRelease={latestPrivateCoreOperatorRelease}
+          privateCoreActionPending={privateCoreActionPending}
+          privateCoreDemoSteps={privateCoreDemoSteps}
+          privateCoreHoldState={privateCoreHoldState}
+          privateCoreOperatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
+          privateCoreOperatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
+          privateCoreOperatorConsumeError={privateCoreOperatorConsumeError}
+          privateCoreOperatorConsumes={privateCoreOperatorConsumes}
+          privateCoreOperatorReleaseError={privateCoreOperatorReleaseError}
+          privateCoreOperatorReleases={privateCoreOperatorReleases}
+          privateCoreOperatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}
+          privateCoreOperatorRootError={privateCoreOperatorRootError}
+          privateCoreOperatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
+          privateCoreOperatorRoots={privateCoreOperatorRoots}
+          privateCoreRecentShield={privateCoreRecentShield}
+          privateCoreReleaseCandidateState={privateCoreReleaseCandidateState}
+          privateCoreReleaseHandoffState={privateCoreReleaseHandoffState}
+          privateCoreReleaseWorkflowState={privateCoreReleaseWorkflowState}
+          privateCoreSendCompleted={privateCoreSendCompleted}
+          privateCoreUnshieldState={privateCoreUnshieldState}
+          runPrivateCoreReplayAttempt={runPrivateCoreReplayAttempt}
+          runPrivateCoreUnshield={runPrivateCoreUnshield}
+          setPrivateCoreActionPending={setPrivateCoreActionPending}
+          statePanelProps={{
+            compact: true,
+            holdState: privateCoreHoldState,
+            releaseCandidateState: privateCoreReleaseCandidateState,
+            releaseHandoffState: privateCoreReleaseHandoffState,
+            releasePackageState: privateCoreReleasePackageState,
+            releaseWorkflowState: privateCoreReleaseWorkflowState,
+            sendState: privateCoreSendState,
+            swapState: privateCoreSwapState,
+            operatorCurrentRoot: privateCoreOperatorCurrentRoot,
+            operatorConsumeError: privateCoreOperatorConsumeError,
+            operatorConsumes: privateCoreOperatorConsumes,
+            operatorLatestConsume: privateCoreOperatorLatestConsume,
+            operatorLatestConsumeProof: privateCoreOperatorLatestConsumeProof,
+            operatorLatestProof: privateCoreOperatorLatestProof,
+            operatorLatestRelease: privateCoreOperatorLatestRelease,
+            operatorLatestReleaseProof: privateCoreOperatorLatestReleaseProof,
+            operatorLatestRoot: privateCoreOperatorLatestRoot,
+            operatorLatestSend: privateCoreOperatorLatestSend,
+            operatorLatestSendLinkedProof: privateCoreOperatorLatestSendLinkedProof,
+            operatorLatestSendProof: privateCoreOperatorLatestSendProof,
+            operatorLatestSwap: privateCoreOperatorLatestSwap,
+            operatorLatestSwapLinkedProof: privateCoreOperatorLatestSwapLinkedProof,
+            operatorLatestSwapProof: privateCoreOperatorLatestSwapProof,
+            operatorBoundaryPrimaryNote: privateCoreOperatorBoundaryPrimaryNote,
+            operatorBoundaryStatusLabel: privateCoreOperatorBoundaryStatusLabel,
+            operatorContractMirrorPrimaryNote: privateCoreOperatorContractMirrorPrimaryNote,
+            operatorContractMirrorStatusLabel: privateCoreOperatorContractMirrorStatusLabel,
+            operatorReleaseBoundaryPrimaryNote: privateCoreOperatorReleaseBoundaryPrimaryNote,
+            operatorReleaseBoundaryStatusLabel: privateCoreOperatorReleaseBoundaryStatusLabel,
+            operatorRequiredLanesPrimaryNote: privateCoreOperatorRequiredLanesPrimaryNote,
+            operatorRequiredLanesStatusLabel: privateCoreOperatorRequiredLanesStatusLabel,
+            operatorZkV1ShippingPrimaryNote: privateCoreOperatorZkV1ShippingPrimaryNote,
+            operatorZkV1ShippingStatusLabel: privateCoreOperatorZkV1ShippingStatusLabel,
+            operatorSendBoundaryPrimaryNote: privateCoreOperatorSendBoundaryPrimaryNote,
+            operatorSendBoundaryStatusLabel: privateCoreOperatorSendBoundaryStatusLabel,
+            operatorSendContinuityPrimaryNote: privateCoreOperatorSendContinuityPrimaryNote,
+            operatorSendContinuityStatusLabel: privateCoreOperatorSendContinuityStatusLabel,
+            operatorSwapBoundaryPrimaryNote: privateCoreOperatorSwapBoundaryPrimaryNote,
+            operatorSwapBoundaryStatusLabel: privateCoreOperatorSwapBoundaryStatusLabel,
+            operatorSwapContinuityPrimaryNote: privateCoreOperatorSwapContinuityPrimaryNote,
+            operatorSwapContinuityStatusLabel: privateCoreOperatorSwapContinuityStatusLabel,
+            operatorSupportedSendLaneKind: privateCoreOperatorSupportedSendLaneKind,
+            operatorSupportedSendLaneNote: privateCoreOperatorSupportedSendLaneNote,
+            operatorSupportedSendLaneStatus: privateCoreOperatorSupportedSendLaneStatus,
+            operatorSupportedSendLaneVersion: privateCoreOperatorSupportedSendLaneVersion,
+            operatorSupportedSendV1Decision: privateCoreOperatorSupportedSendV1Decision,
+            operatorSupportedSendV1DecisionNote: privateCoreOperatorSupportedSendV1DecisionNote,
+            operatorSupportedUnshieldLaneKind: privateCoreOperatorSupportedUnshieldLaneKind,
+            operatorSupportedUnshieldLaneNote: privateCoreOperatorSupportedUnshieldLaneNote,
+            operatorSupportedUnshieldLaneStatus: privateCoreOperatorSupportedUnshieldLaneStatus,
+            operatorSupportedUnshieldLaneVersion: privateCoreOperatorSupportedUnshieldLaneVersion,
+            operatorSupportedUnshieldV1Decision: privateCoreOperatorSupportedUnshieldV1Decision,
+            operatorSupportedUnshieldV1DecisionNote: privateCoreOperatorSupportedUnshieldV1DecisionNote,
+            operatorSupportedReleaseLaneKind: privateCoreOperatorSupportedReleaseLaneKind,
+            operatorSupportedReleaseLaneNote: privateCoreOperatorSupportedReleaseLaneNote,
+            operatorSupportedReleaseLaneStatus: privateCoreOperatorSupportedReleaseLaneStatus,
+            operatorSupportedReleaseLaneVersion: privateCoreOperatorSupportedReleaseLaneVersion,
+            operatorSupportedSwapLaneKind: privateCoreOperatorSupportedSwapLaneKind,
+            operatorSupportedSwapLaneNote: privateCoreOperatorSupportedSwapLaneNote,
+            operatorSupportedSwapLaneStatus: privateCoreOperatorSupportedSwapLaneStatus,
+            operatorSupportedSwapLaneVersion: privateCoreOperatorSupportedSwapLaneVersion,
+            operatorSupportedSwapV1Decision: privateCoreOperatorSupportedSwapV1Decision,
+            operatorSupportedSwapV1DecisionNote: privateCoreOperatorSupportedSwapV1DecisionNote,
+            operatorSupportedSwapV1Role: privateCoreOperatorSupportedSwapV1Role,
+            operatorSupportedSwapV1RoleNote: privateCoreOperatorSupportedSwapV1RoleNote,
+            operatorSupportedSwapVenue: privateCoreOperatorSupportedSwapVenue,
+            operatorSupportedSwapOutputModel: privateCoreOperatorSupportedSwapOutputModel,
+            operatorSupportedSwapResultingRootBasis: privateCoreOperatorSupportedSwapResultingRootBasis,
+            operatorSupportedSwapInputRootPolicy: privateCoreOperatorSupportedSwapInputRootPolicy,
+            operatorSupportedSwapOutputRegistrationPolicy: privateCoreOperatorSupportedSwapOutputRegistrationPolicy,
+            operatorSupportedReleaseV1Decision: privateCoreOperatorSupportedReleaseV1Decision,
+            operatorSupportedReleaseV1DecisionNote: privateCoreOperatorSupportedReleaseV1DecisionNote,
+            operatorSupportedFlowKind: privateCoreOperatorSupportedFlowKind,
+            operatorSupportedFlowNote: privateCoreOperatorSupportedFlowNote,
+            operatorSupportedFlowStatus: privateCoreOperatorSupportedFlowStatus,
+            operatorSupportedFlowVersion: privateCoreOperatorSupportedFlowVersion,
+            operatorSupportedZkV1ScopeDecision: privateCoreOperatorSupportedZkV1ScopeDecision,
+            operatorSupportedZkV1ScopeNote: privateCoreOperatorSupportedZkV1ScopeNote,
+            operatorSupportedZkV1RequiredLanes: privateCoreOperatorSupportedZkV1RequiredLanes,
+            operatorSupportedZkV1RequiredLanesNote: privateCoreOperatorSupportedZkV1RequiredLanesNote,
+            operatorZkV1FinishLineStatusLabel: privateCoreOperatorZkV1FinishLineStatusLabel,
+            operatorZkV1FinishLinePrimaryNote: privateCoreOperatorZkV1FinishLinePrimaryNote,
+            operatorSupportedAssetSymbol: privateCoreOperatorSupportedAssetSymbol,
+            operatorSupportedEnvironment: privateCoreOperatorSupportedEnvironment,
+            operatorSupportedNoteSchema: privateCoreOperatorSupportedNoteSchema,
+            operatorSupportedNoteVersion: privateCoreOperatorSupportedNoteVersion,
+            operatorSupportedRootRegistrationProvenance: privateCoreOperatorSupportedRootRegistrationProvenance,
+            operatorSupportedSendResultingRootBasis: privateCoreOperatorSupportedSendResultingRootBasis,
+            operatorSupportedSendInputRootPolicy: privateCoreOperatorSupportedSendInputRootPolicy,
+            operatorSupportedSendOutputRegistrationPolicy: privateCoreOperatorSupportedSendOutputRegistrationPolicy,
+            operatorSupportedRecipientModel: privateCoreOperatorSupportedRecipientModel,
+            operatorSupportedReleaseDestinationModel: privateCoreOperatorSupportedReleaseDestinationModel,
+            operatorSupportedProofSystem: privateCoreOperatorSupportedProofSystem,
+            operatorSupportedUnshieldCircuit: privateCoreOperatorSupportedUnshieldCircuit,
+            operatorSupportedSendCircuit: privateCoreOperatorSupportedSendCircuit,
+            operatorSupportedUnshieldMerkleDepth: privateCoreOperatorSupportedUnshieldMerkleDepth,
+            operatorSupportedSendMerkleDepth: privateCoreOperatorSupportedSendMerkleDepth,
+            operatorSupportedReleaseAuthorizationBasis: privateCoreOperatorSupportedReleaseAuthorizationBasis,
+            operatorSupportedReleaseRootPolicy: privateCoreOperatorSupportedReleaseRootPolicy,
+            operatorSupportedReleaseExecutionModel: privateCoreOperatorSupportedReleaseExecutionModel,
+            operatorSupportedReleaseAtomicityModel: privateCoreOperatorSupportedReleaseAtomicityModel,
+            operatorSupportedReleasePersistenceModel: privateCoreOperatorSupportedReleasePersistenceModel,
+            operatorOwnerAuthorizationMode: privateCoreOperatorOwnerAuthorizationMode,
+            operatorOwnerAuthorizationDecision: privateCoreOperatorOwnerAuthorizationDecision,
+            operatorOwnerAuthorizationDecisionNote: privateCoreOperatorOwnerAuthorizationDecisionNote,
+            operatorSourceArtifactTruthBasis: privateCoreOperatorSourceArtifactTruthBasis,
+            operatorProvingArtifactTruthBasis: privateCoreOperatorProvingArtifactTruthBasis,
+            operatorSourceProvingRelationship: privateCoreOperatorSourceProvingRelationship,
+            operatorNullifierKeyMode: privateCoreOperatorNullifierKeyMode,
+            operatorProvingHashLane: privateCoreOperatorProvingHashLane,
+            operatorCurrentRootLinkedProof: privateCoreOperatorCurrentRootLinkedProof,
+            operatorCurrentRootProofLinkStatus: privateCoreOperatorCurrentRootProofLinkStatus,
+            operatorSendResultingRootLinkedProof: privateCoreOperatorSendResultingRootLinkedProof,
+            operatorSendResultingRootRecord: privateCoreOperatorSendResultingRootRecord,
+            operatorSendResultingRootPrimaryNote: privateCoreOperatorSendResultingRootPrimaryNote,
+            operatorSendResultingRootRegistrationPrimaryNote: privateCoreOperatorSendResultingRootRegistrationPrimaryNote,
+            operatorSendResultingRootRegistrationStatusLabel: privateCoreOperatorSendResultingRootRegistrationStatusLabel,
+            operatorSendResultingRootProofLinkStatus: privateCoreOperatorSendResultingRootProofLinkStatus,
+            operatorSendResultingRootStatusLabel: privateCoreOperatorSendResultingRootStatusLabel,
+            operatorSwapResultingRootLinkedProof: privateCoreOperatorSwapResultingRootLinkedProof,
+            operatorSwapResultingRootRecord: privateCoreOperatorSwapResultingRootRecord,
+            operatorSwapResultingRootPrimaryNote: privateCoreOperatorSwapResultingRootPrimaryNote,
+            operatorSwapResultingRootRegistrationPrimaryNote: privateCoreOperatorSwapResultingRootRegistrationPrimaryNote,
+            operatorSwapResultingRootRegistrationStatusLabel: privateCoreOperatorSwapResultingRootRegistrationStatusLabel,
+            operatorSwapResultingRootProofLinkStatus: privateCoreOperatorSwapResultingRootProofLinkStatus,
+            operatorSwapResultingRootStatusLabel: privateCoreOperatorSwapResultingRootStatusLabel,
+            operatorProofConsumeLinkStatus: privateCoreOperatorProofConsumeLinkStatus,
+            operatorProofError: privateCoreOperatorProofError,
+            operatorProofs: privateCoreOperatorProofs,
+            operatorProofSendLinkStatus: privateCoreOperatorProofSendLinkStatus,
+            operatorProofSwapLinkStatus: privateCoreOperatorProofSwapLinkStatus,
+            operatorProofReleaseLinkStatus: privateCoreOperatorProofReleaseLinkStatus,
+            operatorReleaseError: privateCoreOperatorReleaseError,
+            operatorReleases: privateCoreOperatorReleases,
+            operatorRootCurrentnessLabel: privateCoreOperatorRootCurrentnessLabel,
+            operatorRootError: privateCoreOperatorRootError,
+            operatorRootRegistrationStatus: privateCoreOperatorRootRegistrationStatus,
+            operatorRoots: privateCoreOperatorRoots,
+            operatorContractStateVersion: privateCoreOperatorContractStateVersion,
+            operatorContractVersion: privateCoreOperatorContractVersion,
+            operatorContractSummaryVersion: privateCoreOperatorContractSummaryVersion,
+            operatorStatusVersion: privateCoreOperatorStatusVersion,
+            operatorStatusKind: privateCoreOperatorStatusKind,
+            operatorSnapshotVersion: privateCoreOperatorSnapshotVersion,
+            operatorSnapshotKind: privateCoreOperatorSnapshotKind,
+            operatorSupportedStatusNote: privateCoreOperatorSupportedStatusNote,
+            operatorSupportedStatusTransport: privateCoreOperatorSupportedStatusTransport,
+            operatorSupportedStatusEndpoint: privateCoreOperatorSupportedStatusEndpoint,
+            operatorSupportedStatusGateVersion: privateCoreOperatorSupportedStatusGateVersion,
+            operatorSupportedStatusGateKind: privateCoreOperatorSupportedStatusGateKind,
+            operatorSupportedStatusGateNote: privateCoreOperatorSupportedStatusGateNote,
+            operatorSupportedStatusGateTransport: privateCoreOperatorSupportedStatusGateTransport,
+            operatorSupportedStatusGateEndpoint: privateCoreOperatorSupportedStatusGateEndpoint,
+            operatorSupportedSnapshotGateVersion: privateCoreOperatorSupportedSnapshotGateVersion,
+            operatorSupportedSnapshotGateKind: privateCoreOperatorSupportedSnapshotGateKind,
+            operatorSupportedSnapshotGateNote: privateCoreOperatorSupportedSnapshotGateNote,
+            operatorSupportedSnapshotGateTransport: privateCoreOperatorSupportedSnapshotGateTransport,
+            operatorSupportedSnapshotGateEndpoint: privateCoreOperatorSupportedSnapshotGateEndpoint,
+            operatorSupportedShippingDecisionGateVersion: privateCoreOperatorSupportedShippingDecisionGateVersion,
+            operatorSupportedShippingDecisionGateKind: privateCoreOperatorSupportedShippingDecisionGateKind,
+            operatorSupportedShippingDecisionGateNote: privateCoreOperatorSupportedShippingDecisionGateNote,
+            operatorSupportedShippingDecisionGateTransport: privateCoreOperatorSupportedShippingDecisionGateTransport,
+            operatorSupportedShippingDecisionGateEndpoint: privateCoreOperatorSupportedShippingDecisionGateEndpoint,
+            operatorSupportedShippingDecisionTransport: privateCoreOperatorSupportedShippingDecisionTransport,
+            operatorSupportedShippingDecisionEndpoint: privateCoreOperatorSupportedShippingDecisionEndpoint,
+            operatorSupportedShippingArtifactGateVersion: privateCoreOperatorSupportedShippingArtifactGateVersion,
+            operatorSupportedShippingArtifactGateKind: privateCoreOperatorSupportedShippingArtifactGateKind,
+            operatorSupportedShippingArtifactGateNote: privateCoreOperatorSupportedShippingArtifactGateNote,
+            operatorSupportedShippingArtifactGateTransport: privateCoreOperatorSupportedShippingArtifactGateTransport,
+            operatorSupportedShippingArtifactGateEndpoint: privateCoreOperatorSupportedShippingArtifactGateEndpoint,
+            operatorSupportedSnapshotNote: privateCoreOperatorSupportedSnapshotNote,
+            operatorSupportedSnapshotTransport: privateCoreOperatorSupportedSnapshotTransport,
+            operatorSupportedSnapshotEndpoint: privateCoreOperatorSupportedSnapshotEndpoint,
+            operatorSupportedShippingArtifactNote: privateCoreOperatorSupportedShippingArtifactNote,
+            operatorSupportedShippingArtifactTransport: privateCoreOperatorSupportedShippingArtifactTransport,
+            operatorSupportedShippingArtifactEndpoint: privateCoreOperatorSupportedShippingArtifactEndpoint,
+            operatorSupportedReleaseCandidateVersion: privateCoreOperatorSupportedReleaseCandidateVersion,
+            operatorSupportedReleaseCandidateKind: privateCoreOperatorSupportedReleaseCandidateKind,
+            operatorSupportedReleaseCandidateNote: privateCoreOperatorSupportedReleaseCandidateNote,
+            operatorSupportedReleaseCandidateGateVersion: privateCoreOperatorSupportedReleaseCandidateGateVersion,
+            operatorSupportedReleaseCandidateGateKind: privateCoreOperatorSupportedReleaseCandidateGateKind,
+            operatorSupportedReleaseCandidateGateNote: privateCoreOperatorSupportedReleaseCandidateGateNote,
+            operatorSupportedReleaseCandidateGateTransport: privateCoreOperatorSupportedReleaseCandidateGateTransport,
+            operatorSupportedReleaseCandidateGateEndpoint: privateCoreOperatorSupportedReleaseCandidateGateEndpoint,
+            operatorSupportedReleaseCandidateTransport: privateCoreOperatorSupportedReleaseCandidateTransport,
+            operatorSupportedReleaseCandidateEndpoint: privateCoreOperatorSupportedReleaseCandidateEndpoint,
+            operatorShippingArtifactVersion: privateCoreOperatorShippingArtifactVersion,
+            operatorShippingArtifactKind: privateCoreOperatorShippingArtifactKind,
+            operatorShippingDecisionVersion: privateCoreOperatorShippingDecisionVersion,
+            operatorShippingDecisionKind: privateCoreOperatorShippingDecisionKind,
+            operatorSupportedShippingDecisionNote: privateCoreOperatorSupportedShippingDecisionNote,
+            operatorSendError: privateCoreOperatorSendError,
+            operatorSends: privateCoreOperatorSends,
+            operatorSendProofError: privateCoreOperatorSendProofError,
+            operatorSendProofs: privateCoreOperatorSendProofs,
+            operatorSwaps: privateCoreOperatorSwaps,
+            operatorSwapProofs: privateCoreOperatorSwapProofs,
+            operatorSummaryUpdatedAt: privateCoreOperatorSummaryUpdatedAt,
+            shieldState: privateCoreRecentShield,
+            title: "Vanta Private Core unshield state",
+            unshieldState: privateCoreUnshieldState,
+          }}
         />
-
-        <div className="status-actions" style={{ marginTop: 16 }}>
-          <button
-            className="button button-primary"
-            type="button"
-            onClick={() => {
-              setPrivateCoreActionPending(true);
-              void runPrivateCoreUnshield().finally(() => {
-                setPrivateCoreActionPending(false);
-              });
-            }}
-            disabled={
-              privateCoreActionPending ||
-              !privateCoreHoldState ||
-              privateCoreUnshieldState?.consumeSucceeded === true
-            }
-          >
-            {privateCoreActionPending ? "Generating proof..." : "Unshield private note"}
-          </button>
-          <button
-            className="button button-ghost"
-            type="button"
-            onClick={() => {
-              setPrivateCoreActionPending(true);
-              void runPrivateCoreReplayAttempt().finally(() => {
-                setPrivateCoreActionPending(false);
-              });
-            }}
-            disabled={
-              privateCoreActionPending ||
-              !privateCoreHoldState ||
-              !privateCoreUnshieldState?.consumeSucceeded
-            }
-          >
-            Attempt replay rejection
-          </button>
-        </div>
-
-        {privateCoreUnshieldState && (
-          <div
-            className={
-              privateCoreUnshieldState.consumeSucceeded
-                ? "status-panel status-panel--success"
-                : privateCoreUnshieldState.replayRejected
-                  ? "status-panel status-panel--failed"
-                  : "status-panel status-panel--warning"
-            }
-          >
-            <span>
-              {privateCoreUnshieldState.consumeSucceeded
-                ? "Private note consumed"
-                : privateCoreUnshieldState.replayRejected
-                  ? "Replay rejected"
-                  : "Unshield status"}
-            </span>
-            <p>
-              {privateCoreUnshieldState.consumeSucceeded
-                ? "Private note consumed; proof-backed operator release record recorded."
-                : privateCoreUnshieldState.replayRejected
-                  ? privateCoreUnshieldState.errorMessage ?? "Replay was rejected."
-                  : privateCoreUnshieldState.errorMessage ?? "Waiting for the next action."}
-            </p>
-            <div className="review-list" style={{ marginTop: 12 }}>
-              <div className="review-row">
-                <span>Private funds</span>
-                <strong>
-                  {privateCoreUnshieldState.consumeSucceeded
-                    ? "Exited once"
-                    : privateCoreUnshieldState.replayRejected
-                      ? "Second consume blocked"
-                      : "Awaiting successful consume"}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Replay protection</span>
-                <strong>
-                  {privateCoreUnshieldState.replayRejected
-                    ? "Working"
-                    : privateCoreUnshieldState.consumeSucceeded
-                      ? "Ready to demonstrate"
-                      : "Not yet exercised"}
-                </strong>
-              </div>
-            </div>
-            <details className="shield-helper shield-helper--meta" style={{ marginTop: 12 }}>
-              <summary>Internal proof diagnostics</summary>
-              <div className="review-list" style={{ marginTop: 12 }}>
-              <div className="review-row">
-                <span>Source nullifier</span>
-                <strong>{privateCoreUnshieldState.sourceNullifier ? abbreviate(privateCoreUnshieldState.sourceNullifier) : "Unavailable"}</strong>
-              </div>
-              <div className="review-row">
-                <span>Source witness root</span>
-                <strong>
-                  {privateCoreHoldState?.sourceWitnessRoot
-                    ? abbreviate(privateCoreHoldState.sourceWitnessRoot)
-                    : "Unavailable"}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Proof envelope</span>
-                <strong>
-                  {privateCoreUnshieldState.proofEnvelope
-                    ? `${privateCoreUnshieldState.proofEnvelope.statement} · leaf ${privateCoreUnshieldState.proofEnvelope.publicInputs.leafIndex}`
-                    : "Unavailable"}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Proving lane</span>
-                <strong>{privateCoreUnshieldState.provingHashLane ?? "Unavailable"}</strong>
-              </div>
-              <div className="review-row">
-                <span>Proving root</span>
-                <strong>
-                  {privateCoreUnshieldState.provingStateRoot
-                    ? abbreviate(privateCoreUnshieldState.provingStateRoot)
-                    : "Unavailable"}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Proving nullifier</span>
-                <strong>
-                  {privateCoreUnshieldState.provingNullifier
-                    ? abbreviate(privateCoreUnshieldState.provingNullifier)
-                    : "Unavailable"}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Consume context</span>
-                <strong>
-                  {privateCoreUnshieldState.provingConsumeContextTag
-                    ? abbreviate(privateCoreUnshieldState.provingConsumeContextTag)
-                    : "Unavailable"}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Proof execution</span>
-                <strong>{privateCoreUnshieldState.proofExecutionStatus ?? "Unavailable"}</strong>
-              </div>
-              <div className="review-row">
-                <span>Proof shape</span>
-                <strong>
-                  {privateCoreUnshieldState.proofFieldCount && privateCoreUnshieldState.proofPublicInputCount
-                    ? `${privateCoreUnshieldState.proofFieldCount} fields · ${privateCoreUnshieldState.proofPublicInputCount} public inputs`
-                    : "Unavailable"}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Operator consume records</span>
-                <strong>
-                  {privateCoreOperatorConsumeError
-                    ? "Unavailable"
-                    : privateCoreOperatorConsumes.length.toString()}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Latest operator nullifier</span>
-                <strong>
-                  {privateCoreOperatorConsumeError
-                    ? privateCoreOperatorConsumeError
-                    : latestPrivateCoreOperatorConsume?.nullifier
-                      ? abbreviate(latestPrivateCoreOperatorConsume.nullifier)
-                      : "Unavailable"}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Operator release records</span>
-                <strong>
-                  {privateCoreOperatorReleaseError
-                    ? "Unavailable"
-                    : privateCoreOperatorReleases.length.toString()}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Latest operator release</span>
-                <strong>
-                  {privateCoreOperatorReleaseError
-                    ? privateCoreOperatorReleaseError
-                    : latestPrivateCoreOperatorRelease?.nullifier
-                      ? abbreviate(latestPrivateCoreOperatorRelease.nullifier)
-                    : "Unavailable"}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Immediate release request</span>
-                <strong>
-                  {privateCoreUnshieldState.operatorReleaseRequestId
-                    ? abbreviate(privateCoreUnshieldState.operatorReleaseRequestId)
-                    : "Unavailable"}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Immediate transition note</span>
-                <strong>
-                  {privateCoreUnshieldState.operatorReleaseTransitionNoteId
-                    ? abbreviate(privateCoreUnshieldState.operatorReleaseTransitionNoteId)
-                    : "Unavailable"}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Operator release destination</span>
-                <strong>
-                  {privateCoreOperatorReleaseError
-                    ? privateCoreOperatorReleaseError
-                    : latestPrivateCoreOperatorRelease?.releaseDestination
-                      ? abbreviate(latestPrivateCoreOperatorRelease.releaseDestination)
-                      : "Unavailable"}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Operator released value</span>
-                <strong>
-                  {privateCoreOperatorReleaseError
-                    ? privateCoreOperatorReleaseError
-                    : latestPrivateCoreOperatorRelease?.releasedAmount &&
-                        latestPrivateCoreOperatorRelease?.releasedAssetId
-                      ? `${latestPrivateCoreOperatorRelease.releasedAmount} / ${abbreviate(latestPrivateCoreOperatorRelease.releasedAssetId)}`
-                      : "Unavailable"}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Operator root registration</span>
-                <strong>{privateCoreOperatorRootRegistrationStatus ?? "Unavailable"}</strong>
-              </div>
-              <div className="review-row">
-                <span>Operator root currentness</span>
-                <strong>{privateCoreOperatorRootCurrentnessLabel ?? "Unavailable"}</strong>
-              </div>
-              <div className="review-row">
-                <span>Operator root records</span>
-                <strong>
-                  {privateCoreOperatorRootError
-                    ? "Unavailable"
-                    : privateCoreOperatorRoots.length.toString()}
-                </strong>
-              </div>
-              <div className="review-row">
-                <span>Consume status</span>
-                <strong>
-                  {privateCoreUnshieldState.consumeSucceeded
-                    ? "Succeeded"
-                    : privateCoreUnshieldState.replayRejected
-                      ? "Replay blocked"
-                      : "Failed"}
-                </strong>
-              </div>
-            </div>
-            </details>
-          </div>
-        )}
-      </article>
       </LaneProgressiveSection>
       )}
 
