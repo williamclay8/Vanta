@@ -63,19 +63,18 @@ import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentS
 import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
 import type { AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
-import { QuoteCountdownBar, type QuoteCountdownBarTone } from "@/components/QuoteCountdownBar";
-import { LaneProgressiveSection } from "@/components/LaneProgressiveSection";
 import { SwapComingSoonPanel } from "@/components/SwapComingSoonPanel";
-import { SwapRecentSwapsSection } from "@/components/SwapRecentSwapsSection";
-import { SwapAdvancedPanel } from "@/components/SwapAdvancedPanel";
-import { SwapReceiptModal, type SwapReceiptModalDetails } from "@/components/SwapReceiptModal";
-import { TransactionStatusToast } from "@/components/TransactionStatusToast";
-import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
-import {
-  PrivacySummary,
-  type PrivacySummaryItem,
-} from "@/components/PrivacySummary";
+import { SwapWorkspaceCard } from "@/components/SwapWorkspaceCard";
 import type { NotePickerOption } from "@/components/NotePicker";
+import type { QuoteCountdownBarTone } from "@/components/QuoteCountdownBar";
+import {
+  formatExactSwapInputAmount,
+  formatQuoteTimestamp,
+  formatShortSwapId,
+  formatSwapSlippage,
+  isLiveShieldTokenAssetKey,
+} from "@/components/swap/swapPanelUtils";
+import type { SwapReceiptModalDetails } from "@/components/SwapReceiptModal";
 
 type PendingSpentMarker = {
   asset: ShieldedSwapAssetKey;
@@ -209,20 +208,6 @@ function buildRecentSwapReceiptSummaries(): SwapReceiptSummary[] {
 type ActiveSwapQuote = SwapQuote | SolToShieldedRouteQuote;
 const STALE_EXECUTION_QUOTE_MESSAGE =
   "The latest live quote expired, so the swap path is blocked until a fresh quote is available.";
-const SWAP_PRIVACY_SUMMARY_ITEMS: readonly PrivacySummaryItem[] = [
-  {
-    label: "Chain sees",
-    value: "a transaction happened plus encrypted swap memo packets",
-  },
-  {
-    label: "Venue sees",
-    value: "operator-visible route settlement terms; Swap production privacy is not enabled",
-  },
-  {
-    label: "You see",
-    value: "a shielded output note after settlement finalizes",
-  },
-];
 
 function assertFreshExecutionQuote(freshQuote: ActiveSwapQuote) {
   if (freshQuote.quoteExpiresAt <= Date.now()) {
@@ -240,50 +225,12 @@ type SwapStatus =
   | "complete"
   | "failed";
 
-function formatQuoteTimestamp(value: number | undefined) {
-  if (!value || !Number.isFinite(value)) {
-    return "Pending";
-  }
-
-  return new Date(value).toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
-
 function toAssetBaseUnits(value: number, asset: ShieldedSwapAssetKey) {
   if (asset === "SOL") {
     return Math.round(value * 1_000_000_000);
   }
 
   return Math.round(value * 10 ** getLiveShieldTokenAsset(asset).decimals);
-}
-
-function formatExactSwapInputAmount(value: number, asset: ShieldedSwapAssetKey) {
-  const decimals = asset === "SOL" ? 9 : getLiveShieldTokenAsset(asset).decimals;
-
-  return value.toFixed(decimals).replace(/\.?0+$/, "");
-}
-
-function formatShortSwapId(value: string) {
-  if (value.length <= 14) {
-    return value;
-  }
-
-  return `${value.slice(0, 8)}...${value.slice(-4)}`;
-}
-
-function formatSwapSlippage(value: number | null) {
-  if (value === null || !Number.isFinite(value)) {
-    return "Route adapter default";
-  }
-
-  return `${(value / 100).toFixed(2).replace(/\.?0+$/, "")}% max`;
-}
-
-function isLiveShieldTokenAssetKey(asset: ShieldedSwapAssetKey): asset is LiveShieldTokenAssetKey {
-  return asset !== "SOL";
 }
 
 function formatReadyAssetOptionLabel(args: {
@@ -1899,310 +1846,82 @@ export function SwapPage() {
       />
 
       <div className="send-layout">
-        <article className="send-card send-card--workspace">
-          <div className="shield-card__header">
-            <div>
-              <span>Choose trade</span>
-            </div>
-          </div>
-
-          <div className="shield-form swap-widget">
-            <div className={`swap-module${isBetaMode ? " swap-preview-shell" : ""}`}>
-              <QuoteCountdownBar
-                label={quoteStatusLabel}
-                progressPercent={quoteProgressPercent}
-                tone={quoteProgressTone}
-              />
-
-              <div className="swap-route-card" aria-label="Swap route">
-                <div className="swap-route-card__row">
-                  <div className="swap-choice-group" role="group" aria-label="From shielded asset">
-                    <span>From (shielded)</span>
-                    <select
-                      className="swap-asset-select"
-                      value={selectedSourceAsset}
-                      onChange={(event) => {
-                        const next = event.target.value as ShieldedSwapAssetKey;
-                        setSelectedSourceAsset(next);
-                        setSelectedSwapNoteId(null);
-                        setStatus("idle");
-                        setFlowError(null);
-                        setQuote(null);
-                        setQuoteError(null);
-                      }}
-                    >
-                      {swapSourceAssetPickerOptions.map((opt) => (
-                        <option key={opt.id} value={opt.id}>
-                          {opt.symbol} — {opt.label} (Balance: {opt.balanceLabel ?? "0"})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="swap-choice-group swap-amount-group" role="group" aria-label="Amount to swap">
-                    <span>Amount</span>
-                    <div className="swap-amount-controls">
-                      <input
-                        id="swap-amount"
-                        inputMode="decimal"
-                        value={amount}
-                        onChange={(event) => {
-                          setAmount(event.target.value);
-                          setSelectedSwapNoteId(null);
-                          setStatus("idle");
-                          setFlowError(null);
-                          setQuote(null);
-                          setQuoteError(null);
-                        }}
-                        placeholder="0.00"
-                      />
-                      <button
-                        className="button button-ghost swap-max-btn"
-                        type="button"
-                        disabled={maxAvailableAmount <= 0}
-                        onClick={() => {
-                          if (maxAvailableAmount <= 0 || !maxSwappableNote) {
-                            return;
-                          }
-                          setSelectedSwapNoteId(maxSwappableNote.noteId);
-                          setAmount(formatExactSwapInputAmount(maxAvailableAmount, selectedSourceAsset));
-                          setStatus("idle");
-                          setFlowError(null);
-                          setQuote(null);
-                          setQuoteError(null);
-                        }}
-                      >
-                        Max
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="swap-route-card__connector" aria-hidden="true">
-                  to
-                </div>
-
-                <div className="swap-route-card__row">
-                  <div className="swap-choice-group" role="group" aria-label="To shielded asset">
-                    <span>To</span>
-                    <select
-                      className="swap-asset-select"
-                      value={selectedTargetAsset}
-                      onChange={(event) => {
-                        const next = event.target.value as ShieldedSwapAssetKey;
-                        setSelectedTargetAsset(next);
-                        setStatus("idle");
-                        setFlowError(null);
-                        setQuote(null);
-                        setQuoteError(null);
-                      }}
-                    >
-                      {swapTargetAssetPickerOptions.map((opt) => (
-                        <option key={opt.id} value={opt.id} disabled={opt.disabled}>
-                          {opt.symbol} — {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="swap-choice-group swap-quote-group" role="group" aria-label="Expected output">
-                    <span>You receive</span>
-                    <div className="swap-quote-value">
-                      <strong>
-                        {status === "quoting"
-                          ? "Getting best quote..."
-                          : formatAssetAmount(expectedOutputAmount, selectedTargetAsset)}
-                      </strong>
-                      <span>{`Shielded ${selectedTargetAsset}`}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="swap-route-summary">
-                <strong>{`${selectedSourceAsset} -> ${selectedTargetAsset} via ${quoteVenueLabel}`}</strong>
-                <span>{quoteStatusLabel}</span>
-              </div>
-
-              <details className="swap-truth-drawer">
-                <summary>Route details</summary>
-                <p className="shield-helper shield-helper--meta">{routeLabel}</p>
-                <p className="shield-helper shield-helper--meta">{routeTruthLabel}</p>
-              </details>
-              <p className="shield-helper swap-validation">{validationMessage}</p>
-
-              <details className="swap-truth-drawer">
-                <summary>Privacy summary</summary>
-                <PrivacySummary
-                  items={SWAP_PRIVACY_SUMMARY_ITEMS}
-                  note="Swap production privacy is locked until route adapters, verifier-backed settlement, audit, and operator gates pass."
-                />
-              </details>
-
-              <SwapAdvancedPanel
-                maxSlippageLabel={formatSwapSlippage(quoteSlippageBps)}
-                notePickerOptions={swapNotePickerOptions}
-                noteSelectionLabel={selectedSwapNoteLabel}
-                onSelectNote={handleSelectSwapNote}
-                routeTruthLabel={routeTruthLabel}
-                selectedNoteId={selectedSwapNoteId}
-                sourceAssetLabel={selectedSourceAsset}
-                venueLabel={quoteVenueLabel}
-              />
-
-              <div className="shield-form__actions shield-form__actions--primary">
-                <button
-                  className="button button-primary"
-                  type="button"
-                  onClick={() => {
-                    void handleSwap();
-                  }}
-                  disabled={
-                    isBetaMode ||
-                    !isReady ||
-                    status === "recording_transition" ||
-                    status === "authorizing_operator" ||
-                    status === "finalizing_state"
-                  }
-                >
-                  {swapPrimaryActionLabel}
-                </button>
-              </div>
-
-              <LaneProgressiveSection summary="Recent swaps (browser-local)" variant="history">
-                <SwapRecentSwapsSection
-                  formatQuoteTimestamp={formatQuoteTimestamp}
-                  formatShortSwapId={formatShortSwapId}
-                  formatSummaryKey={(summary) => createSwapReceiptSummaryKey(summary as SwapReceiptSummary)}
-                  onOpenReceipt={(summaryKey) => {
-                    setSelectedSwapReceiptKey(summaryKey);
-                    setSwapReceiptModalOpen(true);
-                  }}
-                  summaries={recentSwapSummaries}
-                />
-              </LaneProgressiveSection>
-            </div>
-
-            {(status === "awaiting_confirmation" ||
-              status === "recording_transition" ||
-              status === "authorizing_operator" ||
-              status === "finalizing_state" ||
-              status === "complete" ||
-              status === "failed") && (
-              <TransactionStatusToast
-                tone={
-                  status === "complete"
-                    ? "success"
-                    : status === "failed"
-                      ? "error"
-                      : status === "awaiting_confirmation"
-                        ? "pending"
-                        : "processing"
-                }
-                phase={
-                  status === "complete"
-                    ? "complete"
-                    : status === "failed"
-                      ? "failed"
-                      : status === "awaiting_confirmation"
-                        ? "pending"
-                        : "confirmed"
-                }
-                title={
-                  status === "awaiting_confirmation"
-                    ? "Awaiting wallet confirmation"
-                    : status === "recording_transition"
-                      ? "Recording swap transition"
-                      : status === "authorizing_operator"
-                        ? "Authorizing swap"
-                        : status === "finalizing_state"
-                          ? "Finalizing beta route evidence"
-                          : status === "complete"
-                            ? "Swap recorded"
-                            : "Swap failed"
-                }
-                message={
-                  status === "complete" && lastSwapSummary
-                    ? `Recorded ${formatAssetAmount(lastSwapSummary.inputAmount, lastSwapSummary.inputAsset)} into ${formatAssetAmount(lastSwapSummary.outputAmount, lastSwapSummary.outputAsset)} with committed receipt checks.`
-                    : status === "complete"
-                      ? `Recorded ${formatAssetAmount(parsedAmount, selectedSourceAsset)} into shielded ${selectedTargetAsset} (beta route).`
-                    : status === "failed"
-                      ? flowError ?? "The swap could not be completed."
-                      : status === "authorizing_operator"
-                        ? "Authorizing the swap on the selected route."
-                      : status === "finalizing_state"
-                          ? `Registering spent-marker and committed receipt evidence for shielded ${selectedTargetAsset}.`
-                          : "Approve the swap in your wallet to continue."
-                }
-                progress={status !== "complete" && status !== "failed"}
-                floating
-              >
-                {quote &&
-                  status !== "failed" &&
-                  status !== "complete" && (
-                  <p className="shield-helper shield-helper--meta">
-                    Quote from {quote.venueName} {quote.venueFamily} ·{" "}
-                    {formatQuoteTimestamp(quote.quoteTimestamp)}
-                  </p>
-                )}
-                {status === "awaiting_confirmation" && (
-                  <WalletApprovalSheet
-                    heading="Swap wallet approval"
-                    walletPrompt="Wallet approval"
-                    signingMode="Transaction approval"
-                    rows={[
-                      {
-                        label: "Action",
-                        value: "Authorize swap on constrained route",
-                      },
-                      {
-                        label: "From",
-                        value: formatAssetAmount(parsedAmount, selectedSourceAsset),
-                      },
-                      {
-                        label: "To",
-                        value: formatAssetAmount(expectedOutputAmount, selectedTargetAsset),
-                      },
-                      { label: "Venue", value: quoteVenueLabel },
-                      {
-                        label: "Input note",
-                        value: exactSpendableNote
-                          ? formatShortSwapId(exactSpendableNote.noteId)
-                          : "Exact-note match required",
-                      },
-                    ]}
-                    note="Approve only if the wallet shows the same route, asset, amount, and destination."
-                    truthBoundary="Local review. Swap is in beta with constrained routes; production privacy is not enabled."
-                  />
-                )}
-                {swapBridgeError && status === "complete" && (
-                  <p className="shield-helper shield-helper--meta">{swapBridgeError}</p>
-                )}
-                {status === "complete" && lastSwapSummary && (
-                  <button
-                    className="button button-ghost"
-                    type="button"
-                    onClick={() => setSwapReceiptModalOpen(true)}
-                  >
-                    View swap receipt
-                  </button>
-                )}
-                {status === "complete" && !lastSwapSummary && (
-                  <p className="shield-helper shield-helper--meta">
-                    Swap receipt unavailable until a completed swap exists.
-                  </p>
-                )}
-              </TransactionStatusToast>
-            )}
-            {swapReceiptDetails && (
-              <SwapReceiptModal
-                details={swapReceiptDetails}
-                open={swapReceiptModalOpen}
-                onClose={() => setSwapReceiptModalOpen(false)}
-              />
-            )}
-          </div>
-        </article>
+        <SwapWorkspaceCard
+          amount={amount}
+          exactSpendableNote={exactSpendableNote}
+          expectedOutputAmount={expectedOutputAmount}
+          flowError={flowError}
+          formatSummaryKey={(summary) => createSwapReceiptSummaryKey(summary as SwapReceiptSummary)}
+          handleSelectSwapNote={handleSelectSwapNote}
+          handleSwap={handleSwap}
+          isBetaMode={isBetaMode}
+          isReady={isReady}
+          lastSwapSummary={lastSwapSummary}
+          maxAvailableAmount={maxAvailableAmount}
+          maxSlippageLabel={formatSwapSlippage(quoteSlippageBps)}
+          maxSwappableNote={maxSwappableNote}
+          notePickerOptions={swapNotePickerOptions}
+          onAmountChange={(value) => {
+            setAmount(value);
+            setSelectedSwapNoteId(null);
+            setStatus("idle");
+            setFlowError(null);
+            setQuote(null);
+            setQuoteError(null);
+          }}
+          onMaxAmount={() => {
+            if (maxAvailableAmount <= 0 || !maxSwappableNote) {
+              return;
+            }
+            setSelectedSwapNoteId(maxSwappableNote.noteId);
+            setAmount(formatExactSwapInputAmount(maxAvailableAmount, selectedSourceAsset));
+            setStatus("idle");
+            setFlowError(null);
+            setQuote(null);
+            setQuoteError(null);
+          }}
+          onOpenReceipt={(summaryKey) => {
+            setSelectedSwapReceiptKey(summaryKey);
+            setSwapReceiptModalOpen(true);
+          }}
+          onSelectSourceAsset={(next) => {
+            setSelectedSourceAsset(next);
+            setSelectedSwapNoteId(null);
+            setStatus("idle");
+            setFlowError(null);
+            setQuote(null);
+            setQuoteError(null);
+          }}
+          onSelectTargetAsset={(next) => {
+            setSelectedTargetAsset(next);
+            setStatus("idle");
+            setFlowError(null);
+            setQuote(null);
+            setQuoteError(null);
+          }}
+          onSetSwapReceiptModalOpen={setSwapReceiptModalOpen}
+          parsedAmount={parsedAmount}
+          quote={quote}
+          quoteProgressPercent={quoteProgressPercent}
+          quoteProgressTone={quoteProgressTone}
+          quoteStatusLabel={quoteStatusLabel}
+          quoteVenueLabel={quoteVenueLabel}
+          recentSwapSummaries={recentSwapSummaries}
+          routeLabel={routeLabel}
+          routeTruthLabel={routeTruthLabel}
+          selectedNoteId={selectedSwapNoteId}
+          selectedSourceAsset={selectedSourceAsset}
+          selectedSwapNoteLabel={selectedSwapNoteLabel}
+          selectedTargetAsset={selectedTargetAsset}
+          status={status}
+          swapBridgeError={swapBridgeError}
+          swapPrimaryActionLabel={swapPrimaryActionLabel}
+          swapReceiptDetails={swapReceiptDetails}
+          swapReceiptModalOpen={swapReceiptModalOpen}
+          swapSourceAssetPickerOptions={swapSourceAssetPickerOptions}
+          swapTargetAssetPickerOptions={swapTargetAssetPickerOptions}
+          validationMessage={validationMessage}
+        />
       </div>
     </section>
   );

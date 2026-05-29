@@ -86,7 +86,9 @@ for (const [pageName, pagePath, requiredPhrases] of [
         ? `${readRepoFile("src/pages/ShieldPage.tsx")}\n${readRepoFile("src/components/ShieldWorkspaceCard.tsx")}`
         : pageName === "UnshieldPage"
           ? `${readRepoFile("src/pages/UnshieldPage.tsx")}\n${readRepoFile("src/components/UnshieldWorkspaceCard.tsx")}`
-          : readRepoFile(pagePath);
+          : pageName === "SwapPage"
+            ? `${readRepoFile("src/pages/SwapPage.tsx")}\n${readRepoFile("src/components/SwapWorkspaceCard.tsx")}`
+            : readRepoFile(pagePath);
 
   for (const phrase of requiredPhrases) {
     assert.ok(pageSource.includes(phrase), `${pageName} missing shared WalletApprovalSheet marker: ${phrase}`);

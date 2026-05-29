@@ -13,6 +13,8 @@ assert.ok(existsSync(componentPath), "Shared SwapAdvancedPanel component must ex
 
 const componentSource = readFileSync(componentPath, "utf8");
 const swapPageSource = readRepoFile("src/pages/SwapPage.tsx");
+const swapWorkspaceSource = readRepoFile("src/components/SwapWorkspaceCard.tsx");
+const swapSurfaceSource = `${swapPageSource}\n${swapWorkspaceSource}`;
 const productBrowserSource = readRepoFile("scripts/check-vanta-product-ui-browser.mjs");
 const packageJson = JSON.parse(readRepoFile("package.json"));
 
@@ -69,7 +71,7 @@ for (const marker of [
   "sourceAssetLabel={selectedSourceAsset}",
   "venueLabel={quoteVenueLabel}",
 ]) {
-  assert.ok(swapPageSource.includes(marker), `SwapPage missing SwapAdvancedPanel marker: ${marker}`);
+  assert.ok(swapSurfaceSource.includes(marker), `SwapPage missing SwapAdvancedPanel marker: ${marker}`);
 }
 
 assert.ok(

@@ -3,6 +3,15 @@ import { resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const swapPageSource = readFileSync(resolve(repoRoot, "src/pages/SwapPage.tsx"), "utf8");
+const swapWorkspaceSource = readFileSync(
+  resolve(repoRoot, "src/components/SwapWorkspaceCard.tsx"),
+  "utf8",
+);
+const swapPanelUtilsSource = readFileSync(
+  resolve(repoRoot, "src/components/swap/swapPanelUtils.ts"),
+  "utf8",
+);
+const swapSurfaceSource = `${swapPageSource}\n${swapWorkspaceSource}\n${swapPanelUtilsSource}`;
 const swapAdvancedPanelSource = readFileSync(
   resolve(repoRoot, "src/components/SwapAdvancedPanel.tsx"),
   "utf8",
@@ -91,7 +100,7 @@ for (const marker of forbiddenMarkers) {
 }
 
 for (const marker of requiredMarkers) {
-  if (!swapPageSource.includes(marker)) {
+  if (!swapSurfaceSource.includes(marker)) {
     failures.push(`Swap page missing shield-first marker: ${marker}`);
   }
 }

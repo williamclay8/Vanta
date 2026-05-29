@@ -13,6 +13,9 @@ assert.ok(existsSync(componentPath), "Shared SwapReceiptModal component must exi
 
 const componentSource = readFileSync(componentPath, "utf8");
 const swapPageSource = readRepoFile("src/pages/SwapPage.tsx");
+const swapWorkspaceSource = readRepoFile("src/components/SwapWorkspaceCard.tsx");
+const swapRecentSwapsSource = readRepoFile("src/components/SwapRecentSwapsSection.tsx");
+const swapSurfaceSource = `${swapPageSource}\n${swapWorkspaceSource}\n${swapRecentSwapsSource}`;
 const stylesSource = readRepoFile("src/styles.css");
 const packageJson = JSON.parse(readRepoFile("package.json"));
 
@@ -62,7 +65,9 @@ for (const marker of [
   "swapReceiptModalOpen",
   "setSwapReceiptModalOpen",
   "open={swapReceiptModalOpen}",
-  "onClose={() => setSwapReceiptModalOpen(false)}",
+  "onSetSwapReceiptModalOpen={setSwapReceiptModalOpen}",
+  "onClose={() => onSetSwapReceiptModalOpen(false)}",
+  "onOpenReceipt={(summaryKey) => {",
   "setSwapReceiptModalOpen(true)",
   "lastSwapSummary.inputAsset",
   "lastSwapSummary.outputAsset",
@@ -81,7 +86,7 @@ for (const marker of [
   "View swap receipt",
   "Swap receipt unavailable until a completed swap exists.",
 ]) {
-  assert.ok(swapPageSource.includes(marker), `SwapPage missing SwapReceiptModal marker: ${marker}`);
+  assert.ok(swapSurfaceSource.includes(marker), `SwapPage missing SwapReceiptModal marker: ${marker}`);
 }
 
 for (const marker of [

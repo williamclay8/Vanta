@@ -13,6 +13,8 @@ assert.ok(existsSync(componentPath), "Shared QuoteCountdownBar component must ex
 
 const componentSource = readFileSync(componentPath, "utf8");
 const swapPageSource = readRepoFile("src/pages/SwapPage.tsx");
+const swapWorkspaceSource = readRepoFile("src/components/SwapWorkspaceCard.tsx");
+const swapSurfaceSource = `${swapPageSource}\n${swapWorkspaceSource}`;
 const stylesSource = readRepoFile("src/styles.css");
 const productBrowserSource = readRepoFile("scripts/check-vanta-product-ui-browser.mjs");
 const packageJson = JSON.parse(readRepoFile("package.json"));
@@ -57,7 +59,7 @@ for (const marker of [
   "label={quoteStatusLabel}",
   "Quote refreshes in",
 ]) {
-  assert.ok(swapPageSource.includes(marker), `SwapPage missing QuoteCountdownBar marker: ${marker}`);
+  assert.ok(swapSurfaceSource.includes(marker), `SwapPage missing QuoteCountdownBar marker: ${marker}`);
 }
 
 assert.ok(
