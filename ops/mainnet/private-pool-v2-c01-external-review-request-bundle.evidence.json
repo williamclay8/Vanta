@@ -211,7 +211,7 @@
       "id": "zk-findings-ledger",
       "group": "local-audit-context",
       "path": "VANTA_ZK_REVIEW.findings.json",
-      "sha256": "sha256:2e9153141782c9e9bf1ad19623db9defee52a43684ecefeec66636a52ab0f21f",
+      "sha256": "sha256:1d2bb0033c9de68ac459ecacffa44a917605d9c116a2ae05704179f92829452a",
       "requiredFor": "C01/H08 finding refs and stale-control map.",
       "truthBoundary": "Local findings ledger only; not external acceptance."
     },
