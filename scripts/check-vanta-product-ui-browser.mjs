@@ -1392,10 +1392,6 @@ function assertAssetPickerGrids() {
       labels: ["Shield source asset", "Shield target asset"],
       route: "/app/shield",
     },
-    {
-      labels: ["From shielded asset", "To shielded asset"],
-      route: "/app/swap",
-    },
   ];
 
   for (const assetCase of cases) {

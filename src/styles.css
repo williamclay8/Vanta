@@ -3110,6 +3110,23 @@ select:focus {
   margin: 0;
 }
 
+.unshield-paused-banner a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 6px;
+  margin: -8px -2px;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.unshield-paused-banner a:hover,
+.unshield-paused-banner a:focus-visible {
+  background: rgba(220, 130, 32, 0.14);
+}
+
 .unshield-paused-banner code {
   padding: 1px 6px;
   border-radius: 4px;
@@ -3642,6 +3659,15 @@ select:focus {
   .shield-from-to-row {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .shield-from-to-row .shield-picker-column .asset-picker-grid__options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .shield-from-to-row .shield-picker-column:last-child .asset-picker-grid,
+  .shield-from-to-row .shield-picker-column:last-child .swap-module__label-row {
+    margin-left: 0;
   }
 
   .shield-from-to-arrow {
@@ -5365,6 +5391,18 @@ select:focus {
 
 .unshield-completion-details .preview-grid {
   margin-top: 12px;
+}
+
+@media (max-width: 480px) {
+  .asset-picker-grid__options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .asset-picker-grid__option,
+  .asset-picker-grid__empty {
+    padding: 16px 18px;
+    column-gap: 14px;
+  }
 }
 
 @media (max-width: 820px) {
@@ -9685,7 +9723,7 @@ select:focus {
   }
 
   .app-header__tab {
-    min-height: 38px;
+    min-height: 44px;
     min-width: 0;
     padding: 6px 12px;
     scroll-snap-align: none;
@@ -13425,6 +13463,17 @@ select:focus {
   .module-state__details summary {
     cursor: pointer;
     padding: 6px 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .unshield-advanced-toggle summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 6px 0;
   }
 
   /* Lane workspace: single column so cards never sit side-by-side. */
@@ -13453,7 +13502,7 @@ select:focus {
   }
   .lane-flow-indicator [data-vanta-lane-flow-step] {
     padding: 6px 4px;
-    min-height: 36px;
+    min-height: 44px;
     line-height: 1.1;
   }
 
@@ -13485,6 +13534,15 @@ select:focus {
     display: grid;
     grid-template-columns: 1fr;
     row-gap: 12px;
+  }
+
+  .shield-from-to-row .shield-picker-column .asset-picker-grid__options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .shield-from-to-row .shield-picker-column:last-child .asset-picker-grid,
+  .shield-from-to-row .shield-picker-column:last-child .swap-module__label-row {
+    margin-left: 0;
   }
 
   /* Approval sheet rows: stack at narrow widths so labels never crush. */
