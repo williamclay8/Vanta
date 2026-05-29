@@ -11,6 +11,9 @@ function readRepoFile(path) {
 const packageJson = JSON.parse(readRepoFile("package.json"));
 const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
+const unshieldWorkspaceSource = readRepoFile("src/components/UnshieldWorkspaceCard.tsx");
+const unshieldPanelUtilsSource = readRepoFile("src/components/unshield/unshieldPanelUtils.ts");
+const unshieldSurfaceSource = `${unshieldPageSource}\n${unshieldWorkspaceSource}\n${unshieldPanelUtilsSource}`;
 const unshieldAdvancedPanelSource = readRepoFile("src/components/UnshieldAdvancedPanel.tsx");
 const stylesSource = readRepoFile("src/styles.css");
 const unshieldAuthSource = readRepoFile("src/solana/unshieldAuth.ts");
@@ -28,6 +31,13 @@ const securityLimitations = readRepoFile("SECURITY_LIMITATIONS.md");
 const proofBoundaryDoc = readRepoFile("docs/zk/vanta-private-core-unshield-proof-boundary.md");
 const transactionEvidenceSource = readRepoFile("src/transactions/vantaTransactionEvidence.ts");
 const transactionEvidenceCheck = readRepoFile("scripts/check-vanta-transaction-evidence.mjs");
+
+const pageOnlyPhrases = new Set([
+  "signUnshieldIntent",
+  "signSolUnshieldIntent",
+  "signWalletMessageIntentWithSafety",
+  "direct:${args.note.noteId}",
+]);
 
 for (const phrase of [
   "PrivacySummary",
@@ -76,8 +86,9 @@ for (const phrase of [
   "View on Solscan",
   "getSolscanTransactionUrl",
 ]) {
+  const source = pageOnlyPhrases.has(phrase) ? unshieldPageSource : unshieldSurfaceSource;
   assert.ok(
-    unshieldPageSource.includes(phrase),
+    source.includes(phrase),
     `Unshield Phantom-safe public-exit flow missing ${phrase}.`,
   );
 }
@@ -122,20 +133,20 @@ for (const phrase of [
   assert.ok(stylesSource.includes(phrase), `Unshield exit recipe style missing ${phrase}.`);
 }
 
-const exitPreviewIndex = unshieldPageSource.indexOf("unshield-exit-preview");
-const ticketFormIndex = unshieldPageSource.indexOf("shield-form swap-widget unshield-ticket");
+const exitPreviewIndex = unshieldSurfaceSource.indexOf("unshield-exit-preview");
+const ticketFormIndex = unshieldSurfaceSource.indexOf("shield-form swap-widget unshield-ticket");
 assert.ok(
   exitPreviewIndex >= 0 && ticketFormIndex > exitPreviewIndex,
   "Unshield exit consequence preview must render before the form controls.",
 );
 
-const exitPreviewBlock = unshieldPageSource.slice(exitPreviewIndex, ticketFormIndex).toLowerCase();
+const exitPreviewBlock = unshieldSurfaceSource.slice(exitPreviewIndex, ticketFormIndex).toLowerCase();
 for (const phrase of ["fresh wallet", "different wallet", "private exit", "anonymous", "untraceable", "fully private"]) {
   assert.ok(!exitPreviewBlock.includes(phrase), `Unshield exit consequence preview must not overclaim ${phrase}.`);
 }
 
-const completionStatusIndex = unshieldPageSource.indexOf('status === "complete"');
-const completionDetailsIndex = unshieldPageSource.indexOf(
+const completionStatusIndex = unshieldSurfaceSource.indexOf('status === "complete"');
+const completionDetailsIndex = unshieldSurfaceSource.indexOf(
   'className="unshield-completion-details"',
   completionStatusIndex,
 );
@@ -143,7 +154,7 @@ assert.ok(
   completionStatusIndex >= 0 && completionDetailsIndex > completionStatusIndex,
   "Unshield completion surface must render a bounded success summary before internal operator details.",
 );
-const completionSurface = unshieldPageSource.slice(completionStatusIndex, completionDetailsIndex);
+const completionSurface = unshieldSurfaceSource.slice(completionStatusIndex, completionDetailsIndex);
 for (const phrase of [
   "Verify the public exit transaction before treating funds as moved",
   "Operator release is still pending",

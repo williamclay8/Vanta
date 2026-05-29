@@ -18,6 +18,11 @@ const unshieldPageSource = readFileSync(
   resolve(repoRoot, "src/pages/UnshieldPage.tsx"),
   "utf8",
 );
+const unshieldWorkspaceSource = readFileSync(
+  resolve(repoRoot, "src/components/UnshieldWorkspaceCard.tsx"),
+  "utf8",
+);
+const unshieldSurfaceSource = `${unshieldPageSource}\n${unshieldWorkspaceSource}`;
 const packageSource = readFileSync(resolve(repoRoot, "package.json"), "utf8");
 
 const failures = [];
@@ -46,7 +51,7 @@ if (!unshieldPageSource.includes('const [requestedAmountInput, setRequestedAmoun
   failures.push("Unshield amount state must start empty so the input shows the 0.00 placeholder.");
 }
 
-if (!unshieldPageSource.includes('selectedLane === "USDC"')) {
+if (!unshieldSurfaceSource.includes('selectedLane === "USDC"')) {
   failures.push("Unshield must preserve the USDC editable amount lane.");
 }
 

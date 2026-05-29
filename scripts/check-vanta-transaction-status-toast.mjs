@@ -100,6 +100,8 @@ for (const [pageName, pagePath, requiredPhrases] of [
       ? `${readRepoFile("src/pages/SendPage.tsx")}\n${readRepoFile("src/components/SendWorkspaceCard.tsx")}`
       : pageName === "ShieldPage"
         ? `${readRepoFile("src/pages/ShieldPage.tsx")}\n${readRepoFile("src/components/ShieldWorkspaceCard.tsx")}`
+        : pageName === "UnshieldPage"
+        ? `${readRepoFile("src/pages/UnshieldPage.tsx")}\n${readRepoFile("src/components/UnshieldWorkspaceCard.tsx")}`
         : readRepoFile(pagePath);
   for (const phrase of requiredPhrases) {
     assert.ok(pageSource.includes(phrase), `${pageName} missing shared TransactionStatusToast marker: ${phrase}`);

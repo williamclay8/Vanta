@@ -13,6 +13,8 @@ assert.ok(existsSync(componentPath), "Shared UnshieldReceiptModal component must
 
 const componentSource = readFileSync(componentPath, "utf8");
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
+const unshieldWorkspaceSource = readRepoFile("src/components/UnshieldWorkspaceCard.tsx");
+const unshieldSurfaceSource = `${unshieldPageSource}\n${unshieldWorkspaceSource}`;
 const productBrowserSource = readRepoFile("scripts/check-vanta-product-ui-browser.mjs");
 const stylesSource = readRepoFile("src/styles.css");
 const packageJson = JSON.parse(readRepoFile("package.json"));
@@ -73,7 +75,7 @@ for (const marker of [
   "View receipt details",
   "unshield-completion-details",
 ]) {
-  assert.ok(unshieldPageSource.includes(marker), `UnshieldPage missing UnshieldReceiptModal marker: ${marker}`);
+  assert.ok(unshieldSurfaceSource.includes(marker), `UnshieldPage missing UnshieldReceiptModal marker: ${marker}`);
 }
 
 assert.ok(

@@ -6,23 +6,20 @@ import {
 } from "@solana/react-hooks";
 import { isBetaMode } from "@/config/deploymentMode";
 import { UnshieldReleaseWorkflowPanel } from "@/components/UnshieldReleaseWorkflowPanel";
+import { UnshieldWorkspaceCard } from "@/components/UnshieldWorkspaceCard";
 import { LaneProgressiveSection } from "@/components/LaneProgressiveSection";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
-import { TransactionStatusToast } from "@/components/TransactionStatusToast";
-import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
-import { UnshieldAdvancedPanel } from "@/components/UnshieldAdvancedPanel";
-import {
-  UnshieldReceiptModal,
-  type UnshieldReceiptModalDetails,
-} from "@/components/UnshieldReceiptModal";
-import {
-  PrivacySummary,
-  type PrivacySummaryItem,
-} from "@/components/PrivacySummary";
 import type { NotePickerOption } from "@/components/NotePicker";
 import { buildPrivateCoreStatePanelProps } from "@/components/privateCore/buildPrivateCoreStatePanelProps";
+import { formatEditableAmount } from "@/components/shield/shieldPanelUtils";
+import {
+  abbreviate,
+  formatUnshieldAmount,
+  getSolscanTransactionUrl,
+  type UnshieldLane,
+} from "@/components/unshield/unshieldPanelUtils";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
@@ -71,8 +68,8 @@ import { createUnshieldTransactionEvidence } from "@/transactions/vantaTransacti
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 import type { VantaWalletSafeSendResult } from "@/wallet/walletSafeSendBoundary.mjs";
 import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentSafety.mjs";
+import type { UnshieldReceiptModalDetails } from "@/components/UnshieldReceiptModal";
 
-type UnshieldLane = LiveShieldTokenAssetKey | "SOL";
 type UnshieldStatus =
   | "idle"
   | "review"
@@ -141,76 +138,12 @@ type PendingUnshieldBridge = {
   vaultOwner: string;
 };
 
-const UNSHIELD_PRIVACY_SUMMARY_ITEMS: readonly PrivacySummaryItem[] = [
-  {
-    label: "Chain sees",
-    value: "a public exit transaction to your connected wallet",
-  },
-  {
-    label: "Recipient (you) sees",
-    value: "full amount, asset, and release receipt",
-  },
-  {
-    label: "Operator sees",
-    value: "exit terms and release status, not your full shielded history",
-  },
-];
-
 type SpendableTokenNote = {
   amount: number;
   createdAt: number;
   noteId: string;
   stateSignature: string;
 };
-
-function formatShieldTokenAmount(value: number, asset: LiveShieldTokenAssetKey) {
-  const decimals = Math.min(getLiveShieldTokenAsset(asset).decimals, 6);
-  return `${value.toLocaleString(undefined, {
-    minimumFractionDigits: Math.min(decimals, 2),
-    maximumFractionDigits: decimals,
-  })} ${asset}`;
-}
-
-function formatSolAmount(value: number) {
-  return `${value.toLocaleString(undefined, {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 6,
-  })} SOL`;
-}
-
-function abbreviate(value: string) {
-  return `${value.slice(0, 10)}...${value.slice(-6)}`;
-}
-
-function getSolscanTransactionUrl(signature: string) {
-  return `https://solscan.io/tx/${encodeURIComponent(signature)}`;
-}
-
-function formatUnshieldAmount(value: number, asset: UnshieldLane) {
-  return asset === "SOL"
-    ? formatSolAmount(value)
-    : formatShieldTokenAmount(value, asset);
-}
-
-function formatShieldedLaneLabel(asset: UnshieldLane) {
-  return `Shielded ${asset}`;
-}
-
-function formatAvailableLaneOptionLabel(option: {
-  amount: number;
-  lane: UnshieldLane;
-  pendingAmount?: number;
-}) {
-  return `${formatShieldedLaneLabel(option.lane)} - ${formatUnshieldAmount(option.amount, option.lane)} ledger spendable`;
-}
-
-function formatEditableAmount(value: number, decimals: number) {
-  return value
-    .toFixed(decimals)
-    .replace(/(\.\d*?[1-9])0+$/u, "$1")
-    .replace(/\.0+$/u, "")
-    .replace(/\.$/u, "");
-}
 
 function parseDecimalAmountToBaseUnits(amountDisplay: string, decimals: number) {
   const normalized = amountDisplay.trim();
@@ -2256,744 +2189,87 @@ export function UnshieldPage() {
       )}
 
       <div className="send-layout">
-        <article className="send-card send-card--workspace">
-          <div className="shield-card__header unshield-ticket__header">
-            <div>
-              <span>Unshield</span>
-              <h3>Send {selectedLane} to your wallet</h3>
-            </div>
-            <small>
-              {`${formatUnshieldAmount(selectedFullAmount, selectedLane)} selected note`}
-            </small>
-          </div>
+        <UnshieldWorkspaceCard
+          approvePreparedUnshieldTransition={approvePreparedUnshieldTransition}
+          authorizePendingOperatorRelease={authorizePendingOperatorRelease}
+          availableLaneOptions={availableLaneOptions}
+          completionEvidenceLabel={completionEvidenceLabel}
+          copyReleasePackageExport={copyReleasePackageExport}
+          copyUnshieldReceipt={copyUnshieldReceipt}
+          currentUnshieldTransactionEvidence={currentUnshieldTransactionEvidence}
+          currentUnshieldZkDiagnostics={currentUnshieldZkDiagnostics}
+          downloadReleasePackageExport={downloadReleasePackageExport}
+          exitConsequenceDestination={exitConsequenceDestination}
+          exitConsequenceDisplay={exitConsequenceDisplay}
+          finalizationProgressLabel={finalizationProgressLabel}
+          finalizePendingSplitState={finalizePendingSplitState}
+          finalizePendingUnshieldState={finalizePendingUnshieldState}
+          flowError={flowError}
+          handleSelectUnshieldNote={handleSelectUnshieldNote}
+          handleUnshield={handleUnshield}
+          isBetaMode={isBetaMode}
+          isReady={isReady}
+          lastCompletion={lastCompletion}
+          lastSpentMarkerSignature={lastSpentMarkerSignature}
+          lastTransitionSignature={lastTransitionSignature}
+          notePickerOptions={unshieldNotePickerOptions}
+          noteSelectionLabel={selectedUnshieldNoteLabel}
+          onMaxRequestedAmount={() => {
+            if (selectedFullAmount <= 0) {
+              return;
+            }
 
-          <section
-            className="unshield-exit-preview"
-            aria-describedby="unshield-exit-preview-copy"
-            aria-labelledby="unshield-exit-preview-title"
-          >
-            <div className="unshield-exit-preview__copy">
-              <span id="unshield-exit-preview-title">You'll receive</span>
-              <strong>{exitConsequenceDisplay}</strong>
-              <small id="unshield-exit-preview-copy">
-                {walletAddressShort
-                  ? `after public exit to ${exitConsequenceDestination}`
-                  : "connect wallet for destination"}
-              </small>
-            </div>
-            <div
-              className="unshield-exit-recipe"
-              role="img"
-              aria-label="Selected shielded amount exits to your connected public wallet"
-            >
-              <span
-                className="unshield-exit-recipe__node unshield-exit-recipe__node--shielded"
-                aria-hidden="true"
-              >
-                Shielded note
-              </span>
-              <span className="unshield-exit-recipe__path" aria-hidden="true">
-                <span />
-              </span>
-              <span
-                className="unshield-exit-recipe__node unshield-exit-recipe__node--wallet"
-                aria-hidden="true"
-              >
-                Own wallet
-              </span>
-            </div>
-          </section>
-
-          <div className="shield-form swap-widget unshield-ticket">
-            <div className="swap-module unshield-ticket__module">
-              <div className="swap-module__field unshield-ticket__field unshield-ticket__field--from">
-                <div className="swap-module__label-row">
-                  <span>Shielded asset</span>
-                  <div
-                    aria-label="Ledger spendable shielded balances"
-                    className="send-balance-line shield-helper shield-helper--meta"
-                  >
-                    {`Spendable note: ${formatUnshieldAmount(selectedFullAmount, selectedLane)}`}
-                  </div>
-                </div>
-                <div className="send-asset-field">
-                  <select
-                    aria-label="Unshield asset"
-                    value={selectedLane}
-                    onChange={(event) => selectUnshieldLane(event.target.value as UnshieldLane)}
-                  >
-                    {availableLaneOptions.map((option) => (
-                      <option key={option.lane} value={option.lane}>
-                        {formatAvailableLaneOptionLabel(option)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="swap-module__field unshield-ticket__field unshield-ticket__field--to">
-                <div className="swap-module__label-row">
-                  <span>Destination</span>
-                </div>
-                <div
-                  aria-label="Unshield destination wallet"
-                  className="unshield-fixed-field unshield-destination-card"
-                  title={walletAddress ?? undefined}
-                >
-                  <span className="unshield-destination-card__eyebrow">Own wallet</span>
-                  <div className="unshield-destination-card__row">
-                    <strong>{walletAddressShort ?? "Connect wallet"}</strong>
-                    <span className="unshield-destination-card__pill">Own wallet</span>
-                  </div>
-                  <small className="unshield-destination-card-copy">
-                    Public exit returns to your own wallet, the connected requester/depositor wallet.
-                  </small>
-                </div>
-                <label className="unshield-destination-toggle" aria-disabled="true">
-                  <input type="checkbox" disabled aria-disabled="true" />
-                  <span className="unshield-destination-toggle__body unshield-destination-toggle-copy">
-                    <strong>Send to a different wallet</strong>
-                    <small>Coming soon - needs unshield-to-fresh-wallet support</small>
-                  </span>
-                </label>
-              </div>
-
-              <div className="swap-module__field unshield-ticket__field unshield-ticket__field--amount">
-                <div className="swap-module__label-row">
-                  <span>Amount</span>
-                </div>
-                {selectedLane === "USDC" ? (
-                  <div className="amount-field">
-                    <input
-                      aria-label="Unshield amount"
-                      inputMode="decimal"
-                      type="text"
-                      value={requestedAmountInput}
-                      onChange={(event) => {
-                        setRequestedAmountInput(event.target.value);
-                        setStatus("idle");
-                        setFlowError(null);
-                      }}
-                      placeholder="0.00"
-                    />
-                    <button
-                      className="button button-ghost"
-                      type="button"
-                      disabled={selectedFullAmount <= 0}
-                      onClick={() => {
-                        if (selectedFullAmount <= 0) {
-                          return;
-                        }
-
-                        setRequestedAmountInput(formatEditableAmount(selectedFullAmount, selectedLaneDecimals));
-                        setStatus("idle");
-                        setFlowError(null);
-                      }}
-                    >
-                      Max
-                    </button>
-                  </div>
-                ) : (
-                  <div className="unshield-fixed-field unshield-fixed-field--amount">
-                    <strong>{formatEditableAmount(selectedDisplayAmount, selectedLaneDecimals)}</strong>
-                    <small>
-                      {selectedLane === "SOL" && !selectedSolNote && selectedSolPendingAmount > 0
-                        ? "Local SOL evidence pending ledger sync"
-                        : `${selectedLane} fixed note exit`}
-                    </small>
-                  </div>
-                )}
-              </div>
-
-
-
-              <p className="shield-helper unshield-validation">{validationMessage}</p>
-              <div className="unshield-ticket__action unshield-ticket__action--primary">
-                <button
-                  className="button button-primary"
-                  type="button"
-                  onClick={() => {
-                    void handleUnshield();
-                  }}
-                  disabled={
-                    isBetaMode ||
-                    !isReady ||
-                    status === "splitting_note" ||
-                    status === "recording_transition" ||
-                    status === "finalizing_split" ||
-                    status === "transition_ready" ||
-                    status === "operator_ready" ||
-                    status === "authorizing_operator" ||
-                    status === "release_ready" ||
-                    status === "finalizing_state"
-                  }
-                >
-                  {unshieldPrimaryActionLabel}
-                </button>
-              </div>
-            </div>
-          </div>
-
-              <details className="unshield-truth-drawer">
-                <summary>Privacy summary</summary>
-                <PrivacySummary
-                  items={UNSHIELD_PRIVACY_SUMMARY_ITEMS}
-                  note="Beta. Operator can see funds until program-owned release ships."
-                />
-              </details>
-
-              <UnshieldAdvancedPanel
-                notePickerOptions={unshieldNotePickerOptions}
-                noteSelectionLabel={selectedUnshieldNoteLabel}
-                onSelectNote={handleSelectUnshieldNote}
-                referenceNoteLabel={
-                  selectedUnshieldNote ? abbreviate(selectedUnshieldNote.noteId) : "Unavailable"
-                }
-                selectedNoteId={selectedUnshieldNoteId}
-              />
-
-          {status === "awaiting_confirmation" && (
-            <TransactionStatusToast
-              tone="pending"
-              phase="pending"
-              title="Preparing wallet approval"
-              message={
-                requiresExactSplit
-                  ? "Approve the private split so Vanta can isolate the exact USDC amount first."
-                  : "Vanta is preparing and simulating the constrained unshield transition."
-              }
-              progress
-              floating
-            >
-              {pendingUmbraApprovalDisplay && (
-                <WalletApprovalSheet
-                  heading="Private rail approval"
-                  walletPrompt={pendingUmbraApprovalDisplay.walletPrompt}
-                  signingMode={pendingUmbraApprovalDisplay.signingMode}
-                  rows={pendingUmbraApprovalDisplay.rows}
-                  maxRows={4}
-                  note="Approve only if the wallet shows the same asset, amount, cluster, and destination."
-                  truthBoundary="Local review. Does not prove production privacy or mainnet readiness."
-                />
-              )}
-            </TransactionStatusToast>
-          )}
-
-          {status === "transition_ready" && (
-            <div className="status-panel">
-              <span>Ready for transition approval</span>
-              <p>Approve the prepared Unshield transition in your wallet to continue.</p>
-              <button
-                className="button button-primary"
-                type="button"
-                onClick={() => {
-                  void approvePreparedUnshieldTransition();
-                }}
-                disabled={
-                  !pendingTransitionApproval ||
-                  transitionTransaction.status === "loading" ||
-                  Boolean(transitionTransaction.signature)
-                }
-              >
-                Approve transition in wallet
-              </button>
-            </div>
-          )}
-
-          {status === "splitting_note" && (
-            <TransactionStatusToast
-              tone="processing"
-              phase="confirmed"
-              title="Preparing exact amount"
-              message="Preparing the exact amount to move out."
-              progress
-              floating
-            />
-          )}
-
-          {status === "recording_transition" && (
-            <TransactionStatusToast
-              tone="processing"
-              phase="confirmed"
-              title="Recording unshield transition"
-              message="Moving the selected shielded funds toward public release."
-              progress
-              floating
-            >
-              {transitionProgressLabel && (
-                <p className="shield-helper shield-helper--meta">{transitionProgressLabel}</p>
-              )}
-            </TransactionStatusToast>
-          )}
-
-          {status === "finalizing_split" && (
-            <TransactionStatusToast
-              tone="processing"
-              phase="confirmed"
-              title="Finalizing split state"
-              message="Recording the hidden split spent marker before the exact note is unshielded."
-              progress
-              floating
-            />
-          )}
-
-          {status === "split_finalization_ready" && (
-            <div className="status-panel">
-              <span>Ready to finalize split</span>
-              <p>Approve the prepared split spent marker after the first wallet request has closed.</p>
-              <button
-                className="button button-primary"
-                type="button"
-                onClick={() => {
-                  void finalizePendingSplitState();
-                }}
-                disabled={
-                  !pendingSplitFinalizationApproval ||
-                  splitSpentMarkerTransaction.status === "loading" ||
-                  Boolean(splitSpentMarkerTransaction.signature)
-                }
-              >
-                Finalize split in wallet
-              </button>
-            </div>
-          )}
-
-          {status === "operator_ready" && (
-            <div className="status-panel">
-              <span>Ready for operator release</span>
-              <p>Release the selected note through the configured operator. This Unshield step does not open Phantom.</p>
-              {operatorReleaseDisabledReason && (
-                <p className="status-panel__warning">{operatorReleaseDisabledReason}</p>
-              )}
-              <button
-                className="button button-primary"
-                type="button"
-                onClick={() => {
-                  void authorizePendingOperatorRelease();
-                }}
-                disabled={Boolean(operatorReleaseDisabledReason)}
-              >
-                Release through operator
-              </button>
-            </div>
-          )}
-
-          {status === "authorizing_operator" && (
-            <TransactionStatusToast
-              tone="processing"
-              phase="confirmed"
-              title="Authorizing public release"
-              message={`Requesting the constrained public release for this ${selectedLane} exit.`}
-              progress
-              floating
-            />
-          )}
-
-          {status === "release_ready" && (
-            <div className="status-panel">
-              <span>Ready to finalize</span>
-              <p>Approve one final wallet request to record the spent marker and refresh Vanta state.</p>
-              <button
-                className="button button-primary"
-                type="button"
-                onClick={() => {
-                  void finalizePendingUnshieldState();
-                }}
-                disabled={
-                  !pendingFinalizationApproval ||
-                  spentMarkerTransaction.status === "loading" ||
-                  Boolean(spentMarkerTransaction.signature)
-                }
-              >
-                Finalize in wallet
-              </button>
-            </div>
-          )}
-
-          {status === "finalizing_state" && (
-            <TransactionStatusToast
-              tone="processing"
-              phase="confirmed"
-              title="Finalizing shielded state"
-              message="Recording the spent marker and refreshing Vanta state."
-              progress
-              floating
-            >
-              {finalizationProgressLabel && (
-                <p className="shield-helper shield-helper--meta">{finalizationProgressLabel}</p>
-              )}
-            </TransactionStatusToast>
-          )}
-
-          {status === "failed" && (
-            <TransactionStatusToast
-              tone="error"
-              phase="failed"
-              title="Funds were not moved"
-              message={flowError ?? "The exit did not complete. Try again."}
-              floating
-            />
-          )}
-
-          {status === "complete" && lastCompletion && (
-            <TransactionStatusToast
-	              tone="success"
-	              phase="complete"
-	              title={`Done — sent ${formatUnshieldAmount(lastCompletion.amount, lastCompletion.asset)} ${lastCompletion.asset} to ${walletAddressShort ?? "wallet"}`}
-	              message="Beta: public operator release reported. Verify the public exit transaction before treating funds as moved."
-	              floating
-	            >
-              <div className="preview-grid unshield-evidence-grid">
-                <div className="preview-card preview-card--accent">
-                  <span>Transaction evidence</span>
-                  <strong>{completionEvidenceLabel}</strong>
-                  <small>public exit transition recorded</small>
-                </div>
-                <div className="preview-card unshield-success-signature-card">
-                  <span>Operator release</span>
-                  <strong>
-                    {operatorReleaseSignature
-                      ? abbreviate(operatorReleaseSignature)
-                      : "Operator release is still pending"}
-                  </strong>
-                  {operatorReleaseSignature && (
-                    <span className="unshield-success-pulse" aria-hidden="true" />
-                  )}
-                </div>
-              </div>
-              <p className="shield-helper">Settlement: {currentUnshieldTransactionEvidence.settlement.status}</p>
-              <p className="shield-helper">Exit visibility: public on-chain exit</p>
-              <div className="status-actions unshield-success-actions">
-                <Link className="button button-primary" to="/app/shield">
-                  Shield more
-                </Link>
-                <button
-                  className="button button-ghost"
-                  type="button"
-                  aria-label="Vanta Unshield receipt details"
-                  onClick={() => {
-                    setUnshieldReceiptModalOpen(true);
-                  }}
-                >
-                  View receipt details
-                </button>
-                <button
-                  className="button button-ghost"
-                  type="button"
-                  onClick={() => {
-                    void copyUnshieldReceipt();
-                  }}
-                >
-                  {unshieldReceiptCopyStatus === "copied"
-                    ? "Receipt copied"
-                    : unshieldReceiptCopyStatus === "failed"
-                      ? "Receipt copy unavailable"
-                      : "Share receipt"}
-                </button>
-                {operatorReleaseSignature && (
-                  <a
-                    className="button button-ghost"
-                    href={getSolscanTransactionUrl(operatorReleaseSignature)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    View on Solscan
-                  </a>
-                )}
-              </div>
-              {unshieldReceiptModalDetails && (
-                <UnshieldReceiptModal
-                  details={unshieldReceiptModalDetails}
-                  open={unshieldReceiptModalOpen}
-                  onClose={() => setUnshieldReceiptModalOpen(false)}
-                >
-                  <details className="unshield-completion-details">
-                    <summary>Developer details</summary>
-                    <div className="preview-grid">
-                      <div className="preview-card preview-card--accent">
-                        <span>Exact candidate</span>
-                        <strong>
-                          {privateCoreReleaseCandidateState?.lifecycleStatusLabel ?? "Unavailable"}
-                        </strong>
-                      </div>
-                      <div className="preview-card">
-                        <span>Release workflow</span>
-                        <strong>
-                          {privateCoreReleaseWorkflowState?.shipStatusLabel ?? "Unavailable"}
-                        </strong>
-                      </div>
-                      <div className="preview-card">
-                        <span>Release handoff</span>
-                        <strong>
-                          {privateCoreReleaseHandoffState?.handoffStatusLabel ?? "Unavailable"}
-                        </strong>
-                      </div>
-                      <div className="preview-card">
-                        <span>Release package</span>
-                        <strong>
-                          {privateCoreReleasePackageState?.packageStatusLabel ??
-                            privateCoreReleaseHandoffState?.packageStatusLabel ??
-                            "Unavailable"}
-                        </strong>
-                      </div>
-                    </div>
-                    <div className="review-list">
-                      <div className="review-row">
-                        <span>Workflow prepare</span>
-                        <strong>
-                          {privateCoreReleaseWorkflowState?.prepareStatusLabel ?? "Unavailable"}
-                        </strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Workflow check</span>
-                        <strong>{privateCoreReleaseWorkflowState?.checkStatusLabel ?? "Unavailable"}</strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Workflow ship</span>
-                        <strong>{privateCoreReleaseWorkflowState?.shipStatusLabel ?? "Unavailable"}</strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Shipping artifact</span>
-                        <strong>
-                          {privateCoreReleaseWorkflowState?.artifactStatusLabel ?? "Unavailable"}
-                        </strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Workflow note</span>
-                        <strong>{privateCoreReleaseWorkflowState?.shipPrimaryNote ?? "Unavailable"}</strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Handoff</span>
-                        <strong>{privateCoreReleaseHandoffState?.handoffStatusLabel ?? "Unavailable"}</strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Next handoff action</span>
-                        <strong>{privateCoreReleaseHandoffState?.nextActionLabel ?? "Unavailable"}</strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Handoff note</span>
-                        <strong>{privateCoreReleaseHandoffState?.handoffPrimaryNote ?? "Unavailable"}</strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Package identity</span>
-                        <strong>{privateCoreReleasePackageState?.packageIdentityLabel ?? "Unavailable"}</strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Release package</span>
-                        <strong>
-                          {privateCoreReleasePackageState?.packageStatusLabel ??
-                            privateCoreReleaseHandoffState?.packageStatusLabel ??
-                            "Unavailable"}
-                        </strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Package note</span>
-                        <strong>
-                          {privateCoreReleasePackageState?.packagePrimaryNote ??
-                            privateCoreReleaseHandoffState?.packagePrimaryNote ??
-                            "Unavailable"}
-                        </strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Package gate</span>
-                        <strong>{privateCoreReleasePackageState?.gateStatusLabel ?? "Unavailable"}</strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Package gate note</span>
-                        <strong>{privateCoreReleasePackageState?.gatePrimaryNote ?? "Unavailable"}</strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Artifact identity</span>
-                        <strong>
-                          {privateCoreReleasePackageState?.artifactIdentityLabel ??
-                            privateCoreReleaseHandoffState?.artifactIdentityLabel ??
-                            "Unavailable"}
-                        </strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Decision identity</span>
-                        <strong>
-                          {privateCoreReleasePackageState?.decisionIdentityLabel ??
-                            privateCoreReleaseHandoffState?.decisionIdentityLabel ??
-                            "Unavailable"}
-                        </strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Contract identity</span>
-                        <strong>{privateCoreReleasePackageState?.contractIdentityLabel ?? "Unavailable"}</strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Snapshot identity</span>
-                        <strong>{privateCoreReleasePackageState?.snapshotIdentityLabel ?? "Unavailable"}</strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Summary generated</span>
-                        <strong>{privateCoreReleasePackageState?.summaryGeneratedLabel ?? "Unavailable"}</strong>
-                      </div>
-                      <div className="review-row">
-                        <span>Package lineage</span>
-                        <strong>{privateCoreReleasePackageState?.lineageSummaryLabel ?? "Unavailable"}</strong>
-                      </div>
-                    </div>
-                    <div className="status-actions" style={{ marginTop: 16 }}>
-                      <button
-                        className="button button-ghost"
-                        type="button"
-                        onClick={() => {
-                          setReleaseHandoffRefreshPending(true);
-                          void refreshPrivateCoreOperatorSummary().finally(() => {
-                            setReleaseHandoffRefreshPending(false);
-                          });
-                        }}
-                        disabled={releaseHandoffRefreshPending}
-                      >
-                        {releaseHandoffRefreshPending ? "Refreshing handoff" : "Refresh release handoff"}
-                      </button>
-                      <button
-                        className="button button-ghost"
-                        type="button"
-                        onClick={() => {
-                          void copyReleasePackageExport("summary");
-                        }}
-                        disabled={!privateCoreReleasePackageState}
-                      >
-                        {releasePackageExportStatus === "summary-copy"
-                          ? "Copied operator package summary"
-                          : "Copy operator package summary"}
-                      </button>
-                      <button
-                        className="button button-ghost"
-                        type="button"
-                        onClick={() => {
-                          void copyReleasePackageExport("json");
-                        }}
-                        disabled={!privateCoreReleasePackageState}
-                      >
-                        {releasePackageExportStatus === "json-copy"
-                          ? "Copied operator package JSON"
-                          : "Copy operator package JSON"}
-                      </button>
-                      <button
-                        className="button button-ghost"
-                        type="button"
-                        onClick={() => {
-                          downloadReleasePackageExport("summary");
-                        }}
-                        disabled={!privateCoreReleasePackageState}
-                      >
-                        {releasePackageExportStatus === "summary-download"
-                          ? "Downloaded package summary"
-                          : "Download package summary"}
-                      </button>
-                      <button
-                        className="button button-ghost"
-                        type="button"
-                        onClick={() => {
-                          downloadReleasePackageExport("json");
-                        }}
-                        disabled={!privateCoreReleasePackageState}
-                      >
-                        {releasePackageExportStatus === "json-download"
-                          ? "Downloaded package JSON"
-                          : "Download package JSON"}
-                      </button>
-                    </div>
-                    {lastTransitionSignature && (
-                      <p className="shield-helper shield-helper--meta">
-                        Unshield transition: {abbreviate(lastTransitionSignature)}
-                      </p>
-                    )}
-                    {lastSpentMarkerSignature && (
-                      <p className="shield-helper shield-helper--meta">
-                        Spent marker: {abbreviate(lastSpentMarkerSignature)}
-                      </p>
-                    )}
-                  </details>
-                  <details className="preview-card" style={{ marginTop: 16 }}>
-                    <summary>Diagnostics</summary>
-                    <p className="shield-helper shield-helper--meta">
-                      Internal/debug only. This shows the retained canonical consumption trace for
-                      the latest live unshield bridge record.
-                    </p>
-                    {unshieldBridgeError && (
-                      <p className="shield-helper shield-helper--meta" style={{ color: "#b42318" }}>
-                        Canonical bridge retention issue: {unshieldBridgeError}
-                      </p>
-                    )}
-                    {currentUnshieldZkDiagnostics ? (
-                      <div className="review-list" style={{ marginTop: 12 }}>
-                        <div className="review-row">
-                          <span>Lane</span>
-                          <strong>{currentUnshieldZkDiagnostics.asset}</strong>
-                        </div>
-                        <div className="review-row">
-                          <span>Consumed note ref</span>
-                          <strong>{abbreviate(currentUnshieldZkDiagnostics.consumedReferenceHash)}</strong>
-                        </div>
-                        <div className="review-row">
-                          <span>Canonical consumed ref</span>
-                          <strong>
-                            {currentUnshieldZkDiagnostics.consumedCanonicalCommitment
-                              ? abbreviate(currentUnshieldZkDiagnostics.consumedCanonicalCommitment)
-                              : "Not yet resolvable"}
-                          </strong>
-                        </div>
-                        <div className="review-row">
-                          <span>Canonical source</span>
-                          <strong>{currentUnshieldZkDiagnostics.consumedCanonicalRecordSource ?? "Unresolved"}</strong>
-                        </div>
-                        <div className="review-row">
-                          <span>Exit amount</span>
-                          <strong>{currentUnshieldZkDiagnostics.amountDisplay}</strong>
-                        </div>
-                        <div className="review-row">
-                          <span>Destination owner</span>
-                          <strong>{abbreviate(currentUnshieldZkDiagnostics.destinationOwner) ?? "Unavailable"}</strong>
-                        </div>
-                        <div className="review-row">
-                          <span>Transition signature</span>
-                          <strong>{abbreviate(currentUnshieldZkDiagnostics.transitionSignature)}</strong>
-                        </div>
-                        <div className="review-row">
-                          <span>Operator request</span>
-                          <strong>
-                            {currentUnshieldZkDiagnostics.operatorRequestId
-                              ? abbreviate(currentUnshieldZkDiagnostics.operatorRequestId)
-                              : "Unavailable"}
-                          </strong>
-                        </div>
-                        <div className="review-row">
-                          <span>Operator release</span>
-                          <strong>
-                            {currentUnshieldZkDiagnostics.operatorReleaseSignature
-                              ? abbreviate(currentUnshieldZkDiagnostics.operatorReleaseSignature)
-                              : "Unavailable"}
-                          </strong>
-                        </div>
-                        {currentUnshieldZkDiagnostics.spentMarkerSignature && (
-                          <div className="review-row">
-                            <span>Spent marker</span>
-                            <strong>{abbreviate(currentUnshieldZkDiagnostics.spentMarkerSignature)}</strong>
-                          </div>
-                        )}
-                        {currentUnshieldZkDiagnostics.sourceSwapNoteReferenceHash && (
-                          <div className="review-row">
-                            <span>Source swap ref</span>
-                            <strong>{abbreviate(currentUnshieldZkDiagnostics.sourceSwapNoteReferenceHash)}</strong>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="shield-helper shield-helper--meta">
-                        No retained canonical unshield diagnostics are available yet for this client.
-                      </p>
-                    )}
-                  </details>
-                </UnshieldReceiptModal>
-              )}
-            </TransactionStatusToast>
-          )}
-        </article>
+            setRequestedAmountInput(formatEditableAmount(selectedFullAmount, selectedLaneDecimals));
+            setStatus("idle");
+            setFlowError(null);
+          }}
+          onRequestedAmountChange={(value) => {
+            setRequestedAmountInput(value);
+            setStatus("idle");
+            setFlowError(null);
+          }}
+          onSelectLane={selectUnshieldLane}
+          onSetUnshieldReceiptModalOpen={setUnshieldReceiptModalOpen}
+          operatorReleaseDisabledReason={operatorReleaseDisabledReason}
+          operatorReleaseSignature={operatorReleaseSignature}
+          pendingFinalizationApproval={pendingFinalizationApproval}
+          pendingSplitFinalizationApproval={pendingSplitFinalizationApproval}
+          pendingTransitionApproval={pendingTransitionApproval}
+          pendingUmbraApprovalDisplay={pendingUmbraApprovalDisplay}
+          privateCoreReleaseCandidateState={privateCoreReleaseCandidateState}
+          privateCoreReleaseHandoffState={privateCoreReleaseHandoffState}
+          privateCoreReleasePackageState={privateCoreReleasePackageState}
+          privateCoreReleaseWorkflowState={privateCoreReleaseWorkflowState}
+          referenceNoteLabel={
+            selectedUnshieldNote ? abbreviate(selectedUnshieldNote.noteId) : "Unavailable"
+          }
+          refreshPrivateCoreOperatorSummary={refreshPrivateCoreOperatorSummary}
+          releaseHandoffRefreshPending={releaseHandoffRefreshPending}
+          releasePackageExportStatus={releasePackageExportStatus}
+          requestedAmountInput={requestedAmountInput}
+          requiresExactSplit={requiresExactSplit}
+          selectedDisplayAmount={selectedDisplayAmount}
+          selectedFullAmount={selectedFullAmount}
+          selectedLane={selectedLane}
+          selectedLaneDecimals={selectedLaneDecimals}
+          selectedSolNote={selectedSolNote}
+          selectedSolPendingAmount={selectedSolPendingAmount}
+          selectedUnshieldNoteId={selectedUnshieldNoteId}
+          setReleaseHandoffRefreshPending={setReleaseHandoffRefreshPending}
+          splitSpentMarkerTransaction={splitSpentMarkerTransaction}
+          spentMarkerTransaction={spentMarkerTransaction}
+          status={status}
+          transitionProgressLabel={transitionProgressLabel}
+          transitionTransaction={transitionTransaction}
+          unshieldBridgeError={unshieldBridgeError}
+          unshieldPrimaryActionLabel={unshieldPrimaryActionLabel}
+          unshieldReceiptCopyStatus={unshieldReceiptCopyStatus}
+          unshieldReceiptModalDetails={unshieldReceiptModalDetails}
+          unshieldReceiptModalOpen={unshieldReceiptModalOpen}
+          validationMessage={validationMessage}
+          walletAddress={walletAddress}
+          walletAddressShort={walletAddressShort}
+        />
       </div>
     </section>
   );
