@@ -2202,16 +2202,19 @@ export function ShieldPage(_props: ShieldPageProps) {
                 Route: {selectedSourceAsset?.symbol ?? "Asset"} → {capability.targetShieldAsset?.label ?? "Shielded asset"}
               </p>
 
-              <p className="shield-helper shield-helper--meta">{routeLabel}</p>
-              <p className="shield-helper shield-helper--meta">
-                Beta. Vault is operator-controlled; program-owned custody is not yet wired.
-              </p>
-              {targetShieldedBalanceReadUnavailable && (
+              <details className="shield-truth-drawer">
+                <summary>Route details & beta status</summary>
+                <p className="shield-helper shield-helper--meta">{routeLabel}</p>
                 <p className="shield-helper shield-helper--meta">
-                  Balance read delayed by RPC. Shield can still proceed.
+                  Beta. Vault is operator-controlled; program-owned custody is not yet wired.
                 </p>
-              )}
-              <p className="shield-helper">{validationMessage}</p>
+                {targetShieldedBalanceReadUnavailable && (
+                  <p className="shield-helper shield-helper--meta">
+                    Balance read delayed by RPC. Shield can still proceed.
+                  </p>
+                )}
+              </details>
+              <p className="shield-helper shield-validation">{validationMessage}</p>
               {isNativeSolShield && (
                 <div className="shield-recovery-panel">
                   <div>
@@ -2375,7 +2378,7 @@ export function ShieldPage(_props: ShieldPageProps) {
 
               <RecoveryPanelController viewingKeyControls={viewingKey} />
 
-              <div className="shield-form__actions">
+              <div className="shield-form__actions shield-form__actions--primary">
                 <button
                   className="button button-primary"
                   type="button"

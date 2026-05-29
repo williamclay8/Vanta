@@ -312,3 +312,134 @@ body.vanta-refresh .dashboard-focus-card__chips span {
     grid-template-columns: 1fr;
   }
 }
+
+/* Shield lane — mobile-first pass (P2) */
+.shield-page .shield-from-to-row {
+  padding-inline: 0;
+}
+
+.shield-page .shield-truth-drawer {
+  border: 1px dashed var(--v-border-strong);
+  border-radius: var(--v-r-sm);
+  padding: 10px 12px;
+  color: var(--v-muted);
+}
+
+.shield-page .shield-truth-drawer summary {
+  cursor: pointer;
+  font-family: var(--v-font-label);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--v-muted-strong);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.shield-page .shield-truth-drawer[open] summary {
+  margin-bottom: 8px;
+}
+
+.shield-page .shield-validation {
+  font-size: 0.86rem;
+  color: var(--v-muted-strong);
+}
+
+@media (max-width: 640px) {
+  .shield-page .lane-flow-indicator {
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .shield-page .lane-flow-step {
+    min-height: 44px;
+    padding: 10px 8px;
+    border-radius: 12px;
+  }
+
+  .shield-page .lane-flow-step span {
+    justify-content: center;
+    width: 100%;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .shield-page .swap-module {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .shield-page .swap-module__label-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .shield-page .swap-module__label-row .send-balance-line {
+    font-size: 0.78rem;
+  }
+
+  .shield-page .shield-form {
+    padding-bottom: 76px;
+  }
+
+  .shield-page .shield-form__actions--primary {
+    position: sticky;
+    bottom: 0;
+    z-index: 6;
+    margin: 8px -12px -12px;
+    padding: 12px 12px max(12px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--v-border);
+    background:
+      linear-gradient(180deg, rgba(11, 16, 24, 0.88), rgba(11, 16, 24, 0.98));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .shield-page .shield-form__actions--primary .button-primary {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .shield-page .shield-recovery-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .shield-page .shield-recovery-panel .button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .shield-page .shield-legacy-migration-panel .legacy-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .shield-page .shield-legacy-migration-panel .legacy-header .button {
+    align-self: flex-start;
+    min-height: 44px;
+  }
+
+  .shield-page .shield-legacy-migration-panel .legacy-note-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .shield-page .shield-legacy-migration-panel .legacy-note-btn {
+    width: 100%;
+    min-height: 44px;
+    border-radius: 12px;
+  }
+}
+
+@media (min-width: 641px) {
+  .shield-page .shield-truth-drawer summary {
+    min-height: 0;
+  }
+}
