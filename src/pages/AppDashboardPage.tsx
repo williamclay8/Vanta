@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { AssetChip } from "@/components/AssetChip";
 import { DashboardActivityTimeline } from "@/components/dashboard/DashboardActivityTimeline";
 import { DashboardAllocationRing } from "@/components/dashboard/DashboardAllocationRing";
@@ -55,14 +56,9 @@ export function AppDashboardPage() {
   const hasShieldedSol = shieldedSolBalance > 0;
   const hasSpendableShieldedValue = spendableNoteCount > 0 || hasShieldedSol;
 
-  const primaryBalanceValue = hasShieldedSol
-    ? formatVantaSolAmount(shieldedSolBalance)
-    : isValueUnavailable
-      ? "Unavailable"
-      : formatShieldedTokenPosition(
-          primaryShieldedTokenPosition.balance,
-          primaryShieldedTokenPosition.symbol,
-        );
+  const primaryBalanceNumeric = hasShieldedSol
+    ? shieldedSolBalance
+    : primaryShieldedTokenPosition.balance;
   const primaryBalanceUnit = hasShieldedSol ? "SOL" : primaryShieldedTokenPosition.symbol;
 
   const allocationSlices = buildAllocationSlices({
@@ -146,8 +142,26 @@ export function AppDashboardPage() {
           <div>
             <div className="v-metric__label">Shielded balance</div>
             <div className="v-balance dashboard-cockpit__balance-value">
-              {primaryBalanceValue}{" "}
-              <small>{primaryBalanceUnit}</small>
+              {isValueUnavailable ? (
+                <>
+                  Unavailable <small>{primaryBalanceUnit}</small>
+                </>
+              ) : (
+                <>
+                  <AnimatedNumber
+                    value={primaryBalanceNumeric}
+                    format={(amount) =>
+                      hasShieldedSol
+                        ? formatVantaSolAmount(amount)
+                        : formatShieldedTokenPosition(amount, primaryShieldedTokenPosition.symbol).replace(
+                            ` ${primaryShieldedTokenPosition.symbol}`,
+                            "",
+                          )
+                    }
+                  />{" "}
+                  <small>{primaryBalanceUnit}</small>
+                </>
+              )}
             </div>
             <p className="dashboard-cockpit__balance-note">{statusLine}</p>
           </div>
@@ -199,7 +213,13 @@ export function AppDashboardPage() {
               ]
                 .filter(Boolean)
                 .join(" ")}
-            >{spendableNoteCount}</div>
+            >
+              {isValueUnavailable ? (
+                "Unavailable"
+              ) : (
+                <AnimatedNumber value={spendableNoteCount} format={(amount) => String(Math.round(amount))} />
+              )}
+            </div>
             <div className="v-metric__sub">
               {positionSummary.spendableNoteCount} token · {positionSummary.spendableShieldedSolNoteCount} SOL
             </div>

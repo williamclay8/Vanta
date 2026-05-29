@@ -28,6 +28,7 @@ type TransactionStatusToastProps = {
   onDismiss?: () => void;
   phase: TransactionStatusPhase;
   progress?: boolean;
+  successIcon?: "default" | "shield";
   title: ReactNode;
   tone: TransactionStatusTone;
 };
@@ -44,6 +45,7 @@ export function TransactionStatusToast({
   onDismiss,
   phase,
   progress = false,
+  successIcon = "default",
   title,
   tone,
 }: TransactionStatusToastProps) {
@@ -96,8 +98,16 @@ export function TransactionStatusToast({
       <div className="transaction-status-toast__header">
         <div className="transaction-status-toast__title-row">
           {tone === "success" ? (
-            <div className="v-success-ring transaction-status-toast__success-ring" aria-hidden="true">
-              ✓
+            <div
+              className={[
+                "v-success-ring transaction-status-toast__success-ring",
+                successIcon === "shield" ? "v-success-ring--shield" : undefined,
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              aria-hidden="true"
+            >
+              {successIcon === "shield" ? "🔒" : "✓"}
             </div>
           ) : null}
           <div>

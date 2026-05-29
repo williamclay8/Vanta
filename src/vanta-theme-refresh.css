@@ -275,6 +275,38 @@ body.vanta-refresh .dashboard-focus-card__chips span {
   position: relative;
   z-index: 2;
 }
+@keyframes v-shield-lock {
+  0% { transform: scale(0.62) rotate(-10deg); opacity: 0; }
+  55% { transform: scale(1.08) rotate(3deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.v-success-ring--shield {
+  animation: v-shield-lock 520ms var(--v-ease) both;
+}
+.lane-flow-step--advance.lane-flow-step--active {
+  animation: v-lane-step-advance 480ms var(--v-ease) both;
+}
+@keyframes v-lane-step-advance {
+  0% {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 0 rgba(119, 242, 212, 0);
+  }
+  45% {
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 4px rgba(119, 242, 212, 0.14);
+  }
+  100% {
+    transform: translateY(0);
+    box-shadow: 0 14px 34px rgba(119, 242, 212, 0.08);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v-success-ring--shield,
+  .lane-flow-step--advance.lane-flow-step--active {
+    animation: none;
+  }
+}
+
 @media (max-width: 640px) {
   .swap-coming-soon__actions {
     grid-template-columns: 1fr;

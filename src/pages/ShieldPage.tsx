@@ -2405,6 +2405,9 @@ export function ShieldPage(_props: ShieldPageProps) {
               status === "complete" ||
               status === "failed") && (
               <TransactionStatusToast
+                successIcon={
+                  status === "complete" || status === "recovery_recorded" ? "shield" : "default"
+                }
                 tone={
                   status === "complete"
                     ? "success"
