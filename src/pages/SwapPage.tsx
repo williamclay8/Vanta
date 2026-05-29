@@ -64,7 +64,9 @@ import type { CanonicalNoteOwnerContext } from "@/zk/canonicalNote";
 import type { AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { QuoteCountdownBar, type QuoteCountdownBarTone } from "@/components/QuoteCountdownBar";
+import { LaneProgressiveSection } from "@/components/LaneProgressiveSection";
 import { SwapComingSoonPanel } from "@/components/SwapComingSoonPanel";
+import { SwapRecentSwapsSection } from "@/components/SwapRecentSwapsSection";
 import { SwapAdvancedPanel } from "@/components/SwapAdvancedPanel";
 import { SwapReceiptModal, type SwapReceiptModalDetails } from "@/components/SwapReceiptModal";
 import { TransactionStatusToast } from "@/components/TransactionStatusToast";
@@ -2048,67 +2050,6 @@ export function SwapPage() {
                 venueLabel={quoteVenueLabel}
               />
 
-              <section
-                className="swap-recent-swaps"
-                data-vanta-swap-recent-list
-                aria-label="Recent swaps"
-              >
-                <div className="swap-recent-swaps__header">
-                  <span>Recent swaps</span>
-                  <strong>Browser-local history</strong>
-                </div>
-                {recentSwapSummaries.length > 0 ? (
-                  <div
-                    className="swap-recent-swaps__items"
-                    data-vanta-swap-recent-browser-local
-                  >
-                    {recentSwapSummaries.map((summary) => (
-                      <article
-                        className="swap-recent-swaps__card"
-                        data-vanta-swap-recent-card
-                        key={createSwapReceiptSummaryKey(summary)}
-                      >
-                        <div>
-                          <span>
-                            {summary.storageScope === "browser-local"
-                              ? "Stored in this browser"
-                              : "Latest swap"}
-                          </span>
-                          <strong>
-                            {formatAssetAmount(summary.inputAmount, summary.inputAsset)}
-                            {" -> "}
-                            {formatAssetAmount(summary.outputAmount, summary.outputAsset)}
-                          </strong>
-                          <p>
-                            {summary.venueName} {summary.venueFamily} · Output note{" "}
-                            {formatShortSwapId(summary.outputNoteId)}
-                            {summary.createdAt
-                              ? ` · ${formatQuoteTimestamp(summary.createdAt)}`
-                              : ""}
-                          </p>
-                        </div>
-                        <button
-                          className="button button-ghost"
-                          type="button"
-                          onClick={() => {
-                            setSelectedSwapReceiptKey(createSwapReceiptSummaryKey(summary));
-                            setSwapReceiptModalOpen(true);
-                          }}
-                        >
-                          Open receipt
-                        </button>
-                      </article>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="swap-recent-swaps__empty" data-vanta-swap-recent-empty>
-                    Completed swaps with committed receipt evidence will appear here for review.
-                    Stored in this browser only; this history does not prove Swap production
-                    privacy.
-                  </p>
-                )}
-              </section>
-
               <div className="shield-form__actions shield-form__actions--primary">
                 <button
                   className="button button-primary"
@@ -2127,6 +2068,19 @@ export function SwapPage() {
                   {swapPrimaryActionLabel}
                 </button>
               </div>
+
+              <LaneProgressiveSection summary="Recent swaps (browser-local)" variant="history">
+                <SwapRecentSwapsSection
+                  formatQuoteTimestamp={formatQuoteTimestamp}
+                  formatShortSwapId={formatShortSwapId}
+                  formatSummaryKey={(summary) => createSwapReceiptSummaryKey(summary as SwapReceiptSummary)}
+                  onOpenReceipt={(summaryKey) => {
+                    setSelectedSwapReceiptKey(summaryKey);
+                    setSwapReceiptModalOpen(true);
+                  }}
+                  summaries={recentSwapSummaries}
+                />
+              </LaneProgressiveSection>
             </div>
 
             {(status === "awaiting_confirmation" ||

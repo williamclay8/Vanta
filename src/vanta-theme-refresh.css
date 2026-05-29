@@ -872,7 +872,79 @@ body.vanta-refresh .dashboard-focus-card__chips span {
   .swap-page .swap-truth-drawer summary,
   .unshield-page .unshield-truth-drawer summary,
   .swap-page [data-vanta-swap-advanced-panel] summary,
-  .pay-page .pay-advanced-settings summary {
+  .pay-page .pay-advanced-settings summary,
+  .lane-progressive-section summary {
     min-height: 0;
+  }
+}
+
+/* Progressive disclosure sections (P2 decomposition) */
+.lane-progressive-section {
+  border: 1px dashed var(--v-border-strong);
+  border-radius: var(--v-r-md);
+  padding: 10px 12px;
+  color: var(--v-muted);
+}
+
+.lane-progressive-section summary {
+  cursor: pointer;
+  font-family: var(--v-font-label);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--v-muted-strong);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.lane-progressive-section[open] summary {
+  margin-bottom: 10px;
+}
+
+.lane-progressive-section__body {
+  display: grid;
+  gap: 12px;
+}
+
+.lane-progressive-section--reviewer {
+  border-style: solid;
+  border-color: var(--v-border);
+  background: rgba(11, 16, 24, 0.42);
+}
+
+.lane-progressive-section--optional {
+  background: rgba(11, 16, 24, 0.28);
+}
+
+.lane-progressive-section--history {
+  margin-top: 4px;
+}
+
+.send-page .lane-progressive-section--reviewer .send-card {
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  background: transparent;
+}
+
+.pay-page .lane-progressive-section--optional .pay-review-card {
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  background: transparent;
+}
+
+@media (max-width: 640px) {
+  .lane-progressive-section {
+    padding: 10px;
+  }
+
+  .send-page .lane-progressive-section--reviewer {
+    margin-inline: 0;
+  }
+
+  .pay-page .pay-request-grid {
+    gap: 10px;
   }
 }

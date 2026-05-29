@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
+import { LaneProgressiveSection } from "@/components/LaneProgressiveSection";
+import { SendContextBanner } from "@/components/SendContextBanner";
 import { NotePicker, type NotePickerOption } from "@/components/NotePicker";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
 import { PrivacySummary, type PrivacySummaryItem } from "@/components/PrivacySummary";
@@ -1632,30 +1634,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         ]}
       />
 
-      {recentShield ? (
-        <div className="send-context-banner">
-          <div>
-            <span>Syncing</span>
-            <h3>{formatBalance(recentShield.amount, recentShield.asset)} deposit recorded.</h3>
-            <p>Wait for ledger sync before sending.</p>
-          </div>
-          <div className="send-context-banner__meta">
-            <strong>Pending</strong>
-            <small>Not spendable yet</small>
-          </div>
-        </div>
-      ) : (
-        <div className="send-context-banner send-context-banner--quiet">
-          <div>
-            <span>Empty Vault</span>
-            <h3>No send-ready balance yet.</h3>
-            <p>Start with Shield.</p>
-          </div>
-          <Link className="button button-ghost" to="/app/shield">
-            Shield first
-          </Link>
-        </div>
-      )}
+      <SendContextBanner formatBalance={formatBalance} recentShield={recentShield} />
 
       <div className="send-layout">
         <article className="send-card send-card--workspace">
@@ -2007,7 +1986,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           )}
         </article>
 
-        <article className="send-card" data-vanta-send-proof-panel>
+        <LaneProgressiveSection summary="Private-core proof lane (reviewer)" variant="reviewer">
+          <article className="send-card" data-vanta-send-proof-panel>
           <div className="shield-card__header">
             <div>
               <span>Private-core send</span>
@@ -2755,6 +2735,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             )}
           </details>
         </article>
+        </LaneProgressiveSection>
       </div>
 
       {sendReceiptModalDetails && (
@@ -2818,7 +2799,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         </SendReceiptModal>
       )}
 
-      <VantaPrivateCoreStatePanel
+      <LaneProgressiveSection summary="Full private-core operator state (reviewer)" variant="reviewer">
+        <VantaPrivateCoreStatePanel
         compact
         holdState={privateCoreHoldState}
         releaseCandidateState={privateCoreReleaseCandidateState}
@@ -3102,7 +3084,8 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         shieldState={privateCoreRecentShield}
         title="Vanta Private Core send state"
         unshieldState={privateCoreUnshieldState}
-      />
+        />
+      </LaneProgressiveSection>
     </section>
   );
 }

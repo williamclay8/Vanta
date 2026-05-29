@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
+import { LaneProgressiveSection } from "@/components/LaneProgressiveSection";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { PayReceiptPacketCard } from "@/components/PayReceiptPacketCard";
 import { TransactionStatusToast } from "@/components/TransactionStatusToast";
@@ -506,6 +507,7 @@ export function PayPage() {
                 </form>
               </section>
 
+              <LaneProgressiveSection summary="Review payment details" variant="optional">
               <aside className="pay-review-card pay-review-card--live" aria-label="Review payment">
                 <span className="pay-kicker">Review payment</span>
                 <strong>{paymentLabel}</strong>
@@ -536,6 +538,7 @@ export function PayPage() {
                   </div>
                 </dl>
               </aside>
+              </LaneProgressiveSection>
             </div>
 
             <TransactionStatusToast

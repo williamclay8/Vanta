@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
 import { AssetPickerGrid, type AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
+import { LaneProgressiveSection } from "@/components/LaneProgressiveSection";
+import { ShieldLegacyMigrationPanel } from "@/components/ShieldLegacyMigrationPanel";
 import { RecoveryPanelController } from "@/components/RecoveryPanelController";
 import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
@@ -2259,121 +2261,51 @@ export function ShieldPage(_props: ShieldPageProps) {
                   After migration, legacy notes removed; v2 indexer becomes source for PositionSummary/NoteStatePanel.
               */}
               {isNativeSolShield && legacySolNotes.length > 0 && showLegacyMigrationPanel && (
-                <div className="shield-legacy-migration-panel">
-                  <div className="legacy-header">
-                    <div>
-                      <strong>Legacy SOL notes — migrate</strong>
-                      <p>
-                        {legacySolNotes.length} note(s) from the old WSOL path. One-time migration to v2 for full balance support. Unshield works without it.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      className="button button-ghost"
-                      onClick={() => setShowLegacyMigrationPanel(false)}
-                    >
-                      Hide
-                    </button>
-                  </div>
-
-                  {/* Bulk migrate button for users with many legacy notes (e.g. 18) */}
-                  {legacySolNotes.length > 1 && (
-                    <div style={{ marginTop: "10px" }}>
-                      <button
-                        type="button"
-                        className="button button-primary"
-                        onClick={handleMigrateAllLegacyNotes}
-                        disabled={isMigratingAll || !walletConnected}
-                      >
-                        {isMigratingAll ? "Migrating all..." : `Migrate all ${legacySolNotes.length} to v2`}
-                      </button>
-                      <span style={{ marginLeft: "10px", fontSize: "0.75em", color: "var(--muted-strong)" }}>
-                        (recommended for many notes)
-                      </span>
-                    </div>
-                  )}
-
-                  {legacyMigrationError && (
-                    <p style={{ color: "#b91c1c", fontSize: "0.82em", margin: "10px 0 4px", lineHeight: 1.35 }}>
-                      {legacyMigrationError.includes("waking up") || legacyMigrationError.includes("unreachable") ? (
-                        <>Indexer service is waking up or still stabilizing for native SOL (expected in current Phase 2). <strong>Re-shield is the safest option right now.</strong></>
-                      ) : (
-                        <>Migration error: {legacyMigrationError}</>
-                      )}
-                    </p>
-                  )}
-
-                  <div style={{ marginTop: "8px" }}>
-                    {legacySolNotes.map((note) => {
-                      const key = note.depositSignature || note.noteId;
-                      const status = legacyMigrationStatus[key] || "idle";
-                      return (
-                        <div key={key} className="legacy-note-row">
-                          <span className="legacy-note-info">
-                            {formatVantaSolAmount(note.amount)} SOL • {note.depositSignature?.slice(0, 8)}... • {new Date(note.createdAt).toLocaleDateString()}
-                          </span>
-                          <button
-                            type="button"
-                            className="button button-primary legacy-note-btn"
-                            disabled={isMigratingAll || status === "migrating" || status === "success" || !walletConnected}
-                            onClick={() => handleMigrateLegacySolNote(note)}
-                          >
-                            {status === "migrating" ? "Migrating..." : status === "success" ? "✓ Done" : "Migrate to v2"}
-                          </button>
-                          {status === "error" && (
-                            <span className="legacy-note-status" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                              Failed — 
-                              <button
-                                type="button"
-                                className="button button-ghost"
-                                style={{ fontSize: "0.7em", padding: "1px 6px" }}
-                                onClick={() => {
-                                  // Quick re-shield fallback: prefill the amount and trigger normal shield flow
-                                  setSelectedSourceAssetId("SOL");
-                                  setAmount(formatEditableAmount(note.amount, 9));
-                                  setStatus("idle");
-                                  setLegacyMigrationError(null);
-                                  // Scroll user attention to the main shield button
-                                  const actions = document.querySelector(".shield-form__actions");
-                                  actions?.scrollIntoView({ behavior: "smooth", block: "center" });
-                                }}
-                              >
-                                Re-shield instead (recommended)
-                              </button>
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <p className="legacy-footer">
-                    One-time sentinel commitment + ingest. After migrate, v2 indexer handles your SOL balance.
-                  </p>
-
-                  {/* User-requested reset: clear all legacy migration prompts when the flow is stuck */}
-                  <div style={{ marginTop: "12px", paddingTop: "8px", borderTop: "1px solid rgba(0,229,200,0.15)" }}>
-                    <button
-                      type="button"
-                      className="button button-ghost"
-                      style={{ fontSize: "0.72em", opacity: 0.85 }}
-                      onClick={() => {
-                        if (!confirm("This will clear all legacy pre-v2 SOL migration prompts from your browser. You can always re-shield SOL normally later. Continue?")) {
-                          return;
-                        }
-                        clearAllNativeSolShieldNotes();
-                        setLegacySolNotes([]);
-                        setShowLegacyMigrationPanel(false);
-                        setLegacyMigrationError(null);
-                        setLegacyMigrationStatus({});
-                      }}
-                    >
-                      Having trouble? Reset / clear all legacy migration prompts (safe – just stops the nagging)
-                    </button>
-                    <div style={{ fontSize: "0.65em", opacity: 0.6, marginTop: "4px" }}>
-                      This removes the 18 legacy notes from local tracking. Fresh SOL shielding will create proper v2 notes.
-                    </div>
-                  </div>
-                </div>
+                <LaneProgressiveSection
+                  className="shield-page__legacy-migration"
+                  summary={`Legacy SOL migration (${legacySolNotes.length} note${legacySolNotes.length === 1 ? "" : "s"})`}
+                  variant="optional"
+                >
+                  <ShieldLegacyMigrationPanel
+                    isMigratingAll={isMigratingAll}
+                    legacyMigrationError={legacyMigrationError}
+                    legacyMigrationStatus={legacyMigrationStatus}
+                    legacySolNotes={legacySolNotes}
+                    onClearLegacyPrompts={() => {
+                      if (
+                        !confirm(
+                          "This will clear all legacy pre-v2 SOL migration prompts from your browser. You can always re-shield SOL normally later. Continue?",
+                        )
+                      ) {
+                        return;
+                      }
+                      clearAllNativeSolShieldNotes();
+                      setLegacySolNotes([]);
+                      setShowLegacyMigrationPanel(false);
+                      setLegacyMigrationError(null);
+                      setLegacyMigrationStatus({});
+                    }}
+                    onHide={() => {
+                      setShowLegacyMigrationPanel(false);
+                    }}
+                    onMigrateAll={() => {
+                      void handleMigrateAllLegacyNotes();
+                    }}
+                    onMigrateNote={(note) => {
+                      void handleMigrateLegacySolNote(note);
+                    }}
+                    onReshieldNote={(note) => {
+                      setSelectedSourceAssetId("SOL");
+                      setAmount(formatEditableAmount(note.amount, 9));
+                      setStatus("idle");
+                      setLegacyMigrationError(null);
+                      document
+                        .querySelector(".shield-form__actions")
+                        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }}
+                    walletConnected={walletConnected}
+                  />
+                </LaneProgressiveSection>
               )}
 
               <RecoveryPanelController viewingKeyControls={viewingKey} />

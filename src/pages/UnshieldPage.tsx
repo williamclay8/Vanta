@@ -6,6 +6,7 @@ import {
 } from "@solana/react-hooks";
 import { isBetaMode } from "@/config/deploymentMode";
 import { VantaPrivateCoreStatePanel } from "@/components/VantaPrivateCoreStatePanel";
+import { LaneProgressiveSection } from "@/components/LaneProgressiveSection";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
@@ -2212,6 +2213,7 @@ export function UnshieldPage() {
       />
 
       {showPrivateReleaseCard && (
+      <LaneProgressiveSection summary="Private release workflow (reviewer)" variant="reviewer">
       <article className="send-card" style={{ marginBottom: 24 }}>
         <div className="shield-card__header">
         <div>
@@ -2831,6 +2833,7 @@ export function UnshieldPage() {
           </div>
         )}
       </article>
+      </LaneProgressiveSection>
       )}
 
       <div className="send-layout">
@@ -3020,18 +3023,15 @@ export function UnshieldPage() {
                 />
               </details>
 
-              <details className="unshield-advanced-toggle">
-                <summary>Advanced</summary>
-                <UnshieldAdvancedPanel
-                  notePickerOptions={unshieldNotePickerOptions}
-                  noteSelectionLabel={selectedUnshieldNoteLabel}
-                  onSelectNote={handleSelectUnshieldNote}
-                  referenceNoteLabel={
-                    selectedUnshieldNote ? abbreviate(selectedUnshieldNote.noteId) : "Unavailable"
-                  }
-                  selectedNoteId={selectedUnshieldNoteId}
-                />
-              </details>
+              <UnshieldAdvancedPanel
+                notePickerOptions={unshieldNotePickerOptions}
+                noteSelectionLabel={selectedUnshieldNoteLabel}
+                onSelectNote={handleSelectUnshieldNote}
+                referenceNoteLabel={
+                  selectedUnshieldNote ? abbreviate(selectedUnshieldNote.noteId) : "Unavailable"
+                }
+                selectedNoteId={selectedUnshieldNoteId}
+              />
 
           {status === "awaiting_confirmation" && (
             <TransactionStatusToast
