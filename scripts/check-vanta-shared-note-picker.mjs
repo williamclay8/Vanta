@@ -13,6 +13,8 @@ assert.ok(existsSync(componentPath), "Shared NotePicker component must exist.");
 
 const componentSource = readFileSync(componentPath, "utf8");
 const sendPageSource = readRepoFile("src/pages/SendPage.tsx");
+const sendWorkspaceSource = readRepoFile("src/components/SendWorkspaceCard.tsx");
+const sendSurfaceSource = `${sendPageSource}\n${sendWorkspaceSource}`;
 const swapPageSource = readRepoFile("src/pages/SwapPage.tsx");
 const swapAdvancedPanelSource = readRepoFile("src/components/SwapAdvancedPanel.tsx");
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
@@ -38,7 +40,7 @@ for (const marker of [
 for (const [pageName, pageSource, requiredPhrases] of [
   [
     "SendPage",
-    sendPageSource,
+    sendSurfaceSource,
     [
       "import { NotePicker",
       "<NotePicker",
@@ -96,7 +98,7 @@ for (const marker of [
 }
 
 for (const [pageName, pageSource, panelClass] of [
-  ["SendPage", sendPageSource, "send-advanced-panel"],
+  ["SendPage", sendSurfaceSource, "send-advanced-panel"],
   ["SwapAdvancedPanel", swapAdvancedPanelSource, "swap-advanced-panel"],
   ["UnshieldAdvancedPanel", unshieldAdvancedPanelSource, "unshield-advanced-panel"],
 ]) {

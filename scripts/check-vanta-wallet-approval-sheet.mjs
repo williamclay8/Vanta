@@ -79,7 +79,10 @@ for (const [pageName, pagePath, requiredPhrases] of [
     ],
   ],
 ]) {
-  const pageSource = readRepoFile(pagePath);
+  const pageSource =
+    pageName === "SendPage"
+      ? `${readRepoFile("src/pages/SendPage.tsx")}\n${readRepoFile("src/components/SendWorkspaceCard.tsx")}`
+      : readRepoFile(pagePath);
 
   for (const phrase of requiredPhrases) {
     assert.ok(pageSource.includes(phrase), `${pageName} missing shared WalletApprovalSheet marker: ${phrase}`);

@@ -20,6 +20,8 @@ assert.ok(existsSync(componentPath), "Shared RecipientField component must exist
 const helperSource = readFileSync(helperPath, "utf8");
 const componentSource = readFileSync(componentPath, "utf8");
 const sendPageSource = readRepoFile("src/pages/SendPage.tsx");
+const sendWorkspaceSource = readRepoFile("src/components/SendWorkspaceCard.tsx");
+const sendSurfaceSource = `${sendPageSource}\n${sendWorkspaceSource}`;
 const productBrowserSource = readRepoFile("scripts/check-vanta-product-ui-browser.mjs");
 const packageJson = JSON.parse(readRepoFile("package.json"));
 
@@ -70,7 +72,7 @@ for (const marker of [
   "recipientOwnerPublicKey: privateCoreOwner.publicKey",
   "External Private Core Send requires recipient viewing-key exchange",
 ]) {
-  assert.ok(sendPageSource.includes(marker), `SendPage missing recipient validation marker: ${marker}`);
+  assert.ok(sendSurfaceSource.includes(marker), `Send page missing recipient validation marker: ${marker}`);
 }
 
 assert.ok(

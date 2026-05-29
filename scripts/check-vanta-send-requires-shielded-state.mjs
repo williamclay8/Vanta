@@ -3,6 +3,11 @@ import { resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const sendPageSource = readFileSync(resolve(repoRoot, "src/pages/SendPage.tsx"), "utf8");
+const sendWorkspaceSource = readFileSync(
+  resolve(repoRoot, "src/components/SendWorkspaceCard.tsx"),
+  "utf8",
+);
+const sendSurfaceSource = `${sendPageSource}\n${sendWorkspaceSource}`;
 const sendCapabilitySource = readFileSync(
   resolve(repoRoot, "src/solana/shieldedSendCapability.ts"),
   "utf8",
@@ -94,25 +99,25 @@ const requiredCapabilityMarkers = [
 const failures = [];
 
 for (const marker of forbiddenMarkers) {
-  if (sendPageSource.includes(marker)) {
+  if (sendSurfaceSource.includes(marker)) {
     failures.push(`Send page must not contain auto-shield marker: ${marker}`);
   }
 }
 
-if (sendPageSource.includes("liveShieldAsset.unshieldConfigured")) {
+if (sendSurfaceSource.includes("liveShieldAsset.unshieldConfigured")) {
   failures.push(
     "Send page must not gate private-core send proof readiness on the unshield operator endpoint.",
   );
 }
 
 for (const marker of requiredPageMarkers) {
-  if (!sendPageSource.includes(marker)) {
+  if (!sendSurfaceSource.includes(marker)) {
     failures.push(`Send page missing shield-first marker: ${marker}`);
   }
 }
 
 for (const marker of requiredPrivateCorePrimarySendMarkers) {
-  if (!sendPageSource.includes(marker)) {
+  if (!sendSurfaceSource.includes(marker)) {
     failures.push(`Send page missing primary private-core send marker: ${marker}`);
   }
 }

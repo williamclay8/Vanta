@@ -4,6 +4,11 @@ import { resolve } from "node:path";
 const repoRoot = resolve(import.meta.dirname, "..");
 const shieldPageSource = readFileSync(resolve(repoRoot, "src/pages/ShieldPage.tsx"), "utf8");
 const sendPageSource = readFileSync(resolve(repoRoot, "src/pages/SendPage.tsx"), "utf8");
+const sendWorkspaceSource = readFileSync(
+  resolve(repoRoot, "src/components/SendWorkspaceCard.tsx"),
+  "utf8",
+);
+const sendSurfaceSource = `${sendPageSource}\n${sendWorkspaceSource}`;
 const unshieldPageSource = readFileSync(
   resolve(repoRoot, "src/pages/UnshieldPage.tsx"),
   "utf8",
@@ -24,7 +29,7 @@ if (!sendPageSource.includes('const [amount, setAmount] = useState("");')) {
   failures.push("Send amount state must start empty so the input shows the 0.00 placeholder.");
 }
 
-if (!sendPageSource.includes('placeholder="0.00"')) {
+if (!sendSurfaceSource.includes('placeholder="0.00"')) {
   failures.push("Send amount input must keep the 0.00 placeholder.");
 }
 
