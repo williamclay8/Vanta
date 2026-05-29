@@ -13,7 +13,9 @@ const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
 const unshieldWorkspaceSource = readRepoFile("src/components/UnshieldWorkspaceCard.tsx");
 const unshieldPanelUtilsSource = readRepoFile("src/components/unshield/unshieldPanelUtils.ts");
-const unshieldSurfaceSource = `${unshieldPageSource}\n${unshieldWorkspaceSource}\n${unshieldPanelUtilsSource}`;
+const unshieldReceiptModalHookSource = readRepoFile("src/components/unshield/useUnshieldReceiptModal.ts");
+const unshieldReleasePackageHookSource = readRepoFile("src/components/unshield/useUnshieldReleasePackageExport.ts");
+const unshieldSurfaceSource = `${unshieldPageSource}\n${unshieldWorkspaceSource}\n${unshieldPanelUtilsSource}\n${unshieldReceiptModalHookSource}\n${unshieldReleasePackageHookSource}`;
 const unshieldAdvancedPanelSource = readRepoFile("src/components/UnshieldAdvancedPanel.tsx");
 const stylesSource = readRepoFile("src/styles.css");
 const unshieldAuthSource = readRepoFile("src/solana/unshieldAuth.ts");
@@ -178,7 +180,7 @@ for (const phrase of [
 }
 
 assert.ok(
-  unshieldPageSource.includes("navigator.clipboard.writeText"),
+  unshieldSurfaceSource.includes("navigator.clipboard.writeText"),
   "Unshield completion copy action must still write the receipt to the clipboard.",
 );
 
@@ -379,8 +381,8 @@ for (const [sourceLabel, source, phrase] of [
     "selectedLane !== \"SOL\" && !selectedShieldAsset?.vaultOwner",
   ],
 	  [
-	    "Unshield page",
-	    unshieldPageSource,
+	    "Unshield receipt modal hook",
+	    unshieldSurfaceSource,
 	    "Operator release signature returned",
 	  ],
   [

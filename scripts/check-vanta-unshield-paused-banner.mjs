@@ -33,6 +33,11 @@ function fail(message) {
 }
 
 const unshieldPageSource = readFileSync(unshieldPagePath, "utf8");
+const unshieldPausedBannerSource = readFileSync(
+  resolve(repoRoot, "src/components/UnshieldPausedBanner.tsx"),
+  "utf8",
+);
+const unshieldSurfaceSource = `${unshieldPageSource}\n${unshieldPausedBannerSource}`;
 const unshieldServerSource = readFileSync(unshieldServerPath, "utf8");
 
 const bannerMarkers = [
@@ -43,7 +48,7 @@ const bannerMarkers = [
   "HTTP 503",
 ];
 for (const marker of bannerMarkers) {
-  if (!unshieldPageSource.includes(marker)) {
+  if (!unshieldSurfaceSource.includes(marker)) {
     fail(
       `UnshieldPage.tsx is missing required paused-banner marker: ${marker}`,
     );

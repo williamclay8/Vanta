@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   useSolanaClient,
   useWalletSession,
 } from "@solana/react-hooks";
 import { isBetaMode } from "@/config/deploymentMode";
-import { UnshieldReleaseWorkflowPanel } from "@/components/UnshieldReleaseWorkflowPanel";
+import { UnshieldPausedBanner } from "@/components/UnshieldPausedBanner";
+import { UnshieldReleaseWorkflowSection } from "@/components/UnshieldReleaseWorkflowSection";
 import { UnshieldWorkspaceCard } from "@/components/UnshieldWorkspaceCard";
-import { LaneProgressiveSection } from "@/components/LaneProgressiveSection";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { LifecycleTimeline } from "@/components/LifecycleTimeline";
 import { NoteStatePanel } from "@/components/NoteStatePanel";
@@ -17,9 +16,11 @@ import { formatEditableAmount } from "@/components/shield/shieldPanelUtils";
 import {
   abbreviate,
   formatUnshieldAmount,
-  getSolscanTransactionUrl,
   type UnshieldLane,
 } from "@/components/unshield/unshieldPanelUtils";
+import { buildUnshieldPrivateCoreDemoSteps } from "@/components/unshield/unshieldPrivateCoreDemoSteps";
+import { useUnshieldReceiptModal } from "@/components/unshield/useUnshieldReceiptModal";
+import { useUnshieldReleasePackageExport } from "@/components/unshield/useUnshieldReleasePackageExport";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
@@ -68,7 +69,6 @@ import { createUnshieldTransactionEvidence } from "@/transactions/vantaTransacti
 import { useVantaSafeSendTransaction } from "@/wallet/useVantaSafeSendTransaction";
 import type { VantaWalletSafeSendResult } from "@/wallet/walletSafeSendBoundary.mjs";
 import { signWalletMessageIntentWithSafety } from "@/wallet/walletMessageIntentSafety.mjs";
-import type { UnshieldReceiptModalDetails } from "@/components/UnshieldReceiptModal";
 
 type UnshieldStatus =
   | "idle"
@@ -484,13 +484,6 @@ export function UnshieldPage() {
   const [pendingUmbraApprovalDisplay, setPendingUmbraApprovalDisplay] =
     useState<UmbraOperationApprovalDisplay | null>(null);
   const [releaseHandoffRefreshPending, setReleaseHandoffRefreshPending] = useState(false);
-  const [releasePackageExportStatus, setReleasePackageExportStatus] = useState<
-    "idle" | "summary-copy" | "json-copy" | "summary-download" | "json-download" | "failed"
-  >("idle");
-  const [unshieldReceiptCopyStatus, setUnshieldReceiptCopyStatus] = useState<
-    "idle" | "copied" | "failed"
-  >("idle");
-  const [unshieldReceiptModalOpen, setUnshieldReceiptModalOpen] = useState(false);
   const [unshieldBridgeError, setUnshieldBridgeError] = useState<string | null>(null);
   const [operatorAuthorizationStarted, setOperatorAuthorizationStarted] = useState(false);
   const [operatorReleaseSignature, setOperatorReleaseSignature] = useState<string | null>(null);
@@ -507,14 +500,74 @@ export function UnshieldPage() {
     requestId?: string;
     transitionNoteId: string;
   } | null>(null);
+  const latestPrivateCoreOperatorConsume =
+    privateCoreOperatorLatestConsume ?? privateCoreOperatorConsumes[0] ?? null;
+  const latestPrivateCoreOperatorRelease =
+    privateCoreOperatorLatestRelease ?? privateCoreOperatorReleases[0] ?? null;
+  const currentUnshieldTransactionEvidence = useMemo(
+    () =>
+      createUnshieldTransactionEvidence({
+        latestProof: privateCoreOperatorLatestReleaseProof ?? privateCoreOperatorLatestProof,
+        latestRelease: latestPrivateCoreOperatorRelease,
+        transitionSignature: lastTransitionSignature,
+      }),
+    [
+      lastTransitionSignature,
+      latestPrivateCoreOperatorRelease,
+      privateCoreOperatorLatestProof,
+      privateCoreOperatorLatestReleaseProof,
+    ],
+  );
+  const privateCoreSendCompleted = Boolean(
+    privateCoreSendState || privateCoreOperatorLatestSend || privateCoreOperatorLatestSendProof,
+  );
+  const {
+    copyReleasePackageExport,
+    downloadReleasePackageExport,
+    releasePackageExportStatus,
+  } = useUnshieldReleasePackageExport(privateCoreReleasePackageState);
+  const {
+    completionEvidenceLabel,
+    copyUnshieldReceipt,
+    setUnshieldReceiptCopyStatus,
+    setUnshieldReceiptModalOpen,
+    unshieldReceiptCopyStatus,
+    unshieldReceiptModalDetails,
+    unshieldReceiptModalOpen,
+  } = useUnshieldReceiptModal({
+    currentUnshieldTransactionEvidence,
+    lastCompletion,
+    lastTransitionSignature,
+    operatorReleaseSignature,
+  });
+  const privateCoreDemoSteps = useMemo(
+    () =>
+      buildUnshieldPrivateCoreDemoSteps({
+        privateCoreHoldState,
+        privateCoreRecentShield,
+        privateCoreSendCompleted,
+        privateCoreSendState,
+        privateCoreUnshieldState,
+      }),
+    [
+      privateCoreHoldState,
+      privateCoreRecentShield,
+      privateCoreSendCompleted,
+      privateCoreSendState,
+      privateCoreUnshieldState,
+    ],
+  );
+  const selectUnshieldLane = useCallback(
+    (nextLane: UnshieldLane) => {
+      setSelectedLane(nextLane);
+      setSelectedUnshieldNoteId(null);
+      setStatus("idle");
+      setFlowError(null);
+      setUnshieldReceiptCopyStatus("idle");
+    },
+    [setUnshieldReceiptCopyStatus],
+  );
   const [privateCoreActionPending, setPrivateCoreActionPending] = useState(false);
-  const selectUnshieldLane = useCallback((nextLane: UnshieldLane) => {
-    setSelectedLane(nextLane);
-    setSelectedUnshieldNoteId(null);
-    setStatus("idle");
-    setFlowError(null);
-    setUnshieldReceiptCopyStatus("idle");
-  }, []);
   const operatorAuthorizationLockRef = useRef<string | null>(null);
   const splitFollowupLaunchRef = useRef<string | null>(null);
   const transitionTransaction = useVantaSafeSendTransaction();
@@ -790,119 +843,7 @@ export function UnshieldPage() {
       : null) ??
     unshieldZkDiagnostics[0] ??
     null;
-  const latestPrivateCoreOperatorConsume =
-    privateCoreOperatorLatestConsume ?? privateCoreOperatorConsumes[0] ?? null;
-  const latestPrivateCoreOperatorRelease =
-    privateCoreOperatorLatestRelease ?? privateCoreOperatorReleases[0] ?? null;
-  const currentUnshieldTransactionEvidence = useMemo(
-    () =>
-      createUnshieldTransactionEvidence({
-        latestProof: privateCoreOperatorLatestReleaseProof ?? privateCoreOperatorLatestProof,
-        latestRelease: latestPrivateCoreOperatorRelease,
-        transitionSignature: lastTransitionSignature,
-      }),
-    [
-      lastTransitionSignature,
-      latestPrivateCoreOperatorRelease,
-      privateCoreOperatorLatestProof,
-      privateCoreOperatorLatestReleaseProof,
-    ],
-  );
   const showPrivateReleaseCard = false;
-  const copyReleasePackageExport = useCallback(
-    async (mode: "summary" | "json") => {
-      if (!privateCoreReleasePackageState) {
-        setReleasePackageExportStatus("failed");
-        return;
-      }
-
-      try {
-        await navigator.clipboard.writeText(
-          mode === "json"
-            ? privateCoreReleasePackageState.exportJson
-            : privateCoreReleasePackageState.exportText,
-        );
-        setReleasePackageExportStatus(mode === "json" ? "json-copy" : "summary-copy");
-      } catch {
-        setReleasePackageExportStatus("failed");
-      }
-    },
-    [privateCoreReleasePackageState],
-  );
-  const downloadReleasePackageExport = useCallback(
-    (mode: "summary" | "json") => {
-      if (!privateCoreReleasePackageState) {
-        setReleasePackageExportStatus("failed");
-        return;
-      }
-
-      const blob = new Blob(
-        [
-          mode === "json"
-            ? privateCoreReleasePackageState.exportJson
-            : privateCoreReleasePackageState.exportText,
-        ],
-        {
-          type: mode === "json" ? "application/json" : "text/plain;charset=utf-8",
-        },
-      );
-      const objectUrl = window.URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = objectUrl;
-      anchor.download =
-        mode === "json"
-          ? privateCoreReleasePackageState.downloadJsonFilename
-          : privateCoreReleasePackageState.downloadSummaryFilename;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      window.URL.revokeObjectURL(objectUrl);
-      setReleasePackageExportStatus(mode === "json" ? "json-download" : "summary-download");
-    },
-    [privateCoreReleasePackageState],
-  );
-  const privateCoreSendCompleted = Boolean(
-    privateCoreSendState || privateCoreOperatorLatestSend || privateCoreOperatorLatestSendProof,
-  );
-  const privateCoreDemoSteps = [
-    {
-      label: "Shield private value",
-      status: privateCoreRecentShield ? "done" : "pending",
-      summary: privateCoreRecentShield ? "Private note created" : "Shield first",
-    },
-    {
-      label: "Hold confirmed",
-      status: privateCoreHoldState?.privateNoteRecovered ? "done" : "pending",
-      summary: privateCoreHoldState?.privateNoteRecovered
-        ? "Note recovered with witness"
-        : "Awaiting recovered note",
-    },
-    {
-      label: "Send from shielded state",
-      status: privateCoreSendCompleted ? "done" : "pending",
-      summary: privateCoreSendCompleted
-        ? privateCoreSendState?.residualStateStatus ?? "Private send verified and applied"
-        : "Awaiting first private send",
-    },
-    {
-      label: "Unshield once",
-      status: privateCoreUnshieldState?.consumeSucceeded ? "done" : "pending",
-      summary: privateCoreUnshieldState?.consumeSucceeded
-        ? "Operator-authorized consume succeeded"
-        : privateCoreSendCompleted
-          ? "Awaiting first consume"
-          : "Available after private send",
-    },
-    {
-      label: "Replay rejected",
-      status: privateCoreUnshieldState?.replayRejected ? "done" : "pending",
-      summary: privateCoreUnshieldState?.replayRejected
-        ? "Nullifier reuse blocked"
-        : privateCoreUnshieldState?.consumeSucceeded
-          ? "Ready to demonstrate"
-          : "Available after first consume",
-    },
-  ] as const;
   const hasValidRequestedAmount =
     selectedLane === "USDC"
       ? requestedAmountNumeric !== null &&
@@ -2005,46 +1946,11 @@ export function UnshieldPage() {
   ) {
     validationMessage = "Unshield amount cannot exceed the selected ledger-spendable note.";
   }
-  const completionEvidenceLabel = operatorReleaseSignature
-    ? "Operator release signature returned"
-    : currentUnshieldTransactionEvidence.operator.status === "recorded" &&
-        currentUnshieldTransactionEvidence.proof.status === "verified"
-      ? "Proof-backed release record retained"
-      : currentUnshieldTransactionEvidence.wallet.status === "signature-recorded"
-        ? "Transition signature captured"
-        : "Pending operator release";
-  const unshieldReceiptModalDetails = useMemo<UnshieldReceiptModalDetails | null>(() => {
-    if (!lastCompletion) {
-      return null;
-    }
-
-    return {
-      amountLabel: formatUnshieldAmount(lastCompletion.amount, lastCompletion.asset),
-      evidenceLabel: completionEvidenceLabel,
-      exitVisibilityLabel: "public on-chain exit",
-      operatorReleaseLabel: operatorReleaseSignature
-        ? abbreviate(operatorReleaseSignature)
-        : "Pending",
-      operatorRequestLabel: lastCompletion.requestId
-        ? abbreviate(lastCompletion.requestId)
-        : "Pending receipt",
-      settlementScopeLabel: currentUnshieldTransactionEvidence.settlement.status,
-      solscanUrl: operatorReleaseSignature
-        ? getSolscanTransactionUrl(operatorReleaseSignature)
-        : undefined,
-      transitionNoteLabel: abbreviate(lastCompletion.transitionNoteId),
-    };
-  }, [
-    completionEvidenceLabel,
-    currentUnshieldTransactionEvidence.settlement.status,
-    lastCompletion,
-    operatorReleaseSignature,
-  ]);
   useEffect(() => {
     if (status !== "complete") {
       setUnshieldReceiptModalOpen(false);
     }
-  }, [status]);
+  }, [setUnshieldReceiptModalOpen, status]);
   const selectedUnshieldNoteLabel = selectedUnshieldNote
     ? `${formatUnshieldAmount(selectedUnshieldNote.amount, selectedLane)} note - ${abbreviate(
         selectedUnshieldNote.noteId,
@@ -2055,37 +1961,6 @@ export function UnshieldPage() {
     : selectedAmount > 0
       ? `Withdraw ${formatUnshieldAmount(selectedAmount, selectedLane)}`
       : `Withdraw ${selectedLane}`;
-  const copyUnshieldReceipt = useCallback(async () => {
-    if (!lastCompletion) {
-      setUnshieldReceiptCopyStatus("failed");
-      return;
-    }
-
-    const receiptLines = [
-      "Vanta Unshield receipt",
-      `Asset: ${lastCompletion.asset}`,
-      `Amount: ${formatUnshieldAmount(lastCompletion.amount, lastCompletion.asset)}`,
-      `Operator release signature: ${operatorReleaseSignature ?? "pending"}`,
-      "Exit visibility: public on-chain exit",
-      `Transition note: ${lastCompletion.transitionNoteId}`,
-      `Operator request: ${lastCompletion.requestId ?? "pending receipt"}`,
-      `Settlement scope: ${currentUnshieldTransactionEvidence.settlement.status}`,
-      `Evidence: ${completionEvidenceLabel}`,
-      "Verify the public exit transaction before treating funds as moved.",
-    ];
-
-    try {
-      await navigator.clipboard.writeText(receiptLines.join("\n"));
-      setUnshieldReceiptCopyStatus("copied");
-    } catch {
-      setUnshieldReceiptCopyStatus("failed");
-    }
-  }, [
-    completionEvidenceLabel,
-    currentUnshieldTransactionEvidence.settlement.status,
-    lastCompletion,
-    operatorReleaseSignature,
-  ]);
 
   const privateCoreStatePanelProps = useMemo(
     () =>
@@ -2125,26 +2000,7 @@ export function UnshieldPage() {
         </div>
       </div>
 
-      <aside
-        className="unshield-paused-banner"
-        role="status"
-        aria-live="polite"
-        data-marker="unshield-withdrawals-paused-banner"
-      >
-        <strong>Withdrawals are temporarily paused.</strong>
-        <p>
-          The operator-signed unshield path has been removed in this build so
-          that no single key can move shielded funds. Withdrawals will resume
-          once the on-chain proof verifier is deployed and {" "}
-          <code>pool_state.verifier_wired</code> can be flipped through a
-          reviewed, audited setter. There is no fixed ship date yet — progress
-          follows the Band 3 verifier ceremony on our{" "}
-          <Link to="/docs/roadmap">roadmap</Link>. Until then the operator
-          returns {" "}<code>HTTP 503</code> for every unshield request — this
-          is the intended fail-closed posture, not an outage.{" "}
-          <Link to="/docs/security">Read current security limits</Link>.
-        </p>
-      </aside>
+      <UnshieldPausedBanner />
 
       <LaneFlowIndicator
         ariaLabel="Unshield flow"
@@ -2156,37 +2012,34 @@ export function UnshieldPage() {
         ]}
       />
 
-      {showPrivateReleaseCard && (
-      <LaneProgressiveSection summary="Private release workflow (reviewer)" variant="reviewer">
-        <UnshieldReleaseWorkflowPanel
-          latestPrivateCoreOperatorConsume={latestPrivateCoreOperatorConsume}
-          latestPrivateCoreOperatorRelease={latestPrivateCoreOperatorRelease}
-          privateCoreActionPending={privateCoreActionPending}
-          privateCoreDemoSteps={privateCoreDemoSteps}
-          privateCoreHoldState={privateCoreHoldState}
-          privateCoreOperatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
-          privateCoreOperatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
-          privateCoreOperatorConsumeError={privateCoreOperatorConsumeError}
-          privateCoreOperatorConsumes={privateCoreOperatorConsumes}
-          privateCoreOperatorReleaseError={privateCoreOperatorReleaseError}
-          privateCoreOperatorReleases={privateCoreOperatorReleases}
-          privateCoreOperatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}
-          privateCoreOperatorRootError={privateCoreOperatorRootError}
-          privateCoreOperatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
-          privateCoreOperatorRoots={privateCoreOperatorRoots}
-          privateCoreRecentShield={privateCoreRecentShield}
-          privateCoreReleaseCandidateState={privateCoreReleaseCandidateState}
-          privateCoreReleaseHandoffState={privateCoreReleaseHandoffState}
-          privateCoreReleaseWorkflowState={privateCoreReleaseWorkflowState}
-          privateCoreSendCompleted={privateCoreSendCompleted}
-          privateCoreUnshieldState={privateCoreUnshieldState}
-          runPrivateCoreReplayAttempt={runPrivateCoreReplayAttempt}
-          runPrivateCoreUnshield={runPrivateCoreUnshield}
-          setPrivateCoreActionPending={setPrivateCoreActionPending}
-          statePanelProps={privateCoreStatePanelProps}
-        />
-      </LaneProgressiveSection>
-      )}
+      <UnshieldReleaseWorkflowSection
+        visible={showPrivateReleaseCard}
+        latestPrivateCoreOperatorConsume={latestPrivateCoreOperatorConsume}
+        latestPrivateCoreOperatorRelease={latestPrivateCoreOperatorRelease}
+        privateCoreActionPending={privateCoreActionPending}
+        privateCoreDemoSteps={privateCoreDemoSteps}
+        privateCoreHoldState={privateCoreHoldState}
+        privateCoreOperatorBoundaryPrimaryNote={privateCoreOperatorBoundaryPrimaryNote}
+        privateCoreOperatorBoundaryStatusLabel={privateCoreOperatorBoundaryStatusLabel}
+        privateCoreOperatorConsumeError={privateCoreOperatorConsumeError}
+        privateCoreOperatorConsumes={privateCoreOperatorConsumes}
+        privateCoreOperatorReleaseError={privateCoreOperatorReleaseError}
+        privateCoreOperatorReleases={privateCoreOperatorReleases}
+        privateCoreOperatorRootCurrentnessLabel={privateCoreOperatorRootCurrentnessLabel}
+        privateCoreOperatorRootError={privateCoreOperatorRootError}
+        privateCoreOperatorRootRegistrationStatus={privateCoreOperatorRootRegistrationStatus}
+        privateCoreOperatorRoots={privateCoreOperatorRoots}
+        privateCoreRecentShield={privateCoreRecentShield}
+        privateCoreReleaseCandidateState={privateCoreReleaseCandidateState}
+        privateCoreReleaseHandoffState={privateCoreReleaseHandoffState}
+        privateCoreReleaseWorkflowState={privateCoreReleaseWorkflowState}
+        privateCoreSendCompleted={privateCoreSendCompleted}
+        privateCoreUnshieldState={privateCoreUnshieldState}
+        runPrivateCoreReplayAttempt={runPrivateCoreReplayAttempt}
+        runPrivateCoreUnshield={runPrivateCoreUnshield}
+        setPrivateCoreActionPending={setPrivateCoreActionPending}
+        statePanelProps={privateCoreStatePanelProps}
+      />
 
       <div className="send-layout">
         <UnshieldWorkspaceCard
