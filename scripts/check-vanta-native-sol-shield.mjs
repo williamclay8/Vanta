@@ -53,6 +53,8 @@ assert.ok(
 );
 
 const shieldPageSource = readFileSync(resolve("src/pages/ShieldPage.tsx"), "utf8");
+const shieldWorkspaceSource = readFileSync(resolve("src/components/ShieldWorkspaceCard.tsx"), "utf8");
+const shieldSurfaceSource = `${shieldPageSource}\n${shieldWorkspaceSource}`;
 const verifiedNativeSolNotesSource = readRepoFile("src/solana/verifiedNativeSolShieldNotes.ts");
 const shieldAssetStateSource = readFileSync(
   resolve("src/solana/useVantaShieldAssetState.ts"),
@@ -88,7 +90,7 @@ assert.ok(
   "Shield page must let users record shield state for already-submitted native SOL vault deposits.",
 );
 assert.ok(
-  shieldPageSource.includes("Record shielded SOL"),
+  shieldSurfaceSource.includes("Record shielded SOL"),
   "Shield page must expose a recovery action for unrecorded native SOL vault deposits.",
 );
 assert.ok(
@@ -145,8 +147,8 @@ assert.ok(
   "Native SOL recovery discovery must not surface raw Failed to fetch when browser RPC/history reads fail.",
 );
 assert.ok(
-  shieldPageSource.includes(
-    "Local SOL evidence is saved and waiting for ledger sync. No recovery action or second transfer is needed.",
+  shieldSurfaceSource.includes(
+    "Saved locally, waiting on ledger sync. No second transfer needed.",
   ),
   "Native SOL recovery panel must prioritize saved local evidence over a broad wallet-history fetch error.",
 );
@@ -394,9 +396,9 @@ assert.ok(
 assert.ok(
   shieldPageSource.includes("pendingNativeSolShieldEvidenceBalance") &&
     shieldPageSource.includes("hasPendingNativeSolShieldEvidence") &&
-    shieldPageSource.includes("Local SOL evidence pending ledger sync") &&
+    shieldSurfaceSource.includes("Local SOL evidence pending ledger sync") &&
     !shieldPageSource.includes("pendingNativeSolFromRecentShield") &&
-    !shieldPageSource.includes("Pending shield-state:"),
+    !shieldSurfaceSource.includes("Pending shield-state:"),
   "Shield page must not render a computed pending SOL amount from recent Shield context; any pending hint must come only from local note evidence and stay visibly separate from the ledger-spendable balance.",
 );
 assert.ok(

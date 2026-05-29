@@ -1,12 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isBetaMode } from "@/config/deploymentMode";
-import { AssetPickerGrid, type AssetPickerGridOption } from "@/components/AssetPickerGrid";
+import { type AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
-import { LaneProgressiveSection } from "@/components/LaneProgressiveSection";
-import { ShieldLegacyMigrationPanel } from "@/components/ShieldLegacyMigrationPanel";
-import { RecoveryPanelController } from "@/components/RecoveryPanelController";
-import { TransactionStatusToast } from "@/components/TransactionStatusToast";
-import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
+import { ShieldWorkspaceCard } from "@/components/ShieldWorkspaceCard";
+import { formatEditableAmount } from "@/components/shield/shieldPanelUtils";
 import {
   usePrivacyFlow,
   type RecentShieldContext,
@@ -216,14 +213,6 @@ function readTokenDecimals(balance: unknown) {
     : undefined;
 }
 
-function formatEditableAmount(value: number, decimals: number) {
-  return value
-    .toFixed(decimals)
-    .replace(/(\.\d*?[1-9])0+$/u, "$1")
-    .replace(/\.0+$/u, "")
-    .replace(/\.$/u, "");
-}
-
 function parseDecimalAmountToBaseUnits(amountDisplay: string, decimals: number) {
   const normalized = amountDisplay.trim();
 
@@ -248,25 +237,6 @@ function formatShieldSourceAssetOptionLabel(asset: {
   }
 
   return `${asset.label} (${asset.symbol})`;
-}
-
-function describeRecentShieldCompletion(recentShield: RecentShieldContext, warning: string | null) {
-  const amountLabel = formatAssetAmount(recentShield.amount, recentShield.asset);
-  const suffix = warning ? ` Receipt check warning: ${warning}` : "";
-
-  if (recentShield.claimTier === "proof_receipt_verified") {
-    return `${amountLabel} has a verified local Shield proof receipt.${suffix}`;
-  }
-
-  if (recentShield.claimTier === "local_private_core_note") {
-    return `${amountLabel} was recorded as a local Private Core note. Production privacy is not enabled.${suffix}`;
-  }
-
-  if (recentShield.claimTier === "local_shield_state") {
-    return `${amountLabel} was recorded in local shield-state. Production privacy is not enabled.${suffix}`;
-  }
-
-  return `${amountLabel} reached the Vanta vault as a public deposit; local shield-state proof is still unavailable.${suffix}`;
 }
 
 function isPendingNativeSolShieldStateNote(note: VantaShieldedSolNote) {
@@ -2088,353 +2058,98 @@ export function ShieldPage(_props: ShieldPageProps) {
       />
 
       <div className="send-layout">
-        <article className="send-card send-card--workspace">
-          <div className="shield-card__header">
-            <div>
-              <span>Choose asset</span>
-            </div>
-          </div>
+        <ShieldWorkspaceCard
+          amount={amount}
+          capability={capability}
+          flowError={flowError}
+          handleMigrateAllLegacyNotes={handleMigrateAllLegacyNotes}
+          handleMigrateLegacySolNote={handleMigrateLegacySolNote}
+          handleShield={handleShield}
+          hasPendingNativeSolShieldEvidence={hasPendingNativeSolShieldEvidence}
+          isAmountValid={isAmountValid}
+          isBetaMode={isBetaMode}
+          isMigratingAll={isMigratingAll}
+          isNativeSolShield={isNativeSolShield}
+          latestRecoverableSolDeposit={latestRecoverableSolDeposit}
+          legacyMigrationError={legacyMigrationError}
+          legacyMigrationStatus={legacyMigrationStatus}
+          legacySolNotes={legacySolNotes}
+          maxAvailableAmount={maxAvailableAmount}
+          nativeSolShieldWait={nativeSolShieldWait}
+          onAmountChange={(value) => {
+            setAmount(value);
+            setStatus("idle");
+            setRecentShield(null);
+            setFlowError(null);
+          }}
+          onBeginNativeSolShieldDepositRecovery={beginNativeSolShieldDepositRecovery}
+          onClearLegacyPrompts={() => {
+            if (
+              !confirm(
+                "This will clear all legacy pre-v2 SOL migration prompts from your browser. You can always re-shield SOL normally later. Continue?",
+              )
+            ) {
+              return;
+            }
+            clearAllNativeSolShieldNotes();
+            setLegacySolNotes([]);
+            setShowLegacyMigrationPanel(false);
+            setLegacyMigrationError(null);
+            setLegacyMigrationStatus({});
+          }}
+          onHideLegacyMigrationPanel={() => {
+            setShowLegacyMigrationPanel(false);
+          }}
+          onMaxAmount={() => {
+            if (maxAvailableAmount <= 0) {
+              return;
+            }
 
-          <div className="shield-form swap-widget">
-            <div className="swap-module">
-              <div className="swap-module__field">
-                <div className="swap-module__label-row">
-                  <span>Amount</span>
-                  <div className="send-balance-line shield-helper shield-helper--meta">
-                    Balance: {sourceBalanceLabel}
-                  </div>
-                </div>
-                <div className="send-entry-grid swap-entry-grid">
-                  <div className="amount-field">
-                    <input
-                      id="shield-amount"
-                      inputMode="decimal"
-                      value={amount}
-                      onChange={(event) => {
-                        setAmount(event.target.value);
-                        setStatus("idle");
-                        setRecentShield(null);
-                        setFlowError(null);
-                      }}
-                      placeholder="0.00"
-                    />
-                    <button
-                      className="button button-ghost"
-                      type="button"
-                      disabled={maxAvailableAmount <= 0}
-                      onClick={() => {
-                        if (maxAvailableAmount <= 0) {
-                          return;
-                        }
-
-                        setAmount(formatEditableAmount(maxAvailableAmount, selectedSourceAsset?.decimals ?? 6));
-                        setStatus("idle");
-                        setRecentShield(null);
-                        setFlowError(null);
-                      }}
-                    >
-                      Max
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Balanced From → To layout with visual connector for better human perception */}
-              <div className="shield-from-to-row">
-                {/* From column */}
-                <div className="swap-module__field shield-picker-column">
-                  <div className="swap-module__label-row">
-                    <span>From</span>
-                  </div>
-                  <AssetPickerGrid
-                    ariaLabel="Shield source asset"
-                    disabled={sourceSelectDisabled}
-                    emptyLabel={sourcePlaceholderLabel}
-                    onSelectOption={(nextSourceAssetId) => {
-                      setSelectedSourceAssetId(nextSourceAssetId);
-                      setStatus("idle");
-                      setRecentShield(null);
-                      setFlowError(null);
-                    }}
-                    options={sourceAssetPickerOptions}
-                    selectedOptionId={sourceSelectValue}
-                  />
-                  <div className="shield-picker-footer" aria-hidden="true">
-                    <div className="send-balance-line shield-helper shield-helper--meta" style={{ visibility: "hidden" }}>
-                      Shielded balance: placeholder
-                    </div>
-                    <div className="send-balance-line shield-helper shield-helper--meta" style={{ visibility: "hidden" }}>
-                      Local SOL evidence pending ledger sync
-                    </div>
-                  </div>
-                </div>
-
-                {/* Visual connector (arrow) between From and To */}
-                <div className="shield-from-to-arrow" aria-hidden="true">
-                  →
-                </div>
-
-                {/* To column */}
-                <div className="swap-module__field shield-picker-column">
-                  <div className="swap-module__label-row">
-                    <span>To</span>
-                  </div>
-                  <AssetPickerGrid
-                    ariaLabel="Shield target asset"
-                    options={shieldTargetAssetPickerOptions}
-                    onSelectOption={() => undefined}
-                    readOnly
-                    selectedOptionId={shieldTargetAssetPickerOptions[0]?.id ?? ""}
-                  />
-                  <div className="shield-balance-stack shield-picker-footer">
-                    <div className="send-balance-line shield-helper shield-helper--meta">
-                      Shielded balance: {targetShieldedBalanceLabel}
-                    </div>
-                    {hasPendingNativeSolShieldEvidence && (
-                      <div className="send-balance-line shield-helper shield-helper--meta">
-                        Local SOL evidence pending ledger sync
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Route text below the From/To pair for clean visual balance */}
-              <p className="shield-helper shield-helper--route shield-route-below-pickers">
-                Route: {selectedSourceAsset?.symbol ?? "Asset"} → {capability.targetShieldAsset?.label ?? "Shielded asset"}
-              </p>
-
-              <details className="shield-truth-drawer">
-                <summary>Route details & beta status</summary>
-                <p className="shield-helper shield-helper--meta">{routeLabel}</p>
-                <p className="shield-helper shield-helper--meta">
-                  Beta. Vault is operator-controlled; program-owned custody is not yet wired.
-                </p>
-                {targetShieldedBalanceReadUnavailable && (
-                  <p className="shield-helper shield-helper--meta">
-                    Balance read delayed by RPC. Shield can still proceed.
-                  </p>
-                )}
-              </details>
-              <p className="shield-helper shield-validation">{validationMessage}</p>
-              {isNativeSolShield && (
-                <div className="shield-recovery-panel">
-                  <div>
-                    <strong>Recover SOL vault deposit</strong>
-                    <p>
-                      {latestRecoverableSolDeposit
-                        ? `${latestRecoverableSolDeposit.amountDisplay} SOL reached the vault but isn't in your shield state yet.`
-                        : hasPendingNativeSolShieldEvidence
-                          ? "Saved locally, waiting on ledger sync. No second transfer needed."
-                        : recoverableSolDepositsLoading
-                          ? "Checking recent vault deposits…"
-                          : recoverableSolDepositsError
-                            ? recoverableSolDepositsError
-                            : "No unrecorded vault deposit found."}
-                    </p>
-                  </div>
-                  <button
-                    className="button button-ghost"
-                    type="button"
-                    disabled={
-                      isBetaMode ||
-                      !latestRecoverableSolDeposit ||
-                      status === "routing_public_swap" ||
-                      status === "shielding_in_progress" ||
-                      status === "entering_shielded_state"
-                    }
-                    onClick={() => {
-                      if (latestRecoverableSolDeposit) {
-                        beginNativeSolShieldDepositRecovery(latestRecoverableSolDeposit);
-                      }
-                    }}
-                  >
-                    Record shielded SOL
-                  </button>
-                </div>
-              )}
-
-              {/* Phase 2: Dedicated Legacy WSOL SOL Note Migration Panel (practical UI/flow)
-                  One-time helper + sentinel commitment + ingestion submit. Fail-closed.
-                  References design doc Phase 2 handoff, §9 success criteria, status note "Recommended Next Actions" #3,
-                  quarantine policy from verifiedNativeSolShieldNotes.ts, VANTA_ZK_REVIEW.findings.json updates.
-                  After migration, legacy notes removed; v2 indexer becomes source for PositionSummary/NoteStatePanel.
-              */}
-              {isNativeSolShield && legacySolNotes.length > 0 && showLegacyMigrationPanel && (
-                <LaneProgressiveSection
-                  className="shield-page__legacy-migration"
-                  summary={`Legacy SOL migration (${legacySolNotes.length} note${legacySolNotes.length === 1 ? "" : "s"})`}
-                  variant="optional"
-                >
-                  <ShieldLegacyMigrationPanel
-                    isMigratingAll={isMigratingAll}
-                    legacyMigrationError={legacyMigrationError}
-                    legacyMigrationStatus={legacyMigrationStatus}
-                    legacySolNotes={legacySolNotes}
-                    onClearLegacyPrompts={() => {
-                      if (
-                        !confirm(
-                          "This will clear all legacy pre-v2 SOL migration prompts from your browser. You can always re-shield SOL normally later. Continue?",
-                        )
-                      ) {
-                        return;
-                      }
-                      clearAllNativeSolShieldNotes();
-                      setLegacySolNotes([]);
-                      setShowLegacyMigrationPanel(false);
-                      setLegacyMigrationError(null);
-                      setLegacyMigrationStatus({});
-                    }}
-                    onHide={() => {
-                      setShowLegacyMigrationPanel(false);
-                    }}
-                    onMigrateAll={() => {
-                      void handleMigrateAllLegacyNotes();
-                    }}
-                    onMigrateNote={(note) => {
-                      void handleMigrateLegacySolNote(note);
-                    }}
-                    onReshieldNote={(note) => {
-                      setSelectedSourceAssetId("SOL");
-                      setAmount(formatEditableAmount(note.amount, 9));
-                      setStatus("idle");
-                      setLegacyMigrationError(null);
-                      document
-                        .querySelector(".shield-form__actions")
-                        ?.scrollIntoView({ behavior: "smooth", block: "center" });
-                    }}
-                    walletConnected={walletConnected}
-                  />
-                </LaneProgressiveSection>
-              )}
-
-              <RecoveryPanelController viewingKeyControls={viewingKey} />
-
-              <div className="shield-form__actions shield-form__actions--primary">
-                <button
-                  className="button button-primary"
-                  type="button"
-                  onClick={() => {
-                    void handleShield();
-                  }}
-                  disabled={
-                    isBetaMode ||
-                    !isAmountValid ||
-                    (!shieldOwnerContext.ownerContext && !shieldOwnerContext.canRequestOwnerContext) ||
-                    shieldOwnerContext.status === "requesting" ||
-                    status === "routing_public_swap" ||
-                    status === "shielding_in_progress" ||
-                    status === "entering_shielded_state"
-                  }
-                >
-                  {isBetaMode ? "Beta mode" : "Shield"}
-                </button>
-              </div>
-            </div>
-
-            {(status === "awaiting_wallet_confirmation" ||
-              status === "routing_public_swap" ||
-              status === "shielding_in_progress" ||
-              status === "entering_shielded_state" ||
-              status === "recovery_recorded" ||
-              status === "complete" ||
-              status === "failed") && (
-              <TransactionStatusToast
-                successIcon={
-                  status === "complete" || status === "recovery_recorded" ? "shield" : "default"
-                }
-                tone={
-                  status === "complete"
-                    ? "success"
-                    : status === "recovery_recorded"
-                      ? "success"
-                      : status === "failed"
-                        ? "error"
-                        : status === "awaiting_wallet_confirmation"
-                          ? "pending"
-                          : "processing"
-                }
-                phase={
-                  status === "complete" || status === "recovery_recorded"
-                    ? "complete"
-                    : status === "failed"
-                      ? "failed"
-                      : status === "awaiting_wallet_confirmation"
-                        ? "pending"
-                        : "confirmed"
-                }
-                title={
-                  status === "awaiting_wallet_confirmation"
-                    ? "Confirm in wallet"
-                    : status === "routing_public_swap"
-                      ? "Routing to shield"
-                      : status === "shielding_in_progress"
-                        ? "Shielding"
-                        : status === "entering_shielded_state"
-                          ? "Recording state"
-	                          : status === "recovery_recorded"
-	                            ? "SOL recovery recorded"
-	                            : status === "complete"
-	                              ? recentShield?.claimTier === "proof_receipt_verified"
-	                                ? "Shield proof receipt verified"
-	                                : "Shield deposit recorded"
-	                              : "Shield failed"
-                }
-                message={
-                  status === "complete"
-                    ? recentShield
-                      ? describeRecentShieldCompletion(recentShield, flowError)
-                      : "The selected asset was recorded, but proof-backed Shield state was not confirmed."
-                    : status === "failed"
-                      ? flowError ?? "The shield action could not be completed."
-                      : status === "routing_public_swap"
-                        ? `Routing ${selectedSourceAsset?.symbol ?? "the source asset"} into ${targetShieldSymbol ?? "the selected shield asset"} before entering Vanta.`
-                        : status === "shielding_in_progress"
-                          ? "Submitting the shield transfer into the Vanta vault."
-                          : status === "entering_shielded_state"
-                          ? "Recording local shield-state evidence."
-                          : status === "recovery_recorded"
-                            ? "No new transfer was submitted. Vanta saved the existing SOL vault deposit as pending recovery evidence; shielded balance updates after a verified shield-state note is available."
-                            : "Approve the shield action in your wallet to continue."
-                }
-                progress={
-                  status !== "complete" &&
-                  status !== "failed" &&
-                  status !== "recovery_recorded"
-                }
-                floating
-              >
-                {pendingUmbraApprovalDisplay && status !== "complete" && status !== "failed" && (
-                  <WalletApprovalSheet
-                    heading="Vault transfer approval"
-                    walletPrompt={pendingUmbraApprovalDisplay.walletPrompt}
-                    signingMode={pendingUmbraApprovalDisplay.signingMode}
-                    rows={pendingUmbraApprovalDisplay.rows}
-                    note="Approve only if your wallet shows the same asset, amount, cluster, and destination."
-                    truthBoundary="Local review. Does not prove production privacy or mainnet readiness."
-                  />
-                )}
-                {status === "awaiting_wallet_confirmation" && (
-                  <div className="shield-wallet-warning-note" role="note">
-                    <strong>If your wallet warns you</strong>
-                    <p>
-                      Phantom sometimes can't simulate this; we already did. Confirm only if
-                      the asset, amount, cluster, and destination match what you see here.
-                    </p>
-                  </div>
-                )}
-                {routeProgressLabel && status === "routing_public_swap" && (
-                  <p className="shield-helper shield-helper--meta">{routeProgressLabel}</p>
-                )}
-                {(splShieldTransferWait.detailLabel || nativeSolShieldWait.detailLabel) && status === "shielding_in_progress" && (
-                  <p className="shield-helper shield-helper--meta">
-                    {pendingShieldAsset === "SOL" ? nativeSolShieldWait.detailLabel : splShieldTransferWait.detailLabel}
-                  </p>
-                )}
-              </TransactionStatusToast>
-            )}
-          </div>
-        </article>
+            setAmount(formatEditableAmount(maxAvailableAmount, selectedSourceAsset?.decimals ?? 6));
+            setStatus("idle");
+            setRecentShield(null);
+            setFlowError(null);
+          }}
+          onReshieldLegacyNote={(note) => {
+            setSelectedSourceAssetId("SOL");
+            setAmount(formatEditableAmount(note.amount, 9));
+            setStatus("idle");
+            setLegacyMigrationError(null);
+            document
+              .querySelector(".shield-form__actions")
+              ?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }}
+          onSelectSourceAssetId={(nextSourceAssetId) => {
+            setSelectedSourceAssetId(nextSourceAssetId);
+            setStatus("idle");
+            setRecentShield(null);
+            setFlowError(null);
+          }}
+          pendingShieldAsset={pendingShieldAsset}
+          pendingUmbraApprovalDisplay={pendingUmbraApprovalDisplay}
+          recentShield={recentShield}
+          recoverableSolDepositsError={recoverableSolDepositsError}
+          recoverableSolDepositsLoading={recoverableSolDepositsLoading}
+          routeLabel={routeLabel}
+          routeProgressLabel={routeProgressLabel}
+          selectedSourceAsset={selectedSourceAsset}
+          shieldOwnerContext={shieldOwnerContext}
+          shieldTargetAssetPickerOptions={shieldTargetAssetPickerOptions}
+          showLegacyMigrationPanel={showLegacyMigrationPanel}
+          sourceAssetPickerOptions={sourceAssetPickerOptions}
+          sourceBalanceLabel={sourceBalanceLabel}
+          sourcePlaceholderLabel={sourcePlaceholderLabel}
+          sourceSelectDisabled={sourceSelectDisabled}
+          sourceSelectValue={sourceSelectValue}
+          splShieldTransferWait={splShieldTransferWait}
+          status={status}
+          targetShieldSymbol={targetShieldSymbol}
+          targetShieldedBalanceLabel={targetShieldedBalanceLabel}
+          targetShieldedBalanceReadUnavailable={targetShieldedBalanceReadUnavailable}
+          validationMessage={validationMessage}
+          viewingKey={viewingKey}
+          walletConnected={walletConnected}
+        />
       </div>
     </section>
   );

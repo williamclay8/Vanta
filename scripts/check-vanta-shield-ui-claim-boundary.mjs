@@ -9,6 +9,9 @@ function readRepoFile(path) {
 }
 
 const shieldPage = readRepoFile("src/pages/ShieldPage.tsx");
+const shieldWorkspace = readRepoFile("src/components/ShieldWorkspaceCard.tsx");
+const shieldPanelUtils = readRepoFile("src/components/shield/shieldPanelUtils.ts");
+const shieldSurface = `${shieldPage}\n${shieldWorkspace}\n${shieldPanelUtils}`;
 const dashboardPage = readRepoFile("src/pages/AppDashboardPage.tsx");
 const privateCorePanel = readRepoFile("src/components/VantaPrivateCoreStatePanel.tsx");
 const privacyFlowContext = readRepoFile("src/data/context/PrivacyFlowContext.tsx");
@@ -21,7 +24,7 @@ for (const phrase of [
   "Private rail approval",
   "The selected asset was shielded successfully.",
 ]) {
-  assert.ok(!shieldPage.includes(phrase), `Shield page still has unqualified claim: ${phrase}`);
+  assert.ok(!shieldSurface.includes(phrase), `Shield page still has unqualified claim: ${phrase}`);
 }
 
 for (const phrase of [
@@ -56,12 +59,10 @@ for (const phrase of [
   "Recording local shield-state evidence",
   "Vault transfer approval",
   "Production privacy is not enabled",
-  "public transfers into a Vanta vault wallet whose",
-  "keypair is operator-controlled",
-  "Program-owned custody and production privacy are",
-  "not enabled",
+  "Vault is operator-controlled",
+  "program-owned custody is not yet wired",
 ]) {
-  assert.ok(shieldPage.includes(phrase), `Shield page missing bounded claim phrase: ${phrase}`);
+  assert.ok(shieldSurface.includes(phrase), `Shield page missing bounded claim phrase: ${phrase}`);
 }
 
 assert.ok(

@@ -10,6 +10,11 @@ const shieldPageSource = readFileSync(
   resolve(repoRoot, "src/pages/ShieldPage.tsx"),
   "utf8",
 );
+const shieldWorkspaceSource = readFileSync(
+  resolve(repoRoot, "src/components/ShieldWorkspaceCard.tsx"),
+  "utf8",
+);
+const shieldSurfaceSource = `${shieldPageSource}\n${shieldWorkspaceSource}`;
 const recoveryPanelControllerSource = readFileSync(
   resolve(repoRoot, "src/components/RecoveryPanelController.tsx"),
   "utf8",
@@ -19,7 +24,7 @@ const recoveryPanelSource = readFileSync(
   "utf8",
 );
 const styleSource = readFileSync(resolve(repoRoot, "src/styles.css"), "utf8");
-const recoveryProductSource = `${shieldPageSource}\n${recoveryPanelControllerSource}\n${recoveryPanelSource}`;
+const recoveryProductSource = `${shieldSurfaceSource}\n${recoveryPanelControllerSource}\n${recoveryPanelSource}`;
 
 const failures = [];
 
@@ -61,12 +66,12 @@ requireIncludes(
 );
 
 requireIncludes(
-  shieldPageSource,
+  shieldSurfaceSource,
   "import { RecoveryPanelController",
   "ShieldPage must import the shared recovery panel controller.",
 );
 requireIncludes(
-  shieldPageSource,
+  shieldSurfaceSource,
   "<RecoveryPanelController",
   "ShieldPage must render the shared recovery panel controller.",
 );

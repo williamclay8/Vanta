@@ -13,6 +13,8 @@ assert.ok(existsSync(componentPath), "Shared AssetPickerGrid component must exis
 
 const componentSource = readFileSync(componentPath, "utf8");
 const shieldPageSource = readRepoFile("src/pages/ShieldPage.tsx");
+const shieldWorkspaceSource = readRepoFile("src/components/ShieldWorkspaceCard.tsx");
+const shieldSurfaceSource = `${shieldPageSource}\n${shieldWorkspaceSource}`;
 const swapPageSource = readRepoFile("src/pages/SwapPage.tsx");
 const stylesSource = readRepoFile("src/styles.css");
 const packageJson = JSON.parse(readRepoFile("package.json"));
@@ -45,7 +47,7 @@ for (const marker of [
   "To",
   "<AssetPickerGrid",
 ]) {
-  assert.ok(shieldPageSource.includes(marker), `ShieldPage missing AssetPickerGrid marker: ${marker}`);
+  assert.ok(shieldSurfaceSource.includes(marker), `ShieldPage missing AssetPickerGrid marker: ${marker}`);
 }
 
 for (const marker of [
@@ -66,7 +68,7 @@ for (const forbidden of [
   'aria-label="To shielded asset"',
 ]) {
   const legacySelectPattern = new RegExp(`<select[\\s\\S]{0,240}${forbidden.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`);
-  assert.ok(!legacySelectPattern.test(shieldPageSource), `ShieldPage must replace legacy select marker ${forbidden}.`);
+  assert.ok(!legacySelectPattern.test(shieldSurfaceSource), `ShieldPage must replace legacy select marker ${forbidden}.`);
   assert.ok(!legacySelectPattern.test(swapPageSource), `SwapPage must replace legacy select marker ${forbidden}.`);
 }
 

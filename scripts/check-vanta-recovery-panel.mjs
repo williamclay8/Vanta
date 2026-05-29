@@ -14,6 +14,8 @@ assert.ok(existsSync(componentPath), "Shared RecoveryPanel component must exist.
 const componentSource = readFileSync(componentPath, "utf8");
 const controllerSource = readRepoFile("src/components/RecoveryPanelController.tsx");
 const shieldPageSource = readRepoFile("src/pages/ShieldPage.tsx");
+const shieldWorkspaceSource = readRepoFile("src/components/ShieldWorkspaceCard.tsx");
+const shieldSurfaceSource = `${shieldPageSource}\n${shieldWorkspaceSource}`;
 const stylesSource = readRepoFile("src/styles.css");
 const packageJson = JSON.parse(readRepoFile("package.json"));
 
@@ -37,7 +39,7 @@ for (const marker of [
   "<RecoveryPanelController",
   "viewingKeyControls={viewingKey}",
 ]) {
-  assert.ok(shieldPageSource.includes(marker), `ShieldPage missing RecoveryPanel controller marker: ${marker}`);
+  assert.ok(shieldSurfaceSource.includes(marker), `ShieldPage missing RecoveryPanel controller marker: ${marker}`);
 }
 
 for (const marker of [
@@ -68,7 +70,7 @@ for (const legacyMarker of [
   'className="shield-viewing-key-panel__field"',
 ]) {
   assert.ok(
-    !shieldPageSource.includes(legacyMarker),
+    !shieldSurfaceSource.includes(legacyMarker),
     `ShieldPage must not keep legacy inline recovery panel marker: ${legacyMarker}`,
   );
 }
