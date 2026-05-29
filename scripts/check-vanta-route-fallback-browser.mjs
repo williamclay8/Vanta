@@ -143,7 +143,7 @@ function runBrowserBatch() {
       checks: [
         { kind: "url_contains", text: "/app/not-a-real-lane" },
         { kind: "selector_visible", selector: ".app-header" },
-        { kind: "selector_visible", selector: ".system-status-strip" },
+        { kind: "selector_visible", selector: "[data-vanta-status-chip]" },
         { kind: "selector_visible", selector: ".route-fallback" },
         { kind: "text_visible", text: "Page not found" },
         { kind: "text_visible", text: "Beta routes are visible, but production privacy is not enabled." },

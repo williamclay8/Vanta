@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useWalletState } from "@/data/context/WalletContext";
 import { getPrimaryLiveShieldTokenAsset } from "@/solana/shieldConfig";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
-import type { VantaShieldedSolNote } from "@/solana/vantaShieldState";
+import type { VantaLifecycleActivity, VantaShieldedSolNote } from "@/solana/vantaShieldState";
 // Phase 2: Post-migration (removeLegacyNativeSolShieldNoteAfterMigration), legacy notes no longer appear in pendingRecovered; v2 indexer state (via shieldRegistry) supplies canonical shieldedSolBalance for native SOL. See ShieldPage legacy migration panel + design doc Phase 2.
 
 export type VantaShieldedTokenPosition = {
@@ -31,6 +31,7 @@ export type VantaPositionSummary = {
   statusLabel: string;
   swapCount: number;
   walletConnected: boolean;
+  recentLifecycleActivities: VantaLifecycleActivity[];
 };
 
 export function useVantaPositionSummary(): VantaPositionSummary {
@@ -110,6 +111,10 @@ export function useVantaPositionSummary(): VantaPositionSummary {
       shieldedSolBalance > 0
         ? (shieldedSolAccount?.lifecycleActivities[0] ?? account?.lifecycleActivities[0] ?? null)
         : (account?.lifecycleActivities[0] ?? null);
+    const recentLifecycleActivities = shieldRegistry.entries
+      .flatMap((entry) => entry.account?.lifecycleActivities ?? [])
+      .sort((left, right) => right.createdAt - left.createdAt)
+      .slice(0, 8);
 
     let statusLabel = `Connect a wallet to enter the live ${primaryAsset.symbol} path.`;
 
@@ -158,6 +163,7 @@ export function useVantaPositionSummary(): VantaPositionSummary {
       swapCount,
       totalActionableNoteCount,
       walletConnected,
+      recentLifecycleActivities,
     } satisfies VantaPositionSummary;
   }, [clusterLabel, primaryAsset, primaryEntry, shieldRegistry.entries, walletConnected]);
 }

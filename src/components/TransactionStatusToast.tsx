@@ -94,9 +94,16 @@ export function TransactionStatusToast({
       role={alertLike ? "alert" : "status"}
     >
       <div className="transaction-status-toast__header">
-        <div>
-          <span>Transaction status</span>
-          <strong>{title}</strong>
+        <div className="transaction-status-toast__title-row">
+          {tone === "success" ? (
+            <div className="v-success-ring transaction-status-toast__success-ring" aria-hidden="true">
+              ✓
+            </div>
+          ) : null}
+          <div>
+            <span>Transaction status</span>
+            <strong>{title}</strong>
+          </div>
         </div>
         {onDismiss && (
           <button

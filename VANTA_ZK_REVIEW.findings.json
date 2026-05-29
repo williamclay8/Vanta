@@ -1009,7 +1009,8 @@
         "VANTA_ZK_REVIEW.md#20-programmatic-privacy-and-20-copy-clarity",
         "VANTA_ZK_REVIEW.md#concrete-rewrites",
         "src/pages/HomePage.tsx",
-        "src/components/SystemStatusStrip.tsx",
+        "src/components/VantaStatusChip.tsx",
+        "src/pages/ProofPage.tsx",
         "src/pages/PayPage.tsx",
         "src/pages/DocsHomePage.tsx",
         "src/pages/DocsPortalPage.tsx",
@@ -2338,7 +2339,8 @@
       "sourceReviewRefs": [
         "VANTA_ZK_REVIEW.md#13-frontend-exposes-operator-tokens-through-vite_-envs",
         "src/trust/laneTrustStatus.ts",
-        "src/components/SystemStatusStrip.tsx",
+        "src/components/VantaStatusChip.tsx",
+        "src/pages/ProofPage.tsx",
         "src/components/AppLayout.tsx",
         "scripts/check-vanta-lane-trust-contracts.mjs",
         "scripts/check-vanta-product-ui-browser.mjs"

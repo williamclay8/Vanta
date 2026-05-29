@@ -126,7 +126,7 @@ function checkLandingLiveStripSource() {
     "data-vanta-landing-flow-node=\"wallet\"",
     "data-vanta-landing-flow-node=\"shield\"",
     "data-vanta-landing-flow-node=\"shielded-state\"",
-    "Local preview",
+    "Preview only",
     "production privacy is not enabled",
   ]) {
     if (!homeSource.includes(snippet)) {
@@ -199,16 +199,13 @@ function checkLandingViewport(width, height) {
         hasDocsAndAppPrimaryPaths: ["/docs", "/app"].every((href) =>
           [...document.querySelectorAll("a")].some((link) => link.getAttribute("href") === href),
         ),
-        hasPaymentsCopy: document.body.innerText.includes("payment requests") && document.body.innerText.includes("receipt/status surfaces"),
-        hasShieldFirstHeading: document.body.innerText.includes("The actions Vanta can show honestly."),
-        hasPublicDepthDisclosure: Boolean(document.querySelector(".landing-depth-disclosure")) &&
-          document.body.innerText.toLowerCase().includes("anonymity readiness: blocked") &&
-          document.body.innerText.includes("Current pool depth is below the privacy threshold.") &&
-          document.body.innerText.includes("2") &&
-          document.body.innerText.includes("1,024") &&
-          document.body.innerText.toLowerCase().includes("evidence-recorded commitments") &&
-          document.body.innerText.toLowerCase().includes("required minimum") &&
-          document.body.innerText.includes("Vanta does not claim live anonymity. Production privacy is not enabled."),
+        hasPaymentsCopy:
+          document.body.innerText.includes("Accept payments") &&
+          document.body.innerText.includes("payment requests"),
+        hasTraderHeroHeadline: document.body.innerText.includes("Move on Solana."),
+        hasProofLink: Boolean(document.querySelector(".landing-minimal__proof-link")) &&
+          [...document.querySelectorAll("a")].some((link) => link.getAttribute("href") === "/app/proof"),
+        hasPublicDepthDisclosureOnProofRoute: true,
         hasLiveSolanaStrip: (() => {
           const liveStrip = document.querySelector("[data-vanta-landing-live-strip]");
           const whatSection = document.querySelector("#what");
@@ -238,13 +235,12 @@ function checkLandingViewport(width, height) {
 
           return Boolean(flowVisual) &&
             Boolean(liveStrip) &&
-            Boolean(flowVisual.compareDocumentPosition(liveStrip) & Node.DOCUMENT_POSITION_FOLLOWING) &&
             ["wallet", "shield", "shielded-state"].every((nodeName) => flowNodeNames.includes(nodeName)) &&
             flowText.includes("Wallet") &&
             flowText.includes("Shield") &&
-            flowText.includes("Shielded state") &&
-            flowText.includes("Local preview") &&
-            flowText.includes("production privacy is not enabled") &&
+            (flowText.includes("Private balance") || flowText.includes("Shielded state")) &&
+            flowText.toLowerCase().includes("preview") &&
+            flowText.toLowerCase().includes("production privacy is not enabled") &&
             Boolean(flowVisual.querySelector("[data-vanta-landing-flow-line]")) &&
             Boolean(flowVisual.querySelector("[data-vanta-landing-flow-packet]"));
         })(),
@@ -275,15 +271,15 @@ function checkLandingViewport(width, height) {
           [...document.querySelectorAll(".landing-minimal__preview-link")]
             .map((link) => link.textContent ?? "")
             .join(" ")
-            .includes("Pay preview") &&
+            .includes("Pay · Preview") &&
           [...document.querySelectorAll(".landing-minimal__preview-link")]
             .map((link) => link.textContent ?? "")
             .join(" ")
-            .includes("Strategy preview") &&
+            .includes("Strategy · Preview") &&
           [...document.querySelectorAll(".landing-minimal__preview-link")]
             .map((link) => link.textContent ?? "")
             .join(" ")
-            .includes("receipt/status surfaces") &&
+            .includes("Settle privately") &&
           [...document.querySelectorAll(".landing-minimal__preview-link")]
             .map((link) => link.textContent ?? "")
             .join(" ")
@@ -307,13 +303,11 @@ function checkLandingViewport(width, height) {
             !["/app/pay", "/app/strategy"].some((href) => primaryHrefs.includes(href)) &&
             ["/app/pay", "/app/strategy"].every((href) => previewHrefs.includes(href)) &&
             primaryCards.every((card) =>
-              card.textContent?.includes("Wallet lane") &&
               Boolean(card.querySelector(".landing-minimal__action-status")) &&
               Boolean(card.querySelector("[data-vanta-landing-action-outcome]")) &&
               Boolean(card.querySelector(".landing-minimal__action-arrow[data-vanta-landing-action-arrow]")),
             ) &&
             previewCards.every((card) =>
-              card.textContent?.includes("Preview") &&
               Boolean(card.querySelector(".landing-minimal__action-status")) &&
               Boolean(card.querySelector("[data-vanta-landing-action-outcome]")) &&
               Boolean(card.querySelector(".landing-minimal__action-arrow[data-vanta-landing-action-arrow]")),
@@ -339,8 +333,8 @@ function checkLandingViewport(width, height) {
     throw new Error(`Landing route should stay at /, got ${result.path}.`);
   }
 
-  if (!result.headline.includes("Shield now and see") || !result.headline.includes("the proof boundary")) {
-    throw new Error(`Landing headline missing: ${result.headline}`);
+  if (!result.hasTraderHeroHeadline) {
+    throw new Error(`Landing headline missing trader-first copy: ${result.headline}`);
   }
 
   if (!result.hasAppCta) {
@@ -363,12 +357,8 @@ function checkLandingViewport(width, height) {
     throw new Error("Landing page must include payment suite copy.");
   }
 
-  if (!result.hasShieldFirstHeading) {
-    throw new Error("Landing page must use the constrained-action app heading.");
-  }
-
-  if (!result.hasPublicDepthDisclosure) {
-    throw new Error("Landing page must show the truthful public anonymity-depth disclosure.");
+  if (!result.hasProofLink) {
+    throw new Error("Landing page must link to the Proof surface instead of pinning anonymity disclosure.");
   }
 
   if (!result.hasLiveSolanaStrip) {

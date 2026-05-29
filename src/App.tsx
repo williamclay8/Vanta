@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
+import { VantaBootSplash } from "@/components/VantaBootSplash";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 const ProductAppRoot = lazy(() =>
   import("@/ProductAppRoot").then((m) => ({ default: m.ProductAppRoot })),
@@ -63,6 +64,7 @@ const RecoverySettingsPage = lazy(() =>
 const PrivacyReviewPage = lazy(() =>
   import("@/pages/PrivacyReviewPage").then((m) => ({ default: m.PrivacyReviewPage })),
 );
+const ProofPage = lazy(() => import("@/pages/ProofPage").then((m) => ({ default: m.ProofPage })));
 const ActualPrivateSettlementPage = lazy(() =>
   import("@/pages/ActualPrivateSettlementPage").then((m) => ({
     default: m.ActualPrivateSettlementPage,
@@ -71,7 +73,7 @@ const ActualPrivateSettlementPage = lazy(() =>
 
 function App() {
   return (
-    <Suspense fallback={<div className="app-shell">Loading…</div>}>
+    <Suspense fallback={<VantaBootSplash />}>
       <RouteErrorBoundary>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -97,6 +99,7 @@ function App() {
             <Route path="launch" element={<LaunchPage />} />
             <Route path="settings/recovery" element={<RecoverySettingsPage />} />
             <Route path="privacy-review" element={<PrivacyReviewPage />} />
+            <Route path="proof" element={<ProofPage />} />
             <Route path="actual-private-settlement" element={<ActualPrivateSettlementPage />} />
             <Route path="*" element={<NotFoundPage surface="app" />} />
           </Route>

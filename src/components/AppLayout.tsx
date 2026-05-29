@@ -5,8 +5,8 @@ import {
   createMobileWalletOpenLinks,
   shouldShowMobileWalletPrompt,
 } from "@/components/MobileWalletOpenPrompt";
-import { SystemStatusStrip } from "@/components/SystemStatusStrip";
-import { isBetaMode } from "@/config/deploymentMode";
+import { VantaBootSplash } from "@/components/VantaBootSplash";
+import { VantaStatusChip } from "@/components/VantaStatusChip";
 import { useWalletState } from "@/data/context/WalletContext";
 import { getPeerOnrampAvailability } from "@/peer/peerConfig";
 import { launchPeerOnramp } from "@/peer/peerOnramp";
@@ -23,6 +23,7 @@ const appLinks = [
 const moreAppLinks = [
   { to: "/app/pay", label: "Pay", action: "Get paid", end: false },
   { to: "/app/strategy", label: "Strategy", action: "Plan trades", end: false },
+  { to: "/app/proof", label: "Proof", action: "Trust & verification", end: false },
   { to: "/app/settings/recovery", label: "Recovery", action: "Keys & records", end: false },
   { to: "/app/launch", label: "Launch", action: "Coming soon", end: false },
 ];
@@ -297,10 +298,10 @@ export function AppLayout() {
   }, [walletPickerOpen]);
 
   useEffect(() => {
-    document.body.classList.add("app-body");
+    document.body.classList.add("app-body", "vanta-refresh");
 
     return () => {
-      document.body.classList.remove("app-body");
+      document.body.classList.remove("app-body", "vanta-refresh");
     };
   }, []);
 
@@ -309,8 +310,6 @@ export function AppLayout() {
       <div className="app-shell__grid" aria-hidden="true" />
       <div className="app-shell__glow app-shell__glow--left" aria-hidden="true" />
       <div className="app-shell__glow app-shell__glow--right" aria-hidden="true" />
-
-      <SystemStatusStrip showBetaMode={isBetaMode} />
 
       {showRouteWalletPrompt && !walletPickerOpen && mobileWalletOpenLinks.length > 0 && (
         <div className="mobile-wallet-open-prompt" role="status">
@@ -423,6 +422,10 @@ export function AppLayout() {
           <span className="app-header__tabs-cue" aria-hidden="true">
             Swipe for more
           </span>
+        </div>
+
+        <div className="app-header__status">
+          <VantaStatusChip />
         </div>
 
         <div className="app-header__wallet">
@@ -594,13 +597,7 @@ export function AppLayout() {
       </header>
 
       <main className="app-content app-content--minimal" data-route-path={location.pathname}>
-        <Suspense
-          fallback={
-            <div className="app-content__route-loading" role="status">
-              Loading route...
-            </div>
-          }
-        >
+        <Suspense fallback={<VantaBootSplash label="Loading route" />}>
           <Outlet />
         </Suspense>
       </main>

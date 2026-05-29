@@ -12,11 +12,21 @@ const evidencePath = "ops/mainnet/private-pool-v2-anonymity-set.evidence.json";
 const modulePath = "src/privacy/privatePoolV2AnonymityDisclosure.ts";
 const componentPath = "src/components/AnonymityDepthDisclosure.tsx";
 const homePath = "src/pages/HomePage.tsx";
+const proofPath = "src/pages/ProofPage.tsx";
 const stylesPath = "src/styles.css";
 const landingBrowserCheckPath = "scripts/check-vanta-landing-browser.mjs";
 const packagePath = "package.json";
 
-for (const path of [evidencePath, modulePath, componentPath, homePath, stylesPath, landingBrowserCheckPath, packagePath]) {
+for (const path of [
+  evidencePath,
+  modulePath,
+  componentPath,
+  homePath,
+  proofPath,
+  stylesPath,
+  landingBrowserCheckPath,
+  packagePath,
+]) {
   assert.ok(existsSync(resolve(repoRoot, path)), `Missing ${path}.`);
 }
 
@@ -25,6 +35,7 @@ const packageJson = JSON.parse(read(packagePath));
 const moduleSource = read(modulePath);
 const componentSource = read(componentPath);
 const homeSource = read(homePath);
+const proofSource = read(proofPath);
 const stylesSource = read(stylesPath);
 const browserCheckSource = read(landingBrowserCheckPath);
 
@@ -69,11 +80,21 @@ for (const required of [
   assert.ok(componentSource.includes(required), `Disclosure component missing ${required}.`);
 }
 
-assert.ok(homeSource.includes("AnonymityDepthDisclosure"), "Home page must import/render AnonymityDepthDisclosure.");
 assert.ok(
-  homeSource.indexOf("<AnonymityDepthDisclosure />") > homeSource.indexOf("landing-minimal__hero") &&
-    homeSource.indexOf("<AnonymityDepthDisclosure />") < homeSource.indexOf("id=\"what\""),
-  "Home page must render the disclosure between the hero and What it does section.",
+  proofSource.includes("AnonymityDepthDisclosure"),
+  "Proof page must import/render AnonymityDepthDisclosure.",
+);
+assert.ok(
+  proofSource.includes("<AnonymityDepthDisclosure />"),
+  "Proof page must render the public depth disclosure for reviewer truth.",
+);
+assert.ok(
+  homeSource.includes("/app/proof"),
+  "Home page must link to the Proof surface instead of pinning the disclosure.",
+);
+assert.ok(
+  homeSource.includes("production privacy is not enabled"),
+  "Home page hero must keep beta-truth copy about production privacy.",
 );
 
 for (const required of [
@@ -87,13 +108,10 @@ for (const required of [
 }
 
 for (const required of [
-  "hasPublicDepthDisclosure",
-  "anonymity readiness: blocked",
-  "Current pool depth is below the privacy threshold.",
-  "1,024",
-  "evidence-recorded commitments",
-  "required minimum",
-  "Vanta does not claim live anonymity. Production privacy is not enabled.",
+  "hasProofLink",
+  "hasPublicDepthDisclosureOnProofRoute",
+  "/app/proof",
+  "landing-minimal__proof-link",
 ]) {
   assert.ok(browserCheckSource.includes(required), `Landing browser check missing ${required}.`);
 }
@@ -127,7 +145,7 @@ assert.ok(
   "zk:feedback-loop-check must include the public-depth disclosure check.",
 );
 
-const safeDisclosureText = [moduleSource, componentSource, homeSource].join("\n");
+const safeDisclosureText = [moduleSource, componentSource, homeSource, proofSource].join("\n");
 for (const forbidden of [
   /\bguaranteed anonymity\b/iu,
   /\banonymous payments?\b/iu,

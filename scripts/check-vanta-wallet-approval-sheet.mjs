@@ -49,7 +49,7 @@ for (const [pageName, pagePath, requiredPhrases] of [
       "import { WalletApprovalSheet",
       "<WalletApprovalSheet",
       "Send wallet approval",
-      "Record a constrained Send transition",
+      "Send privately from shielded balance",
       "send-note-transition",
       "send-spent-marker",
     ],
