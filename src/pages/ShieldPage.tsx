@@ -4,6 +4,8 @@ import { type AssetPickerGridOption } from "@/components/AssetPickerGrid";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
 import { ShieldWorkspaceCard } from "@/components/ShieldWorkspaceCard";
 import { formatEditableAmount } from "@/components/shield/shieldPanelUtils";
+import { useShieldLegacyMigration } from "@/components/shield/useShieldLegacyMigration";
+import { useShieldRecoverableSolDeposits } from "@/components/shield/useShieldRecoverableSolDeposits";
 import {
   usePrivacyFlow,
   type RecentShieldContext,
@@ -13,7 +15,6 @@ import { useWalletState } from "@/data/context/WalletContext";
 import {
   assertNativeSolShieldSourceAccountReady,
   buildNativeSolShieldTransferInstructions,
-  fetchNativeSolShieldDepositCandidates,
   isNativeSolSourceAccountNotReadyError,
   solToLamports,
   VANTA_NATIVE_SOL_ACCOUNT_NOT_ACTIVE_MESSAGE,
@@ -38,7 +39,6 @@ import { recordRecoveredNativeSolShieldNote } from "@/solana/recoveredNativeSolS
 import {
   clearAllNativeSolShieldNotes,
   hasVerifiedNativeSolShieldNote,
-  loadVerifiedNativeSolShieldDepositSignatures,
   recordVerifiedNativeSolShieldNote,
 } from "@/solana/verifiedNativeSolShieldNotes";
 import { recordVerifiedSplShieldNote } from "@/solana/verifiedSplShieldNotes";
@@ -68,16 +68,10 @@ import {
   VANTA_NATIVE_SOL_ASSET_ID,
   NATIVE_SOL_ASSET_ID_SENTINEL,
   computeNativeSolShieldPoseidonCommitment,
-  migrateLegacyVantaShieldedSolNoteToV2,
   VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
   VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
   type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
-import {
-  getVantaLegacyNativeSolWsolMigrationPolicy,
-  loadNonMigratedLegacyNativeSolShieldNotes,
-  removeLegacyNativeSolShieldNoteAfterMigration,
-} from "@/solana/verifiedNativeSolShieldNotes";
 import {
   recordCanonicalShieldFromLiveShield,
 } from "@/zk/liveShieldBridge";
@@ -159,32 +153,6 @@ function toErrorMessage(error: unknown, fallback: string) {
   }
 
   return error instanceof Error ? error.message : fallback;
-}
-
-function toRecoverableSolDepositsErrorMessage(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error ?? "");
-  const normalizedMessage = message.toLowerCase();
-
-  if (isSolanaRpcRateLimitError(error)) {
-    return "The public Solana RPC is rate-limited while checking recent SOL vault deposits. Try again in a moment; Vanta will not ask for another transfer.";
-  }
-
-  if (isSolanaRpcHttpAccessError(error)) {
-    return "Recent SOL vault deposits could not be checked because the browser RPC endpoint blocked access. Try a browser-compatible mainnet RPC; Vanta will not ask for another transfer.";
-  }
-
-  if (
-    normalizedMessage.includes("failed to fetch") ||
-    normalizedMessage.includes("load failed") ||
-    normalizedMessage.includes("networkerror") ||
-    message.includes("-32600") ||
-    message.includes("getTransaction") ||
-    normalizedMessage.includes("solana rpc")
-  ) {
-    return "Recent SOL vault deposits could not be checked because the browser RPC endpoint blocked the request. Vanta will not ask for another transfer.";
-  }
-
-  return toErrorMessage(error, "Recent SOL vault deposits could not be checked.");
 }
 
 function toPrivatePoolShieldReceiptWarning(error: unknown) {
@@ -327,18 +295,6 @@ export function ShieldPage(_props: ShieldPageProps) {
     useState<PendingShieldProtocolSettlement | null>(null);
   const [pendingUmbraApprovalDisplay, setPendingUmbraApprovalDisplay] =
     useState<UmbraOperationApprovalDisplay | null>(null);
-  const [recoverableSolDeposits, setRecoverableSolDeposits] = useState<
-    NativeSolShieldDepositCandidate[]
-  >([]);
-  const [recoverableSolDepositsLoading, setRecoverableSolDepositsLoading] = useState(false);
-  const [recoverableSolDepositsError, setRecoverableSolDepositsError] = useState<string | null>(null);
-
-  // Phase 2 legacy WSOL -> v2 sentinel migration UI state (one-time, fail-closed, design doc §9)
-  const [legacySolNotes, setLegacySolNotes] = useState<VantaShieldedSolNote[]>([]);
-  const [legacyMigrationStatus, setLegacyMigrationStatus] = useState<Record<string, "idle" | "migrating" | "success" | "error">>({});
-  const [legacyMigrationError, setLegacyMigrationError] = useState<string | null>(null);
-  const [showLegacyMigrationPanel, setShowLegacyMigrationPanel] = useState(true);
-  const [isMigratingAll, setIsMigratingAll] = useState(false);
 
   useEffect(() => {
     if (pendingShieldAsset === null) {
@@ -486,9 +442,6 @@ export function ShieldPage(_props: ShieldPageProps) {
   const targetShieldedBalanceReadUnavailable =
     Boolean(walletConnected && capability.targetShieldAsset) &&
     (supportedToken?.status === "error" || Boolean(targetShieldStateError));
-  const latestRecoverableSolDeposit = recoverableSolDeposits[0] ?? null;
-  const nativeSolShieldBlockedByRecoverableDeposit =
-    isNativeSolShield && Boolean(latestRecoverableSolDeposit);
 
   const clearShieldStateHydrationRetries = useCallback(() => {
     if (typeof window !== "undefined") {
@@ -520,6 +473,39 @@ export function ShieldPage(_props: ShieldPageProps) {
       ),
     );
   }, [refreshShieldState, shieldRegistry.entries]);
+
+  const {
+    latestRecoverableSolDeposit,
+    recoverableSolDepositsError,
+    recoverableSolDepositsLoading,
+    setRecoverableSolDeposits,
+  } = useShieldRecoverableSolDeposits({
+    enabled: isNativeSolShield,
+    shieldedSolNotes: nativeSolShieldAccount?.shieldedSolNotes ?? [],
+    vaultOwner: selectedShieldAsset?.vaultOwner,
+    walletAddress,
+  });
+
+  const {
+    handleMigrateAllLegacyNotes,
+    handleMigrateLegacySolNote,
+    isMigratingAll,
+    legacyMigrationError,
+    legacyMigrationStatus,
+    legacySolNotes,
+    resetLegacyMigrationPrompts,
+    setLegacyMigrationError,
+    setShowLegacyMigrationPanel,
+    showLegacyMigrationPanel,
+  } = useShieldLegacyMigration({
+    refreshNativeSolShieldState,
+    vaultOwner: selectedShieldAsset?.vaultOwner,
+    walletAddress,
+    walletConnected,
+  });
+
+  const nativeSolShieldBlockedByRecoverableDeposit =
+    isNativeSolShield && Boolean(latestRecoverableSolDeposit);
 
   const queueShieldStateHydrationRetries = useCallback((
     signatureHint?: string | null,
@@ -557,170 +543,6 @@ export function ShieldPage(_props: ShieldPageProps) {
   ]);
 
   useEffect(() => clearShieldStateHydrationRetries, [clearShieldStateHydrationRetries]);
-
-  // Phase 2: Load non-migrated legacy native SOL notes for migration panel (quarantine pattern)
-  // References design doc Phase 2 + getVantaLegacyNativeSolWsolMigrationPolicy
-  const loadLegacyNativeSolNotesForMigration = useCallback(() => {
-    if (!walletAddress || !selectedShieldAsset?.vaultOwner) {
-      setLegacySolNotes([]);
-      return;
-    }
-    const notes = loadNonMigratedLegacyNativeSolShieldNotes({
-      owner: walletAddress,
-      vaultOwner: selectedShieldAsset.vaultOwner,
-    });
-    setLegacySolNotes(notes);
-  }, [walletAddress, selectedShieldAsset?.vaultOwner]);
-
-  useEffect(() => {
-    loadLegacyNativeSolNotesForMigration();
-  }, [loadLegacyNativeSolNotesForMigration]);
-
-  // One-time migration handler (concrete Phase 2 flow)
-  const handleMigrateLegacySolNote = useCallback(
-    async (note: VantaShieldedSolNote) => {
-      const noteKey = note.depositSignature || note.noteId;
-      setLegacyMigrationStatus((prev) => ({ ...prev, [noteKey]: "migrating" }));
-      setLegacyMigrationError(null);
-
-      const policy = getVantaLegacyNativeSolWsolMigrationPolicy();
-      console.info("[Phase 2 Migration] Starting legacy WSOL SOL note migration", {
-        noteId: note.noteId,
-        depositSignature: note.depositSignature,
-        policyVersion: policy.version,
-        designDoc: "2026-05-14-native-sol-private-pool-v2-integration.md Phase 2 + §9",
-      });
-
-      let result = await migrateLegacyVantaShieldedSolNoteToV2({
-        legacyNote: note,
-      });
-
-      // Automatic one retry for transient "Failed to fetch" / indexer cold-start cases (very common in Phase 2)
-      if (!result.success && result.isTransientNetworkError) {
-        await new Promise((r) => setTimeout(r, 1200));
-        result = await migrateLegacyVantaShieldedSolNoteToV2({ legacyNote: note });
-      }
-
-      if (result.success) {
-        // Remove from legacy quarantine store (now in v2 unified tree via sentinel commitment)
-        const removed = removeLegacyNativeSolShieldNoteAfterMigration({
-          depositSignature: note.depositSignature || "",
-          owner: note.owner,
-          vaultOwner: note.vaultOwner,
-        });
-        setLegacyMigrationStatus((prev) => ({ ...prev, [noteKey]: "success" }));
-        // Refresh list + shield state (now should hydrate from v2 indexer in future fetches)
-        loadLegacyNativeSolNotesForMigration();
-        void refreshNativeSolShieldState({ signatureHint: note.depositSignature, vaultOwner: note.vaultOwner }).catch(() => undefined);
-
-        // Optional: surface phase1MigrationNote from server
-        if (result.phase1MigrationNote) {
-          console.info("Server migration note:", result.phase1MigrationNote);
-        }
-        // Auto-hide panel after all migrated (or leave for multi-note)
-        setTimeout(() => {
-          if (legacySolNotes.length <= 1) setShowLegacyMigrationPanel(false);
-        }, 1500);
-      } else {
-        setLegacyMigrationStatus((prev) => ({ ...prev, [noteKey]: "error" }));
-        const isTransient = result.isTransientNetworkError;
-        const errMsg = result.error || "Migration failed (see console). Re-shield recommended as fallback per design doc.";
-        setLegacyMigrationError(errMsg);
-
-        if (isTransient) {
-          console.warn("[Phase 2 Migration] Transient indexer network error (will keep offering retry + re-shield)", result);
-        } else {
-          console.warn("[Phase 2 Migration] Failed (fail-closed, legacy note preserved)", result);
-        }
-      }
-    },
-    [loadLegacyNativeSolNotesForMigration, legacySolNotes.length, refreshNativeSolShieldState],
-  );
-
-  // Bulk "Migrate all" for users with many legacy notes (e.g. 18 pre-v2)
-  // Sequentially calls the per-note handler with small delay to be polite to the operator.
-  // Updates happen live via the status map and list refresh inside the per-note handler.
-  const handleMigrateAllLegacyNotes = useCallback(async () => {
-    if (!walletConnected || legacySolNotes.length === 0 || isMigratingAll) return;
-
-    setIsMigratingAll(true);
-    setLegacyMigrationError(null);
-
-    const pendingNotes = legacySolNotes.filter((note) => {
-      const key = note.depositSignature || note.noteId;
-      const st = legacyMigrationStatus[key];
-      return st !== "success" && st !== "migrating";
-    });
-
-    for (let i = 0; i < pendingNotes.length; i++) {
-      const note = pendingNotes[i];
-      try {
-        await handleMigrateLegacySolNote(note);
-        if (i < pendingNotes.length - 1) {
-          await new Promise((r) => setTimeout(r, 300)); // be nice to the ingestion endpoint
-        }
-      } catch (err) {
-        console.error("[Bulk Migration] One note failed, continuing with the rest", err);
-        // continue — fail-closed per note (the per-note handler already does one retry on transient network errors)
-      }
-    }
-
-    setIsMigratingAll(false);
-  }, [walletConnected, legacySolNotes, legacyMigrationStatus, handleMigrateLegacySolNote, isMigratingAll]);
-
-  useEffect(() => {
-    if (!isNativeSolShield || !walletAddress || !selectedShieldAsset?.vaultOwner) {
-      setRecoverableSolDeposits([]);
-      setRecoverableSolDepositsError(null);
-      setRecoverableSolDepositsLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    const existingDepositSignatures = new Set([
-      (nativeSolShieldAccount?.shieldedSolNotes ?? [])
-        .map((note) => note.depositSignature)
-        .filter((signature): signature is string => typeof signature === "string" && signature.length > 0),
-      ...loadVerifiedNativeSolShieldDepositSignatures({
-        owner: walletAddress,
-        vaultOwner: selectedShieldAsset.vaultOwner,
-      }),
-    ].flat());
-
-    setRecoverableSolDepositsLoading(true);
-    setRecoverableSolDepositsError(null);
-
-    fetchNativeSolShieldDepositCandidates({
-      existingDepositSignatures,
-      owner: walletAddress,
-      vaultOwner: selectedShieldAsset.vaultOwner,
-    })
-      .then((deposits) => {
-        if (!cancelled) {
-          setRecoverableSolDeposits(deposits);
-        }
-      })
-      .catch((error) => {
-        if (!cancelled) {
-          setRecoverableSolDeposits([]);
-          setRecoverableSolDepositsError(toRecoverableSolDepositsErrorMessage(error));
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setRecoverableSolDepositsLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    isNativeSolShield,
-    nativeSolShieldAccount?.shieldedSolNotes,
-    selectedShieldAsset?.vaultOwner,
-    walletAddress,
-  ]);
 
   useEffect(() => {
     if (
@@ -2092,10 +1914,7 @@ export function ShieldPage(_props: ShieldPageProps) {
               return;
             }
             clearAllNativeSolShieldNotes();
-            setLegacySolNotes([]);
-            setShowLegacyMigrationPanel(false);
-            setLegacyMigrationError(null);
-            setLegacyMigrationStatus({});
+            resetLegacyMigrationPrompts();
           }}
           onHideLegacyMigrationPanel={() => {
             setShowLegacyMigrationPanel(false);

@@ -54,7 +54,20 @@ assert.ok(
 
 const shieldPageSource = readFileSync(resolve("src/pages/ShieldPage.tsx"), "utf8");
 const shieldWorkspaceSource = readFileSync(resolve("src/components/ShieldWorkspaceCard.tsx"), "utf8");
-const shieldSurfaceSource = `${shieldPageSource}\n${shieldWorkspaceSource}`;
+const shieldNativeSolRecoveryPanelSource = readFileSync(
+  resolve("src/components/ShieldNativeSolRecoveryPanel.tsx"),
+  "utf8",
+);
+const shieldRecoveryUtilsSource = readFileSync(
+  resolve("src/components/shield/shieldRecoveryUtils.ts"),
+  "utf8",
+);
+const useShieldRecoverableSolDepositsSource = readFileSync(
+  resolve("src/components/shield/useShieldRecoverableSolDeposits.ts"),
+  "utf8",
+);
+const shieldRecoverySource = `${shieldRecoveryUtilsSource}\n${useShieldRecoverableSolDepositsSource}`;
+const shieldSurfaceSource = `${shieldPageSource}\n${shieldWorkspaceSource}\n${shieldNativeSolRecoveryPanelSource}`;
 const verifiedNativeSolNotesSource = readRepoFile("src/solana/verifiedNativeSolShieldNotes.ts");
 const shieldAssetStateSource = readFileSync(
   resolve("src/solana/useVantaShieldAssetState.ts"),
@@ -82,7 +95,7 @@ assert.ok(
   "Shield page must label SOL as Shielded SOL.",
 );
 assert.ok(
-  shieldPageSource.includes("fetchNativeSolShieldDepositCandidates"),
+  shieldRecoverySource.includes("fetchNativeSolShieldDepositCandidates"),
   "Shield page must check for recoverable native SOL vault deposits.",
 );
 assert.ok(
@@ -141,8 +154,8 @@ assert.ok(
   "Native SOL Shield must sanitize browser-network receipt failures after local evidence is recorded.",
 );
 assert.ok(
-  /function toRecoverableSolDepositsErrorMessage[\s\S]{0,900}failed to fetch[\s\S]{0,1400}Vanta will not ask for another transfer/.test(
-    shieldPageSource,
+  /export function toRecoverableSolDepositsErrorMessage[\s\S]{0,900}failed to fetch[\s\S]{0,1400}Vanta will not ask for another transfer/.test(
+    shieldRecoveryUtilsSource,
   ),
   "Native SOL recovery discovery must not surface raw Failed to fetch when browser RPC/history reads fail.",
 );
@@ -414,7 +427,7 @@ assert.ok(
   "Native SOL deposit discovery must de-duplicate already recorded deposit signatures.",
 );
 assert.ok(
-  shieldPageSource.includes("toRecoverableSolDepositsErrorMessage"),
+  shieldRecoveryUtilsSource.includes("toRecoverableSolDepositsErrorMessage"),
   "Shield page must translate native SOL recovery RPC failures into user-facing language.",
 );
 assert.ok(
@@ -432,7 +445,7 @@ assert.ok(
 );
 assert.ok(
   shieldPageSource.includes("isSolanaRpcHttpAccessError") &&
-    shieldPageSource.includes("browser RPC endpoint blocked access") &&
+    shieldRecoverySource.includes("browser RPC endpoint blocked access") &&
     !shieldPageSource.includes("403: {") &&
     !shieldPageSource.includes('error":{"code":403'),
   "Shield page must translate forbidden browser RPC failures into user-safe copy without leaking provider JSON.",
@@ -455,7 +468,7 @@ assert.ok(
 assert.ok(
   shieldPageSource.includes("isSolanaRpcRateLimitError") &&
     shieldPageSource.includes("nativeSolShieldWait.waitError") &&
-    shieldPageSource.includes("The public Solana RPC is rate-limited while checking recent SOL vault deposits."),
+    shieldRecoverySource.includes("The public Solana RPC is rate-limited while checking recent SOL vault deposits."),
   "Shield page must keep rate-limited submitted SOL deposits recoverable and show user-safe recovery copy.",
 );
 assert.ok(

@@ -1,7 +1,7 @@
 import { AssetPickerGrid, type AssetPickerGridOption } from "@/components/AssetPickerGrid";
-import { LaneProgressiveSection } from "@/components/LaneProgressiveSection";
+import { ShieldLegacyMigrationSection } from "@/components/ShieldLegacyMigrationSection";
+import { ShieldNativeSolRecoveryPanel } from "@/components/ShieldNativeSolRecoveryPanel";
 import { RecoveryPanelController } from "@/components/RecoveryPanelController";
-import { ShieldLegacyMigrationPanel } from "@/components/ShieldLegacyMigrationPanel";
 import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import { describeRecentShieldCompletion } from "@/components/shield/shieldPanelUtils";
@@ -248,65 +248,30 @@ export function ShieldWorkspaceCard({
           </details>
           <p className="shield-helper shield-validation">{validationMessage}</p>
           {isNativeSolShield && (
-            <div className="shield-recovery-panel">
-              <div>
-                <strong>Recover SOL vault deposit</strong>
-                <p>
-                  {latestRecoverableSolDeposit
-                    ? `${latestRecoverableSolDeposit.amountDisplay} SOL reached the vault but isn't in your shield state yet.`
-                    : hasPendingNativeSolShieldEvidence
-                      ? "Saved locally, waiting on ledger sync. No second transfer needed."
-                      : recoverableSolDepositsLoading
-                        ? "Checking recent vault deposits…"
-                        : recoverableSolDepositsError
-                          ? recoverableSolDepositsError
-                          : "No unrecorded vault deposit found."}
-                </p>
-              </div>
-              <button
-                className="button button-ghost"
-                type="button"
-                disabled={
-                  isBetaMode ||
-                  !latestRecoverableSolDeposit ||
-                  status === "routing_public_swap" ||
-                  status === "shielding_in_progress" ||
-                  status === "entering_shielded_state"
-                }
-                onClick={() => {
-                  if (latestRecoverableSolDeposit) {
-                    onBeginNativeSolShieldDepositRecovery(latestRecoverableSolDeposit);
-                  }
-                }}
-              >
-                Record shielded SOL
-              </button>
-            </div>
+            <ShieldNativeSolRecoveryPanel
+              hasPendingNativeSolShieldEvidence={hasPendingNativeSolShieldEvidence}
+              isBetaMode={isBetaMode}
+              latestRecoverableSolDeposit={latestRecoverableSolDeposit}
+              onBeginRecovery={onBeginNativeSolShieldDepositRecovery}
+              recoverableSolDepositsError={recoverableSolDepositsError}
+              recoverableSolDepositsLoading={recoverableSolDepositsLoading}
+              status={status}
+            />
           )}
 
-          {isNativeSolShield && legacySolNotes.length > 0 && showLegacyMigrationPanel && (
-            <LaneProgressiveSection
-              className="shield-page__legacy-migration"
-              summary={`Legacy SOL migration (${legacySolNotes.length} note${legacySolNotes.length === 1 ? "" : "s"})`}
-              variant="optional"
-            >
-              <ShieldLegacyMigrationPanel
-                isMigratingAll={isMigratingAll}
-                legacyMigrationError={legacyMigrationError}
-                legacyMigrationStatus={legacyMigrationStatus}
-                legacySolNotes={legacySolNotes}
-                onClearLegacyPrompts={onClearLegacyPrompts}
-                onHide={onHideLegacyMigrationPanel}
-                onMigrateAll={() => {
-                  void handleMigrateAllLegacyNotes();
-                }}
-                onMigrateNote={(note) => {
-                  void handleMigrateLegacySolNote(note);
-                }}
-                onReshieldNote={onReshieldLegacyNote}
-                walletConnected={walletConnected}
-              />
-            </LaneProgressiveSection>
+          {isNativeSolShield && showLegacyMigrationPanel && (
+            <ShieldLegacyMigrationSection
+              handleMigrateAllLegacyNotes={handleMigrateAllLegacyNotes}
+              handleMigrateLegacySolNote={handleMigrateLegacySolNote}
+              isMigratingAll={isMigratingAll}
+              legacyMigrationError={legacyMigrationError}
+              legacyMigrationStatus={legacyMigrationStatus}
+              legacySolNotes={legacySolNotes}
+              onClearLegacyPrompts={onClearLegacyPrompts}
+              onHideLegacyMigrationPanel={onHideLegacyMigrationPanel}
+              onReshieldLegacyNote={onReshieldLegacyNote}
+              walletConnected={walletConnected}
+            />
           )}
 
           <RecoveryPanelController viewingKeyControls={viewingKey} />
