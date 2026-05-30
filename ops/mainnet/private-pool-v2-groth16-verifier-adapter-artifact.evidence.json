@@ -51,7 +51,10 @@
   },
   "canonicalCommands": [
     "npm run private-pool-v2:groth16-verifier-adapter-artifact-build",
-    "npm run private-pool-v2:groth16-verifier-adapter-artifact-check"
+    "npm run private-pool-v2:groth16-verifier-adapter-artifact-check",
+    "npm run private-pool-v2:groth16-verifier-adapter-live-receipt-smoke-check",
+    "npm run private-pool-v2:groth16-verifier-adapter-live-receipt-smoke",
+    "npm run private-pool-v2:groth16-verifier-adapter-live-receipt-smoke-write"
   ],
   "remainingBlockers": [
     "production-verifier-adapter-acceptance",

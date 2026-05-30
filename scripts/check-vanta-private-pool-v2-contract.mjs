@@ -1105,6 +1105,17 @@ const requiredTextFiles = [
     ],
   },
   {
+    path: "scripts/check-vanta-private-pool-v2-groth16-verifier-adapter-live-receipt-smoke.mjs",
+    markers: [
+      "formatSolUnshieldIntentMessage",
+      "/unshield/sol",
+      "groth16VerifierAdapterStatus",
+      "gnarkProofSource",
+      "gnarkUsesScaffoldProof",
+      "Groth16 verifier adapter live receipt smoke check: PASS",
+    ],
+  },
+  {
     path: "scripts/check-vanta-private-pool-v2-tag-unshield-relay-bindings.mjs",
     markers: [
       "resolveTagUnshieldRelayBindings",
@@ -1235,6 +1246,7 @@ const requiredPackageScripts = [
   "private-pool-v2:solana-unshield-transaction-builder-check",
   "private-pool-v2:tag-unshield-relay-bindings-check",
   "private-pool-v2:groth16-verifier-adapter-artifact-check",
+  "private-pool-v2:groth16-verifier-adapter-live-receipt-smoke-check",
   "private-pool-v2:c01-local-unsafe-h6-verifier-cpi-acceptance-check",
   "private-pool-v2:solana-unshield-relayer-submission-check",
   "private-pool-v2:unshield-release-enabled-audit-gate-check",

@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-05-30T01:38:46.656Z",
+  "endpoint": "/unshield/sol",
+  "expectedReceiptFields": {
+    "gnarkProofSha256": "sha256:fbf68eb2d409f3cdb8ae76dec5285d43e8d2c69a4f4c43a03c5c866c20d74e5b",
+    "gnarkProofSource": "groth16-verifier-adapter-artifact",
+    "gnarkPublicWitnessSha256": "sha256:19e42b6e34a5861d8804565476d72f8835c81d30cfc66bd598a236d26e1baa60",
+    "groth16VerifierAdapterArtifactRoot": "ops/fixtures/groth16-verifier-adapter-local-unsafe",
+    "groth16VerifierAdapterStatus": "local-unsafe-h6-beta18-sunspot-not-production",
+    "gnarkUsesScaffoldProof": false,
+    "programRelayBindingSource": "groth16-verifier-adapter-artifact",
+    "releaseModel": "program-tag-unshield-pda-cpi-fail-closed"
+  },
+  "httpStatus": 503,
+  "operatorUrlHost": "vanta-prod-private-pool-v2-operator.onrender.com",
+  "operatorUrlRef": "ops/mainnet/private-pool-v2-services.manifest.json#operator",
+  "productionReady": false,
+  "purpose": "Live fail-closed /unshield/sol receipt smoke proving deployed operator surfaces Groth16 adapter relay truth instead of scaffold gnark bytes.",
+  "requestIdPrefix": "groth16-live-receipt-smoke-c9f95",
+  "secretPolicy": "hashes-and-status-only-no-wallet-signatures-or-auth-tokens",
+  "status": "live-fail-closed-receipt-smoke-pass-not-production",
+  "truthBoundary": "This smoke only proves deployed blocked unshield receipts expose in-repo local-unsafe Groth16 adapter relay bindings. It is not production verifier-adapter acceptance, SBF/live lineage, audit closure, or fund release.",
+  "version": "vanta-private-pool-v2-groth16-verifier-adapter-live-receipt-smoke-evidence-0.1"
+}

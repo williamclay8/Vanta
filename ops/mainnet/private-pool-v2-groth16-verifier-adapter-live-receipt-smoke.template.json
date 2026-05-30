@@ -1,0 +1,27 @@
+{
+  "version": "vanta-private-pool-v2-groth16-verifier-adapter-live-receipt-smoke-template-0.1",
+  "productionReady": false,
+  "mainnetReady": false,
+  "secretPolicy": "hashes-and-status-only-no-wallet-signatures-or-auth-tokens",
+  "endpoint": "/unshield/sol",
+  "operatorUrlRef": "VANTA_PRIVATE_POOL_V2_OPERATOR_URL or ops/mainnet/private-pool-v2-services.manifest.json#operator",
+  "adapterEvidenceRef": "ops/mainnet/private-pool-v2-groth16-verifier-adapter-artifact.evidence.json",
+  "summary": "Post-deploy live smoke for fail-closed /unshield/sol receipts. Signs a fresh ephemeral wallet intent, posts to the deployed operator, and asserts blocked 503 releaseReceipt fields expose Groth16 adapter relay truth (real gnark hashes, non-scaffold proof source) from the in-repo local-unsafe fixture bundle. Does not require operator bearer auth because /unshield/sol is a public wallet-intent route.",
+  "requiredReceiptFields": [
+    "releaseReceipt.groth16VerifierAdapterStatus",
+    "releaseReceipt.groth16VerifierAdapterArtifactRoot",
+    "releaseReceipt.gnarkProofSource",
+    "releaseReceipt.gnarkProofSha256",
+    "releaseReceipt.gnarkPublicWitnessSha256",
+    "releaseReceipt.gnarkUsesScaffoldProof",
+    "programRelayBindingSource",
+    "releaseModel"
+  ],
+  "requiredVerificationCommands": [
+    "npm run private-pool-v2:groth16-verifier-adapter-artifact-check",
+    "npm run private-pool-v2:groth16-verifier-adapter-live-receipt-smoke-check",
+    "npm run private-pool-v2:groth16-verifier-adapter-live-receipt-smoke",
+    "npm run private-pool-v2:groth16-verifier-adapter-live-receipt-smoke-write"
+  ],
+  "truthBoundary": "Live receipt smoke proves deployed blocked unshield receipts surface local-unsafe Groth16 adapter relay bindings. It is not production verifier-adapter acceptance, SBF/live lineage, audit closure, or fund release."
+}

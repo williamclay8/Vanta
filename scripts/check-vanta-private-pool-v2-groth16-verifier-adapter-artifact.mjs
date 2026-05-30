@@ -55,6 +55,22 @@ assert(
     "node scripts/check-vanta-private-pool-v2-groth16-verifier-adapter-artifact.mjs",
   "package.json must expose private-pool-v2:groth16-verifier-adapter-artifact-check",
 );
+assert(
+  scripts["private-pool-v2:groth16-verifier-adapter-live-receipt-smoke"] ===
+    "node scripts/run-vanta-private-pool-v2-groth16-verifier-adapter-live-receipt-smoke.mjs",
+  "package.json must expose private-pool-v2:groth16-verifier-adapter-live-receipt-smoke",
+);
+assert(
+  scripts["private-pool-v2:groth16-verifier-adapter-live-receipt-smoke-check"] ===
+    "node scripts/check-vanta-private-pool-v2-groth16-verifier-adapter-live-receipt-smoke.mjs",
+  "package.json must expose private-pool-v2:groth16-verifier-adapter-live-receipt-smoke-check",
+);
+assert(
+  evidence.canonicalCommands.includes(
+    "npm run private-pool-v2:groth16-verifier-adapter-live-receipt-smoke",
+  ),
+  "evidence canonicalCommands must include live receipt smoke",
+);
 
 includes(buildScript, "buildGroth16VerifierAdapterManifestObserved", buildScriptPath);
 includes(buildScript, "runSunspotPipeline", buildScriptPath);
