@@ -1,0 +1,38 @@
+Hi OtterSec team,
+
+I'm reaching out from Vanta (https://github.com/williamclay8/Vanta) with a refs-only security audit outreach request for our Solana-program-specialist lane under Band 7 item 21 of our production privacy audit roadmap.
+
+Vanta is building a beta Solana private-settlement rail. We need an independent Solana program and custody review before any production privacy, audit, or mainnet-ready claim. This outreach is a work order only — it is not audit acceptance, not reviewer selection recorded in-repo, and not a request to lift our fail-closed claim gates.
+
+Requested Solana scope (separate from our ZK circuit audit lane):
+- Private Pool v2 spend program (SBF lineage, runtime verifier gate, fail-closed ordering)
+- PDA vault custody transition, TAG_REGISTER_VAULT_ASSET, TAG_REGISTER_VERIFIER_KEY
+- TAG_SPEND_WITH_PROOF and TAG_UNSHIELD release ordering, nullifier/root/output invariants
+- CPI verifier seam and registered verifier program binding
+- Native SOL TAG6 wiring (vanta2solvault PDA, sentinel asset id, system transfer CPI shape)
+- cfg-test → runtime-flag migration called out in our prior findings ledger
+
+Repo starting point:
+- branch: main
+- reviewStartCommitRef: git:05e6209914cfc5405f3caaa0b53e15690a798938
+
+Primary send-list (sha256-pinned, attached):
+- Outbound summary: https://github.com/williamclay8/Vanta/blob/05e62099/ops/mainnet/audit-outreach-requests/PRODUCTION-PRIVACY-AUDIT-OUTREACH-REQUEST-2026-05-30T02-53-17-290Z.md
+- Human work order: https://github.com/williamclay8/Vanta/blob/05e62099/ops/mainnet/audit-outreach-requests/production-privacy-audit-external-evidence-request.md
+- Machine prep packet: https://github.com/williamclay8/Vanta/blob/05e62099/ops/mainnet/production-privacy-audit-outreach.evidence.json
+- Reviewer handoff: https://github.com/williamclay8/Vanta/blob/05e62099/docs/audit-package.md
+- Intake template: https://github.com/williamclay8/Vanta/blob/05e62099/ops/mainnet/audit-review.packet.template.json
+
+Important boundaries:
+- Return references only. Do not place raw proof bytes, witness bytes, private keys, bearer credentials, or signed transaction bytes in repo evidence.
+- We are contracting two independent firms (ZK + Solana program). Please disclose conflicts if you also intend to cover our ZK circuit lane.
+- This lane is separate from our C01 external production verifier artifact review with Reilabs.
+
+If OtterSec is the right contact for the Solana program lane, please reply with availability, estimated timeline, conflicts check, and whether you can support the scope above with refs-only deliverables suitable for our intake gates.
+
+Happy to walk through the repo gates on a short call if useful.
+
+Best,
+Clay
+Vanta
+https://github.com/williamclay8/Vanta

@@ -1,0 +1,10 @@
+To: contact@veridise.com
+From: william.c.hooten@gmail.com
+Subject: Vanta ZK audit outreach (refs-only, Band 7 dual-firm lane)
+Gmail messageId: 19e76cd246289a20
+Gmail threadId: 19e76cd246289a20
+SentAt: 2026-05-29T19:53:00-07:00 (approx)
+Attachment: PRODUCTION-PRIVACY-AUDIT-OUTREACH-REQUEST-2026-05-30T02-53-17-290Z.md
+Body: ops/mainnet/audit-outreach-requests/AUDIT-OUTREACH-ZK-VERIDISE-BODY-2026-05-30.txt
+Lane: zk-specialist
+reviewStartCommitRef: git:05e6209914cfc5405f3caaa0b53e15690a798938
