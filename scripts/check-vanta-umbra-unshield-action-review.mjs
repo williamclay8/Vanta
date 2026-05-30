@@ -4,7 +4,14 @@ import { strict as assert } from "node:assert";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const reviewSource = readFileSync(resolve(repoRoot, "src/privacy/umbraUnshieldActionReview.ts"), "utf8");
-const unshieldSource = readFileSync(resolve(repoRoot, "src/pages/UnshieldPage.tsx"), "utf8");
+const unshieldPageSource = readFileSync(resolve(repoRoot, "src/pages/UnshieldPage.tsx"), "utf8");
+const unshieldExecutionSource = readFileSync(
+  resolve(repoRoot, "src/components/unshield/useUnshieldExecution.ts"),
+  "utf8",
+);
+const unshieldWorkspaceSource = readFileSync(resolve(repoRoot, "src/components/UnshieldWorkspaceCard.tsx"), "utf8");
+const umbraOperationsSource = readFileSync(resolve(repoRoot, "src/privacy/umbraOperations.ts"), "utf8");
+const unshieldSurfaceSource = `${unshieldPageSource}\n${unshieldExecutionSource}\n${unshieldWorkspaceSource}\n${umbraOperationsSource}`;
 const packageSource = readFileSync(resolve(repoRoot, "package.json"), "utf8");
 
 for (const phrase of [
@@ -23,7 +30,7 @@ for (const phrase of [
   "Private rail approval",
   "Wallet approval",
 ]) {
-  assert.ok(unshieldSource.includes(phrase), `Unshield page missing Umbra review phrase: ${phrase}`);
+  assert.ok(unshieldSurfaceSource.includes(phrase), `Unshield page missing Umbra review phrase: ${phrase}`);
 }
 
 assert.ok(

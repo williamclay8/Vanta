@@ -2,8 +2,17 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { strict as assert } from "node:assert";
 
-const unshieldPath = resolve(import.meta.dirname, "../src/pages/UnshieldPage.tsx");
-const source = readFileSync(unshieldPath, "utf8");
+const repoRoot = resolve(import.meta.dirname, "..");
+const unshieldPageSource = readFileSync(resolve(repoRoot, "src/pages/UnshieldPage.tsx"), "utf8");
+const unshieldExecutionSource = readFileSync(
+  resolve(repoRoot, "src/components/unshield/useUnshieldExecution.ts"),
+  "utf8",
+);
+const unshieldWorkspaceSource = readFileSync(
+  resolve(repoRoot, "src/components/UnshieldWorkspaceCard.tsx"),
+  "utf8",
+);
+const source = `${unshieldPageSource}\n${unshieldExecutionSource}\n${unshieldWorkspaceSource}`;
 
 assert.ok(source.includes("useVantaSafeSendTransaction"), "Unshield must import the Vanta safe-send hook.");
 assert.ok(!source.includes("useSendTransaction"), "Unshield must not use raw useSendTransaction for generic transactions.");

@@ -15,7 +15,12 @@ const unshieldWorkspaceSource = readRepoFile("src/components/UnshieldWorkspaceCa
 const unshieldPanelUtilsSource = readRepoFile("src/components/unshield/unshieldPanelUtils.ts");
 const unshieldReceiptModalHookSource = readRepoFile("src/components/unshield/useUnshieldReceiptModal.ts");
 const unshieldReleasePackageHookSource = readRepoFile("src/components/unshield/useUnshieldReleasePackageExport.ts");
-const unshieldSurfaceSource = `${unshieldPageSource}\n${unshieldWorkspaceSource}\n${unshieldPanelUtilsSource}\n${unshieldReceiptModalHookSource}\n${unshieldReleasePackageHookSource}`;
+const unshieldExecutionHookSource = readRepoFile("src/components/unshield/useUnshieldExecution.ts");
+const unshieldLaneStateHookSource = readRepoFile("src/components/unshield/useUnshieldLaneState.ts");
+const unshieldNoteUtilsSource = readRepoFile("src/components/unshield/unshieldNoteUtils.ts");
+const unshieldValidationMessageSource = readRepoFile("src/components/unshield/buildUnshieldValidationMessage.ts");
+const unshieldPageHeroSource = readRepoFile("src/components/UnshieldPageHero.tsx");
+const unshieldSurfaceSource = `${unshieldPageSource}\n${unshieldWorkspaceSource}\n${unshieldPanelUtilsSource}\n${unshieldReceiptModalHookSource}\n${unshieldReleasePackageHookSource}\n${unshieldExecutionHookSource}\n${unshieldLaneStateHookSource}\n${unshieldNoteUtilsSource}\n${unshieldValidationMessageSource}\n${unshieldPageHeroSource}`;
 const unshieldAdvancedPanelSource = readRepoFile("src/components/UnshieldAdvancedPanel.tsx");
 const stylesSource = readRepoFile("src/styles.css");
 const unshieldAuthSource = readRepoFile("src/solana/unshieldAuth.ts");
@@ -34,12 +39,7 @@ const proofBoundaryDoc = readRepoFile("docs/zk/vanta-private-core-unshield-proof
 const transactionEvidenceSource = readRepoFile("src/transactions/vantaTransactionEvidence.ts");
 const transactionEvidenceCheck = readRepoFile("scripts/check-vanta-transaction-evidence.mjs");
 
-const pageOnlyPhrases = new Set([
-  "signUnshieldIntent",
-  "signSolUnshieldIntent",
-  "signWalletMessageIntentWithSafety",
-  "direct:${args.note.noteId}",
-]);
+const pageOnlyPhrases = new Set([]);
 
 for (const phrase of [
   "PrivacySummary",
@@ -205,11 +205,11 @@ for (const phrase of [
 }
 
 assert.ok(
-  unshieldPageSource.includes('intentKind: "sol-unshield-intent"'),
+  unshieldSurfaceSource.includes('intentKind: "sol-unshield-intent"'),
   "SOL Unshield must preserve a typed wallet message-intent release prompt.",
 );
 assert.ok(
-  unshieldPageSource.includes('intentKind: "unshield-intent"'),
+  unshieldSurfaceSource.includes('intentKind: "unshield-intent"'),
   "Token Unshield must preserve a typed wallet message-intent release prompt.",
 );
 assert.ok(
@@ -356,28 +356,28 @@ for (const [sourceLabel, source, phrase] of [
     "if (!response.ok)",
   ],
   [
-    "Unshield page",
-    unshieldPageSource,
+    "Unshield lane state",
+    unshieldSurfaceSource,
     "fetchSolUnshieldOperatorHealth",
   ],
   [
-    "Unshield page",
-    unshieldPageSource,
+    "Unshield lane state",
+    unshieldSurfaceSource,
     'solUnshieldOperatorHealth === "ready"',
   ],
   [
-    "Unshield page",
-    unshieldPageSource,
+    "Unshield lane state",
+    unshieldSurfaceSource,
     "selectedLane !== \"SOL\" && !selectedShieldAsset?.unshieldOperatorUrl",
   ],
   [
-    "Unshield page",
-    unshieldPageSource,
+    "Unshield lane state",
+    unshieldSurfaceSource,
     "selectedLane !== \"SOL\" && !selectedShieldAsset?.mintAddress",
   ],
   [
-    "Unshield page",
-    unshieldPageSource,
+    "Unshield lane state",
+    unshieldSurfaceSource,
     "selectedLane !== \"SOL\" && !selectedShieldAsset?.vaultOwner",
   ],
 	  [
@@ -424,7 +424,7 @@ for (const phrase of [
 	  'selectedLane === "SOL" ? selectedSolNote?.amount ?? 0 : selectedShieldNote?.amount ?? 0',
 	]) {
   assert.ok(
-    unshieldPageSource.includes(phrase),
+    unshieldSurfaceSource.includes(phrase),
     `Unshield SOL lane must source shielded SOL from the registry account that actually has SOL: ${phrase}`,
   );
 }
@@ -438,7 +438,7 @@ for (const phrase of [
 	  "returned to Public Wallet",
 	]) {
   assert.ok(
-    !unshieldPageSource.includes(phrase),
+    !unshieldSurfaceSource.includes(phrase),
     `Unshield SOL lane must not synthesize spendable SOL from optimistic recent state: ${phrase}`,
   );
 }

@@ -19,6 +19,13 @@ function countOccurrences(source, needle) {
 
 const packageJson = JSON.parse(readRepoFile("package.json"));
 const unshieldPageSource = readRepoFile("src/pages/UnshieldPage.tsx");
+const unshieldLaneStateSource = readRepoFile("src/components/unshield/useUnshieldLaneState.ts");
+const unshieldNoteUtilsSource = readRepoFile("src/components/unshield/unshieldNoteUtils.ts");
+const unshieldReceiptModalHookSource = readRepoFile("src/components/unshield/useUnshieldReceiptModal.ts");
+const unshieldValidationMessageSource = readRepoFile("src/components/unshield/buildUnshieldValidationMessage.ts");
+const unshieldPanelUtilsSource = readRepoFile("src/components/unshield/unshieldPanelUtils.ts");
+const unshieldWorkspaceSource = readRepoFile("src/components/UnshieldWorkspaceCard.tsx");
+const unshieldSurfaceSource = `${unshieldPageSource}\n${unshieldLaneStateSource}\n${unshieldNoteUtilsSource}\n${unshieldReceiptModalHookSource}\n${unshieldValidationMessageSource}\n${unshieldPanelUtilsSource}\n${unshieldWorkspaceSource}`;
 const stylesSource = readRepoFile("src/styles.css");
 const shieldStateSource = readRepoFile("src/solana/vantaShieldState.ts");
 const shieldAssetStateSource = readRepoFile("src/solana/useVantaShieldAssetState.ts");
@@ -70,14 +77,14 @@ for (const phrase of [
   "selected ledger-spendable note",
   "Operator release signature returned",
 ]) {
-  assert(unshieldPageSource.includes(phrase), `UnshieldPage must preserve ledger-only UI/actionability phrase: ${phrase}`);
+  assert(unshieldSurfaceSource.includes(phrase), `UnshieldPage must preserve ledger-only UI/actionability phrase: ${phrase}`);
 }
 for (const forbidden of [
   "unshield-balance-strip",
   "unshield-balance-pill",
 ]) {
   assert(
-    !unshieldPageSource.includes(forbidden),
+    !unshieldSurfaceSource.includes(forbidden),
     `UnshieldPage must not render every asset lane as a side-by-side option strip: ${forbidden}`,
   );
   assert(
@@ -106,7 +113,7 @@ for (const forbidden of [
   "returned to Public Wallet",
 ]) {
   assert(
-    !unshieldPageSource.includes(forbidden),
+    !unshieldSurfaceSource.includes(forbidden),
     `UnshieldPage must not present optimistic/completion-overclaim state: ${forbidden}`,
   );
 }
@@ -164,16 +171,16 @@ assert(
   "Every shield asset registry entry must pass its token Unshield operator URL for release reconciliation.",
 );
 assert(
-  !unshieldPageSource.includes(
+  !unshieldSurfaceSource.includes(
     "shieldedSolSourceEntry?.error ?? canonicalShieldState.error ?? usdcShieldEntry.error",
   ),
   "SOL Unshield validation must not surface token registry release-state errors from the selected SOL source entry.",
 );
 assert(
-  unshieldPageSource.includes("spendableSolNotes.length > 0") &&
-    unshieldPageSource.includes("const solShieldStateError =") &&
-    unshieldPageSource.includes("? null") &&
-    unshieldPageSource.includes(": canonicalShieldState.error;"),
+  unshieldLaneStateSource.includes("spendableSolNotes.length > 0") &&
+    unshieldLaneStateSource.includes("const solShieldStateError =") &&
+    unshieldLaneStateSource.includes("? null") &&
+    unshieldLaneStateSource.includes(": canonicalShieldState.error;"),
   "SOL Unshield validation must ignore shield-state errors once a canonical ledger-spendable SOL note exists.",
 );
 
