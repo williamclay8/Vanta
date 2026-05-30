@@ -228,6 +228,82 @@ export function resolveGroth16VerifierAdapterRelayBindings(input = {}) {
   };
 }
 
+export function resolveDefaultGroth16VerifierAdapterArtifactRoot(startDir = process.cwd()) {
+  return resolve(startDir, GROTH16_VERIFIER_ADAPTER_DEFAULT_ARTIFACT_ROOT);
+}
+
+export function summarizeGroth16VerifierAdapterRelayBindings(bindings = {}) {
+  const summary = {
+    groth16VerifierAdapterStatus: bindings.groth16VerifierAdapterStatus ?? "absent",
+    groth16VerifierAdapterArtifactRoot: bindings.groth16VerifierAdapterArtifactRoot ?? null,
+    gnarkProofSource: "absent",
+    gnarkProofSha256: null,
+    gnarkPublicWitnessSha256: null,
+    gnarkUsesScaffoldProof: null,
+    satisfiesProductionVerifierAdapterAcceptance: false,
+  };
+
+  if (!bindings.gnarkProofBase64 || !bindings.gnarkPublicWitnessBase64) {
+    return summary;
+  }
+
+  const proof = Buffer.from(
+    bindings.gnarkProofBase64.startsWith("base64:")
+      ? bindings.gnarkProofBase64.slice("base64:".length)
+      : bindings.gnarkProofBase64,
+    "base64",
+  );
+  const publicWitness = Buffer.from(
+    bindings.gnarkPublicWitnessBase64.startsWith("base64:")
+      ? bindings.gnarkPublicWitnessBase64.slice("base64:".length)
+      : bindings.gnarkPublicWitnessBase64,
+    "base64",
+  );
+
+  summary.gnarkProofSha256 = sha256(proof);
+  summary.gnarkPublicWitnessSha256 = sha256(publicWitness);
+  summary.gnarkUsesScaffoldProof = proof.length === GROTH16_VERIFIER_ADAPTER_PROOF_BYTE_LENGTH
+    && proof.every((byte) => byte === 0x06);
+  summary.gnarkProofSource = summary.gnarkUsesScaffoldProof
+    ? "scaffold-0x06"
+    : bindings.source ?? "groth16-verifier-adapter-artifact";
+  if (bindings.groth16VerifierAdapterStatus) {
+    summary.groth16VerifierAdapterStatus = bindings.groth16VerifierAdapterStatus;
+  }
+  if (bindings.groth16VerifierAdapterArtifactRoot) {
+    summary.groth16VerifierAdapterArtifactRoot = GROTH16_VERIFIER_ADAPTER_DEFAULT_ARTIFACT_ROOT;
+  }
+  return summary;
+}
+
+export function describeGroth16VerifierAdapterForOperator(input = {}) {
+  const loaded = tryLoadGroth16VerifierAdapterArtifact(input);
+  if (!loaded) {
+    return {
+      status: "absent",
+      artifactRoot: null,
+      manifestRef: null,
+      proofSha256: null,
+      publicWitnessSha256: null,
+      verifierKeyHashHex: null,
+      satisfiesProductionVerifierAdapterAcceptance: false,
+    };
+  }
+
+  return {
+    status: loaded.status,
+    artifactRoot: GROTH16_VERIFIER_ADAPTER_DEFAULT_ARTIFACT_ROOT,
+    manifestRef: `${GROTH16_VERIFIER_ADAPTER_DEFAULT_ARTIFACT_ROOT}/${GROTH16_VERIFIER_ADAPTER_MANIFEST_FILENAME}`,
+    proofSha256: loaded.observedSha256.proof,
+    publicWitnessSha256: loaded.observedSha256.publicWitness,
+    verifyingKeySha256: loaded.observedSha256.verifyingKey,
+    verifierSbfSha256: loaded.observedSha256.verifierSbf,
+    verifierKeyHashHex: loaded.verifierKeyHashHex,
+    publicInputHashHex: loaded.unshieldPublicInputHashHex,
+    satisfiesProductionVerifierAdapterAcceptance: false,
+  };
+}
+
 export function buildGroth16VerifierAdapterManifestObserved(root, options = {}) {
   const proof = readArtifactFile(root, GROTH16_VERIFIER_ADAPTER_ARTIFACT_FILE_NAMES.proof, "proof");
   const publicWitness = readArtifactFile(

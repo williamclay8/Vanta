@@ -22,6 +22,7 @@ import {
 } from "./swap-auth.mjs";
 import { buildTagUnshieldProgramRelayTransaction } from "./unshield-program-relay-transaction.mjs";
 import { resolveTagUnshieldRelayBindings } from "./tag-unshield-relay-bindings.mjs";
+import { summarizeGroth16VerifierAdapterRelayBindings } from "../src/privacy/privatePoolV2Groth16VerifierAdapter.mjs";
 import {
   assertFreshMeteoraQuote,
   assertMeteoraExecutionDrift,
@@ -1656,9 +1657,13 @@ export async function handleUnshieldOperatorRequest(request, response) {
         exitAssetIdHex:
           relayBindingResolution.bindings.exitAssetIdHex ?? normalizeTagUnshieldAssetIdHex(intent.assetId),
       });
+      const groth16VerifierAdapter = summarizeGroth16VerifierAdapterRelayBindings(
+        relayBindingResolution.bindings,
+      );
       const releaseReceipt = buildTagUnshieldProgramReleaseReceipt({
         asset: "SOL",
         consumedNoteId: intent.consumedNoteId,
+        groth16VerifierAdapter,
         intent,
         programRelayAccountCount: relayTransaction?.accountCount ?? null,
         programRelaySerializedTransaction: relayTransaction?.serializedTransaction ?? null,
@@ -1768,9 +1773,13 @@ export async function handleUnshieldOperatorRequest(request, response) {
         relayBindingResolution.bindings.exitAmountLeHex
         ?? encodeTagUnshieldAmountLeHex(intent.amount),
     });
+    const groth16VerifierAdapter = summarizeGroth16VerifierAdapterRelayBindings(
+      relayBindingResolution.bindings,
+    );
     const releaseReceipt = buildTagUnshieldProgramReleaseReceipt({
       asset: "SPL",
       consumedNoteId: intent.noteId,
+      groth16VerifierAdapter,
       intent,
       programRelayAccountCount: relayTransaction?.accountCount ?? null,
       programRelaySerializedTransaction: relayTransaction?.serializedTransaction ?? null,
@@ -1838,6 +1847,7 @@ function buildTagUnshieldProgramReleaseReceipt(args) {
   const proofStatus = "program-tag-unshield-relay-fail-closed";
   const intentHash = hashReleaseIntent(args.intent);
   const programTxSignature = args.programTxSignature;
+  const groth16Adapter = args.groth16VerifierAdapter ?? {};
 
   return {
     kind: "vanta-unshield-program-release-receipt-v1",
@@ -1850,6 +1860,12 @@ function buildTagUnshieldProgramReleaseReceipt(args) {
     programRelayBindingSource: args.programRelayBindingSource ?? null,
     programRelayBindingsUsePlaceholderHashes: args.programRelayBindingsUsePlaceholderHashes ?? null,
     programRelaySerializedTransaction: args.programRelaySerializedTransaction ?? null,
+    groth16VerifierAdapterStatus: groth16Adapter.groth16VerifierAdapterStatus ?? null,
+    groth16VerifierAdapterArtifactRoot: groth16Adapter.groth16VerifierAdapterArtifactRoot ?? null,
+    gnarkProofSource: groth16Adapter.gnarkProofSource ?? null,
+    gnarkProofSha256: groth16Adapter.gnarkProofSha256 ?? null,
+    gnarkPublicWitnessSha256: groth16Adapter.gnarkPublicWitnessSha256 ?? null,
+    gnarkUsesScaffoldProof: groth16Adapter.gnarkUsesScaffoldProof ?? null,
     programTxSignature,
     releaseSignature: programTxSignature,
     releaseIntentHash: intentHash,

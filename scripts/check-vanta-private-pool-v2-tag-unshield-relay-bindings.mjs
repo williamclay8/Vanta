@@ -1,12 +1,17 @@
+import { createHash } from "node:crypto";
 import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { buildUnshieldInstructionDataBase64FromBindings } from "../src/privacy/privatePoolV2SolanaUnshieldTransaction.mjs";
 import {
   assertTagUnshieldRelayBindingsComplete,
   resolveTagUnshieldRelayBindings,
 } from "../operator/tag-unshield-relay-bindings.mjs";
-import { loadGroth16VerifierAdapterArtifact } from "../src/privacy/privatePoolV2Groth16VerifierAdapter.mjs";
+import {
+  GROTH16_VERIFIER_ADAPTER_H6_PROBE_REFERENCE_SHA256,
+  loadGroth16VerifierAdapterArtifact,
+} from "../src/privacy/privatePoolV2Groth16VerifierAdapter.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const programSource = readFileSync(
@@ -105,5 +110,21 @@ assert.equal(adapterResolved.bindings.gnarkProofBase64, adapterLoaded.gnarkProof
 assert.equal(adapterResolved.bindings.gnarkPublicWitnessBase64, adapterLoaded.gnarkPublicWitnessBase64);
 assert.equal(adapterResolved.bindings.unshieldPublicInputHashHex, explicitBindings.unshieldPublicInputHashHex);
 assert.equal(adapterResolved.bindings.verifierKeyHashHex, explicitBindings.verifierKeyHashHex);
+
+const adapterInstructionData = Buffer.from(
+  buildUnshieldInstructionDataBase64FromBindings(adapterResolved.bindings),
+  "base64",
+);
+const gnarkProof = adapterInstructionData.subarray(201, 201 + 324);
+const gnarkPublicWitness = adapterInstructionData.subarray(525, 525 + 44);
+const observedProofSha256 = `sha256:${createHash("sha256").update(gnarkProof).digest("hex")}`;
+const observedPublicWitnessSha256 = `sha256:${createHash("sha256").update(gnarkPublicWitness).digest("hex")}`;
+assert.notEqual(gnarkProof[0], 0x06, "relay gnark proof must not use scaffold filler byte");
+assert.equal(observedProofSha256, adapterLoaded.observedSha256.proof);
+assert.equal(
+  observedPublicWitnessSha256,
+  GROTH16_VERIFIER_ADAPTER_H6_PROBE_REFERENCE_SHA256.publicWitness,
+);
+assert.equal(observedPublicWitnessSha256, adapterLoaded.observedSha256.publicWitness);
 
 console.log("Vanta Private Pool v2 TAG_UNSHIELD relay bindings check: PASS");
