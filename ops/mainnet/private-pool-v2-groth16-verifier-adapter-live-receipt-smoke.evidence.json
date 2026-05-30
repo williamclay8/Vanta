@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-05-30T01:47:07.633Z",
+  "checkedAt": "2026-05-30T01:57:52.918Z",
   "lanes": [
     {
       "endpoint": "/unshield/sol",
@@ -14,17 +14,34 @@
         "releaseModel": "program-tag-unshield-pda-cpi-fail-closed"
       },
       "httpStatus": 503,
-      "requestIdPrefix": "groth16-live-receipt-smoke-sol-4",
+      "requestIdPrefix": "groth16-live-receipt-smoke-sol-7",
+      "status": "live-fail-closed-receipt-smoke-pass-not-production"
+    },
+    {
+      "endpoint": "/unshield",
+      "expectedReceiptFields": {
+        "gnarkProofSha256": "sha256:fbf68eb2d409f3cdb8ae76dec5285d43e8d2c69a4f4c43a03c5c866c20d74e5b",
+        "gnarkProofSource": "groth16-verifier-adapter-artifact",
+        "gnarkPublicWitnessSha256": "sha256:19e42b6e34a5861d8804565476d72f8835c81d30cfc66bd598a236d26e1baa60",
+        "groth16VerifierAdapterArtifactRoot": "ops/fixtures/groth16-verifier-adapter-local-unsafe",
+        "groth16VerifierAdapterStatus": "local-unsafe-h6-beta18-sunspot-not-production",
+        "gnarkUsesScaffoldProof": false,
+        "programRelayBindingSource": "groth16-verifier-adapter-artifact",
+        "releaseModel": "program-tag-unshield-pda-cpi-fail-closed"
+      },
+      "httpStatus": 503,
+      "requestIdPrefix": "groth16-live-receipt-smoke-token",
       "status": "live-fail-closed-receipt-smoke-pass-not-production"
     }
   ],
   "operatorStatusSurfacing": {
-    "checked": false,
-    "reason": "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN unset; operator status surfacing was not authenticated on this run.",
+    "checked": true,
+    "groth16VerifierAdapterStatus": "local-unsafe-h6-beta18-sunspot-not-production",
+    "mainnetVaultOwnerPublicKeyConfigured": true,
     "path": "/state/private-pool-v2-status"
   },
   "operatorUrlHost": "vanta-prod-private-pool-v2-operator.onrender.com",
-  "operatorUrlRef": "ops/mainnet/private-pool-v2-services.manifest.json#operator",
+  "operatorUrlRef": "VANTA_PRIVATE_POOL_V2_OPERATOR_URL",
   "productionReady": false,
   "purpose": "Live fail-closed unshield receipt smoke proving deployed operator surfaces Groth16 adapter relay truth instead of scaffold gnark bytes.",
   "secretPolicy": "hashes-and-status-only-no-wallet-signatures-or-auth-tokens",

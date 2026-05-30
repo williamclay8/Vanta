@@ -287,8 +287,12 @@ async function assertOperatorStatusSurfacing(operatorUrl, expected) {
   const adapter = relay.groth16VerifierAdapter;
   assert(adapter && typeof adapter === "object", "Operator status must expose groth16VerifierAdapter.");
   assert(
-    adapter.gnarkProofSha256 === expected.gnarkProofSha256,
-    "Operator status groth16VerifierAdapter.gnarkProofSha256 mismatch.",
+    adapter.proofSha256 === expected.gnarkProofSha256,
+    "Operator status groth16VerifierAdapter.proofSha256 mismatch.",
+  );
+  assert(
+    adapter.publicWitnessSha256 === expected.gnarkPublicWitnessSha256,
+    "Operator status groth16VerifierAdapter.publicWitnessSha256 mismatch.",
   );
   assert(
     adapter.relayBindings?.gnarkProofSource === expected.gnarkProofSource,
