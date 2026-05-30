@@ -189,14 +189,24 @@ for (const phrase of [
   "listConsumedNoteIds()",
   "consumedNoteReferenceHashes",
   "createUnshieldConsumedNoteReferenceHash",
-  "createUnshieldOperatorReleaseReceipt",
-  'kind: "vanta-unshield-operator-release-receipt-v1"',
-  'replayStatus: "accepted-first-use"',
-  'spendabilityBasis: "canonical-spendable-note-ledger"',
+  "buildTagUnshieldProgramReleaseReceipt",
+  'kind: "vanta-unshield-program-release-receipt-v1"',
+  "program-tag-unshield-pda-cpi-fail-closed",
+  'replayStatus: "not-consumed-no-program-tx"',
+  'spendabilityBasis: "pending-onchain-root-proof-nullifier-verification"',
   "releaseIntentHash",
+  "hashReleaseIntent",
 ]) {
   assert(unshieldOperatorSource.includes(phrase), `Unshield operator must preserve typed release receipt/state phrase: ${phrase}`);
 }
+assert(
+  !unshieldOperatorSource.includes("createUnshieldOperatorReleaseReceipt"),
+  "Unshield operator must not preserve the legacy direct-release receipt builder after the TAG_UNSHIELD program relay cutover.",
+);
+assert(
+  !unshieldOperatorSource.includes('kind: "vanta-unshield-operator-release-receipt-v1"'),
+  "Unshield operator must not emit the legacy operator-release receipt kind while program relay remains fail-closed.",
+);
 assert(
   !unshieldOperatorSource.includes('"/state/unshield-records"') ||
     !/\/state\/unshield-records[\s\S]{0,800}records:\s*releaseRecords\.listRecords/u.test(unshieldOperatorSource),
@@ -219,14 +229,28 @@ assert(
 
 for (const phrase of [
   "releaseReceipt",
-  "vanta-unshield-operator-release-receipt-v1",
-  "accepted-first-use",
-  "canonical-spendable-note-ledger",
   "releaseIntentHash",
+  "assertValidReleaseReceipt",
 ]) {
   assert(tokenOperatorClientSource.includes(phrase), `Token Unshield client must validate release receipt phrase: ${phrase}`);
   assert(solOperatorClientSource.includes(phrase), `SOL Unshield client must validate release receipt phrase: ${phrase}`);
 }
+for (const phrase of [
+  "vanta-unshield-operator-release-receipt-v1",
+  "accepted-first-use",
+  "canonical-spendable-note-ledger",
+]) {
+  assert(tokenOperatorClientSource.includes(phrase), `Token Unshield client must preserve live-release receipt contract phrase: ${phrase}`);
+  assert(solOperatorClientSource.includes(phrase), `SOL Unshield client must preserve live-release receipt contract phrase: ${phrase}`);
+}
+assert(
+  tokenOperatorClientSource.includes('receipt.kind !== "vanta-unshield-operator-release-receipt-v1"'),
+  "Token Unshield client must reject unknown release receipt kinds.",
+);
+assert(
+  solOperatorClientSource.includes('receipt.kind !== "vanta-unshield-operator-release-receipt-v1"'),
+  "SOL Unshield client must reject unknown release receipt kinds.",
+);
 
 assert(
   privacyFlowSource.includes("settlementId: committedUnshieldSettlement.settlementCommitment"),
