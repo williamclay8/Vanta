@@ -27,6 +27,8 @@ const unshieldAuthSource = readRepoFile("src/solana/unshieldAuth.ts");
 const solUnshieldAuthSource = readRepoFile("src/solana/solUnshieldAuth.ts");
 const solUnshieldOperatorClientSource = readRepoFile("src/solana/solUnshieldOperatorClient.ts");
 const unshieldOperatorClientSource = readRepoFile("src/solana/unshieldOperatorClient.ts");
+const unshieldOperatorReleaseReceiptSource = readRepoFile("src/solana/unshieldOperatorReleaseReceipt.ts");
+const unshieldOperatorClientSurface = `${solUnshieldOperatorClientSource}\n${unshieldOperatorClientSource}\n${unshieldOperatorReleaseReceiptSource}`;
 const solUnshieldOperatorHealthSource = readRepoFile("src/solana/solUnshieldOperatorHealth.ts");
 const shieldConfigSource = readRepoFile("src/solana/shieldConfig.ts");
 const envExampleSource = readRepoFile(".env.example");
@@ -327,13 +329,13 @@ for (const [sourceLabel, source, phrase] of [
   ],
   [
     "SOL unshield client",
-    solUnshieldOperatorClientSource,
-    "parsed.requestId !== payload.requestId",
+    unshieldOperatorClientSurface,
+    "body.requestId !== expected.requestId",
   ],
   [
     "token unshield client",
-    unshieldOperatorClientSource,
-    "parsed.requestId !== payload.requestId",
+    unshieldOperatorClientSurface,
+    "body.requestId !== expected.requestId",
   ],
   [
     "SOL unshield health client",

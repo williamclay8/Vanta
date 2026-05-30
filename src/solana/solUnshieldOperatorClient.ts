@@ -1,24 +1,18 @@
 import { liveSwapPair } from "@/solana/shieldConfig";
 import { recordLocallyReleasedSolNoteReferenceHash } from "@/solana/operatorStateClient";
 import type { SignedSolUnshieldIntent } from "@/solana/solUnshieldAuth";
+import {
+  parseSuccessfulUnshieldOperatorResponse,
+  parseUnshieldOperatorResponseBody,
+  tryParseBlockedUnshieldOperatorResponse,
+  type UnshieldOperatorReleaseReceipt,
+} from "@/solana/unshieldOperatorReleaseReceipt";
 
 type SolUnshieldOperatorResponse = {
   consumedNoteId?: string;
-  releaseReceipt?: SolUnshieldOperatorReleaseReceipt;
+  releaseReceipt?: UnshieldOperatorReleaseReceipt;
   requestId: string;
   signature: string;
-};
-
-type SolUnshieldOperatorReleaseReceipt = {
-  kind: "vanta-unshield-operator-release-receipt-v1";
-  requestId: string;
-  consumedNoteId: string;
-  transitionNoteId: string;
-  releaseSignature: string;
-  releaseIntentHash: string;
-  proofStatus: string;
-  replayStatus: "accepted-first-use";
-  spendabilityBasis: "canonical-spendable-note-ledger";
 };
 
 export async function requestOperatorSolUnshield(
@@ -33,67 +27,48 @@ export async function requestOperatorSolUnshield(
     signal: AbortSignal.timeout(20_000),
   });
 
+  const rawText = await response.text();
+  let parsed: unknown = null;
+
+  try {
+    parsed = parseUnshieldOperatorResponseBody(rawText);
+  } catch {
+    if (!response.ok) {
+      throw new Error(rawText || "The SOL unshield operator rejected the request.");
+    }
+
+    throw new Error("The SOL unshield operator returned an invalid response body.");
+  }
+
   if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || "The SOL unshield operator rejected the request.");
+    const blockedReason = tryParseBlockedUnshieldOperatorResponse(parsed, response.status, {
+      consumedNoteId: payload.consumedNoteId,
+      requestId: payload.requestId,
+      transitionNoteId: payload.transitionNoteId,
+    });
+
+    if (blockedReason) {
+      throw new Error(blockedReason);
+    }
+
+    throw new Error(
+      typeof rawText === "string" && rawText.trim()
+        ? rawText
+        : "The SOL unshield operator rejected the request.",
+    );
   }
 
-  const parsed = (await response.json()) as Partial<SolUnshieldOperatorResponse>;
-
-  if (typeof parsed.signature !== "string" || parsed.signature.length === 0) {
-    throw new Error("The SOL unshield operator did not return a valid signature.");
-  }
-
-  if (typeof parsed.requestId !== "string" || parsed.requestId.length === 0) {
-    throw new Error("The SOL unshield operator did not return a valid request id.");
-  }
-
-  if (parsed.requestId !== payload.requestId) {
-    throw new Error("The SOL unshield operator returned a mismatched request id.");
-  }
-
-  if (parsed.consumedNoteId !== payload.consumedNoteId) {
-    throw new Error("The SOL unshield operator returned a mismatched consumed note id.");
-  }
-
-  assertValidReleaseReceipt(parsed.releaseReceipt, {
+  const success = parseSuccessfulUnshieldOperatorResponse(parsed, {
     consumedNoteId: payload.consumedNoteId,
     requestId: payload.requestId,
-    signature: parsed.signature,
     transitionNoteId: payload.transitionNoteId,
   });
   recordLocallyReleasedSolNoteReferenceHash(payload.consumedNoteId);
 
   return {
-    consumedNoteId: parsed.consumedNoteId,
-    releaseReceipt: parsed.releaseReceipt,
-    requestId: parsed.requestId,
-    signature: parsed.signature,
+    consumedNoteId: success.consumedNoteId,
+    releaseReceipt: success.releaseReceipt,
+    requestId: success.requestId,
+    signature: success.signature,
   };
-}
-
-function assertValidReleaseReceipt(
-  receipt: SolUnshieldOperatorReleaseReceipt | undefined,
-  expected: {
-    consumedNoteId: string;
-    requestId: string;
-    signature: string;
-    transitionNoteId: string;
-  },
-) {
-  if (!receipt || receipt.kind !== "vanta-unshield-operator-release-receipt-v1") {
-    throw new Error("The SOL unshield operator did not return a typed release receipt.");
-  }
-
-  if (
-    receipt.requestId !== expected.requestId ||
-    receipt.consumedNoteId !== expected.consumedNoteId ||
-    receipt.transitionNoteId !== expected.transitionNoteId ||
-    receipt.releaseSignature !== expected.signature ||
-    receipt.replayStatus !== "accepted-first-use" ||
-    receipt.spendabilityBasis !== "canonical-spendable-note-ledger" ||
-    !receipt.releaseIntentHash.startsWith("sha256:")
-  ) {
-    throw new Error("The SOL unshield operator returned a mismatched release receipt.");
-  }
 }

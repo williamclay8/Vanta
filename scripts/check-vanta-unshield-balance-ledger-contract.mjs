@@ -33,6 +33,8 @@ const shieldAssetRegistrySource = readRepoFile("src/solana/useVantaShieldAssetRe
 const operatorStateClientSource = readRepoFile("src/solana/operatorStateClient.ts");
 const tokenOperatorClientSource = readRepoFile("src/solana/unshieldOperatorClient.ts");
 const solOperatorClientSource = readRepoFile("src/solana/solUnshieldOperatorClient.ts");
+const unshieldOperatorReleaseReceiptSource = readRepoFile("src/solana/unshieldOperatorReleaseReceipt.ts");
+const unshieldOperatorClientSurface = `${tokenOperatorClientSource}\n${solOperatorClientSource}\n${unshieldOperatorReleaseReceiptSource}`;
 const unshieldOperatorSource = readRepoFile("operator/unshield-server.mjs");
 const privatePoolOperatorSource = readRepoFile("operator/private-pool-v2-server.mjs");
 const privacyFlowSource = readRepoFile("src/data/context/PrivacyFlowContext.tsx");
@@ -230,26 +232,25 @@ assert(
 for (const phrase of [
   "releaseReceipt",
   "releaseIntentHash",
-  "assertValidReleaseReceipt",
+  "parseSuccessfulUnshieldOperatorResponse",
+  "tryParseBlockedUnshieldOperatorResponse",
 ]) {
-  assert(tokenOperatorClientSource.includes(phrase), `Token Unshield client must validate release receipt phrase: ${phrase}`);
-  assert(solOperatorClientSource.includes(phrase), `SOL Unshield client must validate release receipt phrase: ${phrase}`);
+  assert(unshieldOperatorClientSurface.includes(phrase), `Unshield operator client must validate release receipt phrase: ${phrase}`);
 }
 for (const phrase of [
   "vanta-unshield-operator-release-receipt-v1",
   "accepted-first-use",
   "canonical-spendable-note-ledger",
+  "vanta-unshield-program-release-receipt-v1",
+  "pending-onchain-root-proof-nullifier-verification",
+  "not-consumed-no-program-tx",
+  "program-tag-unshield-pda-cpi-fail-closed",
 ]) {
-  assert(tokenOperatorClientSource.includes(phrase), `Token Unshield client must preserve live-release receipt contract phrase: ${phrase}`);
-  assert(solOperatorClientSource.includes(phrase), `SOL Unshield client must preserve live-release receipt contract phrase: ${phrase}`);
+  assert(unshieldOperatorReleaseReceiptSource.includes(phrase), `Unshield operator release receipt boundary must preserve phrase: ${phrase}`);
 }
 assert(
-  tokenOperatorClientSource.includes('receipt.kind !== "vanta-unshield-operator-release-receipt-v1"'),
-  "Token Unshield client must reject unknown release receipt kinds.",
-);
-assert(
-  solOperatorClientSource.includes('receipt.kind !== "vanta-unshield-operator-release-receipt-v1"'),
-  "SOL Unshield client must reject unknown release receipt kinds.",
+  unshieldOperatorReleaseReceiptSource.includes("unsupported release receipt kind"),
+  "Unshield operator release receipt boundary must reject unknown receipt kinds.",
 );
 
 assert(
