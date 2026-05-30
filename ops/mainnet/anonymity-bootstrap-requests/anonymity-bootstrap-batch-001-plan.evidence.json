@@ -1,0 +1,56 @@
+{
+  "version": "vanta-anonymity-bootstrap-batch-001-plan-0.1",
+  "status": "confirmed-awaiting-bounded-approval",
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "batchId": "anonymity-bootstrap-batch-001",
+  "parentBootstrapRef": "ops/mainnet/anonymity-bootstrap-requests/anonymity-set-1024-bootstrap.evidence.json",
+  "operatorConfirmedAt": "2026-05-30T16:10:00.000Z",
+  "operatorConfirmedByRef": "Clay/founder-direction/2026-05-30",
+  "cohort": {
+    "id": "stablecoin-usdc-v1-mainnet-private-pool-v2",
+    "assetCohort": "stablecoin-usdc-v1",
+    "poolId": "pool:stablecoin-usdc-v1:100"
+  },
+  "fixedDenomination": {
+    "asset": "USDC",
+    "bucketAmount": "10.000000",
+    "mode": "fixed-bucket-only"
+  },
+  "batchPlan": {
+    "shieldCount": 50,
+    "sharedCohortDepositCount": 1,
+    "sharedCohortDepositBucketUsdc": "10.000000",
+    "estimatedDistinctCommitmentsAdded": 51,
+    "estimatedDepthAfterBatch": 53,
+    "remainingAfterBatch": 971,
+    "nextMilestoneAfterBatch": 64,
+    "estimatedBatchesRemainingAt50": 20
+  },
+  "fundsAtRisk": {
+    "shieldUsdcTotal": "500.000000",
+    "sharedCohortUsdc": "10.000000",
+    "usdcSubtotal": "510.000000",
+    "maximumFundsAtRiskRef": "510 USDC plus mainnet network fees capped at 515 USDC equivalent",
+    "note": "One shared-cohort deposit at the fixed bucket plus fifty operator-bonded shields at the same bucket inside one bounded approval window."
+  },
+  "approvalActionRefShape": "anonymity-bootstrap/batch-001-stablecoin-usdc-v1-<YYYY-MM-DD-HHMM-HHMM-central>",
+  "approvalActionSummaryShape": "Anonymity bootstrap batch 001: one stablecoin-usdc-v1 shared-cohort deposit plus fifty fixed 10.000000 USDC operator-bonded shields",
+  "executeSequence": [
+    "npm run anonymity:bootstrap-batch-001-approval-env",
+    "npm run mainnet:real-funds-approval-preview",
+    "npm run mainnet:real-funds-approval-write",
+    "npm run mainnet:preflight",
+    "Execute shared-cohort deposit and capture solana-tx ref",
+    "npm run mainnet:actual-private-shared-cohort-deposit-note",
+    "Execute fifty fixed-bucket shields inside the approval window",
+    "npm run private-pool-v2:anonymity-set-metrics-json",
+    "npm run anonymity:1024-bootstrap-status"
+  ],
+  "canonicalCommands": [
+    "npm run anonymity:bootstrap-batch-001-plan-check",
+    "npm run anonymity:bootstrap-batch-001-approval-env",
+    "npm run anonymity:1024-bootstrap-checklist"
+  ],
+  "truthBoundary": "Confirmed operator plan only. No approval is active, no funds move, and no anonymity claim lifts until bounded approval is written and live batches complete with reviewed refs."
+}

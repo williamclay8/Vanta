@@ -1,6 +1,6 @@
 {
   "version": "vanta-anonymity-set-1024-bootstrap-0.1",
-  "status": "active-bootstrap-prep-blocked-on-volume",
+  "status": "active-bootstrap-confirmed-awaiting-approval",
   "productionReady": false,
   "privacyClaimAllowed": false,
   "meaningfulPrivacyReady": false,
@@ -19,8 +19,17 @@
     "fixedDenominationPolicy": {
       "mode": "fixed-bucket-only",
       "recommendedBucketUsdc": "10.000000",
+      "confirmedBucketUsdc": "10.000000",
       "note": "Use one fixed USDC bucket per shield in the bootstrap cohort. Mixed arbitrary amounts fragment the set and weaken linkability resistance."
     }
+  },
+  "operatorConfirmed": {
+    "confirmedAt": "2026-05-30T16:10:00.000Z",
+    "confirmedByRef": "Clay/founder-direction/2026-05-30",
+    "cohortId": "stablecoin-usdc-v1-mainnet-private-pool-v2",
+    "fixedBucketUsdc": "10.000000",
+    "shieldsPerBatch": 50,
+    "activeBatchPlanRef": "ops/mainnet/anonymity-bootstrap-requests/anonymity-bootstrap-batch-001-plan.evidence.json"
   },
   "threshold": {
     "minimumDistinctCommitments": 1024,
@@ -65,6 +74,7 @@
     "ops/mainnet/anonymity-bootstrap-requests/anonymity-bootstrap-batch-record.template.json",
     "ops/mainnet/anonymity-bootstrap-requests/anonymity-bootstrap-measurement-receipt.template.json",
     "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
+    "ops/mainnet/anonymity-bootstrap-requests/anonymity-bootstrap-batch-001-plan.evidence.json",
     "PRODUCTION_PRIVACY_AUDIT.md"
   ],
   "operatorSequence": [
@@ -117,7 +127,7 @@
   "knownBlockers": [
     "Measured distinct commitments remain 2 of 1024.",
     "Shared-cohort deposit ref is still a review placeholder, not a reviewed solana-tx ref.",
-    "No bounded real-funds approval window is active for bootstrap batches.",
+    "No bounded real-funds approval window is active for bootstrap batch 001.",
     "Independent reviewer has not accepted the anonymity-set measurement.",
     "Verifier/custody/SBF-live production evidence remains incomplete; bootstrap volume does not close those gates or lift privacy claims."
   ],
@@ -128,6 +138,8 @@
     "npm run private-pool-v2:anonymity-set-metrics-check",
     "npm run private-pool-v2:anonymity-set-readiness-check",
     "npm run private-pool-v2:live-anonymity-set-probe-check",
+    "npm run anonymity:bootstrap-batch-001-plan-check",
+    "npm run anonymity:bootstrap-batch-001-approval-env",
     "npm run mainnet:shared-cohort-next-action-check"
   ],
   "nonClaims": [

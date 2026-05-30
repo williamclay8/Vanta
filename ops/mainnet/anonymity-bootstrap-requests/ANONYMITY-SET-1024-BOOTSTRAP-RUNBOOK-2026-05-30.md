@@ -6,6 +6,29 @@ Status: active bootstrap prep. This file is not production anonymity evidence, n
 
 Grow the **stablecoin-usdc-v1** mainnet cohort from the current measured depth (**2 distinct commitments**) to the published threshold (**1024 distinct commitments**) using a closed-alpha, operator-bonded, fixed-denomination shield bootstrap.
 
+## Operator confirmation (2026-05-30)
+
+Clay confirmed:
+
+| Parameter | Value |
+|---|---|
+| Cohort | `stablecoin-usdc-v1-mainnet-private-pool-v2` |
+| Fixed bucket | **10.000000 USDC** per shield |
+| Batch size | **50 shields** per approval window |
+
+Active batch plan: `ops/mainnet/anonymity-bootstrap-requests/anonymity-bootstrap-batch-001-plan.evidence.json`
+
+Estimated depth after batch 001: **53 / 1024** (current 2 + 1 shared-cohort deposit + 50 shields).
+
+Generate bounded approval env:
+
+```bash
+npm run anonymity:bootstrap-batch-001-approval-env-now
+npm run mainnet:real-funds-approval-preview
+# after review:
+npm run mainnet:real-funds-approval-write
+```
+
 ## Current measured state
 
 | Field | Value |

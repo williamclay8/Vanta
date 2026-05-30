@@ -41,10 +41,20 @@ const packageJson = readJson("package.json");
 const scripts = packageJson.scripts ?? {};
 
 assert(evidence.version === "vanta-anonymity-set-1024-bootstrap-0.1", "version mismatch");
-assert(evidence.status === "active-bootstrap-prep-blocked-on-volume", "status mismatch");
+assert(evidence.status === "active-bootstrap-confirmed-awaiting-approval", "status mismatch");
 assert(evidence.productionReady === false, "productionReady must remain false");
 assert(evidence.privacyClaimAllowed === false, "privacyClaimAllowed must remain false");
 assert(evidence.threshold.minimumDistinctCommitments === 1024, "threshold must remain 1024");
+assert(
+  evidence.operatorConfirmed?.cohortId === "stablecoin-usdc-v1-mainnet-private-pool-v2",
+  "operator confirmation must record stablecoin-usdc-v1 cohort",
+);
+assert(evidence.operatorConfirmed?.fixedBucketUsdc === "10.000000", "operator confirmation must record 10 USDC bucket");
+assert(evidence.operatorConfirmed?.shieldsPerBatch === 50, "operator confirmation must record batch size 50");
+assert(
+  existsSync(resolve(repoRoot, evidence.operatorConfirmed?.activeBatchPlanRef ?? "")),
+  "active batch plan ref must exist",
+);
 assert(
   evidence.targetCohort.id === "stablecoin-usdc-v1-mainnet-private-pool-v2",
   "target cohort mismatch",
