@@ -133,6 +133,7 @@ assert(handoff.requestBundleRef === packetPath, "external handoff must point at 
 assert(closureGate.status === "blocked-no-complete-c01-verifier-evidence-chain", "closure gate must remain blocked");
 includes(humanHandoff, packetPath, "human handoff");
 includes(humanHandoff, "npm run zk:c01-external-review-request-bundle-check", "human handoff");
+includes(humanHandoff, "npm run zk:c01-external-review-send-package-generate", "human handoff");
 
 const shape = packet.currentRequiredShape ?? {};
 for (const [field, expected] of [
@@ -179,6 +180,8 @@ const expectedFiles = new Map([
   ["zk-findings-ledger", "VANTA_ZK_REVIEW.findings.json"],
   ["verifier-backend-decision", "docs/zk/c01-production-verifier-backend-decision.md"],
   ["audit-package", "docs/audit-package.md"],
+  ["groth16-verifier-adapter-artifact", "ops/mainnet/private-pool-v2-groth16-verifier-adapter-artifact.evidence.json"],
+  ["groth16-verifier-adapter-live-receipt-smoke", "ops/mainnet/private-pool-v2-groth16-verifier-adapter-live-receipt-smoke.evidence.json"],
 ]);
 const outboundFiles = mapById(packet.outboundFiles, "outboundFiles");
 assert(outboundFiles.size === expectedFiles.size, "outboundFiles size mismatch");
@@ -222,6 +225,7 @@ for (const id of [
 assertStringArray(packet.canonicalCommands, "canonicalCommands");
 for (const command of [
   "npm run zk:c01-external-review-request-bundle-check",
+  "npm run zk:c01-external-review-send-package-generate",
   "npm run zk:c01-production-verifier-artifact-request-check",
   "npm run zk:c01-external-review-handoff-check",
   "npm run zk:c01-verifier-evidence-closure-gate-check",

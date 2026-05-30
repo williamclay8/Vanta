@@ -1,6 +1,6 @@
 {
   "version": "vanta-private-pool-v2-c01-external-review-request-bundle-0.1",
-  "checkedAt": "2026-05-25T00:00:00.000Z",
+  "checkedAt": "2026-05-30T02:15:23.169Z",
   "status": "ready-for-external-c01-review-request-bundle-blocked",
   "selectedBackend": "groth16-tag3-solana-v0",
   "selectedBackendStatus": "selected-pending-production-evidence",
@@ -51,7 +51,7 @@
       "id": "human-evidence-request",
       "group": "work-order",
       "path": "ops/mainnet/private-pool-v2-c01-external-evidence-request.md",
-      "sha256": "sha256:75f6a720d9798020b7c4f136b9d86393ca56c326eb1f3acc3e0756bd2c0c2758",
+      "sha256": "sha256:c1b72f4c1a109e2075b496cdc1f1d46188bff808efaeec430759d6e56843c79a",
       "requiredFor": "Human-readable C01 external evidence request and ref source map.",
       "truthBoundary": "Outbound work order only; not reviewed external evidence or C01 closure."
     },
@@ -59,7 +59,7 @@
       "id": "artifact-request",
       "group": "work-order",
       "path": "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
-      "sha256": "sha256:71c9dc65b78add4de5d67eca38366accb75af8b1c318071b65cbd50628861016",
+      "sha256": "sha256:0e30e98453b1b19bd6273e85937f89c10745ab5b40c00d621674d2f59215eb61",
       "requiredFor": "Machine-readable production verifier artifact request.",
       "truthBoundary": "Refs-only request packet; not production artifact evidence, and accepted production outputs remain null."
     },
@@ -139,7 +139,7 @@
       "id": "deterministic-build-gate",
       "group": "acceptance-gate",
       "path": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
-      "sha256": "sha256:c3c25bd31e2447e37ee928e6975f8b321c76c501b9d0e61f21090053fb9ac5be",
+      "sha256": "sha256:f62b5449aad0034a08295363e64aa1849a634781d4d2815ff9554e8384a8c54b",
       "requiredFor": "Deterministic production artifact build validation contract.",
       "truthBoundary": "Gate contract only; not deterministic artifact build evidence, and the default template remains non-evidence."
     },
@@ -230,6 +230,22 @@
       "sha256": "sha256:bd5dfe969c0a72fb2ade455bcd69ee7bedad7bcc43cb144e892c2088444f4faf",
       "requiredFor": "Audit package pointers to current C01 gates.",
       "truthBoundary": "Local package index only; not audit/reviewer acceptance."
+    },
+    {
+      "id": "groth16-verifier-adapter-artifact",
+      "group": "operator-local-context",
+      "path": "ops/mainnet/private-pool-v2-groth16-verifier-adapter-artifact.evidence.json",
+      "sha256": "sha256:67ffef9e21a95d4f3e0d1dae068f60c9b507038c0774090ed147113b9a8e0d8d",
+      "requiredFor": "Local-unsafe Groth16 adapter artifact tuple used for relay binding and CPI-shape work.",
+      "truthBoundary": "Local-unsafe adapter materialization only; not production verifier-adapter acceptance."
+    },
+    {
+      "id": "groth16-verifier-adapter-live-receipt-smoke",
+      "group": "operator-local-context",
+      "path": "ops/mainnet/private-pool-v2-groth16-verifier-adapter-live-receipt-smoke.evidence.json",
+      "sha256": "sha256:586f2b34b5b160369646f0264367e20cc96295f47c0dc3c5c1ed34f688768669",
+      "requiredFor": "Prod fail-closed unshield receipt smoke proving deployed operator surfaces adapter relay truth.",
+      "truthBoundary": "Live operator receipt smoke only; not production verifier-adapter acceptance or fund release."
     }
   ],
   "requiredReturnedExternalRefs": [
@@ -371,6 +387,7 @@
   ],
   "canonicalCommands": [
     "npm run zk:c01-external-review-request-bundle-check",
+    "npm run zk:c01-external-review-send-package-generate",
     "npm run zk:c01-external-review-handoff-check",
     "npm run zk:c01-production-verifier-artifact-request-check",
     "npm run zk:c01-production-artifact-acceptance-gate-check",

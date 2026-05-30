@@ -287,8 +287,8 @@ const precursor = packet.reviewerLocalPrecursorRefs ?? {};
 for (const [field, expected] of [
   ["status", "comparison-only-reviewer-starting-point"],
   ["repoRemote", "https://github.com/williamclay8/Vanta.git"],
-  ["branch", "codex/ppa-program-004-runtime-verifier-wired"],
-  ["reviewStartCommitRef", "git:d5a71b6a8a5bb40cd0fc0407c9e6b5d9b9f414a5"],
+  ["branch", "main"],
+  ["reviewStartCommitRef", "git:c2a0e693fbb1975244dc42f57cb561c17bc6d574"],
   ["treeStatusAtCollection", "clean"],
   ["selectedBackend", packet.selectedBackend],
   ["routeId", packet.routeId],

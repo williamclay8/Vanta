@@ -51,6 +51,7 @@ Validate the send-list locally with:
 
 ```bash
 npm run zk:c01-external-review-request-bundle-check
+npm run zk:c01-external-review-send-package-generate
 ```
 
 This bundle is only an outbound request manifest. It is not reviewed frozen source, not source-freeze acceptance, not production proof/VK/public-witness evidence, not verifier-adapter acceptance, not deployed verifier evidence, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure.
@@ -60,8 +61,8 @@ This bundle is only an outbound request manifest. It is not reviewed frozen sour
 These local refs are now copied into `reviewerLocalPrecursorRefs` in the machine-readable request so an external reviewer does not have to rediscover the starting point:
 
 - repo: `https://github.com/williamclay8/Vanta.git`
-- branch: `codex/ppa-program-004-runtime-verifier-wired`
-- reviewStartCommitRef: `git:d5a71b6a8a5bb40cd0fc0407c9e6b5d9b9f414a5`
+- branch: `main`
+- reviewStartCommitRef: `git:c2a0e693fbb1975244dc42f57cb561c17bc6d574`
 - treeStatusAtCollection: `clean`
 - current source: `zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr`
 - current source sha256: `sha256:363d7dffa7ba03698a8bdbe2d48a6f13cf32ddeb7326fb997ff9cff63db8bf96`

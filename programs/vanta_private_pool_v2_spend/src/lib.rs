@@ -5982,6 +5982,20 @@ mod tests {
             require_spend_with_proof_verifier_program(&spend_program_id, &writable),
             Err(ProgramError::InvalidAccountData)
         );
+
+        let mut signer_lamports = 1u64;
+        let mut signer_data: Vec<u8> = vec![];
+        let signer = executable_account_info_with_flags(
+            &verifier_program,
+            false,
+            true,
+            &mut signer_lamports,
+            &mut signer_data,
+        );
+        assert_eq!(
+            require_spend_with_proof_verifier_program(&spend_program_id, &signer),
+            Err(ProgramError::InvalidAccountData)
+        );
     }
 
     #[test]
