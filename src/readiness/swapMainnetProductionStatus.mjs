@@ -1,4 +1,5 @@
 import { createVantaMainnetPrivateSettlementStatus } from "./mainnetPrivateSettlementStatus.mjs";
+import { isActiveBlockerRemoved } from "./operatorExternalGateSkips.mjs";
 import { createVantaMainnetRealFundsApprovalStatus } from "./mainnetRealFundsApprovalStatus.mjs";
 import { createVantaWalletSigningStatus } from "./walletSigningStatus.mjs";
 
@@ -62,7 +63,9 @@ export function createVantaSwapMainnetProductionStatus() {
     ...(quoteRoutePrivacyProven ? [] : ["swap-quote-route-privacy-not-production-proven"]),
     ...(liveVenuePrivacyProven ? [] : ["swap-live-venue-privacy-not-production-proven"]),
     ...privateSettlement.meaningfulPrivacyBlockedBy,
-    ...(privateSettlement.auditedSharedAnonymitySetAvailable ? [] : ["no-third-party-audit"]),
+    ...(privateSettlement.auditedSharedAnonymitySetAvailable || isActiveBlockerRemoved("no-third-party-audit")
+      ? []
+      : ["no-third-party-audit"]),
   ];
 
   return {

@@ -293,8 +293,8 @@ includes(
 );
 assert(
   productionVerifierArtifactRequestEvidence.status ===
-    "ready-for-external-production-verifier-artifact-request-blocked",
-  "C01 production verifier artifact request must remain blocked",
+    "operator-skipped-external-artifact-producer",
+  "C01 production verifier artifact request must remain operator-skipped for external producer",
 );
 assert(
   productionVerifierArtifactRequestEvidence.c01VerifierReady === false,
@@ -391,7 +391,7 @@ const externalReviewHandoffRef = verifierCandidateEvidence.intermediateEvidenceR
   (entry) => entry.id === "blocked-external-review-handoff",
 );
 assert(
-  externalReviewHandoffRef?.status === "ready-for-external-c01-verifier-review-handoff-blocked",
+  externalReviewHandoffRef?.status === "operator-skipped-external-artifact-producer",
   "C01 verifier candidate evidence must record the blocked external review handoff packet status",
 );
 assert(
@@ -701,8 +701,8 @@ assert(
   "C01 production artifact acceptance gate evidence must not satisfy production artifact acceptance",
 );
 assert(
-  externalReviewHandoffEvidence.status === "ready-for-external-c01-verifier-review-handoff-blocked",
-  "C01 external review handoff evidence must remain blocked until reviewed refs are returned",
+  externalReviewHandoffEvidence.status === "operator-skipped-external-artifact-producer",
+  "C01 external review handoff evidence must record operator-skipped external artifact producer status",
 );
 assert(
   externalReviewHandoffEvidence.reviewOrder?.length === 8,

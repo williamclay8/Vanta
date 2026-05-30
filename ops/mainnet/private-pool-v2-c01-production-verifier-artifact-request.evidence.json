@@ -1,7 +1,7 @@
 {
   "version": "vanta-private-pool-v2-c01-production-verifier-artifact-request-0.1",
   "checkedAt": "2026-05-24T00:00:00.000Z",
-  "status": "ready-for-external-production-verifier-artifact-request-blocked",
+  "status": "operator-skipped-external-artifact-producer",
   "selectedBackend": "groth16-tag3-solana-v0",
   "selectedBackendStatus": "selected-pending-production-evidence",
   "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
@@ -600,7 +600,6 @@
   "remainingBlockers": [
     "no reviewed frozen source commit",
     "no source freeze review acceptance",
-    "no external source-review acceptance",
     "no reviewed production output manifest",
     "no deterministic reviewed production artifact build receipt",
     "no reviewed production artifact bundle",
@@ -610,8 +609,19 @@
     "no verifier program upgrade-authority status ref",
     "no tag-5 verifier-key record binding production VK hash to verifier program id",
     "no SBF/live lineage acceptance",
-    "no audit/reviewer acceptance",
     "no composite C01 verifier evidence closure validation"
+  ],
+  "operatorSkippedBlockers": [
+    {
+      "id": "no-external-source-review-acceptance",
+      "decidedByRef": "Clay/founder-direction/2026-05-30",
+      "effect": "Removed Reilabs/external artifact producer wait from active blockers; not C01 closure."
+    },
+    {
+      "id": "no-audit-reviewer-acceptance",
+      "decidedByRef": "Clay/founder-direction/2026-05-30",
+      "effect": "Removed third-party audit wait from active blockers; not audit acceptance."
+    }
   ],
   "canonicalCommands": [
     "npm run zk:c01-production-verifier-artifact-request-check",

@@ -83,7 +83,7 @@ for (const forbidden of [
 }
 
 assert(packet.version === "vanta-private-pool-v2-c01-external-review-handoff-0.1", "version mismatch");
-assert(packet.status === "ready-for-external-c01-verifier-review-handoff-blocked", "status mismatch");
+assert(packet.status === "operator-skipped-external-artifact-producer", "status mismatch");
 assert(packet.selectedBackend === "groth16-tag3-solana-v0", "selected backend mismatch");
 assert(packet.selectedBackendStatus === "selected-pending-production-evidence", "selected backend status mismatch");
 assert(packet.routeId === "sunspot-noir-acir-gnark-groth16-solana-v0", "route mismatch");
@@ -256,11 +256,22 @@ for (const blocker of [
   "no deployed verifier program id/hash",
   "no verifier program upgrade-authority status ref",
   "no verifier-key record binding production VK hash to verifier program id",
-  "no audit/reviewer acceptance",
   "no composite C01 verifier evidence closure validation",
 ]) {
   assert(packet.remainingBlockers.includes(blocker), `remaining blocker missing ${blocker}`);
 }
+assert(
+  Array.isArray(packet.operatorSkippedBlockers) && packet.operatorSkippedBlockers.length >= 2,
+  "operatorSkippedBlockers must record declined external producer and audit waits",
+);
+assert(
+  !packet.remainingBlockers.includes("no external source-review acceptance"),
+  "Reilabs/external producer wait must be operator-skipped",
+);
+assert(
+  !packet.remainingBlockers.includes("no audit/reviewer acceptance"),
+  "audit wait must be operator-skipped",
+);
 assertStringArray(packet.canonicalCommands, "canonicalCommands");
 for (const command of [
   "npm run zk:c01-external-review-handoff-check",
@@ -381,7 +392,7 @@ for (const aggregate of ["zk:review-guards-check", "zk:feedback-loop-check"]) {
 for (const marker of [
   "C01 external reviewer handoff packet",
   packetPath,
-  "ready-for-external-c01-verifier-review-handoff-blocked",
+  "operator-skipped-external-artifact-producer",
   "npm run zk:c01-external-review-handoff-check",
   "C01 production verifier artifact request packet",
   "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",

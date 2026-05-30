@@ -1,0 +1,75 @@
+{
+  "version": "vanta-operator-external-gate-skips-0.1",
+  "checkedAt": "2026-05-30T00:00:00.000Z",
+  "status": "active",
+  "productionReady": false,
+  "auditClaimAllowed": false,
+  "mainnetReady": false,
+  "privacyClaimAllowed": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "purpose": "Operator-declined external engagements removed from active blocker surfaces. These skips do not create audit acceptance, C01 closure, production verifier evidence, or production privacy approval.",
+  "removedActiveBlockerIds": [
+    "no-third-party-audit",
+    "third-party-audit-report-and-fix-verification",
+    "no external source-review acceptance",
+    "no audit/reviewer acceptance",
+    "no audit/reviewer acceptance ref"
+  ],
+  "skips": [
+    {
+      "id": "third-party-security-audit",
+      "decidedByRef": "Clay/founder-direction/2026-05-30",
+      "operatorDecision": "Skipped by operator request on 2026-05-30. Clay will not contract third-party audit firms. This does not create an audit claim and does not make Vanta production-ready.",
+      "effect": "Removed from active blockers; not evidence of independent security review.",
+      "removedBlockerIds": [
+        "no-third-party-audit",
+        "third-party-audit-report-and-fix-verification"
+      ]
+    },
+    {
+      "id": "production-privacy-audit-outreach",
+      "decidedByRef": "Clay/founder-direction/2026-05-30",
+      "operatorDecision": "Declined by operator request on 2026-05-30. Clay will not contract Veridise, OtterSec, or other audit outreach targets for Band 7 engagement.",
+      "effect": "Removed audit outreach wait from active blockers; not audit acceptance.",
+      "removedBlockerIds": [
+        "no-third-party-audit",
+        "third-party-audit-report-and-fix-verification"
+      ]
+    },
+    {
+      "id": "c01-external-artifact-producer-reilabs",
+      "decidedByRef": "Clay/founder-direction/2026-05-30",
+      "operatorDecision": "Skipped by operator request on 2026-05-30. Clay will not contract Reilabs or other external Sunspot/Gnark C01 artifact producer services. Local-unsafe C01 work may continue, but external artifact producer wait is removed from active blockers.",
+      "effect": "Removed Reilabs/external artifact producer wait from active blockers; not C01 closure or production verifier evidence.",
+      "removedBlockerIds": [
+        "no external source-review acceptance"
+      ],
+      "skippedPacketStatuses": [
+        "operator-skipped-external-artifact-producer"
+      ]
+    },
+    {
+      "id": "c01-audit-reviewer-acceptance",
+      "decidedByRef": "Clay/founder-direction/2026-05-30",
+      "operatorDecision": "Skipped by operator request on 2026-05-30 as part of declining third-party audit engagement. This does not create C01 audit/reviewer acceptance.",
+      "effect": "Removed C01 audit/reviewer wait from active blockers; not audit acceptance or C01 closure.",
+      "removedBlockerIds": [
+        "no audit/reviewer acceptance",
+        "no audit/reviewer acceptance ref"
+      ],
+      "skippedGateStatuses": [
+        "operator-skipped-control"
+      ]
+    }
+  ],
+  "nonClaims": [
+    "not audited",
+    "not C01 closed",
+    "not production verifier evidence complete",
+    "not production-ready",
+    "not privacy-claim approved"
+  ],
+  "canonicalCommands": [
+    "npm run mainnet:operator-external-gate-skips-check"
+  ]
+}

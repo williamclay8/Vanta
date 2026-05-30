@@ -127,7 +127,8 @@
       "id": "third-party-audit-report-and-fix-verification",
       "requiredRefShape": "audit:<third-party-report-and-fix-verification-ref>",
       "currentRef": null,
-      "status": "blocked"
+      "status": "operator-skipped-control",
+      "operatorDecision": "Skipped by operator request on 2026-05-30. Clay will not contract third-party audit firms."
     },
     {
       "id": "minimum-live-commitments",

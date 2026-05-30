@@ -1,7 +1,7 @@
 {
   "version": "vanta-private-pool-v2-c01-sunspot-gnark-artifact-acquisition-0.1",
   "checkedAt": "2026-05-20T00:00:00.000Z",
-  "status": "blocked-awaiting-reviewed-external-artifact-intake",
+  "status": "operator-skipped-external-artifact-producer",
   "selectedBackend": "groth16-tag3-solana-v0",
   "selectedBackendStatus": "selected-pending-production-evidence",
   "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",

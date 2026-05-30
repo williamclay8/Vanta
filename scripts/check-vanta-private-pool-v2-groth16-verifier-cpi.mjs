@@ -151,7 +151,6 @@ assertBlockers(adapterAcceptanceGate, "adapter acceptance gate", [
   "no production valid mutation evidence",
   "no production invalid/wrong-input/wrong-key/wrong-program no-mutation evidence",
   "no rebuilt/redeployed/reinitialized/live SBF lineage",
-  "no audit/reviewer acceptance",
 ]);
 
 assert(
@@ -165,12 +164,11 @@ assertBlockers(sbfLiveLineageGate, "SBF/live lineage gate", [
   "no deployed verifier program id/hash",
   "no verifier-key record binding production VK hash to verifier program id",
   "no deployment, reinitialization/migration, verifier-key registration, or proof-enforced path receipts",
-  "no audit/reviewer acceptance",
 ]);
 
 assert(
-  auditReviewerGate.status === "blocked-no-audit-reviewer-acceptance",
-  "audit reviewer gate must remain blocked",
+  auditReviewerGate.status === "operator-skipped-control",
+  "audit reviewer gate must be operator-skipped-control",
 );
 assertBlockers(auditReviewerGate, "audit reviewer gate", [
   "no reviewed production artifact bundle",
@@ -179,7 +177,6 @@ assertBlockers(auditReviewerGate, "audit reviewer gate", [
   "no production invalid/wrong-input/wrong-key/wrong-program no-mutation evidence",
   "no rebuilt/redeployed/reinitialized/live SBF lineage",
   "no reviewer identity and C01 scope ref",
-  "no audit/reviewer acceptance ref",
 ]);
 
 assert(
@@ -244,7 +241,6 @@ assertBlockers(closureGate, "closure gate", [
   "no deployed verifier program id/hash",
   "no verifier-key record binding production VK hash to verifier program id",
   "no reviewed SBF/live lineage acceptance",
-  "no reviewed audit/reviewer acceptance",
   "no complete cross-packet C01 verifier evidence-chain validation",
 ]);
 
@@ -302,8 +298,8 @@ assert(
 );
 
 assert(
-  externalHandoff.status === "ready-for-external-c01-verifier-review-handoff-blocked",
-  "external handoff must remain blocked",
+  externalHandoff.status === "operator-skipped-external-artifact-producer",
+  "external handoff must be operator-skipped for external artifact producer",
 );
 assertBlockers(externalHandoff, "external handoff", [
   "no reviewed production artifact bundle",
@@ -312,9 +308,16 @@ assertBlockers(externalHandoff, "external handoff", [
   "no deployed verifier program id/hash",
   "no verifier-key record binding production VK hash to verifier program id",
   "no SBF/live lineage acceptance",
-  "no audit/reviewer acceptance",
   "no composite C01 verifier evidence closure validation",
 ]);
+assert(
+  !externalHandoff.remainingBlockers.includes("no external source-review acceptance"),
+  "Reilabs/external producer wait must be operator-skipped",
+);
+assert(
+  !externalHandoff.remainingBlockers.includes("no audit/reviewer acceptance"),
+  "audit wait must be operator-skipped",
+);
 for (const marker of [
   "VANTA_C01_PRODUCTION_ARTIFACT_BUNDLE_PATH=<reviewed-refs-only-json> npm run zk:c01-production-artifact-acceptance-gate-check",
   "VANTA_C01_VERIFIER_ADAPTER_ACCEPTANCE_PATH=<reviewed-refs-only-json> npm run zk:c01-verifier-adapter-acceptance-gate-check",

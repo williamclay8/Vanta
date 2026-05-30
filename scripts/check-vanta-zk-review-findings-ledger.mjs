@@ -2500,7 +2500,7 @@ assert(
   "C01 must record the blocked verifier evidence closure gate status",
 );
 assert(
-  c01Text.includes("ready-for-external-c01-verifier-review-handoff-blocked"),
+  c01Text.includes("operator-skipped-external-artifact-producer"),
   "C01 must record the external reviewer handoff status",
 );
 assert(

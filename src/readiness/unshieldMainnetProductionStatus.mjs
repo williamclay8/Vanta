@@ -1,4 +1,5 @@
 import { createVantaMainnetPrivateSettlementStatus } from "./mainnetPrivateSettlementStatus.mjs";
+import { isActiveBlockerRemoved } from "./operatorExternalGateSkips.mjs";
 import { createVantaMainnetRealFundsApprovalStatus } from "./mainnetRealFundsApprovalStatus.mjs";
 import { createVantaAbuseObservabilityRuntimeStatus } from "./abuseObservabilityRuntimeStatus.mjs";
 import { createVantaProductionServiceDeploymentStatus } from "./productionServiceDeploymentStatus.mjs";
@@ -186,7 +187,9 @@ export function createVantaUnshieldMainnetProductionStatus() {
     ...(exactUnshieldApprovalScoped ? [] : ["no-exact-unshield-bounded-approval-window"]),
     ...(boundedApprovalActive ? [] : realFundsApproval.mainnetFundsBlockedBy),
     ...privateSettlement.meaningfulPrivacyBlockedBy,
-    ...(privateSettlement.auditedSharedAnonymitySetAvailable ? [] : ["no-third-party-audit"]),
+    ...(privateSettlement.auditedSharedAnonymitySetAvailable || isActiveBlockerRemoved("no-third-party-audit")
+      ? []
+      : ["no-third-party-audit"]),
   ];
 
   return {

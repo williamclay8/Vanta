@@ -284,7 +284,7 @@ assert(
   "current-source compile-attempt status mismatch",
 );
 assert(
-  acquisition.status === "blocked-awaiting-reviewed-external-artifact-intake",
+  acquisition.status === "operator-skipped-external-artifact-producer",
   "artifact acquisition packet must remain blocked until reviewed artifacts are returned",
 );
 assert(

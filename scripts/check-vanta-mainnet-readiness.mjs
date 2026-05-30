@@ -1,6 +1,7 @@
 import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { createVantaMainnetReadinessSnapshot } from "../src/readiness/mainnetReadiness.mjs";
+import { filterActiveBlockers } from "../src/readiness/operatorExternalGateSkips.mjs";
 import { createVantaProductionObservabilityControlsSummary } from "../src/readiness/productionObservabilityControls.mjs";
 import { createVantaTurnkeyIntegrationContract } from "../src/readiness/turnkeyIntegrationContract.mjs";
 import { createVantaWalletSigningLaunchPolicy } from "../src/readiness/walletSigningLaunchPolicy.mjs";
@@ -136,7 +137,7 @@ assert.equal(
   snapshot.realFundsApproval.liveMainnetActionsAllowedNow &&
     snapshot.privateSettlement.privateSettlementApprovalScoped,
 );
-assert.deepEqual(snapshot.privateSettlement.meaningfulPrivacyBlockedBy, [
+assert.deepEqual(snapshot.privateSettlement.meaningfulPrivacyBlockedBy, filterActiveBlockers([
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
   "no-third-party-audit",
@@ -145,7 +146,7 @@ assert.deepEqual(snapshot.privateSettlement.meaningfulPrivacyBlockedBy, [
   "no-independent-production-relayer-separation-review",
   "mainnet-spend-program-evidence-pre-output-record-pda-abi-incompatible",
   ...(snapshot.privateSettlement.boundedRealFundsApprovalWindowActive ? [] : ["no-active-actual-private-settlement-approval-window"]),
-]);
+]));
 assert.equal(snapshot.walletSigning.checkedEvidenceRef, "ops/mainnet/wallet-signing-safety.evidence.json");
 assert.equal(snapshot.walletSigning.mainnetReady, false);
 assert.equal(snapshot.walletSigning.productionReady, false);

@@ -42,6 +42,7 @@
     "truth:limitation-language-check": "node scripts/check-vanta-limitation-language-caveat.mjs",
     "mainnet:readiness": "node scripts/print-vanta-mainnet-readiness.mjs",
     "mainnet:readiness-json": "node scripts/print-vanta-mainnet-readiness.mjs --json",
+    "mainnet:operator-external-gate-skips-check": "node scripts/check-vanta-operator-external-gate-skips.mjs",
     "mainnet:readiness-check": "node scripts/check-vanta-mainnet-readiness.mjs",
     "mainnet:external-gates-check": "node scripts/check-vanta-external-gates-packet.mjs",
     "mainnet:service-contract-check": "node scripts/check-vanta-production-service-contract.mjs",

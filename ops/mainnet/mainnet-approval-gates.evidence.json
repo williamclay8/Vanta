@@ -90,7 +90,7 @@
         "VANTA_AUDIT_FINDINGS_DISPOSITION_REF",
         "VANTA_AUDIT_FIX_VERIFICATION_REF"
       ],
-      "operatorDecision": "Skipped by operator request on 2026-04-22. This does not create an audit claim, and does not make Vanta production-ready.",
+      "operatorDecision": "Skipped by operator request on 2026-05-30. Clay will not contract third-party audit firms. This does not create an audit claim, and does not make Vanta production-ready.",
       "nextAction": "If this gate is later reopened, engage an independent reviewer and record refs-only audit scope, report, findings disposition, and fix verification artifacts."
     },
     {
@@ -163,6 +163,16 @@
       "id": "third-party-security-audit-skipped",
       "decidedByRef": "Clay / founder direction / 2026-04-22",
       "effect": "Removed from active blockers; not evidence of independent security review."
+    },
+    {
+      "id": "c01-external-artifact-producer-reilabs-skipped",
+      "decidedByRef": "Clay/founder-direction/2026-05-30",
+      "effect": "Removed from active blockers; not C01 closure or production verifier evidence."
+    },
+    {
+      "id": "production-privacy-audit-outreach-declined",
+      "decidedByRef": "Clay/founder-direction/2026-05-30",
+      "effect": "Removed audit outreach wait from active blockers; not audit acceptance."
     },
     {
       "id": "legal-compliance-custody-skipped",

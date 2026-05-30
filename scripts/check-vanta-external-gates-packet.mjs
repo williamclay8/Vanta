@@ -49,7 +49,7 @@ for (const gateId of requiredGates) {
   const gate = packet.gates.find((candidate) => candidate.id === gateId);
   assert.ok(gate, `Missing external gate: ${gateId}.`);
   assert.equal(gate.externalGate, true, `${gateId} must be marked as an external gate.`);
-  assert.ok(["blocked", "not-provisioned"].includes(gate.status), `${gateId} must remain blocked or not-provisioned.`);
+  assert.ok(["blocked", "not-provisioned", "operator-skipped-control"].includes(gate.status), `${gateId} must remain blocked, not-provisioned, or operator-skipped-control.`);
   assert.ok(gate.owner, `${gateId} must name an owner.`);
   assert.ok(Array.isArray(gate.requiredEvidence) && gate.requiredEvidence.length > 0, `${gateId} needs evidence.`);
   assert.ok(Array.isArray(gate.forbiddenInGit) && gate.forbiddenInGit.length > 0, `${gateId} needs forbidden values.`);

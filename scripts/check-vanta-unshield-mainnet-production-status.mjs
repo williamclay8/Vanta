@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { createVantaUnshieldMainnetProductionStatus } from "../src/readiness/unshieldMainnetProductionStatus.mjs";
+import { filterActiveBlockers } from "../src/readiness/operatorExternalGateSkips.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const packageJson = JSON.parse(readFileSync(resolve(repoRoot, "package.json"), "utf8"));
@@ -69,7 +70,7 @@ assert.equal(status.liveSettlementProven, false);
 assert.equal(status.exactUnshieldApprovalScoped, false);
 assert.equal(status.boundedApprovalActive, false);
 
-const expectedBlockers = [
+const expectedBlockers = filterActiveBlockers([
   "no-reviewed-live-mainnet-unshield-settlement-evidence",
   "no-exact-unshield-bounded-approval-window",
   "observability-provider-controls-pending",
@@ -83,7 +84,7 @@ const expectedBlockers = [
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
   "no-third-party-audit",
-];
+]);
 for (const blocker of expectedBlockers) {
   assert.ok(status.blockers.includes(blocker), `Unshield mainnet production status missing blocker: ${blocker}`);
 }

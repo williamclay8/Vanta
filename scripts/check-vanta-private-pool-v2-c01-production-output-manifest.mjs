@@ -472,8 +472,8 @@ function assertDefaultPacket() {
 
   assert(deterministicBuildGate.status === "blocked-no-deterministic-production-artifact-build-receipt", "deterministic build gate status mismatch");
   assert(productionArtifactGate.status === "blocked-no-reviewed-production-artifact-bundle", "production artifact gate status mismatch");
-  assert(artifactRequest.status === "ready-for-external-production-verifier-artifact-request-blocked", "artifact request status mismatch");
-  assert(externalHandoff.status === "ready-for-external-c01-verifier-review-handoff-blocked", "external handoff status mismatch");
+  assert(artifactRequest.status === "operator-skipped-external-artifact-producer", "artifact request status mismatch");
+  assert(externalHandoff.status === "operator-skipped-external-artifact-producer", "external handoff status mismatch");
 
   assertAllowedKeys(packet.requiredOutputShape, "required output shape", Object.keys(expectedShape));
   for (const [field, expected] of Object.entries(expectedShape)) {

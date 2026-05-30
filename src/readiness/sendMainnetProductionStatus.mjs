@@ -1,4 +1,5 @@
 import { createVantaMainnetPrivateSettlementStatus } from "./mainnetPrivateSettlementStatus.mjs";
+import { isActiveBlockerRemoved } from "./operatorExternalGateSkips.mjs";
 import { createVantaMainnetRealFundsApprovalStatus } from "./mainnetRealFundsApprovalStatus.mjs";
 import { createVantaWalletSigningStatus } from "./walletSigningStatus.mjs";
 
@@ -77,7 +78,9 @@ export function createVantaSendMainnetProductionStatus() {
       ? []
       : ["stateful-verifier-indexer-commit-idempotency-not-proven"]),
     ...privateSettlement.meaningfulPrivacyBlockedBy,
-    ...(privateSettlement.auditedSharedAnonymitySetAvailable ? [] : ["no-third-party-audit"]),
+    ...(privateSettlement.auditedSharedAnonymitySetAvailable || isActiveBlockerRemoved("no-third-party-audit")
+      ? []
+      : ["no-third-party-audit"]),
     ...(privateSettlement.actualPrivateMainnetEvidence.requiredLiveEvidence.includes(
       "reviewer packet proving no source wallet, merchant address, raw amount, input commitment, input leaf index, deposit signature, plaintext memo, or same-fee-payer linkage appears in the public spend transcript",
     )

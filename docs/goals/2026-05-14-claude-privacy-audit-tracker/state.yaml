@@ -2360,7 +2360,7 @@ production_privacy_audit_remediation:
           title: "Open the two-firm external audit engagement evidence path"
           severity: critical
           owner_lane: external-review
-          status: blocked-external-plan-open
+          status: operator-declined-external-engagement
           source_refs:
             - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
             - "PRODUCTION_PRIVACY_AUDIT.md#Audit"
@@ -2644,7 +2644,7 @@ next_safe_slices:
   - "PPA-RELAYER-003 / Band 5 item 18 is implemented-verified-local for a fail-closed Tor/blinded-token privacy-transport evidence gate. It is not live Tor, not live blinded-token submission, not production privacy, not IP privacy proof, not anonymity evidence, not audit acceptance, and not mainnet readiness."
   - "PPA-DISCOVERY-001 / Band 6 item 19 is implemented-verified-local for an authenticated indexer view-tag prefix pull API. It is not deployed/live/reviewed, does not prove query privacy, and production recipient discovery remains blocked on deployed service, retention/log-redaction, public or anonymous read posture, legacy v1 memo migration/segregation, and reviewer acceptance evidence."
   - "PPA-DISCOVERY-002 / Band 6 item 20 is implemented-verified-local for local legacy v1 Send memo migration/segregation tooling. It does not rewrite historical on-chain memos, deploy recipient discovery, provide reviewed migration/segregation evidence, or lift production privacy claims."
-  - "PPA-AUDIT-001 / Band 7 item 21 is tracker-open but blocked on Clay choosing and contracting two independent external audit firms, one ZK specialist and one Solana program specialist; repo-local work can prepare refs-only gates but cannot create signed engagement, scope, report, or reviewer acceptance refs."
+  - "PPA-AUDIT-001 / Band 7 item 21 is operator-declined on 2026-05-30: Clay will not contract third-party audit firms; audit outreach and third-party audit waits are removed from active blockers but do not create audit acceptance or lift claim gates."
   - "PPA-AUDIT-002 / Band 7 item 22 is tracker-open but blocked on Clay approving the bug bounty provider/intake path, budget, legal/safe-harbor posture, triage owners, scope, and public launch timing; repo-local work can prepare refs-only gates but cannot create live bounty facts."
   - "PPA-AUDIT-003 / Band 7 item 23 is tracker-open but blocked on accepted audit refs, bug bounty live refs, C01 verifier closure, SBF/live lineage, deployed verifier id/hash, tag-5 binding, reviewer signoff, and live anonymity-set evidence at or above 1024 distinct commitments; claim gates must remain locked."
   - "PPA-COMPLIANCE-001 / Band 8 item 24 is tracker-open but blocked on Clay/legal/compliance direction: implement unshield destination screening or accept documented jurisdiction limits. Do not implement provider calls, storage, public copy, or launch-scope changes without explicit approval."

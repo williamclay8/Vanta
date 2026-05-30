@@ -63,7 +63,7 @@ assert(
   "version mismatch",
 );
 assert(
-  evidence.status === "ready-for-external-audit-outreach-prep-blocked",
+  evidence.status === "operator-declined-external-engagement",
   "status mismatch",
 );
 assert(evidence.productionReady === false, "productionReady must remain false");

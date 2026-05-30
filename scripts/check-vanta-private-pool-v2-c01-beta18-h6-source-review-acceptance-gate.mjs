@@ -353,7 +353,7 @@ assertAllowedKeys(gate, "source-review acceptance gate", [
   "truthBoundary",
 ]);
 assert(gate.version === "vanta-private-pool-v2-c01-beta18-h6-source-review-acceptance-gate-0.1", "gate version mismatch");
-assert(gate.status === "blocked-no-external-source-review-acceptance", "gate status mismatch");
+assert(gate.status === "operator-skipped-external-artifact-producer", "gate status mismatch");
 assert(gate.selectedBackend === "groth16-tag3-solana-v0", "selected backend mismatch");
 assert(gate.selectedBackendStatus === "selected-pending-production-evidence", "selected backend status mismatch");
 assert(gate.routeId === "sunspot-noir-acir-gnark-groth16-solana-v0", "route mismatch");
@@ -511,7 +511,7 @@ for (const marker of [
   templatePath,
   "npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
   "VANTA_C01_BETA18_H6_SOURCE_REVIEW_ACCEPTANCE_PATH=<reviewed-refs-only-json>",
-  "blocked-no-external-source-review-acceptance",
+  "operator-skipped-external-artifact-producer",
 ]) {
   includes(decision, marker, decisionPath);
   includes(auditPackage, marker, auditPackagePath);

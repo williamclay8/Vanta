@@ -155,7 +155,7 @@ const decision = read(decisionPath);
 const auditPackage = read(auditPackagePath);
 
 assert(packet.version === "vanta-private-pool-v2-c01-sunspot-gnark-artifact-acquisition-0.1", "schema mismatch");
-assert(packet.status === "blocked-awaiting-reviewed-external-artifact-intake", "packet status mismatch");
+assert(packet.status === "operator-skipped-external-artifact-producer", "packet status mismatch");
 assert(packet.selectedBackend === "groth16-tag3-solana-v0", "selected backend mismatch");
 assert(packet.selectedBackendStatus === "selected-pending-production-evidence", "selected backend status mismatch");
 assert(packet.routeId === "sunspot-noir-acir-gnark-groth16-solana-v0", "route id mismatch");

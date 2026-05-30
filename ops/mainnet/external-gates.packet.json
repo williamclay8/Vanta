@@ -232,10 +232,11 @@
     },
     {
       "id": "third-party-security-audit",
-      "status": "blocked",
+      "status": "operator-skipped-control",
       "externalGate": true,
       "owner": "independent-security-reviewer",
       "summary": "Complete independent review of circuits, proof boundaries, operators, browser flows, key management, custody assumptions, and deployment runbooks.",
+      "operatorDecision": "Skipped by operator request on 2026-05-30. Clay will not contract third-party audit firms. This does not create an audit claim and does not make Vanta production-ready.",
       "requiredEvidence": [
         "ops/mainnet/mainnet-approval-gates.template.json references-only audit approval refs",
         "ops/mainnet/mainnet-approval-gates.evidence.json current blocked audit gate status",

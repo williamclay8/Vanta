@@ -136,7 +136,7 @@ assert.equal(
 assert.equal(promotionItems.get("independent-reviewer-or-audit").currentRef, null);
 assert.equal(promotionItems.get("audited-anonymity-set").currentRef, null);
 assert.equal(promotionItems.get("third-party-audit-report-and-fix-verification").currentRef, null);
-assert.equal(promotionItems.get("third-party-audit-report-and-fix-verification").status, "blocked");
+assert.equal(promotionItems.get("third-party-audit-report-and-fix-verification").status, "operator-skipped-control");
 assert.equal(promotionItems.get("minimum-live-commitments").status, "blocked-below-threshold");
 
 for (const command of [

@@ -1,7 +1,7 @@
 {
   "version": "vanta-private-pool-v2-c01-beta18-h6-source-review-acceptance-gate-0.1",
   "checkedAt": "2026-05-24T03:10:00.000Z",
-  "status": "blocked-no-external-source-review-acceptance",
+  "status": "operator-skipped-external-artifact-producer",
   "selectedBackend": "groth16-tag3-solana-v0",
   "selectedBackendStatus": "selected-pending-production-evidence",
   "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",

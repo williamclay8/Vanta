@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createVantaMainnetPrivateSettlementStatus } from "../src/readiness/mainnetPrivateSettlementStatus.mjs";
 import { createVantaMainnetRealFundsApprovalStatus } from "../src/readiness/mainnetRealFundsApprovalStatus.mjs";
+import { filterActiveBlockers } from "../src/readiness/operatorExternalGateSkips.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const packetPath = resolve(repoRoot, "ops/mainnet/actual-private-hard-blockers.packet.json");
@@ -95,6 +96,7 @@ try {
     blockers.get("minimum-live-commitments").currentArtifactRef,
     "metrics:stablecoin-usdc-v1-distinct-commitments-2-of-1024-2026-04-29",
   );
+  assert.equal(blockers.get("third-party-audit-report-and-fix-verification").status, "operator-skipped-control");
   assert.equal(blockers.get("third-party-audit-report-and-fix-verification").currentArtifactRef, null);
   assert.equal(blockers.get("legal-compliance-custody-review").currentArtifactRef, null);
 

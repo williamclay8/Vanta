@@ -612,6 +612,7 @@ assertAllowedKeys(gate, "C01 verifier evidence closure gate", [
   "crossPacketInvariants",
   "satisfiesRequiredPositiveEvidence",
   "remainingBlockers",
+  "operatorSkippedBlockers",
   "canonicalCommands",
   "truthBoundary",
 ]);
@@ -645,7 +646,7 @@ assert(candidate.status === "blocked-selected-groth16-tag3-solana-v0-production-
 assert(productionGate.status === "blocked-no-reviewed-production-artifact-bundle", "production gate status mismatch");
 assert(adapterGate.status === "blocked-no-production-verifier-adapter-acceptance", "adapter gate status mismatch");
 assert(lineageGate.status === "blocked-no-sbf-live-lineage-acceptance", "lineage gate status mismatch");
-assert(auditGate.status === "blocked-no-audit-reviewer-acceptance", "audit gate status mismatch");
+assert(auditGate.status === "operator-skipped-control", "audit gate status mismatch");
 assert(positiveClaimGate.status === "blocked-no-tag3-valid-proof-success", "positive claim gate status mismatch");
 
 const shape = gate.requiredClosureShape ?? {};
@@ -751,6 +752,18 @@ for (const blocker of [
 ]) {
   assert(gate.remainingBlockers.includes(blocker), `remaining blocker missing ${blocker}`);
 }
+assert(
+  !gate.remainingBlockers.includes("no reviewed audit/reviewer acceptance"),
+  "audit wait must be operator-skipped",
+);
+assert(
+  !gate.remainingBlockers.includes("no external source-review acceptance"),
+  "Reilabs/external producer wait must be operator-skipped",
+);
+assert(
+  Array.isArray(gate.operatorSkippedBlockers) && gate.operatorSkippedBlockers.length >= 2,
+  "operatorSkippedBlockers must record declined external producer and audit waits",
+);
 assertStringArray(gate.canonicalCommands, "canonicalCommands");
 for (const command of [
   "npm run zk:c01-verifier-evidence-closure-gate-check",

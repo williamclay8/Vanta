@@ -108,7 +108,7 @@ for (const forbidden of [
 }
 
 assert(packet.version === "vanta-private-pool-v2-c01-production-verifier-artifact-request-0.1", "version mismatch");
-assert(packet.status === "ready-for-external-production-verifier-artifact-request-blocked", "status mismatch");
+assert(packet.status === "operator-skipped-external-artifact-producer", "status mismatch");
 assert(packet.selectedBackend === "groth16-tag3-solana-v0", "selected backend mismatch");
 assert(packet.selectedBackendStatus === "selected-pending-production-evidence", "selected backend status mismatch");
 assert(packet.routeId === "sunspot-noir-acir-gnark-groth16-solana-v0", "route mismatch");
@@ -531,7 +531,6 @@ assertStringArray(packet.remainingBlockers, "remainingBlockers");
 for (const blocker of [
   "no reviewed frozen source commit",
   "no source freeze review acceptance",
-  "no external source-review acceptance",
   "no reviewed production output manifest",
   "no deterministic reviewed production artifact build receipt",
   "no reviewed production artifact bundle",
@@ -541,11 +540,22 @@ for (const blocker of [
   "no verifier program upgrade-authority status ref",
   "no tag-5 verifier-key record binding production VK hash to verifier program id",
   "no SBF/live lineage acceptance",
-  "no audit/reviewer acceptance",
   "no composite C01 verifier evidence closure validation",
 ]) {
   assert(packet.remainingBlockers.includes(blocker), `remaining blocker missing ${blocker}`);
 }
+assert(
+  !packet.remainingBlockers.includes("no external source-review acceptance"),
+  "Reilabs/external producer wait must be operator-skipped",
+);
+assert(
+  !packet.remainingBlockers.includes("no audit/reviewer acceptance"),
+  "audit wait must be operator-skipped",
+);
+assert(
+  Array.isArray(packet.operatorSkippedBlockers) && packet.operatorSkippedBlockers.length >= 2,
+  "operatorSkippedBlockers must record declined external producer and audit waits",
+);
 assertStringArray(packet.canonicalCommands, "canonicalCommands");
 for (const command of [
   "npm run zk:c01-production-verifier-artifact-request-check",
@@ -591,7 +601,7 @@ for (const aggregate of ["zk:review-guards-check", "zk:feedback-loop-check"]) {
 for (const marker of [
   "C01 production verifier artifact request packet",
   packetPath,
-  "ready-for-external-production-verifier-artifact-request-blocked",
+  "operator-skipped-external-artifact-producer",
   "npm run zk:c01-production-verifier-artifact-request-check",
   "artifact producer",
   "frozen source commit",
@@ -623,7 +633,7 @@ for (const ref of [
 }
 for (const marker of [
   "C01 production verifier artifact request packet",
-  "ready-for-external-production-verifier-artifact-request-blocked",
+  "operator-skipped-external-artifact-producer",
   "production proof-format/VK/public-witness",
   "not production proof-format evidence",
 ]) {

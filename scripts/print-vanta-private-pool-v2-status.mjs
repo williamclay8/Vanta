@@ -3,6 +3,8 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { filterActiveBlockers } from "../src/readiness/operatorExternalGateSkips.mjs";
+
 const repoRoot = resolve(import.meta.dirname, "..");
 const jsonMode = process.argv.includes("--json");
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-pool-v2-status-"));
@@ -30,14 +32,14 @@ const protocolActionProofModes = {
 const productionGate = {
   ready: false,
   status: "blocked",
-  blockers: [
+  blockers: filterActiveBlockers([
     "no-proven-audited-shared-anonymity-set",
     "no-proven-live-mainnet-private-settlement-evidence",
     "no-third-party-audit",
     "production-anonymity-set-measured-below-threshold",
     "no-independent-production-relayer-separation-review",
     "no-active-bounded-real-funds-approval-window",
-  ],
+  ]),
   requiredCommands: [
     "npm run private-pool-v2:anonymity-set-readiness-check",
     "npm run mainnet:private-settlement-check",

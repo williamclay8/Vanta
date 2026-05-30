@@ -137,7 +137,6 @@
     "c01VerifierEvidenceClosure": false
   },
   "remainingBlockers": [
-    "no external source-review acceptance",
     "no reviewed frozen source commit",
     "no reviewed deterministic production artifact build/output-manifest prerequisite refs",
     "no reviewed production artifact bundle",
@@ -146,8 +145,19 @@
     "no verifier program upgrade-authority status ref",
     "no verifier-key record binding production VK hash to verifier program id",
     "no reviewed SBF/live lineage acceptance",
-    "no reviewed audit/reviewer acceptance",
     "no complete cross-packet C01 verifier evidence-chain validation"
+  ],
+  "operatorSkippedBlockers": [
+    {
+      "id": "no-external-source-review-acceptance",
+      "decidedByRef": "Clay/founder-direction/2026-05-30",
+      "effect": "Removed Reilabs/external artifact producer wait from active blockers."
+    },
+    {
+      "id": "no-reviewed-audit-reviewer-acceptance",
+      "decidedByRef": "Clay/founder-direction/2026-05-30",
+      "effect": "Removed third-party audit wait from active blockers."
+    }
   ],
   "canonicalCommands": [
     "npm run zk:c01-verifier-evidence-closure-gate-check",

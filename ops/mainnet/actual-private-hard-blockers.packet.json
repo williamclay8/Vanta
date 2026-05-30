@@ -8,8 +8,8 @@
   "purpose": "Single refs-only operator packet for the remaining actual-private production privacy blockers. This packet is a launch blocker map, not approval, audit, legal, custody, anonymity, or live-settlement evidence.",
   "stopBoundary": {
     "liveMainnetActionsAllowedNow": false,
-    "currentApprovalActionRef": "actual-private/mainnet-shared-cohort-settlement-evidence-run-2026-05-02-0937-1137-central",
-    "currentApprovalWindowRef": "2026-05-02T09:37:08-11:37:08 America/Chicago",
+    "currentApprovalActionRef": "actual-private/mainnet-shared-cohort-settlement-evidence-run-2026-05-24-1945-2145-central",
+    "currentApprovalWindowRef": "2026-05-24T19:45:00-21:45:00 America/Chicago",
     "stopConditionStatus": "not-applicable-to-current-approval",
     "fundsMoved": false,
     "requiredNextStep": "Record a new bounded approval window before any live mainnet action."
@@ -20,7 +20,7 @@
       "status": "blocked-expired-bounded-approval",
       "owner": "founder-operator",
       "requiredArtifactShape": "approval-window:<fresh-exact-action-window-America_Chicago>",
-      "currentArtifactRef": "approval-window:2026-05-02T09:37:08-11:37:08-America-Chicago",
+      "currentArtifactRef": "approval-window:2026-05-24T19:45:00-21:45:00-America-Chicago",
       "canonicalCommand": "npm run mainnet:real-funds-approval-status-check",
       "mayBeDoneByCodexAlone": false,
       "truthBoundary": "A fresh bounded approval window must be active for the exact shared-cohort settlement evidence run; all other live mainnet actions remain blocked."
@@ -78,13 +78,15 @@
     },
     {
       "id": "third-party-audit-report-and-fix-verification",
-      "status": "blocked-no-third-party-audit",
+      "status": "operator-skipped-control",
       "owner": "independent-security-reviewer",
       "requiredArtifactShape": "audit:<third-party-report-and-fix-verification-ref>",
       "currentArtifactRef": null,
       "canonicalCommand": "npm run audit:package-check",
       "mayBeDoneByCodexAlone": false,
-      "truthBoundary": "No third-party audit report or fix-verification packet is recorded."
+      "operatorDecision": "Skipped by operator request on 2026-05-30. Clay will not contract third-party audit firms. This does not create an audit claim and does not make Vanta production-ready.",
+      "decidedByRef": "Clay/founder-direction/2026-05-30",
+      "truthBoundary": "No third-party audit report or fix-verification packet is recorded, and operator has declined external audit contracting."
     },
     {
       "id": "legal-compliance-custody-review",
@@ -132,6 +134,13 @@
     "Only inside a fresh approval window, produce and review a real shared-cohort deposit Solana transaction.",
     "Run authenticated production replay reconciliation from a secret-manager shell and require a real duplicate rejection before promotion.",
     "Grow and independently review the live anonymity set to at least 1024 distinct commitments.",
-    "Obtain independent relayer separation review, third-party audit/fix verification, and legal/compliance/custody approval refs before any production privacy claim."
+    "Obtain independent relayer separation review and legal/compliance/custody approval refs before any production privacy claim."
+  ],
+  "operatorSkippedHardBlockers": [
+    {
+      "id": "third-party-audit-report-and-fix-verification",
+      "decidedByRef": "Clay/founder-direction/2026-05-30",
+      "effect": "Removed from active blockers; not evidence of independent security review."
+    }
   ]
 }

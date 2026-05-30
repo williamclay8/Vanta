@@ -1,7 +1,7 @@
 {
   "version": "vanta-private-pool-v2-c01-audit-reviewer-acceptance-gate-0.1",
   "checkedAt": "2026-05-24T00:00:00.000Z",
-  "status": "blocked-no-audit-reviewer-acceptance",
+  "status": "operator-skipped-control",
   "selectedBackend": "groth16-tag3-solana-v0",
   "selectedBackendStatus": "selected-pending-production-evidence",
   "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
@@ -187,8 +187,14 @@
     "no production invalid/wrong-input/wrong-key/wrong-program no-mutation evidence",
     "no rebuilt/redeployed/reinitialized/live SBF lineage",
     "no reviewer identity and C01 scope ref",
-    "no C01 findings disposition ref",
-    "no audit/reviewer acceptance ref"
+    "no C01 findings disposition ref"
+  ],
+  "operatorSkippedBlockers": [
+    {
+      "id": "no-audit-reviewer-acceptance-ref",
+      "decidedByRef": "Clay/founder-direction/2026-05-30",
+      "effect": "Removed third-party audit wait from active blockers; not audit acceptance."
+    }
   ],
   "canonicalCommands": [
     "npm run zk:c01-audit-reviewer-acceptance-gate-check",
@@ -200,5 +206,5 @@
     "npm run zk:c01-positive-proof-verified-claim-gate-check",
     "npm run zk:review-guards-check"
   ],
-  "truthBoundary": "This is a blocked audit/reviewer acceptance gate for the selected C01 backend. It defines refs-only validation for final reviewer acceptance, but it is not audit/reviewer acceptance, not SBF/live lineage, not tag-3 proof acceptance, not production-private readiness, and not C01 closure."
+  "truthBoundary": "This gate is operator-skipped for third-party audit engagement. It does not create audit/reviewer acceptance, not SBF/live lineage, not tag-3 proof acceptance, not production-private readiness, and not C01 closure."
 }

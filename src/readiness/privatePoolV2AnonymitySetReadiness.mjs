@@ -1,5 +1,7 @@
 import { readFileSync } from "node:fs";
 
+import { filterActiveBlockers } from "./operatorExternalGateSkips.mjs";
+
 const anonymitySetEvidencePath = new URL(
   "../../ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
   import.meta.url,
@@ -74,14 +76,14 @@ export function createVantaPrivatePoolV2AnonymitySetReadiness() {
       "VANTA_PRIVATE_POOL_V2_PRODUCTION_ANONYMITY_METRICS_REF",
       "VANTA_PRIVATE_POOL_V2_RELAYER_SEPARATION_REF",
     ],
-    blockers: [
+    blockers: filterActiveBlockers([
       "no-proven-audited-shared-anonymity-set",
       "no-proven-live-mainnet-private-settlement-evidence",
       "no-third-party-audit",
       "production-anonymity-set-measured-below-threshold",
       "no-independent-anonymity-set-measurement-review",
       "no-independent-production-relayer-separation-review",
-    ],
+    ]),
     nonClaims: [
       "no anonymity guarantee",
       "no audited hidden-economics privacy claim",

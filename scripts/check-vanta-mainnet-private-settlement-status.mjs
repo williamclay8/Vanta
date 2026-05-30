@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { createVantaMainnetPrivateSettlementStatus } from "../src/readiness/mainnetPrivateSettlementStatus.mjs";
+import { filterActiveBlockers } from "../src/readiness/operatorExternalGateSkips.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const packagePath = resolve(repoRoot, "package.json");
@@ -163,19 +164,17 @@ assert.ok(
   result.deploymentEvidenceFreshness.liveDeploymentTruth.includes("not proof that the currently checked local commit is pushed or live"),
   "Private settlement status must expose deployment freshness truth.",
 );
-const expectedMeaningfulPrivacyBlockedBy = [
+const expectedMeaningfulPrivacyBlockedBy = filterActiveBlockers([
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
   "no-third-party-audit",
   "production-anonymity-set-measured-below-threshold",
   "no-independent-anonymity-set-measurement-review",
   "no-independent-production-relayer-separation-review",
-  "no-proven-audited-shared-anonymity-set",
-  "no-proven-live-mainnet-private-settlement-evidence",
   "mainnet-spend-program-evidence-pre-output-record-pda-abi-incompatible",
   ...(result.boundedRealFundsApprovalWindowActive ? [] : ["no-active-actual-private-settlement-approval-window"]),
-];
-assert.deepEqual(result.meaningfulPrivacyBlockedBy, [...new Set(expectedMeaningfulPrivacyBlockedBy)]);
+]);
+assert.deepEqual(result.meaningfulPrivacyBlockedBy, expectedMeaningfulPrivacyBlockedBy);
 assert.ok(
   ["scheduled", "active", "expired"].includes(result.realFundsApprovalWindowStatus),
   "Private settlement status must expose a bounded approval-window status.",

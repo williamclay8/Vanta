@@ -1,6 +1,6 @@
 {
   "version": "vanta-production-privacy-audit-outreach-prep-0.1",
-  "status": "ready-for-external-audit-outreach-prep-blocked",
+  "status": "operator-declined-external-engagement",
   "productionReady": false,
   "auditClaimAllowed": false,
   "mainnetReady": false,

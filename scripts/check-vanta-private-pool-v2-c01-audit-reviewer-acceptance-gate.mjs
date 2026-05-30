@@ -432,11 +432,12 @@ assertAllowedKeys(gate, "audit/reviewer acceptance gate", [
   "promotionRules",
   "satisfiesRequiredPositiveEvidence",
   "remainingBlockers",
+  "operatorSkippedBlockers",
   "canonicalCommands",
   "truthBoundary",
 ]);
 assert(gate.version === "vanta-private-pool-v2-c01-audit-reviewer-acceptance-gate-0.1", "gate version mismatch");
-assert(gate.status === "blocked-no-audit-reviewer-acceptance", "gate status mismatch");
+assert(gate.status === "operator-skipped-control", "gate status mismatch");
 assert(gate.selectedBackend === "groth16-tag3-solana-v0", "selected backend mismatch");
 assert(gate.selectedBackendStatus === "selected-pending-production-evidence", "selected backend status mismatch");
 assert(gate.routeId === "sunspot-noir-acir-gnark-groth16-solana-v0", "route mismatch");
@@ -649,10 +650,17 @@ for (const blocker of [
   "no production verifier-adapter acceptance",
   "no rebuilt/redeployed/reinitialized/live SBF lineage",
   "no C01 findings disposition ref",
-  "no audit/reviewer acceptance ref",
 ]) {
   assert(gate.remainingBlockers.includes(blocker), `missing blocker ${blocker}`);
 }
+assert(
+  !gate.remainingBlockers.includes("no audit/reviewer acceptance ref"),
+  "audit wait must be operator-skipped, not an active remaining blocker",
+);
+assert(
+  Array.isArray(gate.operatorSkippedBlockers) && gate.operatorSkippedBlockers.length >= 1,
+  "operatorSkippedBlockers must record declined audit wait",
+);
 assertStringArray(gate.canonicalCommands, "canonicalCommands");
 for (const command of [
   "npm run zk:c01-audit-reviewer-acceptance-gate-check",
@@ -689,7 +697,7 @@ for (const marker of [
   templatePath,
   "npm run zk:c01-audit-reviewer-acceptance-gate-check",
   "VANTA_C01_AUDIT_REVIEWER_ACCEPTANCE_PATH=<reviewed-refs-only-json>",
-  "blocked-no-audit-reviewer-acceptance",
+  "operator-skipped-control",
 ]) {
   includes(decision, marker, decisionPath);
   includes(auditPackage, marker, auditPackagePath);
@@ -697,8 +705,8 @@ for (const marker of [
   includes(review, marker, reviewPath);
 }
 for (const marker of [
-  "blocked audit/reviewer acceptance gate",
-  "not audit/reviewer acceptance",
+  "operator-skipped for third-party audit engagement",
+  "does not create audit/reviewer acceptance",
   "not SBF/live lineage",
   "not tag-3 proof acceptance",
   "not C01 closure",

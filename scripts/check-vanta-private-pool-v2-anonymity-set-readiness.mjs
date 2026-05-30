@@ -2,6 +2,8 @@ import { strict as assert } from "node:assert";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { filterActiveBlockers } from "../src/readiness/operatorExternalGateSkips.mjs";
+
 const repoRoot = resolve(import.meta.dirname, "..");
 const readinessPath = resolve(repoRoot, "src/readiness/privatePoolV2AnonymitySetReadiness.mjs");
 const packagePath = resolve(repoRoot, "package.json");
@@ -101,16 +103,17 @@ for (const ref of [
   assert.ok(result.requiredEvidenceRefs.includes(ref), `Missing required evidence ref: ${ref}`);
 }
 
-for (const blocker of [
+for (const blocker of filterActiveBlockers([
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
   "no-third-party-audit",
   "production-anonymity-set-measured-below-threshold",
   "no-independent-anonymity-set-measurement-review",
   "no-independent-production-relayer-separation-review",
-]) {
+])) {
   assert.ok(result.blockers.includes(blocker), `Missing blocker: ${blocker}`);
 }
+assert.ok(!result.blockers.includes("no-third-party-audit"), "third-party audit blocker must be operator-skipped");
 
 for (const nonClaim of [
   "no anonymity guarantee",
