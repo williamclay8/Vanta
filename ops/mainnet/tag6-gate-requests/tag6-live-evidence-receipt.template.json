@@ -1,0 +1,13 @@
+{
+  "version": "vanta-tag6-live-evidence-receipt-template-0.1",
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "txSignature": null,
+  "systemTransferFromSolVault": false,
+  "operatorSignerAbsent": false,
+  "unshieldEventObserved": false,
+  "nullifierConsumed": false,
+  "publicInputsHashMatched": false,
+  "proofVerified": false,
+  "note": "Template only. Replace with a reviewed live-evidence receipt JSON after collecting real mainnet TAG6 SOL release evidence. Do not commit signed transaction bytes or provider secrets."
+}
