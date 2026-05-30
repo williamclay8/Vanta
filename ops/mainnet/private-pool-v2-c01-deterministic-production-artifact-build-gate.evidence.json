@@ -229,6 +229,8 @@
   ],
   "canonicalCommands": [
     "npm run zk:c01-deterministic-production-artifact-build-check",
+    "npm run private-pool-v2:c01-deterministic-production-artifact-build",
+    "npm run private-pool-v2:c01-deterministic-production-artifact-build-check",
     "VANTA_C01_DETERMINISTIC_PRODUCTION_ARTIFACT_BUILD_PATH=<reviewed-refs-only-json> npm run zk:c01-deterministic-production-artifact-build-check",
     "npm run zk:c01-beta18-h6-source-review-acceptance-gate-check",
     "npm run zk:c01-production-artifact-acceptance-gate-check",

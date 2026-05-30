@@ -9,6 +9,7 @@ import {
   GROTH16_VERIFIER_ADAPTER_DEFAULT_ARTIFACT_ROOT,
   GROTH16_VERIFIER_ADAPTER_H6_PROBE_REFERENCE_SHA256,
 } from "../src/privacy/privatePoolV2Groth16VerifierAdapter.mjs";
+import { formatUnshieldIntentMessage } from "../operator/unshield-auth.mjs";
 import { formatSolUnshieldIntentMessage } from "../operator/sol-unshield-auth.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -31,8 +32,14 @@ const liveSmokeEvidencePath = resolve(
 );
 
 const writeEvidence = process.argv.includes("--write-evidence");
+const laneArg = process.argv.find((arg) => arg.startsWith("--lane="));
+const lanes = laneArg ? laneArg.slice("--lane=".length).split(",") : ["all"];
+const runSol = lanes.includes("all") || lanes.includes("sol");
+const runToken = lanes.includes("all") || lanes.includes("token");
+
 const NATIVE_SOL_ASSET_ID_HEX =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
+const MAINNET_USDC_MINT_ADDRESS = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const forbiddenEvidenceFragments = ["Bearer ", "privateKey", "seedPhrase", "mnemonic", "secretKey"];
 
 function fail(message) {
@@ -49,11 +56,15 @@ function assert(condition, message) {
 }
 
 function readJson(path) {
-  return JSON.parse(readFileSync(path, "utf8"));
+  return readFileSync(path, "utf8");
+}
+
+function parseJson(path) {
+  return JSON.parse(readJson(path));
 }
 
 function productionOperatorUrl() {
-  const manifest = readJson(productionServicesManifestPath);
+  const manifest = parseJson(productionServicesManifestPath);
   const operator = manifest.services?.find((service) => service.id === "operator");
   const url = operator?.deployedService?.url?.trim();
   assert(typeof url === "string" && url.length > 0, "Missing production operator URL in services manifest.");
@@ -77,8 +88,8 @@ function resolveOperatorUrl() {
 }
 
 function expectedReceiptTruth() {
-  const adapterEvidence = readJson(adapterEvidencePath);
-  const manifest = readJson(manifestPath);
+  const adapterEvidence = parseJson(adapterEvidencePath);
+  const manifest = parseJson(manifestPath);
 
   assert(
     adapterEvidence.version === "vanta-private-pool-v2-groth16-verifier-adapter-artifact-evidence-0.1",
@@ -105,42 +116,94 @@ function expectedReceiptTruth() {
   };
 }
 
+function signPayload(formatMessage, payload, keypair) {
+  const message = new TextEncoder().encode(formatMessage(payload));
+  const signatureBytes = ed25519.sign(message, keypair.secretKey.slice(0, 32));
+  return {
+    ...payload,
+    signature: Buffer.from(signatureBytes).toString("base64"),
+  };
+}
+
 function buildSignedSolUnshieldBody() {
   const keypair = Keypair.generate();
   const owner = keypair.publicKey.toBase58();
-  const requestId = `groth16-live-receipt-smoke-${randomUUID()}`;
+  const requestId = `groth16-live-receipt-smoke-sol-${randomUUID()}`;
   const consumedNoteId = `note-${randomUUID()}`;
   const transitionNoteId = `direct:${consumedNoteId}`;
 
-  const payload = {
-    amount: "1",
-    asset: "SOL",
-    assetId: NATIVE_SOL_ASSET_ID_HEX,
-    consumedNoteId,
-    destinationOwner: owner,
-    issuedAt: Date.now(),
-    owner,
-    requestId,
-    requester: owner,
-    transitionNoteId,
-    vaultOwner: owner,
-    version: "v1",
-  };
-
-  const message = new TextEncoder().encode(formatSolUnshieldIntentMessage(payload));
-  const signatureBytes = ed25519.sign(message, keypair.secretKey.slice(0, 32));
-
   return {
-    body: {
-      ...payload,
-      signature: Buffer.from(signatureBytes).toString("base64"),
-    },
+    body: signPayload(formatSolUnshieldIntentMessage, {
+      amount: "1",
+      asset: "SOL",
+      assetId: NATIVE_SOL_ASSET_ID_HEX,
+      consumedNoteId,
+      destinationOwner: owner,
+      issuedAt: Date.now(),
+      owner,
+      requestId,
+      requester: owner,
+      transitionNoteId,
+      vaultOwner: owner,
+      version: "v1",
+    }, keypair),
     requestId,
   };
 }
 
-async function postSignedSolUnshield(operatorUrl, body) {
-  const response = await fetch(`${operatorUrl}/unshield/sol`, {
+function buildSignedTokenUnshieldBody(vaultOwner) {
+  const keypair = Keypair.generate();
+  const owner = keypair.publicKey.toBase58();
+  const requestId = `groth16-live-receipt-smoke-token-${randomUUID()}`;
+  const noteId = `note-${randomUUID()}`;
+  const transitionNoteId = `direct:${noteId}`;
+
+  return {
+    body: signPayload(formatUnshieldIntentMessage, {
+      amount: "1",
+      destinationOwner: owner,
+      issuedAt: Date.now(),
+      mintAddress: MAINNET_USDC_MINT_ADDRESS,
+      noteId,
+      owner,
+      requestId,
+      requester: owner,
+      transitionNoteId,
+      vaultOwner,
+      version: "v1",
+    }, keypair),
+    requestId,
+  };
+}
+
+async function resolveMainnetVaultOwner(operatorUrl) {
+  const configured = process.env.VANTA_MAINNET_VAULT_OWNER?.trim();
+  if (configured) {
+    return configured;
+  }
+
+  const authToken = process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN?.trim();
+  if (authToken) {
+    const response = await fetch(`${operatorUrl}/state/private-pool-v2-status`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    assert(response.ok, `Authenticated operator status failed with HTTP ${response.status}.`);
+    const parsed = await response.json();
+    const vaultOwner = parsed?.tagUnshieldProgramRelay?.mainnetVaultOwnerPublicKey;
+    assert(
+      typeof vaultOwner === "string" && vaultOwner.length > 0,
+      "Operator status must expose tagUnshieldProgramRelay.mainnetVaultOwnerPublicKey for token lane when VANTA_MAINNET_VAULT_OWNER is unset.",
+    );
+    return vaultOwner;
+  }
+
+  fail(
+    "Token lane requires VANTA_MAINNET_VAULT_OWNER or VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN for authenticated operator status lookup.",
+  );
+}
+
+async function postJson(operatorUrl, path, body) {
+  const response = await fetch(`${operatorUrl}${path}`, {
     body: JSON.stringify(body),
     headers: { "Content-Type": "application/json" },
     method: "POST",
@@ -163,65 +226,98 @@ async function postSignedSolUnshield(operatorUrl, body) {
   };
 }
 
-function assertLiveReceipt({ expected, operatorUrl, parsed, requestId, status }) {
-  assert(status === 503, `Expected fail-closed 503, got HTTP ${status}.`);
-  assert(parsed && typeof parsed === "object", "Live unshield response must be JSON.");
-  assert(parsed.blocked === true, "Live unshield response must remain blocked.");
-  assert(parsed.releaseModel === expected.releaseModel, "Live releaseModel mismatch.");
+function assertLiveReceipt({ endpoint, expected, parsed, requestId, status }) {
+  assert(status === 503, `${endpoint} expected fail-closed 503, got HTTP ${status}.`);
+  assert(parsed && typeof parsed === "object", `${endpoint} live unshield response must be JSON.`);
+  assert(parsed.blocked === true, `${endpoint} live unshield response must remain blocked.`);
+  assert(parsed.releaseModel === expected.releaseModel, `${endpoint} live releaseModel mismatch.`);
   assert(
     parsed.programRelayBindingSource === expected.programRelayBindingSource,
-    `Live programRelayBindingSource mismatch: ${parsed.programRelayBindingSource ?? "null"}`,
+    `${endpoint} live programRelayBindingSource mismatch: ${parsed.programRelayBindingSource ?? "null"}`,
   );
 
   const receipt = parsed.releaseReceipt;
-  assert(receipt && typeof receipt === "object", "Live response must include releaseReceipt.");
+  assert(receipt && typeof receipt === "object", `${endpoint} live response must include releaseReceipt.`);
   assert(
     receipt.groth16VerifierAdapterStatus === expected.groth16VerifierAdapterStatus,
-    `Live groth16VerifierAdapterStatus mismatch: ${receipt.groth16VerifierAdapterStatus ?? "null"}`,
+    `${endpoint} live groth16VerifierAdapterStatus mismatch: ${receipt.groth16VerifierAdapterStatus ?? "null"}`,
   );
   assert(
     receipt.groth16VerifierAdapterArtifactRoot === expected.artifactRoot,
-    `Live groth16VerifierAdapterArtifactRoot mismatch: ${receipt.groth16VerifierAdapterArtifactRoot ?? "null"}`,
+    `${endpoint} live groth16VerifierAdapterArtifactRoot mismatch: ${receipt.groth16VerifierAdapterArtifactRoot ?? "null"}`,
   );
   assert(
     receipt.gnarkProofSource === expected.gnarkProofSource,
-    `Live gnarkProofSource mismatch: ${receipt.gnarkProofSource ?? "null"}`,
+    `${endpoint} live gnarkProofSource mismatch: ${receipt.gnarkProofSource ?? "null"}`,
   );
   assert(
     receipt.gnarkProofSha256 === expected.gnarkProofSha256,
-    `Live gnarkProofSha256 mismatch: ${receipt.gnarkProofSha256 ?? "null"}`,
+    `${endpoint} live gnarkProofSha256 mismatch: ${receipt.gnarkProofSha256 ?? "null"}`,
   );
   assert(
     receipt.gnarkPublicWitnessSha256 === expected.gnarkPublicWitnessSha256,
-    `Live gnarkPublicWitnessSha256 mismatch: ${receipt.gnarkPublicWitnessSha256 ?? "null"}`,
+    `${endpoint} live gnarkPublicWitnessSha256 mismatch: ${receipt.gnarkPublicWitnessSha256 ?? "null"}`,
   );
-  assert(receipt.gnarkUsesScaffoldProof === false, "Live gnarkUsesScaffoldProof must be false.");
+  assert(receipt.gnarkUsesScaffoldProof === false, `${endpoint} live gnarkUsesScaffoldProof must be false.`);
   assert(
     parsed.requestId === requestId,
-    "Live response requestId must echo the signed intent requestId.",
+    `${endpoint} live response requestId must echo the signed intent requestId.`,
   );
 }
 
-async function run() {
-  const operatorUrl = resolveOperatorUrl();
-  const expected = expectedReceiptTruth();
-  const { body, requestId } = buildSignedSolUnshieldBody();
+async function assertOperatorStatusSurfacing(operatorUrl, expected) {
+  const authToken = process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN?.trim();
+  if (!authToken) {
+    return null;
+  }
 
-  const health = await fetch(`${operatorUrl}/health`);
-  assert(health.ok, `Operator health check failed with HTTP ${health.status}.`);
+  const response = await fetch(`${operatorUrl}/state/private-pool-v2-status`, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  assert(response.ok, `Authenticated operator status failed with HTTP ${response.status}.`);
+  const parsed = await response.json();
+  const relay = parsed?.tagUnshieldProgramRelay;
+  assert(relay && typeof relay === "object", "Operator status must expose tagUnshieldProgramRelay.");
+  assert(
+    relay.releaseModel === expected.releaseModel,
+    "Operator status tagUnshieldProgramRelay.releaseModel mismatch.",
+  );
+  assert(relay.productionReady === false, "Operator status tagUnshieldProgramRelay.productionReady must be false.");
 
-  const result = await postSignedSolUnshield(operatorUrl, body);
+  const adapter = relay.groth16VerifierAdapter;
+  assert(adapter && typeof adapter === "object", "Operator status must expose groth16VerifierAdapter.");
+  assert(
+    adapter.gnarkProofSha256 === expected.gnarkProofSha256,
+    "Operator status groth16VerifierAdapter.gnarkProofSha256 mismatch.",
+  );
+  assert(
+    adapter.relayBindings?.gnarkProofSource === expected.gnarkProofSource,
+    "Operator status relayBindings.gnarkProofSource mismatch.",
+  );
+  assert(
+    adapter.relayBindings?.gnarkUsesScaffoldProof === false,
+    "Operator status relayBindings.gnarkUsesScaffoldProof must be false.",
+  );
+
+  return {
+    groth16VerifierAdapterStatus: adapter.status,
+    mainnetVaultOwnerPublicKey: relay.mainnetVaultOwnerPublicKey ?? null,
+  };
+}
+
+async function runLane({ endpoint, operatorUrl, postBodyBuilder, expected }) {
+  const { body, requestId } = await postBodyBuilder();
+  const result = await postJson(operatorUrl, endpoint, body);
   assertLiveReceipt({
+    endpoint,
     expected,
-    operatorUrl,
     parsed: result.parsed,
     requestId,
     status: result.status,
   });
 
-  const evidence = {
-    checkedAt: new Date().toISOString(),
-    endpoint: "/unshield/sol",
+  return {
+    endpoint,
     expectedReceiptFields: {
       gnarkProofSha256: expected.gnarkProofSha256,
       gnarkProofSource: expected.gnarkProofSource,
@@ -233,19 +329,73 @@ async function run() {
       releaseModel: expected.releaseModel,
     },
     httpStatus: result.status,
+    requestIdPrefix: requestId.slice(0, 32),
+    status: "live-fail-closed-receipt-smoke-pass-not-production",
+  };
+}
+
+async function run() {
+  const operatorUrl = resolveOperatorUrl();
+  const expected = expectedReceiptTruth();
+  const laneResults = [];
+
+  const health = await fetch(`${operatorUrl}/health`);
+  assert(health.ok, `Operator health check failed with HTTP ${health.status}.`);
+
+  const operatorStatus = await assertOperatorStatusSurfacing(operatorUrl, expected);
+
+  if (runSol) {
+    laneResults.push(
+      await runLane({
+        endpoint: "/unshield/sol",
+        expected,
+        operatorUrl,
+        postBodyBuilder: async () => buildSignedSolUnshieldBody(),
+      }),
+    );
+  }
+
+  if (runToken) {
+    const vaultOwner = await resolveMainnetVaultOwner(operatorUrl);
+    laneResults.push(
+      await runLane({
+        endpoint: "/unshield",
+        expected,
+        operatorUrl,
+        postBodyBuilder: async () => buildSignedTokenUnshieldBody(vaultOwner),
+      }),
+    );
+  }
+
+  assert(laneResults.length > 0, "No smoke lanes selected. Use --lane=sol, --lane=token, or --lane=all.");
+
+  const evidence = {
+    checkedAt: new Date().toISOString(),
+    lanes: laneResults,
+    operatorStatusSurfacing: operatorStatus
+      ? {
+          checked: true,
+          groth16VerifierAdapterStatus: operatorStatus.groth16VerifierAdapterStatus,
+          mainnetVaultOwnerPublicKeyConfigured: Boolean(operatorStatus.mainnetVaultOwnerPublicKey),
+          path: "/state/private-pool-v2-status",
+        }
+      : {
+          checked: false,
+          reason:
+            "VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN unset; operator status surfacing was not authenticated on this run.",
+          path: "/state/private-pool-v2-status",
+        },
     operatorUrlHost: new URL(operatorUrl).host,
     operatorUrlRef: process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_URL?.trim()
       ? "VANTA_PRIVATE_POOL_V2_OPERATOR_URL"
       : "ops/mainnet/private-pool-v2-services.manifest.json#operator",
     productionReady: false,
     purpose:
-      "Live fail-closed /unshield/sol receipt smoke proving deployed operator surfaces Groth16 adapter relay truth instead of scaffold gnark bytes.",
-    requestIdPrefix: requestId.slice(0, 32),
+      "Live fail-closed unshield receipt smoke proving deployed operator surfaces Groth16 adapter relay truth instead of scaffold gnark bytes.",
     secretPolicy: "hashes-and-status-only-no-wallet-signatures-or-auth-tokens",
-    status: "live-fail-closed-receipt-smoke-pass-not-production",
     truthBoundary:
       "This smoke only proves deployed blocked unshield receipts expose in-repo local-unsafe Groth16 adapter relay bindings. It is not production verifier-adapter acceptance, SBF/live lineage, audit closure, or fund release.",
-    version: "vanta-private-pool-v2-groth16-verifier-adapter-live-receipt-smoke-evidence-0.1",
+    version: "vanta-private-pool-v2-groth16-verifier-adapter-live-receipt-smoke-evidence-0.2",
   };
 
   const serializedEvidence = `${JSON.stringify(evidence, null, 2)}\n`;

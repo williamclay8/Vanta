@@ -1,0 +1,70 @@
+{
+  "version": "vanta-private-pool-v2-c01-deterministic-production-artifact-local-prep-receipt-0.1",
+  "status": "local-prep-not-reviewed-deterministic-build",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "secretPolicy": "manifest-and-hashes-only-no-raw-proof-vk-witness-pk-keypair-or-signed-transaction-bytes",
+  "purpose": "Observed local-prep build receipt for the C01 Sunspot/Gnark deterministic production artifact lane. This is machine-readable prep evidence for engineering and reviewer intake, not reviewed deterministic production build acceptance.",
+  "artifactRoot": "ops/fixtures/c01-deterministic-production-artifact-local-prep",
+  "buildManifestRef": "ops/fixtures/c01-deterministic-production-artifact-local-prep/deterministic-production-artifact-build-manifest.json",
+  "gateEvidenceRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build-gate.evidence.json",
+  "templateRef": "ops/mainnet/private-pool-v2-c01-deterministic-production-artifact-build.template.json",
+  "buildCommandRef": "npm run private-pool-v2:c01-deterministic-production-artifact-build",
+  "buildCheckCommandRef": "npm run private-pool-v2:c01-deterministic-production-artifact-build-check",
+  "checkedAt": "2026-05-30T01:46:55.629Z",
+  "sourceLineage": {
+    "candidateSourceRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry_sunspot_beta18_h6_candidate/src/main.nr",
+    "candidateSourceSha256": "sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430",
+    "requiredProductionSourceAcirSha256": "sha256:9c84b109bb2cf658e645bc971855ef06a8590c8b5b65398c6ae52afc431f8bde",
+    "reviewedSourceMigrationAccepted": false,
+    "sourceReviewAcceptanceRef": null
+  },
+  "productionOutputs": {
+    "proofArtifactRef": "ops/fixtures/c01-deterministic-production-artifact-local-prep/vanta_private_pool_v2_actual_private_spend_entry.proof",
+    "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+    "proofByteLength": 324,
+    "publicWitnessArtifactRef": "ops/fixtures/c01-deterministic-production-artifact-local-prep/vanta_private_pool_v2_actual_private_spend_entry.pw",
+    "publicWitnessByteLength": 44,
+    "productionVerifyingKeyArtifactRef": "ops/fixtures/c01-deterministic-production-artifact-local-prep/vanta_private_pool_v2_actual_private_spend_entry.vk",
+    "productionVerifyingKeyHash": "0x2d1528223a83a6536066d48babf4bcd321ac4d35634545306dc710d480acd866",
+    "verifyingKeyHashKind": "local-unsafe-h6-beta18-sunspot-vk-hash-not-production",
+    "verifierSbfArtifactRef": "ops/fixtures/c01-deterministic-production-artifact-local-prep/vanta_private_pool_v2_actual_private_spend_entry.so",
+    "outputManifestRef": "ops/fixtures/c01-deterministic-production-artifact-local-prep/deterministic-production-artifact-build-manifest.json",
+    "satisfiesDeterministicBuildOutputs": false
+  },
+  "publicInputBinding": {
+    "decodedPublicInputLabel": "private-spend-public-input-hash",
+    "decodedPublicInputValue": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "publicInputCommitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2",
+    "satisfiesProductionPublicInputBinding": false
+  },
+  "reproducibilityReview": {
+    "reproducibilityReviewRef": null,
+    "secondBuilderOrVerifierRef": null,
+    "reviewerAcceptedDeterministicBuild": false
+  },
+  "artifactProducerAttestation": {
+    "artifactProducerIdentityRef": null,
+    "reviewerIdentityRef": null,
+    "reviewScopeRef": null,
+    "sourceReviewAcceptanceRef": null,
+    "buildCommandManifestRef": "npm run private-pool-v2:c01-deterministic-production-artifact-build",
+    "outputManifestRef": "ops/fixtures/c01-deterministic-production-artifact-local-prep/deterministic-production-artifact-build-manifest.json",
+    "acceptedForC01DeterministicBuild": false
+  },
+  "satisfiesRequiredPositiveEvidence": {
+    "sourceReviewAcceptance": false,
+    "deterministicArtifactBuild": false,
+    "actualPrivateSpendProductionProofFormat": false,
+    "privateSpendPublicInputHashBinding": false,
+    "productionVerifyingKeyHash": false,
+    "verifierAdapter": false,
+    "acceptedProofMutatesStateTest": false,
+    "invalidProofLeavesAccountsUnchangedTest": false,
+    "wrongPublicInputHashLeavesAccountsUnchangedTest": false,
+    "wrongVerifyingKeyLeavesAccountsUnchangedTest": false,
+    "sbfLiveLineage": false,
+    "auditReviewerAcceptance": false
+  },
+  "truthBoundary": "Local-prep deterministic production artifact build receipt only. This does not satisfy the blocked C01 deterministic production artifact build gate, production bundle acceptance, verifier-adapter acceptance, SBF/live lineage, or audit acceptance."
+}

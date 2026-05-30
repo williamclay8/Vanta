@@ -17,6 +17,7 @@ function assertIncludes(source, marker, label) {
 const packageJson = JSON.parse(read("package.json"));
 const programSource = read("programs/vanta_private_pool_v2_spend/src/lib.rs");
 const operatorSource = read("operator/unshield-server.mjs");
+const privatePoolV2OperatorSource = read("operator/private-pool-v2-server.mjs");
 const unshieldStatusSource = read("src/readiness/unshieldMainnetProductionStatus.mjs");
 const unshieldTrustSource = read("src/solana/unshieldTrustContract.ts");
 const productionCheckSource = read("scripts/check-vanta-unshield-mainnet-production-status.mjs");
@@ -96,6 +97,14 @@ for (const marker of [
   "TAG_UNSHIELD",
 ]) {
   assertIncludes(operatorSource, marker, "operator fail-closed TAG_UNSHIELD relay source");
+}
+
+for (const marker of [
+  "tagUnshieldProgramRelay",
+  "buildGroth16VerifierAdapterOperatorStatus",
+  "mainnetVaultOwnerPublicKey",
+]) {
+  assertIncludes(privatePoolV2OperatorSource, marker, "private pool v2 operator status surfacing");
 }
 
 for (const forbidden of [

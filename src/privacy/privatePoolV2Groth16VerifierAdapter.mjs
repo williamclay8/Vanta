@@ -304,6 +304,20 @@ export function describeGroth16VerifierAdapterForOperator(input = {}) {
   };
 }
 
+export function buildGroth16VerifierAdapterOperatorStatus(input = {}) {
+  const bindings = resolveGroth16VerifierAdapterRelayBindings(input);
+  const relayBindings = summarizeGroth16VerifierAdapterRelayBindings(bindings);
+
+  return {
+    ...describeGroth16VerifierAdapterForOperator(input),
+    relayBindings,
+    productionReady: false,
+    satisfiesProductionVerifierAdapterAcceptance: false,
+    truthBoundary:
+      "Local-unsafe Groth16 verifier adapter operator status only. This surfaces loadable adapter artifact and relay binding truth for reviewer/counterparty inspection. It is not production verifier-adapter acceptance, not SBF/live lineage, and not audit acceptance.",
+  };
+}
+
 export function buildGroth16VerifierAdapterManifestObserved(root, options = {}) {
   const proof = readArtifactFile(root, GROTH16_VERIFIER_ADAPTER_ARTIFACT_FILE_NAMES.proof, "proof");
   const publicWitness = readArtifactFile(

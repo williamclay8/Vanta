@@ -677,6 +677,24 @@ try {
     status.parsed?.proofTrustBoundary?.productionProofSystemRequired === true,
     "Expected operator status to expose production proof-system requirement.",
   );
+  assert(
+    status.parsed?.tagUnshieldProgramRelay?.releaseModel === "program-tag-unshield-pda-cpi-fail-closed",
+    "Expected operator status to expose fail-closed TAG_UNSHIELD relay model.",
+  );
+  assert(
+    status.parsed?.tagUnshieldProgramRelay?.productionReady === false,
+    "Expected operator status TAG_UNSHIELD relay to remain non-production.",
+  );
+  assert(
+    status.parsed?.tagUnshieldProgramRelay?.groth16VerifierAdapter?.relayBindings?.gnarkProofSource ===
+      "groth16-verifier-adapter-artifact",
+    "Expected operator status to expose Groth16 adapter relay binding source.",
+  );
+  assert(
+    status.parsed?.tagUnshieldProgramRelay?.groth16VerifierAdapter?.relayBindings?.gnarkUsesScaffoldProof ===
+      false,
+    "Expected operator status Groth16 adapter relay bindings to reject scaffold proof bytes.",
+  );
   console.log("private-pool-v2 http status: PASS");
 
   const emptyReceipts = await requestJson("/state/private-pool-v2-receipts");

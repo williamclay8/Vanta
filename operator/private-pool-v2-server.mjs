@@ -38,6 +38,7 @@ import {
   verifyVantaPrivatePoolV2SwapToShieldedProofArtifact,
 } from "./private-pool-v2-proof-artifact.mjs";
 import { createPrivatePoolV2ReceiptStore } from "./private-pool-v2-store.mjs";
+import { buildGroth16VerifierAdapterOperatorStatus } from "../src/privacy/privatePoolV2Groth16VerifierAdapter.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const host = process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_HOST ?? process.env.HOST ?? "0.0.0.0";
@@ -2699,7 +2700,29 @@ async function statusPayload() {
       relayer: runtime.relayer ? "ready" : "missing",
       verifierRegistry: runtime.verifierRegistry ? "ready" : "missing",
     },
+    tagUnshieldProgramRelay: {
+      releaseModel: "program-tag-unshield-pda-cpi-fail-closed",
+      productionReady: false,
+      mainnetVaultOwnerPublicKey: resolveMainnetVaultOwnerPublicKey(),
+      groth16VerifierAdapter: buildGroth16VerifierAdapterOperatorStatus(),
+    },
   };
+}
+
+function resolveMainnetVaultOwnerPublicKey() {
+  for (const envName of [
+    "VANTA_MAINNET_VAULT_OWNER",
+    "VITE_VANTA_MAINNET_VAULT_OWNER",
+    "VANTA_VAULT_OWNER",
+    "VITE_VANTA_VAULT_OWNER",
+  ]) {
+    const value = process.env[envName]?.trim();
+    if (value) {
+      return value;
+    }
+  }
+
+  return null;
 }
 
 async function proveAndAcceptPayCheckoutSettlement(rawSession) {

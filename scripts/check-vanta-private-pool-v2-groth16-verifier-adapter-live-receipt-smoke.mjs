@@ -27,6 +27,7 @@ function includes(source, marker, label) {
 const packageJson = JSON.parse(read("package.json"));
 const scripts = packageJson.scripts ?? {};
 const runScript = read(runScriptPath);
+const operatorServer = read("operator/private-pool-v2-server.mjs");
 const template = JSON.parse(read(templatePath));
 const adapterEvidence = JSON.parse(read(adapterEvidencePath));
 const servicesManifest = JSON.parse(read("ops/mainnet/private-pool-v2-services.manifest.json"));
@@ -48,7 +49,14 @@ assert.ok(
 );
 
 includes(runScript, "formatSolUnshieldIntentMessage", runScriptPath);
+includes(runScript, "formatUnshieldIntentMessage", runScriptPath);
 includes(runScript, "/unshield/sol", runScriptPath);
+includes(runScript, 'endpoint: "/unshield"', runScriptPath);
+includes(runScript, "assertOperatorStatusSurfacing", runScriptPath);
+
+includes(operatorServer, "tagUnshieldProgramRelay", "operator/private-pool-v2-server.mjs");
+includes(operatorServer, "buildGroth16VerifierAdapterOperatorStatus", "operator/private-pool-v2-server.mjs");
+includes(operatorServer, "mainnetVaultOwnerPublicKey", "operator/private-pool-v2-server.mjs");
 includes(runScript, "groth16VerifierAdapterStatus", runScriptPath);
 includes(runScript, "gnarkProofSource", runScriptPath);
 includes(runScript, "gnarkUsesScaffoldProof", runScriptPath);
@@ -106,7 +114,7 @@ if (existsSync(resolve(repoRoot, "ops/mainnet/private-pool-v2-groth16-verifier-a
   );
   assert.equal(
     liveEvidence.version,
-    "vanta-private-pool-v2-groth16-verifier-adapter-live-receipt-smoke-evidence-0.1",
+    "vanta-private-pool-v2-groth16-verifier-adapter-live-receipt-smoke-evidence-0.2",
     "checked-in live evidence version mismatch",
   );
   assert.equal(liveEvidence.productionReady, false, "checked-in live evidence productionReady must remain false");

@@ -622,6 +622,8 @@
     "private-pool-v2:groth16-verifier-adapter-live-receipt-smoke": "node scripts/run-vanta-private-pool-v2-groth16-verifier-adapter-live-receipt-smoke.mjs",
     "private-pool-v2:groth16-verifier-adapter-live-receipt-smoke-write": "node scripts/run-vanta-private-pool-v2-groth16-verifier-adapter-live-receipt-smoke.mjs --write-evidence",
     "private-pool-v2:groth16-verifier-adapter-live-receipt-smoke-check": "node scripts/check-vanta-private-pool-v2-groth16-verifier-adapter-live-receipt-smoke.mjs",
+    "private-pool-v2:c01-deterministic-production-artifact-build": "node scripts/run-vanta-private-pool-v2-c01-deterministic-production-artifact-build.mjs",
+    "private-pool-v2:c01-deterministic-production-artifact-build-check": "node scripts/check-vanta-private-pool-v2-c01-deterministic-production-artifact-build-output.mjs",
     "private-pool-v2:unshield-release-enabled-audit-gate-check": "node scripts/check-vanta-private-pool-v2-unshield-release-enabled-audit-gate.mjs",
     "private-pool-v2:groth16-verifier-cpi-check": "node scripts/check-vanta-private-pool-v2-groth16-verifier-cpi.mjs",
     "private-pool-v2:mainnet-spend-program-smoke": "node scripts/run-vanta-private-pool-v2-mainnet-spend-program-smoke.mjs",
