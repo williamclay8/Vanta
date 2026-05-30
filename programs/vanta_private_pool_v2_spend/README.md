@@ -245,11 +245,11 @@ C01 verifier backend contract:
 - a future positive verifier lane must use `production-verifying-key-hash` evidence and replace the fail-closed custom error `14` boundary with reviewed verifier tests
 - guard: `npm run zk:c01-production-verifier-backend-candidate-check`
 
-### `6` (TAG_UNSHIELD) - proof-shaped unshield release preflight (TAG6 native SOL/SPL release still fail-closed. Per design doc §11 + VANTA_ZK_REVIEW U2.1 + 2026-05-14 status note)
+### `6` (TAG_UNSHIELD) - proof-verified unshield release lane (unified 569-byte SPL + native SOL TAG6 path; still fail-closed until release enablement. Per design doc §11 + VANTA_ZK_REVIEW U2.1 + 2026-05-14 status note)
 
-TAG6 + native SOL support now preflights a full vault-asset registry record for `VAULT_ASSET_KIND_SOL=2` and the sentinel asset id. The dedicated `["vanta2solvault", pool_state, sentinel]` PDA remains the canonical lamports holder, and no operator keypair signs funds transfer. Release is blocked by runtime state instead of build flags: initialized pools store `verifier_wired = 0`, and tag `6` returns custom error `15` before nullifier consume or SOL/SPL CPI. Even if a future reviewed authority path sets `verifier_wired = 1`, this slice still returns error `15` until item 9 wires real verifier/root/public-input/nullifier acceptance.
+TAG6 + native SOL now uses the same reserved 569-byte proof path as SPL. `preflight_unshield_release` branches on `VAULT_ASSET_KIND_SOL`, binds `acceptedRoot` through `root_history`, allows the all-zero sentinel `exit_asset_id`, validates the dedicated `["vanta2solvault", pool_state, sentinel]` holding PDA at account index 4, and runs the same Gnark verifier adapter seam as tag `3`.
 
-Unshield preflight accounts:
+Unshield reserved SPL accounts:
 
 1. `pool_state` read-only, program-owned
 2. `root_history` read-only, program-owned, bound in `pool_state`
@@ -262,28 +262,29 @@ Unshield preflight accounts:
 9. `mint` read-only SPL mint account owned by the registered token program
 10. `token_program` read-only token program account matching the registered vault asset
 11. `verifier_key` read-only program-owned PDA derived from `["vanta2vkey", pool_state, verifierKeyHash]`
+12. `verifier_program` read-only executable verifier program account bound in the verifier-key registry
+13. `relayer` writable signer fee payer for nullifier-marker rent when needed
+14. `system_program` read-only
 
-Instruction data is exactly 457 bytes:
+Instruction data is exactly 569 bytes:
 
 ```text
-[6, nullifier:32, acceptedRoot:32, exitDestination:32, exitAssetId:32, exitAmountLeU64:8, publicInputHash:32, verifierKeyHash:32, groth16Proof:256]
+[6, nullifier:32, acceptedRoot:32, exitDestination:32, exitAssetId:32, exitAmountLeU64:8, publicInputHash:32, verifierKeyHash:32, gnarkProof:324, gnarkPublicWitness:44]
 ```
 
 Behavior today:
 
-- checks the reserved payload length and that the public release fields / proof are not all-zero placeholders
+- rejects the legacy 457-byte / 256-byte-proof-only payload shape before account inspection
+- checks the reserved payload length and that the public release fields / proof / witness are not all-zero placeholders
 - verifies the supplied `root_history` account is initialized and matches the pubkey stored in `pool_state`
 - rejects unshield preflights whose `acceptedRoot` has not been registered in `root_history`
-- preflights the deterministic root-record PDA
-- preflights the deterministic verifier-key PDA and source-only verifier-key registry record
-- preflights the deterministic nullifier marker PDA without creating or mutating it
-- preflights the deterministic vault-authority PDA
-- preflights the deterministic vault-asset registry PDA
-- requires the pool's runtime `verifier_wired` byte to be enabled before any future release attempt, but still returns custom error `15` in this slice
+- preflights the deterministic root-record, verifier-key, nullifier-marker, vault-authority, and vault-asset PDAs
+- requires the pool's runtime `verifier_wired` byte to be enabled before reaching the verifier adapter
 - preflights SPL mint/token-account ownership and mint shape without invoking the token program
-- The registry record stores `releaseEnabled = 0`; tag `6` requires that disabled value today
-- returns custom error `15` after root/root-record/verifier-key/nullifier/vault-asset/token-account preflight and before mutating accounts
-- does not perform token CPIs, PDA-signed release, custody transfer, nullifier consume, or proof verification
+- binds `gnarkPublicWitness` to `publicInputHash` before the default adapter boundary
+- host-side default adapter returns custom error `14` before nullifier consume, token/system CPI, custody transfer, or account mutation
+- native SOL TAG6 reuses the same 14-account reserved layout with account slots 4/6 = `sol_vault_holding`, 7 = destination system account, 8/9 = `system_program`, and rejects the legacy short-payload nine-account layout
+- commit requires `releaseEnabled = 1`; registry records still write `releaseEnabled = 0`, so commit remains custom error `15`
 - must not be used as program-owned vault or proof-verified release evidence until the actual verifier, token CPI, SBF rebuild, redeploy/reinit, and live/audit evidence exist
 
 ### `7` - register Unshield vault asset (source-only, release disabled)

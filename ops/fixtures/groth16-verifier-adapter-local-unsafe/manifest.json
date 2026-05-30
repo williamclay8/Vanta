@@ -1,0 +1,50 @@
+{
+  "version": "vanta-private-pool-v2-groth16-verifier-adapter-manifest-0.1",
+  "status": "local-unsafe-h6-beta18-sunspot-not-production",
+  "adapterKind": "dedicated-verifier-cpi-gnark-tuple",
+  "target": "solana-c01-tag3-groth16-v0",
+  "tag": 3,
+  "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+  "proofSystem": "groth16",
+  "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+  "proofByteLength": 324,
+  "publicWitnessByteLength": 44,
+  "verifierInstructionDataByteLength": 368,
+  "generatedVerifierNrPubinputs": 1,
+  "generatedVerifierCommitmentKeys": 0,
+  "publicInputBinding": {
+    "label": "private-spend-public-input-hash",
+    "value": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "commitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2"
+  },
+  "verifierKeyHashHex": "0x2d1528223a83a6536066d48babf4bcd321ac4d35634545306dc710d480acd866",
+  "verifyingKeyHashKind": "local-unsafe-h6-beta18-sunspot-vk-hash-not-production",
+  "productionReady": false,
+  "satisfiesProductionVerifierAdapterAcceptance": false,
+  "sourceLineageRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry_sunspot_beta18_h6_candidate",
+  "probeEvidenceRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-migration-probe.evidence.json",
+  "truthBoundary": "Local-unsafe H6 beta18 Sunspot Groth16 adapter artifact only. Not production verifying-key evidence, not verifier-adapter acceptance, not SBF/live lineage, and not audit acceptance.",
+  "files": {
+    "proof": {
+      "path": "vanta_private_pool_v2_actual_private_spend_entry.proof",
+      "byteLength": 324,
+      "sha256": "sha256:fbf68eb2d409f3cdb8ae76dec5285d43e8d2c69a4f4c43a03c5c866c20d74e5b"
+    },
+    "publicWitness": {
+      "path": "vanta_private_pool_v2_actual_private_spend_entry.pw",
+      "byteLength": 44,
+      "sha256": "sha256:19e42b6e34a5861d8804565476d72f8835c81d30cfc66bd598a236d26e1baa60",
+      "headerHex": "000000010000000000000001"
+    },
+    "verifyingKey": {
+      "path": "vanta_private_pool_v2_actual_private_spend_entry.vk",
+      "byteLength": 716,
+      "sha256": "sha256:2d1528223a83a6536066d48babf4bcd321ac4d35634545306dc710d480acd866"
+    },
+    "verifierSbf": {
+      "path": "vanta_private_pool_v2_actual_private_spend_entry.so",
+      "byteLength": 86216,
+      "sha256": "sha256:e3ab00a13c26211c4b498a3608072fc4c29ea9a0e0f8a7be4646ffb16c0b6225"
+    }
+  }
+}

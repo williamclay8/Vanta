@@ -132,7 +132,7 @@ requireMarkers(
     "spendWithProofAccountCount: 11",
     "proofCarryingSpendVerifierCpiHook: true",
     "tagRegisterVaultAsset: 7",
-    "unshieldAccountCount: 11",
+    "unshieldAccountCount: 14",
     "unshieldVaultAssetSeed: \"vanta2asset\"",
   ],
   "SBF ABI status check",

@@ -20,6 +20,8 @@ import {
   parseSignedSwapIntent,
   verifySignedSwapIntent,
 } from "./swap-auth.mjs";
+import { buildTagUnshieldProgramRelayTransaction } from "./unshield-program-relay-transaction.mjs";
+import { resolveTagUnshieldRelayBindings } from "./tag-unshield-relay-bindings.mjs";
 import {
   assertFreshMeteoraQuote,
   assertMeteoraExecutionDrift,
@@ -1641,10 +1643,29 @@ export async function handleUnshieldOperatorRequest(request, response) {
         throw new Error("This SOL unshield transition has already been finalized.");
       }
 
+      const relayBindingResolution = resolveTagUnshieldRelayBindings({
+        proofArtifact: body?.proofArtifact,
+        tagUnshieldRelayBindings: body?.tagUnshieldRelayBindings,
+        unshieldPublicInputHash: body?.unshieldPublicInputHash,
+      });
+      const relayTransaction = buildTagUnshieldProgramRelayTransaction({
+        ...relayBindingResolution.bindings,
+        exitAmountLeHex:
+          relayBindingResolution.bindings.exitAmountLeHex
+          ?? encodeTagUnshieldAmountLeHex(intent.amount),
+        exitAssetIdHex:
+          relayBindingResolution.bindings.exitAssetIdHex ?? normalizeTagUnshieldAssetIdHex(intent.assetId),
+      });
       const releaseReceipt = buildTagUnshieldProgramReleaseReceipt({
         asset: "SOL",
         consumedNoteId: intent.consumedNoteId,
         intent,
+        programRelayAccountCount: relayTransaction?.accountCount ?? null,
+        programRelaySerializedTransaction: relayTransaction?.serializedTransaction ?? null,
+        programRelayBindingSource: relayTransaction?.relayBindingSource ?? relayBindingResolution.bindingSource,
+        programRelayBindingsUsePlaceholderHashes:
+          relayTransaction?.relayBindingsUsePlaceholderHashes
+          ?? relayBindingResolution.usesPlaceholderHashes,
         programTxSignature: null,
         transitionNoteId: intent.transitionNoteId,
       });
@@ -1655,6 +1676,13 @@ export async function handleUnshieldOperatorRequest(request, response) {
         JSON.stringify({
           blocked: true,
           consumedNoteId: intent.consumedNoteId,
+          programRelayAccountCount: relayTransaction?.accountCount ?? null,
+          programRelayBindingSource:
+            relayTransaction?.relayBindingSource ?? relayBindingResolution.bindingSource,
+          programRelayBindingsUsePlaceholderHashes:
+            relayTransaction?.relayBindingsUsePlaceholderHashes
+            ?? relayBindingResolution.usesPlaceholderHashes,
+          programRelaySerializedTransaction: relayTransaction?.serializedTransaction ?? null,
           reason:
             "TAG_UNSHIELD program relay is fail-closed until on-chain proof/root/nullifier verification is wired.",
           releaseModel: "program-tag-unshield-pda-cpi-fail-closed",
@@ -1729,10 +1757,27 @@ export async function handleUnshieldOperatorRequest(request, response) {
       throw new Error("This unshield transition has already been finalized.");
     }
 
+    const relayBindingResolution = resolveTagUnshieldRelayBindings({
+      proofArtifact: body?.proofArtifact,
+      tagUnshieldRelayBindings: body?.tagUnshieldRelayBindings,
+      unshieldPublicInputHash: body?.unshieldPublicInputHash,
+    });
+    const relayTransaction = buildTagUnshieldProgramRelayTransaction({
+      ...relayBindingResolution.bindings,
+      exitAmountLeHex:
+        relayBindingResolution.bindings.exitAmountLeHex
+        ?? encodeTagUnshieldAmountLeHex(intent.amount),
+    });
     const releaseReceipt = buildTagUnshieldProgramReleaseReceipt({
       asset: "SPL",
       consumedNoteId: intent.noteId,
       intent,
+      programRelayAccountCount: relayTransaction?.accountCount ?? null,
+      programRelaySerializedTransaction: relayTransaction?.serializedTransaction ?? null,
+      programRelayBindingSource: relayTransaction?.relayBindingSource ?? relayBindingResolution.bindingSource,
+      programRelayBindingsUsePlaceholderHashes:
+        relayTransaction?.relayBindingsUsePlaceholderHashes
+        ?? relayBindingResolution.usesPlaceholderHashes,
       programTxSignature: null,
       transitionNoteId: intent.transitionNoteId,
     });
@@ -1743,6 +1788,13 @@ export async function handleUnshieldOperatorRequest(request, response) {
       JSON.stringify({
         blocked: true,
         consumedNoteId: intent.noteId,
+        programRelayAccountCount: relayTransaction?.accountCount ?? null,
+        programRelayBindingSource:
+          relayTransaction?.relayBindingSource ?? relayBindingResolution.bindingSource,
+        programRelayBindingsUsePlaceholderHashes:
+          relayTransaction?.relayBindingsUsePlaceholderHashes
+          ?? relayBindingResolution.usesPlaceholderHashes,
+        programRelaySerializedTransaction: relayTransaction?.serializedTransaction ?? null,
         reason:
           "TAG_UNSHIELD program relay is fail-closed until on-chain proof/root/nullifier verification is wired.",
         releaseModel: "program-tag-unshield-pda-cpi-fail-closed",
@@ -1763,6 +1815,25 @@ export async function handleUnshieldOperatorRequest(request, response) {
   }
 }
 
+function encodeTagUnshieldAmountLeHex(amount) {
+  const parsed = BigInt(String(amount));
+  if (parsed < 0n || parsed > 0xffff_ffff_ffff_ffffn) {
+    throw new Error("TAG_UNSHIELD relay amount must fit u64.");
+  }
+  const bytes = Buffer.alloc(8);
+  bytes.writeBigUInt64LE(parsed);
+  return `0x${bytes.toString("hex")}`;
+}
+
+function normalizeTagUnshieldAssetIdHex(assetId) {
+  const text = String(assetId ?? "").trim();
+  const hex = text.startsWith("0x") ? text.slice(2) : text;
+  if (!/^[0-9a-fA-F]{64}$/.test(hex)) {
+    throw new Error("TAG_UNSHIELD relay asset id must be 32-byte hex.");
+  }
+  return `0x${hex.toLowerCase()}`;
+}
+
 function buildTagUnshieldProgramReleaseReceipt(args) {
   const proofStatus = "program-tag-unshield-relay-fail-closed";
   const intentHash = hashReleaseIntent(args.intent);
@@ -1775,6 +1846,10 @@ function buildTagUnshieldProgramReleaseReceipt(args) {
     transitionNoteId: args.transitionNoteId,
     asset: args.asset,
     programInstructionTag: "TAG_UNSHIELD",
+    programRelayAccountCount: args.programRelayAccountCount ?? null,
+    programRelayBindingSource: args.programRelayBindingSource ?? null,
+    programRelayBindingsUsePlaceholderHashes: args.programRelayBindingsUsePlaceholderHashes ?? null,
+    programRelaySerializedTransaction: args.programRelaySerializedTransaction ?? null,
     programTxSignature,
     releaseSignature: programTxSignature,
     releaseIntentHash: intentHash,

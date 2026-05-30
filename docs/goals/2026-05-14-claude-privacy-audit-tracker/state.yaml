@@ -380,10 +380,10 @@ audit_remaining_work_backlog:
     status: local-implemented-fail-closed
     guard: "npm run private-pool-v2:onchain-unshield-custody-check"
     evidence:
-      - "programs/vanta_private_pool_v2_spend/src/lib.rs extends TAG_UNSHIELD to a 457-byte reserved fail-closed payload carrying verifierKeyHash:32 before groth16Proof:256."
-      - "TAG_UNSHIELD now requires a read-only verifier-key PDA derived from [\"vanta2vkey\", pool_state, verifierKeyHash] and calls require_verifier_key_hash before root/root-record/verifier-key/nullifier/vault-asset/token-account preflight."
-      - "The release path still returns ERR_UNSHIELD_RELEASE_NOT_WIRED / custom error 15 before proof verification, nullifier consume, token/system CPI, custody transfer, account mutation, or fund release."
-      - "The custody guard and SBF ABI status surfaces require unshieldAccountCount: 11, unshieldInstructionLen: 457, sourceOnlyVerifierKeyPreflightReady: true, and productionCustodyReady: false."
+      - "programs/vanta_private_pool_v2_spend/src/lib.rs extends TAG_UNSHIELD to a 569-byte reserved fail-closed payload carrying verifierKeyHash:32 before gnarkProof:324 and gnarkPublicWitness:44."
+      - "TAG_UNSHIELD now requires a read-only verifier-key PDA derived from [\"vanta2vkey\", pool_state, verifierKeyHash], a bound verifier_program account, relayer, and system_program, and calls require_verifier_key_hash_for_program before root/root-record/verifier-key/nullifier/vault-asset/token-account preflight."
+      - "The release path now separates preflight_unshield_release, verify_unshield_with_proof_adapter, and commit_verified_unshield_release; host-side adapter returns ERR_PROOF_VERIFIER_NOT_WIRED / custom error 14, and commit still returns ERR_UNSHIELD_RELEASE_NOT_WIRED / custom error 15 while releaseEnabled=0."
+      - "The custody guard and SBF ABI status surfaces require unshieldAccountCount: 14, unshieldInstructionLen: 569, sourceOnlyVerifierKeyPreflightReady: true, and productionCustodyReady: false."
       - "This is source-level verifier-key preflight hardening only; it is not a production verifying key, not on-chain proof verification, not proof-verified Unshield release, not program-owned custody, not deployed/live lineage evidence, not audit acceptance, and not production privacy."
     verify:
       - "cargo test --manifest-path programs/vanta_private_pool_v2_spend/Cargo.toml"

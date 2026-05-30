@@ -8,11 +8,12 @@ Use the next local, additive hardening seam in the audit backlog: bind the reser
 
 ## Local implementation
 
-- `TAG_UNSHIELD` instruction data is now a 457-byte shape:
-  `[6, nullifier:32, acceptedRoot:32, exitDestination:32, exitAssetId:32, exitAmountLeU64:8, publicInputHash:32, verifierKeyHash:32, groth16Proof:256]`.
-- The source rejects all-zero `verifierKeyHash` and requires an 11th read-only verifier-key PDA.
+- `TAG_UNSHIELD` instruction data is now a 569-byte shape (569-byte reserved SPL proof-verified release ABI):
+  `[6, nullifier:32, acceptedRoot:32, exitDestination:32, exitAssetId:32, exitAmountLeU64:8, publicInputHash:32, verifierKeyHash:32, gnarkProof:324, gnarkPublicWitness:44]`.
+- The source rejects the legacy 457-byte / 256-byte-proof-only payload shape and all-zero `verifierKeyHash`.
+- The reserved SPL account list now includes read-only `verifier_program`, writable `relayer`, and read-only `system_program` after the verifier-key PDA.
 - The verifier-key PDA must match `["vanta2vkey", pool_state, verifierKeyHash]` and the program-owned registry record created or verified by `TAG_REGISTER_VERIFIER_KEY = 5`.
-- The fail-closed boundary remains `ERR_UNSHIELD_RELEASE_NOT_WIRED` after root/root-record/verifier-key/nullifier/vault-asset/token-account preflight.
+- Source now separates tag `6` preflight, default adapter rejection, and a verified-commit helper; host-side adapter returns `ERR_PROOF_VERIFIER_NOT_WIRED` before nullifier consume or SPL CPI, and commit remains `ERR_UNSHIELD_RELEASE_NOT_WIRED` while `releaseEnabled = 0`.
 - Truth/status surfaces now expose `sourceOnlyVerifierKeyPreflightReady: true` while keeping production custody/readiness false.
 
 ## What this proves

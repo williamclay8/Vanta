@@ -157,11 +157,16 @@ function buildRegisterInstruction(poolStateStr, programIdStr, authorityStr) {
   );
 
   // Instruction data: tag=7 | asset_id[32] | kind u8 | release_enabled u8
+  const releaseEnabledByte =
+    process.env.VANTA_PRIVATE_POOL_V2_UNSHIELD_RELEASE_ENABLED_AUDIT_GATE_ACK ===
+    "I_UNDERSTAND_RELEASE_ENABLED_FLIP_REQUIRES_COMPLETED_AUDIT_GATES"
+      ? 1
+      : 0;
   const data = Buffer.alloc(1 + 32 + 1 + 1);
   data[0] = TAG_REGISTER_VAULT_ASSET;
   NATIVE_SOL_ASSET_ID_SENTINEL.copy(data, 1);
   data[33] = VAULT_ASSET_KIND_SOL;
-  data[34] = 1; // releaseEnabled = true (after review)
+  data[34] = releaseEnabledByte; // releaseEnabled = 0 by default; flip only after audit gates
 
   const keys = [
     { pubkey: pool, isSigner: false, isWritable: true },
@@ -179,7 +184,7 @@ function buildRegisterInstruction(poolStateStr, programIdStr, authorityStr) {
   console.log("  tag:", TAG_REGISTER_VAULT_ASSET);
   console.log("  asset_id (sentinel):", NATIVE_SOL_ASSET_ID_SENTINEL.toString("hex"));
   console.log("  kind:", VAULT_ASSET_KIND_SOL, "(VAULT_ASSET_KIND_SOL)");
-  console.log("  release_enabled: 1 (true)");
+  console.log(`  release_enabled: ${releaseEnabledByte} (${releaseEnabledByte === 1 ? "audit-gated flip" : "default fail-closed"})`);
   console.log("  data (hex):", data.toString("hex"));
   console.log("  accounts: pool_state (w), vault_asset_record PDA (w, derived), authority (signer), system_program");
   console.log("  Expected PDA for asset_record: derived with ASSET_RECORD_SEED + pool + sentinel");

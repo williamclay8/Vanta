@@ -144,7 +144,7 @@ assert.equal(
   "fail-closed-vault-asset-and-verifier-key-preflight-source-only",
 );
 assert.equal(packet.solanaSpendSbfAbiStatus.tagRegisterVaultAsset, 7);
-assert.equal(packet.solanaSpendSbfAbiStatus.unshieldAccountCount, 11);
+assert.equal(packet.solanaSpendSbfAbiStatus.unshieldAccountCount, 14);
 assert.equal(packet.solanaSpendSbfAbiStatus.vaultAssetReleaseEnabled, false);
 assert.equal(typeof packet.solanaSpendSbfAbiStatus.status, "string");
 assert.equal(typeof packet.solanaSpendSbfAbiStatus.abiFresh, "boolean");

@@ -1,0 +1,63 @@
+{
+  "version": "vanta-private-pool-v2-groth16-verifier-adapter-artifact-evidence-0.1",
+  "checkedAt": "2026-05-28T00:00:00.000Z",
+  "status": "local-unsafe-artifact-materialized-not-production",
+  "selectedBackend": "groth16-tag3-solana-v0",
+  "routeId": "sunspot-noir-acir-gnark-groth16-solana-v0",
+  "productionReady": false,
+  "mainnetReady": false,
+  "privacyClaimAllowed": false,
+  "c01VerifierReady": false,
+  "solanaC01Groth16VerifierReady": false,
+  "satisfiesProductionVerifierAdapterAcceptance": false,
+  "secretPolicy": "manifest-and-hashes-only-no-raw-proof-vk-witness-pk-keypair-or-signed-transaction-bytes-in-evidence",
+  "purpose": "Machine-readable packet for the in-repo local-unsafe Groth16 verifier adapter artifact. This records the H6 beta18 Sunspot proof/VK/public-witness/SBF tuple that the adapter module can load for relay binding and CPI-shape work. It does not satisfy production verifier-adapter acceptance, SBF/live lineage, or audit acceptance.",
+  "artifactRoot": "ops/fixtures/groth16-verifier-adapter-local-unsafe",
+  "manifestRef": "ops/fixtures/groth16-verifier-adapter-local-unsafe/manifest.json",
+  "adapterModuleRef": "src/privacy/privatePoolV2Groth16VerifierAdapter.mjs",
+  "buildScriptRef": "scripts/run-vanta-private-pool-v2-groth16-verifier-adapter-artifact-build.mjs",
+  "checkScriptRef": "scripts/check-vanta-private-pool-v2-groth16-verifier-adapter-artifact.mjs",
+  "probeEvidenceRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-migration-probe.evidence.json",
+  "verifierAdapterAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-verifier-adapter-acceptance-gate.evidence.json",
+  "adapterKind": "dedicated-verifier-cpi-gnark-tuple",
+  "target": "solana-c01-tag3-groth16-v0",
+  "tag": 3,
+  "circuit": "vanta_private_pool_v2_actual_private_spend_entry",
+  "proofSystem": "groth16",
+  "proofFormatId": "gnark-solana-native-proof-and-public-witness-v0",
+  "proofByteLength": 324,
+  "publicWitnessByteLength": 44,
+  "verifierInstructionDataByteLength": 368,
+  "generatedVerifierNrPubinputs": 1,
+  "generatedVerifierCommitmentKeys": 0,
+  "publicInputBinding": {
+    "label": "private-spend-public-input-hash",
+    "value": "0x2580f5460c06b9ad43e7274530ba99f6e41a91925c0c15d0f944ac5935eb6a7b",
+    "commitment": "sha256:f17c1da9af65f0811244af3f7c695f2800134019e143f8c03ac40f3fd81222c2"
+  },
+  "verifierKeyHashHex": "0x2d1528223a83a6536066d48babf4bcd321ac4d35634545306dc710d480acd866",
+  "verifyingKeyHashKind": "local-unsafe-h6-beta18-sunspot-vk-hash-not-production",
+  "expectedArtifactSha256": {
+    "proof": "sha256:fbf68eb2d409f3cdb8ae76dec5285d43e8d2c69a4f4c43a03c5c866c20d74e5b",
+    "publicWitness": "sha256:19e42b6e34a5861d8804565476d72f8835c81d30cfc66bd598a236d26e1baa60",
+    "verifyingKey": "sha256:2d1528223a83a6536066d48babf4bcd321ac4d35634545306dc710d480acd866",
+    "verifierSbf": "sha256:e3ab00a13c26211c4b498a3608072fc4c29ea9a0e0f8a7be4646ffb16c0b6225"
+  },
+  "probeReferenceArtifactSha256": {
+    "proof": "sha256:afde2c07683c4262b5b9ae72c66e559e857a9fd7a529b980b34a45bf2374d186",
+    "publicWitness": "sha256:19e42b6e34a5861d8804565476d72f8835c81d30cfc66bd598a236d26e1baa60",
+    "verifyingKey": "sha256:5e0a6f08503f534cbb462f43fbf0b247e8aa2ce75d1fa58c2350f815817948b4",
+    "verifierSbf": "sha256:91fc2db5e06ebfb72bee120ebbcd51698684216598ec50f046d62fcf64928ac0"
+  },
+  "canonicalCommands": [
+    "npm run private-pool-v2:groth16-verifier-adapter-artifact-build",
+    "npm run private-pool-v2:groth16-verifier-adapter-artifact-check"
+  ],
+  "remainingBlockers": [
+    "production-verifier-adapter-acceptance",
+    "production-deterministic-artifact-build",
+    "sbf-live-lineage",
+    "audit-reviewer-acceptance"
+  ],
+  "truthBoundary": "This packet proves the repo now has a loadable local-unsafe Groth16 verifier adapter artifact and typed adapter module. Proof/VK/SBF hashes are build-dependent under local unsafe setup; only the public witness/public-input binding is pinned to the H6 probe reference. This is not production verifier-adapter acceptance, not production verifying-key evidence, not SBF/live lineage, and not audit acceptance."
+}

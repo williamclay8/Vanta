@@ -317,7 +317,7 @@ for (const phrase of [
   "proofBoundDestinationCommitment",
   "R6A-PROOF-BOUND-DESTINATION-CONTRACT",
   "R4A-TAG6-VERIFIER-KEY-PREFLIGHT",
-  "unshieldInstructionLen: 457",
+  "unshieldInstructionLen: 569",
   "sourceOnlyVerifierKeyPreflightReady: true",
   "status: local-implemented-fail-closed",
   "root/root-record/verifier-key/nullifier/vault-asset/token-account preflight",
@@ -404,7 +404,7 @@ for (const phrase of [
 
 for (const phrase of [
   "R4A TAG_UNSHIELD verifier-key preflight",
-  "457-byte",
+  "569-byte",
   "verifierKeyHash",
   "sourceOnlyVerifierKeyPreflightReady: true",
   "ERR_UNSHIELD_RELEASE_NOT_WIRED",

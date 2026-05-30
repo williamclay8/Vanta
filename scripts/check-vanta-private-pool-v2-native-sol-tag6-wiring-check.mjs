@@ -151,6 +151,9 @@ assert.ok(
 );
 assert.ok(
   programSource.includes("require_pool_verifier_wired(&pool_data, ERR_UNSHIELD_NOT_WIRED)?;") &&
+    programSource.includes("preflight_unshield_release") &&
+    programSource.includes("verify_unshield_with_proof_adapter") &&
+    programSource.includes("require_sol_release_accounts") &&
     programSource.includes("unshield_sol_verifier_wired_zero_rejects_before_nullifier_or_release") &&
     programSource.includes("unshield_sol_verifier_wired_one_still_rejects_until_verifier_acceptance"),
   "SOL TAG6 must be runtime-gated and fail closed before nullifier consume or CPI until verifier/root/nullifier acceptance exists."

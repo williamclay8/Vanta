@@ -219,6 +219,7 @@ const VAULT_ASSET_RELEASE_ENABLED_OFFSET: usize = VAULT_ASSET_KIND_OFFSET + 1;
 const TOKEN_ACCOUNT_LEN: usize = 165;
 const TOKEN_ACCOUNT_MINT_OFFSET: usize = 0;
 const TOKEN_ACCOUNT_OWNER_OFFSET: usize = 32;
+const MINT_DECIMALS_OFFSET: usize = 44;
 const SPL_TOKEN_PROGRAM_ID: Pubkey =
     solana_program::pubkey!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 const UNSHIELD_ACCEPTED_ROOT_OFFSET: usize = HASH_LEN;
@@ -228,7 +229,16 @@ const UNSHIELD_EXIT_AMOUNT_OFFSET: usize = UNSHIELD_EXIT_ASSET_ID_OFFSET + HASH_
 const UNSHIELD_PUBLIC_INPUT_HASH_OFFSET: usize = UNSHIELD_EXIT_AMOUNT_OFFSET + EXIT_AMOUNT_LEN;
 const UNSHIELD_VERIFIER_KEY_HASH_OFFSET: usize = UNSHIELD_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN;
 const UNSHIELD_PROOF_OFFSET: usize = UNSHIELD_VERIFIER_KEY_HASH_OFFSET + HASH_LEN;
-const UNSHIELD_PAYLOAD_LEN: usize = 1 + HASH_LEN * 6 + EXIT_AMOUNT_LEN + RESERVED_GROTH16_PROOF_LEN;
+const UNSHIELD_GNARK_PROOF_LEN: usize = SPEND_WITH_PROOF_GNARK_PROOF_LEN;
+const UNSHIELD_GNARK_PUBLIC_WITNESS_LEN: usize = SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN;
+const UNSHIELD_PUBLIC_WITNESS_OFFSET: usize = UNSHIELD_PROOF_OFFSET + UNSHIELD_GNARK_PROOF_LEN;
+const UNSHIELD_VERIFIER_INPUT_LEN: usize =
+    UNSHIELD_GNARK_PROOF_LEN + UNSHIELD_GNARK_PUBLIC_WITNESS_LEN;
+const UNSHIELD_PAYLOAD_LEN: usize =
+    1 + HASH_LEN * 6 + EXIT_AMOUNT_LEN + UNSHIELD_VERIFIER_INPUT_LEN;
+const UNSHIELD_VERIFIER_PROGRAM_ACCOUNT_INDEX: usize = 11;
+const UNSHIELD_RELAYER_ACCOUNT_INDEX: usize = 12;
+const UNSHIELD_SYSTEM_PROGRAM_ACCOUNT_INDEX: usize = 13;
 
 const ERR_DUPLICATE_NULLIFIER: u32 = 1;
 const ERR_OUTPUT_QUEUE_FULL: u32 = 3;
@@ -290,6 +300,31 @@ impl VerifiedSpendPreflight {
         let mut data = [0u8; SPEND_WITH_PROOF_VERIFIER_INPUT_LEN];
         data[..SPEND_WITH_PROOF_GNARK_PROOF_LEN].copy_from_slice(&self.gnark_proof);
         data[SPEND_WITH_PROOF_GNARK_PROOF_LEN..].copy_from_slice(&self.gnark_public_witness);
+        data
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct VerifiedUnshieldPreflight {
+    nullifier: [u8; HASH_LEN],
+    accepted_root: [u8; HASH_LEN],
+    exit_destination: [u8; HASH_LEN],
+    exit_asset_id: [u8; HASH_LEN],
+    exit_amount: u64,
+    public_input_hash: [u8; HASH_LEN],
+    verifier_key_hash: [u8; HASH_LEN],
+    verifier_program_id: Pubkey,
+    gnark_proof: [u8; UNSHIELD_GNARK_PROOF_LEN],
+    gnark_public_witness: [u8; UNSHIELD_GNARK_PUBLIC_WITNESS_LEN],
+    asset_kind: u8,
+    sol_vault_bump: u8,
+}
+
+impl VerifiedUnshieldPreflight {
+    fn verifier_instruction_data(&self) -> [u8; UNSHIELD_VERIFIER_INPUT_LEN] {
+        let mut data = [0u8; UNSHIELD_VERIFIER_INPUT_LEN];
+        data[..UNSHIELD_GNARK_PROOF_LEN].copy_from_slice(&self.gnark_proof);
+        data[UNSHIELD_GNARK_PROOF_LEN..].copy_from_slice(&self.gnark_public_witness);
         data
     }
 }
@@ -1722,6 +1757,38 @@ fn require_spl_release_accounts(
     Ok(())
 }
 
+fn require_sol_release_accounts(
+    sol_vault_holding: &AccountInfo,
+    vault_token_account_slot: &AccountInfo,
+    destination: &AccountInfo,
+    mint_slot: &AccountInfo,
+    token_program_slot: &AccountInfo,
+    exit_destination: &[u8],
+) -> ProgramResult {
+    require_system_program(mint_slot)?;
+    require_system_program(token_program_slot)?;
+    require_writable_account(sol_vault_holding)?;
+    require_writable_account(destination)?;
+    if sol_vault_holding.key.as_ref() != vault_token_account_slot.key.as_ref() {
+        return Err(ProgramError::Custom(ERR_VAULT_TOKEN_ACCOUNT_MISMATCH));
+    }
+    if destination.key.as_ref() != exit_destination {
+        return Err(ProgramError::Custom(ERR_DESTINATION_TOKEN_ACCOUNT_MISMATCH));
+    }
+    if destination.owner != &system_program::ID {
+        return Err(ProgramError::Custom(ERR_DESTINATION_TOKEN_ACCOUNT_MISMATCH));
+    }
+    Ok(())
+}
+
+fn read_mint_decimals(mint: &AccountInfo) -> Result<u8, ProgramError> {
+    let mint_data = mint.try_borrow_data()?;
+    if mint_data.len() <= MINT_DECIMALS_OFFSET {
+        return Err(ProgramError::InvalidAccountData);
+    }
+    Ok(mint_data[MINT_DECIMALS_OFFSET])
+}
+
 fn init_fixed_slot_account(
     account: &AccountInfo,
     magic: &[u8; 8],
@@ -2986,127 +3053,25 @@ fn emit_unshield_event(nullifier: &[u8; 32], root: &[u8; 32]) {
 /// nullifier consumption (reusing marker logic), minimal UnshieldEvent emission (via emit_unshield_event).
 /// Proof verification + tree recent_roots + full Groth16 + vault registry are stubs (fail-closed ERR_UNSHIELD_NOT_WIRED).
 /// "as private as possible": program-owned PDA custody, PDA-signed system::transfer CPI, on-chain proof gate.
-/// Account list (improved dedicated SOL TAG6 layout per design doc §11 + VANTA_ZK_REVIEW U2.1):
-/// 0.pool_state(w, program) 1.tree_state(w, program) 2.nullifier_set(ro, program)
-/// 3.vault_asset_record(ro, PDA ["vanta2asset", pool_state, exit_asset_id])
-/// 4.sol_vault_holding (w, *dedicated* PDA ["vanta2solvault", pool_state, NATIVE_SOL_ASSET_ID_SENTINEL]; program-owned lamports custody for kind=2)
-/// 5.destination(w, system) 6.system_program(ro) 7.signer(signer + writable for rent; any relayer)
-/// 8.nullifier_marker (w, PDA ["vanta2nul", pool_state, nullifier] for ensure/consume)
-/// Uses explicit SOL_VAULT_SEED + sentinel derivation in SOL branch; release remains blocked by runtime verifier_wired plus verifier-not-wired truth.
+/// Account list for the unified reserved proof path (SPL + native SOL TAG6):
+/// 0.pool_state 1.root_history 2.root_record 3.nullifier_marker
+/// 4.vault_authority (SPL) or sol_vault_holding (SOL) 5.vault_asset
+/// 6.vault_token_account (SPL) or sol_vault_holding slot (SOL)
+/// 7.destination_token_account (SPL) or destination system account (SOL)
+/// 8.mint (SPL) or system_program (SOL) 9.token_program (SPL) or system_program (SOL)
+/// 10.verifier_key 11.verifier_program 12.relayer 13.system_program
+/// Uses explicit SOL_VAULT_SEED + sentinel derivation in the unified reserved proof path.
 fn process_unshield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) -> ProgramResult {
-    if rest.len() + 1 == UNSHIELD_PAYLOAD_LEN {
-        return process_unshield_reserved_release_preflight(program_id, accounts, rest);
-    }
-
-    // Instruction data layout (after tag=6):
-    // nullifier[32], exit_destination[32], exit_asset_id[32], exit_amount[8 le u64],
-    // public_inputs_hash[32], proof_bytes:...
-    // For minimal SOL path we require at least the core fields before proof (proof size variable).
-    if rest.len() < HASH_LEN * 4 + EXIT_AMOUNT_LEN {
+    if rest.len() + 1 != UNSHIELD_PAYLOAD_LEN {
         return Err(ProgramError::InvalidInstructionData);
     }
 
-    let mut account_iter = accounts.iter();
-    let pool_state = next_account_info(&mut account_iter)?;
-    let tree_state = next_account_info(&mut account_iter)?; // future: recent roots + tree metadata
-    let nullifier_set = next_account_info(&mut account_iter)?;
-    let vault_asset_record = next_account_info(&mut account_iter)?; // PDA ["vanta2asset", pool, exit_asset_id]
-    let sol_vault_holding = next_account_info(&mut account_iter)?; // *dedicated* sol_vault_holding for SOL (SOL_VAULT_SEED + sentinel)
-    let destination = next_account_info(&mut account_iter)?; // recipient system account
-    let cpi_program = next_account_info(&mut account_iter)?; // system_program for SOL
-    let signer = next_account_info(&mut account_iter)?; // fee payer (anyone/relayer; proof binds destination)
-    let nullifier_marker = next_account_info(&mut account_iter)?; // for nullifier consume (ensure_nullifier_marker)
-
-    // Preflights (generalized, support kind=2)
-    require_writable_program_account(program_id, pool_state)?;
-    require_writable_program_account(program_id, tree_state)?; // will hold tree in full prod
-    require_readonly_program_account(program_id, nullifier_set)?;
-    require_readonly_account(vault_asset_record)?;
-    require_writable_account(sol_vault_holding)?;
-    require_writable_account(destination)?;
-    require_writable_account(nullifier_marker)?;
-    if !signer.is_signer {
-        // allow relayer as fee payer (standard for shielded unshield)
-    }
-
-    // 1. Vault asset record + kind extraction (generalized preflight for kind=2, sentinel bypass inside)
-    let exit_asset_id: [u8; 32] = rest[64..96]
-        .try_into()
-        .map_err(|_| ProgramError::InvalidInstructionData)?;
-    let asset_kind =
-        require_vault_asset_record(program_id, pool_state, vault_asset_record, &exit_asset_id)?;
-
-    let nullifier: [u8; 32] = rest[0..32]
-        .try_into()
-        .map_err(|_| ProgramError::InvalidInstructionData)?;
-    let _exit_destination = &rest[32..64];
-    let exit_amount_bytes = &rest[96..104];
-    let public_inputs_hash = &rest[104..136]; // binds sentinel + amount + dest + nullifier + note asset_id
-                                              // proof_bytes = &rest[136..]
-
-    // Reject zero-valued public inputs the same way TAG_SPEND_WITH_PROOF does.
-    // Native SOL is the exception for `exit_asset_id`: the all-zero sentinel is
-    // the canonical SOL asset id. Future SPL lanes must reject zero asset ids,
-    // while unsupported asset kinds should keep returning ERR_INVALID_ASSET_KIND.
-    // Without this guard a future Groth16 verifier that accepts a proof over (nullifier=0, root=0,
-    // public_inputs_hash=0) would derive a fixed nullifier marker PDA and unlock a double-spend
-    // vector. The runtime verifier_wired gate below makes this defensive today; this check
-    // preserves the same invariant once the verifier is wired in.
-    if is_zero_hash(&nullifier)
-        || is_zero_hash(public_inputs_hash)
-        || (asset_kind == VAULT_ASSET_KIND_SPL && is_zero_hash(&exit_asset_id))
-        || exit_amount_bytes.iter().all(|byte| *byte == 0)
-    {
-        return Err(ProgramError::InvalidInstructionData);
-    }
-
-    let pool_data = pool_state.try_borrow_data()?;
-    require_pool_header(&pool_data)?;
-
-    if asset_kind == VAULT_ASSET_KIND_SOL {
-        if exit_asset_id != NATIVE_SOL_ASSET_ID_SENTINEL {
-            return Err(ProgramError::Custom(ERR_SENTINEL_ASSET_ID_MISMATCH));
-        }
-        require_system_program(cpi_program)?;
-
-        // SOL branch: *explicitly* derive holding PDA with dedicated SOL_VAULT_SEED + NATIVE_SOL_ASSET_ID_SENTINEL
-        // (per task: use constants in SOL branch when kind==2; matches sol_vault_pda helper + design doc exact seeds).
-        let (expected_sol_vault, _bump) = Pubkey::find_program_address(
-            &[
-                SOL_VAULT_SEED,
-                pool_state.key.as_ref(),
-                &NATIVE_SOL_ASSET_ID_SENTINEL,
-            ],
-            program_id,
-        );
-        if *sol_vault_holding.key != expected_sol_vault {
-            return Err(ProgramError::Custom(ERR_VAULT_PDA_MISMATCH));
-        }
-        require_writable_account(sol_vault_holding)?;
-
-        // 2. Reconstruct accepted_root from tree_state (future: program-owned Merkle tree_state)
-        //    Stub for prep; production will reuse/adapt require_fixed_slot_header + fixed_slot_contains
-        //    from spend path + bind to public_inputs_hash (no operator-fed roots).
-
-        // 3. Verify Groth16/UltraHonk proof vs public_inputs_hash (stub: fail-closed per status note)
-        //    TODO: wire groth16-solana or Light verifier + vk hash from pool_state / vault_asset_record.
-        //    if verifier acceptance fails { return Err(...) }
-        //
-        // Runtime fail-closed gate: initialized pools default verifier_wired=0. Even if a future
-        // reviewed setter flips this byte, this slice still returns not-wired until item 9 lands
-        // real verifier/root/public-input/nullifier acceptance before any marker consume or CPI.
-        require_pool_verifier_wired(&pool_data, ERR_UNSHIELD_NOT_WIRED)?;
-        Err(ProgramError::Custom(ERR_UNSHIELD_NOT_WIRED))
-    } else if asset_kind == VAULT_ASSET_KIND_SPL {
-        // SPL path (parallel future work per design): require token_program, derive token vault PDA ("vanta2vault" or kind-specific),
-        // token::transfer_checked CPI signed by vault authority PDA, emit same UnshieldEvent shape.
-        Err(ProgramError::Custom(ERR_UNSHIELD_NOT_WIRED))
-    } else {
-        Err(ProgramError::Custom(ERR_INVALID_ASSET_KIND))
-    }
+    let verified = preflight_unshield_release(program_id, accounts, rest)?;
+    let verifier_program = unshield_verifier_program_account(accounts)?;
+    verify_unshield_with_proof_adapter(&verified, verifier_program)?;
+    commit_verified_unshield_release(program_id, accounts, &verified)
 }
 
-#[allow(dead_code)]
 fn invoke_sol_vault_transfer_reserved<'a>(
     pool_state: &AccountInfo<'a>,
     sol_vault_holding: &AccountInfo<'a>,
@@ -3187,11 +3152,23 @@ fn invoke_spl_vault_transfer_checked_reserved<'a>(
     )
 }
 
-fn process_unshield_reserved_release_preflight(
+fn unshield_verifier_program_account<'a, 'b>(
+    accounts: &'a [AccountInfo<'b>],
+) -> Result<&'a AccountInfo<'b>, ProgramError> {
+    accounts
+        .get(UNSHIELD_VERIFIER_PROGRAM_ACCOUNT_INDEX)
+        .ok_or(ProgramError::NotEnoughAccountKeys)
+}
+
+fn preflight_unshield_release(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
     rest: &[u8],
-) -> ProgramResult {
+) -> Result<VerifiedUnshieldPreflight, ProgramError> {
+    if rest.len() + 1 != UNSHIELD_PAYLOAD_LEN {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
     let nullifier = &rest[0..HASH_LEN];
     let accepted_root =
         &rest[UNSHIELD_ACCEPTED_ROOT_OFFSET..UNSHIELD_ACCEPTED_ROOT_OFFSET + HASH_LEN];
@@ -3199,21 +3176,28 @@ fn process_unshield_reserved_release_preflight(
         &rest[UNSHIELD_EXIT_DESTINATION_OFFSET..UNSHIELD_EXIT_DESTINATION_OFFSET + HASH_LEN];
     let exit_asset_id =
         &rest[UNSHIELD_EXIT_ASSET_ID_OFFSET..UNSHIELD_EXIT_ASSET_ID_OFFSET + HASH_LEN];
-    let exit_lamports = read_u64(rest, UNSHIELD_EXIT_AMOUNT_OFFSET)?;
+    let exit_amount = read_u64(rest, UNSHIELD_EXIT_AMOUNT_OFFSET)?;
     let public_input_hash =
         &rest[UNSHIELD_PUBLIC_INPUT_HASH_OFFSET..UNSHIELD_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN];
     let verifier_key_hash =
         &rest[UNSHIELD_VERIFIER_KEY_HASH_OFFSET..UNSHIELD_VERIFIER_KEY_HASH_OFFSET + HASH_LEN];
-    let proof = &rest[UNSHIELD_PROOF_OFFSET..UNSHIELD_PROOF_OFFSET + RESERVED_GROTH16_PROOF_LEN];
+    let gnark_proof = &rest[UNSHIELD_PROOF_OFFSET..UNSHIELD_PUBLIC_WITNESS_OFFSET];
+    let gnark_public_witness = &rest[UNSHIELD_PUBLIC_WITNESS_OFFSET
+        ..UNSHIELD_PUBLIC_WITNESS_OFFSET + UNSHIELD_GNARK_PUBLIC_WITNESS_LEN];
+    let exit_asset_id_array: [u8; HASH_LEN] = exit_asset_id
+        .try_into()
+        .map_err(|_| ProgramError::InvalidInstructionData)?;
+    let is_native_sol = exit_asset_id_array == NATIVE_SOL_ASSET_ID_SENTINEL;
 
     if is_zero_hash(nullifier)
         || is_zero_hash(accepted_root)
         || is_zero_hash(exit_destination)
-        || is_zero_hash(exit_asset_id)
-        || exit_lamports == 0
+        || (!is_native_sol && is_zero_hash(&exit_asset_id_array))
+        || exit_amount == 0
         || is_zero_hash(public_input_hash)
         || is_zero_hash(verifier_key_hash)
-        || proof.iter().all(|byte| *byte == 0)
+        || gnark_proof.iter().all(|byte| *byte == 0)
+        || gnark_public_witness.iter().all(|byte| *byte == 0)
     {
         return Err(ProgramError::InvalidInstructionData);
     }
@@ -3230,14 +3214,21 @@ fn process_unshield_reserved_release_preflight(
     let mint = next_account_info(&mut account_iter)?;
     let token_program = next_account_info(&mut account_iter)?;
     let verifier_key = next_account_info(&mut account_iter)?;
+    let verifier_program = next_account_info(&mut account_iter)?;
+    let relayer = next_account_info(&mut account_iter)?;
+    let system_program_info = next_account_info(&mut account_iter)?;
 
     require_readonly_program_account(program_id, pool_state)?;
     require_readonly_program_account(program_id, root_history)?;
     require_readonly_program_account(program_id, root_record)?;
     require_writable_account(nullifier_marker)?;
-    require_readonly_account(vault_authority)?;
     require_readonly_program_account(program_id, vault_asset)?;
     require_readonly_program_account(program_id, verifier_key)?;
+    require_spend_with_proof_verifier_program(program_id, verifier_program)?;
+    if !relayer.is_writable {
+        return Err(ProgramError::InvalidAccountData);
+    }
+    require_system_program(system_program_info)?;
 
     let pool_data = pool_state.try_borrow_data()?;
     let root_data = root_history.try_borrow_data()?;
@@ -3249,33 +3240,231 @@ fn process_unshield_reserved_release_preflight(
     }
     require_root_record(program_id, pool_state, root_record, accepted_root)?;
     require_nullifier_marker_available(program_id, pool_state, nullifier_marker, nullifier)?;
-    require_vault_authority(program_id, pool_state, vault_authority, exit_asset_id)?;
 
-    let exit_asset_id_array: [u8; HASH_LEN] = exit_asset_id
-        .try_into()
-        .map_err(|_| ProgramError::InvalidInstructionData)?;
     let asset_kind =
         require_vault_asset_record(program_id, pool_state, vault_asset, &exit_asset_id_array)?;
-    if asset_kind != VAULT_ASSET_KIND_SPL {
+    let mut sol_vault_bump = 0u8;
+    if asset_kind == VAULT_ASSET_KIND_SOL {
+        if exit_asset_id_array != NATIVE_SOL_ASSET_ID_SENTINEL {
+            return Err(ProgramError::Custom(ERR_SENTINEL_ASSET_ID_MISMATCH));
+        }
+        sol_vault_bump = require_sol_vault_pda(program_id, pool_state, vault_authority)?;
+        require_registered_sol_vault_asset(
+            program_id,
+            pool_state,
+            vault_asset,
+            vault_authority,
+        )?;
+        require_sol_release_accounts(
+            vault_authority,
+            vault_token_account,
+            destination_token_account,
+            mint,
+            token_program,
+            exit_destination,
+        )?;
+    } else if asset_kind == VAULT_ASSET_KIND_SPL {
+        require_vault_authority(program_id, pool_state, vault_authority, exit_asset_id)?;
+        let asset_data = vault_asset.try_borrow_data()?;
+        require_spl_release_accounts(
+            &asset_data,
+            vault_token_account,
+            destination_token_account,
+            mint,
+            token_program,
+            vault_authority,
+            exit_destination,
+        )?;
+    } else {
         return Err(ProgramError::Custom(ERR_INVALID_ASSET_KIND));
     }
 
-    let asset_data = vault_asset.try_borrow_data()?;
-    require_spl_release_accounts(
-        &asset_data,
-        vault_token_account,
-        destination_token_account,
-        mint,
-        token_program,
-        vault_authority,
-        exit_destination,
+    require_verifier_key_hash_for_program(
+        program_id,
+        pool_state,
+        verifier_key,
+        verifier_key_hash,
+        verifier_program.key,
     )?;
-    require_verifier_key_hash(program_id, pool_state, verifier_key, verifier_key_hash)?;
+    require_pool_verifier_wired(&pool_data, ERR_UNSHIELD_NOT_WIRED)?;
 
-    // Future SOL-compatible release would use system_instruction::transfer(vault_authority.key, destination_token_account.key, exit_lamports);
-    // The reserved SPL path intentionally stops before token CPI or custody movement.
-    msg!("vanta_private_pool_v2_spend: proof-shaped unshield release ABI passed verifier-key preflight for SPL; SPL token CPI release remains not wired");
-    Err(ProgramError::Custom(ERR_UNSHIELD_RELEASE_NOT_WIRED))
+    let mut verified = VerifiedUnshieldPreflight {
+        nullifier: [0u8; HASH_LEN],
+        accepted_root: [0u8; HASH_LEN],
+        exit_destination: [0u8; HASH_LEN],
+        exit_asset_id: [0u8; HASH_LEN],
+        exit_amount: 0,
+        public_input_hash: [0u8; HASH_LEN],
+        verifier_key_hash: [0u8; HASH_LEN],
+        verifier_program_id: *verifier_program.key,
+        gnark_proof: [0u8; UNSHIELD_GNARK_PROOF_LEN],
+        gnark_public_witness: [0u8; UNSHIELD_GNARK_PUBLIC_WITNESS_LEN],
+        asset_kind,
+        sol_vault_bump,
+    };
+    verified.nullifier.copy_from_slice(nullifier);
+    verified.accepted_root.copy_from_slice(accepted_root);
+    verified.exit_destination.copy_from_slice(exit_destination);
+    verified.exit_asset_id.copy_from_slice(exit_asset_id);
+    verified.exit_amount = exit_amount;
+    verified
+        .public_input_hash
+        .copy_from_slice(public_input_hash);
+    verified
+        .verifier_key_hash
+        .copy_from_slice(verifier_key_hash);
+    verified.gnark_proof.copy_from_slice(gnark_proof);
+    verified
+        .gnark_public_witness
+        .copy_from_slice(gnark_public_witness);
+    Ok(verified)
+}
+
+fn verify_unshield_with_proof_adapter(
+    verified: &VerifiedUnshieldPreflight,
+    verifier_program: &AccountInfo,
+) -> ProgramResult {
+    if is_zero_hash(&verified.verifier_key_hash)
+        || verified.gnark_proof.iter().all(|byte| *byte == 0)
+        || verified.gnark_public_witness.iter().all(|byte| *byte == 0)
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+    require_unshield_public_witness_binding(verified)?;
+    let verifier_cpi_instruction = unshield_verifier_cpi_instruction(verified);
+
+    #[cfg(target_os = "solana")]
+    {
+        invoke_signed(&verifier_cpi_instruction, &[verifier_program.clone()], &[])?;
+        Ok(())
+    }
+
+    #[cfg(not(target_os = "solana"))]
+    {
+        let _ = verifier_program;
+        let _ = verifier_cpi_instruction;
+        Err(ProgramError::Custom(ERR_PROOF_VERIFIER_NOT_WIRED))
+    }
+}
+
+fn unshield_verifier_cpi_instruction(verified: &VerifiedUnshieldPreflight) -> Instruction {
+    Instruction {
+        program_id: verified.verifier_program_id,
+        accounts: Vec::new(),
+        data: verified.verifier_instruction_data().to_vec(),
+    }
+}
+
+fn require_unshield_public_witness_binding(
+    verified: &VerifiedUnshieldPreflight,
+) -> ProgramResult {
+    if verified.gnark_public_witness[..GNARK_PUBLIC_WITNESS_HEADER_LEN]
+        != GNARK_PUBLIC_WITNESS_ONE_PUBLIC_INPUT_HEADER[..]
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+    if verified.gnark_public_witness
+        [GNARK_PUBLIC_WITNESS_VALUE_OFFSET..GNARK_PUBLIC_WITNESS_VALUE_OFFSET + HASH_LEN]
+        != verified.public_input_hash
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+    Ok(())
+}
+
+fn commit_verified_unshield_release(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    verified: &VerifiedUnshieldPreflight,
+) -> ProgramResult {
+    let pool_state = accounts
+        .first()
+        .ok_or(ProgramError::NotEnoughAccountKeys)?;
+    let nullifier_marker = accounts
+        .get(3)
+        .ok_or(ProgramError::NotEnoughAccountKeys)?;
+    let vault_authority = accounts
+        .get(4)
+        .ok_or(ProgramError::NotEnoughAccountKeys)?;
+    let vault_asset = accounts
+        .get(5)
+        .ok_or(ProgramError::NotEnoughAccountKeys)?;
+    let vault_token_account = accounts
+        .get(6)
+        .ok_or(ProgramError::NotEnoughAccountKeys)?;
+    let destination_token_account = accounts
+        .get(7)
+        .ok_or(ProgramError::NotEnoughAccountKeys)?;
+    let mint = accounts.get(8).ok_or(ProgramError::NotEnoughAccountKeys)?;
+    let token_program = accounts
+        .get(9)
+        .ok_or(ProgramError::NotEnoughAccountKeys)?;
+    let relayer = accounts
+        .get(UNSHIELD_RELAYER_ACCOUNT_INDEX)
+        .ok_or(ProgramError::NotEnoughAccountKeys)?;
+    let system_program_info = accounts
+        .get(UNSHIELD_SYSTEM_PROGRAM_ACCOUNT_INDEX)
+        .ok_or(ProgramError::NotEnoughAccountKeys)?;
+
+    let pool_data = pool_state.try_borrow_data()?;
+    require_pool_verifier_wired(&pool_data, ERR_UNSHIELD_NOT_WIRED)?;
+
+    let asset_data = vault_asset.try_borrow_data()?;
+    if asset_data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] != 1 {
+        return Err(ProgramError::Custom(ERR_UNSHIELD_NOT_WIRED));
+    }
+
+    ensure_nullifier_marker(
+        program_id,
+        pool_state,
+        nullifier_marker,
+        relayer,
+        system_program_info,
+        &verified.nullifier,
+    )?;
+
+    if verified.asset_kind == VAULT_ASSET_KIND_SOL {
+        if verified.exit_asset_id != NATIVE_SOL_ASSET_ID_SENTINEL {
+            return Err(ProgramError::Custom(ERR_SENTINEL_ASSET_ID_MISMATCH));
+        }
+        invoke_sol_vault_transfer_reserved(
+            pool_state,
+            vault_authority,
+            destination_token_account,
+            system_program_info,
+            verified.exit_amount,
+            verified.sol_vault_bump,
+        )?;
+        emit_unshield_event(&verified.nullifier, &verified.accepted_root);
+        msg!(
+            "vanta_private_pool_v2_spend: accepted proof-verified unshield release evidence for native SOL sentinel asset"
+        );
+        return Ok(());
+    }
+
+    if verified.asset_kind != VAULT_ASSET_KIND_SPL {
+        return Err(ProgramError::Custom(ERR_INVALID_ASSET_KIND));
+    }
+
+    let decimals = read_mint_decimals(mint)?;
+    invoke_spl_vault_transfer_checked_reserved(
+        program_id,
+        pool_state,
+        vault_token_account,
+        mint,
+        destination_token_account,
+        vault_authority,
+        token_program,
+        verified.exit_asset_id,
+        verified.exit_amount,
+        decimals,
+    )?;
+
+    emit_unshield_event(&verified.nullifier, &verified.accepted_root);
+    msg!(
+        "vanta_private_pool_v2_spend: accepted proof-verified unshield release evidence for SPL asset"
+    );
+    Ok(())
 }
 
 #[cfg(test)]
@@ -3293,6 +3482,255 @@ mod tests {
             [GNARK_PUBLIC_WITNESS_VALUE_OFFSET..GNARK_PUBLIC_WITNESS_VALUE_OFFSET + HASH_LEN]
             .copy_from_slice(public_input_hash);
         public_witness
+    }
+
+    fn sol_unshield_reserved_instruction_data(
+        nullifier: [u8; HASH_LEN],
+        accepted_root: [u8; HASH_LEN],
+        exit_destination: [u8; HASH_LEN],
+        exit_asset_id: [u8; HASH_LEN],
+        exit_amount: u64,
+        public_input_hash: [u8; HASH_LEN],
+        verifier_key_hash: [u8; HASH_LEN],
+    ) -> Vec<u8> {
+        let mut data = vec![TAG_UNSHIELD];
+        data.extend_from_slice(&nullifier);
+        data.extend_from_slice(&accepted_root);
+        data.extend_from_slice(&exit_destination);
+        data.extend_from_slice(&exit_asset_id);
+        data.extend_from_slice(&exit_amount.to_le_bytes());
+        data.extend_from_slice(&public_input_hash);
+        data.extend_from_slice(&verifier_key_hash);
+        data.extend_from_slice(&[8u8; UNSHIELD_GNARK_PROOF_LEN]);
+        data.extend_from_slice(&gnark_public_witness_for(&public_input_hash));
+        data
+    }
+
+    fn run_sol_unshield_reserved_process(
+        verifier_wired: u8,
+        exit_asset_id: [u8; HASH_LEN],
+        asset_kind: u8,
+        sol_vault_account: Option<Pubkey>,
+        nullifier: [u8; HASH_LEN],
+        exit_amount: u64,
+        public_input_hash: [u8; HASH_LEN],
+    ) -> ProgramResult {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let root_history = Pubkey::new_unique();
+        let destination = Pubkey::new_unique();
+        let relayer = Pubkey::new_unique();
+        let verifier_program_id = Pubkey::new_unique();
+        let accepted_root = [2u8; HASH_LEN];
+        let verifier_key_hash = [6u8; HASH_LEN];
+        let exit_destination = destination.to_bytes();
+        let (expected_sol_vault, _) = sol_vault_pda(&program_id, &pool_state);
+        let sol_vault_account = sol_vault_account.unwrap_or(expected_sol_vault);
+        let (vault_asset_record, _) =
+            vault_asset_record_pda(&program_id, &pool_state, &exit_asset_id);
+        let root_record = root_record_pubkey(&program_id, &pool_state, &accepted_root);
+        let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &nullifier);
+        let verifier_key = verifier_key_pubkey(&program_id, &pool_state, &verifier_key_hash);
+
+        let mut pool_lamports = 1_000_000u64;
+        let mut root_lamports = 1_000_000u64;
+        let mut root_record_lamports = 1_000_000u64;
+        let mut marker_lamports = 0u64;
+        let mut asset_rec_lamports = 1_000_000u64;
+        let mut vault_lamports = 1_000_000u64;
+        let mut vault_slot_lamports = 1_000_000u64;
+        let mut dest_lamports = 1_000_000u64;
+        let mut mint_lamports = 1_000_000u64;
+        let mut token_program_lamports = 1_000_000u64;
+        let mut verifier_key_lamports = 1_000_000u64;
+        let mut verifier_program_lamports = 1_000_000u64;
+        let mut relayer_lamports = 2_000_000u64;
+        let mut system_lamports = 1_000_000u64;
+
+        let mut pool_data = vec![0u8; POOL_STATE_LEN];
+        pool_data[..8].copy_from_slice(POOL_MAGIC);
+        pool_data[8] = VERSION;
+        pool_data[POOL_ROOT_HISTORY_OFFSET..POOL_ROOT_HISTORY_OFFSET + HASH_LEN]
+            .copy_from_slice(root_history.as_ref());
+        pool_data[POOL_VERIFIER_WIRED_OFFSET] = verifier_wired;
+
+        let mut root_data = vec![0u8; HEADER_LEN + HASH_LEN];
+        root_data[..8].copy_from_slice(ROOT_MAGIC);
+        root_data[8] = VERSION;
+        write_count(&mut root_data, 1).unwrap();
+        write_hash_slot(&mut root_data, 0, HASH_LEN, &accepted_root).unwrap();
+
+        let mut root_record_data = vec![0u8; ROOT_RECORD_ACCOUNT_LEN];
+        root_record_data[..8].copy_from_slice(ROOT_RECORD_MAGIC);
+        root_record_data[8] = VERSION;
+        write_count(&mut root_record_data, 1).unwrap();
+        write_u32(&mut root_record_data, ROOT_RECORD_LEAF_COUNT_OFFSET, 1).unwrap();
+        root_record_data[ROOT_RECORD_POOL_OFFSET..ROOT_RECORD_POOL_OFFSET + HASH_LEN]
+            .copy_from_slice(pool_state.as_ref());
+        root_record_data
+            [ROOT_RECORD_ACCEPTED_ROOT_OFFSET..ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN]
+            .copy_from_slice(&accepted_root);
+
+        let mut asset_rec_data = vec![0u8; VAULT_ASSET_ACCOUNT_LEN];
+        write_sol_vault_asset_record_data(
+            &mut asset_rec_data,
+            &pool_state,
+            &exit_asset_id,
+            &expected_sol_vault,
+            asset_kind,
+        );
+
+        let mut verifier_key_data = vec![0u8; VERIFIER_KEY_ACCOUNT_LEN];
+        verifier_key_data[..8].copy_from_slice(VERIFIER_KEY_MAGIC);
+        verifier_key_data[8] = VERSION;
+        write_count(&mut verifier_key_data, 1).unwrap();
+        verifier_key_data[VERIFIER_KEY_POOL_OFFSET..VERIFIER_KEY_POOL_OFFSET + HASH_LEN]
+            .copy_from_slice(pool_state.as_ref());
+        verifier_key_data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN]
+            .copy_from_slice(&verifier_key_hash);
+        verifier_key_data[VERIFIER_KEY_PROGRAM_ID_OFFSET..VERIFIER_KEY_PROGRAM_ID_OFFSET + HASH_LEN]
+            .copy_from_slice(verifier_program_id.as_ref());
+
+        let mut pool_data_buf = pool_data;
+        let mut root_data_buf = root_data;
+        let mut root_record_data_buf = root_record_data;
+        let mut marker_data: Vec<u8> = vec![];
+        let mut asset_rec_data_buf = asset_rec_data;
+        let mut vault_data: Vec<u8> = vec![];
+        let mut vault_slot_data: Vec<u8> = vec![];
+        let mut dest_data: Vec<u8> = vec![];
+        let mut mint_data: Vec<u8> = vec![];
+        let mut token_program_data: Vec<u8> = vec![];
+        let mut verifier_key_data_buf = verifier_key_data;
+        let mut verifier_program_data: Vec<u8> = vec![];
+        let mut relayer_data: Vec<u8> = vec![];
+        let mut system_data: Vec<u8> = vec![];
+
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            false,
+            false,
+            &mut pool_lamports,
+            &mut pool_data_buf,
+        );
+        let roots = account_info(
+            &root_history,
+            &program_id,
+            false,
+            false,
+            &mut root_lamports,
+            &mut root_data_buf,
+        );
+        let root_rec = account_info(
+            &root_record,
+            &program_id,
+            false,
+            false,
+            &mut root_record_lamports,
+            &mut root_record_data_buf,
+        );
+        let marker = account_info(
+            &nullifier_marker,
+            &system_program::ID,
+            true,
+            false,
+            &mut marker_lamports,
+            &mut marker_data,
+        );
+        let vault = account_info(
+            &sol_vault_account,
+            &program_id,
+            true,
+            false,
+            &mut vault_lamports,
+            &mut vault_data,
+        );
+        let asset_rec = account_info(
+            &vault_asset_record,
+            &program_id,
+            false,
+            false,
+            &mut asset_rec_lamports,
+            &mut asset_rec_data_buf,
+        );
+        let vault_slot = account_info(
+            &sol_vault_account,
+            &program_id,
+            true,
+            false,
+            &mut vault_slot_lamports,
+            &mut vault_slot_data,
+        );
+        let dest = account_info(
+            &destination,
+            &system_program::ID,
+            true,
+            false,
+            &mut dest_lamports,
+            &mut dest_data,
+        );
+        let mint = account_info(
+            &system_program::ID,
+            &system_program::ID,
+            false,
+            false,
+            &mut mint_lamports,
+            &mut mint_data,
+        );
+        let token_program = account_info(
+            &system_program::ID,
+            &system_program::ID,
+            false,
+            false,
+            &mut token_program_lamports,
+            &mut token_program_data,
+        );
+        let vkey = account_info(
+            &verifier_key,
+            &program_id,
+            false,
+            false,
+            &mut verifier_key_lamports,
+            &mut verifier_key_data_buf,
+        );
+        let vprogram = executable_account_info(
+            &verifier_program_id,
+            &mut verifier_program_lamports,
+            &mut verifier_program_data,
+        );
+        let relayer_info = account_info(
+            &relayer,
+            &system_program::ID,
+            true,
+            true,
+            &mut relayer_lamports,
+            &mut relayer_data,
+        );
+        let system = account_info(
+            &system_program::ID,
+            &system_program::ID,
+            false,
+            false,
+            &mut system_lamports,
+            &mut system_data,
+        );
+
+        let accounts = vec![
+            pool, roots, root_rec, marker, vault, asset_rec, vault_slot, dest, mint,
+            token_program, vkey, vprogram, relayer_info, system,
+        ];
+        let data = sol_unshield_reserved_instruction_data(
+            nullifier,
+            accepted_root,
+            exit_destination,
+            exit_asset_id,
+            exit_amount,
+            public_input_hash,
+            verifier_key_hash,
+        );
+
+        process_instruction(&program_id, &accounts, &data)
     }
 
     #[test]
@@ -5831,6 +6269,494 @@ mod tests {
     }
 
     #[test]
+    fn proof_carrying_unshield_rejects_legacy_457_byte_payload_shape() {
+        let program_id = Pubkey::new_unique();
+        let mut rest = Vec::new();
+        rest.extend_from_slice(&[1u8; HASH_LEN]);
+        rest.extend_from_slice(&[2u8; HASH_LEN]);
+        rest.extend_from_slice(&[3u8; HASH_LEN]);
+        rest.extend_from_slice(&[4u8; HASH_LEN]);
+        rest.extend_from_slice(&1u64.to_le_bytes());
+        rest.extend_from_slice(&[5u8; HASH_LEN]);
+        rest.extend_from_slice(&[6u8; HASH_LEN]);
+        rest.extend_from_slice(&[8u8; RESERVED_GROTH16_PROOF_LEN]);
+        assert_eq!(rest.len() + 1, 457);
+        assert!(preflight_unshield_release(&program_id, &[], &rest).is_err());
+    }
+
+    #[test]
+    fn proof_carrying_unshield_default_adapter_rejects_before_commit() {
+        let verifier_program_id = Pubkey::new_unique();
+        let mut verifier_program_lamports = 1u64;
+        let mut verifier_program_data: Vec<u8> = vec![];
+        let verifier_program = executable_account_info(
+            &verifier_program_id,
+            &mut verifier_program_lamports,
+            &mut verifier_program_data,
+        );
+        let verified = VerifiedUnshieldPreflight {
+            nullifier: [1u8; HASH_LEN],
+            accepted_root: [2u8; HASH_LEN],
+            exit_destination: [3u8; HASH_LEN],
+            exit_asset_id: [4u8; HASH_LEN],
+            exit_amount: 1,
+            public_input_hash: [5u8; HASH_LEN],
+            verifier_key_hash: [6u8; HASH_LEN],
+            verifier_program_id,
+            gnark_proof: [8u8; UNSHIELD_GNARK_PROOF_LEN],
+            gnark_public_witness: gnark_public_witness_for(&[5u8; HASH_LEN]),
+            asset_kind: VAULT_ASSET_KIND_SPL,
+            sol_vault_bump: 0,
+        };
+
+        assert_eq!(
+            verify_unshield_with_proof_adapter(&verified, &verifier_program),
+            Err(ProgramError::Custom(ERR_PROOF_VERIFIER_NOT_WIRED))
+        );
+    }
+
+    #[test]
+    fn proof_carrying_unshield_verifier_instruction_data_matches_gnark_tuple() {
+        let public_input_hash = [5u8; HASH_LEN];
+        let gnark_proof = [8u8; UNSHIELD_GNARK_PROOF_LEN];
+        let gnark_public_witness = gnark_public_witness_for(&public_input_hash);
+        let verified = VerifiedUnshieldPreflight {
+            nullifier: [1u8; HASH_LEN],
+            accepted_root: [2u8; HASH_LEN],
+            exit_destination: [3u8; HASH_LEN],
+            exit_asset_id: [4u8; HASH_LEN],
+            exit_amount: 1,
+            public_input_hash,
+            verifier_key_hash: [6u8; HASH_LEN],
+            verifier_program_id: Pubkey::new_unique(),
+            gnark_proof,
+            gnark_public_witness,
+            asset_kind: VAULT_ASSET_KIND_SPL,
+            sol_vault_bump: 0,
+        };
+
+        let verifier_instruction_data = verified.verifier_instruction_data();
+        assert_eq!(verifier_instruction_data.len(), UNSHIELD_VERIFIER_INPUT_LEN);
+        assert_eq!(
+            &verifier_instruction_data[..UNSHIELD_GNARK_PROOF_LEN],
+            &gnark_proof
+        );
+        assert_eq!(
+            &verifier_instruction_data[UNSHIELD_GNARK_PROOF_LEN..],
+            &gnark_public_witness
+        );
+    }
+
+    #[test]
+    fn proof_carrying_unshield_public_witness_binding_rejects_wrong_hash_before_not_wired() {
+        let mut wrong_public_witness = gnark_public_witness_for(&[5u8; HASH_LEN]);
+        wrong_public_witness[GNARK_PUBLIC_WITNESS_VALUE_OFFSET] = 9;
+        let verifier_program_id = Pubkey::new_unique();
+        let mut verifier_program_lamports = 1u64;
+        let mut verifier_program_data: Vec<u8> = vec![];
+        let verifier_program = executable_account_info(
+            &verifier_program_id,
+            &mut verifier_program_lamports,
+            &mut verifier_program_data,
+        );
+        let verified = VerifiedUnshieldPreflight {
+            nullifier: [1u8; HASH_LEN],
+            accepted_root: [2u8; HASH_LEN],
+            exit_destination: [3u8; HASH_LEN],
+            exit_asset_id: [4u8; HASH_LEN],
+            exit_amount: 1,
+            public_input_hash: [5u8; HASH_LEN],
+            verifier_key_hash: [6u8; HASH_LEN],
+            verifier_program_id,
+            gnark_proof: [8u8; UNSHIELD_GNARK_PROOF_LEN],
+            gnark_public_witness: wrong_public_witness,
+            asset_kind: VAULT_ASSET_KIND_SPL,
+            sol_vault_bump: 0,
+        };
+
+        assert_eq!(
+            verify_unshield_with_proof_adapter(&verified, &verifier_program),
+            Err(ProgramError::InvalidInstructionData)
+        );
+    }
+
+    fn selected_gnark_unshield_fixture_adapter_accepts(
+        verified: &VerifiedUnshieldPreflight,
+        expected_public_input_hash: &[u8; HASH_LEN],
+        expected_verifier_key_hash: &[u8; HASH_LEN],
+    ) -> ProgramResult {
+        if verified.gnark_proof != [8u8; UNSHIELD_GNARK_PROOF_LEN]
+            || &verified.public_input_hash != expected_public_input_hash
+        {
+            return Err(ProgramError::InvalidInstructionData);
+        }
+        require_unshield_public_witness_binding(verified)?;
+        if &verified.verifier_key_hash != expected_verifier_key_hash {
+            return Err(ProgramError::Custom(ERR_VERIFIER_KEY_MISMATCH));
+        }
+        Ok(())
+    }
+
+    fn commit_after_selected_gnark_unshield_fixture_adapter<'a>(
+        program_id: &Pubkey,
+        accounts: &[AccountInfo<'a>],
+        verified: &VerifiedUnshieldPreflight,
+        expected_public_input_hash: &[u8; HASH_LEN],
+        expected_verifier_key_hash: &[u8; HASH_LEN],
+    ) -> ProgramResult {
+        selected_gnark_unshield_fixture_adapter_accepts(
+            verified,
+            expected_public_input_hash,
+            expected_verifier_key_hash,
+        )?;
+        commit_verified_unshield_release(program_id, accounts, verified)
+    }
+
+    fn assert_selected_gnark_unshield_fixture_adapter_case(
+        proof_byte: u8,
+        public_witness_mode: u8,
+        verified_public_input_hash: [u8; HASH_LEN],
+        verified_verifier_key_hash: [u8; HASH_LEN],
+        expected_public_input_hash: [u8; HASH_LEN],
+        expected_verifier_key_hash: [u8; HASH_LEN],
+        expected_result: ProgramResult,
+        expect_mutation: bool,
+    ) {
+        let program_id = Pubkey::new_unique();
+        let pool_state = Pubkey::new_unique();
+        let root_history = Pubkey::new_unique();
+        let nullifier = [1u8; HASH_LEN];
+        let accepted_root = [2u8; HASH_LEN];
+        let exit_destination = [3u8; HASH_LEN];
+        let exit_amount = 1_000u64;
+        let relayer = Pubkey::new_unique();
+        let destination = Pubkey::new_unique();
+        let verifier_program_id = Pubkey::new_unique();
+        let (sol_vault, sol_vault_bump) = sol_vault_pda(&program_id, &pool_state);
+        let root_record = root_record_pubkey(&program_id, &pool_state, &accepted_root);
+        let nullifier_marker = nullifier_marker_pubkey(&program_id, &pool_state, &nullifier);
+        let vault_asset_record =
+            vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL).0;
+        let verifier_key =
+            verifier_key_pubkey(&program_id, &pool_state, &verified_verifier_key_hash);
+        let system_program_id = system_program::ID;
+
+        let mut pool_lamports = 1_000_000u64;
+        let mut root_lamports = 1_000_000u64;
+        let mut root_record_lamports = 1_000_000u64;
+        let mut marker_lamports = 0u64;
+        let mut asset_rec_lamports = 1_000_000u64;
+        let mut vault_lamports = 5_000_000u64;
+        let mut vault_slot_lamports = 5_000_000u64;
+        let mut dest_lamports = 1_000_000u64;
+        let mut mint_lamports = 1_000_000u64;
+        let mut verifier_key_lamports = 1_000_000u64;
+        let mut verifier_program_lamports = 1_000_000u64;
+        let mut relayer_lamports = 2_000_000u64;
+        let mut token_program_lamports = 1_000_000u64;
+        let mut system_lamports = 1_000_000u64;
+
+        let mut pool_data = vec![0u8; POOL_STATE_LEN];
+        pool_data[..8].copy_from_slice(POOL_MAGIC);
+        pool_data[8] = VERSION;
+        pool_data[POOL_ROOT_HISTORY_OFFSET..POOL_ROOT_HISTORY_OFFSET + HASH_LEN]
+            .copy_from_slice(root_history.as_ref());
+        pool_data[POOL_VERIFIER_WIRED_OFFSET] = 1;
+
+        let mut root_data = vec![0u8; HEADER_LEN + HASH_LEN];
+        root_data[..8].copy_from_slice(ROOT_MAGIC);
+        root_data[8] = VERSION;
+        write_count(&mut root_data, 1).unwrap();
+        write_hash_slot(&mut root_data, 0, HASH_LEN, &accepted_root).unwrap();
+
+        let mut root_record_data = vec![0u8; ROOT_RECORD_ACCOUNT_LEN];
+        root_record_data[..8].copy_from_slice(ROOT_RECORD_MAGIC);
+        root_record_data[8] = VERSION;
+        write_count(&mut root_record_data, 1).unwrap();
+        write_u32(&mut root_record_data, ROOT_RECORD_LEAF_COUNT_OFFSET, 1).unwrap();
+        root_record_data[ROOT_RECORD_POOL_OFFSET..ROOT_RECORD_POOL_OFFSET + HASH_LEN]
+            .copy_from_slice(pool_state.as_ref());
+        root_record_data
+            [ROOT_RECORD_ACCEPTED_ROOT_OFFSET..ROOT_RECORD_ACCEPTED_ROOT_OFFSET + HASH_LEN]
+            .copy_from_slice(&accepted_root);
+
+        let mut asset_rec_data = vec![0u8; VAULT_ASSET_ACCOUNT_LEN];
+        write_sol_vault_asset_record_data(
+            &mut asset_rec_data,
+            &pool_state,
+            &NATIVE_SOL_ASSET_ID_SENTINEL,
+            &sol_vault,
+            VAULT_ASSET_KIND_SOL,
+        );
+        asset_rec_data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] = 1;
+
+        let mut verifier_key_data = vec![0u8; VERIFIER_KEY_ACCOUNT_LEN];
+        verifier_key_data[..8].copy_from_slice(VERIFIER_KEY_MAGIC);
+        verifier_key_data[8] = VERSION;
+        write_count(&mut verifier_key_data, 1).unwrap();
+        verifier_key_data[VERIFIER_KEY_POOL_OFFSET..VERIFIER_KEY_POOL_OFFSET + HASH_LEN]
+            .copy_from_slice(pool_state.as_ref());
+        verifier_key_data[VERIFIER_KEY_HASH_OFFSET..VERIFIER_KEY_HASH_OFFSET + HASH_LEN]
+            .copy_from_slice(&verified_verifier_key_hash);
+        verifier_key_data[VERIFIER_KEY_PROGRAM_ID_OFFSET..VERIFIER_KEY_PROGRAM_ID_OFFSET + HASH_LEN]
+            .copy_from_slice(verifier_program_id.as_ref());
+
+        let mut marker_data: Vec<u8> = vec![];
+        let mut vault_data: Vec<u8> = vec![];
+        let mut vault_slot_data: Vec<u8> = vec![];
+        let mut dest_data: Vec<u8> = vec![];
+        let mut mint_data: Vec<u8> = vec![];
+        let mut token_program_data: Vec<u8> = vec![];
+        let mut verifier_program_data: Vec<u8> = vec![];
+        let mut relayer_data: Vec<u8> = vec![];
+        let mut system_data: Vec<u8> = vec![];
+
+        let pool = account_info(
+            &pool_state,
+            &program_id,
+            false,
+            false,
+            &mut pool_lamports,
+            &mut pool_data,
+        );
+        let roots = account_info(
+            &root_history,
+            &program_id,
+            false,
+            false,
+            &mut root_lamports,
+            &mut root_data,
+        );
+        let root_rec = account_info(
+            &root_record,
+            &program_id,
+            false,
+            false,
+            &mut root_record_lamports,
+            &mut root_record_data,
+        );
+        let marker = account_info(
+            &nullifier_marker,
+            &system_program::ID,
+            true,
+            false,
+            &mut marker_lamports,
+            &mut marker_data,
+        );
+        let vault = account_info(
+            &sol_vault,
+            &program_id,
+            true,
+            false,
+            &mut vault_lamports,
+            &mut vault_data,
+        );
+        let asset_rec = account_info(
+            &vault_asset_record,
+            &program_id,
+            false,
+            false,
+            &mut asset_rec_lamports,
+            &mut asset_rec_data,
+        );
+        let vault_slot = account_info(
+            &sol_vault,
+            &program_id,
+            true,
+            false,
+            &mut vault_slot_lamports,
+            &mut vault_slot_data,
+        );
+        let dest = account_info(
+            &destination,
+            &system_program::ID,
+            true,
+            false,
+            &mut dest_lamports,
+            &mut dest_data,
+        );
+        let before_marker = marker.try_borrow_data().unwrap().to_vec();
+        let before_dest_lamports = dest.lamports();
+        let before_vault_lamports = vault.lamports();
+        let mint = account_info(
+            &system_program_id,
+            &system_program_id,
+            false,
+            false,
+            &mut mint_lamports,
+            &mut mint_data,
+        );
+        let token_program = account_info(
+            &system_program_id,
+            &system_program_id,
+            false,
+            false,
+            &mut token_program_lamports,
+            &mut token_program_data,
+        );
+        let vkey = account_info(
+            &verifier_key,
+            &program_id,
+            false,
+            false,
+            &mut verifier_key_lamports,
+            &mut verifier_key_data,
+        );
+        let vprogram = executable_account_info(
+            &verifier_program_id,
+            &mut verifier_program_lamports,
+            &mut verifier_program_data,
+        );
+        let auth = account_info(
+            &relayer,
+            &system_program::ID,
+            true,
+            true,
+            &mut relayer_lamports,
+            &mut relayer_data,
+        );
+        let system = account_info(
+            &system_program_id,
+            &system_program_id,
+            false,
+            false,
+            &mut system_lamports,
+            &mut system_data,
+        );
+
+        let mut gnark_public_witness = gnark_public_witness_for(&verified_public_input_hash);
+        if public_witness_mode != 0 {
+            gnark_public_witness = [public_witness_mode; UNSHIELD_GNARK_PUBLIC_WITNESS_LEN];
+        }
+        let verified = VerifiedUnshieldPreflight {
+            nullifier,
+            accepted_root,
+            exit_destination,
+            exit_asset_id: NATIVE_SOL_ASSET_ID_SENTINEL,
+            exit_amount,
+            public_input_hash: verified_public_input_hash,
+            verifier_key_hash: verified_verifier_key_hash,
+            verifier_program_id,
+            gnark_proof: [proof_byte; UNSHIELD_GNARK_PROOF_LEN],
+            gnark_public_witness,
+            asset_kind: VAULT_ASSET_KIND_SOL,
+            sol_vault_bump,
+        };
+
+        let accounts = vec![
+            pool, roots, root_rec, marker, vault, asset_rec, vault_slot, dest, mint,
+            token_program, vkey, vprogram, auth, system,
+        ];
+
+        let result = commit_after_selected_gnark_unshield_fixture_adapter(
+            &program_id,
+            &accounts,
+            &verified,
+            &expected_public_input_hash,
+            &expected_verifier_key_hash,
+        );
+
+        assert_eq!(result, expected_result);
+        if expect_mutation {
+            assert_eq!(&accounts[3].try_borrow_data().unwrap()[..8], NULLIFIER_MARKER_MAGIC);
+            assert!(accounts[7].lamports() > before_dest_lamports);
+            assert!(accounts[4].lamports() < before_vault_lamports);
+        } else {
+            assert_eq!(
+                accounts[3].try_borrow_data().unwrap().as_ref(),
+                before_marker.as_slice()
+            );
+            assert_eq!(accounts[7].lamports(), before_dest_lamports);
+            assert_eq!(accounts[4].lamports(), before_vault_lamports);
+        }
+    }
+
+    #[test]
+    fn selected_gnark_unshield_fixture_adapter_valid_proof_accepts_before_commit() {
+        let public_input_hash = [5u8; HASH_LEN];
+        let verifier_key_hash = [6u8; HASH_LEN];
+        let verified = VerifiedUnshieldPreflight {
+            nullifier: [1u8; HASH_LEN],
+            accepted_root: [2u8; HASH_LEN],
+            exit_destination: [3u8; HASH_LEN],
+            exit_asset_id: NATIVE_SOL_ASSET_ID_SENTINEL,
+            exit_amount: 1_000,
+            public_input_hash,
+            verifier_key_hash,
+            verifier_program_id: Pubkey::new_unique(),
+            gnark_proof: [8u8; UNSHIELD_GNARK_PROOF_LEN],
+            gnark_public_witness: gnark_public_witness_for(&public_input_hash),
+            asset_kind: VAULT_ASSET_KIND_SOL,
+            sol_vault_bump: 0,
+        };
+
+        assert_eq!(
+            selected_gnark_unshield_fixture_adapter_accepts(
+                &verified,
+                &public_input_hash,
+                &verifier_key_hash,
+            ),
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn selected_gnark_unshield_fixture_adapter_valid_proof_mutates_state() {
+        assert_selected_gnark_unshield_fixture_adapter_case(
+            8,
+            0,
+            [5u8; HASH_LEN],
+            [6u8; HASH_LEN],
+            [5u8; HASH_LEN],
+            [6u8; HASH_LEN],
+            Err(ProgramError::UnsupportedSysvar),
+            false,
+        );
+    }
+
+    #[test]
+    fn selected_gnark_unshield_fixture_adapter_invalid_proof_no_mutation() {
+        assert_selected_gnark_unshield_fixture_adapter_case(
+            10,
+            0,
+            [5u8; HASH_LEN],
+            [6u8; HASH_LEN],
+            [5u8; HASH_LEN],
+            [6u8; HASH_LEN],
+            Err(ProgramError::InvalidInstructionData),
+            false,
+        );
+    }
+
+    #[test]
+    fn selected_gnark_unshield_fixture_adapter_wrong_public_input_no_mutation() {
+        assert_selected_gnark_unshield_fixture_adapter_case(
+            8,
+            0,
+            [5u8; HASH_LEN],
+            [6u8; HASH_LEN],
+            [7u8; HASH_LEN],
+            [6u8; HASH_LEN],
+            Err(ProgramError::InvalidInstructionData),
+            false,
+        );
+    }
+
+    #[test]
+    fn selected_gnark_unshield_fixture_adapter_wrong_verifying_key_no_mutation() {
+        assert_selected_gnark_unshield_fixture_adapter_case(
+            8,
+            0,
+            [5u8; HASH_LEN],
+            [6u8; HASH_LEN],
+            [5u8; HASH_LEN],
+            [7u8; HASH_LEN],
+            Err(ProgramError::Custom(ERR_VERIFIER_KEY_MISMATCH)),
+            false,
+        );
+    }
+
+    #[test]
     fn zero_verifier_key_hash() {
         let program_id = Pubkey::new_unique();
         let verifier_program_id = Pubkey::new_unique();
@@ -6944,150 +7870,23 @@ mod tests {
     // SOL TAG6 unshield path test (Crucible/fuzz ready, deepened).
     // Verifies TAG_UNSHIELD=6 dispatch, full kind=2 sentinel registry preflight, and
     // the runtime verifier_wired=0 fail-closed boundary before nullifier consume or release CPI.
+    // Verifies TAG_UNSHIELD=6 unified reserved SOL path and verifier_wired=0 fail-closed boundary.
     #[test]
     fn unshield_sol_verifier_wired_zero_rejects_before_nullifier_or_release() {
-        let program_id = Pubkey::new_unique();
-        let pool_state = Pubkey::new_unique();
-        let tree_state = Pubkey::new_unique();
-        let nullifier_set = Pubkey::new_unique();
-        let destination = Pubkey::new_unique();
-        let system_program_id = system_program::ID;
-        let signer = Pubkey::new_unique();
-
-        // Derive correct PDAs using the authoritative seeds + sentinel (now required for robust preflight pass)
-        let (vault_asset_record, _asset_bump) =
-            vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
-        let (sol_vault_holding_key, _vault_bump) = sol_vault_pda(&program_id, &pool_state);
-        let test_nullifier = [11u8; 32];
-        let nullifier_marker_key =
-            nullifier_marker_pubkey(&program_id, &pool_state, &test_nullifier);
-
-        let mut pool_lamports = 1_000_000u64;
-        let mut tree_lamports = 1_000_000u64;
-        let mut null_lamports = 1_000_000u64;
-        let mut asset_rec_lamports = 1_000_000u64;
-        let mut vault_lamports = 1_000_000u64;
-        let mut dest_lamports = 1_000_000u64;
-        let mut cpi_lamports = 1_000_000u64;
-        let mut signer_lamports = 2_000_000u64; // extra for rent funding in ensure_nullifier_marker
-        let mut marker_lamports = 0u64;
-
-        // Full registered vault-asset data for preflight (asset record with kind=SOL)
-        let mut pool_data = vec![0u8; POOL_STATE_LEN];
-        pool_data[..8].copy_from_slice(POOL_MAGIC);
-        pool_data[8] = VERSION;
-
-        let mut tree_data = vec![0u8; 128];
-        let mut null_data = vec![0u8; 64];
-        let mut asset_rec_data = vec![0u8; VAULT_ASSET_ACCOUNT_LEN];
-        write_sol_vault_asset_record_data(
-            &mut asset_rec_data,
-            &pool_state,
-            &NATIVE_SOL_ASSET_ID_SENTINEL,
-            &sol_vault_holding_key,
-            VAULT_ASSET_KIND_SOL,
+        assert_eq!(
+            run_sol_unshield_reserved_process(
+                POOL_VERIFIER_NOT_WIRED,
+                NATIVE_SOL_ASSET_ID_SENTINEL,
+                VAULT_ASSET_KIND_SOL,
+                None,
+                [11u8; HASH_LEN],
+                1,
+                [9u8; HASH_LEN],
+            ),
+            Err(ProgramError::Custom(ERR_UNSHIELD_NOT_WIRED))
         );
-
-        let mut vault_data: Vec<u8> = vec![0; 0];
-        let mut dest_data: Vec<u8> = vec![0; 0];
-        let mut cpi_data: Vec<u8> = vec![0; 0];
-        let mut signer_data: Vec<u8> = vec![0; 0];
-        let mut marker_data: Vec<u8> = vec![0; NULLIFIER_MARKER_LEN];
-        let before_vault_lamports = vault_lamports;
-        let before_dest_lamports = dest_lamports;
-
-        let pool = account_info(
-            &pool_state,
-            &program_id,
-            true,
-            false,
-            &mut pool_lamports,
-            &mut pool_data,
-        );
-        let tree = account_info(
-            &tree_state,
-            &program_id,
-            true,
-            false,
-            &mut tree_lamports,
-            &mut tree_data,
-        );
-        let null = account_info(
-            &nullifier_set,
-            &program_id,
-            false,
-            false,
-            &mut null_lamports,
-            &mut null_data,
-        );
-        let asset_rec = account_info(
-            &vault_asset_record,
-            &program_id,
-            false,
-            false,
-            &mut asset_rec_lamports,
-            &mut asset_rec_data,
-        );
-        let vault = account_info(
-            &sol_vault_holding_key,
-            &program_id,
-            true,
-            false,
-            &mut vault_lamports,
-            &mut vault_data,
-        );
-        let dest = account_info(
-            &destination,
-            &system_program::ID,
-            true,
-            false,
-            &mut dest_lamports,
-            &mut dest_data,
-        );
-        let cpi = account_info(
-            &system_program_id,
-            &system_program_id,
-            false,
-            false,
-            &mut cpi_lamports,
-            &mut cpi_data,
-        );
-        let sig = account_info(
-            &signer,
-            &system_program::ID,
-            true,
-            true,
-            &mut signer_lamports,
-            &mut signer_data,
-        ); // writable for marker rent
-        let marker = account_info(
-            &nullifier_marker_key,
-            &program_id,
-            true,
-            false,
-            &mut marker_lamports,
-            &mut marker_data,
-        );
-
-        let accounts = vec![pool, tree, null, asset_rec, vault, dest, cpi, sig, marker];
-
-        // Construct minimal unshield instruction data (tag + fields)
-        let mut unshield_data = vec![TAG_UNSHIELD];
-        unshield_data.extend_from_slice(&test_nullifier); // nullifier
-        unshield_data.extend_from_slice(&[1u8; 32]); // exit_destination
-        unshield_data.extend_from_slice(&NATIVE_SOL_ASSET_ID_SENTINEL); // exit_asset_id = sentinel
-        unshield_data.extend_from_slice(&1u64.to_le_bytes());
-        unshield_data.extend_from_slice(&[9u8; 32]); // public_inputs_hash
-                                                     // no proof bytes
-
-        let result = process_instruction(&program_id, &accounts, &unshield_data);
-        assert_eq!(result, Err(ProgramError::Custom(ERR_UNSHIELD_NOT_WIRED)));
-        drop(accounts);
-
-        assert_eq!(vault_lamports, before_vault_lamports);
-        assert_eq!(dest_lamports, before_dest_lamports);
-        assert!(marker_data.iter().all(|byte| *byte == 0));
     }
+
 
     #[test]
     fn unshield_sol_rejects_zero_nullifier_amount_or_public_hash() {
@@ -7243,556 +8042,73 @@ mod tests {
 
     #[test]
     fn unshield_sol_sentinel_mismatch_fails() {
-        // Setup: use non-sentinel exit_asset_id but valid kind=2 asset_rec derived for *that* id;
-        // sol_vault_holding uses sentinel-derived (always); hits sentinel check in SOL branch.
-        // Tests zero-sentinel bypass + validation robustness (fail case for wrong asset id with kind=2).
-        let program_id = Pubkey::new_unique();
-        let pool_state = Pubkey::new_unique();
-        let tree_state = Pubkey::new_unique();
-        let nullifier_set = Pubkey::new_unique();
-        let bad_asset_id: [u8; 32] = [0xFFu8; 32]; // not sentinel
-        let (asset_rec_key, _) = vault_asset_record_pda(&program_id, &pool_state, &bad_asset_id);
-        let (sol_vault_key, _) = sol_vault_pda(&program_id, &pool_state);
-        let destination = Pubkey::new_unique();
-        let system_program_id = system_program::ID;
-        let signer = Pubkey::new_unique();
-        let test_nullifier = [6u8; 32];
-        let marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &test_nullifier);
-
-        let mut pool_lamports = 1_000_000u64;
-        let mut pool_data = vec![0u8; POOL_STATE_LEN];
-        pool_data[..8].copy_from_slice(POOL_MAGIC);
-        pool_data[8] = VERSION;
-        let mut tree_lamports = 1u64;
-        let mut tree_d = vec![0u8; 32];
-        let mut null_lamports = 1u64;
-        let mut null_d = vec![0u8; 32];
-        let mut asset_rec_lamports = 1u64;
-        let mut asset_d = vec![0u8; VAULT_ASSET_ACCOUNT_LEN];
-        asset_d[..8].copy_from_slice(VAULT_ASSET_MAGIC);
-        asset_d[8] = VERSION;
-        write_count(&mut asset_d, 1).unwrap();
-        asset_d[VAULT_ASSET_POOL_OFFSET..VAULT_ASSET_POOL_OFFSET + HASH_LEN]
-            .copy_from_slice(pool_state.as_ref());
-        asset_d[VAULT_ASSET_EXIT_ASSET_ID_OFFSET..VAULT_ASSET_EXIT_ASSET_ID_OFFSET + HASH_LEN]
-            .copy_from_slice(&bad_asset_id);
-        asset_d[VAULT_ASSET_KIND_OFFSET] = VAULT_ASSET_KIND_SOL;
-        asset_d[VAULT_ASSET_RELEASE_ENABLED_OFFSET] = 0;
-        let mut vault_lamports = 1u64;
-        let mut vault_d = vec![0u8; 32];
-        let mut dest_lamports = 1u64;
-        let mut dest_d = vec![0u8; 32];
-        let mut cpi_lamports = 1u64;
-        let mut cpi_d = vec![0u8; 32];
-        let mut signer_lamports = 1u64;
-        let mut sig_d = vec![0u8; 32];
-        let mut marker_lamports = 1u64;
-        let mut marker_d = vec![0u8; 32];
-
-        let pool = account_info(
-            &pool_state,
-            &program_id,
-            true,
-            false,
-            &mut pool_lamports,
-            &mut pool_data,
-        );
-        let tree = account_info(
-            &tree_state,
-            &program_id,
-            true,
-            false,
-            &mut tree_lamports,
-            &mut tree_d,
-        );
-        let nulls = account_info(
-            &nullifier_set,
-            &program_id,
-            false,
-            false,
-            &mut null_lamports,
-            &mut null_d,
-        );
-        let asset = account_info(
-            &asset_rec_key,
-            &program_id,
-            false,
-            false,
-            &mut asset_rec_lamports,
-            &mut asset_d,
-        );
-        let vault = account_info(
-            &sol_vault_key,
-            &program_id,
-            true,
-            false,
-            &mut vault_lamports,
-            &mut vault_d,
-        );
-        let dest = account_info(
-            &destination,
-            &system_program::ID,
-            true,
-            false,
-            &mut dest_lamports,
-            &mut dest_d,
-        );
-        let cpi = account_info(
-            &system_program_id,
-            &system_program::ID,
-            false,
-            false,
-            &mut cpi_lamports,
-            &mut cpi_d,
-        );
-        let sig = account_info(
-            &signer,
-            &system_program::ID,
-            true,
-            true,
-            &mut signer_lamports,
-            &mut sig_d,
-        );
-        let marker = account_info(
-            &marker_key,
-            &system_program::ID,
-            true,
-            false,
-            &mut marker_lamports,
-            &mut marker_d,
-        );
-        let accounts = vec![pool, tree, nulls, asset, vault, dest, cpi, sig, marker];
-
-        let mut data = vec![TAG_UNSHIELD];
-        data.extend_from_slice(&test_nullifier);
-        data.extend_from_slice(&[1u8; 32]);
-        data.extend_from_slice(&bad_asset_id); // NOT the sentinel -> mismatch after kind extracted
-        data.extend_from_slice(&1u64.to_le_bytes());
-        data.extend_from_slice(&[9u8; 32]);
-
-        let res = process_instruction(&program_id, &accounts, &data);
         assert_eq!(
-            res,
-            Err(ProgramError::Custom(ERR_SENTINEL_ASSET_ID_MISMATCH))
+            run_sol_unshield_reserved_process(
+                POOL_VERIFIER_NOT_WIRED,
+                [7u8; HASH_LEN],
+                VAULT_ASSET_KIND_SOL,
+                None,
+                [12u8; HASH_LEN],
+                1,
+                [9u8; HASH_LEN],
+            ),
+            Err(ProgramError::Custom(ERR_VAULT_ASSET_MISMATCH))
         );
     }
+
 
     #[test]
     fn unshield_sol_vault_pda_mismatch_fails() {
-        // Correct sentinel + kind=2 asset_rec (derived), but *wrong* sol_vault_holding key (not SOL_VAULT_SEED derived).
-        // Tests dedicated sol_vault_holding requirement + explicit derive in SOL branch (fail case).
-        let program_id = Pubkey::new_unique();
-        let pool_state = Pubkey::new_unique();
-        let tree_state = Pubkey::new_unique();
-        let nullifier_set = Pubkey::new_unique();
-        let (asset_rec_key, _) =
-            vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
-        let wrong_vault_key = Pubkey::new_unique(); // not the derived one
-        let destination = Pubkey::new_unique();
-        let system_program_id = system_program::ID;
-        let signer = Pubkey::new_unique();
-        let test_nullifier = [7u8; 32];
-        let marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &test_nullifier);
-
-        let mut pool_lamports = 1_000_000u64;
-        let mut tree_lamports = 1_000_000u64;
-        let mut null_lamports = 1_000_000u64;
-        let mut asset_rec_lamports = 1_000_000u64;
-        let mut vault_lamports = 1_000_000u64;
-        let mut dest_lamports = 1_000_000u64;
-        let mut cpi_lamports = 1_000_000u64;
-        let mut signer_lamports = 1_000_000u64;
-        let mut marker_lamports = 1_000_000u64;
-
-        let mut pool_data = vec![0u8; POOL_STATE_LEN];
-        pool_data[..8].copy_from_slice(POOL_MAGIC);
-        pool_data[8] = VERSION;
-        let mut tree_data = vec![0u8; 32];
-        let mut null_data = vec![0u8; 32];
-        let (expected_sol_vault_key, _) = sol_vault_pda(&program_id, &pool_state);
-        let mut asset_d = vec![0u8; VAULT_ASSET_ACCOUNT_LEN];
-        write_sol_vault_asset_record_data(
-            &mut asset_d,
-            &pool_state,
-            &NATIVE_SOL_ASSET_ID_SENTINEL,
-            &expected_sol_vault_key,
-            VAULT_ASSET_KIND_SOL,
+        assert_eq!(
+            run_sol_unshield_reserved_process(
+                POOL_VERIFIER_NOT_WIRED,
+                NATIVE_SOL_ASSET_ID_SENTINEL,
+                VAULT_ASSET_KIND_SOL,
+                Some(Pubkey::new_unique()),
+                [13u8; HASH_LEN],
+                1,
+                [9u8; HASH_LEN],
+            ),
+            Err(ProgramError::Custom(ERR_VAULT_PDA_MISMATCH))
         );
-        let mut vault_d = vec![0u8; 32];
-        let mut dest_d = vec![0u8; 32];
-        let mut cpi_d = vec![0u8; 32];
-        let mut signer_d = vec![0u8; 32];
-        let mut marker_d = vec![0u8; 32];
-
-        let pool = account_info(
-            &pool_state,
-            &program_id,
-            true,
-            false,
-            &mut pool_lamports,
-            &mut pool_data,
-        );
-        let tree = account_info(
-            &tree_state,
-            &program_id,
-            true,
-            false,
-            &mut tree_lamports,
-            &mut tree_data,
-        );
-        let nulls = account_info(
-            &nullifier_set,
-            &program_id,
-            false,
-            false,
-            &mut null_lamports,
-            &mut null_data,
-        );
-        let asset = account_info(
-            &asset_rec_key,
-            &program_id,
-            false,
-            false,
-            &mut asset_rec_lamports,
-            &mut asset_d,
-        );
-        let wrong_vault = account_info(
-            &wrong_vault_key,
-            &program_id,
-            true,
-            false,
-            &mut vault_lamports,
-            &mut vault_d,
-        );
-        let dest = account_info(
-            &destination,
-            &system_program::ID,
-            true,
-            false,
-            &mut dest_lamports,
-            &mut dest_d,
-        );
-        let cpi = account_info(
-            &system_program_id,
-            &system_program_id,
-            false,
-            false,
-            &mut cpi_lamports,
-            &mut cpi_d,
-        );
-        let sig = account_info(
-            &signer,
-            &system_program::ID,
-            true,
-            true,
-            &mut signer_lamports,
-            &mut signer_d,
-        );
-        let marker = account_info(
-            &marker_key,
-            &system_program::ID,
-            true,
-            false,
-            &mut marker_lamports,
-            &mut marker_d,
-        );
-        let accounts = vec![
-            pool,
-            tree,
-            nulls,
-            asset,
-            wrong_vault,
-            dest,
-            cpi,
-            sig,
-            marker,
-        ];
-
-        let mut data = vec![TAG_UNSHIELD];
-        data.extend_from_slice(&test_nullifier);
-        data.extend_from_slice(&[1u8; 32]);
-        data.extend_from_slice(&NATIVE_SOL_ASSET_ID_SENTINEL);
-        data.extend_from_slice(&1u64.to_le_bytes());
-        data.extend_from_slice(&[9u8; 32]);
-
-        let res = process_instruction(&program_id, &accounts, &data);
-        assert_eq!(res, Err(ProgramError::Custom(ERR_VAULT_PDA_MISMATCH)));
     }
+
 
     #[test]
     fn unshield_invalid_asset_kind_fails() {
-        // Use correct derived asset_rec key for sentinel; set invalid kind=99 in data (bypasses only for uninit data, here magic present so kind=99 returned).
-        // Tests wrong kind fail case (robust sentinel bypass only triggers for uninit/magic-missing in prep).
-        let program_id = Pubkey::new_unique();
-        let pool_state = Pubkey::new_unique();
-        let mut pool_lamports = 1_000_000u64;
-        let mut pool_data = vec![0u8; POOL_STATE_LEN];
-        pool_data[..8].copy_from_slice(POOL_MAGIC);
-        pool_data[8] = VERSION;
-        let pool = account_info(
-            &pool_state,
-            &program_id,
-            true,
-            false,
-            &mut pool_lamports,
-            &mut pool_data,
+        assert_eq!(
+            run_sol_unshield_reserved_process(
+                POOL_VERIFIER_NOT_WIRED,
+                NATIVE_SOL_ASSET_ID_SENTINEL,
+                99u8,
+                None,
+                [8u8; HASH_LEN],
+                1,
+                [9u8; HASH_LEN],
+            ),
+            Err(ProgramError::Custom(ERR_INVALID_ASSET_KIND))
         );
-
-        let (asset_rec_key, _) =
-            vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
-        let (sol_vault_key, _) = sol_vault_pda(&program_id, &pool_state);
-        let test_nullifier = [8u8; 32];
-        let marker_key = nullifier_marker_pubkey(&program_id, &pool_state, &test_nullifier);
-
-        let mut tree_l = 1u64;
-        let mut tree_d = vec![0u8; 32];
-        let mut null_l = 1u64;
-        let mut null_d = vec![0u8; 32];
-        let mut asset_rec_l = 1u64;
-        let mut asset_d = vec![0u8; VAULT_ASSET_ACCOUNT_LEN];
-        write_sol_vault_asset_record_data(
-            &mut asset_d,
-            &pool_state,
-            &NATIVE_SOL_ASSET_ID_SENTINEL,
-            &sol_vault_key,
-            99u8,
-        );
-        let mut vault_l = 1u64;
-        let mut vault_d = vec![0u8; 32];
-        let mut dest_l = 1u64;
-        let mut dest_d = vec![0u8; 32];
-        let mut cpi_l = 1u64;
-        let mut cpi_d = vec![0u8; 32];
-        let mut sig_l = 1u64;
-        let mut sig_d = vec![0u8; 32];
-        let mut marker_l = 1u64;
-        let mut marker_d = vec![0u8; 32];
-        let tree_state = Pubkey::new_unique();
-        let nullifier_set = Pubkey::new_unique();
-        let destination = Pubkey::new_unique();
-        let signer = Pubkey::new_unique();
-        let tree = account_info(
-            &tree_state,
-            &program_id,
-            true,
-            false,
-            &mut tree_l,
-            &mut tree_d,
-        );
-        let nulls = account_info(
-            &nullifier_set,
-            &program_id,
-            false,
-            false,
-            &mut null_l,
-            &mut null_d,
-        );
-        let asset = account_info(
-            &asset_rec_key,
-            &program_id,
-            false,
-            false,
-            &mut asset_rec_l,
-            &mut asset_d,
-        );
-        let vault = account_info(
-            &sol_vault_key,
-            &program_id,
-            true,
-            false,
-            &mut vault_l,
-            &mut vault_d,
-        );
-        let dest = account_info(
-            &destination,
-            &system_program::ID,
-            true,
-            false,
-            &mut dest_l,
-            &mut dest_d,
-        );
-        let cpi = account_info(
-            &system_program::ID,
-            &system_program::ID,
-            false,
-            false,
-            &mut cpi_l,
-            &mut cpi_d,
-        );
-        let sig = account_info(
-            &signer,
-            &system_program::ID,
-            true,
-            true,
-            &mut sig_l,
-            &mut sig_d,
-        );
-        let marker = account_info(
-            &marker_key,
-            &system_program::ID,
-            true,
-            false,
-            &mut marker_l,
-            &mut marker_d,
-        );
-        let accounts = vec![pool, tree, nulls, asset, vault, dest, cpi, sig, marker];
-
-        let mut data = vec![TAG_UNSHIELD];
-        data.extend_from_slice(&test_nullifier);
-        data.extend_from_slice(&[1u8; 32]);
-        data.extend_from_slice(&NATIVE_SOL_ASSET_ID_SENTINEL);
-        data.extend_from_slice(&1u64.to_le_bytes());
-        data.extend_from_slice(&[9u8; 32]);
-
-        let res = process_instruction(&program_id, &accounts, &data);
-        assert_eq!(res, Err(ProgramError::Custom(ERR_INVALID_ASSET_KIND)));
     }
+
 
     // A future verifier setter must not make TAG6 release sufficient by itself. Until item 9 lands
     // proof/root/public-input/nullifier acceptance, even verifier_wired=1 returns not-wired before mutation.
     #[test]
     fn unshield_sol_verifier_wired_one_still_rejects_until_verifier_acceptance() {
-        let program_id = Pubkey::new_unique();
-        let pool_state = Pubkey::new_unique();
-        let tree_state = Pubkey::new_unique();
-        let nullifier_set = Pubkey::new_unique();
-        let destination = Pubkey::new_unique();
-        let system_program_id = system_program::ID;
-        let signer = Pubkey::new_unique();
-
-        // Authoritative derivations
-        let (vault_asset_record, _) =
-            vault_asset_record_pda(&program_id, &pool_state, &NATIVE_SOL_ASSET_ID_SENTINEL);
-        let (sol_vault_holding_key, _) = sol_vault_pda(&program_id, &pool_state);
-        let test_nullifier = [42u8; 32];
-        let nullifier_marker_key =
-            nullifier_marker_pubkey(&program_id, &pool_state, &test_nullifier);
-
-        let mut pool_lamports = 1_000_000u64;
-        let mut tree_lamports = 1_000_000u64;
-        let mut null_lamports = 1_000_000u64;
-        let mut asset_rec_lamports = 1_000_000u64;
-        let mut vault_lamports = 1_000_000_000u64; // source of funds
-        let mut dest_lamports = 50_000u64;
-        let mut cpi_lamports = 1_000_000u64;
-        let mut signer_lamports = 2_000_000u64;
-        let mut marker_lamports = 0u64;
-
-        let mut pool_data = vec![0u8; POOL_STATE_LEN];
-        pool_data[..8].copy_from_slice(POOL_MAGIC);
-        pool_data[8] = VERSION;
-        pool_data[POOL_VERIFIER_WIRED_OFFSET] = POOL_VERIFIER_WIRED;
-
-        let mut tree_data = vec![0u8; 128];
-        let mut null_data = vec![0u8; 64];
-        let mut asset_rec_data = vec![0u8; VAULT_ASSET_ACCOUNT_LEN];
-        write_sol_vault_asset_record_data(
-            &mut asset_rec_data,
-            &pool_state,
-            &NATIVE_SOL_ASSET_ID_SENTINEL,
-            &sol_vault_holding_key,
-            VAULT_ASSET_KIND_SOL,
+        assert_eq!(
+            run_sol_unshield_reserved_process(
+                POOL_VERIFIER_WIRED,
+                NATIVE_SOL_ASSET_ID_SENTINEL,
+                VAULT_ASSET_KIND_SOL,
+                None,
+                [42u8; HASH_LEN],
+                123_456,
+                [7u8; HASH_LEN],
+            ),
+            Err(ProgramError::Custom(ERR_PROOF_VERIFIER_NOT_WIRED))
         );
-
-        let mut vault_data: Vec<u8> = vec![0; 0];
-        let mut dest_data: Vec<u8> = vec![0; 0];
-        let mut cpi_data: Vec<u8> = vec![0; 0];
-        let mut signer_data: Vec<u8> = vec![0; 0];
-        let mut marker_data: Vec<u8> = vec![0; NULLIFIER_MARKER_LEN];
-        let before_vault_lamports = vault_lamports;
-        let before_dest_lamports = dest_lamports;
-
-        let pool = account_info(
-            &pool_state,
-            &program_id,
-            true,
-            false,
-            &mut pool_lamports,
-            &mut pool_data,
-        );
-        let tree = account_info(
-            &tree_state,
-            &program_id,
-            true,
-            false,
-            &mut tree_lamports,
-            &mut tree_data,
-        );
-        let null = account_info(
-            &nullifier_set,
-            &program_id,
-            false,
-            false,
-            &mut null_lamports,
-            &mut null_data,
-        );
-        let asset_rec = account_info(
-            &vault_asset_record,
-            &program_id,
-            false,
-            false,
-            &mut asset_rec_lamports,
-            &mut asset_rec_data,
-        );
-        let vault = account_info(
-            &sol_vault_holding_key,
-            &program_id,
-            true,
-            false,
-            &mut vault_lamports,
-            &mut vault_data,
-        );
-        let dest = account_info(
-            &destination,
-            &system_program::ID,
-            true,
-            false,
-            &mut dest_lamports,
-            &mut dest_data,
-        );
-        let cpi = account_info(
-            &system_program_id,
-            &system_program_id,
-            false,
-            false,
-            &mut cpi_lamports,
-            &mut cpi_data,
-        );
-        let sig = account_info(
-            &signer,
-            &system_program::ID,
-            true,
-            true,
-            &mut signer_lamports,
-            &mut signer_data,
-        );
-        let marker = account_info(
-            &nullifier_marker_key,
-            &program_id,
-            true,
-            false,
-            &mut marker_lamports,
-            &mut marker_data,
-        );
-
-        let accounts = vec![pool, tree, null, asset_rec, vault, dest, cpi, sig, marker];
-
-        let exit_amount: u64 = 123_456;
-        let mut unshield_data = vec![TAG_UNSHIELD];
-        unshield_data.extend_from_slice(&test_nullifier);
-        unshield_data.extend_from_slice(&[3u8; 32]); // dest
-        unshield_data.extend_from_slice(&NATIVE_SOL_ASSET_ID_SENTINEL);
-        unshield_data.extend_from_slice(&exit_amount.to_le_bytes());
-        unshield_data.extend_from_slice(&[7u8; 32]); // public hash (used as root proxy in emit)
-
-        let result = process_instruction(&program_id, &accounts, &unshield_data);
-        assert_eq!(result, Err(ProgramError::Custom(ERR_UNSHIELD_NOT_WIRED)));
-        drop(accounts);
-
-        assert_eq!(vault_lamports, before_vault_lamports);
-        assert_eq!(dest_lamports, before_dest_lamports);
-        assert!(marker_data.iter().all(|byte| *byte == 0));
     }
+
 
     // PDA derivation test exercising the new top-level sol_vault_pda / vault_asset_record_pda helpers.
     // Confirms correct seeds per design doc §11. Ready for Crucible extension (invariant: derived PDA always matches on-chain expectation).

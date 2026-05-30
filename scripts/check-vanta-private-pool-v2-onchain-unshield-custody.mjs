@@ -59,6 +59,10 @@ for (const marker of [
   "TAG_REGISTER_VAULT_ASSET => process_register_vault_asset",
   "TAG_SHIELD => process_shield",
   "fn process_unshield",
+  "fn preflight_unshield_release",
+  "fn verify_unshield_with_proof_adapter",
+  "fn require_sol_release_accounts",
+  "fn commit_verified_unshield_release",
   "fn process_shield",
   "fn process_register_vault_asset",
   "fn require_registered_sol_vault_asset(",
@@ -76,7 +80,13 @@ for (const marker of [
 
 for (const marker of [
   "buildTagUnshieldProgramReleaseReceipt",
+  "buildTagUnshieldProgramRelayTransaction",
+  "resolveTagUnshieldRelayBindings",
+  "programRelayBindingSource",
+  "programRelayBindingsUsePlaceholderHashes",
   'releaseModel: "program-tag-unshield-pda-cpi-fail-closed"',
+  "programRelayAccountCount",
+  "programRelaySerializedTransaction",
   "programTxSignature",
   "TAG_UNSHIELD",
 ]) {

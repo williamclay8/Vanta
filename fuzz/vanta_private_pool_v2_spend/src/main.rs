@@ -42,7 +42,8 @@ const VAULT_ASSET_MAGIC: &[u8; 8] = b"VNTA2AST";
 /// - Duplicate nullifier / invalid proof no-mutation for SOL unshield (lamports not released)
 /// - Indexer cross-ref: UnshieldEvent + on-chain transfer log match for amount/sentinel
 /// - Crucible actions: native_sol_shield_deposit (SystemProgram.transfer + memo), native_sol_unshield_proof_request (sentinel note in unified tree)
-/// Current harness: SPL-only (VAULT_ASSET_KIND_SPL). SBF ABI comments updated in lib.rs. Run `npm run private-pool-v2:crucible-check` (dry-run) in regression.
+/// Current harness: SPL-only (VAULT_ASSET_KIND_SPL) with unified 569-byte gnark unshield payload + 14-account metas.
+/// SOL TAG6 unshield scenarios remain TODO. Run `npm run private-pool-v2:crucible-check` (dry-run) in regression.
 /// References: 2026-05-14-native-sol-private-pool-v2-integration.md §11, VANTA_ZK_REVIEW.md U2.1, architecture blocker map A1-TAG6, mainnet worksheet SOL PDA entries.
 /// All SOL TAG6 scenarios remain fail-closed until program impl + live evidence. Lumi hygiene recorded in wiki/meta/log.md + daily note.
 const NULLIFIER_MARKER_SEED: &[u8] = b"vanta2nul";
@@ -71,9 +72,10 @@ const MERKLE_TREE_DEPTH: usize = 20;
 const TREE_ZERO_NODE_COUNT: usize = MERKLE_TREE_DEPTH + 1;
 const TREE_CAPACITY: u64 = 1u64 << MERKLE_TREE_DEPTH;
 const EXIT_AMOUNT_LEN: usize = 8;
-const RESERVED_GROTH16_PROOF_LEN: usize = 256;
 const SPEND_WITH_PROOF_GNARK_PROOF_LEN: usize = 324;
 const SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN: usize = 44;
+const UNSHIELD_GNARK_PROOF_LEN: usize = SPEND_WITH_PROOF_GNARK_PROOF_LEN;
+const UNSHIELD_GNARK_PUBLIC_WITNESS_LEN: usize = SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN;
 const OUTPUT_RECORD_PDA_LEN: usize = HEADER_LEN + 8 + HASH_LEN * 4;
 const OUTPUT_RECORD_INDEX_OFFSET: usize = HEADER_LEN;
 const OUTPUT_RECORD_POOL_OFFSET: usize = HEADER_LEN + 8;
@@ -2107,8 +2109,16 @@ impl VantaPrivatePoolV2Spend {
         ]
     }
 
+    fn unshield_trailing_accounts(&self) -> [AccountMeta; 3] {
+        [
+            AccountMeta::new_readonly(self.c01_verifier_program, false),
+            AccountMeta::new(self.operator_authority.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
+        ]
+    }
+
     fn unshield_accounts_for_payload(&self, payload: &UnshieldPayload) -> Vec<AccountMeta> {
-        vec![
+        let mut accounts = vec![
             AccountMeta::new_readonly(self.pool_state, false),
             AccountMeta::new_readonly(self.root_history, false),
             AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
@@ -2120,7 +2130,9 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new_readonly(payload.mint, false),
             AccountMeta::new_readonly(payload.token_program, false),
             AccountMeta::new_readonly(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
-        ]
+        ];
+        accounts.extend_from_slice(&self.unshield_trailing_accounts());
+        accounts
     }
 
     fn spend_with_proof_accounts_for_payload(
@@ -2211,7 +2223,7 @@ impl VantaPrivatePoolV2Spend {
     }
 
     fn unshield_accounts_with_wrong_marker(&self, payload: &UnshieldPayload) -> Vec<AccountMeta> {
-        vec![
+        let mut accounts = vec![
             AccountMeta::new_readonly(self.pool_state, false),
             AccountMeta::new_readonly(self.root_history, false),
             AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
@@ -2223,11 +2235,13 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new_readonly(payload.mint, false),
             AccountMeta::new_readonly(payload.token_program, false),
             AccountMeta::new_readonly(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
-        ]
+        ];
+        accounts.extend_from_slice(&self.unshield_trailing_accounts());
+        accounts
     }
 
     fn unshield_accounts_with_wrong_vault(&self, payload: &UnshieldPayload) -> Vec<AccountMeta> {
-        vec![
+        let mut accounts = vec![
             AccountMeta::new_readonly(self.pool_state, false),
             AccountMeta::new_readonly(self.root_history, false),
             AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
@@ -2239,11 +2253,13 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new_readonly(payload.mint, false),
             AccountMeta::new_readonly(payload.token_program, false),
             AccountMeta::new_readonly(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
-        ]
+        ];
+        accounts.extend_from_slice(&self.unshield_trailing_accounts());
+        accounts
     }
 
     fn unshield_accounts_with_writable_vault(&self, payload: &UnshieldPayload) -> Vec<AccountMeta> {
-        vec![
+        let mut accounts = vec![
             AccountMeta::new_readonly(self.pool_state, false),
             AccountMeta::new_readonly(self.root_history, false),
             AccountMeta::new_readonly(self.root_record_pubkey(&payload.accepted_root), false),
@@ -2255,14 +2271,16 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new_readonly(payload.mint, false),
             AccountMeta::new_readonly(payload.token_program, false),
             AccountMeta::new_readonly(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
-        ]
+        ];
+        accounts.extend_from_slice(&self.unshield_trailing_accounts());
+        accounts
     }
 
     fn unshield_accounts_with_wrong_root_record(
         &self,
         payload: &UnshieldPayload,
     ) -> Vec<AccountMeta> {
-        vec![
+        let mut accounts = vec![
             AccountMeta::new_readonly(self.pool_state, false),
             AccountMeta::new_readonly(self.root_history, false),
             AccountMeta::new_readonly(self.wrong_root_history, false),
@@ -2274,7 +2292,9 @@ impl VantaPrivatePoolV2Spend {
             AccountMeta::new_readonly(payload.mint, false),
             AccountMeta::new_readonly(payload.token_program, false),
             AccountMeta::new_readonly(self.verifier_key_pubkey(&payload.verifier_key_hash), false),
-        ]
+        ];
+        accounts.extend_from_slice(&self.unshield_trailing_accounts());
+        accounts
     }
 
     fn unshield_accounts_with_wrong_vault_asset(
@@ -3471,8 +3491,12 @@ fn unshield_data(
     public_input_hash: [u8; HASH_LEN],
     verifier_key_hash: [u8; HASH_LEN],
 ) -> Vec<u8> {
-    let mut data =
-        Vec::with_capacity(1 + HASH_LEN * 6 + EXIT_AMOUNT_LEN + RESERVED_GROTH16_PROOF_LEN);
+    let mut data = Vec::with_capacity(
+        1 + HASH_LEN * 6
+            + EXIT_AMOUNT_LEN
+            + UNSHIELD_GNARK_PROOF_LEN
+            + UNSHIELD_GNARK_PUBLIC_WITNESS_LEN,
+    );
     data.push(TAG_UNSHIELD);
     data.extend_from_slice(&nullifier);
     data.extend_from_slice(&accepted_root);
@@ -3481,7 +3505,8 @@ fn unshield_data(
     data.extend_from_slice(&seeded_exit_amount(&exit_asset_id));
     data.extend_from_slice(&public_input_hash);
     data.extend_from_slice(&verifier_key_hash);
-    data.extend_from_slice(&[6; RESERVED_GROTH16_PROOF_LEN]);
+    data.extend_from_slice(&[6; UNSHIELD_GNARK_PROOF_LEN]);
+    data.extend_from_slice(&gnark_public_witness_for(&public_input_hash));
     data
 }
 
