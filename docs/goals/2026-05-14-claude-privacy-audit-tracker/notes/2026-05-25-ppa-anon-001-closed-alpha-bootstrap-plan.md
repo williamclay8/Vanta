@@ -9,9 +9,17 @@
 
 ## Status
 
-`blocked-on-band-1-3-external-acceptance`
+`active-bootstrap-prep-blocked-on-volume`
 
-Band 4 is gated on Bands 1-3 having externally accepted production evidence. That evidence is not present: production artifact bundle acceptance, verifier adapter/program acceptance, deployed verifier program id/hash, verifier-key binding, SBF/live lineage, proof-enforced receipts, and reviewer acceptance are still missing.
+Clay directed bootstrap to 1024 on 2026-05-30. Operator prep is wired:
+
+- `ops/mainnet/anonymity-bootstrap-requests/anonymity-set-1024-bootstrap.evidence.json`
+- `ops/mainnet/anonymity-bootstrap-requests/ANONYMITY-SET-1024-BOOTSTRAP-RUNBOOK-2026-05-30.md`
+- `npm run anonymity:1024-bootstrap-prep-check`
+- `npm run anonymity:1024-bootstrap-checklist`
+- `npm run anonymity:1024-bootstrap-status`
+
+Measured depth remains **2 / 1024**. Live shield batches still require bounded real-funds approval, shared-cohort deposit review, and fixed-denomination operator-bonded shields.
 
 ## Planned Files After Unblock
 

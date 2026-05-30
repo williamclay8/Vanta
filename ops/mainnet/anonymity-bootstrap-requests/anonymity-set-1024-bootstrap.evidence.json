@@ -1,0 +1,141 @@
+{
+  "version": "vanta-anonymity-set-1024-bootstrap-0.1",
+  "status": "active-bootstrap-prep-blocked-on-volume",
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "meaningfulPrivacyReady": false,
+  "liveAnonymityClaimAllowed": false,
+  "purpose": "Refs-only operator packet for growing the stablecoin-usdc-v1 mainnet anonymity cohort from measured depth to the published 1024 distinct-commitment threshold. This packet is bootstrap prep and progress tracking only; it is not production anonymity evidence, not reviewer acceptance, and not a privacy-claim lift.",
+  "auditBand": {
+    "band": 4,
+    "item": 14,
+    "trackerId": "PPA-ANON-001",
+    "source": "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
+  },
+  "targetCohort": {
+    "id": "stablecoin-usdc-v1-mainnet-private-pool-v2",
+    "assetCohort": "stablecoin-usdc-v1",
+    "poolRef": "VANTA_PRIVATE_POOL_V2_STABLECOIN_USDC_V1_POOL_REF",
+    "fixedDenominationPolicy": {
+      "mode": "fixed-bucket-only",
+      "recommendedBucketUsdc": "10.000000",
+      "note": "Use one fixed USDC bucket per shield in the bootstrap cohort. Mixed arbitrary amounts fragment the set and weaken linkability resistance."
+    }
+  },
+  "threshold": {
+    "minimumDistinctCommitments": 1024,
+    "milestones": [64, 256, 512, 1024]
+  },
+  "currentProgress": {
+    "measuredAt": "2026-04-29T04:20:00Z",
+    "measurementStatus": "measured-below-threshold",
+    "distinctCommitmentCount": 2,
+    "remainingToThreshold": 1022,
+    "percentOfThreshold": 0.1953125,
+    "nextMilestone": 64,
+    "remainingToNextMilestone": 62,
+    "measurementCommand": "npm run private-pool-v2:anonymity-set-metrics-json",
+    "liveMeasurementEnv": [
+      "VANTA_PRIVATE_POOL_V2_RELAYER_RPC_URL",
+      "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_OUTPUT_QUEUE",
+      "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID"
+    ],
+    "reviewerAccepted": false
+  },
+  "bootstrapStrategy": {
+    "mode": "closed-alpha-operator-bonded-shields",
+    "requiresFixedDenomination": true,
+    "requiresSharedCohortDepositFirst": true,
+    "requiresBoundedRealFundsApproval": true,
+    "excludeFromMetrics": [
+      "test fixtures",
+      "no-real-funds smoke receipts",
+      "operator-seeded demo notes"
+    ]
+  },
+  "scriptSurface": [
+    "scripts/anonymity-bootstrap/run-anonymity-set-1024-bootstrap-checklist.mjs",
+    "scripts/check-vanta-anonymity-set-1024-bootstrap-prep.mjs",
+    "scripts/print-vanta-anonymity-set-1024-bootstrap-status.mjs",
+    "scripts/print-vanta-shared-cohort-settlement-next-action.mjs",
+    "scripts/print-vanta-private-pool-v2-anonymity-set-metrics.mjs"
+  ],
+  "runbookRefs": [
+    "ops/mainnet/anonymity-bootstrap-requests/ANONYMITY-SET-1024-BOOTSTRAP-RUNBOOK-2026-05-30.md",
+    "ops/mainnet/anonymity-bootstrap-requests/anonymity-bootstrap-batch-record.template.json",
+    "ops/mainnet/anonymity-bootstrap-requests/anonymity-bootstrap-measurement-receipt.template.json",
+    "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
+    "PRODUCTION_PRIVACY_AUDIT.md"
+  ],
+  "operatorSequence": [
+    {
+      "phase": 0,
+      "title": "Preflight and bounded approval",
+      "commands": [
+        "npm run anonymity:1024-bootstrap-prep-check",
+        "npm run mainnet:preflight",
+        "npm run mainnet:real-funds-approval-preview"
+      ]
+    },
+    {
+      "phase": 1,
+      "title": "Shared cohort deposit",
+      "commands": [
+        "npm run mainnet:shared-cohort-next-action",
+        "npm run mainnet:actual-private-shared-cohort-deposit-note",
+        "npm run mainnet:actual-private-shared-cohort-deposit-review-check"
+      ]
+    },
+    {
+      "phase": 2,
+      "title": "Batch operator-bonded shields",
+      "commands": [
+        "npm run shield:verify",
+        "npm run private-pool-v2:shield-prove"
+      ],
+      "note": "Execute fixed-denomination shields inside the active approval window. Record each batch in anonymity-bootstrap-batch-record.template.json."
+    },
+    {
+      "phase": 3,
+      "title": "Indexer reconcile and measure",
+      "commands": [
+        "npm run private-pool-v2:anonymity-set-metrics-json",
+        "npm run private-pool-v2:live-anonymity-set-probe-check",
+        "npm run anonymity:1024-bootstrap-status"
+      ]
+    },
+    {
+      "phase": 4,
+      "title": "Evidence promotion at milestones",
+      "commands": [
+        "npm run private-pool-v2:anonymity-set-evidence-check",
+        "npm run mainnet:actual-private-settlement-lineage-check"
+      ],
+      "note": "Update ops/mainnet/private-pool-v2-anonymity-set.evidence.json only after reviewed indexer evidence and milestone receipts exist."
+    }
+  ],
+  "knownBlockers": [
+    "Measured distinct commitments remain 2 of 1024.",
+    "Shared-cohort deposit ref is still a review placeholder, not a reviewed solana-tx ref.",
+    "No bounded real-funds approval window is active for bootstrap batches.",
+    "Independent reviewer has not accepted the anonymity-set measurement.",
+    "Verifier/custody/SBF-live production evidence remains incomplete; bootstrap volume does not close those gates or lift privacy claims."
+  ],
+  "canonicalCommands": [
+    "npm run anonymity:1024-bootstrap-prep-check",
+    "npm run anonymity:1024-bootstrap-checklist",
+    "npm run anonymity:1024-bootstrap-status",
+    "npm run private-pool-v2:anonymity-set-metrics-check",
+    "npm run private-pool-v2:anonymity-set-readiness-check",
+    "npm run private-pool-v2:live-anonymity-set-probe-check",
+    "npm run mainnet:shared-cohort-next-action-check"
+  ],
+  "nonClaims": [
+    "This packet does not prove anonymity.",
+    "This packet does not lift privacyClaimAllowed or meaningfulPrivacyReady.",
+    "Passing prep checks only proves local bootstrap tooling and fail-closed gates are wired.",
+    "Growing commitment count does not substitute for independent reviewer acceptance."
+  ],
+  "lastChecklistRunAt": null,
+  "lastChecklistStatus": null
+}

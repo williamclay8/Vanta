@@ -1887,15 +1887,18 @@ production_privacy_audit_remediation:
           title: "Plan closed-alpha operator-bonded fixed-cohort shield deposits after verifier/custody evidence"
           severity: critical
           owner_lane: anonymity-set-bootstrap
-          status: blocked-on-band-1-3-external-acceptance
+          status: active-bootstrap-prep-blocked-on-volume
           source_refs:
             - "PRODUCTION_PRIVACY_AUDIT.md#Recommended-remediation-order"
             - "PRODUCTION_PRIVACY_AUDIT.md#What-must-be-true-before-Vanta-can-say-production-private"
             - "docs/goals/2026-05-14-claude-privacy-audit-tracker/notes/2026-05-25-ppa-anon-001-closed-alpha-bootstrap-plan.md"
+            - "ops/mainnet/anonymity-bootstrap-requests/ANONYMITY-SET-1024-BOOTSTRAP-RUNBOOK-2026-05-30.md"
+            - "ops/mainnet/anonymity-bootstrap-requests/anonymity-set-1024-bootstrap.evidence.json"
             - "docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml#architecture_backlog-A6"
           current_truth:
+            - "Clay directed bootstrap to 1024 on 2026-05-30; operator prep runbook, evidence packet, checklist, and status commands are wired."
             - "The live anonymity probe remains below threshold at 2 observed commitments versus a 1024 minimum threshold."
-            - "Bands 1-3 do not yet have externally accepted production verifier/artifact/SBF/live/audit evidence."
+            - "Bootstrap volume does not close verifier/custody/SBF-live gates or lift privacy claims without independent reviewer acceptance."
             - "PPA-PROGRAM-003, PPA-UNSHIELD-002, PPA-VERIFIER-002, and PPA-VERIFIER-003 remain blocked on verifier/root/nullifier, production artifact, SBF/live lineage, deployed verifier program id/hash, verifier-key binding, and reviewer acceptance refs."
             - "Closed-alpha deposits would be premature until proof-verified Shield/Send/Unshield paths and custody lineage are externally accepted."
           planned_files_after_unblock:
@@ -2637,7 +2640,7 @@ next_safe_slices:
   - "PPA-VERIFIER-001 / Band 3 item 11 is accepted-noop/evidence-local: groth16-tag3-solana-v0 is the recorded backend direction only, with production proof-format/VK/adapter/SBF/live/audit evidence still pending. Next safe slice is a plan for Band 3 item 12."
   - "PPA-VERIFIER-002 / Band 3 item 12 is tracker-approved as a doc-only blocked-before-implementation plan for public Groth16 ceremony/setup, production verifying-key evidence, and tag-5 verifier-key registration; do not edit evidence gates/scripts or attempt ceremony/build/registration until external ceremony/setup, production artifact/VK refs, registration receipts, SBF/live lineage, and review evidence exist."
   - "PPA-VERIFIER-003 / Band 3 item 13 is evidence-contract-tightened and the Ref Source Map slice is committed/pushed/website-live at c922a52b0 / dep-d8a8op7aqgkc73ap4gn0, with a fail-closed Groth16 verifier-CPI guard, but remains blocked before verifier-program deployment, SBF/live lineage, and audit/reviewer acceptance; do not attempt deployment, tag-5 registration, proof-enforced receipts, audit/reviewer intake, verifier wiring, release, or claim-lift work until reviewed production artifact bundle, accepted verifier adapter/program evidence, SBF/live lineage, deployed verifier program id/hash, verifier program upgrade-authority status ref, verifier-key binding, and reviewer acceptance refs exist."
-  - "PPA-ANON-001 / Band 4 item 14 is tracker-open but blocked before closed-alpha deposits on Bands 1-3 externally accepted production evidence, proof-verified custody/release lineage, reviewer acceptance, and explicit live/real-funds approval."
+  - "PPA-ANON-001 / Band 4 item 14 is active bootstrap prep on 2026-05-30: Clay directed bootstrap to 1024; operator runbook, evidence packet, checklist, and status commands are wired, but measured depth remains 2/1024 until live fixed-denomination shield batches complete inside bounded approval."
   - "PPA-ANON-002 / Band 4 item 15 is tracker-open but blocked before public beta/anonymity claims on PPA-ANON-001, sustained live currentDistinctCommitments >= 1024, accepted verifier/custody/audit evidence, and explicit claim-gate approval."
   - "PPA-RELAYER-001 / Band 5 item 16 is accepted-noop/evidence-local: current source already has Postgres-backed Private Pool v2 rate limiting and durable nullifier replay store gates, but no live production settlement/anonymity/audit claim is lifted."
   - "PPA-RELAYER-002 / Band 5 item 17 is implemented-verified-local for randomized jitter and batching. It remains not deployed/live and does not satisfy Tor/blinded-token relayer protection."

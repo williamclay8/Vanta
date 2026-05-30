@@ -1,0 +1,33 @@
+{
+  "version": "vanta-anonymity-bootstrap-measurement-receipt-0.1",
+  "status": "template-only-not-reviewed",
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "meaningfulPrivacyReady": false,
+  "liveAnonymityClaimAllowed": false,
+  "cohortId": "stablecoin-usdc-v1-mainnet-private-pool-v2",
+  "measuredAt": "<ISO-8601-UTC>",
+  "measurementWindowRef": "measurement-window:<start-iso>-<end-iso>",
+  "minimumDistinctCommitments": 1024,
+  "distinctCommitmentCount": 0,
+  "measurementStatus": "measured-below-threshold",
+  "milestoneReached": null,
+  "measurementCommand": "npm run private-pool-v2:anonymity-set-metrics-json",
+  "indexerEvidenceRef": "ops/mainnet/actual-private-mainnet-settlement-review.evidence.json",
+  "indexerCheckId": "indexer-output-commitments-found",
+  "outputRecordCount": 0,
+  "outputCommitmentCount": 0,
+  "reviewerAccepted": false,
+  "reviewerRef": null,
+  "batchRecordRefs": [
+    "anonymity-bootstrap-batch:<batch-id-ref>"
+  ],
+  "forbiddenInGit": [
+    "wallet private keys",
+    "seed phrases",
+    "signed transaction bytes",
+    "bearer tokens",
+    "database URLs"
+  ],
+  "truthBoundary": "Template only. A reviewed measurement receipt records refs-only cohort depth. reviewerAccepted must remain false until an independent reviewer acceptance ref exists. Reaching 1024 distinct commitments does not by itself lift privacy claims."
+}

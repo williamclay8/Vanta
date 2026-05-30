@@ -1,0 +1,42 @@
+{
+  "version": "vanta-anonymity-bootstrap-batch-record-0.1",
+  "status": "template-only-not-reviewed",
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "cohortId": "stablecoin-usdc-v1-mainnet-private-pool-v2",
+  "fixedDenominationBucketUsdc": "10.000000",
+  "approvalWindowRef": "approval-window:<YYYY-MM-DDTHH:MM:SS-HH:MM:SS America/Chicago>",
+  "approvalActionRef": "actual-private/mainnet-shared-cohort-settlement-evidence-run-<YYYY-MM-DD-HHMM-HHMM-central>",
+  "batch": {
+    "batchId": "anonymity-bootstrap-batch-<NNN>",
+    "executedAt": "<ISO-8601-UTC>",
+    "operatorBonded": true,
+    "shieldCountPlanned": 0,
+    "shieldCountCompleted": 0,
+    "distinctCommitmentsAddedEstimate": 0,
+    "sharedCohortDepositTxRef": "solana-tx:<shared-cohort-deposit-mainnet-signature>",
+    "shieldTxRefs": [
+      "solana-tx:<shield-mainnet-signature>"
+    ],
+    "indexerReconcileRef": "indexer-reconcile:<batch-reconcile-ref>",
+    "operatorReceiptRefs": [
+      "operator-receipt:<receipt-ref>"
+    ]
+  },
+  "measurementAfterBatch": {
+    "measuredAt": "<ISO-8601-UTC>",
+    "distinctCommitmentCount": 0,
+    "minimumDistinctCommitments": 1024,
+    "measurementStatus": "measured-below-threshold",
+    "metricsCommand": "npm run private-pool-v2:anonymity-set-metrics-json"
+  },
+  "forbiddenInGit": [
+    "wallet private keys",
+    "seed phrases",
+    "signed transaction bytes",
+    "bearer tokens",
+    "database URLs",
+    "customer private inputs"
+  ],
+  "truthBoundary": "Template only. A reviewed batch record must use refs-only Solana signatures and operator receipts. It does not prove anonymity, reviewer acceptance, or production privacy readiness."
+}

@@ -72,7 +72,9 @@
     "ops/mainnet/private-pool-v2-route-health.evidence.json",
     "ops/mainnet/private-pool-v2-role-service-replay.evidence.json",
     "npm run private-pool-v2:anonymity-set-metrics-check",
-    "npm run private-pool-v2:anonymity-set-readiness-check"
+    "npm run private-pool-v2:anonymity-set-readiness-check",
+    "npm run anonymity:1024-bootstrap-prep-check",
+    "ops/mainnet/anonymity-bootstrap-requests/anonymity-set-1024-bootstrap.evidence.json"
   ],
   "productionBlockers": [
     "Live mainnet production cohort metrics are measured below threshold.",
