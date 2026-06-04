@@ -6,7 +6,9 @@ const source = readFileSync(resolve(repoRoot, "SECURITY_LIMITATIONS.md"), "utf8"
 
 const requiredPhrases = [
   "# Vanta Security Limitations",
-  "Last validated against repo-local code: 2026-05-25",
+  "Last validated against repo-local code: 2026-06-04",
+  "Shield source path now carries a proof/public-witness payload and calls a fail-closed verifier CPI adapter before SOL/SPL vault movement",
+  "no accepted production verifier/root/nullifier evidence exists",
   "Not mainnet-production ready",
   "Current private-settlement truth",
   "alpha-public-warning",

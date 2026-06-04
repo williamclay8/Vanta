@@ -51,7 +51,7 @@
       "id": "human-evidence-request",
       "group": "work-order",
       "path": "ops/mainnet/private-pool-v2-c01-external-evidence-request.md",
-      "sha256": "sha256:0f1ab62eb49d643f5f3a91983c6985126f513aa1cf355f0a89c9dcff4bc55b5b",
+      "sha256": "sha256:428d6effca1de08dffbdeac46b8534981e2554631c9fb6185f8fee2037d3b295",
       "requiredFor": "Human-readable C01 external evidence request and ref source map.",
       "truthBoundary": "Outbound work order only; not reviewed external evidence or C01 closure."
     },
@@ -59,7 +59,7 @@
       "id": "artifact-request",
       "group": "work-order",
       "path": "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
-      "sha256": "sha256:8cfd5ca1f8f79986f1eab1b07af040c8b3b0802a0935ffd81dc6f387537581f4",
+      "sha256": "sha256:187a263303dbc757c6a56dbe258a7ed8b7429d3e0f413eb70aa7dc257c9a7e81",
       "requiredFor": "Machine-readable production verifier artifact request.",
       "truthBoundary": "Refs-only request packet; not production artifact evidence, and accepted production outputs remain null."
     },
@@ -203,7 +203,7 @@
       "id": "security-limitations",
       "group": "local-audit-context",
       "path": "SECURITY_LIMITATIONS.md",
-      "sha256": "sha256:91de30869e25206b5feefd8798dffd09eb1137cb256d02aa77f8a521b683f536",
+      "sha256": "sha256:4abfc3489480a94192a025fc244b04e928fae88f2e25e982958ced5b2d3c52eb",
       "requiredFor": "Fail-closed claim-boundary context.",
       "truthBoundary": "Local limitations context only; not external acceptance."
     },

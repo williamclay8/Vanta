@@ -50,7 +50,7 @@ Passed:
   - Note: valid mutation / invalid proof / wrong public input / wrong verifier executable no-mutation coverage passed.
   - Note: optional wrong-verifying-key leg was skipped because `/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/target/vanta_private_pool_v2_actual_private_spend_entry.so` was absent.
 - `npm run private-pool-v2:sbf-abi-check`.
-  - Fresh SBF hash: `sha256:a30be245fa0b00ea703f077b2f67463132556a3ee20a6efe9364297f7b08e9ad`.
+  - Fresh SBF hash: `sha256:ff128d4a8169c95a67cf25cd895d8b328cff4607704ee0dc3d57276f10bca91d`.
 - `npm run private-pool-v2:verify`.
 - `npm run mainnet:preflight`.
   - Required localhost/browser checks were run outside the network sandbox after the sandboxed run failed to observe its own Vite server.

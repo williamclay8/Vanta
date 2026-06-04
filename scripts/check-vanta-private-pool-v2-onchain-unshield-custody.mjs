@@ -69,10 +69,11 @@ for (const marker of [
   "fn require_registered_sol_vault_asset(",
   "fn require_registered_spl_vault_asset(",
   "fn require_vault_asset_record(",
+  "verify_shield_with_proof_adapter(&verified, verifier_program)?;",
   "data[VAULT_ASSET_RELEASE_ENABLED_OFFSET] = 0;",
   "production should eventually require releaseEnabled == 1",
   "system_instruction::transfer(sol_vault_holding.key, destination.key, exit_amount)",
-  "system_instruction::transfer(depositor.key, sol_vault_holding.key, shield_amount)",
+  "verified.shield_amount,",
   "spl_token::instruction::transfer_checked(",
   "Err(ProgramError::Custom(ERR_UNSHIELD_NOT_WIRED))",
 ]) {

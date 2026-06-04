@@ -57,7 +57,10 @@ for (const marker of [
 }
 
 for (const marker of [
-  "system_instruction::transfer(depositor.key, sol_vault_holding.key, shield_amount)",
+  "system_instruction::transfer(",
+  "depositor.key,",
+  "sol_vault_holding.key,",
+  "verified.shield_amount,",
   "system_instruction::transfer(sol_vault_holding.key, destination.key, exit_amount)",
   "spl_token::instruction::transfer_checked(",
   "const POOL_VERIFIER_WIRED_OFFSET: usize = POOL_TREE_STATE_OFFSET + HASH_LEN;",
@@ -127,5 +130,5 @@ for (const marker of [
 
 console.log("Vanta Private Pool v2 PDA vault custody check: PASS");
 console.log(
-  "Evidence: TAG_SHIELD and TAG_UNSHIELD source shapes preserve PDA custody seeds, registry records stay releaseEnabled=0, production release remains fail-closed until proof/root/nullifier verification is real, and operator direct keypair transfers are removed from the release endpoint path.",
+  "Evidence: TAG_SHIELD and TAG_UNSHIELD source shapes preserve PDA custody seeds, Shield vault ingress is gated by a proof adapter before transfer, registry records stay releaseEnabled=0, production release remains fail-closed until proof/root/nullifier verification is real, and operator direct keypair transfers are removed from the release endpoint path.",
 );

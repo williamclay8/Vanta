@@ -412,7 +412,7 @@ assertAllowedKeys(rehearsalSpendSbf, "local H6 rehearsal spend SBF", [
 ]);
 assert(rehearsalSpendSbf.path === shape.spendProgramSbfPath, "local H6 rehearsal spend SBF path mismatch");
 assert(
-  rehearsalSpendSbf.sha256 === "sha256:a30be245fa0b00ea703f077b2f67463132556a3ee20a6efe9364297f7b08e9ad",
+  rehearsalSpendSbf.sha256 === "sha256:ff128d4a8169c95a67cf25cd895d8b328cff4607704ee0dc3d57276f10bca91d",
   "local H6 rehearsal spend SBF hash mismatch",
 );
 assert(rehearsalSpendSbf.rebuiltLocally === true, "local H6 rehearsal spend SBF must be rebuilt locally");

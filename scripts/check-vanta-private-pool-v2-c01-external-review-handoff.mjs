@@ -335,7 +335,7 @@ for (const marker of [
   "treeStatusAtCollection: `clean`",
   "current source sha256: `sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430`",
   "current ACIR sha256: `sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9`",
-  "local spend SBF comparison hash: `sha256:a30be245fa0b00ea703f077b2f67463132556a3ee20a6efe9364297f7b08e9ad`",
+  "local spend SBF comparison hash: `sha256:ff128d4a8169c95a67cf25cd895d8b328cff4607704ee0dc3d57276f10bca91d`",
   "These are comparison-only reviewer starting refs.",
   "## Local Source/Comparison Refs Already Filled",
   "PRODUCTION_PRIVACY_AUDIT.md",

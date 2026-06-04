@@ -165,7 +165,14 @@ const SHIELD_OUTPUT_COMMITMENT_OFFSET: usize = SHIELD_AMOUNT_OFFSET + EXIT_AMOUN
 const SHIELD_PUBLIC_INPUT_HASH_OFFSET: usize = SHIELD_OUTPUT_COMMITMENT_OFFSET + HASH_LEN;
 const SHIELD_ASSET_KIND_OFFSET: usize = SHIELD_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN;
 const SHIELD_DECIMALS_OFFSET: usize = SHIELD_ASSET_KIND_OFFSET + 1;
-const SHIELD_PAYLOAD_LEN: usize = 1 + HASH_LEN * 3 + EXIT_AMOUNT_LEN + 2;
+const SHIELD_VERIFIER_KEY_HASH_OFFSET: usize = SHIELD_DECIMALS_OFFSET + 1;
+const SHIELD_PROOF_OFFSET: usize = SHIELD_VERIFIER_KEY_HASH_OFFSET + HASH_LEN;
+const SHIELD_GNARK_PROOF_LEN: usize = SPEND_WITH_PROOF_GNARK_PROOF_LEN;
+const SHIELD_GNARK_PUBLIC_WITNESS_LEN: usize = SPEND_WITH_PROOF_GNARK_PUBLIC_WITNESS_LEN;
+const SHIELD_PUBLIC_WITNESS_OFFSET: usize = SHIELD_PROOF_OFFSET + SHIELD_GNARK_PROOF_LEN;
+const SHIELD_VERIFIER_INPUT_LEN: usize = SHIELD_GNARK_PROOF_LEN + SHIELD_GNARK_PUBLIC_WITNESS_LEN;
+const SHIELD_PAYLOAD_LEN: usize =
+    1 + HASH_LEN * 4 + EXIT_AMOUNT_LEN + 2 + SHIELD_VERIFIER_INPUT_LEN;
 const REGISTER_VERIFIER_KEY_PAYLOAD_LEN: usize = 1 + HASH_LEN * 2;
 const REGISTER_VAULT_ASSET_PAYLOAD_LEN: usize = 1 + HASH_LEN * 4 + 1;
 const SPEND_WITH_PROOF_PROOF_OFFSET: usize = HASH_LEN * 6;
@@ -300,6 +307,29 @@ impl VerifiedSpendPreflight {
         let mut data = [0u8; SPEND_WITH_PROOF_VERIFIER_INPUT_LEN];
         data[..SPEND_WITH_PROOF_GNARK_PROOF_LEN].copy_from_slice(&self.gnark_proof);
         data[SPEND_WITH_PROOF_GNARK_PROOF_LEN..].copy_from_slice(&self.gnark_public_witness);
+        data
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct VerifiedShieldPreflight {
+    exit_asset_id: [u8; HASH_LEN],
+    shield_amount: u64,
+    output_commitment: [u8; HASH_LEN],
+    public_input_hash: [u8; HASH_LEN],
+    verifier_key_hash: [u8; HASH_LEN],
+    verifier_program_id: Pubkey,
+    gnark_proof: [u8; SHIELD_GNARK_PROOF_LEN],
+    gnark_public_witness: [u8; SHIELD_GNARK_PUBLIC_WITNESS_LEN],
+    asset_kind: u8,
+    decimals: u8,
+}
+
+impl VerifiedShieldPreflight {
+    fn verifier_instruction_data(&self) -> [u8; SHIELD_VERIFIER_INPUT_LEN] {
+        let mut data = [0u8; SHIELD_VERIFIER_INPUT_LEN];
+        data[..SHIELD_GNARK_PROOF_LEN].copy_from_slice(&self.gnark_proof);
+        data[SHIELD_GNARK_PROOF_LEN..].copy_from_slice(&self.gnark_public_witness);
         data
     }
 }
@@ -1133,13 +1163,22 @@ fn process_shield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) ->
         &rest[SHIELD_PUBLIC_INPUT_HASH_OFFSET..SHIELD_PUBLIC_INPUT_HASH_OFFSET + HASH_LEN];
     let asset_kind = rest[SHIELD_ASSET_KIND_OFFSET];
     let decimals = rest[SHIELD_DECIMALS_OFFSET];
+    let verifier_key_hash =
+        &rest[SHIELD_VERIFIER_KEY_HASH_OFFSET..SHIELD_VERIFIER_KEY_HASH_OFFSET + HASH_LEN];
+    let gnark_proof = &rest[SHIELD_PROOF_OFFSET..SHIELD_PROOF_OFFSET + SHIELD_GNARK_PROOF_LEN];
+    let gnark_public_witness = &rest[SHIELD_PUBLIC_WITNESS_OFFSET
+        ..SHIELD_PUBLIC_WITNESS_OFFSET + SHIELD_GNARK_PUBLIC_WITNESS_LEN];
 
     if shield_amount == 0
         || is_zero_hash(output_commitment)
         || is_zero_hash(shield_public_input_hash)
+        || is_zero_hash(verifier_key_hash)
         || (asset_kind == VAULT_ASSET_KIND_SPL && is_zero_hash(&exit_asset_id))
     {
         return Err(ProgramError::InvalidInstructionData);
+    }
+    if asset_kind != VAULT_ASSET_KIND_SOL && asset_kind != VAULT_ASSET_KIND_SPL {
+        return Err(ProgramError::Custom(ERR_INVALID_ASSET_KIND));
     }
 
     let mut account_iter = accounts.iter();
@@ -1150,10 +1189,47 @@ fn process_shield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) ->
     let mint = next_account_info(&mut account_iter)?;
     let depositor = next_account_info(&mut account_iter)?;
     let cpi_program = next_account_info(&mut account_iter)?;
+    let verifier_key = next_account_info(&mut account_iter)?;
+    let verifier_program = next_account_info(&mut account_iter)?;
 
     require_readonly_program_account(program_id, pool_state)?;
     require_readonly_program_account(program_id, vault_asset_record)?;
+    require_readonly_program_account(program_id, verifier_key)?;
+    require_spend_with_proof_verifier_program(program_id, verifier_program)?;
     require_writable_account(depositor)?;
+    require_verifier_key_hash_for_program(
+        program_id,
+        pool_state,
+        verifier_key,
+        verifier_key_hash,
+        verifier_program.key,
+    )?;
+
+    let mut verified = VerifiedShieldPreflight {
+        exit_asset_id,
+        shield_amount,
+        output_commitment: [0u8; HASH_LEN],
+        public_input_hash: [0u8; HASH_LEN],
+        verifier_key_hash: [0u8; HASH_LEN],
+        verifier_program_id: *verifier_program.key,
+        gnark_proof: [0u8; SHIELD_GNARK_PROOF_LEN],
+        gnark_public_witness: [0u8; SHIELD_GNARK_PUBLIC_WITNESS_LEN],
+        asset_kind,
+        decimals,
+    };
+    verified
+        .output_commitment
+        .copy_from_slice(output_commitment);
+    verified
+        .public_input_hash
+        .copy_from_slice(shield_public_input_hash);
+    verified
+        .verifier_key_hash
+        .copy_from_slice(verifier_key_hash);
+    verified.gnark_proof.copy_from_slice(gnark_proof);
+    verified
+        .gnark_public_witness
+        .copy_from_slice(gnark_public_witness);
 
     if asset_kind == VAULT_ASSET_KIND_SOL {
         require_registered_sol_vault_asset(
@@ -1167,25 +1243,14 @@ fn process_shield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) ->
 
         let pool_data = pool_state.try_borrow_data()?;
         require_pool_verifier_wired(&pool_data, ERR_PROOF_VERIFIER_NOT_WIRED)?;
-
-        // VANTA-PPA-NEW-001 (shield-verifier-cpi-gap):
-        // When `pool_state.verifier_wired` flips from 0 → 1 in a future diff,
-        // this function MUST also invoke the Shield Groth16 verifier CPI
-        // BEFORE the lamports transfer below. The current implementation
-        // trusts the depositor to construct a valid `output_commitment`
-        // off-chain, so a user who shields against a future-incompatible
-        // commitment scheme would lose their note (their deposit lands in
-        // the PDA but their note never proves valid).
-        //
-        // Acceptance contract: the diff that adds a `verifier_wired = 1`
-        // setter must also (a) invoke a Shield verifier CPI here whose
-        // acceptance gates the transfer, (b) remove this marker, and
-        // (c) flip `npm run private-pool-v2:shield-verifier-cpi-gap-check`
-        // from PASS-acknowledging-gap → PASS-cpi-wired.
+        verify_shield_with_proof_adapter(&verified, verifier_program)?;
 
         let sol_vault_holding = vault_authority;
-        let transfer_ix =
-            system_instruction::transfer(depositor.key, sol_vault_holding.key, shield_amount);
+        let transfer_ix = system_instruction::transfer(
+            depositor.key,
+            sol_vault_holding.key,
+            verified.shield_amount,
+        );
         invoke_signed(
             &transfer_ix,
             &[
@@ -1210,11 +1275,7 @@ fn process_shield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) ->
 
         let pool_data = pool_state.try_borrow_data()?;
         require_pool_verifier_wired(&pool_data, ERR_PROOF_VERIFIER_NOT_WIRED)?;
-
-        // VANTA-PPA-NEW-001 (shield-verifier-cpi-gap): see SOL branch above.
-        // SPL shield has the same gap — when verifier_wired flips, the SPL
-        // verifier CPI must be added here before the transfer_checked CPI
-        // below, and the gap-check guard updated accordingly.
+        verify_shield_with_proof_adapter(&verified, verifier_program)?;
 
         let transfer_ix = spl_token::instruction::transfer_checked(
             cpi_program.key,
@@ -1223,8 +1284,8 @@ fn process_shield(program_id: &Pubkey, accounts: &[AccountInfo], rest: &[u8]) ->
             vault_token_account.key,
             depositor.key,
             &[],
-            shield_amount,
-            decimals,
+            verified.shield_amount,
+            verified.decimals,
         )?;
         solana_program::program::invoke(
             &transfer_ix,
@@ -3318,6 +3379,58 @@ fn preflight_unshield_release(
         .gnark_public_witness
         .copy_from_slice(gnark_public_witness);
     Ok(verified)
+}
+
+fn verify_shield_with_proof_adapter(
+    verified: &VerifiedShieldPreflight,
+    verifier_program: &AccountInfo,
+) -> ProgramResult {
+    if is_zero_hash(&verified.output_commitment)
+        || is_zero_hash(&verified.public_input_hash)
+        || is_zero_hash(&verified.verifier_key_hash)
+        || verified.gnark_proof.iter().all(|byte| *byte == 0)
+        || verified.gnark_public_witness.iter().all(|byte| *byte == 0)
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+    require_shield_public_witness_binding(verified)?;
+    let verifier_cpi_instruction = shield_verifier_cpi_instruction(verified);
+
+    #[cfg(target_os = "solana")]
+    {
+        invoke_signed(&verifier_cpi_instruction, &[verifier_program.clone()], &[])?;
+        Ok(())
+    }
+
+    #[cfg(not(target_os = "solana"))]
+    {
+        let _ = verifier_program;
+        let _ = verifier_cpi_instruction;
+        Err(ProgramError::Custom(ERR_PROOF_VERIFIER_NOT_WIRED))
+    }
+}
+
+fn shield_verifier_cpi_instruction(verified: &VerifiedShieldPreflight) -> Instruction {
+    Instruction {
+        program_id: verified.verifier_program_id,
+        accounts: Vec::new(),
+        data: verified.verifier_instruction_data().to_vec(),
+    }
+}
+
+fn require_shield_public_witness_binding(verified: &VerifiedShieldPreflight) -> ProgramResult {
+    if verified.gnark_public_witness[..GNARK_PUBLIC_WITNESS_HEADER_LEN]
+        != GNARK_PUBLIC_WITNESS_ONE_PUBLIC_INPUT_HEADER[..]
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+    if verified.gnark_public_witness
+        [GNARK_PUBLIC_WITNESS_VALUE_OFFSET..GNARK_PUBLIC_WITNESS_VALUE_OFFSET + HASH_LEN]
+        != verified.public_input_hash
+    {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+    Ok(())
 }
 
 fn verify_unshield_with_proof_adapter(
@@ -6334,6 +6447,96 @@ mod tests {
         rest.extend_from_slice(&[8u8; RESERVED_GROTH16_PROOF_LEN]);
         assert_eq!(rest.len() + 1, 457);
         assert!(preflight_unshield_release(&program_id, &[], &rest).is_err());
+    }
+
+    #[test]
+    fn proof_carrying_shield_default_adapter_rejects_before_transfer() {
+        let verifier_program_id = Pubkey::new_unique();
+        let mut verifier_program_lamports = 1u64;
+        let mut verifier_program_data: Vec<u8> = vec![];
+        let verifier_program = executable_account_info(
+            &verifier_program_id,
+            &mut verifier_program_lamports,
+            &mut verifier_program_data,
+        );
+        let verified = VerifiedShieldPreflight {
+            exit_asset_id: [4u8; HASH_LEN],
+            shield_amount: 1,
+            output_commitment: [7u8; HASH_LEN],
+            public_input_hash: [5u8; HASH_LEN],
+            verifier_key_hash: [6u8; HASH_LEN],
+            verifier_program_id,
+            gnark_proof: [8u8; SHIELD_GNARK_PROOF_LEN],
+            gnark_public_witness: gnark_public_witness_for(&[5u8; HASH_LEN]),
+            asset_kind: VAULT_ASSET_KIND_SPL,
+            decimals: 6,
+        };
+
+        assert_eq!(
+            verify_shield_with_proof_adapter(&verified, &verifier_program),
+            Err(ProgramError::Custom(ERR_PROOF_VERIFIER_NOT_WIRED))
+        );
+    }
+
+    #[test]
+    fn proof_carrying_shield_verifier_instruction_data_matches_gnark_tuple() {
+        let public_input_hash = [5u8; HASH_LEN];
+        let gnark_proof = [8u8; SHIELD_GNARK_PROOF_LEN];
+        let gnark_public_witness = gnark_public_witness_for(&public_input_hash);
+        let verified = VerifiedShieldPreflight {
+            exit_asset_id: [4u8; HASH_LEN],
+            shield_amount: 1,
+            output_commitment: [7u8; HASH_LEN],
+            public_input_hash,
+            verifier_key_hash: [6u8; HASH_LEN],
+            verifier_program_id: Pubkey::new_unique(),
+            gnark_proof,
+            gnark_public_witness,
+            asset_kind: VAULT_ASSET_KIND_SPL,
+            decimals: 6,
+        };
+
+        let verifier_instruction_data = verified.verifier_instruction_data();
+        assert_eq!(verifier_instruction_data.len(), SHIELD_VERIFIER_INPUT_LEN);
+        assert_eq!(
+            &verifier_instruction_data[..SHIELD_GNARK_PROOF_LEN],
+            &gnark_proof
+        );
+        assert_eq!(
+            &verifier_instruction_data[SHIELD_GNARK_PROOF_LEN..],
+            &gnark_public_witness
+        );
+    }
+
+    #[test]
+    fn proof_carrying_shield_public_witness_binding_rejects_wrong_hash_before_not_wired() {
+        let mut wrong_public_witness = gnark_public_witness_for(&[5u8; HASH_LEN]);
+        wrong_public_witness[GNARK_PUBLIC_WITNESS_VALUE_OFFSET] = 9;
+        let verifier_program_id = Pubkey::new_unique();
+        let mut verifier_program_lamports = 1u64;
+        let mut verifier_program_data: Vec<u8> = vec![];
+        let verifier_program = executable_account_info(
+            &verifier_program_id,
+            &mut verifier_program_lamports,
+            &mut verifier_program_data,
+        );
+        let verified = VerifiedShieldPreflight {
+            exit_asset_id: [4u8; HASH_LEN],
+            shield_amount: 1,
+            output_commitment: [7u8; HASH_LEN],
+            public_input_hash: [5u8; HASH_LEN],
+            verifier_key_hash: [6u8; HASH_LEN],
+            verifier_program_id,
+            gnark_proof: [8u8; SHIELD_GNARK_PROOF_LEN],
+            gnark_public_witness: wrong_public_witness,
+            asset_kind: VAULT_ASSET_KIND_SPL,
+            decimals: 6,
+        };
+
+        assert_eq!(
+            verify_shield_with_proof_adapter(&verified, &verifier_program),
+            Err(ProgramError::InvalidInstructionData)
+        );
     }
 
     #[test]
