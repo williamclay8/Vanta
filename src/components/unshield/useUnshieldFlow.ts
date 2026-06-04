@@ -14,6 +14,15 @@ type UseUnshieldFlowArgs = {
   canonicalShieldState: CanonicalShieldState;
   setUnshieldReceiptCopyStatus: (status: "idle" | "copied" | "failed") => void;
   shieldRegistry: ShieldRegistry;
+  splitFollowupRecoveryOptions: {
+    viewingSecretKey: string | undefined;
+  };
+  splitFollowupMemoOptions: {
+    viewingPublicKey: string | undefined;
+  };
+  splitSpentMarkerMemoOptions: {
+    viewingPublicKey: string | undefined;
+  };
   usdcShieldEntry: ShieldRegistry["byAssetKey"]["USDC"];
   viewingKey: ViewingKey;
   walletAddress: string | null | undefined;
@@ -25,6 +34,9 @@ export function useUnshieldFlow({
   canonicalShieldState,
   setUnshieldReceiptCopyStatus,
   shieldRegistry,
+  splitFollowupRecoveryOptions,
+  splitFollowupMemoOptions,
+  splitSpentMarkerMemoOptions,
   usdcShieldEntry,
   viewingKey,
   walletAddress,
@@ -58,6 +70,9 @@ export function useUnshieldFlow({
     selectedSolNote: lane.selectedSolNote,
     shieldRegistry,
     solShieldAccount: lane.solShieldAccount,
+    splitFollowupRecoveryOptions,
+    splitFollowupMemoOptions,
+    splitSpentMarkerMemoOptions,
     usdcShieldEntry,
     viewingKey,
     walletAddress,

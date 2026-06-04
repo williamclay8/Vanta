@@ -164,6 +164,10 @@ export function AppDashboardPage() {
               )}
             </div>
             <p className="dashboard-cockpit__balance-note">{statusLine}</p>
+            <p className="dashboard-cockpit__balance-note">
+              Production privacy is not enabled. This dashboard shows the current beta control
+              surface, not a finished private-settlement network.
+            </p>
           </div>
           <div className="dashboard-cockpit__viz">
             <DashboardSparkline points={sparklinePoints} positive={balanceTrendPositive} />

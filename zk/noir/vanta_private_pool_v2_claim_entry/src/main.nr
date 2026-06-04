@@ -1,4 +1,4 @@
-use ::poseidon::poseidon::bn254;
+use dep::poseidon::poseidon::bn254;
 
 global MERKLE_DEPTH: u32 = 20;
 

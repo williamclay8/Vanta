@@ -3506,6 +3506,14 @@ mod tests {
         data
     }
 
+    struct SolUnshieldReservedProcessObservation {
+        result: ProgramResult,
+        marker_lamports: u64,
+        marker_data: Vec<u8>,
+        vault_lamports: u64,
+        dest_lamports: u64,
+    }
+
     fn run_sol_unshield_reserved_process(
         verifier_wired: u8,
         exit_asset_id: [u8; HASH_LEN],
@@ -3515,6 +3523,27 @@ mod tests {
         exit_amount: u64,
         public_input_hash: [u8; HASH_LEN],
     ) -> ProgramResult {
+        run_sol_unshield_reserved_process_with_observation(
+            verifier_wired,
+            exit_asset_id,
+            asset_kind,
+            sol_vault_account,
+            nullifier,
+            exit_amount,
+            public_input_hash,
+        )
+        .result
+    }
+
+    fn run_sol_unshield_reserved_process_with_observation(
+        verifier_wired: u8,
+        exit_asset_id: [u8; HASH_LEN],
+        asset_kind: u8,
+        sol_vault_account: Option<Pubkey>,
+        nullifier: [u8; HASH_LEN],
+        exit_amount: u64,
+        public_input_hash: [u8; HASH_LEN],
+    ) -> SolUnshieldReservedProcessObservation {
         let program_id = Pubkey::new_unique();
         let pool_state = Pubkey::new_unique();
         let root_history = Pubkey::new_unique();
@@ -3730,7 +3759,16 @@ mod tests {
             verifier_key_hash,
         );
 
-        process_instruction(&program_id, &accounts, &data)
+        let result = process_instruction(&program_id, &accounts, &data);
+        drop(accounts);
+
+        SolUnshieldReservedProcessObservation {
+            result,
+            marker_lamports,
+            marker_data,
+            vault_lamports,
+            dest_lamports,
+        }
     }
 
     #[test]
@@ -7887,18 +7925,24 @@ mod tests {
     // Verifies TAG_UNSHIELD=6 unified reserved SOL path and verifier_wired=0 fail-closed boundary.
     #[test]
     fn unshield_sol_verifier_wired_zero_rejects_before_nullifier_or_release() {
+        let observation = run_sol_unshield_reserved_process_with_observation(
+            POOL_VERIFIER_NOT_WIRED,
+            NATIVE_SOL_ASSET_ID_SENTINEL,
+            VAULT_ASSET_KIND_SOL,
+            None,
+            [11u8; HASH_LEN],
+            1,
+            [9u8; HASH_LEN],
+        );
+
         assert_eq!(
-            run_sol_unshield_reserved_process(
-                POOL_VERIFIER_NOT_WIRED,
-                NATIVE_SOL_ASSET_ID_SENTINEL,
-                VAULT_ASSET_KIND_SOL,
-                None,
-                [11u8; HASH_LEN],
-                1,
-                [9u8; HASH_LEN],
-            ),
+            observation.result,
             Err(ProgramError::Custom(ERR_UNSHIELD_NOT_WIRED))
         );
+        assert_eq!(observation.marker_lamports, 0);
+        assert!(observation.marker_data.iter().all(|byte| *byte == 0));
+        assert_eq!(observation.vault_lamports, 1_000_000);
+        assert_eq!(observation.dest_lamports, 1_000_000);
     }
 
 

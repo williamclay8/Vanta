@@ -23,7 +23,9 @@ const candidateSourceSha256 =
   "sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430";
 const currentSourceRef = "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr";
 const currentSourceSha256 =
-  "sha256:363d7dffa7ba03698a8bdbe2d48a6f13cf32ddeb7326fb997ff9cff63db8bf96";
+  "sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430";
+const compatibilityDelta =
+  "no-source-delta-current-uses-beta18-compatible-poseidon-import";
 
 function fail(message) {
   console.error(`private-pool-v2 C01 beta18 H6 source-review acceptance gate: FAIL - ${message}`);
@@ -145,7 +147,7 @@ function assertTemplate(template) {
   assert(template.candidate?.candidateSourceSha256 === candidateSourceSha256, "template candidate source hash mismatch");
   assert(template.candidate?.currentSourceRef === currentSourceRef, "template current source ref mismatch");
   assert(template.candidate?.currentSourceSha256 === currentSourceSha256, "template current source hash mismatch");
-  assert(template.candidate?.compatibilityDelta === "poseidon-import-path-only", "template delta mismatch");
+  assert(template.candidate?.compatibilityDelta === compatibilityDelta, "template delta mismatch");
   assert(template.reviewerAcceptance?.reviewerAcceptedSourceMigration === false, "template must not claim review acceptance");
   assertNullRefs(template.reviewerAcceptance, "template reviewer acceptance", [
     "acceptanceRef",
@@ -155,7 +157,7 @@ function assertTemplate(template) {
   ]);
   for (const [field, expected] of [
     ["normalizedSourceMatchesCurrent", true],
-    ["importPathOnlyDelta", true],
+    ["currentSourceAlreadyUsesCompatibleImport", true],
     ["h6SemanticsPreserved", true],
     ["proverFixtureMatchesCurrent", true],
     ["beta18NargoCheckObserved", true],
@@ -224,7 +226,7 @@ function assertAcceptedSourceReview(acceptance, label) {
   assert(candidate.candidateSourceSha256 === candidateSourceSha256, `${label} candidate source hash mismatch`);
   assert(candidate.currentSourceRef === currentSourceRef, `${label} current source ref mismatch`);
   assert(candidate.currentSourceSha256 === currentSourceSha256, `${label} current source hash mismatch`);
-  assert(candidate.compatibilityDelta === "poseidon-import-path-only", `${label} compatibility delta mismatch`);
+  assert(candidate.compatibilityDelta === compatibilityDelta, `${label} compatibility delta mismatch`);
   assert(candidate.localValidationCommand === "noirup -v 1.0.0-beta.18 && nargo check", `${label} validation command mismatch`);
 
   const reviewer = acceptance.reviewerAcceptance ?? {};
@@ -237,7 +239,7 @@ function assertAcceptedSourceReview(acceptance, label) {
 
   for (const [field, expected] of [
     ["normalizedSourceMatchesCurrent", true],
-    ["importPathOnlyDelta", true],
+    ["currentSourceAlreadyUsesCompatibleImport", true],
     ["h6SemanticsPreserved", true],
     ["proverFixtureMatchesCurrent", true],
     ["beta18NargoCheckObserved", true],
@@ -387,11 +389,11 @@ assert(shape.candidateSourceRef === candidateSourceRef, "shape candidate source 
 assert(shape.candidateSourceSha256 === candidateSourceSha256, "shape candidate source hash mismatch");
 assert(shape.currentSourceRef === currentSourceRef, "shape current source ref mismatch");
 assert(shape.currentSourceSha256 === currentSourceSha256, "shape current source hash mismatch");
-assert(shape.compatibilityDelta === "poseidon-import-path-only", "shape delta mismatch");
+assert(shape.compatibilityDelta === compatibilityDelta, "shape delta mismatch");
 assert(shape.status === "required-before-production-source-lineage", "shape status mismatch");
 assertStringArray(shape.requiredConclusions, "shape required conclusions");
 for (const conclusion of [
-  "normalized source equals current H6 source after Poseidon import-path normalization",
+  "candidate source equals current H6 source with the beta18-compatible Poseidon import",
   "H6 context preimage fields and Poseidon6 assertion are preserved",
   "Prover.toml fixture matches current H6 source fixture",
   "beta18 nargo check was reviewed",
@@ -428,7 +430,7 @@ for (const marker of [
   "external reviewer acceptance ref",
   "candidate source hash",
   "current source hash",
-  "poseidon-import-path-only delta",
+  "current source already uses the beta18-compatible Poseidon import",
   "H6 context preimage and Poseidon6 preservation",
   "beta18 nargo check review",
   "refs-only secret policy",

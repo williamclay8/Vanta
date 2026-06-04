@@ -193,10 +193,10 @@
     "invalidProofLeavesAccountsUnchanged": true,
     "wrongPublicInputHashLeavesAccountsUnchanged": true,
     "wrongVerifierProgramLeavesAccountsUnchanged": true,
-    "wrongVerifyingKeyLeavesAccountsUnchanged": true,
+    "wrongVerifyingKeyLeavesAccountsUnchanged": false,
     "satisfiesVerifierAdapterAcceptance": false,
     "satisfiesProductionMutationNoMutationEvidence": false,
-    "truthBoundary": "This proves the local Vanta spend SBF can CPI into the local unsafe H6-preserving generated verifier and run the local mutation/no-mutation harness, including valid mutation, invalid-proof no-mutation, wrong-public-input no-mutation, wrong-executable-verifier-program no-mutation, and wrong-verifying-key local unsafe no-mutation using the pre-H6 generated verifier SBF/key hash against the H6 proof/public witness. It is not production verifier-adapter acceptance because the source migration, setup, VK, proof, verifier SBF, deployment lineage, and reviewer acceptance are not production accepted."
+    "truthBoundary": "This proves the local Vanta spend SBF can CPI into the local unsafe H6-preserving generated verifier and run the local mutation/no-mutation harness, including valid mutation, invalid-proof no-mutation, wrong-public-input no-mutation, and wrong-executable-verifier-program no-mutation. The optional pre-H6 wrong-verifying-key negative-control leg is skipped unless its transient verifier SBF is present. It is not production verifier-adapter acceptance because the source migration, setup, VK, proof, verifier SBF, deployment lineage, and reviewer acceptance are not production accepted."
   },
   "satisfiesRequiredPositiveEvidence": {
     "backendSelection": true,

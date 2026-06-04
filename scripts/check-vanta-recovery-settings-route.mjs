@@ -18,6 +18,8 @@ const controllerSource = readFileSync(controllerPath, "utf8");
 const pageSource = readFileSync(pagePath, "utf8");
 const panelSource = readRepoFile("src/components/RecoveryPanel.tsx");
 const shieldPageSource = readRepoFile("src/pages/ShieldPage.tsx");
+const shieldWorkspaceSource = readRepoFile("src/components/ShieldWorkspaceCard.tsx");
+const shieldSurfaceSource = `${shieldPageSource}\n${shieldWorkspaceSource}`;
 const appSource = readRepoFile("src/App.tsx");
 const appLayoutSource = readRepoFile("src/components/AppLayout.tsx");
 const browserCheckSource = readRepoFile("scripts/check-vanta-product-ui-browser.mjs");
@@ -60,8 +62,8 @@ assert.ok(
 );
 
 assert.ok(
-  shieldPageSource.includes("import { RecoveryPanelController") &&
-    shieldPageSource.includes("<RecoveryPanelController"),
+  shieldSurfaceSource.includes("import { RecoveryPanelController") &&
+    shieldSurfaceSource.includes("<RecoveryPanelController"),
   "ShieldPage must render the shared RecoveryPanelController for first-time setup.",
 );
 assert.ok(

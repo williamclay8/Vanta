@@ -5,6 +5,7 @@ import { UnshieldPausedBanner } from "@/components/UnshieldPausedBanner";
 import { UnshieldReleaseWorkflowSection } from "@/components/UnshieldReleaseWorkflowSection";
 import { UnshieldWorkspaceCard } from "@/components/UnshieldWorkspaceCard";
 import { LaneFlowIndicator } from "@/components/LaneFlowIndicator";
+// import { UnshieldAdvancedPanel } from "@/components/UnshieldAdvancedPanel";
 import { buildPrivateCoreStatePanelProps } from "@/components/privateCore/buildPrivateCoreStatePanelProps";
 import { abbreviate } from "@/components/unshield/unshieldPanelUtils";
 import { buildUnshieldPrivateCoreDemoSteps } from "@/components/unshield/unshieldPrivateCoreDemoSteps";
@@ -64,8 +65,11 @@ export function UnshieldPage() {
 
   const flow = useUnshieldFlow({
     canonicalShieldState,
+    splitFollowupRecoveryOptions: { viewingSecretKey: viewingKey?.secretKey },
+    splitFollowupMemoOptions: { viewingPublicKey: viewingKey?.publicKey },
     setUnshieldReceiptCopyStatus: (status) => setUnshieldReceiptCopyStatusRef.current(status),
     shieldRegistry,
+    splitSpentMarkerMemoOptions: { viewingPublicKey: viewingKey?.publicKey },
     usdcShieldEntry,
     viewingKey,
     walletAddress,
@@ -147,10 +151,28 @@ export function UnshieldPage() {
       }),
     [privacyFlow],
   );
+  const unshieldProductionPrivacyClaimsLocked =
+    unshieldTrustContract.claimControls.productionPrivacyClaimsLocked;
+  const unshieldVisibleStatusCopy = unshieldTrustContract.visibleStatusCopy;
 
   return (
-    <section className="send-page unshield-page">
+    <section
+      className="send-page unshield-page"
+      data-production-privacy-claims-locked={unshieldProductionPrivacyClaimsLocked}
+    >
       <UnshieldPageHero unshieldTrustContract={unshieldTrustContract} />
+
+      <div className="module-state send-layout__status">
+        <strong>Unshield truth boundary</strong>
+        <p>
+          {unshieldProductionPrivacyClaimsLocked
+            ? unshieldVisibleStatusCopy
+            : "Production Unshield privacy claims are unlocked by current evidence."}
+        </p>
+      </div>
+
+      {/* <UnshieldAdvancedPanel /> is rendered inside UnshieldWorkspaceCard so the shared
+          NotePicker stays inside the advanced disclosure with exit-state controls. */}
 
       <UnshieldPausedBanner />
 

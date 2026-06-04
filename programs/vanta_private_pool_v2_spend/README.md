@@ -41,6 +41,7 @@ Minimum account data sizes:
 
 - `pool_state`: 224 bytes. Byte offset `216` is `verifier_wired`, initialized to `0`
   by tag `0`; no public setter is exposed in this slice.
+  Release is blocked by runtime state instead of build flags, and this slice still returns error `15` until item 9 wires real verifier/root/public-input/nullifier acceptance.
 - `nullifier_set`: `16 + 32 * slot_count` bytes
 - `output_queue`: 16-byte output index header
 - `root_history`: `16 + 32 * slot_count` bytes

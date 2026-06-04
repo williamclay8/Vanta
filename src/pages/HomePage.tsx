@@ -7,12 +7,12 @@ type LandingGlyph = "exit" | "private-rails" | "receipt" | "shield";
 
 const productPoints = [
   {
-    copy: "Move assets into a private balance.",
+    copy: "Move supported assets through the beta shield flow.",
     icon: "shield",
     title: "Shield",
   },
   {
-    copy: "Send, swap, and exit from that balance.",
+    copy: "Send, swap, and exit from shielded state.",
     icon: "private-rails",
     title: "Use",
   },
@@ -31,25 +31,25 @@ const productPoints = [
 const primaryAppActions = [
   {
     label: "Shield",
-    outcome: "Move assets into your private balance.",
+    outcome: "Move assets into shielded state.",
     path: "shield",
     status: "Beta",
   },
   {
     label: "Send",
-    outcome: "Send from your private balance to another wallet.",
+    outcome: "Send from shielded state to another wallet.",
     path: "send",
     status: "Beta",
   },
   {
     label: "Swap",
-    outcome: "Swap inside your private balance.",
+    outcome: "Swap from shielded state.",
     path: "swap",
     status: "Beta",
   },
   {
     label: "Unshield",
-    outcome: "Withdraw your private balance back to a wallet.",
+    outcome: "Withdraw from shielded state back to a wallet.",
     path: "unshield",
     status: "Beta",
   },
@@ -57,7 +57,7 @@ const primaryAppActions = [
 
 const previewAppActions = [
   {
-    copy: "Create payment requests. Settle privately.",
+    copy: "Create payment requests. Preview verifiable receipts.",
     eyebrow: "Pay",
     label: "Collect payments",
     path: "pay",
@@ -115,7 +115,7 @@ function LandingHeroFlowVisual() {
     >
       <div className="landing-minimal__flow-header">
         <span>Preview</span>
-        <strong>Wallet to private balance</strong>
+        <strong>Wallet to shielded state</strong>
       </div>
 
       <div className="landing-minimal__flow-map" aria-hidden="true">
@@ -135,7 +135,7 @@ function LandingHeroFlowVisual() {
         </div>
         <div className="landing-minimal__flow-node" data-vanta-landing-flow-node="shielded-state">
           <span />
-          <strong>Private balance</strong>
+          <strong>Shielded state</strong>
           <small>Send, swap, exit</small>
         </div>
       </div>
@@ -195,11 +195,12 @@ export function HomePage() {
           <div className="landing-minimal__hero-copy">
             <div className="landing-minimal__kicker">Private Solana · beta</div>
             <h1>
-              Move on Solana.
-              <span> No one watching.</span>
+              Shield first.
+              <span> Simple on the surface.</span>
             </h1>
             <p>
-              Shield, send, swap, and exit from a private balance. Beta on devnet — production privacy is not enabled yet.
+              Shield first. Simple on the surface. Move assets into shielded state, then test send, swap, and exit
+              flows. Beta on devnet — production privacy is not enabled yet.
             </p>
 
             <div className="landing-minimal__actions">

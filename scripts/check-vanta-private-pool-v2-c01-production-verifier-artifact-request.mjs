@@ -303,7 +303,7 @@ for (const [field, expected] of [
   ["currentH6ProofReceiptPublicInput", currentH6PublicInputValue],
   ["currentH6ProofReceiptPublicInputCommitment", currentH6PublicInputCommitment],
   ["localSpendSbfRef", "programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so"],
-  ["localSpendSbfSha256", "sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55"],
+  ["localSpendSbfSha256", "sha256:a30be245fa0b00ea703f077b2f67463132556a3ee20a6efe9364297f7b08e9ad"],
   ["localSpendSbfIsIgnoredBuildArtifact", true],
   ["satisfiesLaneFreeze", false],
   ["satisfiesC01PositiveEvidence", false],

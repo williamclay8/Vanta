@@ -29,7 +29,7 @@ const auditPackagePath = "docs/audit-package.md";
 const beta18MainSourcePath = "/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/src/main.nr";
 const beta18ProverPath = "/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit/Prover.toml";
 const expectedCurrentSourceSha256 =
-  "sha256:363d7dffa7ba03698a8bdbe2d48a6f13cf32ddeb7326fb997ff9cff63db8bf96";
+  "sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430";
 const expectedBeta18SourceSha256 =
   "sha256:fc53c7f1624a2bb1f1af1bedd3126438924f4954c71ac060c453ba16620d6b27";
 const expectedCurrentAcirSha256 =
@@ -266,9 +266,9 @@ assert(currentCircuit.compiledAcirByteLength === 1840868, "recorded current ACIR
 assert(currentCircuit.compiledAcirSha256 === expectedCurrentAcirSha256, "recorded current ACIR sha mismatch");
 assert(currentCircuit.compiledAcirBytecodeHash === expectedCurrentAcirBytecodeHash, "current ACIR bytecode hash mismatch");
 assert(acirBytecodeHash(currentAcirPath) === currentCircuit.compiledAcirBytecodeHash, "generated current ACIR bytecode hash mismatch");
-assert(currentCircuit.poseidonImport === "use ::poseidon::poseidon::bn254;", "current poseidon import mismatch");
+assert(currentCircuit.poseidonImport === "use dep::poseidon::poseidon::bn254;", "current poseidon import mismatch");
 assert(currentCircuit.publicInputLabel === "private-spend-public-input-hash", "current public input label mismatch");
-includes(currentSource, "use ::poseidon::poseidon::bn254;", "current source");
+includes(currentSource, "use dep::poseidon::poseidon::bn254;", "current source");
 includes(currentSource, "derive_actual_private_spend_context_tag", "current source");
 includes(currentSource, "bn254::hash_6", "current source");
 includes(currentSource, "assert(computed_context_hash == context_hash);", "current source");
@@ -377,7 +377,11 @@ assert(
   h6SourceReviewCandidate.command === "npm run zk:c01-beta18-h6-source-migration-review-check",
   "H6 source review command mismatch",
 );
-assert(h6SourceReviewCandidate.compatibilityDelta === "poseidon-import-path-only", "H6 source review delta mismatch");
+assert(
+  h6SourceReviewCandidate.compatibilityDelta ===
+    "no-source-delta-current-uses-beta18-compatible-poseidon-import",
+  "H6 source review delta mismatch",
+);
 for (const [field, expected] of [
   ["normalizedSourceMatchesCurrent", true],
   ["proverMatchesCurrent", true],
@@ -387,7 +391,7 @@ for (const [field, expected] of [
   assert(h6SourceReviewCandidate[field] === expected, `H6 source review ${field} mismatch`);
 }
 for (const marker of [
-  "differs from current source only by the beta18-compatible Poseidon import path",
+  "mirrors current source with the beta18-compatible Poseidon import",
   "not reviewed source migration",
   "not production source lineage",
   "not audit acceptance",
@@ -404,6 +408,7 @@ assertStringArray(required.acceptableResolutionPaths, "acceptableResolutionPaths
 assertStringArray(required.mustPreserve, "mustPreserve");
 for (const marker of [
   "current Noir 1.0.0-beta.19 ACIR bytecode format",
+  "current source already uses the beta18-compatible Poseidon import",
   "beta18-compatible source migration preserving the current H6 context preimage binding",
   "five private context preimage fields",
   "Poseidon6 derive_actual_private_spend_context_tag",
@@ -503,6 +508,7 @@ for (const marker of [
   "pre-H6 and comparison-only",
   "public witness matches the current H6 proof receipt",
   "reviewed source migration",
+  "no-source-delta-current-uses-beta18-compatible-poseidon-import",
 ]) {
   includes(decision, marker, decisionPath);
   includes(auditPackage, marker, auditPackagePath);

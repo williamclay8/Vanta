@@ -59,7 +59,7 @@ function printExpectedFailure(error) {
 
 const source = readFileSync(sourcePath, "utf8");
 assert(
-  source.includes("use ::poseidon::poseidon::bn254;"),
+  source.includes("use dep::poseidon::poseidon::bn254;"),
   "canonical note membership circuit must use the repo-standard Poseidon bn254 import",
 );
 assert(

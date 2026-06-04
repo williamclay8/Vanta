@@ -58,7 +58,7 @@ const requiredPhrases = [
   "blocked-no-complete-c01-verifier-evidence-chain",
   "operator-skipped-external-artifact-producer",
   "operator-skipped-external-artifact-producer",
-  "poseidon-import-path-only",
+  "no-source-delta-current-uses-beta18-compatible-poseidon-import",
   "public witness matches the current H6 proof receipt",
   "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-candidate.evidence.json",
   "ops/mainnet/private-pool-v2-c01-sbf-live-lineage-acceptance-gate.evidence.json",

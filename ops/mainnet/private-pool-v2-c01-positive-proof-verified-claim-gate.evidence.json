@@ -105,7 +105,7 @@
     "provesLocalUnsafeInvalidProofNoMutation": true,
     "provesLocalUnsafeWrongPublicInputNoMutation": true,
     "provesLocalUnsafeWrongVerifierProgramNoMutation": true,
-    "provesWrongVerifyingKeyNoMutation": true,
+    "provesWrongVerifyingKeyNoMutation": false,
     "satisfiesValidProofSuccess": false,
     "satisfiesAcceptedProofMutation": false,
     "satisfiesInvalidProofNoMutation": false,
@@ -114,7 +114,7 @@
     "satisfiesWrongVerifierProgramNoMutation": false,
     "satisfiesVerifierAdapterAcceptance": false,
     "satisfiesSbfLiveLineage": false,
-    "truthBoundary": "local unsafe H6-preserving Sunspot/Gnark artifact lane only. This proves local Vanta tag 3 can CPI into the generated verifier SBF from /private/tmp, mutate after the local unsafe H6 proof/public-witness tuple is accepted, reject a tampered proof without mutation, reject a wrong public input hash without mutation, reject a wrong executable verifier program without mutation when the registered verifier-key record is bound to the correct generated verifier program id, and reject a wrong-verifying-key local unsafe path by registering the pre-H6 generated verifier SBF/key hash against the H6 proof/public witness. It is not tag-3 production valid-proof success evidence, not accepted-proof production mutation evidence, not production no-mutation evidence, not verifier-adapter acceptance, not SBF/live lineage, and not wrong-verifying-key production no-mutation evidence."
+    "truthBoundary": "local unsafe H6-preserving Sunspot/Gnark artifact lane only. This proves local Vanta tag 3 can CPI into the generated verifier SBF from the repo-pinned local unsafe fixture, mutate after the local unsafe H6 proof/public-witness tuple is accepted, reject a tampered proof without mutation, reject a wrong public input hash without mutation, and reject a wrong executable verifier program without mutation when the registered verifier-key record is bound to the correct generated verifier program id. The optional pre-H6 wrong-verifying-key negative-control leg is skipped unless its transient verifier SBF is present. It is not tag-3 production valid-proof success evidence, not accepted-proof production mutation evidence, not production no-mutation evidence, not verifier-adapter acceptance, not SBF/live lineage, and not wrong-verifying-key production no-mutation evidence."
   },
   "sourceCopyFindingsGate": {
     "status": "fail-closed",

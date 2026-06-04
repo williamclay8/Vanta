@@ -81,13 +81,13 @@ for (const [pageName, pagePath, requiredPhrases] of [
 ]) {
   const pageSource =
     pageName === "SendPage"
-      ? `${readRepoFile("src/pages/SendPage.tsx")}\n${readRepoFile("src/components/SendWorkspaceCard.tsx")}`
-      : pageName === "ShieldPage"
-        ? `${readRepoFile("src/pages/ShieldPage.tsx")}\n${readRepoFile("src/components/ShieldWorkspaceCard.tsx")}`
+        ? `${readRepoFile("src/pages/SendPage.tsx")}\n${readRepoFile("src/components/SendWorkspaceCard.tsx")}`
+        : pageName === "ShieldPage"
+          ? `${readRepoFile("src/pages/ShieldPage.tsx")}\n${readRepoFile("src/components/ShieldWorkspaceCard.tsx")}`
         : pageName === "UnshieldPage"
-          ? `${readRepoFile("src/pages/UnshieldPage.tsx")}\n${readRepoFile("src/components/UnshieldWorkspaceCard.tsx")}`
+          ? `${readRepoFile("src/pages/UnshieldPage.tsx")}\n${readRepoFile("src/components/UnshieldWorkspaceCard.tsx")}\n${readRepoFile("src/components/unshield/useUnshieldExecution.ts")}`
           : pageName === "SwapPage"
-            ? `${readRepoFile("src/pages/SwapPage.tsx")}\n${readRepoFile("src/components/SwapWorkspaceCard.tsx")}`
+            ? `${readRepoFile("src/pages/SwapPage.tsx")}\n${readRepoFile("src/components/SwapWorkspaceCard.tsx")}\n${readRepoFile("src/components/swap/swapPanelUtils.ts")}`
             : readRepoFile(pagePath);
 
   for (const phrase of requiredPhrases) {

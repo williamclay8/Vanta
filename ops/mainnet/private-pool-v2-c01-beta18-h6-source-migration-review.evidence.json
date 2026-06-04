@@ -13,7 +13,7 @@
   "sourceMigrationReady": false,
   "reviewedSourceMigration": false,
   "secretPolicy": "metadata-only-no-raw-proof-vk-witness-pk-keypair-secret-or-signed-transaction-bytes",
-  "purpose": "Make the H6-preserving beta18 Sunspot source migration reviewable in-repo while keeping production source-lineage and reviewer acceptance blocked. The candidate source differs from current beta19 source only by the beta18-compatible Poseidon import path.",
+  "purpose": "Make the H6-preserving beta18 Sunspot source migration reviewable in-repo while keeping production source-lineage and reviewer acceptance blocked. The current beta19 source now already uses the beta18-compatible Poseidon import, so the candidate source mirrors current source exactly.",
   "sourceMigrationCandidateRef": "ops/mainnet/private-pool-v2-c01-beta18-source-migration-candidate.evidence.json",
   "localH6MigrationProbeRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-migration-probe.evidence.json",
   "sourceReviewAcceptanceGateRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
@@ -21,8 +21,8 @@
   "decisionPacketRef": "docs/zk/c01-production-verifier-backend-decision.md",
   "currentSource": {
     "sourceRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr",
-    "sourceByteLength": 7188,
-    "sourceSha256": "sha256:363d7dffa7ba03698a8bdbe2d48a6f13cf32ddeb7326fb997ff9cff63db8bf96",
+    "sourceByteLength": 7191,
+    "sourceSha256": "sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430",
     "proverRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/Prover.toml",
     "proverSha256": "sha256:2c62fa9b0a7bfb32c98fb89fc5fbc90211d67b017066eb5555da8f0da20d890e",
     "compiledAcirRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json",
@@ -38,8 +38,8 @@
     "proverRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry_sunspot_beta18_h6_candidate/Prover.toml",
     "proverSha256": "sha256:2c62fa9b0a7bfb32c98fb89fc5fbc90211d67b017066eb5555da8f0da20d890e",
     "readmeRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry_sunspot_beta18_h6_candidate/README.md",
-    "compatibilityDelta": "poseidon-import-path-only",
-    "currentImport": "use ::poseidon::poseidon::bn254;",
+    "compatibilityDelta": "no-source-delta-current-uses-beta18-compatible-poseidon-import",
+    "currentImport": "use dep::poseidon::poseidon::bn254;",
     "candidateImport": "use dep::poseidon::poseidon::bn254;",
     "normalizedSourceMatchesCurrent": true,
     "proverMatchesCurrent": true,
@@ -110,5 +110,5 @@
     "npm run zk:c01-beta18-source-migration-candidate-check",
     "npm run zk:review-guards-check"
   ],
-  "truthBoundary": "This is an in-repo reviewable source-migration candidate only. It makes the H6-preserving beta18 source delta inspectable and guarded, but it is not reviewed source migration, not production source lineage, not production setup, not production proof-format evidence, not production VK/hash evidence, not production verifier-adapter acceptance, not production mutation/no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure."
+  "truthBoundary": "This is an in-repo reviewable source-migration candidate only. It makes the H6-preserving beta18-compatible source inspectable and guarded, but it is not reviewed source migration, not production source lineage, not production setup, not production proof-format evidence, not production VK/hash evidence, not production verifier-adapter acceptance, not production mutation/no-mutation evidence, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure."
 }

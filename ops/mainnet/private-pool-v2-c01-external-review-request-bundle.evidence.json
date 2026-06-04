@@ -51,7 +51,7 @@
       "id": "human-evidence-request",
       "group": "work-order",
       "path": "ops/mainnet/private-pool-v2-c01-external-evidence-request.md",
-      "sha256": "sha256:c1b72f4c1a109e2075b496cdc1f1d46188bff808efaeec430759d6e56843c79a",
+      "sha256": "sha256:0f1ab62eb49d643f5f3a91983c6985126f513aa1cf355f0a89c9dcff4bc55b5b",
       "requiredFor": "Human-readable C01 external evidence request and ref source map.",
       "truthBoundary": "Outbound work order only; not reviewed external evidence or C01 closure."
     },
@@ -59,7 +59,7 @@
       "id": "artifact-request",
       "group": "work-order",
       "path": "ops/mainnet/private-pool-v2-c01-production-verifier-artifact-request.evidence.json",
-      "sha256": "sha256:0e30e98453b1b19bd6273e85937f89c10745ab5b40c00d621674d2f59215eb61",
+      "sha256": "sha256:8cfd5ca1f8f79986f1eab1b07af040c8b3b0802a0935ffd81dc6f387537581f4",
       "requiredFor": "Machine-readable production verifier artifact request.",
       "truthBoundary": "Refs-only request packet; not production artifact evidence, and accepted production outputs remain null."
     },
@@ -67,7 +67,7 @@
       "id": "external-review-handoff",
       "group": "work-order",
       "path": "ops/mainnet/private-pool-v2-c01-external-review-handoff.evidence.json",
-      "sha256": "sha256:8ed2c4400b3b7dbd4287bbf80db72ad8cf51f0c03451463b3f6c019a4906a3b4",
+      "sha256": "sha256:0191a3f7b38149728c22614039525f950aa677b39861de9852d677199ac62f44",
       "requiredFor": "Reviewer order, validation commands, and returned packet expectations.",
       "truthBoundary": "Reviewer routing only; not external acceptance."
     },
@@ -75,7 +75,7 @@
       "id": "source-review-acceptance-template",
       "group": "reviewed-return-template",
       "path": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance.template.json",
-      "sha256": "sha256:8c25c00576fc76fbb3c0e427cd2298155f43c7990b7b62762981b4f55074352f",
+      "sha256": "sha256:edabd8f9915ec06559be25490242b1da5596b3782eff765620a6ab796858eb15",
       "requiredFor": "Returned source-review acceptance packet shape.",
       "truthBoundary": "Template only; not source-review acceptance."
     },
@@ -123,7 +123,7 @@
       "id": "source-review-acceptance-gate",
       "group": "acceptance-gate",
       "path": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
-      "sha256": "sha256:be8d7cdbee9adfa19092f25b54f3246b0796fa0135c33b7555ba8b530c68a41a",
+      "sha256": "sha256:5980793be96c0d54d712d230ac38390d49112b9b42e3d82d1d5a049bbea46644",
       "requiredFor": "Source-review acceptance validation contract.",
       "truthBoundary": "Gate contract only; not source-review acceptance, and default status remains blocked."
     },
@@ -171,7 +171,7 @@
       "id": "audit-reviewer-acceptance-gate",
       "group": "acceptance-gate",
       "path": "ops/mainnet/private-pool-v2-c01-audit-reviewer-acceptance-gate.evidence.json",
-      "sha256": "sha256:dd53b1576d4fc80f22228e797444967779302ebcb3bb466b75b9438e5994e751",
+      "sha256": "sha256:21084bbbebe3bfa8b4acff297277023f2d6a9dab34feb04138fc506c37538c0a",
       "requiredFor": "Audit/reviewer acceptance validation contract.",
       "truthBoundary": "Gate contract only; not audit/reviewer acceptance."
     },
@@ -179,7 +179,7 @@
       "id": "verifier-evidence-closure-gate",
       "group": "acceptance-gate",
       "path": "ops/mainnet/private-pool-v2-c01-verifier-evidence-closure-gate.evidence.json",
-      "sha256": "sha256:90fbb81f84759a7b2a56c74945249989e3bf57a7b184e29cfef007f3f2423b3e",
+      "sha256": "sha256:86ed998544ea400ce864d2eb272dfba3210fdd417a821d9709a44f3b6968d430",
       "requiredFor": "Composite C01 verifier evidence closure validation contract.",
       "truthBoundary": "Gate contract only; not C01 closure, and default closure remains blocked."
     },
@@ -211,7 +211,7 @@
       "id": "zk-findings-ledger",
       "group": "local-audit-context",
       "path": "VANTA_ZK_REVIEW.findings.json",
-      "sha256": "sha256:1d2bb0033c9de68ac459ecacffa44a917605d9c116a2ae05704179f92829452a",
+      "sha256": "sha256:7c5b30e7149e26e7c3c2b42babf15a8b6fe6af6371906f3e310d4dfd0d23a9e0",
       "requiredFor": "C01/H08 finding refs and stale-control map.",
       "truthBoundary": "Local findings ledger only; not external acceptance."
     },
@@ -219,7 +219,7 @@
       "id": "verifier-backend-decision",
       "group": "local-audit-context",
       "path": "docs/zk/c01-production-verifier-backend-decision.md",
-      "sha256": "sha256:45ce7db47a51003044357f1ca729d90d22080d7898deefbaba29d797bd32f3b2",
+      "sha256": "sha256:640ad6ed14667a6bd82878328865003010b77bd8f11c634b5b162ed35c9b445b",
       "requiredFor": "Selected backend direction and current reviewer command map.",
       "truthBoundary": "Decision packet only; not selected-backend positive evidence."
     },
@@ -227,7 +227,7 @@
       "id": "audit-package",
       "group": "local-audit-context",
       "path": "docs/audit-package.md",
-      "sha256": "sha256:bd5dfe969c0a72fb2ade455bcd69ee7bedad7bcc43cb144e892c2088444f4faf",
+      "sha256": "sha256:7aeb8374248fa326e5fb4874d63ff421a0f715cb58aee5d635621db6ca1853d9",
       "requiredFor": "Audit package pointers to current C01 gates.",
       "truthBoundary": "Local package index only; not audit/reviewer acceptance."
     },

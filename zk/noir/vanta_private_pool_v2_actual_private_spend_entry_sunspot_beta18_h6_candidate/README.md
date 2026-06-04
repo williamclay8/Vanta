@@ -11,7 +11,7 @@ use dep::poseidon::poseidon::bn254;
 The current beta19 workspace source uses:
 
 ```noir
-use ::poseidon::poseidon::bn254;
+use dep::poseidon::poseidon::bn254;
 ```
 
 The source-migration guard verifies that this import path is the only source delta, while the H6 context-preimage fields, `derive_actual_private_spend_context_tag`, `bn254::hash_6`, and `computed_context_hash == context_hash` assertion remain present.

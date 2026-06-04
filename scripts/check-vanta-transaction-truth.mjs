@@ -14,7 +14,11 @@ const readme = readRepoFile("README.md");
 const auditPackage = readRepoFile("docs/audit-package.md");
 const securityLimitations = readRepoFile("SECURITY_LIMITATIONS.md");
 const payPage = readRepoFile("src/pages/PayPage.tsx");
-const unshieldPage = readRepoFile("src/pages/UnshieldPage.tsx");
+const unshieldPage = [
+  readRepoFile("src/pages/UnshieldPage.tsx"),
+  readRepoFile("src/components/UnshieldWorkspaceCard.tsx"),
+  readRepoFile("src/components/UnshieldReceiptModal.tsx"),
+].join("\n");
 const snapshot = createVantaMainnetReadinessSnapshot();
 
 const bannedBroadClaims = [

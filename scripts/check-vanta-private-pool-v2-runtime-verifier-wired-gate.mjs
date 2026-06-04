@@ -70,7 +70,7 @@ for (const marker of [
   "write_sol_vault_asset_record_data",
   "unshield_sol_verifier_wired_zero_rejects_before_nullifier_or_release",
   "unshield_sol_verifier_wired_one_still_rejects_until_verifier_acceptance",
-  "assert!(marker_data.iter().all(|byte| *byte == 0));",
+  "assert!(observation.marker_data.iter().all(|byte| *byte == 0));",
 ]) {
   assertIncludes(programSource, marker, "runtime verifier_wired unit coverage");
 }

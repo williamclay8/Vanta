@@ -644,7 +644,7 @@ assert(
   "production artifact acceptance gate must reference deterministic build gate",
 );
 assert(
-  sourceReviewAcceptanceGate.status === "blocked-no-external-source-review-acceptance",
+  sourceReviewAcceptanceGate.status === "operator-skipped-external-artifact-producer",
   "source-review acceptance gate status mismatch",
 );
 assert(sourceReview.sourceReviewAcceptanceGateRef === sourceReviewAcceptanceGatePath, "source-review candidate ref mismatch");

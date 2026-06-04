@@ -20,11 +20,11 @@
   "sourceCircuit": {
     "repoPath": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry",
     "repoNargoVersion": "1.0.0-beta.19",
-    "repoPoseidonImport": "use ::poseidon::poseidon::bn254;",
+    "repoPoseidonImport": "use dep::poseidon::poseidon::bn254;",
     "beta18ProbePath": "/private/tmp/vanta-c01-sunspot-lane/work/beta18-circuit",
     "temporarySourceShim": "use dep::poseidon::poseidon::bn254;",
     "temporarySourceShimCommitted": false,
-    "truthBoundary": "The probe used a temporary source copy and import shim only. The repo source was not migrated to beta18, and the observed artifacts are not accepted production circuit artifacts."
+    "truthBoundary": "The probe used a temporary source copy and import shim at collection time. The current repo source now uses the beta18-compatible Poseidon import, but these observed artifacts are still historical local probe artifacts and are not accepted production circuit artifacts."
   },
   "sunspotSource": {
     "sourceRef": "https://github.com/reilabs/sunspot",
@@ -47,8 +47,8 @@
     {
       "step": "beta18-repo-source-compile",
       "command": "nargo compile",
-      "status": "failed-expected-before-temp-shim",
-      "failure": "Could not resolve use ::poseidon::poseidon::bn254 under Noir/Nargo 1.0.0-beta.18"
+      "status": "historical-failed-before-current-import-fix",
+      "failure": "Historical observation: repo source used the old root Poseidon import at collection time, which beta18 could not resolve. Current source now uses dep::poseidon::poseidon::bn254."
     },
     {
       "step": "beta18-temp-shim-compile",

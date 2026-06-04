@@ -162,7 +162,7 @@
     "invalidProofLeavesAccountsUnchanged": true,
     "wrongPublicInputHashLeavesAccountsUnchanged": true,
     "wrongVerifierProgramLeavesAccountsUnchanged": true,
-    "wrongVerifyingKeyLeavesAccountsUnchanged": true,
+    "wrongVerifyingKeyLeavesAccountsUnchanged": false,
     "satisfiesProductionVerifierAdapterEvidence": false,
     "satisfiesProductionProofFormatEvidence": false,
     "satisfiesProductionVerifyingKeyEvidence": false,
@@ -170,7 +170,7 @@
     "canonicalCommands": [
       "npm run private-pool-v2:c01-local-unsafe-verifier-cpi-acceptance-check"
     ],
-    "truthBoundary": "local unsafe H6-preserving Sunspot/Gnark artifact lane only. This proves the Vanta spend SBF can CPI into the generated verifier SBF from /private/tmp, accept the local unsafe H6 proof/public-witness tuple, mutate nullifier/output state after verifier success, reject a tampered proof without mutation, reject a wrong public input hash without mutation, reject a wrong executable verifier program without mutation when the registered verifier-key record is bound to the correct generated verifier program id, and reject a wrong-verifying-key local unsafe no-mutation path by registering the pre-H6 generated verifier SBF/key hash against the H6 proof/public witness. It is not production verifier-adapter acceptance, not production proof-format evidence, not production verifying-key evidence, not production wrong-verifying-key or wrong-verifier-program no-mutation evidence, and not SBF/live lineage."
+    "truthBoundary": "local unsafe H6-preserving Sunspot/Gnark artifact lane only. This proves the Vanta spend SBF can CPI into the generated verifier SBF from the repo-pinned local unsafe fixture, accept the local unsafe H6 proof/public-witness tuple, mutate nullifier/output state after verifier success, reject a tampered proof without mutation, reject a wrong public input hash without mutation, and reject a wrong executable verifier program without mutation when the registered verifier-key record is bound to the correct generated verifier program id. The optional pre-H6 wrong-verifying-key negative-control leg is skipped unless its transient verifier SBF is present. It is not production verifier-adapter acceptance, not production proof-format evidence, not production verifying-key evidence, not production wrong-verifying-key or wrong-verifier-program no-mutation evidence, and not SBF/live lineage."
   },
   "localSunspotGroth16DevProbeAdapterBlockers": {
     "status": "local-dev-probe-only-not-adapter-acceptance",

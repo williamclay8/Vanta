@@ -13,6 +13,9 @@ assert.ok(existsSync(componentPath), "Shared SendReceiptModal component must exi
 
 const componentSource = readFileSync(componentPath, "utf8");
 const sendPageSource = readRepoFile("src/pages/SendPage.tsx");
+const sendWorkspaceSource = readRepoFile("src/components/SendWorkspaceCard.tsx");
+const sendProofLaneSource = readRepoFile("src/components/SendProofLanePanel.tsx");
+const sendSurfaceSource = `${sendPageSource}\n${sendWorkspaceSource}\n${sendProofLaneSource}`;
 const productBrowserSource = readRepoFile("scripts/check-vanta-product-ui-browser.mjs");
 const stylesSource = readRepoFile("src/styles.css");
 const packageJson = JSON.parse(readRepoFile("package.json"));
@@ -74,7 +77,7 @@ for (const marker of [
   "privateCoreSendExecution.status === \"verified\"",
   "privateCoreSendState",
 ]) {
-  assert.ok(sendPageSource.includes(marker), `SendPage missing SendReceiptModal marker: ${marker}`);
+  assert.ok(sendSurfaceSource.includes(marker), `SendPage missing SendReceiptModal marker: ${marker}`);
 }
 
 assert.ok(

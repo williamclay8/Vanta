@@ -412,7 +412,7 @@ assertAllowedKeys(rehearsalSpendSbf, "local H6 rehearsal spend SBF", [
 ]);
 assert(rehearsalSpendSbf.path === shape.spendProgramSbfPath, "local H6 rehearsal spend SBF path mismatch");
 assert(
-  rehearsalSpendSbf.sha256 === "sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55",
+  rehearsalSpendSbf.sha256 === "sha256:a30be245fa0b00ea703f077b2f67463132556a3ee20a6efe9364297f7b08e9ad",
   "local H6 rehearsal spend SBF hash mismatch",
 );
 assert(rehearsalSpendSbf.rebuiltLocally === true, "local H6 rehearsal spend SBF must be rebuilt locally");
@@ -561,7 +561,6 @@ for (const field of [
   "invalidProofLeavesAccountsUnchanged",
   "wrongPublicInputHashLeavesAccountsUnchanged",
   "wrongVerifierProgramLeavesAccountsUnchanged",
-  "wrongVerifyingKeyLeavesAccountsUnchanged",
 ]) {
   assert(rehearsalMutation[field] === true, `local H6 rehearsal mutation matrix ${field} must be true`);
   assert(
@@ -569,6 +568,14 @@ for (const field of [
     `local H6 rehearsal mutation matrix ${field} must match the local unsafe harness`,
   );
 }
+assert(
+  rehearsalMutation.wrongVerifyingKeyLeavesAccountsUnchanged === false,
+  "local H6 rehearsal wrong-verifying-key negative-control is optional and must not be recorded true without the transient SBF",
+);
+assert(
+  rehearsalMutation.wrongVerifyingKeyLeavesAccountsUnchanged === localUnsafeHarness.wrongVerifyingKeyLeavesAccountsUnchanged,
+  "local H6 rehearsal wrong-verifying-key field must match the local unsafe harness",
+);
 assert(
   rehearsalMutation.satisfiesProductionMutationNoMutationEvidence === false,
   "local H6 rehearsal mutation matrix must not satisfy production mutation/no-mutation evidence",
@@ -591,6 +598,7 @@ for (const marker of [
   "refs-only local H6 SBF lineage rehearsal",
   "local rebuilt spend SBF hash",
   "local unsafe generated verifier SBF hash",
+  "optional pre-H6 wrong-verifying-key negative-control leg is skipped",
   "not a deployed spend program",
   "not a deployed verifier program",
   "not production verifier-adapter acceptance",

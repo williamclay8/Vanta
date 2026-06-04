@@ -305,7 +305,7 @@ assert(
 for (const marker of [
   "local Vanta spend SBF can CPI",
   "local unsafe H6-preserving generated verifier",
-  "wrong-verifying-key local unsafe no-mutation",
+  "optional pre-H6 wrong-verifying-key negative-control leg is skipped",
   "not production verifier-adapter acceptance",
 ]) {
   includes(adapterProbe.truthBoundary ?? "", marker, "local adapter probe truth boundary");

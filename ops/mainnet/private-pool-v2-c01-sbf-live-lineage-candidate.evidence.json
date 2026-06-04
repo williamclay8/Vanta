@@ -95,7 +95,7 @@
     "sbfAbiCommand": "npm run private-pool-v2:sbf-abi-check",
     "spendProgramSbf": {
       "path": "programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so",
-      "sha256": "sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55",
+      "sha256": "sha256:a30be245fa0b00ea703f077b2f67463132556a3ee20a6efe9364297f7b08e9ad",
       "rebuiltLocally": true,
       "deployedProgramId": null,
       "deploymentSignatureRef": null,
@@ -142,7 +142,7 @@
       "invalidProofLeavesAccountsUnchanged": true,
       "wrongPublicInputHashLeavesAccountsUnchanged": true,
       "wrongVerifierProgramLeavesAccountsUnchanged": true,
-      "wrongVerifyingKeyLeavesAccountsUnchanged": true,
+      "wrongVerifyingKeyLeavesAccountsUnchanged": false,
       "satisfiesProductionMutationNoMutationEvidence": false,
       "satisfiesSbfLiveLineage": false
     },
@@ -155,7 +155,7 @@
     "satisfiesDeploymentLineage": false,
     "satisfiesSbfLiveLineage": false,
     "satisfiesAuditReviewerAcceptance": false,
-    "truthBoundary": "This is a refs-only local H6 SBF lineage rehearsal. It binds the local rebuilt spend SBF hash, local unsafe generated verifier SBF hash, local unsafe H6 verifier-key hash, and local mutation/no-mutation harness output for drift prevention only. It is not a deployed spend program, not a deployed verifier program, not production proof-format evidence, not production verifying-key evidence, not production verifier-adapter acceptance, not production mutation/no-mutation evidence, not reinitialization evidence, not live proof-enforced path evidence, not audit/reviewer acceptance, and not SBF/live lineage."
+    "truthBoundary": "This is a refs-only local H6 SBF lineage rehearsal. It binds the local rebuilt spend SBF hash, local unsafe generated verifier SBF hash, local unsafe H6 verifier-key hash, and local mutation/no-mutation harness output for drift prevention only. The optional pre-H6 wrong-verifying-key negative-control leg is skipped unless its transient verifier SBF is present. It is not a deployed spend program, not a deployed verifier program, not production proof-format evidence, not production verifying-key evidence, not production verifier-adapter acceptance, not production mutation/no-mutation evidence, not reinitialization evidence, not live proof-enforced path evidence, not audit/reviewer acceptance, and not SBF/live lineage."
   },
   "blockedPrerequisiteRefs": {
     "productionArtifactAcceptanceGate": {

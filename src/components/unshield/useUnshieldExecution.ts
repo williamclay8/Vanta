@@ -67,6 +67,15 @@ type UseUnshieldExecutionArgs = {
   selectedSolNote: import("@/solana/vantaShieldState").VantaShieldedSolNote | null;
   shieldRegistry: ShieldRegistry;
   solShieldAccount: ShieldRegistry["byAssetKey"]["USDC"]["account"];
+  splitFollowupRecoveryOptions: {
+    viewingSecretKey: string | undefined;
+  };
+  splitFollowupMemoOptions: {
+    viewingPublicKey: string | undefined;
+  };
+  splitSpentMarkerMemoOptions: {
+    viewingPublicKey: string | undefined;
+  };
   usdcShieldEntry: ShieldRegistry["byAssetKey"]["USDC"];
   viewingKey: ViewingKey;
   walletAddress: string | null | undefined;
@@ -83,6 +92,9 @@ export function useUnshieldExecution({
   selectedSolNote,
   shieldRegistry,
   solShieldAccount,
+  splitFollowupRecoveryOptions,
+  splitFollowupMemoOptions,
+  splitSpentMarkerMemoOptions,
   usdcShieldEntry,
   viewingKey,
   walletAddress,
@@ -269,7 +281,7 @@ export function useUnshieldExecution({
             transitionKind: "send",
             transitionNoteId: pendingSplitMarker.transitionNoteId,
             vaultOwner: pendingSplitMarker.vaultOwner,
-          }, { viewingPublicKey: viewingKey?.publicKey }),
+          }, splitSpentMarkerMemoOptions),
         ];
 
         return splitSpentMarkerTransaction.preflight({
@@ -418,7 +430,7 @@ export function useUnshieldExecution({
           mintAddress: splitMintAddress,
           owner: selectedShieldAccount.owner,
           vaultOwner: selectedShieldAccount.vaultOwner,
-          viewingSecretKey: viewingKey?.secretKey,
+          viewingSecretKey: splitFollowupRecoveryOptions.viewingSecretKey,
         });
         const exactChildNote = refreshedAccount.spendableShieldNotes.find(
           (note) => note.noteId === pendingSplitFollowup.childNoteId,
@@ -459,8 +471,8 @@ export function useUnshieldExecution({
     selectedShieldAccount,
     selectedShieldAsset,
     shieldRegistry.configuredEntries,
+    splitFollowupRecoveryOptions.viewingSecretKey,
     splitSpentMarkerWait.waitStatus,
-    viewingKey?.secretKey,
   ]);
 
   const operatorReleaseDisabledReason = useMemo(() => {
@@ -1085,7 +1097,7 @@ export function useUnshieldExecution({
               recipient: activeShieldAccount.owner,
               vaultOwner: activeShieldAccount.vaultOwner,
             },
-            { viewingPublicKey: viewingKey?.publicKey },
+            splitFollowupMemoOptions,
           );
 
           if (!preparedSplit.recipientNoteId) {

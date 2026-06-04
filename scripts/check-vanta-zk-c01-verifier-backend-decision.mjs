@@ -132,7 +132,7 @@ for (const marker of [
   "ops/mainnet/private-pool-v2-c01-beta18-h6-source-migration-review.evidence.json",
   "npm run zk:c01-beta18-h6-source-migration-review-check",
   "reviewable-beta18-h6-source-migration-candidate-local-only",
-  "poseidon-import-path-only",
+  "no-source-delta-current-uses-beta18-compatible-poseidon-import",
   "C01 beta18 H6 source-review acceptance gate",
   "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance-gate.evidence.json",
   "ops/mainnet/private-pool-v2-c01-beta18-h6-source-review-acceptance.template.json",
@@ -236,7 +236,7 @@ for (const marker of [
   "rejects a tampered proof without mutation",
   "rejects a wrong public input hash without mutation",
   "rejects a wrong executable verifier program without mutation",
-  "rejects a wrong-verifying-key local unsafe path",
+  "optional pre-H6 wrong-verifying-key negative-control leg is skipped",
   "not tag-3 production proof acceptance",
   "local drift-prevention only",
   "not verifier-adapter acceptance",
@@ -561,7 +561,11 @@ for (const source of [runbook, audit]) {
     "reviewable-beta18-h6-source-migration-candidate-local-only",
     "C01 beta18 H6 source-migration review status handoff",
   );
-  includes(source, "poseidon-import-path-only", "C01 beta18 H6 source-migration delta handoff");
+  includes(
+    source,
+    "no-source-delta-current-uses-beta18-compatible-poseidon-import",
+    "C01 beta18 H6 source-migration delta handoff",
+  );
   includes(source, "reviewed source migration", "C01 source-migration truth handoff");
   includes(
     source,

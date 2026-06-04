@@ -10,8 +10,12 @@ const unshieldExecutionSource = readFileSync(
   "utf8",
 );
 const unshieldWorkspaceSource = readFileSync(resolve(repoRoot, "src/components/UnshieldWorkspaceCard.tsx"), "utf8");
+const walletApprovalSheetSource = readFileSync(
+  resolve(repoRoot, "src/components/WalletApprovalSheet.tsx"),
+  "utf8",
+);
 const umbraOperationsSource = readFileSync(resolve(repoRoot, "src/privacy/umbraOperations.ts"), "utf8");
-const unshieldSurfaceSource = `${unshieldPageSource}\n${unshieldExecutionSource}\n${unshieldWorkspaceSource}\n${umbraOperationsSource}`;
+const unshieldSurfaceSource = `${unshieldPageSource}\n${unshieldExecutionSource}\n${unshieldWorkspaceSource}\n${walletApprovalSheetSource}\n${umbraOperationsSource}`;
 const packageSource = readFileSync(resolve(repoRoot, "package.json"), "utf8");
 
 for (const phrase of [

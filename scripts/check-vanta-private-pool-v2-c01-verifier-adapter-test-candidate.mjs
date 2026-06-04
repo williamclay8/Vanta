@@ -649,10 +649,13 @@ for (const field of [
   "invalidProofLeavesAccountsUnchanged",
   "wrongPublicInputHashLeavesAccountsUnchanged",
   "wrongVerifierProgramLeavesAccountsUnchanged",
-  "wrongVerifyingKeyLeavesAccountsUnchanged",
 ]) {
   assert(localUnsafeAcceptance[field] === true, `local unsafe harness ${field} must be true`);
 }
+assert(
+  localUnsafeAcceptance.wrongVerifyingKeyLeavesAccountsUnchanged === false,
+  "local unsafe harness wrong-verifying-key negative-control is optional and must not be recorded true without the transient SBF",
+);
 for (const field of [
   "satisfiesProductionVerifierAdapterEvidence",
   "satisfiesProductionProofFormatEvidence",
@@ -670,7 +673,7 @@ assert(
 );
 for (const marker of [
   "local unsafe H6-preserving Sunspot/Gnark artifact lane only",
-  "wrong-verifying-key local unsafe no-mutation",
+  "optional pre-H6 wrong-verifying-key negative-control leg is skipped",
   "not production verifier-adapter acceptance",
   "not production proof-format evidence",
   "not production verifying-key evidence",

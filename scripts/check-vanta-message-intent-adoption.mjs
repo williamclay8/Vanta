@@ -5,15 +5,24 @@ import { strict as assert } from "node:assert";
 const repoRoot = resolve(import.meta.dirname, "..");
 const swapSource = readFileSync(resolve(repoRoot, "src/pages/SwapPage.tsx"), "utf8");
 const unshieldSource = readFileSync(resolve(repoRoot, "src/pages/UnshieldPage.tsx"), "utf8");
+const unshieldExecutionSource = readFileSync(
+  resolve(repoRoot, "src/components/unshield/useUnshieldExecution.ts"),
+  "utf8",
+);
+const unshieldWorkspaceSource = readFileSync(
+  resolve(repoRoot, "src/components/UnshieldWorkspaceCard.tsx"),
+  "utf8",
+);
+const unshieldSurfaceSource = `${unshieldSource}\n${unshieldExecutionSource}\n${unshieldWorkspaceSource}`;
 
 assert.ok(
   swapSource.includes("signWalletMessageIntentWithSafety"),
   "Swap must wrap signed operator intents with wallet message-intent safety.",
 );
 assert.ok(
-  unshieldSource.includes("signUnshieldIntent") &&
-    unshieldSource.includes("signSolUnshieldIntent") &&
-    unshieldSource.includes("signWalletMessageIntentWithSafety"),
+  unshieldSurfaceSource.includes("signUnshieldIntent") &&
+    unshieldSurfaceSource.includes("signSolUnshieldIntent") &&
+    unshieldSurfaceSource.includes("signWalletMessageIntentWithSafety"),
   "Unshield must keep token and SOL typed message-intent release boundaries.",
 );
 
@@ -35,7 +44,7 @@ for (const phrase of [
   "Ready for operator release",
   "Release through operator",
 ]) {
-  assert.ok(unshieldSource.includes(phrase), `Unshield message-intent adoption missing phrase: ${phrase}`);
+  assert.ok(unshieldSurfaceSource.includes(phrase), `Unshield message-intent adoption missing phrase: ${phrase}`);
 }
 
 for (const forbiddenPhrase of [
@@ -43,7 +52,7 @@ for (const forbiddenPhrase of [
   'signature: "operator-direct"',
 ]) {
   assert.ok(
-    !unshieldSource.includes(forbiddenPhrase),
+    !unshieldSurfaceSource.includes(forbiddenPhrase),
     `Unshield must not keep unauthenticated operator-direct token release behavior: ${forbiddenPhrase}`,
   );
 }

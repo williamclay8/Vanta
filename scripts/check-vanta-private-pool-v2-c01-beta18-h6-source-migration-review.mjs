@@ -25,7 +25,7 @@ const candidateNargoPath = `${candidateDir}/Nargo.toml`;
 const candidateProverPath = `${candidateDir}/Prover.toml`;
 const candidateReadmePath = `${candidateDir}/README.md`;
 const currentSourceSha256 =
-  "sha256:363d7dffa7ba03698a8bdbe2d48a6f13cf32ddeb7326fb997ff9cff63db8bf96";
+  "sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430";
 const candidateSourceSha256 =
   "sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430";
 const currentAcirSha256 =
@@ -198,15 +198,16 @@ assert(candidate.proverRef === candidateProverPath, "candidate Prover ref mismat
 assert(candidate.readmeRef === candidateReadmePath, "candidate README ref mismatch");
 assert(candidate.proverSha256 === sha256(candidateProverPath), "candidate prover hash mismatch");
 assert(candidate.proverSha256 === proverSha256, "expected candidate prover hash mismatch");
-assert(candidate.compatibilityDelta === "poseidon-import-path-only", "compatibility delta mismatch");
-assert(candidate.currentImport === "use ::poseidon::poseidon::bn254;", "current import mismatch");
+assert(
+  candidate.compatibilityDelta ===
+    "no-source-delta-current-uses-beta18-compatible-poseidon-import",
+  "compatibility delta mismatch",
+);
+assert(candidate.currentImport === "use dep::poseidon::poseidon::bn254;", "current import mismatch");
 assert(candidate.candidateImport === "use dep::poseidon::poseidon::bn254;", "candidate import mismatch");
 assert(currentSource.startsWith(`${candidate.currentImport}\n`), "current source import mismatch");
 assert(candidateSource.startsWith(`${candidate.candidateImport}\n`), "candidate source import mismatch");
-assert(
-  candidateSource.replace(candidate.candidateImport, candidate.currentImport) === currentSource,
-  "candidate source must normalize to current source after import-path replacement",
-);
+assert(candidateSource === currentSource, "candidate source must match current source exactly");
 assert(currentProver === candidateProver, "candidate Prover.toml must match current Prover.toml exactly");
 for (const field of h6Fields) {
   includes(candidateSource, `${field}: Field`, "candidate source H6 input");
@@ -340,7 +341,7 @@ for (const marker of [
   packetPath,
   "npm run zk:c01-beta18-h6-source-migration-review-check",
   "reviewable-beta18-h6-source-migration-candidate-local-only",
-  "poseidon-import-path-only",
+  "no-source-delta-current-uses-beta18-compatible-poseidon-import",
   candidateSourcePath,
 ]) {
   includes(decision, marker, decisionPath);

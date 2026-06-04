@@ -798,7 +798,10 @@ for (const [field, expected] of [
 }
 assert(route.routeId === shape.routeId, "route packet route id mismatch");
 assert(preflight.sunspotGroth16RouteRef === routePath, "preflight must reference route packet");
-assert(sourceReviewAcceptanceGate.status === "blocked-no-external-source-review-acceptance", "source-review acceptance gate status mismatch");
+assert(
+  sourceReviewAcceptanceGate.status === "operator-skipped-external-artifact-producer",
+  "source-review acceptance gate status mismatch",
+);
 assert(
   outputManifestPreflight.status === "blocked-no-reviewed-production-output-manifest",
   "production output-manifest preflight status mismatch",

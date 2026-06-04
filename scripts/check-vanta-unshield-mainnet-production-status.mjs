@@ -8,6 +8,15 @@ import { filterActiveBlockers } from "../src/readiness/operatorExternalGateSkips
 const repoRoot = resolve(import.meta.dirname, "..");
 const packageJson = JSON.parse(readFileSync(resolve(repoRoot, "package.json"), "utf8"));
 const unshieldPageSource = readFileSync(resolve(repoRoot, "src/pages/UnshieldPage.tsx"), "utf8");
+const unshieldExecutionSource = readFileSync(
+  resolve(repoRoot, "src/components/unshield/useUnshieldExecution.ts"),
+  "utf8",
+);
+const unshieldLaneStateSource = readFileSync(
+  resolve(repoRoot, "src/components/unshield/useUnshieldLaneState.ts"),
+  "utf8",
+);
+const unshieldSurfaceSource = `${unshieldPageSource}\n${unshieldExecutionSource}\n${unshieldLaneStateSource}`;
 const solHealthSource = readFileSync(resolve(repoRoot, "src/solana/solUnshieldOperatorHealth.ts"), "utf8");
 const publicExitCheckSource = readFileSync(
   resolve(repoRoot, "scripts/check-vanta-unshield-public-exit-surface.mjs"),
@@ -37,15 +46,20 @@ assert.equal(
   "postgres-jsonb-snapshot-store",
 );
 assert.equal(status.runtimeProductionControls.operatorEventSinkProductionReady, false);
-assert.equal(status.onchainUnshieldCustody.version, "vanta-onchain-unshield-custody-status-0.4");
+assert.equal(status.onchainUnshieldCustody.version, "vanta-onchain-unshield-custody-status-0.6");
 assert.equal(status.onchainUnshieldCustody.status, "blocked");
-assert.equal(status.onchainUnshieldCustody.currentReleaseModel, "operator-keypair-public-exit");
+assert.equal(
+  status.onchainUnshieldCustody.currentReleaseModel,
+  "program-tag-unshield-pda-cpi-fail-closed",
+);
 assert.equal(status.onchainUnshieldCustody.productionCustodyReady, false);
 assert.equal(status.onchainUnshieldCustody.programOwnedVaultReady, false);
+assert.equal(status.onchainUnshieldCustody.programOwnedVaultPdaReady, false);
 assert.equal(status.onchainUnshieldCustody.sourceOnlyVaultAuthorityPreflightReady, true);
 assert.equal(status.onchainUnshieldCustody.sourceOnlyVaultAssetRegistryReady, true);
 assert.equal(status.onchainUnshieldCustody.sourceOnlyVaultTokenAccountPreflightReady, true);
 assert.equal(status.onchainUnshieldCustody.sourceOnlyRootPreflightReady, true);
+assert.equal(status.onchainUnshieldCustody.sourceOnlyNullifierMarkerPreflightReady, true);
 assert.equal(status.onchainUnshieldCustody.sourceOnlyVerifierKeyPreflightReady, true);
 assert.equal(status.onchainUnshieldCustody.onchainUnshieldInstructionReady, false);
 assert.equal(
@@ -55,6 +69,13 @@ assert.equal(
 assert.equal(status.onchainUnshieldCustody.tagUnshieldVaultAssetRegistryReleaseEnabled, false);
 assert.equal(status.onchainUnshieldCustody.tokenCpiReleaseReady, false);
 assert.equal(status.onchainUnshieldCustody.onchainProofVerifierReady, false);
+assert.equal(status.onchainUnshieldCustody.operatorKeypairReleaseRemoved, true);
+assert.equal(status.onchainUnshieldCustody.nativeSolProgramOwnedVaultPdaReady, false);
+assert.equal(status.onchainUnshieldCustody.nativeSolTagUnshieldSystemCpiReady, false);
+assert.equal(status.onchainUnshieldCustody.nativeSolVaultAssetRegistryReady, false);
+assert.equal(status.onchainUnshieldCustody.nativeSolAssetIdSentinelConfigured, true);
+assert.equal(status.onchainUnshieldCustody.nativeSolV2IndexerIngestionReady, false);
+assert.equal(status.onchainUnshieldCustody.productionCustodyReadyForSol, false);
 for (const blocker of [
   "observability-provider-controls-pending",
   "real-funds-readiness-pending",
@@ -79,7 +100,11 @@ const expectedBlockers = filterActiveBlockers([
   "tag-unshield-reserved-fail-closed",
   "tag-unshield-token-cpi-release-not-wired",
   "onchain-unshield-proof-verifier-not-wired",
-  "operator-vault-keypair-env-release-still-active",
+  "operator-vault-keypair-env-release-removed",
+  "native-sol-program-owned-vault-pda-not-deployed",
+  "tag-unshield-sol-kind-not-wired",
+  "native-sol-vault-asset-registry-not-registered",
+  "native-sol-sentinel-asset-id-not-indexed-in-v2-tree",
   ...(status.currentApproval.approvalWindowStatus === "active" ? [] : ["bounded-approval-window-expired"]),
   "no-proven-audited-shared-anonymity-set",
   "no-proven-live-mainnet-private-settlement-evidence",
@@ -113,7 +138,7 @@ for (const phrase of [
   "requestOperatorSolUnshield",
   "signSolUnshieldIntent",
 ]) {
-  assert.ok(unshieldPageSource.includes(phrase), `Unshield page must preserve ${phrase}.`);
+  assert.ok(unshieldSurfaceSource.includes(phrase), `Unshield page must preserve ${phrase}.`);
 }
 
 for (const phrase of [

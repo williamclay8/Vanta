@@ -89,7 +89,7 @@ const requiredPhrases = [
   "artifact producer",
   "production proof-format/VK/public-witness",
   "mutation/no-mutation",
-  "poseidon-import-path-only",
+  "no-source-delta-current-uses-beta18-compatible-poseidon-import",
   "public witness matches the current H6 proof receipt",
   "reviewed source migration",
   "blocked-no-rebuilt-redeployed-reinitialized-live-lineage",

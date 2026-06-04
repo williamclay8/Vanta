@@ -124,7 +124,7 @@ assert(acquisition.localSunspotGroth16DevProbeRef === packetPath, "acquisition p
 
 assert(packet.sourceCircuit?.temporarySourceShimCommitted === false, "temp shim must not be committed");
 includes(packet.sourceCircuit?.temporarySourceShim ?? "", "dep::poseidon::poseidon::bn254", "temporary shim");
-includes(packet.sourceCircuit?.repoPoseidonImport ?? "", "::poseidon::poseidon::bn254", "repo import");
+includes(packet.sourceCircuit?.repoPoseidonImport ?? "", "dep::poseidon::poseidon::bn254", "repo import");
 assert(packet.sunspotSource?.clonedCommit === "3a260ebe4edb36ab52e497aa383a2bac71525577", "Sunspot commit mismatch");
 assert(packet.sunspotSource?.requiredNoirVersion === "1.0.0-beta.18", "Sunspot Noir requirement mismatch");
 includes(packet.sunspotSource?.securityBoundary ?? "", "unaudited", "Sunspot security boundary");
@@ -134,7 +134,7 @@ const flow = new Map((packet.observedProbeFlow ?? []).map((entry) => [entry.step
 for (const [step, status] of [
   ["build-sunspot-cli", "passed"],
   ["current-beta19-acir-through-sunspot", "failed-expected"],
-  ["beta18-repo-source-compile", "failed-expected-before-temp-shim"],
+  ["beta18-repo-source-compile", "historical-failed-before-current-import-fix"],
   ["beta18-temp-shim-compile", "passed"],
   ["beta18-temp-shim-witness", "passed"],
   ["sunspot-compile", "passed"],
@@ -148,7 +148,11 @@ for (const [step, status] of [
   assert(flow.get(step)?.status === status, `${step} status mismatch`);
 }
 includes(flow.get("current-beta19-acir-through-sunspot")?.failure ?? "", "makeslice: len out of range", "beta19 failure");
-includes(flow.get("beta18-repo-source-compile")?.failure ?? "", "Could not resolve", "beta18 source failure");
+includes(
+  flow.get("beta18-repo-source-compile")?.failure ?? "",
+  "repo source used the old root Poseidon import at collection time",
+  "beta18 source historical failure",
+);
 assert(flow.get("sunspot-compile")?.nbConstraints === 26794, "Sunspot constraint count mismatch");
 assert(flow.get("sunspot-compile")?.sunspotReportedPublicInputs === 0, "Sunspot public input report mismatch");
 includes(flow.get("sunspot-compile")?.truthBoundary ?? "", "public-input binding claim", "public input truth boundary");

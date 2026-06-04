@@ -27,13 +27,13 @@
     "path": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry",
     "nargoVersion": "1.0.0-beta.19",
     "mainSourceRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr",
-    "mainSourceByteLength": 7188,
-    "mainSourceSha256": "sha256:363d7dffa7ba03698a8bdbe2d48a6f13cf32ddeb7326fb997ff9cff63db8bf96",
+    "mainSourceByteLength": 7191,
+    "mainSourceSha256": "sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430",
     "compiledAcirRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json",
     "compiledAcirByteLength": 1840868,
     "compiledAcirSha256": "sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9",
     "compiledAcirBytecodeHash": "sha256:6ab8f6a90eb551bf02e1b313ede919a6e4aefd8740e70728cce641fdfc2c8d04",
-    "poseidonImport": "use ::poseidon::poseidon::bn254;",
+    "poseidonImport": "use dep::poseidon::poseidon::bn254;",
     "publicInputLabel": "private-spend-public-input-hash",
     "h6ContextBinding": {
       "status": "required-current-source-semantics",
@@ -86,12 +86,12 @@
     "artifactRef": "ops/mainnet/private-pool-v2-c01-beta18-h6-source-migration-review.evidence.json",
     "candidateSourceRef": "zk/noir/vanta_private_pool_v2_actual_private_spend_entry_sunspot_beta18_h6_candidate/src/main.nr",
     "command": "npm run zk:c01-beta18-h6-source-migration-review-check",
-    "compatibilityDelta": "poseidon-import-path-only",
+    "compatibilityDelta": "no-source-delta-current-uses-beta18-compatible-poseidon-import",
     "normalizedSourceMatchesCurrent": true,
     "proverMatchesCurrent": true,
     "satisfiesReviewedSourceMigration": false,
     "satisfiesProductionSourceLineage": false,
-    "truthBoundary": "The in-repo candidate makes the H6-preserving beta18 source migration reviewable, and the guard proves it differs from current source only by the beta18-compatible Poseidon import path. It is still not reviewed source migration, not production source lineage, not production setup, not production proof-format evidence, not production VK evidence, not verifier-adapter acceptance, not SBF/live lineage, and not audit acceptance."
+    "truthBoundary": "The in-repo candidate makes the H6-preserving beta18 source migration reviewable, and the guard proves it mirrors current source with the beta18-compatible Poseidon import already applied. It is still not reviewed source migration, not production source lineage, not production setup, not production proof-format evidence, not production VK evidence, not verifier-adapter acceptance, not SBF/live lineage, and not audit acceptance."
   },
   "requiredReviewedMigrationShape": {
     "status": "required-before-beta18-source-can-promote",
@@ -100,6 +100,7 @@
     "sourceSemantics": "post-H6 actual-private-spend context_hash preimage binding",
     "acceptableResolutionPaths": [
       "reviewed Sunspot/Gnark toolchain support for the current Noir 1.0.0-beta.19 ACIR bytecode format",
+      "current source already uses the beta18-compatible Poseidon import",
       "reviewed and pinned beta18-compatible source migration preserving the current H6 context preimage binding and current public-input receipt"
     ],
     "mustPreserve": [

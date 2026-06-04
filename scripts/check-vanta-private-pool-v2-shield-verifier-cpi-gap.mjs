@@ -83,13 +83,19 @@ for (const marker of forbiddenSetterMarkers) {
 // markers should be removed and this script should be updated to require
 // the CPI instead.
 const cpiPresenceMarkers = [
-  "shield_verifier_cpi",
-  "invoke_shield_verifier_program",
+  {
+    label: "shield_verifier_cpi",
+    pattern: /(^|[^A-Za-z0-9_])shield_verifier_cpi/u,
+  },
+  {
+    label: "invoke_shield_verifier_program",
+    pattern: /(^|[^A-Za-z0-9_])invoke_shield_verifier_program/u,
+  },
 ];
 for (const marker of cpiPresenceMarkers) {
-  if (programSource.includes(marker)) {
+  if (marker.pattern.test(programSource)) {
     fail(
-      `Shield verifier CPI marker '${marker}' found in source — remove the VANTA-PPA-NEW-001 gap markers and update this guard to require the CPI invocation explicitly (status should be PASS-cpi-wired)`,
+      `Shield verifier CPI marker '${marker.label}' found in source — remove the VANTA-PPA-NEW-001 gap markers and update this guard to require the CPI invocation explicitly (status should be PASS-cpi-wired)`,
     );
   }
 }

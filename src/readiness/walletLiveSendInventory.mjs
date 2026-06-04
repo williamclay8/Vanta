@@ -98,7 +98,7 @@ export function createWalletLiveSendInventory() {
           tx("const splitSpentMarkerTransaction = useVantaSafeSendTransaction();", "partial unshield split spent-marker reservation"),
           tx("const splitTransitionTransaction = useVantaSafeSendTransaction();", "partial unshield split transition"),
         ],
-        file: "src/pages/UnshieldPage.tsx",
+        file: "src/components/unshield/useUnshieldExecution.ts",
         page: "Unshield",
         replacement:
           "Keep token and SOL Unshield behind the message-intent safety boundary, and keep the dormant partial split path behind the safe-send hook that prepares, simulates, summarizes, gates, and requests wallet approval.",

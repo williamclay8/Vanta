@@ -65,13 +65,13 @@ These local refs are now copied into `reviewerLocalPrecursorRefs` in the machine
 - reviewStartCommitRef: `git:c2a0e693fbb1975244dc42f57cb561c17bc6d574`
 - treeStatusAtCollection: `clean`
 - current source: `zk/noir/vanta_private_pool_v2_actual_private_spend_entry/src/main.nr`
-- current source sha256: `sha256:363d7dffa7ba03698a8bdbe2d48a6f13cf32ddeb7326fb997ff9cff63db8bf96`
+- current source sha256: `sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430`
 - current prover: `zk/noir/vanta_private_pool_v2_actual_private_spend_entry/Prover.toml`
 - current prover sha256: `sha256:2c62fa9b0a7bfb32c98fb89fc5fbc90211d67b017066eb5555da8f0da20d890e`
 - current ACIR: `zk/noir/vanta_private_pool_v2_actual_private_spend_entry/target/vanta_private_pool_v2_actual_private_spend_entry.json`
 - current ACIR sha256: `sha256:a55defde42c5afba61a9cd7e96f350a407a88417312ce811a7c9bb97279b74f9`
 - beta18 H6 candidate source sha256: `sha256:caaeb2c2767965bd5d6c68c3043b8be10b43b345f017e32c6aa67658e927d430`
-- local spend SBF comparison hash: `sha256:36ada2f6ec79932a4958a71f57caf44209db09459eb2de4efa503aac6b72bc55`
+- local spend SBF comparison hash: `sha256:a30be245fa0b00ea703f077b2f67463132556a3ee20a6efe9364297f7b08e9ad`
 
 These are comparison-only reviewer starting refs. They are not reviewed frozen source, not source-freeze acceptance, not production proof/VK/public-witness evidence, not verifier-adapter acceptance, not deployed verifier evidence, not SBF/live lineage, not audit/reviewer acceptance, and not C01 closure.
 

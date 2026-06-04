@@ -6,7 +6,7 @@ const source = readFileSync(resolve(repoRoot, "SECURITY_LIMITATIONS.md"), "utf8"
 
 const requiredPhrases = [
   "# Vanta Security Limitations",
-  "Last validated against repo-local code: 2026-05-14",
+  "Last validated against repo-local code: 2026-05-25",
   "Not mainnet-production ready",
   "Current private-settlement truth",
   "alpha-public-warning",

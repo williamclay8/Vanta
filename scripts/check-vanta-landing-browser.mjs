@@ -279,7 +279,7 @@ function checkLandingViewport(width, height) {
           [...document.querySelectorAll(".landing-minimal__preview-link")]
             .map((link) => link.textContent ?? "")
             .join(" ")
-            .includes("Settle privately") &&
+            .includes("Preview verifiable receipts") &&
           [...document.querySelectorAll(".landing-minimal__preview-link")]
             .map((link) => link.textContent ?? "")
             .join(" ")

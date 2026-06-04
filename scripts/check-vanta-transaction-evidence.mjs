@@ -12,6 +12,7 @@ const repoRoot = resolve(import.meta.dirname, "..");
 const evidencePath = resolve(repoRoot, "ops/mainnet/transaction.evidence.json");
 const packagePath = resolve(repoRoot, "package.json");
 const unshieldPagePath = resolve(repoRoot, "src/pages/UnshieldPage.tsx");
+const unshieldWorkspaceCardPath = resolve(repoRoot, "src/components/UnshieldWorkspaceCard.tsx");
 const transactionEvidencePath = resolve(repoRoot, "src/transactions/vantaTransactionEvidence.ts");
 const writerPath = resolve(repoRoot, "scripts/write-vanta-transaction-evidence.mjs");
 
@@ -21,7 +22,10 @@ assert.ok(existsSync(writerPath), "Missing scripts/write-vanta-transaction-evide
 
 const evidence = JSON.parse(readFileSync(evidencePath, "utf8"));
 const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
-const unshieldPage = readFileSync(unshieldPagePath, "utf8");
+const unshieldPage = [
+  readFileSync(unshieldPagePath, "utf8"),
+  readFileSync(unshieldWorkspaceCardPath, "utf8"),
+].join("\n");
 const transactionEvidenceSource = readFileSync(transactionEvidencePath, "utf8");
 
 assert.equal(evidence.version, "vanta-transaction-evidence-0.1");

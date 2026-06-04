@@ -415,13 +415,16 @@ for (const field of [
   "provesLocalUnsafeInvalidProofNoMutation",
   "provesLocalUnsafeWrongPublicInputNoMutation",
   "provesLocalUnsafeWrongVerifierProgramNoMutation",
-  "provesWrongVerifyingKeyNoMutation",
 ]) {
   assert(
     packet.localUnsafeGeneratedVerifierCpiAcceptanceHarnessRef[field] === true,
     `local unsafe generated verifier CPI harness ${field} must be true`,
   );
 }
+assert(
+  packet.localUnsafeGeneratedVerifierCpiAcceptanceHarnessRef.provesWrongVerifyingKeyNoMutation === false,
+  "local unsafe generated verifier CPI harness wrong-key leg is optional and must not be recorded true without the transient SBF",
+);
 for (const field of [
   "satisfiesValidProofSuccess",
   "satisfiesAcceptedProofMutation",
@@ -439,7 +442,7 @@ for (const field of [
 }
 for (const phrase of [
   "local unsafe H6-preserving Sunspot/Gnark artifact lane only",
-  "wrong-verifying-key local unsafe path",
+  "optional pre-H6 wrong-verifying-key negative-control leg is skipped",
   "not tag-3 production valid-proof success evidence",
   "not accepted-proof production mutation evidence",
   "not production no-mutation evidence",

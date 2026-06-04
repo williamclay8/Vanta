@@ -67,6 +67,7 @@ import { SwapComingSoonPanel } from "@/components/SwapComingSoonPanel";
 import { SwapWorkspaceCard } from "@/components/SwapWorkspaceCard";
 import type { NotePickerOption } from "@/components/NotePicker";
 import type { QuoteCountdownBarTone } from "@/components/QuoteCountdownBar";
+// import { SwapAdvancedPanel } from "@/components/SwapAdvancedPanel";
 import {
   formatExactSwapInputAmount,
   formatQuoteTimestamp,
@@ -1831,6 +1832,9 @@ export function SwapPage() {
           </details>
         </div>
       </div>
+
+      {/* <SwapAdvancedPanel /> is rendered inside SwapWorkspaceCard so the shared NotePicker stays
+          inside the swap advanced disclosure with quote and route state. */}
 
       {isBetaMode ? <SwapComingSoonPanel trustCopy={swapTrustContract.visibleStatusCopy} /> : null}
 
