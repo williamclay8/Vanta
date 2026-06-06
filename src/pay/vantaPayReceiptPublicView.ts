@@ -1,6 +1,7 @@
 import type {
   VantaPayInstitutionalDisclosureReceipt,
   VantaPayReceipt,
+  VantaPayReceiptGrowthLoop,
   VantaPayReceiptPublicView,
   VantaPayReceiptRedactedReference,
 } from "./vantaPayTypes";
@@ -21,6 +22,8 @@ const VANTA_PAY_INSTITUTIONAL_DISCLOSURE_RECEIPT_DISCLOSED_FIELDS = [
   "claim_boundary",
   "verification_commands",
 ] as const satisfies VantaPayInstitutionalDisclosureReceipt["disclosedFields"];
+const VANTA_PAY_RECEIPT_GROWTH_LOOP_SCHEMA_VERSION =
+  "vanta-pay-receipt-growth-loop-v0.1" as const;
 
 function redactReference(id: string | null): VantaPayReceiptRedactedReference {
   if (!id) {
@@ -45,6 +48,19 @@ function createInstitutionalDisclosureExpiry(createdAt: string): string {
 export function buildVantaPayReceiptPublicView(
   receipt: VantaPayReceipt,
 ): VantaPayReceiptPublicView {
+  const growthLoopUsageVelocity: VantaPayReceiptGrowthLoop["usageVelocity"] = {
+    primitive: "Pay",
+    evidenceStatus: "red-first-no-live-measurement",
+    metricSurface: "npm run usage-velocity-check",
+    volume7dUsd: 0,
+    volume30dUsd: 0,
+    transactionCount7d: 0,
+    transactionCount30d: 0,
+    invitedCounterparties7d: 0,
+    repeatedPrivateActions7d: 0,
+    claimLiftBlockedUntilMeasured: true,
+  };
+
   return {
     amount: receipt.amount,
     asset: receipt.asset,
@@ -78,6 +94,7 @@ export function buildVantaPayReceiptPublicView(
         "npm run pay:receipt-public-view-check",
         "npm run pay:receipt-privacy-contract-check",
         "npm run pay:institutional-disclosure-receipt-check",
+        "npm run pay:growth-loop-check",
         "npm run programmatic-privacy:contract-check",
         "npm run twitter-intelligence:check",
       ],
@@ -111,6 +128,28 @@ export function buildVantaPayReceiptPublicView(
       fullTransactionHistoryDisclosed: false,
       productionReady: false,
       verificationCommand: "npm run pay:institutional-disclosure-receipt-check",
+    },
+    growthLoop: {
+      schemaVersion: VANTA_PAY_RECEIPT_GROWTH_LOOP_SCHEMA_VERSION,
+      sharePath: `/receipt/${receipt.id}`,
+      counterpartyVerification: {
+        operatorStatusSurface: "npm run pay:production-readiness-json",
+        productionReady: false,
+        verificationCommand: "npm run pay:growth-loop-check",
+        verifierRoute: "/receipt/:receiptId",
+        verifierSurface: "ReceiptVerificationPage",
+      },
+      invitedUse: {
+        invitationClaimAllowed: false,
+        invitationStatus: "local-preview-only",
+        nextAction: "share_receipt_with_counterparty",
+      },
+      repeatedPrivateAction: {
+        liveUsageMeasured: false,
+        repeatIntent: "counterparty_can_request_next_private_settlement",
+      },
+      usageVelocity: growthLoopUsageVelocity,
+      productionReady: false,
     },
     version: VANTA_PAY_RECEIPT_PUBLIC_VIEW_VERSION,
   };

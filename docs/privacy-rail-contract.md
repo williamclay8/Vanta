@@ -40,6 +40,19 @@ Vanta Pay now carries a narrow institutional selective-disclosure receipt primit
 
 This is a receipt/trust-packet boundary. It does not create real regulator access controls, live institutional volume, legal approval, production privacy, or mainnet readiness.
 
+## Receipt growth loop
+
+Vanta Pay now carries a counterparty-verifiable receipt growth loop:
+
+- schema: `vanta-pay-receipt-growth-loop-v0.1`
+- command: `npm run pay:growth-loop-check`
+- loop: private action -> trust packet ready -> counterparty verification -> invited use -> repeated private action
+- verifier route: `/receipt/:receiptId`
+- usage velocity: 7d/30d volume, transaction, invited-counterparty, and repeated-action counters remain zero until reviewer-verifiable evidence exists
+- claim controls: production readiness, adoption, regulator approval, compliance assurance, and anonymity claims remain blocked
+
+This turns the receipt into the growth artifact without claiming live adoption. The current surface proves the beta trust-packet shape and counterparty verifier path only.
+
 ## Rails
 
 ### `alpha-public-warning`

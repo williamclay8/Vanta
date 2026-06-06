@@ -342,6 +342,83 @@ export type VantaPayInstitutionalDisclosureReceipt = {
   };
 };
 
+export type VantaPayReceiptGrowthLoopStep =
+  | "private_action"
+  | "trust_packet_ready"
+  | "counterparty_verification"
+  | "invited_use"
+  | "repeated_private_action";
+
+export type VantaPayReceiptGrowthLoop = {
+  schemaVersion: "vanta-pay-receipt-growth-loop-v0.1";
+  object: "receipt_growth_loop";
+  loopName: "counterparty-verifiable private settlement";
+  loopSteps: readonly [
+    "private_action",
+    "trust_packet_ready",
+    "counterparty_verification",
+    "invited_use",
+    "repeated_private_action",
+  ];
+  privateAction: {
+    amount: string;
+    asset: VantaPayAsset;
+    primitive: "Pay";
+    receiptId: string;
+    status: VantaPayReceiptStatus;
+  };
+  trustPacket: {
+    claimBoundary: "receipt-backed-test-settlement-not-production-private";
+    disclosedSummary: "receipt-status-amount-asset-payment-reference";
+    redactedSummary: "customer-email-full-private-rail-and-audit-ids";
+    schemaVersion: "vanta-pay-receipt-public-view-0.1";
+    sharePath: string;
+  };
+  counterpartyVerification: {
+    operatorStatusSurface: "npm run pay:production-readiness-json";
+    productionReady: false;
+    verificationCommand: "npm run pay:growth-loop-check";
+    verifierRoute: "/receipt/:receiptId";
+    verifierSurface: "ReceiptVerificationPage";
+  };
+  invitedUse: {
+    invitationClaimAllowed: false;
+    invitationStatus: "local-preview-only";
+    nextAction: "share_receipt_with_counterparty";
+  };
+  repeatedPrivateAction: {
+    liveUsageMeasured: false;
+    repeatIntent: "counterparty_can_request_next_private_settlement";
+  };
+  usageVelocity: {
+    claimLiftBlockedUntilMeasured: true;
+    evidenceStatus: "red-first-no-live-measurement";
+    invitedCounterparties7d: 0;
+    metricSurface: "npm run usage-velocity-check";
+    primitive: "Pay";
+    repeatedPrivateActions7d: 0;
+    transactionCount7d: 0;
+    transactionCount30d: 0;
+    volume7dUsd: 0;
+    volume30dUsd: 0;
+  };
+  claimControls: {
+    adoptionClaimAllowed: false;
+    anonymityClaimAllowed: false;
+    complianceSafeClaimAllowed: false;
+    productionReady: false;
+    regulatorApprovalClaimAllowed: false;
+  };
+  verification: {
+    commands: readonly [
+      "npm run pay:growth-loop-check",
+      "npm run pay:receipt-public-view-check",
+      "npm run usage-velocity-check",
+      "npm run pay:verify",
+    ];
+  };
+};
+
 export type VantaPayReceiptPublicView = {
   amount: string;
   asset: VantaPayAsset;
@@ -375,6 +452,7 @@ export type VantaPayReceiptPublicView = {
       "npm run pay:receipt-public-view-check",
       "npm run pay:receipt-privacy-contract-check",
       "npm run pay:institutional-disclosure-receipt-check",
+      "npm run pay:growth-loop-check",
       "npm run programmatic-privacy:contract-check",
       "npm run twitter-intelligence:check",
     ];
@@ -408,6 +486,15 @@ export type VantaPayReceiptPublicView = {
     fullTransactionHistoryDisclosed: false;
     productionReady: false;
     verificationCommand: "npm run pay:institutional-disclosure-receipt-check";
+  };
+  growthLoop: {
+    schemaVersion: "vanta-pay-receipt-growth-loop-v0.1";
+    sharePath: string;
+    counterpartyVerification: VantaPayReceiptGrowthLoop["counterpartyVerification"];
+    invitedUse: VantaPayReceiptGrowthLoop["invitedUse"];
+    repeatedPrivateAction: VantaPayReceiptGrowthLoop["repeatedPrivateAction"];
+    usageVelocity: VantaPayReceiptGrowthLoop["usageVelocity"];
+    productionReady: false;
   };
   version: "vanta-pay-receipt-public-view-0.1";
 };

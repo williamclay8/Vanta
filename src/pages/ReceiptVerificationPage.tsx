@@ -7,14 +7,15 @@ export function ReceiptVerificationPage() {
   return (
     <section
       className="route-fallback route-fallback--receipt"
+      data-vanta-pay-counterparty-verifier
       data-vanta-pay-receipt-verify-page
     >
-      <span className="route-fallback__eyebrow">Receipt check</span>
+      <span className="route-fallback__eyebrow">Counterparty verifier</span>
       <h1>Verify receipt</h1>
       <p>
-        <strong>Receipt verification preview.</strong> This page identifies the shared Pay receipt
-        packet path and the beta truth boundary. It does not prove a live public receipt lookup,
-        production payment processing, or live private settlement.
+        <strong>Receipt verification preview.</strong> This page is the shareable Pay trust-packet
+        surface for a counterparty. It names what the receipt can prove, what stays private, and
+        why production privacy is not enabled.
       </p>
       <div className="route-fallback__actions" aria-label="Receipt verification actions">
         <Link className="route-fallback__action route-fallback__action--primary" to="/app/pay">
@@ -33,6 +34,31 @@ export function ReceiptVerificationPage() {
           <dd>{safeReceiptId}</dd>
         </div>
         <div>
+          <dt>What happened</dt>
+          <dd>A Pay receipt packet was shared for one local test settlement record.</dd>
+        </div>
+        <div>
+          <dt>What can be verified</dt>
+          <dd>
+            Receipt id, amount, asset, payment status, redacted settlement references, and the
+            command `npm run pay:growth-loop-check`.
+          </dd>
+        </div>
+        <div>
+          <dt>What stays private</dt>
+          <dd>
+            Customer email value, full private-rail receipt id, full audit disclosure id, private
+            inputs, witness data, and full transaction history.
+          </dd>
+        </div>
+        <div>
+          <dt>Next private settlement</dt>
+          <dd>
+            The counterparty can request the next private settlement from the merchant; usage
+            velocity remains zero until reviewer-verifiable evidence exists.
+          </dd>
+        </div>
+        <div>
           <dt>Claim boundary</dt>
           <dd>Receipt-backed test settlement; production privacy is not enabled.</dd>
         </div>
@@ -42,7 +68,10 @@ export function ReceiptVerificationPage() {
         </div>
         <div>
           <dt>Verifier</dt>
-          <dd>Use npm run pay:verify for local reviewer evidence until public lookup is live.</dd>
+          <dd>
+            Use npm run pay:growth-loop-check and npm run pay:verify for local reviewer evidence
+            until public lookup is live.
+          </dd>
         </div>
       </dl>
     </section>

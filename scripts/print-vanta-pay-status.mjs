@@ -160,6 +160,7 @@ const result = {
     "pay:receipt-privacy-contract-check",
     "pay:receipt-public-view-check",
     "pay:institutional-disclosure-receipt-check",
+    "pay:growth-loop-check",
     "pay:hidden-economics-request-check",
     "pay:committed-checkout-acceptance-check",
     "pay:merchant-api-check",
@@ -198,6 +199,7 @@ if (jsonMode) {
   console.log(
     "- institutional disclosure receipt: npm run pay:institutional-disclosure-receipt-check",
   );
+  console.log("- receipt growth loop: npm run pay:growth-loop-check");
   console.log(`- settlement lifecycle: ${result.privateSettlement.lifecycleModel}`);
   console.log(`- checkout proof boundary: ${result.privateSettlement.checkoutProofBoundary}`);
   console.log(`- checkout settlement route: ${result.privateSettlement.checkoutSettlementRoute}`);
@@ -227,6 +229,6 @@ if (jsonMode) {
   console.log(`- withdrawals: ${result.privateSettlement.withdrawalState}`);
   console.log(`- reconciliation: ${result.privateSettlement.reconciliationState}`);
   console.log(
-    "- canonical verification: npm run pay:verify (includes merchant trust, approval packet, receipt privacy, receipt public-view, institutional disclosure receipt, Pay hidden-economics boundary, and committed checkout acceptance checks)",
+    "- canonical verification: npm run pay:verify (includes merchant trust, approval packet, receipt privacy, receipt public-view, institutional disclosure receipt, receipt growth loop, Pay hidden-economics boundary, and committed checkout acceptance checks)",
   );
 }

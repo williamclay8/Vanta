@@ -69,6 +69,7 @@ assert.deepEqual(publicView.verification.commands, [
   "npm run pay:receipt-public-view-check",
   "npm run pay:receipt-privacy-contract-check",
   "npm run pay:institutional-disclosure-receipt-check",
+  "npm run pay:growth-loop-check",
   "npm run programmatic-privacy:contract-check",
   "npm run twitter-intelligence:check",
 ]);
@@ -78,6 +79,18 @@ assert.equal(
   publicView.verification.redactionPolicy,
   "customer-email-and-full-private-settlement-refs-redacted",
 );
+assert.equal(publicView.growthLoop.schemaVersion, "vanta-pay-receipt-growth-loop-v0.1");
+assert.equal(publicView.growthLoop.sharePath, `/receipt/${receipt.id}`);
+assert.equal(publicView.growthLoop.counterpartyVerification.verifierRoute, "/receipt/:receiptId");
+assert.equal(
+  publicView.growthLoop.counterpartyVerification.verificationCommand,
+  "npm run pay:growth-loop-check",
+);
+assert.equal(publicView.growthLoop.invitedUse.nextAction, "share_receipt_with_counterparty");
+assert.equal(publicView.growthLoop.repeatedPrivateAction.liveUsageMeasured, false);
+assert.equal(publicView.growthLoop.usageVelocity.invitedCounterparties7d, 0);
+assert.equal(publicView.growthLoop.usageVelocity.repeatedPrivateActions7d, 0);
+assert.equal(publicView.growthLoop.productionReady, false);
 assert.ok(publicView.privateSettlement.railReceipt.idPrefix);
 assert.ok(publicView.privateSettlement.auditDisclosure.idPrefix);
 assert.ok(publicView.privateSettlement.railReceipt.idPrefix.length < receipt.privateRailReceiptId.length);

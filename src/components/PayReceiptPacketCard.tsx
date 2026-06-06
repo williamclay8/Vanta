@@ -149,6 +149,17 @@ export function PayReceiptPacketCard({
             {publicView.usageVelocity.metricSurface}.
           </dd>
         </div>
+        <div data-vanta-pay-growth-loop>
+          <dt>Growth loop</dt>
+          <dd>
+            Counterparty verification:{" "}
+            {publicView.growthLoop.counterpartyVerification.verificationCommand}. Invited use:{" "}
+            {publicView.growthLoop.invitedUse.nextAction}. Repeated private action measured:{" "}
+            {String(publicView.growthLoop.repeatedPrivateAction.liveUsageMeasured)}. Invited
+            counterparties 7d: {publicView.growthLoop.usageVelocity.invitedCounterparties7d}.
+            Repeated actions 7d: {publicView.growthLoop.usageVelocity.repeatedPrivateActions7d}.
+          </dd>
+        </div>
         <div data-vanta-pay-institutional-disclosure>
           <dt>Institutional disclosure</dt>
           <dd>

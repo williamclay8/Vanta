@@ -42,12 +42,18 @@ function verifyReceiptPacketCardSource() {
     "data-vanta-pay-receipt-qr",
     "data-vanta-pay-receipt-merchant",
     "data-vanta-pay-receipt-printable",
+    "data-vanta-pay-growth-loop",
     "data-vanta-pay-institutional-disclosure",
     'data-pay-action="copy-receipt-share-link"',
     'data-pay-action="print-receipt-packet"',
     "publicView.verification.claimBoundary",
     "publicView.institutionalDisclosure.receiptSchemaVersion",
+    "publicView.growthLoop.counterpartyVerification.verificationCommand",
     "Selective disclosure receipt",
+    "Growth loop",
+    "Counterparty verification",
+    "Invited use",
+    "Repeated private action",
     "Disclosure expires",
     "Private inputs disclosed",
     "Witness disclosed",
@@ -264,6 +270,11 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "Visible to buyer" },
         { kind: "text_visible", text: "Kept private" },
         { kind: "text_visible", text: "Verified by" },
+        { kind: "text_visible", text: "Growth loop" },
+        { kind: "text_visible", text: "Counterparty verification" },
+        { kind: "text_visible", text: "Invited use" },
+        { kind: "text_visible", text: "Repeated private action" },
+        { kind: "text_visible", text: "npm run pay:growth-loop-check" },
         { kind: "text_visible", text: "Institutional disclosure" },
         { kind: "text_visible", text: "Selective disclosure receipt" },
         { kind: "text_visible", text: "vanta-pay-institutional-disclosure-receipt-v0.1" },
@@ -279,6 +290,7 @@ function runBrowserBatch() {
         { kind: "selector_visible", selector: "[data-vanta-pay-receipt-qr]" },
         { kind: "selector_visible", selector: "[data-vanta-pay-receipt-merchant]" },
         { kind: "selector_visible", selector: "[data-vanta-pay-receipt-printable]" },
+        { kind: "selector_visible", selector: "[data-vanta-pay-growth-loop]" },
         { kind: "selector_visible", selector: "[data-vanta-pay-institutional-disclosure]" },
         {
           kind: "selector_visible",
@@ -339,21 +351,30 @@ function cleanupBrowserLock() {
 }
 
 function runBrowserBatchWithRetry() {
-  try {
-    runBrowserBatch();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+  let lastStartupError = null;
 
-    if (
-      !message.includes("daemon exited during startup") &&
-      !message.includes("daemon did not start within 10s")
-    ) {
-      throw error;
-    }
-
+  for (let attempt = 0; attempt < 4; attempt += 1) {
     cleanupBrowserLock();
-    runBrowserBatch();
+
+    try {
+      runBrowserBatch();
+      return;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+
+      if (
+        !message.includes("daemon exited during startup") &&
+        !message.includes("daemon did not start within 10s")
+      ) {
+        throw error;
+      }
+
+      lastStartupError = error;
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1500);
+    }
   }
+
+  throw lastStartupError ?? new Error("gsd-browser daemon did not start for Pay browser check.");
 }
 
 const vite = spawn("npm", ["run", "dev", "--", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
