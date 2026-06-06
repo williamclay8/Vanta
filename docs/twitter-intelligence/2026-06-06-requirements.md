@@ -50,6 +50,15 @@ The institutional lane starts with selective disclosure, audit trails, jurisdict
 
 Institutional velocity is a tracked metric family, not a claim that Vanta has institutional customers or live institutional volume.
 
+The first implemented Pay primitive is a receipt-scoped selective-disclosure receipt:
+
+- schema: `vanta-pay-institutional-disclosure-receipt-v0.1`
+- command: `npm run pay:institutional-disclosure-receipt-check`
+- disclosed scope: one Pay receipt, its status, amount/asset, invoice reference, redacted settlement/audit prefixes, claim boundary, and verification commands
+- redacted scope: customer email value, full private rail receipt id, full audit disclosure id, private inputs, witness data, and full transaction history
+
+This keeps the institutional lane concrete while preserving beta truth: it is a trust-packet primitive, not live institutional adoption, production privacy, or legal/compliance approval.
+
 ## Hybrid ZK Direction
 
 ZK proves validity, but it does not by itself provide selective regulator access, revocation, relayer network privacy, identity policy, or usage attribution. Vanta's design must combine ZK proofs with scoped viewing keys, revocation lists, blinded-token relayer access, policy allowlists, operator runbooks, and explicit claim gates where those mechanisms are the actual boundary.

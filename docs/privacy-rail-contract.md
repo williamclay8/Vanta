@@ -27,6 +27,19 @@ Trust packets bind to current operator-shaped commitments; cryptographic verifia
 
 The 2026-06-06 Twitter intelligence pass adds three required trust-packet dimensions: local proving evidence, usage velocity evidence, and institutional disclosure scope. In current beta state these fields are red-first and fail-closed. They should show whether private inputs stayed client-side by default, whether an action has reviewer-verifiable usage metrics, and whether any selective disclosure is explicit, time and scope limited, and counterparty-verifiable. They must not imply live institutional volume, regulatory approval, anonymity, production privacy, or mainnet readiness.
 
+## Institutional selective-disclosure receipt
+
+Vanta Pay now carries a narrow institutional selective-disclosure receipt primitive:
+
+- schema: `vanta-pay-institutional-disclosure-receipt-v0.1`
+- command: `npm run pay:institutional-disclosure-receipt-check`
+- purpose: receipt-scoped, counterparty-verifiable private settlement
+- default scope: time-and-scope-limited and `receipt_only`
+- redactions: no customer email value, full private rail receipt id, full audit disclosure id, private inputs, witness data, or full transaction history
+- claim controls: `productionReady: false`, regulator approval claim blocked, compliance assurance claim blocked, anonymity claim blocked
+
+This is a receipt/trust-packet boundary. It does not create real regulator access controls, live institutional volume, legal approval, production privacy, or mainnet readiness.
+
 ## Rails
 
 ### `alpha-public-warning`

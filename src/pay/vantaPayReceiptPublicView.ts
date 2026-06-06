@@ -1,4 +1,5 @@
 import type {
+  VantaPayInstitutionalDisclosureReceipt,
   VantaPayReceipt,
   VantaPayReceiptPublicView,
   VantaPayReceiptRedactedReference,
@@ -6,6 +7,20 @@ import type {
 
 export const VANTA_PAY_RECEIPT_PUBLIC_VIEW_VERSION =
   "vanta-pay-receipt-public-view-0.1" as const;
+const VANTA_PAY_INSTITUTIONAL_DISCLOSURE_RECEIPT_SCHEMA_VERSION =
+  "vanta-pay-institutional-disclosure-receipt-v0.1" as const;
+const VANTA_PAY_INSTITUTIONAL_DISCLOSURE_RECEIPT_DISCLOSED_FIELDS = [
+  "receipt_id",
+  "payment_id",
+  "payment_status",
+  "asset",
+  "amount",
+  "invoice_reference",
+  "private_settlement_reference_prefix",
+  "audit_disclosure_reference_prefix",
+  "claim_boundary",
+  "verification_commands",
+] as const satisfies VantaPayInstitutionalDisclosureReceipt["disclosedFields"];
 
 function redactReference(id: string | null): VantaPayReceiptRedactedReference {
   if (!id) {
@@ -19,6 +34,12 @@ function redactReference(id: string | null): VantaPayReceiptRedactedReference {
     idPrefix: id.slice(0, Math.min(10, id.length)),
     redacted: true,
   };
+}
+
+function createInstitutionalDisclosureExpiry(createdAt: string): string {
+  const createdAtDate = new Date(createdAt);
+  createdAtDate.setUTCDate(createdAtDate.getUTCDate() + 7);
+  return createdAtDate.toISOString();
 }
 
 export function buildVantaPayReceiptPublicView(
@@ -56,6 +77,7 @@ export function buildVantaPayReceiptPublicView(
       commands: [
         "npm run pay:receipt-public-view-check",
         "npm run pay:receipt-privacy-contract-check",
+        "npm run pay:institutional-disclosure-receipt-check",
         "npm run programmatic-privacy:contract-check",
         "npm run twitter-intelligence:check",
       ],
@@ -78,10 +100,17 @@ export function buildVantaPayReceiptPublicView(
       institutionalVolumeTracked: true,
     },
     institutionalDisclosure: {
-      mode: "selective_disclosure_design_lane",
+      mode: "selective_disclosure_receipt",
+      receiptSchemaVersion: VANTA_PAY_INSTITUTIONAL_DISCLOSURE_RECEIPT_SCHEMA_VERSION,
       buyerShareable: "selective_disclosure",
       regulatorScope: "time-and-scope-limited",
-      verificationCommand: "npm run institutional-lane-check",
+      expiresAt: createInstitutionalDisclosureExpiry(receipt.createdAt),
+      disclosedFields: VANTA_PAY_INSTITUTIONAL_DISCLOSURE_RECEIPT_DISCLOSED_FIELDS,
+      privateInputsDisclosed: false,
+      witnessDisclosed: false,
+      fullTransactionHistoryDisclosed: false,
+      productionReady: false,
+      verificationCommand: "npm run pay:institutional-disclosure-receipt-check",
     },
     version: VANTA_PAY_RECEIPT_PUBLIC_VIEW_VERSION,
   };

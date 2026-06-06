@@ -49,13 +49,26 @@ assert.equal(publicView.usageVelocity.primitive, "Pay");
 assert.equal(publicView.usageVelocity.metricSurface, "npm run usage-velocity-check");
 assert.equal(publicView.usageVelocity.claimLiftBlockedUntilMeasured, true);
 assert.equal(publicView.usageVelocity.institutionalVolumeTracked, true);
-assert.equal(publicView.institutionalDisclosure.mode, "selective_disclosure_design_lane");
+assert.equal(publicView.institutionalDisclosure.mode, "selective_disclosure_receipt");
+assert.equal(
+  publicView.institutionalDisclosure.receiptSchemaVersion,
+  "vanta-pay-institutional-disclosure-receipt-v0.1",
+);
 assert.equal(publicView.institutionalDisclosure.regulatorScope, "time-and-scope-limited");
-assert.equal(publicView.institutionalDisclosure.verificationCommand, "npm run institutional-lane-check");
+assert.equal(publicView.institutionalDisclosure.expiresAt, "2026-05-09T00:00:00.000Z");
+assert.equal(publicView.institutionalDisclosure.privateInputsDisclosed, false);
+assert.equal(publicView.institutionalDisclosure.witnessDisclosed, false);
+assert.equal(publicView.institutionalDisclosure.fullTransactionHistoryDisclosed, false);
+assert.equal(publicView.institutionalDisclosure.productionReady, false);
+assert.equal(
+  publicView.institutionalDisclosure.verificationCommand,
+  "npm run pay:institutional-disclosure-receipt-check",
+);
 assert.equal(publicView.verification.claimBoundary, "receipt-backed-test-settlement-not-production-private");
 assert.deepEqual(publicView.verification.commands, [
   "npm run pay:receipt-public-view-check",
   "npm run pay:receipt-privacy-contract-check",
+  "npm run pay:institutional-disclosure-receipt-check",
   "npm run programmatic-privacy:contract-check",
   "npm run twitter-intelligence:check",
 ]);

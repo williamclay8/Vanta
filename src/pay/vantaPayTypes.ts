@@ -272,6 +272,76 @@ export type VantaPayReceiptRedactedReference = {
   redacted: true;
 };
 
+export type VantaPayInstitutionalDisclosureReceiptField =
+  | "receipt_id"
+  | "payment_id"
+  | "payment_status"
+  | "asset"
+  | "amount"
+  | "invoice_reference"
+  | "private_settlement_reference_prefix"
+  | "audit_disclosure_reference_prefix"
+  | "claim_boundary"
+  | "verification_commands";
+
+export type VantaPayInstitutionalDisclosureReceipt = {
+  schemaVersion: "vanta-pay-institutional-disclosure-receipt-v0.1";
+  object: "institutional_disclosure_receipt";
+  disclosureMode: "selective_disclosure_receipt";
+  purpose: "counterparty-verifiable private settlement";
+  receiptRef: {
+    amount: string;
+    asset: VantaPayAsset;
+    auditDisclosure: VantaPayReceiptRedactedReference;
+    invoiceReference: string | null;
+    paymentId: string;
+    privateSettlementReference: VantaPayReceiptRedactedReference;
+    receiptId: string;
+    status: VantaPayReceiptStatus;
+  };
+  scope: {
+    audience: "buyer-shareable-or-authorized-reviewer";
+    basis: "time-and-scope-limited";
+    expiresAt: string;
+    jurisdiction: "jurisdiction-aware-design-only";
+    receiptScope: "receipt_only";
+  };
+  disclosedFields: readonly [
+    "receipt_id",
+    "payment_id",
+    "payment_status",
+    "asset",
+    "amount",
+    "invoice_reference",
+    "private_settlement_reference_prefix",
+    "audit_disclosure_reference_prefix",
+    "claim_boundary",
+    "verification_commands",
+  ];
+  redactions: {
+    customerEmailValueDisclosed: false;
+    fullAuditDisclosureIdDisclosed: false;
+    fullPrivateRailReceiptIdDisclosed: false;
+    fullTransactionHistoryDisclosed: false;
+    privateInputsDisclosed: false;
+    witnessDisclosed: false;
+  };
+  claimControls: {
+    anonymityClaimAllowed: false;
+    complianceSafeClaimAllowed: false;
+    productionReady: false;
+    regulatorApprovalClaimAllowed: false;
+  };
+  verification: {
+    claimBoundary: "beta-selective-disclosure-not-production-private-or-regulator-approved";
+    commands: readonly [
+      "npm run pay:institutional-disclosure-receipt-check",
+      "npm run institutional-lane-check",
+      "npm run pay:receipt-public-view-check",
+    ];
+  };
+};
+
 export type VantaPayReceiptPublicView = {
   amount: string;
   asset: VantaPayAsset;
@@ -304,6 +374,7 @@ export type VantaPayReceiptPublicView = {
     commands: readonly [
       "npm run pay:receipt-public-view-check",
       "npm run pay:receipt-privacy-contract-check",
+      "npm run pay:institutional-disclosure-receipt-check",
       "npm run programmatic-privacy:contract-check",
       "npm run twitter-intelligence:check",
     ];
@@ -326,10 +397,17 @@ export type VantaPayReceiptPublicView = {
     institutionalVolumeTracked: true;
   };
   institutionalDisclosure: {
-    mode: "selective_disclosure_design_lane";
+    mode: "selective_disclosure_receipt";
+    receiptSchemaVersion: "vanta-pay-institutional-disclosure-receipt-v0.1";
     buyerShareable: "selective_disclosure";
     regulatorScope: "time-and-scope-limited";
-    verificationCommand: "npm run institutional-lane-check";
+    expiresAt: string;
+    disclosedFields: VantaPayInstitutionalDisclosureReceipt["disclosedFields"];
+    privateInputsDisclosed: false;
+    witnessDisclosed: false;
+    fullTransactionHistoryDisclosed: false;
+    productionReady: false;
+    verificationCommand: "npm run pay:institutional-disclosure-receipt-check";
   };
   version: "vanta-pay-receipt-public-view-0.1";
 };

@@ -42,9 +42,15 @@ function verifyReceiptPacketCardSource() {
     "data-vanta-pay-receipt-qr",
     "data-vanta-pay-receipt-merchant",
     "data-vanta-pay-receipt-printable",
+    "data-vanta-pay-institutional-disclosure",
     'data-pay-action="copy-receipt-share-link"',
     'data-pay-action="print-receipt-packet"',
     "publicView.verification.claimBoundary",
+    "publicView.institutionalDisclosure.receiptSchemaVersion",
+    "Selective disclosure receipt",
+    "Disclosure expires",
+    "Private inputs disclosed",
+    "Witness disclosed",
     "...redacted",
   ]);
   requireSourceMarkers("src/pages/PayPage.tsx", [
@@ -258,6 +264,12 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "Visible to buyer" },
         { kind: "text_visible", text: "Kept private" },
         { kind: "text_visible", text: "Verified by" },
+        { kind: "text_visible", text: "Institutional disclosure" },
+        { kind: "text_visible", text: "Selective disclosure receipt" },
+        { kind: "text_visible", text: "vanta-pay-institutional-disclosure-receipt-v0.1" },
+        { kind: "text_visible", text: "Disclosure expires" },
+        { kind: "text_visible", text: "Private inputs disclosed: false" },
+        { kind: "text_visible", text: "Witness disclosed: false" },
         { kind: "text_visible", text: "Proof receipt ID" },
         { kind: "text_visible", text: "...redacted" },
         { kind: "text_visible", text: "receipt-backed-test-settlement-not-production-private" },
@@ -267,6 +279,7 @@ function runBrowserBatch() {
         { kind: "selector_visible", selector: "[data-vanta-pay-receipt-qr]" },
         { kind: "selector_visible", selector: "[data-vanta-pay-receipt-merchant]" },
         { kind: "selector_visible", selector: "[data-vanta-pay-receipt-printable]" },
+        { kind: "selector_visible", selector: "[data-vanta-pay-institutional-disclosure]" },
         {
           kind: "selector_visible",
           selector: 'button[data-pay-action="copy-receipt-share-link"]:not(:disabled)',
@@ -331,7 +344,10 @@ function runBrowserBatchWithRetry() {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
 
-    if (!message.includes("daemon exited during startup")) {
+    if (
+      !message.includes("daemon exited during startup") &&
+      !message.includes("daemon did not start within 10s")
+    ) {
       throw error;
     }
 
@@ -363,6 +379,14 @@ try {
   runBrowserBatchWithRetry();
   console.log("vanta-pay browser check: PASS");
 } catch (error) {
+  const errorStdout = String(error?.stdout ?? "");
+  const errorStderr = String(error?.stderr ?? "");
+  if (errorStdout) {
+    console.error(errorStdout);
+  }
+  if (errorStderr) {
+    console.error(errorStderr);
+  }
   if (stdout) {
     console.error(stdout);
   }

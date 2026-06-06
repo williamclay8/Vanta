@@ -174,6 +174,7 @@ function startPrivatePoolServer({ authToken, storePath } = {}) {
     env: {
       ...process.env,
       ...(authToken ? { VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN: authToken } : {}),
+      VANTA_PRIVATE_POOL_V2_OPERATOR_HOST: "127.0.0.1",
       VANTA_PRIVATE_POOL_V2_OPERATOR_PORT: String(privatePoolPort),
       ...(storePath ? { VANTA_PRIVATE_POOL_V2_STORE_PATH: storePath } : {}),
     },
@@ -206,6 +207,7 @@ function startServer({
     env: {
       ...process.env,
       ...(nodeEnv ? { NODE_ENV: nodeEnv } : {}),
+      VANTA_PAY_OPERATOR_HOST: "127.0.0.1",
       VANTA_PAY_OPERATOR_PORT: String(port),
       ...(databaseUrl ? { VANTA_PAY_DATABASE_URL: databaseUrl } : {}),
       ...(privatePoolOperatorAuthToken

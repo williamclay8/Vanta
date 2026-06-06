@@ -48,6 +48,7 @@ const sourceFiles = [
   "pay/vantaPayTypes.ts",
   "pay/vantaPayRuntime.ts",
   "pay/vantaPayReceiptPublicView.ts",
+  "pay/vantaPayInstitutionalDisclosureReceipt.ts",
   "pay/vantaPayPrivateSettlementAdapter.ts",
   "privacy/protocolAdapter.ts",
   "privacy/umbraCapabilityProfile.ts",

@@ -13,6 +13,7 @@ const docs = [
 ].join('\n');
 const payTypes = readFileSync('/Users/clay/Desktop/Vanta/src/pay/vantaPayTypes.ts', 'utf8');
 const payView = readFileSync('/Users/clay/Desktop/Vanta/src/pay/vantaPayReceiptPublicView.ts', 'utf8');
+const payInstitutionalDisclosureReceipt = readFileSync('/Users/clay/Desktop/Vanta/src/pay/vantaPayInstitutionalDisclosureReceipt.ts', 'utf8');
 const failures = [];
 
 for (const marker of [
@@ -37,12 +38,24 @@ for (const marker of [
 }
 for (const marker of [
   'institutionalDisclosure',
+  'receiptSchemaVersion',
+  'vanta-pay-institutional-disclosure-receipt-v0.1',
   'regulatorScope',
-  'verificationCommand: "npm run institutional-lane-check"',
+  'verificationCommand: "npm run pay:institutional-disclosure-receipt-check"',
 ]) {
-  if (!payTypes.includes(marker) && !payView.includes(marker)) {
+  if (
+    !payTypes.includes(marker) &&
+    !payView.includes(marker) &&
+    !payInstitutionalDisclosureReceipt.includes(marker)
+  ) {
     failures.push(`Pay receipt public view missing institutional marker: ${marker}`);
   }
+}
+if (
+  packageJson.scripts?.['pay:institutional-disclosure-receipt-check'] !==
+  'node scripts/check-vanta-pay-institutional-disclosure-receipt.mjs'
+) {
+  failures.push('package.json missing Pay institutional disclosure receipt script');
 }
 if (
   packageJson.scripts?.['institutional-lane-check'] !==

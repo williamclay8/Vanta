@@ -149,11 +149,15 @@ export function PayReceiptPacketCard({
             {publicView.usageVelocity.metricSurface}.
           </dd>
         </div>
-        <div>
+        <div data-vanta-pay-institutional-disclosure>
           <dt>Institutional disclosure</dt>
           <dd>
-            {publicView.institutionalDisclosure.mode}; regulator scope is{" "}
-            {publicView.institutionalDisclosure.regulatorScope}.
+            Selective disclosure receipt{" "}
+            {publicView.institutionalDisclosure.receiptSchemaVersion}; regulator scope is{" "}
+            {publicView.institutionalDisclosure.regulatorScope}. Disclosure expires{" "}
+            {publicView.institutionalDisclosure.expiresAt}. Private inputs disclosed:{" "}
+            {String(publicView.institutionalDisclosure.privateInputsDisclosed)}. Witness disclosed:{" "}
+            {String(publicView.institutionalDisclosure.witnessDisclosed)}.
           </dd>
         </div>
         <div>
