@@ -41,6 +41,9 @@ const contractSource = requireMarkers("src/pay/vantaPayReceiptPrivacyContract.ts
   "receipt-backed test settlement",
   "production privacy not enabled",
   "fully_private_pay_claim: false",
+  "local_proving_evidence",
+  "usage_velocity_evidence",
+  "institutional_disclosure_scope",
 ]);
 
 const payPageSource = requireMarkers("src/pages/PayPage.tsx", [
@@ -57,6 +60,9 @@ const receiptPacketCardSource = requireMarkers("src/components/PayReceiptPacketC
   "Verified by",
   "Receipt packet ready",
   "Proof receipt ID",
+  "Local proving",
+  "Usage evidence",
+  "Institutional disclosure",
   "Test receipt only.",
   "Print receipt",
   "Printable receipt packet",

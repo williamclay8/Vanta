@@ -135,6 +135,28 @@ export function PayReceiptPacketCard({
           <dd>{verificationCommand}</dd>
         </div>
         <div>
+          <dt>Local proving</dt>
+          <dd>
+            {publicView.localProving.defaultMode}; private inputs leave client:{" "}
+            {String(publicView.localProving.privateInputsLeaveClient)}.
+          </dd>
+        </div>
+        <div>
+          <dt>Usage evidence</dt>
+          <dd>
+            {publicView.usageVelocity.primitive} velocity is{" "}
+            {publicView.usageVelocity.evidenceStatus}; verify with{" "}
+            {publicView.usageVelocity.metricSurface}.
+          </dd>
+        </div>
+        <div>
+          <dt>Institutional disclosure</dt>
+          <dd>
+            {publicView.institutionalDisclosure.mode}; regulator scope is{" "}
+            {publicView.institutionalDisclosure.regulatorScope}.
+          </dd>
+        </div>
+        <div>
           <dt>Private rail receipt</dt>
           <dd>{privateRailReceiptRef}</dd>
         </div>

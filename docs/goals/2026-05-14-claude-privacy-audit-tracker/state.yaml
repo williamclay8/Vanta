@@ -2653,3 +2653,233 @@ next_safe_slices:
   - "PPA-COMPLIANCE-001 / Band 8 item 24 is tracker-open but blocked on Clay/legal/compliance direction: implement unshield destination screening or accept documented jurisdiction limits. Do not implement provider calls, storage, public copy, or launch-scope changes without explicit approval."
   - "PPA-COMPLIANCE-002 / Band 8 item 25 is implemented-verified-local for operator-trusted beta threat, incident-response, and key-custody publication docs plus compliance:ops-publication-check. It is not external legal/compliance/custody review, custody authority, deployed evidence, reviewer acceptance, or launch-status movement."
   - "Resolve or keep explicitly blocked A1/A2/A3 architecture blockers before any production-private, proof-verified, custody, exit-privacy, or shared-tree claim."
+
+twitter_pass_requirements:
+  # Added 2026-06-06 from full X research pass
+  # All items are mandatory for Phase 1 completion and Phase 2 planning
+  - id: T1
+    title: "Real DeFi Velocity & PMF as Primary Success Metric"
+    status: declared
+    source: "Twitter Pass 2026-06-06 (@toly signal)"
+    requirement: "Every primitive must track measurable on-chain usage velocity (volume, unique users, DeFi flow attribution). No claim lift without demonstrated usage path."
+    implementation: "Add usage_velocity object to this state.yaml and all claim gates. Create usage-velocity-check guard."
+    verification: ["npm run usage-velocity-check", "privacy-audit:tracker-check"]
+  - id: T2
+    title: "Local/Client-Side Proving as Non-Negotiable First-Class Requirement"
+    status: declared
+    source: "Twitter Pass 2026-06-06 (Aztec + true ZK emphasis)"
+    requirement: "All proof generation defaults to local execution. Private inputs never leave client. Add local-proving-enforced gate."
+    implementation: "Wire into truth:privacy-claim-gate and C01/Private Pool verifiers."
+    verification: ["truth:privacy-claim-gate", "private-pool-v2:verifier-check"]
+  - id: T3
+    title: "Explicit Institutional/Compliance Lane"
+    status: declared
+    source: "Twitter Pass 2026-06-06 (ZKsync/Aztec Prividium narrative)"
+    requirement: "Add dedicated institutional track with selective disclosure and compliance hooks."
+    implementation: "Open new Band item in this tracker for institutional primitives."
+    verification: ["privacy-audit:tracker-check"]
+  - id: T4
+    title: "Combined System (ZK + Non-ZK Mechanisms)"
+    status: declared
+    source: "Twitter Pass 2026-06-06 (Vitalik warning)"
+    requirement: "Vanta must combine ZK with at least one non-ZK mechanism. Document pure-ZK limitation solved."
+    implementation: "Update threat model and security limitations docs. Add hybrid design review to next audit."
+    verification: ["docs:threat-model-check"]
+  - id: T5
+    title: "HeliusPrivacy as Primary Competitive Benchmark"
+    status: declared
+    source: "Twitter Pass 2026-06-06 (@toly explicit callout)"
+    requirement: "Recurring deep-read lane on HeliusPrivacy output before every major release."
+    implementation: "Use HeliusPrivacy-Watch-Item.md from Vanta Vault. Run dedicated X pass pre-release."
+    verification: ["x_search on HeliusPrivacy"]
+
+usage_velocity:
+  # Red-first usage tracking from the 2026-06-06 Twitter intelligence pass.
+  # Zeroes mean no reviewed live usage evidence has been accepted yet.
+  Shield:
+    7d_volume_usd: 0
+    30d_volume_usd: 0
+    unique_users_7d: 0
+    tx_count_7d: 0
+    defi_flow_attribution: "0%"
+    trend: "not_yet_measured"
+    evidence_status: "red-first-no-live-measurement"
+    institutional:
+      institutional_volume_usd_7d: 0
+      institutional_volume_usd_30d: 0
+      institutional_unique_entities: 0
+      compliance_flow_attribution: "0%"
+      regulator_disclosure_requests: 0
+      jurisdiction_coverage: []
+  Send:
+    7d_volume_usd: 0
+    30d_volume_usd: 0
+    unique_users_7d: 0
+    tx_count_7d: 0
+    defi_flow_attribution: "0%"
+    trend: "not_yet_measured"
+    evidence_status: "red-first-no-live-measurement"
+    institutional:
+      institutional_volume_usd_7d: 0
+      institutional_volume_usd_30d: 0
+      institutional_unique_entities: 0
+      compliance_flow_attribution: "0%"
+      regulator_disclosure_requests: 0
+      jurisdiction_coverage: []
+  Swap:
+    7d_volume_usd: 0
+    30d_volume_usd: 0
+    unique_users_7d: 0
+    tx_count_7d: 0
+    defi_flow_attribution: "0%"
+    trend: "not_yet_measured"
+    evidence_status: "red-first-no-live-measurement"
+    institutional:
+      institutional_volume_usd_7d: 0
+      institutional_volume_usd_30d: 0
+      institutional_unique_entities: 0
+      compliance_flow_attribution: "0%"
+      regulator_disclosure_requests: 0
+      jurisdiction_coverage: []
+  Unshield:
+    7d_volume_usd: 0
+    30d_volume_usd: 0
+    unique_users_7d: 0
+    tx_count_7d: 0
+    defi_flow_attribution: "0%"
+    trend: "not_yet_measured"
+    evidence_status: "red-first-no-live-measurement"
+    institutional:
+      institutional_volume_usd_7d: 0
+      institutional_volume_usd_30d: 0
+      institutional_unique_entities: 0
+      compliance_flow_attribution: "0%"
+      regulator_disclosure_requests: 0
+      jurisdiction_coverage: []
+  Pay:
+    7d_volume_usd: 0
+    30d_volume_usd: 0
+    unique_users_7d: 0
+    tx_count_7d: 0
+    defi_flow_attribution: "0%"
+    trend: "not_yet_measured"
+    evidence_status: "red-first-no-live-measurement"
+    institutional:
+      institutional_volume_usd_7d: 0
+      institutional_volume_usd_30d: 0
+      institutional_unique_entities: 0
+      compliance_flow_attribution: "0%"
+      regulator_disclosure_requests: 0
+      jurisdiction_coverage: []
+  Private_Pool_v2:
+    7d_volume_usd: 0
+    30d_volume_usd: 0
+    unique_users_7d: 0
+    tx_count_7d: 0
+    defi_flow_attribution: "0%"
+    trend: "not_yet_measured"
+    evidence_status: "red-first-no-live-measurement"
+    institutional:
+      institutional_volume_usd_7d: 0
+      institutional_volume_usd_30d: 0
+      institutional_unique_entities: 0
+      compliance_flow_attribution: "0%"
+      regulator_disclosure_requests: 0
+      jurisdiction_coverage: []
+
+# T2–T5 wiring - 2026-06-06
+
+local_proving_enforced:
+  status: declared
+  default_mode: "client_side_only"
+  fallback_allowed: false
+  evidence_required: "private_inputs_never_leave_client"
+  wired_into: ["truth:privacy-claim-gate", "C01_verifier", "Private_Pool_v2"]
+  current_state: "red-first-placeholder"
+
+institutional_lane:
+  status: declared
+  new_band_item_needed: true
+  primitives: ["selective_disclosure", "audit_trails", "compliance_hooks"]
+  target_use_case: "compliance_friendly_private_settlement"
+  current_state: "red-first-placeholder"
+
+hybrid_zk_design:
+  status: declared
+  requirement: "combine ZK with at least one non-ZK mechanism"
+  pure_zk_limitation: "to_be_documented"
+  threat_model_update_needed: true
+  current_state: "red-first-placeholder"
+
+heliusprivacy_benchmark:
+  status: declared
+  watch_item: "HeliusPrivacy-Watch-Item.md (Vanta Vault)"
+  cadence: "before_every_major_release"
+  last_run: "2026-06-06"
+  current_state: "red-first-placeholder"
+
+
+# T3 & T4 deeper wiring - 2026-06-06
+
+institutional_lane_details:
+  band_item: "T3-Institutional-Settlement"
+  primitives: ["selective_disclosure", "audit_trails", "compliance_hooks", "jurisdiction_aware_unshield"]
+  target_audience: "banks and institutions needing privacy + regulatory connectivity"
+  reference_narratives: ["ZKsync Prividiums", "Aztec local proving"]
+  success_metric: "institutional volume through Vanta primitives"
+  current_state: "declared - needs Band item + design"
+
+hybrid_zk_design_details:
+  required_non_zk_mechanisms: ["blinded_tokens", "revocation_layers", "trusted_execution_fallback"]
+  pure_zk_limitation_to_solve: "identity verification and selective audit without full de-anonymization"
+  threat_model_section: "Hybrid ZK + selective disclosure boundary"
+  audit_scope_addition: "hybrid design review required"
+  current_state: "declared - needs threat model update and design doc"
+
+
+# Institutional Settlement Lane - 2026-06-06
+institutional_settlement_lane:
+  priority: high
+  target_use_case: "compliance_friendly_private_settlement_for_banks_and_RWA"
+  reference: "ZKsync Prividium + Cari Network ($600B+ deposits)"
+  required_primitives:
+    - selective_disclosure
+    - audit_trails
+    - jurisdiction_aware_unshield
+    - regulator_access_controls
+  success_metric: "institutional_volume_usd"
+  current_state: "declared - needs Band item and primitive design"
+
+
+# Institutional Velocity Fields - 2026-06-06
+institutional_velocity_fields:
+  description: "Extended usage_velocity tracking for institutional settlement"
+  fields:
+    - institutional_volume_usd_7d
+    - institutional_volume_usd_30d
+    - institutional_unique_entities
+    - compliance_flow_attribution
+    - regulator_disclosure_requests
+    - jurisdiction_coverage
+  status: "declared - ready to populate on all primitives"
+
+
+# NEW BAND ITEM - T3 Institutional Settlement Lane (opened 2026-06-06)
+band_item_T3_institutional:
+  id: "T3-Institutional-Settlement"
+  band: 9
+  title: "Institutional Settlement Lane - Selective Disclosure + Audit Trails"
+  status: "opened"
+  priority: "high"
+  target_use_case: "compliance_friendly_private_settlement_for_banks_and_RWA"
+  required_primitives:
+    - selective_disclosure
+    - audit_trails
+    - jurisdiction_aware_unshield
+  reference: "ZKsync Prividium + Cari Network ($600B+ deposits)"
+  success_metric: "institutional_volume_usd"
+  next_actions:
+    - "Draft selective disclosure circuit spec"
+    - "Define regulator access model"
+    - "Add institutional velocity fields to usage_velocity"
+  current_state: "Band item opened - primitive design pending"

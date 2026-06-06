@@ -25,6 +25,8 @@ These commands must remain fail-closed: they should never imply “production-pr
 
 Trust packets bind to current operator-shaped commitments; cryptographic verifiability against an audited proof system is part of the readiness work tracked in `SECURITY_LIMITATIONS.md`.
 
+The 2026-06-06 Twitter intelligence pass adds three required trust-packet dimensions: local proving evidence, usage velocity evidence, and institutional disclosure scope. In current beta state these fields are red-first and fail-closed. They should show whether private inputs stayed client-side by default, whether an action has reviewer-verifiable usage metrics, and whether any selective disclosure is explicit, time and scope limited, and counterparty-verifiable. They must not imply live institutional volume, regulatory approval, anonymity, production privacy, or mainnet readiness.
+
 ## Rails
 
 ### `alpha-public-warning`

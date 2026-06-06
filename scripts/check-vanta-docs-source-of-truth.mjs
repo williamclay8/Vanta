@@ -104,7 +104,7 @@ for (const phrase of [
   requirePhrase(sourceOfTruth, phrase, "docs/docs-source-of-truth.md");
 }
 
-requirePhrase(limitations, "Last validated against repo-local code: 2026-05-14", "SECURITY_LIMITATIONS.md");
+requirePhrase(limitations, "Last validated against repo-local code: 2026-06-04", "SECURITY_LIMITATIONS.md");
 requirePhrase(docsContent, "test checkout", "src/docs/docsContent.ts");
 requirePhrase(privacyModel, 'What "shielded state" means today', "docs/privacy-model.md");
 for (const phrase of [

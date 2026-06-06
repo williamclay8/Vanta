@@ -41,11 +41,23 @@ assert.equal(publicView.privateSettlement.policyMode, "legible-trust");
 assert.equal(publicView.privateSettlement.productionReady, false);
 assert.equal(publicView.privateSettlement.railReceipt.redacted, true);
 assert.equal(publicView.privateSettlement.auditDisclosure.redacted, true);
+assert.equal(publicView.localProving.defaultMode, "client_side_only");
+assert.equal(publicView.localProving.privateInputsLeaveClient, false);
+assert.equal(publicView.localProving.fallbackAllowed, false);
+assert.equal(publicView.localProving.verificationCommand, "npm run local-proving-enforced-check");
+assert.equal(publicView.usageVelocity.primitive, "Pay");
+assert.equal(publicView.usageVelocity.metricSurface, "npm run usage-velocity-check");
+assert.equal(publicView.usageVelocity.claimLiftBlockedUntilMeasured, true);
+assert.equal(publicView.usageVelocity.institutionalVolumeTracked, true);
+assert.equal(publicView.institutionalDisclosure.mode, "selective_disclosure_design_lane");
+assert.equal(publicView.institutionalDisclosure.regulatorScope, "time-and-scope-limited");
+assert.equal(publicView.institutionalDisclosure.verificationCommand, "npm run institutional-lane-check");
 assert.equal(publicView.verification.claimBoundary, "receipt-backed-test-settlement-not-production-private");
 assert.deepEqual(publicView.verification.commands, [
   "npm run pay:receipt-public-view-check",
   "npm run pay:receipt-privacy-contract-check",
   "npm run programmatic-privacy:contract-check",
+  "npm run twitter-intelligence:check",
 ]);
 assert.equal(publicView.verification.operatorStatusSurface, "npm run pay:production-readiness-json");
 assert.equal(publicView.verification.productionReady, false);

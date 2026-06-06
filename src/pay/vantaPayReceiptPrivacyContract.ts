@@ -50,6 +50,27 @@ export function getVantaPayReceiptPrivacyContract(): VantaPayReceiptPrivacyContr
         note: "Audit disclosure is explicit and scoped, not a broad privacy claim.",
       },
       {
+        field: "local_proving_evidence",
+        merchantInternal: "visible",
+        buyerShareable: "visible",
+        operatorVerification: "visible",
+        note: "Receipt packets must show that client-side proving is the default and server proving remains explicit fallback evidence only.",
+      },
+      {
+        field: "usage_velocity_evidence",
+        merchantInternal: "visible",
+        buyerShareable: "visible",
+        operatorVerification: "visible",
+        note: "Usage velocity is tracked red-first; claim lift remains blocked until reviewer-verifiable on-chain metrics exist.",
+      },
+      {
+        field: "institutional_disclosure_scope",
+        merchantInternal: "visible",
+        buyerShareable: "selective_disclosure",
+        operatorVerification: "visible",
+        note: "Institutional disclosure must be explicit, time/scope-limited, and verifiable without exposing full transaction history.",
+      },
+      {
         field: "raw_private_economics",
         merchantInternal: "selective_disclosure",
         buyerShareable: "selective_disclosure",
@@ -60,6 +81,7 @@ export function getVantaPayReceiptPrivacyContract(): VantaPayReceiptPrivacyContr
     packetStates: ["draft_request", "checkout_issued", "receipt_pending", "receipt_packet_ready"],
     verificationSurfaces: [
       "npm run pay:receipt-privacy-contract-check",
+      "npm run twitter-intelligence:check",
       "npm run pay:verify",
       "npm run mainnet:private-settlement-check",
     ],

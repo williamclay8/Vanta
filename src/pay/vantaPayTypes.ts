@@ -305,10 +305,31 @@ export type VantaPayReceiptPublicView = {
       "npm run pay:receipt-public-view-check",
       "npm run pay:receipt-privacy-contract-check",
       "npm run programmatic-privacy:contract-check",
+      "npm run twitter-intelligence:check",
     ];
     operatorStatusSurface: "npm run pay:production-readiness-json";
     productionReady: false;
     redactionPolicy: "customer-email-and-full-private-settlement-refs-redacted";
+  };
+  localProving: {
+    defaultMode: "client_side_only";
+    privateInputsLeaveClient: false;
+    fallbackAllowed: false;
+    evidenceStatus: "declared-red-first";
+    verificationCommand: "npm run local-proving-enforced-check";
+  };
+  usageVelocity: {
+    primitive: "Pay";
+    evidenceStatus: "red-first-no-live-measurement";
+    metricSurface: "npm run usage-velocity-check";
+    claimLiftBlockedUntilMeasured: true;
+    institutionalVolumeTracked: true;
+  };
+  institutionalDisclosure: {
+    mode: "selective_disclosure_design_lane";
+    buyerShareable: "selective_disclosure";
+    regulatorScope: "time-and-scope-limited";
+    verificationCommand: "npm run institutional-lane-check";
   };
   version: "vanta-pay-receipt-public-view-0.1";
 };

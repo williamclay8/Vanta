@@ -1106,7 +1106,7 @@ for (const phrase of [
 
 assert.equal(
   packageJson.scripts["privacy-audit:tracker-check"],
-  "node scripts/check-vanta-claude-privacy-audit-tracker.mjs",
+  "node scripts/check-vanta-claude-privacy-audit-tracker.mjs && npm run twitter-intelligence:check",
   "package.json must expose privacy-audit:tracker-check.",
 );
 assert.equal(
