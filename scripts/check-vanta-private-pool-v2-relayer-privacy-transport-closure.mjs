@@ -16,6 +16,10 @@ const acquisitionPath = resolve(
   repoRoot,
   "ops/mainnet/private-pool-v2-relayer-privacy-transport-acquisition.evidence.json",
 );
+const reviewDispatchPath = resolve(
+  repoRoot,
+  "ops/mainnet/private-pool-v2-relayer-privacy-transport-review-dispatch.evidence.json",
+);
 const manifestPath = resolve(repoRoot, "ops/mainnet/private-pool-v2-services.manifest.json");
 const repairPath = resolve(repoRoot, "ops/mainnet/render-provider-config-repair.evidence.json");
 const envExamplePath = resolve(repoRoot, ".env.example");
@@ -23,6 +27,7 @@ const packagePath = resolve(repoRoot, "package.json");
 
 const closure = JSON.parse(readFileSync(closurePath, "utf8"));
 const acquisition = JSON.parse(readFileSync(acquisitionPath, "utf8"));
+const reviewDispatch = JSON.parse(readFileSync(reviewDispatchPath, "utf8"));
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
 const repair = JSON.parse(readFileSync(repairPath, "utf8"));
 const envExample = readFileSync(envExamplePath, "utf8");
@@ -131,12 +136,12 @@ assert.ok(
 
 assert.equal(
   closure.currentRenderEvidence?.latestMainDeployRef,
-  "render:tea-d7j37af7f7vs739ii8rg/srv-d7jg9jrbc2fs73c161gg/dep-d8if0t42m8qs73904afg",
+  "render:tea-d7j37af7f7vs739ii8rg/srv-d7jg9jrbc2fs73c161gg/dep-d8ifltpoagis73dbif8g",
 );
 assert.equal(closure.currentRenderEvidence?.latestMainDeployStatus, "update_failed");
 assert.equal(
   closure.currentRenderEvidence?.latestMainDeployCommit,
-  "611acff6a38bc7de5741a83ed02db5a40cf4fcd6",
+  "76ddcf4a34c892510ebbec526a7f9d24ef1d4233",
 );
 assert.equal(closure.currentRenderEvidence?.jitterBatchingErrorObservedAfterRepair, false);
 assert.ok(
@@ -150,9 +155,13 @@ assert.equal(
   acquisition.version,
   "vanta-private-pool-v2-relayer-privacy-transport-acquisition-0.1",
 );
-assert.equal(acquisition.status, "blocked-awaiting-external-transport-deployment-and-review");
+assert.equal(acquisition.status, "sent-awaiting-external-reviewer-response");
 assert.equal(acquisition.providerMutationAllowed, false);
 assert.equal(acquisition.modeDecision?.recommendedFirstMode, "tor-onion");
+assert.equal(reviewDispatch.version, "vanta-private-pool-v2-relayer-privacy-transport-review-dispatch-0.1");
+assert.equal(reviewDispatch.status, "sent-awaiting-external-reviewer-response");
+assert.equal(reviewDispatch.providerMutationAllowed, false);
+assert.equal(reviewDispatch.reviewerAccepted, false);
 assert.equal(
   closure.acquisitionRequest?.acquisitionPacketRef,
   "ops/mainnet/private-pool-v2-relayer-privacy-transport-acquisition.evidence.json",
@@ -161,10 +170,24 @@ assert.equal(
   closure.acquisitionRequest?.humanRequestRef,
   "ops/mainnet/private-pool-v2-relayer-privacy-transport-external-evidence-request.md",
 );
+assert.equal(
+  closure.acquisitionRequest?.githubReviewRequestRef,
+  "ops/mainnet/private-pool-v2-relayer-privacy-transport-github-review-request.md",
+);
+assert.equal(
+  closure.acquisitionRequest?.reviewDispatchPacketRef,
+  "ops/mainnet/private-pool-v2-relayer-privacy-transport-review-dispatch.evidence.json",
+);
+assert.equal(closure.acquisitionRequest?.githubReviewIssueUrl, reviewDispatch.githubReviewIssue?.url);
 assert.equal(closure.acquisitionRequest?.providerMutationAllowed, false);
 assert.ok(
   closure.acquisitionRequest?.command.includes(
     "npm run relayer:privacy-transport-acquisition-check",
+  ),
+);
+assert.ok(
+  closure.acquisitionRequest?.dispatchCommand.includes(
+    "npm run relayer:privacy-transport-review-dispatch-check",
   ),
 );
 
@@ -213,6 +236,7 @@ assert.ok(
 for (const command of [
   "npm run relayer:privacy-transport-check",
   "npm run relayer:privacy-transport-acquisition-check",
+  "npm run relayer:privacy-transport-review-dispatch-check",
   "npm run relayer:privacy-transport-closure-check",
   "npm run mainnet:render-relayer-privacy-transport-env-status",
   "npm run mainnet:deployment-manifest-check",
@@ -224,6 +248,10 @@ for (const command of [
 assert.equal(
   packageJson.scripts["relayer:privacy-transport-acquisition-check"],
   "node scripts/check-vanta-private-pool-v2-relayer-privacy-transport-acquisition.mjs",
+);
+assert.equal(
+  packageJson.scripts["relayer:privacy-transport-review-dispatch-check"],
+  "node scripts/check-vanta-private-pool-v2-relayer-privacy-transport-review-dispatch.mjs",
 );
 assert.equal(
   packageJson.scripts["relayer:privacy-transport-closure-check"],
@@ -241,6 +269,10 @@ for (const compositeName of ["private-pool-v2:verify", "mainnet:preflight"]) {
   assert.ok(
     packageJson.scripts[compositeName].includes("npm run relayer:privacy-transport-acquisition-check"),
     `${compositeName} must include the relayer privacy-transport acquisition guard.`,
+  );
+  assert.ok(
+    packageJson.scripts[compositeName].includes("npm run relayer:privacy-transport-review-dispatch-check"),
+    `${compositeName} must include the relayer privacy-transport review-dispatch guard.`,
   );
   assert.ok(
     packageJson.scripts[compositeName].includes("npm run mainnet:render-relayer-privacy-transport-env-status"),

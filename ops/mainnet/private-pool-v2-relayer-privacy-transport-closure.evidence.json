@@ -1,6 +1,6 @@
 {
   "version": "vanta-private-pool-v2-relayer-privacy-transport-closure-0.1",
-  "recordedAt": "2026-06-07T04:51:30Z",
+  "recordedAt": "2026-06-07T15:08:09Z",
   "status": "blocked-external-privacy-transport-evidence-required",
   "mainnetReady": false,
   "productionReady": false,
@@ -25,9 +25,9 @@
     "providerMutationAllowedWhen": "all common and tor-onion refs are returned, reviewed, and pass npm run relayer:privacy-transport-closure-check plus npm run mainnet:render-relayer-privacy-transport-env-status with live Render API access"
   },
   "currentRenderEvidence": {
-    "latestMainDeployRef": "render:tea-d7j37af7f7vs739ii8rg/srv-d7jg9jrbc2fs73c161gg/dep-d8if0t42m8qs73904afg",
+    "latestMainDeployRef": "render:tea-d7j37af7f7vs739ii8rg/srv-d7jg9jrbc2fs73c161gg/dep-d8ifltpoagis73dbif8g",
     "latestMainDeployStatus": "update_failed",
-    "latestMainDeployCommit": "611acff6a38bc7de5741a83ed02db5a40cf4fcd6",
+    "latestMainDeployCommit": "76ddcf4a34c892510ebbec526a7f9d24ef1d4233",
     "jitterBatchingErrorObservedAfterRepair": false,
     "nextFailClosedBlocker": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_ENABLED=true missing",
     "currentLiveHealthOk": true,
@@ -38,9 +38,13 @@
     "status": "ready-for-external-review-send-blocked-awaiting-returned-refs",
     "acquisitionPacketRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-acquisition.evidence.json",
     "humanRequestRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-external-evidence-request.md",
+    "githubReviewRequestRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-github-review-request.md",
+    "reviewDispatchPacketRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-review-dispatch.evidence.json",
+    "githubReviewIssueUrl": "https://github.com/williamclay8/Vanta/issues/8",
     "torOnionTemplateRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-tor-onion.template.json",
     "blindedTokenTemplateRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-blinded-token.template.json",
     "command": "npm run relayer:privacy-transport-acquisition-check",
+    "dispatchCommand": "npm run relayer:privacy-transport-review-dispatch-check",
     "providerMutationAllowed": false,
     "truthBoundary": "This request package explains how to obtain reviewed refs-only Tor-onion or blinded-token evidence; it does not supply the returned reviewed refs."
   },
@@ -193,6 +197,7 @@
   "canonicalCommands": [
     "npm run relayer:privacy-transport-check",
     "npm run relayer:privacy-transport-acquisition-check",
+    "npm run relayer:privacy-transport-review-dispatch-check",
     "npm run relayer:privacy-transport-closure-check",
     "npm run mainnet:render-relayer-privacy-transport-env-status",
     "npm run mainnet:deployment-manifest-check",

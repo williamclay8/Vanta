@@ -8,6 +8,8 @@ const repoRoot = resolve(import.meta.dirname, "..");
 const acquisitionPath = "ops/mainnet/private-pool-v2-relayer-privacy-transport-acquisition.evidence.json";
 const closurePath = "ops/mainnet/private-pool-v2-relayer-privacy-transport-closure.evidence.json";
 const requestPath = "ops/mainnet/private-pool-v2-relayer-privacy-transport-external-evidence-request.md";
+const githubReviewRequestPath = "ops/mainnet/private-pool-v2-relayer-privacy-transport-github-review-request.md";
+const reviewDispatchPath = "ops/mainnet/private-pool-v2-relayer-privacy-transport-review-dispatch.evidence.json";
 const torTemplatePath = "ops/mainnet/private-pool-v2-relayer-privacy-transport-tor-onion.template.json";
 const blindedTemplatePath = "ops/mainnet/private-pool-v2-relayer-privacy-transport-blinded-token.template.json";
 const runbookPath = "docs/operator-runbook.md";
@@ -79,20 +81,30 @@ function assertTemplateIsNotAcceptedEvidence(template, label) {
   );
 }
 
-for (const path of [acquisitionPath, closurePath, requestPath, torTemplatePath, blindedTemplatePath]) {
+for (const path of [
+  acquisitionPath,
+  closurePath,
+  requestPath,
+  githubReviewRequestPath,
+  reviewDispatchPath,
+  torTemplatePath,
+  blindedTemplatePath,
+]) {
   assertExists(path);
 }
 
 const acquisition = readJson(acquisitionPath);
 const closure = readJson(closurePath);
 const request = read(requestPath);
+const githubReviewRequest = read(githubReviewRequestPath);
+const reviewDispatch = readJson(reviewDispatchPath);
 const torTemplate = readJson(torTemplatePath);
 const blindedTemplate = readJson(blindedTemplatePath);
 const runbook = read(runbookPath);
 const packageJson = readJson("package.json");
 
 assert.equal(acquisition.version, "vanta-private-pool-v2-relayer-privacy-transport-acquisition-0.1");
-assert.equal(acquisition.status, "blocked-awaiting-external-transport-deployment-and-review");
+assert.equal(acquisition.status, "sent-awaiting-external-reviewer-response");
 assert.equal(acquisition.mainnetReady, false);
 assert.equal(acquisition.productionReady, false);
 assert.equal(acquisition.privacyClaimAllowed, false);
@@ -102,6 +114,14 @@ assert.equal(acquisition.secretPolicy, "references-only-no-secret-values");
 assert.equal(acquisition.renderWorkspace?.workspaceId, "tea-d7j37af7f7vs739ii8rg");
 assert.equal(acquisition.relayerService?.serviceId, "srv-d7jg9jrbc2fs73c161gg");
 assert.equal(acquisition.currentRelayerDeploy?.status, "update_failed");
+assert.equal(
+  acquisition.currentRelayerDeploy?.deployRef,
+  "render:tea-d7j37af7f7vs739ii8rg/srv-d7jg9jrbc2fs73c161gg/dep-d8ifltpoagis73dbif8g",
+);
+assert.equal(
+  acquisition.currentRelayerDeploy?.commitRef,
+  "git:76ddcf4a34c892510ebbec526a7f9d24ef1d4233",
+);
 assertIncludes(
   acquisition.currentRelayerDeploy?.failClosedReason ?? "",
   "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_ENABLED=true",
@@ -130,6 +150,8 @@ assert.equal(
 
 assert.deepEqual(acquisition.repoRequestRefs, {
   humanRequestRef: requestPath,
+  githubReviewRequestRef: githubReviewRequestPath,
+  reviewDispatchPacketRef: reviewDispatchPath,
   torOnionTemplateRef: torTemplatePath,
   blindedTokenTemplateRef: blindedTemplatePath,
   closurePacketRef: closurePath,
@@ -161,6 +183,7 @@ for (const marker of [
   assertIncludes(request, marker, requestPath);
 }
 assertNoSecretMaterial(request, requestPath);
+assertNoSecretMaterial(githubReviewRequest, githubReviewRequestPath);
 
 assert.equal(
   closure.acquisitionRequest?.acquisitionPacketRef,
@@ -173,10 +196,35 @@ assertIncludes(
   "npm run relayer:privacy-transport-acquisition-check",
   "closure acquisition command",
 );
+assert.equal(
+  closure.acquisitionRequest?.reviewDispatchPacketRef,
+  reviewDispatchPath,
+  "Closure packet must point to dispatch packet.",
+);
+assertIncludes(
+  closure.acquisitionRequest?.dispatchCommand ?? "",
+  "npm run relayer:privacy-transport-review-dispatch-check",
+  "closure dispatch command",
+);
+
+assert.equal(reviewDispatch.version, "vanta-private-pool-v2-relayer-privacy-transport-review-dispatch-0.1");
+assert.equal(reviewDispatch.status, "sent-awaiting-external-reviewer-response");
+assert.equal(reviewDispatch.providerMutationAllowed, false);
+assert.equal(reviewDispatch.reviewerAccepted, false);
+assert.equal(acquisition.reviewDispatch?.dispatchPacketRef, reviewDispatchPath);
+assert.equal(acquisition.reviewDispatch?.githubReviewRequestRef, githubReviewRequestPath);
+assert.equal(acquisition.reviewDispatch?.githubIssueUrl, reviewDispatch.githubReviewIssue?.url);
+assert.equal(acquisition.reviewDispatch?.githubIssueNumber, reviewDispatch.githubReviewIssue?.number);
+assert.equal(acquisition.reviewDispatch?.providerMutationAllowed, false);
+assert.equal(acquisition.reviewDispatch?.reviewerAccepted, false);
 
 assert.equal(
   packageJson.scripts["relayer:privacy-transport-acquisition-check"],
   "node scripts/check-vanta-private-pool-v2-relayer-privacy-transport-acquisition.mjs",
+);
+assert.equal(
+  packageJson.scripts["relayer:privacy-transport-review-dispatch-check"],
+  "node scripts/check-vanta-private-pool-v2-relayer-privacy-transport-review-dispatch.mjs",
 );
 for (const compositeName of ["private-pool-v2:verify", "mainnet:preflight"]) {
   assertIncludes(
@@ -184,11 +232,18 @@ for (const compositeName of ["private-pool-v2:verify", "mainnet:preflight"]) {
     "npm run relayer:privacy-transport-acquisition-check",
     compositeName,
   );
+  assertIncludes(
+    packageJson.scripts[compositeName],
+    "npm run relayer:privacy-transport-review-dispatch-check",
+    compositeName,
+  );
 }
 
 for (const marker of [
   "npm run relayer:privacy-transport-acquisition-check",
+  "npm run relayer:privacy-transport-review-dispatch-check",
   "ops/mainnet/private-pool-v2-relayer-privacy-transport-external-evidence-request.md",
+  "ops/mainnet/private-pool-v2-relayer-privacy-transport-github-review-request.md",
   "reviewed refs-only Tor-onion",
   "reviewed refs-only blinded-token",
 ]) {
@@ -202,6 +257,7 @@ console.log(
       providerMutationAllowed: false,
       recommendedFirstMode: acquisition.modeDecision.recommendedFirstMode,
       status: acquisition.status,
+      githubReviewIssueUrl: acquisition.reviewDispatch.githubIssueUrl,
       templatesValidateOnlyAfterReviewerRefs: true,
     },
     null,

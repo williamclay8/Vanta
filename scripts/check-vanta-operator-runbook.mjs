@@ -256,6 +256,13 @@ const requiredPhrases = [
   "npm run private-pool-v2:verify",
   "npm run private-core:verify",
   "npm run shield:verify",
+  "npm run relayer:privacy-transport-acquisition-check",
+  "npm run relayer:privacy-transport-review-dispatch-check",
+  "ops/mainnet/private-pool-v2-relayer-privacy-transport-review-dispatch.evidence.json",
+  "ops/mainnet/private-pool-v2-relayer-privacy-transport-github-review-request.md",
+  "open GitHub issue",
+  "reviewed refs-only Tor-onion",
+  "reviewed refs-only blinded-token",
 ];
 
 for (const phrase of requiredPhrases) {

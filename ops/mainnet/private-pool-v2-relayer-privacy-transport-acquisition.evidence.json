@@ -1,7 +1,7 @@
 {
   "version": "vanta-private-pool-v2-relayer-privacy-transport-acquisition-0.1",
-  "recordedAt": "2026-06-07T04:51:30Z",
-  "status": "blocked-awaiting-external-transport-deployment-and-review",
+  "recordedAt": "2026-06-07T15:08:09Z",
+  "status": "sent-awaiting-external-reviewer-response",
   "mainnetReady": false,
   "productionReady": false,
   "privacyClaimAllowed": false,
@@ -18,8 +18,8 @@
     "url": "https://vanta-prod-private-pool-v2-relayer.onrender.com"
   },
   "currentRelayerDeploy": {
-    "deployRef": "render:tea-d7j37af7f7vs739ii8rg/srv-d7jg9jrbc2fs73c161gg/dep-d8if0t42m8qs73904afg",
-    "commitRef": "git:611acff6a38bc7de5741a83ed02db5a40cf4fcd6",
+    "deployRef": "render:tea-d7j37af7f7vs739ii8rg/srv-d7jg9jrbc2fs73c161gg/dep-d8ifltpoagis73dbif8g",
+    "commitRef": "git:76ddcf4a34c892510ebbec526a7f9d24ef1d4233",
     "status": "update_failed",
     "failClosedReason": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_ENABLED=true missing",
     "jitterBatchingErrorObserved": false,
@@ -62,6 +62,8 @@
   },
   "repoRequestRefs": {
     "humanRequestRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-external-evidence-request.md",
+    "githubReviewRequestRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-github-review-request.md",
+    "reviewDispatchPacketRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-review-dispatch.evidence.json",
     "torOnionTemplateRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-tor-onion.template.json",
     "blindedTokenTemplateRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-blinded-token.template.json",
     "closurePacketRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-closure.evidence.json"
@@ -136,6 +138,16 @@
       "replayCacheRef": null
     }
   },
+  "reviewDispatch": {
+    "status": "sent-awaiting-external-reviewer-response",
+    "dispatchPacketRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-review-dispatch.evidence.json",
+    "githubReviewRequestRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-github-review-request.md",
+    "githubIssueUrl": "https://github.com/williamclay8/Vanta/issues/8",
+    "githubIssueNumber": 8,
+    "providerMutationAllowed": false,
+    "reviewerAccepted": false,
+    "truthBoundary": "This records the outbound GitHub review request lane. The open issue does not create reviewer acceptance or permit Render privacy-transport env mutation."
+  },
   "forbiddenInReturnedEvidence": [
     "raw database URLs",
     "Render API keys",
@@ -159,11 +171,12 @@
   ],
   "canonicalCommands": [
     "npm run relayer:privacy-transport-acquisition-check",
+    "npm run relayer:privacy-transport-review-dispatch-check",
     "npm run relayer:privacy-transport-closure-check",
     "npm run mainnet:render-relayer-privacy-transport-env-status",
     "npm run relayer:privacy-transport-check",
     "npm run mainnet:secret-exposure-check",
     "npm run truth:privacy-claim-gate"
   ],
-  "truthBoundary": "This packet tells an operator and reviewer exactly how to obtain reviewed refs-only Tor-onion or blinded-token privacy-transport evidence. It does not deploy Tor, deploy a blinded-token issuer/verifier, accept reviewer refs, mutate Render envs, prove anonymity, lift production privacy, sign, broadcast, or move funds."
+  "truthBoundary": "This packet tells an operator and reviewer exactly how to obtain reviewed refs-only Tor-onion or blinded-token privacy-transport evidence and records the open GitHub dispatch issue. It does not deploy Tor, deploy a blinded-token issuer/verifier, accept reviewer refs, mutate Render envs, prove anonymity, lift production privacy, sign, broadcast, or move funds."
 }
