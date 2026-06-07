@@ -136,18 +136,18 @@ assert.equal(discovery.auditClaimAllowed, false);
 assert.equal(discovery.thirdPartyAuditAccepted, false);
 assert.equal(discovery.productionReady, false);
 assert.equal(discovery.mainnetReady, false);
-assert.equal(discovery.liveDeploymentVerified, false);
+assert.equal(discovery.liveDeploymentVerified, true);
 // Keep crawler-visible deployment evidence refs-only and claim-bounded: this is
 // a public reviewer map, not a private-settlement or readiness attestation.
 assert.deepEqual(discovery.websiteDeployment, {
-  status: "last-verified-pay-committed-checkout-acceptance-deploy",
-  lastVerifiedCommit: "749db79a633599d37a1b91bef553ff61beeac69a",
-  lastVerifiedAt: "2026-06-07T03:12:40Z",
-  staticDeployId: "dep-d8ie1fv41pts739c6fm0",
-  operatorDeployId: "dep-d8ie1fv41pts739c6ggg",
+  status: "last-verified-five-products-audit-integration-deploy",
+  lastVerifiedCommit: "eab2c98db2d3c708b4b9db49a7ae80bddca3f49a",
+  lastVerifiedAt: "2026-06-07T18:51:15Z",
+  staticDeployId: "dep-d8irpgrrjlhs739vaqf0",
+  operatorDeployId: "dep-d8irpgjrjlhs739vap0g",
   liveUrl: "https://vantaprivacy.xyz",
   truthBoundary:
-    "This records the static website and Pay operator deploys that served the Pay committed checkout acceptance packet for commit 749db79a633599d37a1b91bef553ff61beeac69a on 2026-06-07 UTC. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, and mainnet evidence remain blocked.",
+    "This records the static website and Pay operator deploys that served the five-products audit integration for commit eab2c98db2d3c708b4b9db49a7ae80bddca3f49a on 2026-06-07 UTC, including live entry asset assets/index-DHcJ5jIt.js. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, and mainnet evidence remain blocked.",
 });
 assert.equal(discovery.privacyClaimAllowed, false);
 assert.equal(discovery.anonymityClaimAllowed, false);
@@ -442,7 +442,7 @@ assert.equal(auditAlias.auditClaimAllowed, false);
 assert.equal(auditAlias.thirdPartyAuditAccepted, false);
 assert.equal(auditAlias.productionReady, false);
 assert.equal(auditAlias.mainnetReady, false);
-assert.equal(auditAlias.liveDeploymentVerified, false);
+assert.equal(auditAlias.liveDeploymentVerified, true);
 assert.equal(auditAlias.privacyClaimAllowed, false);
 assert.equal(auditAlias.anonymityClaimAllowed, false);
 assert.ok(
