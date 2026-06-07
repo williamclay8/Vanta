@@ -221,6 +221,114 @@ function sortByDeadline(left, right) {
   return left.readyAtMs - right.readyAtMs || left.sequence - right.sequence;
 }
 
+function normalizeLifecycleReceipt(receipt) {
+  return {
+    batchId: requireNonEmptyString(receipt.batchId, "batchId"),
+    claimBoundary: relayerQueueClaimBoundary,
+    delayMs: requireInteger(receipt.delayMs, "delayMs"),
+    idempotencyKey: requireNonEmptyString(receipt.idempotencyKey, "idempotencyKey"),
+    kind: receipt.kind,
+    metadata: sanitizeQueuedRelayMetadata(receipt.metadata ?? {}),
+    processedAtMs: requireInteger(receipt.processedAtMs, "processedAtMs"),
+    productionReady: false,
+    queuedAtMs: requireInteger(receipt.queuedAtMs, "queuedAtMs"),
+    readyAtMs: requireInteger(receipt.readyAtMs, "readyAtMs"),
+    receiptId: requireNonEmptyString(receipt.receiptId, "receiptId"),
+    relayTxId: requireNonEmptyString(receipt.relayTxId, "relayTxId"),
+    sequence: requireInteger(receipt.sequence, "sequence"),
+    settlementMode: "simulated-local-relay",
+    status: "released",
+    version: VANTA_PRIVATE_POOL_V2_RELAYER_QUEUE_VERSION,
+  };
+}
+
+function receiptForSubmission({ batch, processedAtMs, submission }) {
+  assertSupportedKind(submission.kind);
+  const stableSuffix = [
+    submission.kind,
+    submission.sequence,
+    processedAtMs,
+  ].join(":");
+  return normalizeLifecycleReceipt({
+    batchId: batch.batchId,
+    delayMs: submission.delayMs,
+    idempotencyKey: submission.idempotencyKey,
+    kind: submission.kind,
+    metadata: submission.metadata,
+    processedAtMs,
+    queuedAtMs: submission.queuedAtMs,
+    readyAtMs: submission.readyAtMs,
+    receiptId: `relayer-receipt:${stableSuffix}`,
+    relayTxId: `relay_tx:${stableSuffix}`,
+    sequence: submission.sequence,
+  });
+}
+
+export function processVantaPrivatePoolV2ReadyRelayBatches(queue, options = {}) {
+  if (!queue || typeof queue.drainReadyBatches !== "function") {
+    throw new Error("Vanta relayer lifecycle requires a relayer queue.");
+  }
+
+  const processedAtMs = requireInteger(options.nowMs ?? Date.now(), "processedAtMs");
+  const batches = queue.drainReadyBatches({
+    kind: options.kind,
+    maxBatchSize: options.maxBatchSize,
+    nowMs: processedAtMs,
+  });
+  const receipts = batches.flatMap((batch) =>
+    batch.submissions.map((submission) =>
+      receiptForSubmission({
+        batch,
+        processedAtMs,
+        submission,
+      }),
+    ),
+  );
+
+  return {
+    batches,
+    receipts,
+    summary: {
+      batchCount: batches.length,
+      claimBoundary: relayerQueueClaimBoundary,
+      processedAtMs,
+      productionReady: false,
+      releasedCount: receipts.length,
+      settlementMode: "simulated-local-relay",
+      version: VANTA_PRIVATE_POOL_V2_RELAYER_QUEUE_VERSION,
+    },
+  };
+}
+
+export function exportVantaPrivatePoolV2RelayerLifecycleSnapshot({
+  exportedAtMs = Date.now(),
+  queue,
+  receipts = [],
+} = {}) {
+  if (!queue || typeof queue.snapshot !== "function") {
+    throw new Error("Vanta relayer lifecycle export requires a relayer queue.");
+  }
+
+  const normalizedExportedAtMs = requireInteger(exportedAtMs, "exportedAtMs");
+  const records = queue.snapshot().map((record) => ({
+    ...record,
+    metadata: sanitizeQueuedRelayMetadata(record.metadata ?? {}),
+    productionReady: false,
+  }));
+  const normalizedReceipts = receipts.map((receipt) => normalizeLifecycleReceipt(receipt));
+
+  return {
+    claimBoundary: relayerQueueClaimBoundary,
+    exportedAtMs: normalizedExportedAtMs,
+    productionReady: false,
+    receiptCount: normalizedReceipts.length,
+    receipts: normalizedReceipts,
+    recordCount: records.length,
+    records,
+    version: VANTA_PRIVATE_POOL_V2_RELAYER_QUEUE_VERSION,
+  };
+}
+
 export function createVantaPrivatePoolV2RelayerQueue(options = {}) {
   const config = normalizeRelayerQueueConfig(options);
   const nowMs = options.nowMs ?? (() => Date.now());

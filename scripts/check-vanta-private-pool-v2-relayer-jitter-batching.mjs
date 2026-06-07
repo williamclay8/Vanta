@@ -8,7 +8,9 @@ import {
   DEFAULT_VANTA_RELAYER_UNSHIELD_JITTER_MAX_MS,
   DEFAULT_VANTA_RELAYER_UNSHIELD_JITTER_MIN_MS,
   assertProductionRelayerJitterBatchingConfig,
+  exportVantaPrivatePoolV2RelayerLifecycleSnapshot,
   createVantaPrivatePoolV2RelayerQueue,
+  processVantaPrivatePoolV2ReadyRelayBatches,
 } from "../src/privacy/privatePoolV2RelayerQueue.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -165,6 +167,59 @@ for (const forbidden of [
   "privateKey",
 ]) {
   assert.ok(!serializedBatch.includes(forbidden), `Batch envelope leaked ${forbidden}.`);
+}
+
+const lifecycleQueue = createVantaPrivatePoolV2RelayerQueue({
+  nowMs: () => 3_000_000,
+  random: () => 0,
+});
+lifecycleQueue.enqueueRelaySubmission({
+  idempotencyKey: "send:lifecycle:0001",
+  kind: "send",
+  metadata: {
+    proofReceiptId: "receipt:lifecycle-0001",
+    publicInputCommitment: "commitment:lifecycle-0001",
+    serializedTransactionRef: "sha256:" + "99".repeat(32),
+    settlementId: "settlement:lifecycle-0001",
+  },
+});
+lifecycleQueue.enqueueRelaySubmission({
+  idempotencyKey: "send:lifecycle:0002",
+  kind: "send",
+  metadata: {
+    proofReceiptId: "receipt:lifecycle-0002",
+    publicInputCommitment: "commitment:lifecycle-0002",
+    serializedTransactionRef: "sha256:" + "aa".repeat(32),
+    settlementId: "settlement:lifecycle-0002",
+  },
+});
+const lifecycleRelease = processVantaPrivatePoolV2ReadyRelayBatches(lifecycleQueue, {
+  kind: "send",
+  maxBatchSize: 4,
+  nowMs: 3_000_000 + DEFAULT_VANTA_RELAYER_SEND_JITTER_MIN_MS,
+});
+assert.equal(lifecycleRelease.batches.length, 1);
+assert.equal(lifecycleRelease.receipts.length, 2);
+assert.equal(lifecycleRelease.summary.releasedCount, 2);
+assert.equal(lifecycleRelease.summary.productionReady, false);
+assert.equal(lifecycleRelease.receipts[0].settlementMode, "simulated-local-relay");
+assert.ok(lifecycleRelease.receipts[0].relayTxId.startsWith("relay_tx:"));
+assert.equal(lifecycleQueue.listReady({ kind: "send", nowMs: lifecycleRelease.summary.processedAtMs }).length, 0);
+
+const lifecycleExport = exportVantaPrivatePoolV2RelayerLifecycleSnapshot({
+  queue: lifecycleQueue,
+  receipts: lifecycleRelease.receipts,
+  exportedAtMs: lifecycleRelease.summary.processedAtMs + 1,
+});
+assert.equal(lifecycleExport.productionReady, false);
+assert.equal(lifecycleExport.receipts.length, 2);
+assert.ok(
+  lifecycleExport.records.every((record) => record.status === "batched"),
+  "Lifecycle export should preserve processed queue status without live submission claims.",
+);
+const serializedLifecycleExport = JSON.stringify(lifecycleExport);
+for (const forbidden of ["proofBytes", "witness", "ownerSecret", "Bearer ", "rawIpAddress", "privateKey"]) {
+  assert.ok(!serializedLifecycleExport.includes(forbidden), `Lifecycle export leaked ${forbidden}.`);
 }
 
 const mixedReadyQueue = createVantaPrivatePoolV2RelayerQueue({
