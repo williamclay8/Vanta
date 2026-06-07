@@ -274,7 +274,7 @@ export function HomePage() {
             <strong>Shielded RWA Tokenization</strong>
             <small>Issue, prove ownership, and disclose selected facts through redacted packets.</small>
           </Link>
-          <Link to="/products/privacy-sdk-marketplace">
+          <Link to="/products/privacy-sdk-primitives-marketplace">
             <span>Reusable primitives</span>
             <strong>Privacy SDK & Primitives Marketplace</strong>
             <small>Compose commitments, nullifiers, disclosures, velocity, and proof packets.</small>

@@ -1,11 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { BrandMark } from "@/components/BrandMark";
 import {
   getVantaProductSurface,
   vantaProductSuite,
+  type VantaProductSurface,
 } from "@/products/vantaProductSuite";
+import {
+  runProductWorkbench,
+  type VantaProductWorkbenchResult,
+} from "@/products/vantaProductWorkbench";
 
 function ProductSiteNav() {
   return (
@@ -57,6 +62,121 @@ function ProductFlowVisual() {
         receipt, proof packet, status surface, or verification command.
       </p>
     </div>
+  );
+}
+
+function ProductWorkbench({ surface }: { surface: VantaProductSurface }) {
+  const [result, setResult] = useState<VantaProductWorkbenchResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
+
+  async function handleRunWorkbench() {
+    setIsRunning(true);
+    setError(null);
+
+    try {
+      const nextResult = await runProductWorkbench(surface.slug);
+      setResult(nextResult);
+    } catch (workbenchError) {
+      setResult(null);
+      setError(
+        workbenchError instanceof Error
+          ? workbenchError.message
+          : "Product workbench failed to generate a trust packet.",
+      );
+    } finally {
+      setIsRunning(false);
+    }
+  }
+
+  return (
+    <section className="product-workbench" data-vanta-product-workbench>
+      <div className="product-workbench__header">
+        <div>
+          <span>Product workbench</span>
+          <h2>Generate a redacted trust packet.</h2>
+          <p>
+            Run the beta browser adapter for {surface.name}. It produces a public packet
+            for review and keeps private witness material out of the page.
+          </p>
+        </div>
+        <button
+          className="landing-btn landing-btn--primary"
+          data-vanta-run-product-packet
+          disabled={isRunning}
+          onClick={handleRunWorkbench}
+          type="button"
+        >
+          {isRunning ? "Generating..." : result ? "Regenerate trust packet" : "Generate trust packet"}
+        </button>
+      </div>
+
+      {error ? (
+        <p className="product-workbench__error" role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      {result ? (
+        <div className="product-workbench__output" data-vanta-product-packet-output>
+          <div className="product-workbench__summary">
+            <div>
+              <span>Status</span>
+              <strong>{result.receipt.status}</strong>
+              <small>{result.actionLabel}</small>
+            </div>
+            <div>
+              <span>Funds</span>
+              <strong>No funds moved</strong>
+              <small>Browser packet generation only</small>
+            </div>
+            <div>
+              <span>Witness</span>
+              <strong>{result.privateWitnessStatus}</strong>
+              <small>Private inputs stay out of the public packet</small>
+            </div>
+          </div>
+
+          <div className="product-workbench__lists">
+            <div>
+              <span>Verifier can check</span>
+              <ul>
+                {result.receipt.verifierCanCheck.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <span>Withheld</span>
+              <ul>
+                {result.withheld.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <span>Commands</span>
+              <ul>
+                {result.verificationCommands.map((command) => (
+                  <li key={command}>
+                    <code>{command}</code>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <pre aria-label={`${surface.name} public packet`}>
+            {JSON.stringify(result.publicPacket, null, 2)}
+          </pre>
+        </div>
+      ) : (
+        <div className="product-workbench__empty">
+          <span>Ready</span>
+          <p>Generate a packet to see the public receipt shape for this product.</p>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -193,6 +313,8 @@ export function ProductDetailPage() {
               </ul>
             </section>
           </div>
+
+          <ProductWorkbench surface={surface} />
 
           <div className="product-detail__actions">
             <Link className="landing-btn landing-btn--primary" to={surface.appRoute}>

@@ -2,7 +2,7 @@ export type VantaProductSlug =
   | "compliance-gateway"
   | "private-perps-engine"
   | "shielded-rwa-tokenization"
-  | "privacy-sdk-marketplace"
+  | "privacy-sdk-primitives-marketplace"
   | "private-velocity-intelligence";
 
 export type VantaProductSurface = {
@@ -111,8 +111,8 @@ export const vantaProductSuite: VantaProductSurface[] = [
     name: "Privacy SDK & Primitives Marketplace",
     proofLane: "Product proof-request and proof-result adapters are wired as witnessless public packets.",
     publicPacket: "SDK-composed public packets for RWA, perps, velocity, and settlement stubs.",
-    route: "/products/privacy-sdk-marketplace",
-    slug: "privacy-sdk-marketplace",
+    route: "/products/privacy-sdk-primitives-marketplace",
+    slug: "privacy-sdk-primitives-marketplace",
     status: "Functional MVP gate",
     summary:
       "The reusable primitive layer that lets Vanta products compose commitments, nullifiers, disclosures, and receipt packets.",
@@ -145,5 +145,8 @@ export const vantaProductSuite: VantaProductSurface[] = [
 ];
 
 export function getVantaProductSurface(slug: string | undefined) {
-  return vantaProductSuite.find((surface) => surface.slug === slug);
+  const normalizedSlug =
+    slug === "privacy-sdk-marketplace" ? "privacy-sdk-primitives-marketplace" : slug;
+
+  return vantaProductSuite.find((surface) => surface.slug === normalizedSlug);
 }

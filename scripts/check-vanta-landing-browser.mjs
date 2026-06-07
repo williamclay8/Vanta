@@ -229,7 +229,7 @@ function checkLandingViewport(width, height) {
               "/products/compliance-gateway",
               "/products/private-perps-engine",
               "/products/shielded-rwa-tokenization",
-              "/products/privacy-sdk-marketplace",
+              "/products/privacy-sdk-primitives-marketplace",
               "/products/private-velocity-intelligence",
             ].every((href) => hrefs.includes(href)) &&
             [
