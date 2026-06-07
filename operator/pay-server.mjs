@@ -73,6 +73,37 @@ const supportedCheckoutCompletionBases = new Set([
   "customer-payment-evidence",
   "local-test-harness",
 ]);
+const supportedGrowthLoopCounterpartyRoles = new Set(["buyer", "counterparty", "merchant"]);
+const forbiddenGrowthLoopEventKeys = new Set([
+  "audit_disclosure_id",
+  "auditDisclosureId",
+  "customer",
+  "customer_email",
+  "customer_payment_evidence_ref",
+  "customerEmail",
+  "customerPaymentEvidenceRef",
+  "email",
+  "full_audit_disclosure_id",
+  "full_private_rail_receipt_id",
+  "ip",
+  "ip_address",
+  "ipAddress",
+  "private_inputs",
+  "private_rail_receipt_id",
+  "privateInputs",
+  "privateRailReceiptId",
+  "raw_settlement_terms",
+  "rawSettlementTerms",
+  "secret",
+  "signature",
+  "token",
+  "user_agent",
+  "userAgent",
+  "wallet",
+  "wallet_address",
+  "walletAddress",
+  "witness",
+]);
 
 function assertProductionSecrets() {
   if (process.env.NODE_ENV !== "production") {
@@ -455,6 +486,39 @@ function toCheckoutCompletionInput(body) {
   };
 }
 
+function assertNoForbiddenGrowthLoopEventKeys(body) {
+  for (const key of Object.keys(body ?? {})) {
+    if (forbiddenGrowthLoopEventKeys.has(key)) {
+      throw new Error(
+        `Vanta Pay redacted growth-loop event input cannot include ${key}.`,
+      );
+    }
+  }
+}
+
+function toGrowthLoopEventInput(body) {
+  assertNoForbiddenGrowthLoopEventKeys(body);
+  const rawCounterpartyRole = body.counterparty_role ?? body.counterpartyRole;
+  return {
+    counterpartyRole:
+      rawCounterpartyRole === undefined || rawCounterpartyRole === null
+        ? undefined
+        : requireSupportedValue(
+            rawCounterpartyRole,
+            "counterparty_role",
+            supportedGrowthLoopCounterpartyRoles,
+          ),
+    eventType: requireSupportedValue(
+      body.event_type ?? body.eventType,
+      "event_type",
+      supportedGrowthLoopEventTypes,
+    ),
+    idempotencyKey: body.idempotency_key ?? body.idempotencyKey ?? null,
+    occurredAt: body.occurred_at ?? body.occurredAt,
+    receiptId: requireNonEmptyString(body.receipt_id ?? body.receiptId, "receipt_id"),
+  };
+}
+
 function toWithdrawalInput(body) {
   return {
     amount: requireNonEmptyString(body.amount, "amount"),
@@ -588,6 +652,9 @@ const {
 const { VANTA_PAY_ASSET_SYMBOLS, getVantaPayAssetDecimals } = await import(
   pathToFileURL(join(tempJsDir, "pay/vantaPayAssets.js")).href
 );
+const { VANTA_PAY_GROWTH_LOOP_EVENT_TYPES } = await import(
+  pathToFileURL(join(tempJsDir, "pay/vantaPayGrowthLoopEvidence.js")).href
+);
 const { createVantaPayPrivateSettlementAdapter } = await import(
   pathToFileURL(join(tempJsDir, "pay/vantaPayPrivateSettlementAdapter.js")).href
 );
@@ -595,6 +662,7 @@ const { buildVantaPayReceiptPublicView } = await import(
   pathToFileURL(join(tempJsDir, "pay/vantaPayReceiptPublicView.js")).href
 );
 const supportedAssets = new Set(VANTA_PAY_ASSET_SYMBOLS);
+const supportedGrowthLoopEventTypes = new Set(VANTA_PAY_GROWTH_LOOP_EVENT_TYPES);
 const defaultSnapshot = { stateVersion: VANTA_PAY_STORE_SCHEMA_VERSION };
 const snapshotStore = databaseUrl
   ? await createPostgresSnapshotStore({
@@ -658,6 +726,8 @@ const server = createServer(async (request, response) => {
           browserCheckoutVerification: true,
           databaseAdapterSeam: true,
           hostedCheckoutSessions: true,
+          growthLoopAdoptionClaimAllowed: false,
+          growthLoopLiveMeasurement: "redacted-first-party-claim-blocked",
           durableStoreConfigured: readiness.durableStoreConfigured,
           idempotency: {
             checkoutCompletion: true,
@@ -693,6 +763,8 @@ const server = createServer(async (request, response) => {
           "GET /v1/payments/{id}",
           "GET /v1/receipts",
           "GET /v1/receipts/{id}",
+          "GET /v1/growth-loop/status",
+          "POST /v1/growth-loop/events",
           "POST /v1/refunds",
           "GET /v1/refunds",
           "GET /v1/balances",
@@ -718,6 +790,22 @@ const server = createServer(async (request, response) => {
           productionReady: snapshotStore.productionReady,
         },
         storeSchemaVersion: VANTA_PAY_STORE_SCHEMA_VERSION,
+      });
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/v1/growth-loop/status") {
+      sendJson(response, 200, runtime.getGrowthLoopMeasurement());
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/v1/growth-loop/events") {
+      const body = await readRequestBody(request);
+      const event = runtime.recordGrowthLoopEvent(toGrowthLoopEventInput(body));
+      await saveRuntimeSnapshot();
+      sendJson(response, 200, {
+        event,
+        measurement: runtime.getGrowthLoopMeasurement(),
       });
       return;
     }

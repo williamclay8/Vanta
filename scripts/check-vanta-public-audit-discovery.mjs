@@ -21,6 +21,8 @@ const requiredRefs = [
   "ops/mainnet/production-key-custody.template.json",
   "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
   "docs/twitter-intelligence/2026-06-06-requirements.md",
+  "operator/pay-server.mjs",
+  "src/pay/vantaPayRuntime.ts",
   "src/pay/vantaPayReceiptGrowthLoop.ts",
   "src/pay/vantaPayGrowthLoopEvidence.ts",
   "src/pay/vantaPayReceiptPublicView.ts",
@@ -144,14 +146,21 @@ assert.equal(discovery.anonymityClaimAllowed, false);
 assert.equal(discovery.refsOnly, true);
 
 assert.equal(discovery.payGrowthLoopDiscovery?.schemaVersion, "vanta-pay-growth-loop-discovery-0.1");
-assert.equal(discovery.payGrowthLoopDiscovery?.status, "local-fixture-measured-publicly-discoverable");
+assert.equal(discovery.payGrowthLoopDiscovery?.status, "live-redacted-measured-claim-blocked");
 assert.equal(
   discovery.payGrowthLoopDiscovery?.receiptGrowthLoopSchema,
   "vanta-pay-receipt-growth-loop-v0.1",
 );
 assert.equal(discovery.payGrowthLoopDiscovery?.evidenceSchema, "vanta-pay-growth-loop-evidence-v0.1");
-assert.equal(discovery.payGrowthLoopDiscovery?.measurementMode, "local-fixture-only");
-assert.equal(discovery.payGrowthLoopDiscovery?.liveMeasurementEnabled, false);
+assert.equal(
+  discovery.payGrowthLoopDiscovery?.liveMeasurementSchema,
+  "vanta-pay-live-growth-loop-measurement-v0.1",
+);
+assert.equal(discovery.payGrowthLoopDiscovery?.fixtureMeasurementMode, "local-fixture-only");
+assert.equal(discovery.payGrowthLoopDiscovery?.measurementMode, "live-redacted-first-party");
+assert.equal(discovery.payGrowthLoopDiscovery?.liveMeasurementEnabled, true);
+assert.equal(discovery.payGrowthLoopDiscovery?.statusEndpoint, "GET /v1/growth-loop/status");
+assert.equal(discovery.payGrowthLoopDiscovery?.eventIntakeEndpoint, "POST /v1/growth-loop/events");
 assert.equal(discovery.payGrowthLoopDiscovery?.adoptionClaimAllowed, false);
 assert.equal(discovery.payGrowthLoopDiscovery?.productionReady, false);
 assert.equal(discovery.payGrowthLoopDiscovery?.counterpartyVerifierRoute, "/receipt/:receiptId");
@@ -171,6 +180,8 @@ assert.deepEqual(discovery.payGrowthLoopDiscovery?.fixtureEventTypes, [
 ]);
 assert.deepEqual(discovery.payGrowthLoopDiscovery?.sourceRefs, [
   "docs/twitter-intelligence/2026-06-06-requirements.md",
+  "operator/pay-server.mjs",
+  "src/pay/vantaPayRuntime.ts",
   "src/pay/vantaPayReceiptGrowthLoop.ts",
   "src/pay/vantaPayGrowthLoopEvidence.ts",
   "src/pay/vantaPayReceiptPublicView.ts",
@@ -179,15 +190,17 @@ assert.deepEqual(discovery.payGrowthLoopDiscovery?.sourceRefs, [
 ]);
 assert.deepEqual(discovery.payGrowthLoopDiscovery?.verificationCommands, [
   "npm run pay:growth-loop-check",
+  "npm run pay:merchant-api-check",
   "npm run pay:receipt-public-view-check",
+  "npm run pay:status-json",
   "npm run pay:verify",
 ]);
 discovery.payGrowthLoopDiscovery?.verificationCommands?.forEach((command, index) =>
   assertSafeNpmRunCommand(command, `discovery.payGrowthLoopDiscovery.verificationCommands[${index}]`),
 );
 assert.ok(
-  discovery.payGrowthLoopDiscovery?.claimBoundary?.includes("fixture evidence only"),
-  "Pay growth-loop discovery must preserve fixture-only claim boundary.",
+  discovery.payGrowthLoopDiscovery?.claimBoundary?.includes("live redacted first-party"),
+  "Pay growth-loop discovery must preserve live redacted measurement boundary.",
 );
 assert.ok(
   discovery.payGrowthLoopDiscovery?.claimBoundary?.includes("no live adoption"),
@@ -285,7 +298,9 @@ for (const command of [
   "npm run public:audit-discovery-check",
   "npm run audit:package-check",
   "npm run pay:growth-loop-check",
+  "npm run pay:merchant-api-check",
   "npm run pay:receipt-public-view-check",
+  "npm run pay:status-json",
   "npm run pay:verify",
   "npm run zk:c01-production-verifier-backend-candidate-check",
   "npm run zk:c01-verifier-adapter-test-candidate-check",
@@ -319,9 +334,11 @@ for (const phrase of [
   "payGrowthLoopDiscovery",
   "vanta-pay-growth-loop-discovery-0.1",
   "vanta-pay-growth-loop-evidence-v0.1",
+  "vanta-pay-live-growth-loop-measurement-v0.1",
+  "live redacted first-party measurement",
   "counterparty verifier route",
   "npm run pay:growth-loop-check",
-  "fixture evidence only",
+  "live event intake stores only redacted event metadata",
   "no live adoption",
 ]) {
   assert.ok(auditPackage.includes(phrase), `docs/audit-package.md is missing public discovery phrase: ${phrase}`);

@@ -168,6 +168,8 @@ export function PayReceiptPacketCard({
             Counterparty verifier opens 7d:{" "}
             {publicView.growthLoop.evidence.derivedCounters.counterpartyVerifierOpened7d}. Next private settlement requests 7d:{" "}
             {publicView.growthLoop.evidence.derivedCounters.nextPrivateSettlementRequests7d}.
+            Live redacted operator measurement uses GET /v1/growth-loop/status and POST
+            /v1/growth-loop/events when configured.
             Claim lift blocked until live evidence:{" "}
             {String(
               publicView.growthLoop.evidence.claimControls.claimLiftBlockedUntilLiveEvidence,

@@ -4,6 +4,8 @@ import { bytesToHex } from "@noble/hashes/utils.js";
 // @ts-expect-error - Bundler resolution uses the sibling TypeScript source during app build.
 import { VANTA_PAY_PRIVATE_SETTLEMENT_SUMMARY } from "./vantaPayPrivateSettlementAdapter.ts";
 // @ts-expect-error - Node-side Pay contract checks import sibling TypeScript sources directly.
+import { VANTA_PAY_GROWTH_LOOP_EVENT_TYPES, buildVantaPayLiveGrowthLoopMeasurement } from "./vantaPayGrowthLoopEvidence.ts";
+// @ts-expect-error - Node-side Pay contract checks import sibling TypeScript sources directly.
 import { VANTA_PAY_ASSET_SYMBOLS, getVantaPayAssetDecimals } from "./vantaPayAssets.ts";
 import type {
   VantaPayAsset,
@@ -12,6 +14,9 @@ import type {
   VantaPayCheckoutSession,
   VantaPayCheckoutSessionCreateInput,
   VantaPayDestinationType,
+  VantaPayGrowthLoopCounterpartyRole,
+  VantaPayGrowthLoopEvent,
+  VantaPayGrowthLoopEventCreateInput,
   VantaPayInvoice,
   VantaPayInvoiceCreateInput,
   VantaPayLineItem,
@@ -339,6 +344,7 @@ export function createVantaPayRuntime({
   const paymentLinks = new Map<string, VantaPayPaymentLink>();
   const invoices = new Map<string, VantaPayInvoice>();
   const events: VantaPayWebhookEvent[] = [];
+  const growthLoopEvents = new Map<string, VantaPayGrowthLoopEvent>();
   const webhookDeliveries = new Map<string, VantaPayWebhookDelivery>();
 
   for (const session of snapshot?.sessions ?? []) {
@@ -395,6 +401,9 @@ export function createVantaPayRuntime({
     invoices.set(invoice.id, invoice);
   }
   events.push(...(snapshot?.events ?? []));
+  for (const event of snapshot?.growthLoopEvents ?? []) {
+    growthLoopEvents.set(event.eventId, event);
+  }
   for (const delivery of snapshot?.webhookDeliveries ?? []) {
     webhookDeliveries.set(delivery.id, delivery);
   }
@@ -412,6 +421,78 @@ export function createVantaPayRuntime({
     } satisfies VantaPayWebhookEvent;
 
     events.push(event);
+    return event;
+  }
+
+  function defaultGrowthLoopCounterpartyRole(
+    eventType: VantaPayGrowthLoopEventCreateInput["eventType"],
+  ): VantaPayGrowthLoopCounterpartyRole {
+    if (eventType === "receipt_generated") {
+      return "merchant";
+    }
+    if (eventType === "share_link_copied") {
+      return "buyer";
+    }
+    return "counterparty";
+  }
+
+  function normalizeGrowthLoopOccurredAt(value?: string) {
+    if (!value) {
+      return now;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      throw new Error("Growth-loop event occurredAt must be an ISO timestamp.");
+    }
+
+    return parsed.toISOString();
+  }
+
+  function recordGrowthLoopEvent(input: VantaPayGrowthLoopEventCreateInput) {
+    const receipt = receipts.get(input.receiptId);
+    if (!receipt) {
+      throw new Error(`Unknown receipt ${input.receiptId}.`);
+    }
+
+    if (!VANTA_PAY_GROWTH_LOOP_EVENT_TYPES.includes(input.eventType)) {
+      throw new Error(`Unsupported growth-loop event type ${input.eventType}.`);
+    }
+
+    const counterpartyRole =
+      input.counterpartyRole ?? defaultGrowthLoopCounterpartyRole(input.eventType);
+    if (!["merchant", "buyer", "counterparty"].includes(counterpartyRole)) {
+      throw new Error(`Unsupported growth-loop counterparty role ${counterpartyRole}.`);
+    }
+
+    const occurredAt = normalizeGrowthLoopOccurredAt(input.occurredAt);
+    const idempotencyKey = input.idempotencyKey?.trim() || null;
+    const eventId = idempotencyKey
+      ? hashId("pgl", receipt.id, input.eventType, counterpartyRole, idempotencyKey)
+      : hashId(
+          "pgl",
+          receipt.id,
+          input.eventType,
+          counterpartyRole,
+          occurredAt,
+          String(growthLoopEvents.size),
+        );
+    const existingEvent = growthLoopEvents.get(eventId);
+    if (existingEvent) {
+      return existingEvent;
+    }
+
+    const event = {
+      counterpartyRole,
+      eventId,
+      eventType: input.eventType,
+      measurementSource: "pay-operator-live-redacted",
+      occurredAt,
+      receiptId: receipt.id,
+      sharePath: `/receipt/${receipt.id}`,
+    } satisfies VantaPayGrowthLoopEvent;
+
+    growthLoopEvents.set(event.eventId, event);
     return event;
   }
 
@@ -647,6 +728,13 @@ export function createVantaPayRuntime({
 
     payments.set(payment.id, paymentWithReceipt);
     receipts.set(receipt.id, receipt);
+    recordGrowthLoopEvent({
+      counterpartyRole: "merchant",
+      eventType: "receipt_generated",
+      idempotencyKey: `receipt:${receipt.id}`,
+      occurredAt: receipt.createdAt,
+      receiptId: receipt.id,
+    });
 
     const createdEvents = [
       recordEvent("checkout.session.completed", completedSession),
@@ -1025,6 +1113,7 @@ export function createVantaPayRuntime({
     createPrivateExitReceipt,
     createPrivateRailReceipt,
     createWithdrawal,
+    recordGrowthLoopEvent,
     getBalances,
     getCheckoutSession(id: string) {
       return sessions.get(id) ?? null;
@@ -1057,6 +1146,12 @@ export function createVantaPayRuntime({
     getReceipt(id: string) {
       return receipts.get(id) ?? null;
     },
+    getGrowthLoopMeasurement() {
+      return buildVantaPayLiveGrowthLoopMeasurement(
+        [...receipts.values()],
+        [...growthLoopEvents.values()],
+      );
+    },
     createRefund,
     listInvoices() {
       return [...invoices.values()];
@@ -1076,6 +1171,9 @@ export function createVantaPayRuntime({
     listWebhookEvents() {
       return [...events];
     },
+    listGrowthLoopEvents() {
+      return [...growthLoopEvents.values()];
+    },
     listWebhookDeliveries() {
       return [...webhookDeliveries.values()];
     },
@@ -1089,6 +1187,7 @@ export function createVantaPayRuntime({
     snapshot() {
       return {
         events: [...events],
+        growthLoopEvents: [...growthLoopEvents.values()],
         invoices: [...invoices.values()],
         paymentLinks: [...paymentLinks.values()],
         payments: [...payments.values()],

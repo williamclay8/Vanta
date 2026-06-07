@@ -131,6 +131,42 @@ const growthLoopEvidence = {
   },
   verificationCommand: "npm run pay:growth-loop-check",
 };
+const liveGrowthLoopMeasurement = {
+  schemaVersion: "vanta-pay-live-growth-loop-measurement-v0.1",
+  object: "pay_growth_loop_live_measurement",
+  measurementMode: "live-redacted-first-party",
+  liveMeasurementEnabled: true,
+  statusEndpoint: "GET /v1/growth-loop/status",
+  eventIntakeEndpoint: "POST /v1/growth-loop/events",
+  retainedFields: [
+    "eventId",
+    "eventType",
+    "counterpartyRole",
+    "occurredAt",
+    "receiptId",
+    "sharePath",
+    "measurementSource",
+  ],
+  forbiddenFields: [
+    "customerEmail",
+    "customerPaymentEvidenceRef",
+    "privateRailReceiptId",
+    "auditDisclosureId",
+    "privateInputs",
+    "witness",
+    "ipAddress",
+    "userAgent",
+  ],
+  claimControls: {
+    adoptionClaimAllowed: false,
+    anonymityClaimAllowed: false,
+    claimLiftBlockedUntilReviewedLiveEvidence: true,
+    complianceSafeClaimAllowed: false,
+    productionReady: false,
+    regulatorApprovalClaimAllowed: false,
+  },
+  verificationCommand: "npm run pay:growth-loop-check",
+};
 
 const result = {
   capabilities: {
@@ -138,6 +174,8 @@ const result = {
     durableStoreConfigured: Boolean(
       process.env.VANTA_PAY_STORE_PATH || process.env.VANTA_PAY_DATABASE_URL,
     ),
+    growthLoopAdoptionClaimAllowed: false,
+    growthLoopLiveMeasurement: "redacted-first-party-claim-blocked",
     hostedCheckoutSessions: true,
     idempotency: {
       checkoutCompletion: true,
@@ -166,6 +204,7 @@ const result = {
   privateSettlement,
   productionReady: payProductionReady,
   growthLoopEvidence,
+  liveGrowthLoopMeasurement,
   storage: {
     kind: process.env.VANTA_PAY_DATABASE_URL
       ? "postgres-jsonb-snapshot-store"
@@ -231,6 +270,9 @@ if (jsonMode) {
   console.log("- receipt growth loop: npm run pay:growth-loop-check");
   console.log(
     `- growth loop evidence: invitedCounterparties7d=${result.growthLoopEvidence.derivedCounters.invitedCounterparties7d}, repeatedPrivateActions7d=${result.growthLoopEvidence.derivedCounters.repeatedPrivateActions7d}, liveMeasurementEnabled=${String(result.growthLoopEvidence.liveMeasurementEnabled)}`,
+  );
+  console.log(
+    `- live growth loop measurement: mode=${result.liveGrowthLoopMeasurement.measurementMode}, intake="${result.liveGrowthLoopMeasurement.eventIntakeEndpoint}", adoptionClaimAllowed=${String(result.liveGrowthLoopMeasurement.claimControls.adoptionClaimAllowed)}, productionReady=${String(result.liveGrowthLoopMeasurement.claimControls.productionReady)}`,
   );
   console.log(`- settlement lifecycle: ${result.privateSettlement.lifecycleModel}`);
   console.log(`- checkout proof boundary: ${result.privateSettlement.checkoutProofBoundary}`);

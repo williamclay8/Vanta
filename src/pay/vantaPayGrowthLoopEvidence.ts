@@ -3,6 +3,7 @@ import type {
   VantaPayGrowthLoopEvent,
   VantaPayGrowthLoopEventType,
   VantaPayGrowthLoopEvidence,
+  VantaPayLiveGrowthLoopMeasurement,
   VantaPayReceipt,
 } from "./vantaPayTypes.ts";
 
@@ -10,6 +11,8 @@ export const VANTA_PAY_GROWTH_LOOP_EVIDENCE_SCHEMA_VERSION =
   "vanta-pay-growth-loop-evidence-v0.1" as const;
 export const VANTA_PAY_GROWTH_LOOP_EVIDENCE_STATUS =
   "local-fixture-measured-claim-blocked" as const;
+export const VANTA_PAY_LIVE_GROWTH_LOOP_MEASUREMENT_SCHEMA_VERSION =
+  "vanta-pay-live-growth-loop-measurement-v0.1" as const;
 
 export const VANTA_PAY_GROWTH_LOOP_EVENT_TYPES = [
   "receipt_generated",
@@ -89,11 +92,21 @@ export function deriveVantaPayGrowthLoopCounters(
   receipt: VantaPayReceipt,
   events: readonly VantaPayGrowthLoopEvent[],
 ): VantaPayGrowthLoopDerivedCounters {
+  return deriveVantaPayGrowthLoopCountersForReceipts([receipt], events);
+}
+
+export function deriveVantaPayGrowthLoopCountersForReceipts(
+  receipts: readonly VantaPayReceipt[],
+  events: readonly VantaPayGrowthLoopEvent[],
+): VantaPayGrowthLoopDerivedCounters {
+  const receiptById = new Map(receipts.map((receipt) => [receipt.id, receipt]));
   const receiptGeneratedCount = countEvents(events, "receipt_generated");
   const shareLinkCopiedCount = countEvents(events, "share_link_copied");
   const verifierOpenedCount = countEvents(events, "counterparty_verifier_opened");
   const nextSettlementRequestCount = countEvents(events, "next_private_settlement_requested");
-  const volumeUsd = receiptGeneratedCount > 0 ? toUsdAmount(receipt.amount) : 0;
+  const volumeUsd = events
+    .filter((event) => event.eventType === "receipt_generated")
+    .reduce((total, event) => total + toUsdAmount(receiptById.get(event.receiptId)?.amount ?? "0"), 0);
 
   return {
     counterpartyVerifierOpened7d: verifierOpenedCount,
@@ -142,6 +155,55 @@ export function buildVantaPayGrowthLoopEvidence(
       productionReady: false,
       regulatorApprovalClaimAllowed: false,
     },
+    verificationCommand: "npm run pay:growth-loop-check",
+  };
+}
+
+export function buildVantaPayLiveGrowthLoopMeasurement(
+  receipts: readonly VantaPayReceipt[],
+  events: readonly VantaPayGrowthLoopEvent[],
+): VantaPayLiveGrowthLoopMeasurement {
+  const knownReceiptIds = new Set(receipts.map((receipt) => receipt.id));
+  const safeEvents = events.filter(
+    (event) =>
+      knownReceiptIds.has(event.receiptId) &&
+      event.measurementSource === "pay-operator-live-redacted",
+  );
+
+  return {
+    schemaVersion: VANTA_PAY_LIVE_GROWTH_LOOP_MEASUREMENT_SCHEMA_VERSION,
+    object: "pay_growth_loop_live_measurement",
+    measurementMode: "live-redacted-first-party",
+    liveMeasurementEnabled: true,
+    eventLedger: {
+      object: "growth_loop_event_ledger",
+      events: safeEvents,
+      liveMeasurementEnabled: true,
+      measurementMode: "live-redacted-first-party",
+      productionReady: false,
+      retentionBoundary: "redacted-live-event-ledger-no-customer-private-inputs",
+    },
+    derivedCounters: deriveVantaPayGrowthLoopCountersForReceipts(receipts, safeEvents),
+    privacyBoundary: {
+      customerEmailStored: false,
+      fullAuditDisclosureIdStored: false,
+      fullPrivateRailReceiptIdStored: false,
+      ipAddressStored: false,
+      privateInputsStored: false,
+      rawSettlementTermsStored: false,
+      userAgentStored: false,
+      witnessStored: false,
+    },
+    claimControls: {
+      adoptionClaimAllowed: false,
+      anonymityClaimAllowed: false,
+      claimLiftBlockedUntilReviewedLiveEvidence: true,
+      complianceSafeClaimAllowed: false,
+      productionReady: false,
+      regulatorApprovalClaimAllowed: false,
+    },
+    statusEndpoint: "GET /v1/growth-loop/status",
+    eventIntakeEndpoint: "POST /v1/growth-loop/events",
     verificationCommand: "npm run pay:growth-loop-check",
   };
 }

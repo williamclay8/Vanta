@@ -5,6 +5,8 @@ import { resolve } from "node:path";
 import { buildVantaPayReceiptGrowthLoop } from "../src/pay/vantaPayReceiptGrowthLoop.ts";
 import {
   VANTA_PAY_GROWTH_LOOP_EVENT_TYPES,
+  VANTA_PAY_LIVE_GROWTH_LOOP_MEASUREMENT_SCHEMA_VERSION,
+  buildVantaPayLiveGrowthLoopMeasurement,
   buildVantaPayGrowthLoopEvidence,
   createVantaPayGrowthLoopFixtureEvents,
 } from "../src/pay/vantaPayGrowthLoopEvidence.ts";
@@ -56,9 +58,49 @@ const growthLoop = buildVantaPayReceiptGrowthLoop(receipt);
 const publicView = buildVantaPayReceiptPublicView(receipt);
 const fixtureEvents = createVantaPayGrowthLoopFixtureEvents(receipt);
 const growthLoopEvidence = buildVantaPayGrowthLoopEvidence(receipt, fixtureEvents);
+const liveEvents = [
+  {
+    counterpartyRole: "merchant",
+    eventId: "pgl_live_receipt_generated",
+    eventType: "receipt_generated",
+    measurementSource: "pay-operator-live-redacted",
+    occurredAt: receipt.createdAt,
+    receiptId: receipt.id,
+    sharePath: `/receipt/${receipt.id}`,
+  },
+  {
+    counterpartyRole: "buyer",
+    eventId: "pgl_live_share_link_copied",
+    eventType: "share_link_copied",
+    measurementSource: "pay-operator-live-redacted",
+    occurredAt: "2026-05-02T00:01:00.000Z",
+    receiptId: receipt.id,
+    sharePath: `/receipt/${receipt.id}`,
+  },
+  {
+    counterpartyRole: "counterparty",
+    eventId: "pgl_live_counterparty_verifier_opened",
+    eventType: "counterparty_verifier_opened",
+    measurementSource: "pay-operator-live-redacted",
+    occurredAt: "2026-05-02T00:02:00.000Z",
+    receiptId: receipt.id,
+    sharePath: `/receipt/${receipt.id}`,
+  },
+  {
+    counterpartyRole: "counterparty",
+    eventId: "pgl_live_next_private_settlement_requested",
+    eventType: "next_private_settlement_requested",
+    measurementSource: "pay-operator-live-redacted",
+    occurredAt: "2026-05-02T00:03:00.000Z",
+    receiptId: receipt.id,
+    sharePath: `/receipt/${receipt.id}`,
+  },
+];
+const liveMeasurement = buildVantaPayLiveGrowthLoopMeasurement([receipt], liveEvents);
 const serializedGrowthLoop = JSON.stringify(growthLoop);
 const serializedPublicView = JSON.stringify(publicView);
 const serializedGrowthLoopEvidence = JSON.stringify(growthLoopEvidence);
+const serializedLiveMeasurement = JSON.stringify(liveMeasurement);
 
 assert.equal(growthLoop.schemaVersion, "vanta-pay-receipt-growth-loop-v0.1");
 assert.equal(growthLoop.object, "receipt_growth_loop");
@@ -121,6 +163,42 @@ assert.equal(growthLoopEvidence.eventLedger.events.length, 4);
 assert.equal(growthLoopEvidence.publicSummary.receiptId, receipt.id);
 assert.equal(growthLoopEvidence.publicSummary.sharePath, `/receipt/${receipt.id}`);
 assert.equal(growthLoopEvidence.publicSummary.nextAction, "request_next_private_settlement");
+assert.equal(
+  VANTA_PAY_LIVE_GROWTH_LOOP_MEASUREMENT_SCHEMA_VERSION,
+  "vanta-pay-live-growth-loop-measurement-v0.1",
+);
+assert.equal(liveMeasurement.schemaVersion, "vanta-pay-live-growth-loop-measurement-v0.1");
+assert.equal(liveMeasurement.object, "pay_growth_loop_live_measurement");
+assert.equal(liveMeasurement.measurementMode, "live-redacted-first-party");
+assert.equal(liveMeasurement.liveMeasurementEnabled, true);
+assert.equal(liveMeasurement.eventLedger.object, "growth_loop_event_ledger");
+assert.equal(liveMeasurement.eventLedger.measurementMode, "live-redacted-first-party");
+assert.equal(liveMeasurement.eventLedger.liveMeasurementEnabled, true);
+assert.equal(
+  liveMeasurement.eventLedger.retentionBoundary,
+  "redacted-live-event-ledger-no-customer-private-inputs",
+);
+assert.equal(liveMeasurement.eventLedger.events.length, 4);
+assert.equal(liveMeasurement.eventLedger.events[0].measurementSource, "pay-operator-live-redacted");
+assert.equal(liveMeasurement.derivedCounters.transactionCount7d, 1);
+assert.equal(liveMeasurement.derivedCounters.volume7dUsd, 2400);
+assert.equal(liveMeasurement.derivedCounters.invitedCounterparties7d, 1);
+assert.equal(liveMeasurement.derivedCounters.counterpartyVerifierOpened7d, 1);
+assert.equal(liveMeasurement.derivedCounters.nextPrivateSettlementRequests7d, 1);
+assert.equal(liveMeasurement.derivedCounters.repeatedPrivateActions7d, 1);
+assert.equal(liveMeasurement.claimControls.adoptionClaimAllowed, false);
+assert.equal(liveMeasurement.claimControls.productionReady, false);
+assert.equal(liveMeasurement.claimControls.anonymityClaimAllowed, false);
+assert.equal(liveMeasurement.claimControls.claimLiftBlockedUntilReviewedLiveEvidence, true);
+assert.equal(liveMeasurement.privacyBoundary.customerEmailStored, false);
+assert.equal(liveMeasurement.privacyBoundary.fullAuditDisclosureIdStored, false);
+assert.equal(liveMeasurement.privacyBoundary.fullPrivateRailReceiptIdStored, false);
+assert.equal(liveMeasurement.privacyBoundary.privateInputsStored, false);
+assert.equal(liveMeasurement.privacyBoundary.userAgentStored, false);
+assert.equal(liveMeasurement.privacyBoundary.ipAddressStored, false);
+assert.equal(liveMeasurement.statusEndpoint, "GET /v1/growth-loop/status");
+assert.equal(liveMeasurement.eventIntakeEndpoint, "POST /v1/growth-loop/events");
+assert.equal(liveMeasurement.verificationCommand, "npm run pay:growth-loop-check");
 assert.equal(growthLoop.usageVelocity.invitedCounterparties7d, 1);
 assert.equal(growthLoop.usageVelocity.repeatedPrivateActions7d, 1);
 assert.equal(growthLoop.usageVelocity.transactionCount7d, 1);
@@ -175,6 +253,7 @@ for (const leaked of [
 ]) {
   assert.ok(!serializedGrowthLoop.includes(leaked), `${leaked} leaked in growth loop packet`);
   assert.ok(!serializedGrowthLoopEvidence.includes(leaked), `${leaked} leaked in evidence packet`);
+  assert.ok(!serializedLiveMeasurement.includes(leaked), `${leaked} leaked in live measurement`);
   assert.ok(!serializedPublicView.includes(leaked), `${leaked} leaked in public view`);
 }
 
@@ -186,14 +265,20 @@ requireMarkers("src/pay/vantaPayTypes.ts", [
   "repeatedPrivateActions7d",
   "VantaPayGrowthLoopEventLedger",
   "VantaPayGrowthLoopEvidence",
+  "VantaPayLiveGrowthLoopMeasurement",
+  "pay-operator-live-redacted",
+  "claimLiftBlockedUntilReviewedLiveEvidence",
 ]);
 requireMarkers("src/pay/vantaPayGrowthLoopEvidence.ts", [
   "vanta-pay-growth-loop-evidence-v0.1",
+  "vanta-pay-live-growth-loop-measurement-v0.1",
   "receipt_generated",
   "share_link_copied",
   "counterparty_verifier_opened",
   "next_private_settlement_requested",
   "local-fixture-measured-claim-blocked",
+  "live-redacted-first-party",
+  "redacted-live-event-ledger-no-customer-private-inputs",
   "request_next_private_settlement",
 ]);
 requireMarkers("src/pay/vantaPayReceiptGrowthLoop.ts", [
@@ -235,10 +320,26 @@ requireMarkers("src/pages/ReceiptVerificationPage.tsx", [
   "Next private settlement",
   "npm run pay:growth-loop-check",
 ]);
+requireMarkers("src/pay/vantaPayRuntime.ts", [
+  "recordGrowthLoopEvent",
+  "getGrowthLoopMeasurement",
+  "growthLoopEvents",
+  "pay-operator-live-redacted",
+  "receipt_generated",
+]);
+requireMarkers("operator/pay-server.mjs", [
+  "GET /v1/growth-loop/status",
+  "POST /v1/growth-loop/events",
+  "toGrowthLoopEventInput",
+  "forbiddenGrowthLoopEventKeys",
+  "growthLoopLiveMeasurement",
+]);
 requireMarkers("scripts/print-vanta-pay-status.mjs", [
   "pay:growth-loop-check",
   "receipt growth loop",
   "growthLoopEvidence",
+  "liveGrowthLoopMeasurement",
+  "live-redacted-first-party",
   "invitedCounterparties7d",
   "repeatedPrivateActions7d",
 ]);

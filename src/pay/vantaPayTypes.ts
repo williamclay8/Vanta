@@ -357,14 +357,30 @@ export type VantaPayGrowthLoopEventType =
 
 export type VantaPayGrowthLoopCounterpartyRole = "merchant" | "buyer" | "counterparty";
 
+export type VantaPayGrowthLoopMeasurementSource =
+  | "local-ui-fixture"
+  | "pay-operator-live-redacted";
+
+export type VantaPayGrowthLoopMeasurementMode =
+  | "local-fixture-only"
+  | "live-redacted-first-party";
+
 export type VantaPayGrowthLoopEvent = {
   counterpartyRole: VantaPayGrowthLoopCounterpartyRole;
   eventId: string;
   eventType: VantaPayGrowthLoopEventType;
-  measurementSource: "local-ui-fixture";
+  measurementSource: VantaPayGrowthLoopMeasurementSource;
   occurredAt: string;
   receiptId: string;
   sharePath: string;
+};
+
+export type VantaPayGrowthLoopEventCreateInput = {
+  counterpartyRole?: VantaPayGrowthLoopCounterpartyRole;
+  eventType: VantaPayGrowthLoopEventType;
+  idempotencyKey?: string | null;
+  occurredAt?: string;
+  receiptId: string;
 };
 
 export type VantaPayGrowthLoopDerivedCounters = {
@@ -385,10 +401,12 @@ export type VantaPayGrowthLoopDerivedCounters = {
 export type VantaPayGrowthLoopEventLedger = {
   object: "growth_loop_event_ledger";
   events: readonly VantaPayGrowthLoopEvent[];
-  liveMeasurementEnabled: false;
-  measurementMode: "local-fixture-only";
+  liveMeasurementEnabled: boolean;
+  measurementMode: VantaPayGrowthLoopMeasurementMode;
   productionReady: false;
-  retentionBoundary: "local-test-fixture-no-customer-private-inputs";
+  retentionBoundary:
+    | "local-test-fixture-no-customer-private-inputs"
+    | "redacted-live-event-ledger-no-customer-private-inputs";
 };
 
 export type VantaPayGrowthLoopEvidence = {
@@ -409,6 +427,40 @@ export type VantaPayGrowthLoopEvidence = {
     productionReady: false;
     regulatorApprovalClaimAllowed: false;
   };
+  verificationCommand: "npm run pay:growth-loop-check";
+};
+
+export type VantaPayLiveGrowthLoopMeasurement = {
+  schemaVersion: "vanta-pay-live-growth-loop-measurement-v0.1";
+  object: "pay_growth_loop_live_measurement";
+  measurementMode: "live-redacted-first-party";
+  liveMeasurementEnabled: true;
+  eventLedger: VantaPayGrowthLoopEventLedger & {
+    liveMeasurementEnabled: true;
+    measurementMode: "live-redacted-first-party";
+    retentionBoundary: "redacted-live-event-ledger-no-customer-private-inputs";
+  };
+  derivedCounters: VantaPayGrowthLoopDerivedCounters;
+  privacyBoundary: {
+    customerEmailStored: false;
+    fullAuditDisclosureIdStored: false;
+    fullPrivateRailReceiptIdStored: false;
+    ipAddressStored: false;
+    privateInputsStored: false;
+    rawSettlementTermsStored: false;
+    userAgentStored: false;
+    witnessStored: false;
+  };
+  claimControls: {
+    adoptionClaimAllowed: false;
+    anonymityClaimAllowed: false;
+    claimLiftBlockedUntilReviewedLiveEvidence: true;
+    complianceSafeClaimAllowed: false;
+    productionReady: false;
+    regulatorApprovalClaimAllowed: false;
+  };
+  statusEndpoint: "GET /v1/growth-loop/status";
+  eventIntakeEndpoint: "POST /v1/growth-loop/events";
   verificationCommand: "npm run pay:growth-loop-check";
 };
 
@@ -727,6 +779,7 @@ export type VantaPayWebhookDelivery = {
 
 export type VantaPayRuntimeSnapshot = {
   events: readonly VantaPayWebhookEvent[];
+  growthLoopEvents?: readonly VantaPayGrowthLoopEvent[];
   invoices: readonly VantaPayInvoice[];
   paymentLinks: readonly VantaPayPaymentLink[];
   payments: readonly VantaPayPayment[];

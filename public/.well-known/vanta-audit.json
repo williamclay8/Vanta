@@ -23,11 +23,15 @@
   "findingLedger": "VANTA_ZK_REVIEW.findings.json",
   "payGrowthLoopDiscovery": {
     "schemaVersion": "vanta-pay-growth-loop-discovery-0.1",
-    "status": "local-fixture-measured-publicly-discoverable",
+    "status": "live-redacted-measured-claim-blocked",
     "receiptGrowthLoopSchema": "vanta-pay-receipt-growth-loop-v0.1",
     "evidenceSchema": "vanta-pay-growth-loop-evidence-v0.1",
-    "measurementMode": "local-fixture-only",
-    "liveMeasurementEnabled": false,
+    "liveMeasurementSchema": "vanta-pay-live-growth-loop-measurement-v0.1",
+    "fixtureMeasurementMode": "local-fixture-only",
+    "measurementMode": "live-redacted-first-party",
+    "liveMeasurementEnabled": true,
+    "statusEndpoint": "GET /v1/growth-loop/status",
+    "eventIntakeEndpoint": "POST /v1/growth-loop/events",
     "adoptionClaimAllowed": false,
     "productionReady": false,
     "counterpartyVerifierRoute": "/receipt/:receiptId",
@@ -47,6 +51,8 @@
     ],
     "sourceRefs": [
       "docs/twitter-intelligence/2026-06-06-requirements.md",
+      "operator/pay-server.mjs",
+      "src/pay/vantaPayRuntime.ts",
       "src/pay/vantaPayReceiptGrowthLoop.ts",
       "src/pay/vantaPayGrowthLoopEvidence.ts",
       "src/pay/vantaPayReceiptPublicView.ts",
@@ -55,10 +61,12 @@
     ],
     "verificationCommands": [
       "npm run pay:growth-loop-check",
+      "npm run pay:merchant-api-check",
       "npm run pay:receipt-public-view-check",
+      "npm run pay:status-json",
       "npm run pay:verify"
     ],
-    "claimBoundary": "Public discovery for Pay receipt growth-loop fixture evidence only: no live adoption, no lifted privacy/anonymity/compliance/regulator claims, no audit acceptance, and no mainnet readiness claim."
+    "claimBoundary": "Public discovery for Pay live redacted first-party growth-loop measurement: fixture receipt evidence remains local, live event intake stores only redacted event metadata, and there is no live adoption, lifted privacy/anonymity/compliance/regulator claim, audit acceptance, or mainnet readiness claim."
   },
   "proofBoundaries": {
     "c01VerifierBackendDecision": "docs/zk/c01-production-verifier-backend-decision.md",
@@ -116,7 +124,9 @@
     "npm run public:audit-discovery-check",
     "npm run audit:package-check",
     "npm run pay:growth-loop-check",
+    "npm run pay:merchant-api-check",
     "npm run pay:receipt-public-view-check",
+    "npm run pay:status-json",
     "npm run pay:verify",
     "npm run zk:c01-production-verifier-backend-candidate-check",
     "npm run zk:c01-verifier-adapter-test-candidate-check",

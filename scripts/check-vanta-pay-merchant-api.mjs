@@ -518,6 +518,112 @@ try {
     "Expected selective audit disclosure reference.",
   );
   assert(completion.events.some((event) => event.type === "payment.completed"), "Expected event.");
+  assert(
+    typeof runtime.recordGrowthLoopEvent === "function",
+    "Expected runtime live growth-loop event recorder.",
+  );
+  assert(
+    typeof runtime.getGrowthLoopMeasurement === "function",
+    "Expected runtime live growth-loop measurement surface.",
+  );
+  const automaticGrowthLoopMeasurement = runtime.getGrowthLoopMeasurement();
+  assert(
+    automaticGrowthLoopMeasurement.schemaVersion ===
+      "vanta-pay-live-growth-loop-measurement-v0.1",
+    "Expected live growth-loop measurement schema.",
+  );
+  assert(
+    automaticGrowthLoopMeasurement.measurementMode === "live-redacted-first-party",
+    "Expected redacted first-party growth-loop measurement.",
+  );
+  assert(
+    automaticGrowthLoopMeasurement.liveMeasurementEnabled === true,
+    "Expected live growth-loop measurement to be enabled.",
+  );
+  assert(
+    automaticGrowthLoopMeasurement.derivedCounters.transactionCount7d === 1,
+    "Expected checkout completion to auto-record receipt_generated.",
+  );
+  assert(
+    automaticGrowthLoopMeasurement.derivedCounters.volume7dUsd === 125,
+    "Expected live growth-loop volume to derive from receipt amount.",
+  );
+  assert(
+    automaticGrowthLoopMeasurement.claimControls.adoptionClaimAllowed === false,
+    "Expected live measurement to keep adoption claims locked.",
+  );
+  assert(
+    automaticGrowthLoopMeasurement.claimControls.productionReady === false,
+    "Expected live measurement to keep productionReady false.",
+  );
+  const copiedShareLinkEvent = runtime.recordGrowthLoopEvent({
+    counterpartyRole: "buyer",
+    eventType: "share_link_copied",
+    idempotencyKey: "copy-share-link",
+    receiptId: completion.receipt.id,
+  });
+  const repeatedShareLinkEvent = runtime.recordGrowthLoopEvent({
+    counterpartyRole: "buyer",
+    eventType: "share_link_copied",
+    idempotencyKey: "copy-share-link",
+    receiptId: completion.receipt.id,
+  });
+  assert(
+    repeatedShareLinkEvent.eventId === copiedShareLinkEvent.eventId,
+    "Expected growth-loop event idempotency.",
+  );
+  runtime.recordGrowthLoopEvent({
+    counterpartyRole: "counterparty",
+    eventType: "counterparty_verifier_opened",
+    idempotencyKey: "counterparty-open",
+    receiptId: completion.receipt.id,
+  });
+  runtime.recordGrowthLoopEvent({
+    counterpartyRole: "counterparty",
+    eventType: "next_private_settlement_requested",
+    idempotencyKey: "next-private-settlement",
+    receiptId: completion.receipt.id,
+  });
+  const liveGrowthLoopMeasurement = runtime.getGrowthLoopMeasurement();
+  const serializedLiveGrowthLoopMeasurement = JSON.stringify(liveGrowthLoopMeasurement);
+  assert(
+    liveGrowthLoopMeasurement.derivedCounters.invitedCounterparties7d === 1,
+    "Expected copied share link to count invited counterparties.",
+  );
+  assert(
+    liveGrowthLoopMeasurement.derivedCounters.counterpartyVerifierOpened7d === 1,
+    "Expected counterparty verifier open to count.",
+  );
+  assert(
+    liveGrowthLoopMeasurement.derivedCounters.nextPrivateSettlementRequests7d === 1,
+    "Expected next private settlement request to count.",
+  );
+  assert(
+    !serializedLiveGrowthLoopMeasurement.includes("buyer@example.com"),
+    "Expected live growth-loop measurement to omit raw customer email.",
+  );
+  assert(
+    !serializedLiveGrowthLoopMeasurement.includes(completion.receipt.privateRailReceiptId),
+    "Expected live growth-loop measurement to omit full private rail receipt id.",
+  );
+  assert(
+    !serializedLiveGrowthLoopMeasurement.includes(completion.receipt.auditDisclosureId),
+    "Expected live growth-loop measurement to omit full audit disclosure id.",
+  );
+  try {
+    runtime.recordGrowthLoopEvent({
+      counterpartyRole: "counterparty",
+      eventType: "share_link_copied",
+      receiptId: "rcpt_unknown",
+    });
+    throw new Error("Expected unknown receipt growth-loop event to fail.");
+  } catch (error) {
+    assert(
+      String(error instanceof Error ? error.message : error).includes("Unknown receipt"),
+      "Expected unknown receipt growth-loop event guard.",
+    );
+  }
+  console.log("vanta-pay live growth-loop runtime measurement: PASS");
   console.log("vanta-pay payment completion: PASS");
 
   const evidenceRuntime = createVantaPayRuntime();
@@ -885,6 +991,23 @@ try {
       apiStatus.parsed?.privateSettlement?.reconciliationState === "merchant-visible",
       "Expected real Pay API status to expose merchant-visible reconciliation state.",
     );
+    assert(
+      apiStatus.parsed?.capabilities?.growthLoopLiveMeasurement ===
+        "redacted-first-party-claim-blocked",
+      "Expected Pay API status to expose claim-blocked live growth-loop measurement.",
+    );
+    assert(
+      apiStatus.parsed?.capabilities?.growthLoopAdoptionClaimAllowed === false,
+      "Expected Pay API status to keep growth-loop adoption claims locked.",
+    );
+    assert(
+      apiStatus.parsed?.endpoints?.includes("GET /v1/growth-loop/status"),
+      "Expected growth-loop status endpoint in Pay API status.",
+    );
+    assert(
+      apiStatus.parsed?.endpoints?.includes("POST /v1/growth-loop/events"),
+      "Expected growth-loop event endpoint in Pay API status.",
+    );
     console.log("vanta-pay api status: PASS");
 
     const malformedSessionResponse = await requestJson("/v1/checkout/sessions", {
@@ -1039,6 +1162,127 @@ try {
       "Expected repeated checkout completion to return the existing payment.",
     );
     console.log("vanta-pay api payment completion: PASS");
+
+    const growthLoopStatusAfterCompletion = await requestJson("/v1/growth-loop/status");
+    assert(
+      growthLoopStatusAfterCompletion.ok,
+      growthLoopStatusAfterCompletion.text || "Expected growth-loop status response.",
+    );
+    assert(
+      growthLoopStatusAfterCompletion.parsed?.schemaVersion ===
+        "vanta-pay-live-growth-loop-measurement-v0.1",
+      "Expected live growth-loop status schema.",
+    );
+    assert(
+      growthLoopStatusAfterCompletion.parsed?.measurementMode === "live-redacted-first-party",
+      "Expected live redacted measurement mode.",
+    );
+    assert(
+      growthLoopStatusAfterCompletion.parsed?.eventLedger?.liveMeasurementEnabled === true,
+      "Expected live measurement enabled in event ledger.",
+    );
+    assert(
+      growthLoopStatusAfterCompletion.parsed?.derivedCounters?.transactionCount7d === 1,
+      "Expected receipt_generated event after API checkout completion.",
+    );
+    assert(
+      growthLoopStatusAfterCompletion.parsed?.claimControls?.adoptionClaimAllowed === false,
+      "Expected live status to keep adoption claims locked.",
+    );
+    assert(
+      growthLoopStatusAfterCompletion.parsed?.claimControls?.productionReady === false,
+      "Expected live status to keep productionReady false.",
+    );
+    const copiedShareLink = await requestJson("/v1/growth-loop/events", {
+      body: JSON.stringify({
+        counterparty_role: "buyer",
+        event_type: "share_link_copied",
+        idempotency_key: "api-copy-share-link",
+        receipt_id: completed.parsed.receipt.id,
+      }),
+      method: "POST",
+    });
+    assert(copiedShareLink.ok, copiedShareLink.text || "Expected growth-loop event response.");
+    assert(
+      copiedShareLink.parsed?.event?.measurementSource === "pay-operator-live-redacted",
+      "Expected API growth-loop event to be redacted live measurement.",
+    );
+    assert(
+      copiedShareLink.parsed?.measurement?.derivedCounters?.invitedCounterparties7d === 1,
+      "Expected API growth-loop event to update invited counterparty count.",
+    );
+    const repeatedCopiedShareLink = await requestJson("/v1/growth-loop/events", {
+      body: JSON.stringify({
+        counterparty_role: "buyer",
+        event_type: "share_link_copied",
+        idempotency_key: "api-copy-share-link",
+        receipt_id: completed.parsed.receipt.id,
+      }),
+      method: "POST",
+    });
+    assert(
+      repeatedCopiedShareLink.parsed?.event?.eventId === copiedShareLink.parsed.event.eventId,
+      "Expected API growth-loop event idempotency.",
+    );
+    const verifierOpened = await requestJson("/v1/growth-loop/events", {
+      body: JSON.stringify({
+        counterparty_role: "counterparty",
+        event_type: "counterparty_verifier_opened",
+        idempotency_key: "api-verifier-opened",
+        receipt_id: completed.parsed.receipt.id,
+      }),
+      method: "POST",
+    });
+    assert(verifierOpened.ok, verifierOpened.text || "Expected verifier-opened event response.");
+    const nextPrivateSettlement = await requestJson("/v1/growth-loop/events", {
+      body: JSON.stringify({
+        counterparty_role: "counterparty",
+        event_type: "next_private_settlement_requested",
+        idempotency_key: "api-next-private-settlement",
+        receipt_id: completed.parsed.receipt.id,
+      }),
+      method: "POST",
+    });
+    assert(
+      nextPrivateSettlement.parsed?.measurement?.derivedCounters?.repeatedPrivateActions7d === 1,
+      "Expected API next private settlement request to count repeated action.",
+    );
+    const forbiddenGrowthLoopEvent = await requestJson("/v1/growth-loop/events", {
+      body: JSON.stringify({
+        customer_email: "buyer@example.com",
+        event_type: "counterparty_verifier_opened",
+        receipt_id: completed.parsed.receipt.id,
+      }),
+      method: "POST",
+    });
+    assert(!forbiddenGrowthLoopEvent.ok, "Expected forbidden growth-loop event field to fail.");
+    assert(
+      forbiddenGrowthLoopEvent.text.includes("redacted growth-loop event"),
+      forbiddenGrowthLoopEvent.text || "Expected forbidden field error.",
+    );
+    const growthLoopStatusAfterEvents = await requestJson("/v1/growth-loop/status");
+    const serializedGrowthLoopStatusAfterEvents = JSON.stringify(growthLoopStatusAfterEvents.parsed);
+    assert(
+      growthLoopStatusAfterEvents.parsed?.derivedCounters?.counterpartyVerifierOpened7d === 1,
+      "Expected API verifier open count.",
+    );
+    assert(
+      growthLoopStatusAfterEvents.parsed?.derivedCounters?.nextPrivateSettlementRequests7d === 1,
+      "Expected API next private settlement request count.",
+    );
+    assert(
+      !serializedGrowthLoopStatusAfterEvents.includes("buyer@example.com"),
+      "Expected API growth-loop status to omit customer email.",
+    );
+    assert(
+      !serializedGrowthLoopStatusAfterEvents.includes(completed.parsed.receipt.privateRailReceiptId),
+      "Expected API growth-loop status to omit full private rail receipt id.",
+    );
+    assert(
+      !serializedGrowthLoopStatusAfterEvents.includes(completed.parsed.receipt.auditDisclosureId),
+      "Expected API growth-loop status to omit full audit disclosure id.",
+    );
+    console.log("vanta-pay api live growth-loop measurement: PASS");
 
     const paymentDetail = await requestJson(`/v1/payments/${completed.parsed.payment.id}`);
     assert(paymentDetail.ok, paymentDetail.text || "Expected payment detail response.");
@@ -1345,6 +1589,10 @@ try {
       "Expected persisted Pay idempotency key.",
     );
     assert(writtenPayStore.receipts?.length === 1, "Expected persisted Pay receipt.");
+    assert(
+      writtenPayStore.growthLoopEvents?.length === 4,
+      "Expected persisted Pay growth-loop events.",
+    );
     console.log("vanta-pay api store schema: PASS");
 
     await stopServer(server);
@@ -1416,6 +1664,23 @@ try {
     assert(
       repeatedPersistedWithdrawal.parsed?.id === apiWithdrawal.parsed.id,
       "Expected withdrawal retry after API restart to return the persisted withdrawal.",
+    );
+    const persistedGrowthLoopStatus = await requestJson("/v1/growth-loop/status");
+    assert(
+      persistedGrowthLoopStatus.ok,
+      persistedGrowthLoopStatus.text || "Expected persisted growth-loop status response.",
+    );
+    assert(
+      persistedGrowthLoopStatus.parsed?.derivedCounters?.transactionCount7d === 1,
+      "Expected persisted growth-loop transaction count.",
+    );
+    assert(
+      persistedGrowthLoopStatus.parsed?.derivedCounters?.invitedCounterparties7d === 1,
+      "Expected persisted growth-loop invited counterparty count.",
+    );
+    assert(
+      persistedGrowthLoopStatus.parsed?.claimControls?.adoptionClaimAllowed === false,
+      "Expected persisted growth-loop status to keep adoption claims locked.",
     );
     console.log("vanta-pay api persistence: PASS");
   } finally {

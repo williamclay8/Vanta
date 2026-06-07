@@ -46,14 +46,16 @@ Vanta Pay now carries a counterparty-verifiable receipt growth loop:
 
 - schema: `vanta-pay-receipt-growth-loop-v0.1`
 - evidence schema: `vanta-pay-growth-loop-evidence-v0.1`
+- live measurement schema: `vanta-pay-live-growth-loop-measurement-v0.1`
 - command: `npm run pay:growth-loop-check`
+- live measurement endpoints: `GET /v1/growth-loop/status`, `POST /v1/growth-loop/events`
 - loop: private action -> trust packet ready -> counterparty verification -> invited use -> repeated private action
 - verifier route: `/receipt/:receiptId`
 - local fixture events: `receipt_generated`, `share_link_copied`, `counterparty_verifier_opened`, and `next_private_settlement_requested`
 - usage velocity: local fixture counters can be derived for 7d/30d volume, transaction, invited-counterparty, counterparty-verifier-open, next-private-settlement-request, and repeated-action counts
 - claim controls: production readiness, adoption, regulator approval, compliance assurance, and anonymity claims remain blocked
 
-This turns the receipt into the growth artifact without claiming live adoption. The current surface proves the beta trust-packet shape, counterparty verifier path, and fixture-only measurement contract. Live adoption claims remain blocked until reviewer-verifiable live evidence exists.
+This turns the receipt into the growth artifact without claiming live adoption. The receipt packet still proves the beta trust-packet shape, counterparty verifier path, and fixture-only measurement contract. The Pay operator can now measure live redacted first-party growth-loop events without storing customer email values, full private-rail receipt ids, full audit disclosure ids, private inputs, witness data, IP addresses, or user agents. Live adoption claims remain blocked until reviewer-verifiable live evidence exists.
 
 ## Rails
 

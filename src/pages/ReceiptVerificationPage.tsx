@@ -48,7 +48,9 @@ export function ReceiptVerificationPage() {
           <dt>Growth-loop event</dt>
           <dd>
             Opening this verifier is modeled as `counterparty_verifier_opened` in the local
-            evidence ledger. It is fixture evidence only; live adoption claims remain blocked.
+            evidence ledger. A configured Pay operator can also record the same event through POST
+            /v1/growth-loop/events as redacted first-party measurement; live adoption claims remain
+            blocked.
           </dd>
         </div>
         <div>
@@ -62,8 +64,9 @@ export function ReceiptVerificationPage() {
           <dt>Next private settlement</dt>
           <dd>
             The counterparty can request the next private settlement from the merchant. Local
-            fixture counters can model that loop, but live usage-velocity and adoption claims stay
-            blocked until reviewer-verifiable live evidence exists.
+            fixture counters can model that loop, and GET /v1/growth-loop/status can show redacted
+            operator counters. Usage-velocity and adoption claims stay blocked until reviewed live
+            evidence supports them.
           </dd>
         </div>
         <div>
