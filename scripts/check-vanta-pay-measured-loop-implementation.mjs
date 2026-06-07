@@ -81,9 +81,9 @@ assert.equal(packet.implementedSurfaces.publicAuditDiscovery, true);
 assert.equal(packet.implementedSurfaces.operatorStatusEndpoint, "GET /v1/growth-loop/status");
 assert.equal(packet.implementedSurfaces.eventIntakeEndpoint, "POST /v1/growth-loop/events");
 assert.equal(packet.implementedSurfaces.receiptVerifierSurface, "/receipt/:receiptId");
-assert.equal(packet.liveDeployReceipt.verifiedCommit, "b4ed0e46316c1ed06247fe710d4200b618ae19f4");
-assert.equal(packet.liveDeployReceipt.staticDeployId, "dep-d8icjspoagis73dah84g");
-assert.equal(packet.liveDeployReceipt.operatorDeployId, "dep-d8icjspoagis73dah720");
+assert.equal(packet.liveDeployReceipt.verifiedCommit, "db8b931e8554bcd63a4d3efc869f34d782ea125e");
+assert.equal(packet.liveDeployReceipt.staticDeployId, "dep-d8icv01oagis73dala20");
+assert.equal(packet.liveDeployReceipt.operatorDeployId, "dep-d8icv01oagis73dal8lg");
 assert.equal(packet.liveDeployReceipt.liveUrl, "https://vantaprivacy.xyz");
 assert.equal(packet.liveDeployReceipt.operatorUrl, "https://vanta-0wwi.onrender.com");
 assert.equal(packet.privacyBoundary.customerEmailStored, false);
@@ -158,8 +158,8 @@ requireMarkers("src/pay/vantaPayMeasuredLoopImplementation.ts", [
   "VANTA_PAY_MEASURED_LOOP_IMPLEMENTATION",
   "GET /v1/growth-loop/status",
   "POST /v1/growth-loop/events",
-  "dep-d8icjspoagis73dah84g",
-  "dep-d8icjspoagis73dah720",
+  "dep-d8icv01oagis73dala20",
+  "dep-d8icv01oagis73dal8lg",
 ]);
 requireMarkers("src/pay/vantaPayRuntime.ts", [
   "recordGrowthLoopEvent",

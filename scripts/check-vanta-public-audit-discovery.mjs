@@ -136,14 +136,14 @@ assert.equal(discovery.liveDeploymentVerified, false);
 // Keep crawler-visible deployment evidence refs-only and claim-bounded: this is
 // a public reviewer map, not a private-settlement or readiness attestation.
 assert.deepEqual(discovery.websiteDeployment, {
-  status: "last-verified-pay-live-measured-loop-deploy",
-  lastVerifiedCommit: "b4ed0e46316c1ed06247fe710d4200b618ae19f4",
-  lastVerifiedAt: "2026-06-07T01:34:02Z",
-  staticDeployId: "dep-d8icjspoagis73dah84g",
-  operatorDeployId: "dep-d8icjspoagis73dah720",
+  status: "last-verified-pay-measured-loop-implementation-deploy",
+  lastVerifiedCommit: "db8b931e8554bcd63a4d3efc869f34d782ea125e",
+  lastVerifiedAt: "2026-06-07T01:58:31Z",
+  staticDeployId: "dep-d8icv01oagis73dala20",
+  operatorDeployId: "dep-d8icv01oagis73dal8lg",
   liveUrl: "https://vantaprivacy.xyz",
   truthBoundary:
-    "This records the static website and Pay operator deploys that served the live redacted measured Pay growth loop for commit b4ed0e46316c1ed06247fe710d4200b618ae19f4 on 2026-06-07 UTC. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, and mainnet evidence remain blocked.",
+    "This records the static website and Pay operator deploys that served the Pay measured-loop implementation packet for commit db8b931e8554bcd63a4d3efc869f34d782ea125e on 2026-06-07 UTC. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, and mainnet evidence remain blocked.",
 });
 assert.equal(discovery.privacyClaimAllowed, false);
 assert.equal(discovery.anonymityClaimAllowed, false);
