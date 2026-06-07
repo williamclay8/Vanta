@@ -10,13 +10,13 @@
   "mainnetReady": false,
   "liveDeploymentVerified": true,
   "websiteDeployment": {
-    "status": "last-verified-product-suite-pages-deploy",
-    "lastVerifiedCommit": "acd6b95a991630b3426d67d24d61612a4dec19a0",
-    "lastVerifiedAt": "2026-06-07T20:15:16Z",
-    "staticDeployId": "dep-d8it0rv41pts739jnb6g",
-    "operatorDeployId": "dep-d8it0rv41pts739jn9ug",
+    "status": "last-verified-product-workbench-deploy",
+    "lastVerifiedCommit": "002b8febc54794d0bc0fb4dbb1d630fd194cb8a9",
+    "lastVerifiedAt": "2026-06-07T20:51:35Z",
+    "staticDeployId": "dep-d8itgt741pts739k0k50",
+    "operatorDeployId": "dep-d8itgt741pts739k0kvg",
     "liveUrl": "https://vantaprivacy.xyz",
-    "truthBoundary": "This records the static website and Pay operator deploys that served the product-suite website pages for commit acd6b95a991630b3426d67d24d61612a4dec19a0 on 2026-06-07 UTC, including live entry asset assets/index-zAH9nS_N.js. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, and mainnet evidence remain blocked."
+    "truthBoundary": "This records the static website and Pay operator deploys that served the product-workbench website pages for commit 002b8febc54794d0bc0fb4dbb1d630fd194cb8a9 on 2026-06-07 UTC, including live entry asset assets/index-DSZCtlde.js. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, generated-proof, real-funds, and mainnet evidence remain blocked."
   },
   "privacyClaimAllowed": false,
   "anonymityClaimAllowed": false,
