@@ -22,11 +22,27 @@ const VANTA_PAY_INSTITUTIONAL_DISCLOSURE_RECEIPT_DISCLOSED_FIELDS = [
   "asset",
   "amount",
   "invoice_reference",
+  "compliance_gateway_summary",
   "private_settlement_reference_prefix",
   "audit_disclosure_reference_prefix",
   "claim_boundary",
   "verification_commands",
 ] as const satisfies VantaPayInstitutionalDisclosureReceipt["disclosedFields"];
+const VANTA_PAY_COMPLIANCE_GATEWAY_SUMMARY = {
+  schemaVersion: "vanta-compliance-gateway-summary-v0.1",
+  supportedAttributes: ["amountAboveThreshold", "jurisdictionMatch"],
+  proofMaterialPubliclyDisclosed: false,
+  privateInputsDisclosed: false,
+  witnessDisclosed: false,
+  proofMode: "opening-stub-redacted-real-noir-adapter-pending",
+  realNoirAdapter: {
+    adapterId: "vanta-selective-disclosure-noir-v0.1",
+    circuitPath: "zk/noir/vanta_selective_disclosure",
+    status: "candidate-package-check-wired",
+  },
+  verificationCommand: "npm run compliance:gateway-check",
+  claimBoundary: "beta-selective-disclosure-not-production-private-or-regulator-approved",
+} as const satisfies VantaPayInstitutionalDisclosureReceipt["receiptRef"]["complianceGateway"];
 const VANTA_PAY_RECEIPT_GROWTH_LOOP_SCHEMA_VERSION =
   "vanta-pay-receipt-growth-loop-v0.1" as const;
 
@@ -90,6 +106,7 @@ export function buildVantaPayReceiptPublicView(
         "npm run pay:receipt-public-view-check",
         "npm run pay:receipt-privacy-contract-check",
         "npm run pay:institutional-disclosure-receipt-check",
+        "npm run compliance:gateway-check",
         "npm run pay:growth-loop-check",
         "npm run pay:measured-loop-implementation-check",
         "npm run pay:counterparty-activation-check",
@@ -122,6 +139,7 @@ export function buildVantaPayReceiptPublicView(
       regulatorScope: "time-and-scope-limited",
       expiresAt: createInstitutionalDisclosureExpiry(receipt.createdAt),
       disclosedFields: VANTA_PAY_INSTITUTIONAL_DISCLOSURE_RECEIPT_DISCLOSED_FIELDS,
+      complianceGateway: VANTA_PAY_COMPLIANCE_GATEWAY_SUMMARY,
       privateInputsDisclosed: false,
       witnessDisclosed: false,
       fullTransactionHistoryDisclosed: false,

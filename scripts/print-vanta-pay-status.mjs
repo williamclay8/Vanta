@@ -260,6 +260,46 @@ const committedCheckoutAcceptance = {
   },
   verificationCommand: "npm run pay:committed-checkout-acceptance-check",
 };
+const productExtensionGates = {
+  schemaVersion: "vanta-pay-product-extension-gates-v0.1",
+  object: "pay_product_extension_gates",
+  status: "wired-local-claim-blocked",
+  productionReady: false,
+  claimBoundary: "beta-five-products-extension-gates-not-production-private-or-mainnet-ready",
+  gates: [
+    {
+      id: "compliance-gateway",
+      surface: "Compliance Gateway selective disclosure",
+      command: "npm run compliance:gateway-check",
+    },
+    {
+      id: "shielded-rwa",
+      surface: "Shielded RWA public packet",
+      command: "npm run shielded-rwa:check",
+    },
+    {
+      id: "privacy-sdk",
+      surface: "Privacy SDK primitives and adapters",
+      command: "npm run privacy-sdk:check",
+    },
+    {
+      id: "velocity-intelligence",
+      surface: "Private Velocity Intelligence",
+      command: "npm run velocity-intelligence:check",
+    },
+    {
+      id: "phase2-proof-requests",
+      surface: "Phase 2 product proof request bridge",
+      command: "npm run zk:phase2-product-proof-requests-check",
+    },
+  ],
+  forbiddenClaims: [
+    "production private",
+    "regulator approved",
+    "audited proof",
+    "live mainnet private settlement",
+  ],
+};
 
 const result = {
   capabilities: {
@@ -304,6 +344,7 @@ const result = {
   measuredLoopImplementation,
   counterpartyActivation,
   committedCheckoutAcceptance,
+  productExtensionGates,
   storage: {
     kind: process.env.VANTA_PAY_DATABASE_URL
       ? "postgres-jsonb-snapshot-store"
@@ -327,6 +368,11 @@ const result = {
     "pay:receipt-privacy-contract-check",
     "pay:receipt-public-view-check",
     "pay:institutional-disclosure-receipt-check",
+    "compliance:gateway-check",
+    "shielded-rwa:check",
+    "privacy-sdk:check",
+    "velocity-intelligence:check",
+    "zk:phase2-product-proof-requests-check",
     "pay:growth-loop-check",
     "pay:measured-loop-implementation-check",
     "pay:counterparty-activation-check",
@@ -368,6 +414,12 @@ if (jsonMode) {
   console.log(
     "- institutional disclosure receipt: npm run pay:institutional-disclosure-receipt-check",
   );
+  console.log(
+    `- product extension gates: status=${result.productExtensionGates.status}, productionReady=${String(result.productExtensionGates.productionReady)}`,
+  );
+  for (const gate of result.productExtensionGates.gates) {
+    console.log(`  - ${gate.id}: ${gate.command}`);
+  }
   console.log("- receipt growth loop: npm run pay:growth-loop-check");
   console.log(
     `- growth loop evidence: invitedCounterparties7d=${result.growthLoopEvidence.derivedCounters.invitedCounterparties7d}, repeatedPrivateActions7d=${result.growthLoopEvidence.derivedCounters.repeatedPrivateActions7d}, liveMeasurementEnabled=${String(result.growthLoopEvidence.liveMeasurementEnabled)}`,

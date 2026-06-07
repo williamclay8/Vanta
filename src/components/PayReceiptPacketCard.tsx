@@ -216,7 +216,13 @@ export function PayReceiptPacketCard({
             {publicView.institutionalDisclosure.regulatorScope}. Disclosure expires{" "}
             {publicView.institutionalDisclosure.expiresAt}. Private inputs disclosed:{" "}
             {String(publicView.institutionalDisclosure.privateInputsDisclosed)}. Witness disclosed:{" "}
-            {String(publicView.institutionalDisclosure.witnessDisclosed)}.
+            {String(publicView.institutionalDisclosure.witnessDisclosed)}. Gateway check:{" "}
+            {publicView.institutionalDisclosure.complianceGateway.verificationCommand}. Gateway proof
+            material public:{" "}
+            {String(
+              publicView.institutionalDisclosure.complianceGateway
+                .proofMaterialPubliclyDisclosed,
+            )}.
           </dd>
         </div>
         <div>

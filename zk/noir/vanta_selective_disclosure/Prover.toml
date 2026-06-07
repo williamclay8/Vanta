@@ -1,0 +1,6 @@
+amount = "150"
+threshold = "100"
+jurisdiction = "1" # e.g. 1 for US
+expected_jurisdiction = "1"
+blinding = "123456789"
+commitment = "0" # will be computed, but for example

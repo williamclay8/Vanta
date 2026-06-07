@@ -42,6 +42,37 @@ assert.equal(status.productionReady, false);
 assert.equal(status.mainnetReady, false);
 assert.equal(status.strictReadyGateCommand, "npm run pay:production-readiness-check");
 assert.equal(status.payStatus.productionReady, false);
+assert.equal(status.payStatus.productExtensionGates.schemaVersion, "vanta-pay-product-extension-gates-v0.1");
+assert.equal(status.payStatus.productExtensionGates.status, "wired-local-claim-blocked");
+assert.equal(status.payStatus.productExtensionGates.productionReady, false);
+assert.equal(
+  status.payStatus.productExtensionGates.claimBoundary,
+  "beta-five-products-extension-gates-not-production-private-or-mainnet-ready",
+);
+for (const command of [
+  "npm run compliance:gateway-check",
+  "npm run shielded-rwa:check",
+  "npm run privacy-sdk:check",
+  "npm run velocity-intelligence:check",
+  "npm run zk:phase2-product-proof-requests-check",
+]) {
+  assert.ok(
+    status.payStatus.productExtensionGates.gates.some((gate) => gate.command === command),
+    `Pay status product extension gates must include ${command}.`,
+  );
+}
+for (const command of [
+  "compliance:gateway-check",
+  "shielded-rwa:check",
+  "privacy-sdk:check",
+  "velocity-intelligence:check",
+  "zk:phase2-product-proof-requests-check",
+]) {
+  assert.ok(
+    status.payStatus.verificationCommands.includes(command),
+    `Pay status verificationCommands must include ${command}.`,
+  );
+}
 assert.equal(status.payStatus.privateSettlement.checkoutProofBoundary, "hidden-economics-request");
 assert.equal(status.payStatus.privateSettlement.checkoutCompletionAuth, "internal-settlement-token-only");
 assert.equal(status.payStatus.privateSettlement.checkoutCompletionDefaultBasis, "local-test-harness");

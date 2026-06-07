@@ -1,0 +1,8 @@
+velocity_sum = "450000"
+threshold = "300000"
+period_start = "0"
+period_end = "86400" # 24h example
+jurisdiction = "1"
+accredited = "1"
+blinding = "987654321"
+velocity_commitment = "0" # computed in circuit

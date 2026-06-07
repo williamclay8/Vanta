@@ -14,11 +14,28 @@ export const VANTA_PAY_INSTITUTIONAL_DISCLOSURE_RECEIPT_DISCLOSED_FIELDS = [
   "asset",
   "amount",
   "invoice_reference",
+  "compliance_gateway_summary",
   "private_settlement_reference_prefix",
   "audit_disclosure_reference_prefix",
   "claim_boundary",
   "verification_commands",
 ] as const satisfies VantaPayInstitutionalDisclosureReceipt["disclosedFields"];
+
+export const VANTA_PAY_COMPLIANCE_GATEWAY_SUMMARY = {
+  schemaVersion: "vanta-compliance-gateway-summary-v0.1",
+  supportedAttributes: ["amountAboveThreshold", "jurisdictionMatch"],
+  proofMaterialPubliclyDisclosed: false,
+  privateInputsDisclosed: false,
+  witnessDisclosed: false,
+  proofMode: "opening-stub-redacted-real-noir-adapter-pending",
+  realNoirAdapter: {
+    adapterId: "vanta-selective-disclosure-noir-v0.1",
+    circuitPath: "zk/noir/vanta_selective_disclosure",
+    status: "candidate-package-check-wired",
+  },
+  verificationCommand: "npm run compliance:gateway-check",
+  claimBoundary: "beta-selective-disclosure-not-production-private-or-regulator-approved",
+} as const satisfies VantaPayInstitutionalDisclosureReceipt["receiptRef"]["complianceGateway"];
 
 function redactReference(id: string | null): VantaPayReceiptRedactedReference {
   if (!id) {
@@ -52,6 +69,7 @@ export function buildVantaPayInstitutionalDisclosureReceipt(
       amount: receipt.amount,
       asset: receipt.asset,
       auditDisclosure: redactReference(receipt.auditDisclosureId),
+      complianceGateway: VANTA_PAY_COMPLIANCE_GATEWAY_SUMMARY,
       invoiceReference: receipt.invoiceReference,
       paymentId: receipt.paymentId,
       privateSettlementReference: redactReference(receipt.privateRailReceiptId),
@@ -84,6 +102,7 @@ export function buildVantaPayInstitutionalDisclosureReceipt(
       claimBoundary: "beta-selective-disclosure-not-production-private-or-regulator-approved",
       commands: [
         "npm run pay:institutional-disclosure-receipt-check",
+        "npm run compliance:gateway-check",
         "npm run institutional-lane-check",
         "npm run pay:receipt-public-view-check",
       ],

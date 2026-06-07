@@ -69,6 +69,7 @@ assert.deepEqual(disclosureReceipt.disclosedFields, [
   "asset",
   "amount",
   "invoice_reference",
+  "compliance_gateway_summary",
   "private_settlement_reference_prefix",
   "audit_disclosure_reference_prefix",
   "claim_boundary",
@@ -86,6 +87,7 @@ assert.equal(disclosureReceipt.claimControls.complianceSafeClaimAllowed, false);
 assert.equal(disclosureReceipt.claimControls.anonymityClaimAllowed, false);
 assert.deepEqual(disclosureReceipt.verification.commands, [
   "npm run pay:institutional-disclosure-receipt-check",
+  "npm run compliance:gateway-check",
   "npm run institutional-lane-check",
   "npm run pay:receipt-public-view-check",
 ]);
@@ -106,6 +108,20 @@ assert.equal(publicView.institutionalDisclosure.productionReady, false);
 assert.equal(
   publicView.institutionalDisclosure.verificationCommand,
   "npm run pay:institutional-disclosure-receipt-check",
+);
+assert.equal(
+  disclosureReceipt.receiptRef.complianceGateway.verificationCommand,
+  "npm run compliance:gateway-check",
+);
+assert.equal(
+  disclosureReceipt.receiptRef.complianceGateway.proofMaterialPubliclyDisclosed,
+  false,
+);
+assert.equal(publicView.institutionalDisclosure.complianceGateway.privateInputsDisclosed, false);
+assert.equal(publicView.institutionalDisclosure.complianceGateway.witnessDisclosed, false);
+assert.equal(
+  publicView.institutionalDisclosure.complianceGateway.realNoirAdapter.circuitPath,
+  "zk/noir/vanta_selective_disclosure",
 );
 assert.ok(
   publicView.verification.commands.includes("npm run pay:institutional-disclosure-receipt-check"),
@@ -129,6 +145,7 @@ requireMarkers("src/pay/vantaPayTypes.ts", [
   "witnessDisclosed",
   "regulatorApprovalClaimAllowed",
   "complianceSafeClaimAllowed",
+  "VantaPayComplianceGatewaySummary",
 ]);
 requireMarkers("src/pay/vantaPayInstitutionalDisclosureReceipt.ts", [
   "vanta-pay-institutional-disclosure-receipt-v0.1",
@@ -136,17 +153,20 @@ requireMarkers("src/pay/vantaPayInstitutionalDisclosureReceipt.ts", [
   "beta-selective-disclosure-not-production-private-or-regulator-approved",
   "privateInputsDisclosed: false",
   "witnessDisclosed: false",
+  "npm run compliance:gateway-check",
 ]);
 requireMarkers("src/pay/vantaPayReceiptPublicView.ts", [
   "VANTA_PAY_INSTITUTIONAL_DISCLOSURE_RECEIPT_SCHEMA_VERSION",
   "receiptSchemaVersion",
   "npm run pay:institutional-disclosure-receipt-check",
+  "vanta-compliance-gateway-summary-v0.1",
 ]);
 requireMarkers("src/components/PayReceiptPacketCard.tsx", [
   "Selective disclosure receipt",
   "Disclosure expires",
   "Private inputs disclosed",
   "Witness disclosed",
+  "Gateway check",
   "publicView.institutionalDisclosure.receiptSchemaVersion",
 ]);
 requireMarkers("operator/pay-server.mjs", [
@@ -174,9 +194,21 @@ assert.equal(
 );
 assert.ok(
   packageJson.scripts?.["twitter-intelligence:check"]?.includes(
+    "npm run compliance:gateway-check",
+  ),
+  "twitter-intelligence:check must include the Compliance Gateway gate",
+);
+assert.ok(
+  packageJson.scripts?.["twitter-intelligence:check"]?.includes(
     "npm run pay:institutional-disclosure-receipt-check",
   ),
   "twitter-intelligence:check must include the Pay institutional disclosure receipt gate",
+);
+assert.ok(
+  packageJson.scripts?.["pay:verify"]?.includes(
+    "npm run compliance:gateway-check",
+  ),
+  "pay:verify must include the Compliance Gateway gate",
 );
 assert.ok(
   packageJson.scripts?.["pay:verify"]?.includes(

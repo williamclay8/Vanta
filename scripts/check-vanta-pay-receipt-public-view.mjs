@@ -64,11 +64,20 @@ assert.equal(
   publicView.institutionalDisclosure.verificationCommand,
   "npm run pay:institutional-disclosure-receipt-check",
 );
+assert.equal(
+  publicView.institutionalDisclosure.complianceGateway.verificationCommand,
+  "npm run compliance:gateway-check",
+);
+assert.equal(
+  publicView.institutionalDisclosure.complianceGateway.proofMaterialPubliclyDisclosed,
+  false,
+);
 assert.equal(publicView.verification.claimBoundary, "receipt-backed-test-settlement-not-production-private");
 assert.deepEqual(publicView.verification.commands, [
   "npm run pay:receipt-public-view-check",
   "npm run pay:receipt-privacy-contract-check",
   "npm run pay:institutional-disclosure-receipt-check",
+  "npm run compliance:gateway-check",
   "npm run pay:growth-loop-check",
   "npm run pay:measured-loop-implementation-check",
   "npm run pay:counterparty-activation-check",
