@@ -1,10 +1,11 @@
 import type {
   VantaPayInstitutionalDisclosureReceipt,
   VantaPayReceipt,
-  VantaPayReceiptGrowthLoop,
   VantaPayReceiptPublicView,
   VantaPayReceiptRedactedReference,
 } from "./vantaPayTypes";
+// @ts-expect-error Node-based Pay checks import this TS source directly and need the explicit suffix.
+import { buildVantaPayGrowthLoopEvidence } from "./vantaPayGrowthLoopEvidence.ts";
 
 export const VANTA_PAY_RECEIPT_PUBLIC_VIEW_VERSION =
   "vanta-pay-receipt-public-view-0.1" as const;
@@ -48,18 +49,7 @@ function createInstitutionalDisclosureExpiry(createdAt: string): string {
 export function buildVantaPayReceiptPublicView(
   receipt: VantaPayReceipt,
 ): VantaPayReceiptPublicView {
-  const growthLoopUsageVelocity: VantaPayReceiptGrowthLoop["usageVelocity"] = {
-    primitive: "Pay",
-    evidenceStatus: "red-first-no-live-measurement",
-    metricSurface: "npm run usage-velocity-check",
-    volume7dUsd: 0,
-    volume30dUsd: 0,
-    transactionCount7d: 0,
-    transactionCount30d: 0,
-    invitedCounterparties7d: 0,
-    repeatedPrivateActions7d: 0,
-    claimLiftBlockedUntilMeasured: true,
-  };
+  const growthLoopEvidence = buildVantaPayGrowthLoopEvidence(receipt);
 
   return {
     amount: receipt.amount,
@@ -148,7 +138,19 @@ export function buildVantaPayReceiptPublicView(
         liveUsageMeasured: false,
         repeatIntent: "counterparty_can_request_next_private_settlement",
       },
-      usageVelocity: growthLoopUsageVelocity,
+      usageVelocity: {
+        primitive: "Pay",
+        evidenceStatus: "local-fixture-measured-claim-blocked",
+        metricSurface: "npm run usage-velocity-check",
+        volume7dUsd: growthLoopEvidence.derivedCounters.volume7dUsd,
+        volume30dUsd: growthLoopEvidence.derivedCounters.volume30dUsd,
+        transactionCount7d: growthLoopEvidence.derivedCounters.transactionCount7d,
+        transactionCount30d: growthLoopEvidence.derivedCounters.transactionCount30d,
+        invitedCounterparties7d: growthLoopEvidence.derivedCounters.invitedCounterparties7d,
+        repeatedPrivateActions7d: growthLoopEvidence.derivedCounters.repeatedPrivateActions7d,
+        claimLiftBlockedUntilMeasured: true,
+      },
+      evidence: growthLoopEvidence,
       productionReady: false,
     },
     version: VANTA_PAY_RECEIPT_PUBLIC_VIEW_VERSION,

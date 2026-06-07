@@ -1,11 +1,16 @@
 import { execFileSync, spawn } from "node:child_process";
-import { existsSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import WebSocket from "ws";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
 const port = 4230 + Math.floor(Math.random() * 200);
 const baseUrl = `http://127.0.0.1:${port}`;
+const chromeForTestingPath = path.join(
+  os.homedir(),
+  ".gsd-browser/chromium/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+);
 
 function requireSourceMarkers(relativePath, markers) {
   const absolutePath = path.resolve(repoRoot, relativePath);
@@ -43,6 +48,7 @@ function verifyReceiptPacketCardSource() {
     "data-vanta-pay-receipt-merchant",
     "data-vanta-pay-receipt-printable",
     "data-vanta-pay-growth-loop",
+    "data-vanta-pay-growth-loop-evidence",
     "data-vanta-pay-institutional-disclosure",
     'data-pay-action="copy-receipt-share-link"',
     'data-pay-action="print-receipt-packet"',
@@ -51,7 +57,10 @@ function verifyReceiptPacketCardSource() {
     "publicView.growthLoop.counterpartyVerification.verificationCommand",
     "Selective disclosure receipt",
     "Growth loop",
+    "Local evidence ledger",
     "Counterparty verification",
+    "Counterparty verifier opens 7d",
+    "Next private settlement requests 7d",
     "Invited use",
     "Repeated private action",
     "Disclosure expires",
@@ -70,7 +79,11 @@ function verifyReceiptPacketCardSource() {
   ]);
   requireSourceMarkers("src/pages/ReceiptVerificationPage.tsx", [
     "data-vanta-pay-receipt-verify-page",
+    "data-vanta-pay-counterparty-verifier",
+    "data-vanta-pay-growth-loop-counterparty-event",
     "Receipt verification preview",
+    "counterparty_verifier_opened",
+    "Next private settlement",
     "Receipt-backed test settlement; production privacy is not enabled.",
     "Production privacy is not enabled",
     "No production funds moved. Test receipt only.",
@@ -105,8 +118,8 @@ async function waitForVite() {
   throw new Error("Vanta dev server did not become ready for browser verification.");
 }
 
-function runBrowserBatch() {
-  const steps = [
+function buildPayBrowserSteps() {
+  return [
     { action: "navigate", url: `${baseUrl}/app/pay` },
     { action: "wait_for", condition: "network_idle" },
     {
@@ -271,7 +284,10 @@ function runBrowserBatch() {
         { kind: "text_visible", text: "Kept private" },
         { kind: "text_visible", text: "Verified by" },
         { kind: "text_visible", text: "Growth loop" },
+        { kind: "text_visible", text: "Local evidence ledger" },
         { kind: "text_visible", text: "Counterparty verification" },
+        { kind: "text_visible", text: "Counterparty verifier opens 7d" },
+        { kind: "text_visible", text: "Next private settlement requests 7d" },
         { kind: "text_visible", text: "Invited use" },
         { kind: "text_visible", text: "Repeated private action" },
         { kind: "text_visible", text: "npm run pay:growth-loop-check" },
@@ -291,6 +307,7 @@ function runBrowserBatch() {
         { kind: "selector_visible", selector: "[data-vanta-pay-receipt-merchant]" },
         { kind: "selector_visible", selector: "[data-vanta-pay-receipt-printable]" },
         { kind: "selector_visible", selector: "[data-vanta-pay-growth-loop]" },
+        { kind: "selector_visible", selector: "[data-vanta-pay-growth-loop-evidence]" },
         { kind: "selector_visible", selector: "[data-vanta-pay-institutional-disclosure]" },
         {
           kind: "selector_visible",
@@ -318,11 +335,490 @@ function runBrowserBatch() {
         { kind: "no_console_errors" },
       ],
     },
+    { action: "click", selector: "[data-vanta-pay-receipt-verify-link]" },
+    { action: "wait_for", condition: "url_contains", value: "/receipt/" },
+    {
+      action: "assert",
+      checks: [
+        { kind: "url_contains", text: "/receipt/" },
+        { kind: "text_visible", text: "Counterparty verifier" },
+        { kind: "text_visible", text: "Verify receipt" },
+        { kind: "text_visible", text: "Receipt verification preview" },
+        { kind: "text_visible", text: "shareable Pay trust-packet" },
+        { kind: "text_visible", text: "Receipt" },
+        { kind: "text_visible", text: "Growth-loop event" },
+        { kind: "text_visible", text: "counterparty_verifier_opened" },
+        { kind: "text_visible", text: "Next private settlement" },
+        { kind: "text_visible", text: "local fixture counters" },
+        { kind: "text_visible", text: "live usage-velocity and adoption claims stay" },
+        { kind: "text_visible", text: "npm run pay:growth-loop-check" },
+        { kind: "text_visible", text: "npm run pay:verify" },
+        { kind: "text_visible", text: "Production privacy is not enabled" },
+        { kind: "text_visible", text: "No production funds moved. Test receipt only." },
+        { kind: "selector_visible", selector: "[data-vanta-pay-counterparty-verifier]" },
+        { kind: "selector_visible", selector: "[data-vanta-pay-receipt-verify-page]" },
+        { kind: "selector_visible", selector: "[data-vanta-pay-growth-loop-counterparty-event]" },
+        { kind: "no_console_errors" },
+      ],
+    },
   ];
+}
 
+function runBrowserBatch() {
+  const steps = buildPayBrowserSteps();
   execFileSync("gsd-browser", ["batch", "--steps", JSON.stringify(steps), "--summary-only"], {
     stdio: "pipe",
   });
+}
+
+function isDaemonStartupError(error) {
+  const message = [
+    error instanceof Error ? error.message : String(error),
+    String(error?.stdout ?? ""),
+    String(error?.stderr ?? ""),
+  ].join("\n");
+
+  return (
+    message.includes("daemon exited during startup") ||
+    message.includes("daemon did not start within 10s") ||
+    message.includes("Timeout while resolving websocket URL")
+  );
+}
+
+function delay(ms) {
+  return new Promise((resolvePromise) => {
+    setTimeout(resolvePromise, ms);
+  });
+}
+
+function withTimeout(promise, ms, label) {
+  let timeout;
+  return Promise.race([
+    promise.finally(() => {
+      clearTimeout(timeout);
+    }),
+    new Promise((_, reject) => {
+      timeout = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+    }),
+  ]);
+}
+
+function describeStep(step) {
+  if (step.action === "assert") {
+    return `${step.action}(${step.checks.length} checks)`;
+  }
+  if (step.selector) {
+    return `${step.action}(${step.selector})`;
+  }
+  if (step.value) {
+    return `${step.action}(${step.condition}:${step.value})`;
+  }
+  if (step.url) {
+    return `${step.action}(${step.url})`;
+  }
+
+  return step.action;
+}
+
+function launchCdpChrome() {
+  if (!existsSync(chromeForTestingPath)) {
+    throw new Error(`Missing Chrome for Testing binary at ${chromeForTestingPath}`);
+  }
+
+  const userDataDir = mkdtempSync(path.join(os.tmpdir(), "vanta-pay-cdp-"));
+  const browser = spawn(
+    chromeForTestingPath,
+    [
+      "--headless=new",
+      "--disable-crash-reporter",
+      "--disable-crashpad",
+      "--disable-breakpad",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-gpu",
+      "--hide-scrollbars",
+      "--mute-audio",
+      "--remote-debugging-port=0",
+      "--remote-allow-origins=*",
+      `--user-data-dir=${userDataDir}`,
+      "about:blank",
+    ],
+    {
+      detached: true,
+      stdio: "ignore",
+    },
+  );
+  browser.unref();
+
+  return { browser, userDataDir };
+}
+
+async function waitForDevtoolsPort(userDataDir) {
+  const devtoolsFile = path.join(userDataDir, "DevToolsActivePort");
+
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    try {
+      const [port] = readFileSync(devtoolsFile, "utf8").trim().split(/\n/);
+      if (port) {
+        return port;
+      }
+    } catch {
+      // Chrome has not written the DevToolsActivePort file yet.
+    }
+
+    await delay(100);
+  }
+
+  throw new Error("Chrome CDP fallback did not expose DevToolsActivePort.");
+}
+
+async function readChromeJson(url, options, label) {
+  const response = await withTimeout(fetch(url, options), 5000, label);
+  if (!response.ok) {
+    throw new Error(`${label} returned HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function createCdpPageWebSocketUrl(cdpPort) {
+  const targetUrl = `http://127.0.0.1:${cdpPort}/json/new?${encodeURIComponent("about:blank")}`;
+  let pageTarget;
+
+  try {
+    pageTarget = await readChromeJson(targetUrl, { method: "PUT" }, "Chrome CDP page target");
+  } catch {
+    pageTarget = await readChromeJson(targetUrl, undefined, "Chrome CDP page target");
+  }
+
+  if (!pageTarget.webSocketDebuggerUrl) {
+    throw new Error("Chrome CDP page target did not return a websocket URL.");
+  }
+
+  return pageTarget.webSocketDebuggerUrl;
+}
+
+function connectCdp(webSocketUrl) {
+  const socket = new WebSocket(webSocketUrl);
+  let nextId = 1;
+  const pending = new Map();
+  const consoleErrors = [];
+
+  function rejectPending(error) {
+    for (const { reject } of pending.values()) {
+      reject(error);
+    }
+    pending.clear();
+  }
+
+  socket.on("message", async (data) => {
+    let payload = data;
+    if (payload instanceof ArrayBuffer) {
+      payload = new TextDecoder().decode(payload);
+    } else if (Buffer.isBuffer(payload)) {
+      payload = payload.toString("utf8");
+    } else if (Array.isArray(payload)) {
+      payload = Buffer.concat(payload).toString("utf8");
+    } else if (ArrayBuffer.isView(payload)) {
+      payload = new TextDecoder().decode(payload);
+    } else if (typeof Blob !== "undefined" && payload instanceof Blob) {
+      payload = await payload.text();
+    }
+
+    let message;
+    try {
+      message = JSON.parse(String(payload));
+    } catch (error) {
+      rejectPending(error);
+      return;
+    }
+
+    if (message.id && pending.has(message.id)) {
+      const { reject, resolve } = pending.get(message.id);
+      pending.delete(message.id);
+      if (message.error) {
+        reject(new Error(`${message.error.message}: ${message.error.data ?? ""}`));
+      } else {
+        resolve(message.result ?? {});
+      }
+      return;
+    }
+
+    if (message.method === "Runtime.consoleAPICalled" && message.params?.type === "error") {
+      consoleErrors.push("console.error");
+    }
+    if (message.method === "Runtime.exceptionThrown") {
+      consoleErrors.push(message.params?.exceptionDetails?.text ?? "Runtime exception");
+    }
+    if (message.method === "Log.entryAdded" && message.params?.entry?.level === "error") {
+      consoleErrors.push(message.params.entry.text ?? "Log error");
+    }
+  });
+
+  return new Promise((resolvePromise, rejectPromise) => {
+    let opened = false;
+
+    socket.once("open", () => {
+      opened = true;
+      resolvePromise({
+        close() {
+          socket.close();
+        },
+        consoleErrors,
+        send(method, params = {}, sessionId = undefined) {
+          const id = nextId;
+          nextId += 1;
+          const payload = sessionId ? { id, method, params, sessionId } : { id, method, params };
+
+          const commandPromise = new Promise((resolve, reject) => {
+            pending.set(id, { reject, resolve });
+            if (socket.readyState !== WebSocket.OPEN) {
+              pending.delete(id);
+              reject(new Error(`CDP websocket is not open for ${method}.`));
+              return;
+            }
+
+            socket.send(JSON.stringify(payload), (error) => {
+              if (error) {
+                pending.delete(id);
+                reject(error);
+              }
+            });
+          }).finally(() => {
+            pending.delete(id);
+          });
+
+          return withTimeout(commandPromise, 5000, `CDP ${method}`);
+        },
+      });
+    });
+    socket.on("error", () => {
+      const error = new Error("Could not open Chrome CDP websocket.");
+      if (!opened) {
+        rejectPromise(error);
+      }
+      rejectPending(error);
+    });
+    socket.on("close", () => {
+      rejectPending(new Error("Chrome CDP websocket closed before command completed."));
+    });
+  });
+}
+
+async function enableCdpPage(cdp) {
+  await cdp.send("Page.enable");
+  await cdp.send("Runtime.enable");
+  await cdp.send("DOM.enable");
+  await cdp.send("Log.enable");
+}
+
+async function evaluateCdp(cdp, sessionId, expression, awaitPromise = false) {
+  const result = await cdp.send(
+    "Runtime.evaluate",
+    {
+      awaitPromise,
+      expression,
+      returnByValue: true,
+    },
+    sessionId,
+  );
+
+  if (result.exceptionDetails) {
+    throw new Error(result.exceptionDetails.text ?? "CDP evaluation failed.");
+  }
+
+  return result.result?.value;
+}
+
+async function waitForCdpPredicate(cdp, sessionId, predicateExpression, label, timeoutMs = 5000) {
+  const startedAt = Date.now();
+  let lastValue = null;
+
+  while (Date.now() - startedAt < timeoutMs) {
+    lastValue = await evaluateCdp(cdp, sessionId, predicateExpression);
+    if (lastValue) {
+      return;
+    }
+
+    await delay(100);
+  }
+
+  throw new Error(`CDP fallback timed out waiting for ${label}; last value: ${String(lastValue)}`);
+}
+
+function visibleSelectorExpression(selector) {
+  return `(() => {
+    const element = document.querySelector(${JSON.stringify(selector)});
+    if (!(element instanceof HTMLElement || element instanceof SVGElement)) return false;
+    const style = window.getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+    return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+  })()`;
+}
+
+function bodyTextIncludesExpression(text) {
+  return `document.body.innerText.includes(${JSON.stringify(text)})`;
+}
+
+async function runCdpCheck(cdp, sessionId, check) {
+  if (check.kind === "url_contains") {
+    await waitForCdpPredicate(
+      cdp,
+      sessionId,
+      `location.href.includes(${JSON.stringify(check.text)})`,
+      `URL containing ${check.text}`,
+    );
+    return;
+  }
+  if (check.kind === "text_visible") {
+    await waitForCdpPredicate(cdp, sessionId, bodyTextIncludesExpression(check.text), check.text);
+    return;
+  }
+  if (check.kind === "text_hidden") {
+    const visible = await evaluateCdp(cdp, sessionId, bodyTextIncludesExpression(check.text));
+    if (visible) {
+      throw new Error(`Text should be hidden in CDP fallback: ${check.text}`);
+    }
+    return;
+  }
+  if (check.kind === "selector_visible") {
+    await waitForCdpPredicate(
+      cdp,
+      sessionId,
+      visibleSelectorExpression(check.selector),
+      check.selector,
+    );
+    return;
+  }
+  if (check.kind === "selector_hidden") {
+    const visible = await evaluateCdp(cdp, sessionId, visibleSelectorExpression(check.selector));
+    if (visible) {
+      throw new Error(`Selector should be hidden in CDP fallback: ${check.selector}`);
+    }
+    return;
+  }
+  if (check.kind === "no_console_errors") {
+    if (cdp.consoleErrors.length > 0) {
+      throw new Error(`Console errors in CDP fallback: ${cdp.consoleErrors.join("; ")}`);
+    }
+    return;
+  }
+
+  throw new Error(`Unsupported CDP fallback check: ${JSON.stringify(check)}`);
+}
+
+async function runCdpStep(cdp, sessionId, step) {
+  if (step.action === "navigate") {
+    await cdp.send("Page.navigate", { url: step.url }, sessionId);
+    await waitForCdpPredicate(
+      cdp,
+      sessionId,
+      `document.readyState === "complete" || document.readyState === "interactive"`,
+      `navigation to ${step.url}`,
+      10000,
+    );
+    await delay(350);
+    return;
+  }
+  if (step.action === "wait_for") {
+    if (step.condition === "network_idle") {
+      await delay(750);
+      return;
+    }
+    if (step.condition === "text_visible") {
+      await waitForCdpPredicate(cdp, sessionId, bodyTextIncludesExpression(step.value), step.value);
+      return;
+    }
+    if (step.condition === "url_contains") {
+      await waitForCdpPredicate(
+        cdp,
+        sessionId,
+        `location.href.includes(${JSON.stringify(step.value)})`,
+        `URL containing ${step.value}`,
+      );
+      return;
+    }
+  }
+  if (step.action === "assert") {
+    for (const check of step.checks) {
+      await runCdpCheck(cdp, sessionId, check);
+    }
+    return;
+  }
+  if (step.action === "click") {
+    await waitForCdpPredicate(cdp, sessionId, visibleSelectorExpression(step.selector), step.selector);
+    await evaluateCdp(
+      cdp,
+      sessionId,
+      `(() => {
+        const element = document.querySelector(${JSON.stringify(step.selector)});
+        element.scrollIntoView({ block: "center", inline: "center" });
+        element.click();
+        return true;
+      })()`,
+    );
+    await delay(250);
+    return;
+  }
+  if (step.action === "type") {
+    await waitForCdpPredicate(cdp, sessionId, visibleSelectorExpression(step.selector), step.selector);
+    await evaluateCdp(
+      cdp,
+      sessionId,
+      `(() => {
+        const element = document.querySelector(${JSON.stringify(step.selector)});
+        element.focus();
+        element.value = String(element.value ?? "") + ${JSON.stringify(step.text)};
+        element.dispatchEvent(new Event("input", { bubbles: true }));
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+        return true;
+      })()`,
+    );
+    await delay(150);
+    return;
+  }
+
+  throw new Error(`Unsupported CDP fallback step: ${JSON.stringify(step)}`);
+}
+
+async function runBrowserBatchWithCdpFallback() {
+  const { browser, userDataDir } = launchCdpChrome();
+  let cdp = null;
+
+  try {
+    const cdpPort = await waitForDevtoolsPort(userDataDir);
+    const webSocketUrl = await createCdpPageWebSocketUrl(cdpPort);
+    cdp = await withTimeout(
+      connectCdp(webSocketUrl),
+      10000,
+      "Chrome CDP websocket open",
+    );
+    await withTimeout(enableCdpPage(cdp), 15000, "CDP page enable");
+
+    const steps = buildPayBrowserSteps();
+    for (const [index, step] of steps.entries()) {
+      const label = `CDP fallback step ${index + 1}/${steps.length} ${describeStep(step)}`;
+      try {
+        await withTimeout(runCdpStep(cdp, undefined, step), 20000, label);
+      } catch (error) {
+        throw new Error(`${label} failed: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  } finally {
+    cdp?.close();
+    try {
+      process.kill(-browser.pid, "SIGTERM");
+    } catch {
+      // Chrome may already be stopped.
+    }
+    await delay(500);
+    try {
+      process.kill(-browser.pid, "SIGKILL");
+    } catch {
+      // Chrome may already be stopped.
+    }
+    rmSync(userDataDir, { force: true, recursive: true });
+  }
 }
 
 function cleanupBrowserLock() {
@@ -350,7 +846,7 @@ function cleanupBrowserLock() {
   }
 }
 
-function runBrowserBatchWithRetry() {
+async function runBrowserBatchWithRetry() {
   let lastStartupError = null;
 
   for (let attempt = 0; attempt < 4; attempt += 1) {
@@ -360,12 +856,7 @@ function runBrowserBatchWithRetry() {
       runBrowserBatch();
       return;
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-
-      if (
-        !message.includes("daemon exited during startup") &&
-        !message.includes("daemon did not start within 10s")
-      ) {
+      if (!isDaemonStartupError(error)) {
         throw error;
       }
 
@@ -374,7 +865,10 @@ function runBrowserBatchWithRetry() {
     }
   }
 
-  throw lastStartupError ?? new Error("gsd-browser daemon did not start for Pay browser check.");
+  console.warn(
+    `vanta-pay browser check: gsd-browser daemon startup unavailable; using direct Chrome CDP fallback. ${lastStartupError instanceof Error ? lastStartupError.message : ""}`,
+  );
+  await runBrowserBatchWithCdpFallback();
 }
 
 const vite = spawn("npm", ["run", "dev", "--", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
@@ -397,7 +891,7 @@ vite.stderr.on("data", (chunk) => {
 try {
   verifyReceiptPacketCardSource();
   await waitForVite();
-  runBrowserBatchWithRetry();
+  await runBrowserBatchWithRetry();
   console.log("vanta-pay browser check: PASS");
 } catch (error) {
   const errorStdout = String(error?.stdout ?? "");

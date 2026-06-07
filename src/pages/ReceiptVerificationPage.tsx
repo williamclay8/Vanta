@@ -44,6 +44,13 @@ export function ReceiptVerificationPage() {
             command `npm run pay:growth-loop-check`.
           </dd>
         </div>
+        <div data-vanta-pay-growth-loop-counterparty-event>
+          <dt>Growth-loop event</dt>
+          <dd>
+            Opening this verifier is modeled as `counterparty_verifier_opened` in the local
+            evidence ledger. It is fixture evidence only; live adoption claims remain blocked.
+          </dd>
+        </div>
         <div>
           <dt>What stays private</dt>
           <dd>
@@ -54,8 +61,9 @@ export function ReceiptVerificationPage() {
         <div>
           <dt>Next private settlement</dt>
           <dd>
-            The counterparty can request the next private settlement from the merchant; usage
-            velocity remains zero until reviewer-verifiable evidence exists.
+            The counterparty can request the next private settlement from the merchant. Local
+            fixture counters can model that loop, but live usage-velocity and adoption claims stay
+            blocked until reviewer-verifiable live evidence exists.
           </dd>
         </div>
         <div>

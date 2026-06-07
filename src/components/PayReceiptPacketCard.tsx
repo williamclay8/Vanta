@@ -160,6 +160,20 @@ export function PayReceiptPacketCard({
             Repeated actions 7d: {publicView.growthLoop.usageVelocity.repeatedPrivateActions7d}.
           </dd>
         </div>
+        <div data-vanta-pay-growth-loop-evidence>
+          <dt>Local evidence ledger</dt>
+          <dd>
+            Receipt events: {publicView.growthLoop.evidence.eventLedger.events.length}. Share links
+            copied 7d: {publicView.growthLoop.evidence.derivedCounters.invitedCounterparties7d}.
+            Counterparty verifier opens 7d:{" "}
+            {publicView.growthLoop.evidence.derivedCounters.counterpartyVerifierOpened7d}. Next private settlement requests 7d:{" "}
+            {publicView.growthLoop.evidence.derivedCounters.nextPrivateSettlementRequests7d}.
+            Claim lift blocked until live evidence:{" "}
+            {String(
+              publicView.growthLoop.evidence.claimControls.claimLiftBlockedUntilLiveEvidence,
+            )}.
+          </dd>
+        </div>
         <div data-vanta-pay-institutional-disclosure>
           <dt>Institutional disclosure</dt>
           <dd>

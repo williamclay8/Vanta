@@ -28,12 +28,14 @@ This keeps the product aligned with the receipt growth loop without implying liv
 The first implemented receipt growth loop is Pay-scoped:
 
 - schema: `vanta-pay-receipt-growth-loop-v0.1`
+- evidence schema: `vanta-pay-growth-loop-evidence-v0.1`
 - command: `npm run pay:growth-loop-check`
 - verifier route: `/receipt/:receiptId`
 - loop: private action -> trust packet ready -> counterparty verification -> invited use -> repeated private action
-- metric posture: fail-closed zero counters for 7d/30d volume, transaction count, invited counterparties, and repeated private actions until reviewer-verifiable evidence exists
+- fixture events: `receipt_generated`, `share_link_copied`, `counterparty_verifier_opened`, and `next_private_settlement_requested`
+- metric posture: local fixture counters derive 7d/30d volume, transaction count, invited counterparties, counterparty verifier opens, next-private-settlement requests, and repeated private actions while live claim lift remains blocked
 
-The receipt growth loop is a beta trust-packet and verifier-surface primitive. It is not a claim of adoption, live institutional volume, production privacy, or legal/compliance approval.
+The receipt growth loop is a beta trust-packet, verifier-surface, and fixture-measurement primitive. It is not a claim of adoption, live institutional volume, production privacy, or legal/compliance approval.
 
 ## Usage Velocity Gate
 

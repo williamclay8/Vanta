@@ -349,6 +349,69 @@ export type VantaPayReceiptGrowthLoopStep =
   | "invited_use"
   | "repeated_private_action";
 
+export type VantaPayGrowthLoopEventType =
+  | "receipt_generated"
+  | "share_link_copied"
+  | "counterparty_verifier_opened"
+  | "next_private_settlement_requested";
+
+export type VantaPayGrowthLoopCounterpartyRole = "merchant" | "buyer" | "counterparty";
+
+export type VantaPayGrowthLoopEvent = {
+  counterpartyRole: VantaPayGrowthLoopCounterpartyRole;
+  eventId: string;
+  eventType: VantaPayGrowthLoopEventType;
+  measurementSource: "local-ui-fixture";
+  occurredAt: string;
+  receiptId: string;
+  sharePath: string;
+};
+
+export type VantaPayGrowthLoopDerivedCounters = {
+  counterpartyVerifierOpened7d: number;
+  counterpartyVerifierOpened30d: number;
+  invitedCounterparties7d: number;
+  invitedCounterparties30d: number;
+  nextPrivateSettlementRequests7d: number;
+  nextPrivateSettlementRequests30d: number;
+  repeatedPrivateActions7d: number;
+  repeatedPrivateActions30d: number;
+  transactionCount7d: number;
+  transactionCount30d: number;
+  volume7dUsd: number;
+  volume30dUsd: number;
+};
+
+export type VantaPayGrowthLoopEventLedger = {
+  object: "growth_loop_event_ledger";
+  events: readonly VantaPayGrowthLoopEvent[];
+  liveMeasurementEnabled: false;
+  measurementMode: "local-fixture-only";
+  productionReady: false;
+  retentionBoundary: "local-test-fixture-no-customer-private-inputs";
+};
+
+export type VantaPayGrowthLoopEvidence = {
+  schemaVersion: "vanta-pay-growth-loop-evidence-v0.1";
+  measurementMode: "local-fixture-only";
+  eventLedger: VantaPayGrowthLoopEventLedger;
+  derivedCounters: VantaPayGrowthLoopDerivedCounters;
+  publicSummary: {
+    nextAction: "request_next_private_settlement";
+    receiptId: string;
+    sharePath: string;
+  };
+  claimControls: {
+    adoptionClaimAllowed: false;
+    anonymityClaimAllowed: false;
+    claimLiftBlockedUntilLiveEvidence: true;
+    complianceSafeClaimAllowed: false;
+    productionReady: false;
+    regulatorApprovalClaimAllowed: false;
+  };
+  verificationCommand: "npm run pay:growth-loop-check";
+};
+
 export type VantaPayReceiptGrowthLoop = {
   schemaVersion: "vanta-pay-receipt-growth-loop-v0.1";
   object: "receipt_growth_loop";
@@ -392,16 +455,17 @@ export type VantaPayReceiptGrowthLoop = {
   };
   usageVelocity: {
     claimLiftBlockedUntilMeasured: true;
-    evidenceStatus: "red-first-no-live-measurement";
-    invitedCounterparties7d: 0;
+    evidenceStatus: "red-first-no-live-measurement" | "local-fixture-measured-claim-blocked";
+    invitedCounterparties7d: number;
     metricSurface: "npm run usage-velocity-check";
     primitive: "Pay";
-    repeatedPrivateActions7d: 0;
-    transactionCount7d: 0;
-    transactionCount30d: 0;
-    volume7dUsd: 0;
-    volume30dUsd: 0;
+    repeatedPrivateActions7d: number;
+    transactionCount7d: number;
+    transactionCount30d: number;
+    volume7dUsd: number;
+    volume30dUsd: number;
   };
+  evidence: VantaPayGrowthLoopEvidence;
   claimControls: {
     adoptionClaimAllowed: false;
     anonymityClaimAllowed: false;
@@ -494,6 +558,7 @@ export type VantaPayReceiptPublicView = {
     invitedUse: VantaPayReceiptGrowthLoop["invitedUse"];
     repeatedPrivateAction: VantaPayReceiptGrowthLoop["repeatedPrivateAction"];
     usageVelocity: VantaPayReceiptGrowthLoop["usageVelocity"];
+    evidence: VantaPayReceiptGrowthLoop["evidence"];
     productionReady: false;
   };
   version: "vanta-pay-receipt-public-view-0.1";

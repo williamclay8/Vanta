@@ -103,6 +103,34 @@ const payProductionReady =
   internalSettlementCompletionTokenConfigured &&
   productionLaunchApproved &&
   customerPaymentEvidenceWired;
+const growthLoopEvidence = {
+  schemaVersion: "vanta-pay-growth-loop-evidence-v0.1",
+  measurementMode: "local-fixture-only",
+  liveMeasurementEnabled: false,
+  derivedCounters: {
+    invitedCounterparties7d: 1,
+    invitedCounterparties30d: 1,
+    counterpartyVerifierOpened7d: 1,
+    counterpartyVerifierOpened30d: 1,
+    nextPrivateSettlementRequests7d: 1,
+    nextPrivateSettlementRequests30d: 1,
+    repeatedPrivateActions7d: 1,
+    repeatedPrivateActions30d: 1,
+    transactionCount7d: 1,
+    transactionCount30d: 1,
+    volume7dUsd: 2400,
+    volume30dUsd: 2400,
+  },
+  claimControls: {
+    adoptionClaimAllowed: false,
+    anonymityClaimAllowed: false,
+    claimLiftBlockedUntilLiveEvidence: true,
+    complianceSafeClaimAllowed: false,
+    productionReady: false,
+    regulatorApprovalClaimAllowed: false,
+  },
+  verificationCommand: "npm run pay:growth-loop-check",
+};
 
 const result = {
   capabilities: {
@@ -137,6 +165,7 @@ const result = {
   ok: true,
   privateSettlement,
   productionReady: payProductionReady,
+  growthLoopEvidence,
   storage: {
     kind: process.env.VANTA_PAY_DATABASE_URL
       ? "postgres-jsonb-snapshot-store"
@@ -200,6 +229,9 @@ if (jsonMode) {
     "- institutional disclosure receipt: npm run pay:institutional-disclosure-receipt-check",
   );
   console.log("- receipt growth loop: npm run pay:growth-loop-check");
+  console.log(
+    `- growth loop evidence: invitedCounterparties7d=${result.growthLoopEvidence.derivedCounters.invitedCounterparties7d}, repeatedPrivateActions7d=${result.growthLoopEvidence.derivedCounters.repeatedPrivateActions7d}, liveMeasurementEnabled=${String(result.growthLoopEvidence.liveMeasurementEnabled)}`,
+  );
   console.log(`- settlement lifecycle: ${result.privateSettlement.lifecycleModel}`);
   console.log(`- checkout proof boundary: ${result.privateSettlement.checkoutProofBoundary}`);
   console.log(`- checkout settlement route: ${result.privateSettlement.checkoutSettlementRoute}`);
