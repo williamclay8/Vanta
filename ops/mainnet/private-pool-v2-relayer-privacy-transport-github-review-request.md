@@ -19,11 +19,14 @@ Even if that command passes, Vanta must keep `productionReady=false`, `mainnetRe
 
 ## Current repo refs
 
-- Base commit for the request: `76ddcf4a34c892510ebbec526a7f9d24ef1d4233`
+- Current dispatch commit for the request: `16eee50089f1838d20daac2cf8e09c3492845961`
+- GitHub review issue: `https://github.com/williamclay8/Vanta/issues/8`
+- Dispatch packet: `ops/mainnet/private-pool-v2-relayer-privacy-transport-review-dispatch.evidence.json`
 - Acquisition packet: `ops/mainnet/private-pool-v2-relayer-privacy-transport-acquisition.evidence.json`
 - External evidence request: `ops/mainnet/private-pool-v2-relayer-privacy-transport-external-evidence-request.md`
 - Tor template: `ops/mainnet/private-pool-v2-relayer-privacy-transport-tor-onion.template.json`
 - Blinded-token template: `ops/mainnet/private-pool-v2-relayer-privacy-transport-blinded-token.template.json`
+- Dispatch checker: `npm run relayer:privacy-transport-review-dispatch-check`
 - Closure checker: `npm run relayer:privacy-transport-closure-check`
 - Acquisition checker: `npm run relayer:privacy-transport-acquisition-check`
 

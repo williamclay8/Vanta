@@ -144,6 +144,10 @@ for (const field of [
 }
 
 for (const marker of [
+  "16eee50089f1838d20daac2cf8e09c3492845961",
+  "https://github.com/williamclay8/Vanta/issues/8",
+  "ops/mainnet/private-pool-v2-relayer-privacy-transport-review-dispatch.evidence.json",
+  "npm run relayer:privacy-transport-review-dispatch-check",
   "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_EVIDENCE_PATH=<reviewed-json>",
   "Recommended first path: Tor onion ingress.",
   "Alternate path: blinded-token / Privacy Pass-style ingress.",
