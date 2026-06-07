@@ -7,7 +7,7 @@ type LandingGlyph = "exit" | "private-rails" | "receipt" | "shield";
 
 const productPoints = [
   {
-    copy: "Move supported assets through the beta shield flow.",
+    copy: "Move selected assets through the beta shield flow.",
     icon: "shield",
     title: "Shield",
   },
@@ -177,6 +177,7 @@ export function HomePage() {
         </Link>
 
         <div className="landing-nav__links">
+          <Link to="/products">Products</Link>
           <a href="#what">How it works</a>
           <a href="#use">Open actions</a>
           <Link to="/manifesto">Manifesto</Link>
@@ -207,9 +208,9 @@ export function HomePage() {
               <Link className="landing-btn landing-btn--primary" to="/app">
                 Shield now
               </Link>
-              <a className="landing-btn landing-btn--ghost" href="#use">
-                See open actions
-              </a>
+              <Link className="landing-btn landing-btn--ghost" to="/products">
+                Explore products
+              </Link>
             </div>
           </div>
 
@@ -244,6 +245,51 @@ export function HomePage() {
               <p>{point.copy}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section
+        className="landing-minimal__panel landing-minimal__panel--products"
+        id="products"
+        aria-label="Vanta products"
+      >
+        <div className="landing-minimal__section-header">
+          <span>Products</span>
+          <h2>Five product surfaces now have room on the site.</h2>
+        </div>
+
+        <div className="landing-minimal__product-suite">
+          <Link to="/products/compliance-gateway">
+            <span>Selective disclosure</span>
+            <strong>Compliance Gateway</strong>
+            <small>Prove chosen payment facts without exposing raw settlement details.</small>
+          </Link>
+          <Link to="/products/private-perps-engine">
+            <span>Private positions</span>
+            <strong>Private Perps Engine</strong>
+            <small>Commit position state and expose risk predicates, not owner or notional.</small>
+          </Link>
+          <Link to="/products/shielded-rwa-tokenization">
+            <span>Private asset packets</span>
+            <strong>Shielded RWA Tokenization</strong>
+            <small>Issue, prove ownership, and disclose selected facts through redacted packets.</small>
+          </Link>
+          <Link to="/products/privacy-sdk-marketplace">
+            <span>Reusable primitives</span>
+            <strong>Privacy SDK & Primitives Marketplace</strong>
+            <small>Compose commitments, nullifiers, disclosures, velocity, and proof packets.</small>
+          </Link>
+          <Link to="/products/private-velocity-intelligence">
+            <span>Private aggregate facts</span>
+            <strong>Private Velocity Intelligence</strong>
+            <small>Share threshold predicates and redacted dashboards without raw volume data.</small>
+          </Link>
+        </div>
+
+        <div className="landing-minimal__product-suite-link">
+          <Link className="landing-btn landing-btn--ghost" to="/products">
+            Open product suite
+          </Link>
         </div>
       </section>
 

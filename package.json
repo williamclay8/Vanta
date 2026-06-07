@@ -280,6 +280,7 @@
     "mobile:browser-check": "node scripts/check-vanta-mobile-browser.mjs",
     "landing:anonymity-disclosure-check": "npm run private-pool-v2:public-depth-disclosure-check",
     "landing:browser-check": "node scripts/check-vanta-landing-browser.mjs",
+    "products:browser-check": "node scripts/check-vanta-products-browser.mjs",
     "docs:browser-check": "node scripts/check-vanta-docs-browser.mjs",
     "product-ui:browser-check": "node scripts/check-vanta-product-ui-browser.mjs",
     "notes:shared-picker-check": "node scripts/check-vanta-shared-note-picker.mjs",

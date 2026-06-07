@@ -31,6 +31,12 @@ const HomePage = lazy(() => import("@/pages/HomePage").then((m) => ({ default: m
 const ManifestoPage = lazy(() =>
   import("@/pages/ManifestoPage").then((m) => ({ default: m.ManifestoPage })),
 );
+const ProductsPage = lazy(() =>
+  import("@/pages/ProductsPage").then((m) => ({ default: m.ProductsPage })),
+);
+const ProductDetailPage = lazy(() =>
+  import("@/pages/ProductsPage").then((m) => ({ default: m.ProductDetailPage })),
+);
 const AppDashboardPage = lazy(() =>
   import("@/pages/AppDashboardPage").then((m) => ({ default: m.AppDashboardPage })),
 );
@@ -78,6 +84,8 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/manifesto" element={<ManifestoPage />} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/products/:productSlug" element={<ProductDetailPage />} />
           <Route path="/docs" element={<DocsLayout />}>
             <Route index element={<DocsHomePage />} />
             <Route path="portal" element={<DocsPortalPage />} />

@@ -126,6 +126,13 @@ function checkLandingLiveStripSource() {
     "data-vanta-landing-flow-node=\"wallet\"",
     "data-vanta-landing-flow-node=\"shield\"",
     "data-vanta-landing-flow-node=\"shielded-state\"",
+    "landing-minimal__panel--products",
+    "landing-minimal__product-suite",
+    "Compliance Gateway",
+    "Private Perps Engine",
+    "Shielded RWA Tokenization",
+    "Privacy SDK & Primitives Marketplace",
+    "Private Velocity Intelligence",
     "Preview only",
     "production privacy is not enabled",
   ]) {
@@ -202,7 +209,58 @@ function checkLandingViewport(width, height) {
         hasPaymentsCopy:
           document.body.innerText.includes("Accept payments") &&
           document.body.innerText.includes("payment requests"),
-        hasTraderHeroHeadline: document.body.innerText.includes("Move on Solana."),
+        hasCurrentHeroHeadline:
+          document.body.innerText.includes("Shield first.") &&
+          document.body.innerText.includes("Simple on the surface."),
+        hasProductsRoute:
+          [...document.querySelectorAll("a")].some((link) => link.textContent?.trim() === "Products" && link.getAttribute("href") === "/products") &&
+          [...document.querySelectorAll("a")].some((link) => link.textContent?.trim() === "Explore products" && link.getAttribute("href") === "/products"),
+        hasProductSuiteFlow: (() => {
+          const section = document.querySelector("#products.landing-minimal__panel--products");
+          const cards = [...document.querySelectorAll(".landing-minimal__product-suite a")];
+          const hrefs = cards.map((link) => link.getAttribute("href"));
+          const bodyText = document.body.innerText;
+
+          return Boolean(section) &&
+            bodyText.includes("Five product surfaces now have room on the site.") &&
+            Boolean(document.querySelector('.landing-minimal__product-suite-link a[href="/products"]')) &&
+            cards.length === 5 &&
+            [
+              "/products/compliance-gateway",
+              "/products/private-perps-engine",
+              "/products/shielded-rwa-tokenization",
+              "/products/privacy-sdk-marketplace",
+              "/products/private-velocity-intelligence",
+            ].every((href) => hrefs.includes(href)) &&
+            [
+              "Compliance Gateway",
+              "Private Perps Engine",
+              "Shielded RWA Tokenization",
+              "Privacy SDK & Primitives Marketplace",
+              "Private Velocity Intelligence",
+            ].every((name) => bodyText.includes(name)) &&
+            !/\\bprojects?\\b/i.test(bodyText);
+        })(),
+        productSuiteDebug: (() => {
+          const cards = [...document.querySelectorAll(".landing-minimal__product-suite a")];
+          const bodyText = document.body.innerText;
+
+          return {
+            hasSection: Boolean(document.querySelector("#products.landing-minimal__panel--products")),
+            cardCount: cards.length,
+            hrefs: cards.map((link) => link.getAttribute("href")),
+            hasHeading: bodyText.includes("Five product surfaces now have room on the site."),
+            hasOpenLink: Boolean(document.querySelector('.landing-minimal__product-suite-link a[href="/products"]')),
+            hasNames: [
+              "Compliance Gateway",
+              "Private Perps Engine",
+              "Shielded RWA Tokenization",
+              "Privacy SDK & Primitives Marketplace",
+              "Private Velocity Intelligence",
+            ].filter((name) => bodyText.includes(name)),
+            oldLabelText: bodyText.match(/\\bprojects?\\b/i)?.[0] ?? null,
+          };
+        })(),
         hasProofLink: Boolean(document.querySelector(".landing-minimal__proof-link")) &&
           [...document.querySelectorAll("a")].some((link) => link.getAttribute("href") === "/app/proof"),
         hasPublicDepthDisclosureOnProofRoute: true,
@@ -333,8 +391,8 @@ function checkLandingViewport(width, height) {
     throw new Error(`Landing route should stay at /, got ${result.path}.`);
   }
 
-  if (!result.hasTraderHeroHeadline) {
-    throw new Error(`Landing headline missing trader-first copy: ${result.headline}`);
+  if (!result.hasCurrentHeroHeadline) {
+    throw new Error(`Landing headline missing current beta-safe copy: ${result.headline}`);
   }
 
   if (!result.hasAppCta) {
@@ -351,6 +409,16 @@ function checkLandingViewport(width, height) {
 
   if (!result.hasDocsAndAppPrimaryPaths) {
     throw new Error("Landing page must keep direct paths into docs and the app.");
+  }
+
+  if (!result.hasProductsRoute) {
+    throw new Error("Landing page must expose the products route in nav and hero CTA.");
+  }
+
+  if (!result.hasProductSuiteFlow) {
+    throw new Error(
+      `Landing page must give the five named products a first-class section without the old umbrella label: ${JSON.stringify(result.productSuiteDebug)}`,
+    );
   }
 
   if (!result.hasPaymentsCopy) {
