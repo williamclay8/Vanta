@@ -88,6 +88,7 @@
     "mainnet:render-workspace-check": "node scripts/check-vanta-render-workspace-default.mjs",
     "mainnet:render-api-workspace-check": "node scripts/check-vanta-render-api-workspace.mjs",
     "mainnet:render-api-services-check": "node scripts/check-vanta-render-api-services.mjs",
+    "mainnet:render-provider-config-repair-check": "node scripts/check-vanta-render-provider-config-repair.mjs",
     "mainnet:deployment-manifest-check": "node scripts/check-vanta-mainnet-deployment-manifests.mjs",
     "mainnet:deployment-runbook-check": "node scripts/check-vanta-mainnet-deployment-runbook.mjs",
     "mainnet:private-rail-route-status-check": "node scripts/check-vanta-production-private-rail-route-status.mjs",

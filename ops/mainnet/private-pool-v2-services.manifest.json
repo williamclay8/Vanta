@@ -173,6 +173,53 @@
         { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_AUTH_TOKEN", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_WALLET", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_RPC_URL", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_JITTER_BATCHING_ENABLED", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_SEND_JITTER_MIN_MS", "required": false },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_SEND_JITTER_MAX_MS", "required": false },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_UNSHIELD_JITTER_MIN_MS", "required": false },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_UNSHIELD_JITTER_MAX_MS", "required": false },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_BATCH_MAX_SIZE", "required": false },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_ENABLED", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_MODE", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_DEPLOYMENT_REF", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_LOG_REDACTION_REVIEW_REF", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_RETENTION_POLICY_REF", "required": true },
+        { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_REVIEWER_ACCEPTANCE_REF", "required": true },
+        {
+          "name": "VANTA_PRIVATE_POOL_V2_RELAYER_TOR_ONION_HOST_FINGERPRINT_REF",
+          "required": false,
+          "requiredWhen": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_MODE=tor-onion"
+        },
+        {
+          "name": "VANTA_PRIVATE_POOL_V2_RELAYER_TOR_ONION_SERVICE_REF",
+          "required": false,
+          "requiredWhen": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_MODE=tor-onion"
+        },
+        {
+          "name": "VANTA_PRIVATE_POOL_V2_RELAYER_TOR_REVERSE_PROXY_REDACTION_REF",
+          "required": false,
+          "requiredWhen": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_MODE=tor-onion"
+        },
+        {
+          "name": "VANTA_PRIVATE_POOL_V2_RELAYER_BLINDED_TOKEN_ISSUER_REF",
+          "required": false,
+          "requiredWhen": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_MODE=blinded-token"
+        },
+        {
+          "name": "VANTA_PRIVATE_POOL_V2_RELAYER_BLINDED_TOKEN_VERIFIER_REF",
+          "required": false,
+          "requiredWhen": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_MODE=blinded-token"
+        },
+        {
+          "name": "VANTA_PRIVATE_POOL_V2_RELAYER_BLINDED_TOKEN_FAMILY_REF",
+          "required": false,
+          "requiredWhen": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_MODE=blinded-token"
+        },
+        {
+          "name": "VANTA_PRIVATE_POOL_V2_RELAYER_BLINDED_TOKEN_REPLAY_CACHE_REF",
+          "required": false,
+          "requiredWhen": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_MODE=blinded-token"
+        },
         { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMISSION_MODE", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_FEE_PAYER_KEYPAIR_JSON", "required": true },
         { "name": "VANTA_PRIVATE_POOL_V2_RELAYER_SOLANA_SUBMIT_ACK", "required": true },
