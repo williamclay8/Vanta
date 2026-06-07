@@ -148,6 +148,7 @@ for (const marker of [
   "https://github.com/williamclay8/Vanta/issues/8",
   "ops/mainnet/private-pool-v2-relayer-privacy-transport-review-dispatch.evidence.json",
   "npm run relayer:privacy-transport-review-dispatch-check",
+  "npm run relayer:privacy-transport-issue-intake-check",
   "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_EVIDENCE_PATH=<reviewed-json>",
   "Recommended first path: Tor onion ingress.",
   "Alternate path: blinded-token / Privacy Pass-style ingress.",
@@ -182,6 +183,10 @@ assert.equal(
 assert.equal(
   packageJson.scripts["relayer:privacy-transport-review-dispatch-check"],
   "node scripts/check-vanta-private-pool-v2-relayer-privacy-transport-review-dispatch.mjs",
+);
+assert.equal(
+  packageJson.scripts["relayer:privacy-transport-issue-intake-check"],
+  "node scripts/check-vanta-private-pool-v2-relayer-privacy-transport-issue-intake.mjs",
 );
 for (const compositeName of ["private-pool-v2:verify", "mainnet:preflight"]) {
   assertIncludes(

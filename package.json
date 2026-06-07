@@ -487,6 +487,7 @@
     "relayer:privacy-transport-check": "node scripts/check-vanta-private-pool-v2-relayer-privacy-transport.mjs",
     "relayer:privacy-transport-acquisition-check": "node scripts/check-vanta-private-pool-v2-relayer-privacy-transport-acquisition.mjs",
     "relayer:privacy-transport-review-dispatch-check": "node scripts/check-vanta-private-pool-v2-relayer-privacy-transport-review-dispatch.mjs",
+    "relayer:privacy-transport-issue-intake-check": "node scripts/check-vanta-private-pool-v2-relayer-privacy-transport-issue-intake.mjs",
     "relayer:privacy-transport-closure-check": "node scripts/check-vanta-private-pool-v2-relayer-privacy-transport-closure.mjs",
     "private-pool-v2:production-relayer-review-check": "node scripts/check-vanta-private-pool-v2-production-relayer-review.mjs",
     "private-pool-v2:production-relayer-review-preview": "node scripts/write-vanta-private-pool-v2-production-relayer-review.mjs --dry-run",

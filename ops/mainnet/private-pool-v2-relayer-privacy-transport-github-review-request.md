@@ -27,6 +27,7 @@ Even if that command passes, Vanta must keep `productionReady=false`, `mainnetRe
 - Tor template: `ops/mainnet/private-pool-v2-relayer-privacy-transport-tor-onion.template.json`
 - Blinded-token template: `ops/mainnet/private-pool-v2-relayer-privacy-transport-blinded-token.template.json`
 - Dispatch checker: `npm run relayer:privacy-transport-review-dispatch-check`
+- Issue intake checker: `npm run relayer:privacy-transport-issue-intake-check`
 - Closure checker: `npm run relayer:privacy-transport-closure-check`
 - Acquisition checker: `npm run relayer:privacy-transport-acquisition-check`
 
@@ -92,3 +93,11 @@ Please return one filled JSON packet using either:
 - `ops/mainnet/private-pool-v2-relayer-privacy-transport-blinded-token.template.json`
 
 The reviewer acceptance ref should be a refs-only handle, not a report body or secret-bearing artifact.
+
+After the returned JSON is posted in a fenced `json` block, Vanta can validate issue intake with:
+
+```bash
+npm run relayer:privacy-transport-issue-intake-check
+```
+
+Use `-- --require-returned` only when the reviewer/operator has actually posted one returned packet.

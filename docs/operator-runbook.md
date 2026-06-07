@@ -609,6 +609,7 @@ The acquisition guard and outbound reviewer request for those refs are:
 ```bash
 npm run relayer:privacy-transport-acquisition-check
 npm run relayer:privacy-transport-review-dispatch-check
+npm run relayer:privacy-transport-issue-intake-check
 ```
 
 Track the GitHub reviewer request, human request, and one template:
@@ -622,6 +623,8 @@ ops/mainnet/private-pool-v2-relayer-privacy-transport-blinded-token.template.jso
 ```
 
 The dispatch packet must point to an open GitHub issue before it passes. That issue is the external coordination surface for the operator/reviewer to return refs-only evidence. It is not reviewer acceptance by itself.
+
+The issue-intake checker reads the GitHub issue, looks for one returned fenced JSON packet, rejects secret-looking material, and validates it with the same relayer privacy-transport normalizer. It reports `awaiting-returned-refs-only-json` while no reviewer packet exists. Run it with `-- --require-returned` only after an operator/reviewer has posted one packet.
 
 Recommended first path: reviewed refs-only Tor-onion evidence. The reviewer needs a real onion ingress deployment, onion host fingerprint ref, onion-service ref, reverse-proxy redaction review ref, relayer log-redaction review ref, no-IP/no-open-retention policy ref, and reviewer acceptance ref. The onion private key and any provider secrets must stay in the deployment/secret-manager boundary and must not be copied into the repo, logs, returned packet, or chat.
 
