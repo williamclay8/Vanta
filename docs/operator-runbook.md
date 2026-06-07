@@ -604,6 +604,32 @@ RENDER_API_KEY=<render-api-key> npm run mainnet:render-relayer-privacy-transport
 
 The Render env-status command prints only booleans, env names, missing env names, workspace/service ids, and the non-secret active mode. It must not print deployment-ref values, bearer tokens, database URLs, onion private keys, blinded-token preimages, wallet keys, or customer/private proof material. Do not set placeholder privacy-transport refs on Render.
 
+The acquisition guard and outbound reviewer request for those refs are:
+
+```bash
+npm run relayer:privacy-transport-acquisition-check
+```
+
+Send the human request and one template to the operator/reviewer:
+
+```text
+ops/mainnet/private-pool-v2-relayer-privacy-transport-external-evidence-request.md
+ops/mainnet/private-pool-v2-relayer-privacy-transport-tor-onion.template.json
+ops/mainnet/private-pool-v2-relayer-privacy-transport-blinded-token.template.json
+```
+
+Recommended first path: reviewed refs-only Tor-onion evidence. The reviewer needs a real onion ingress deployment, onion host fingerprint ref, onion-service ref, reverse-proxy redaction review ref, relayer log-redaction review ref, no-IP/no-open-retention policy ref, and reviewer acceptance ref. The onion private key and any provider secrets must stay in the deployment/secret-manager boundary and must not be copied into the repo, logs, returned packet, or chat.
+
+Alternate path: reviewed refs-only blinded-token evidence. This requires a real issuer, verifier, token-family, and replay-cache boundary, plus log-redaction, no-IP/no-open-retention, and reviewer acceptance refs. Treat this as heavier than Tor because it must preserve issuance/redemption separation and replay controls before the relayer can accept it.
+
+The returned packet must be one of the two templates with placeholders replaced by reviewed refs. Validate it before any provider mutation:
+
+```bash
+VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_EVIDENCE_PATH=<reviewed-json> npm run relayer:privacy-transport-closure-check
+```
+
+Only after that passes may the relayer privacy-transport env names be set to refs-only values and checked with the live Render env-status command. Do not set placeholder refs. Do not set raw onion private keys, blinded-token preimages, bearer tokens, database URLs, wallet keys, proof bytes, witnesses, private inputs, raw IP addresses, forwarded headers, or user agents in the relayer privacy-transport evidence envs.
+
 Important environment variables:
 
 ```bash

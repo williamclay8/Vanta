@@ -1,0 +1,18 @@
+{
+  "version": "vanta-private-pool-v2-relayer-privacy-transport-0.1",
+  "templateStatus": "template-only-fill-with-reviewed-refs-before-validation",
+  "mode": "blinded-token",
+  "secretPolicy": "references-only-no-secret-values",
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "deploymentRef": "<blinded-token-service:reviewed-relayer-blinded-token-ingress-ref>",
+  "logRedactionReviewRef": "<log-redaction:reviewed-relayer-blinded-token-log-redaction-ref>",
+  "retentionPolicyRef": "<retention-policy:reviewed-no-ip-retention-policy-ref>",
+  "reviewerAcceptanceRef": "<reviewer:reviewed-relayer-privacy-transport-acceptance-ref>",
+  "blindedToken": {
+    "issuerRef": "<privacy-pass-issuer:reviewed-issuer-ref>",
+    "verifierRef": "<privacy-pass-verifier:reviewed-verifier-ref>",
+    "tokenFamilyRef": "<privacy-pass-token-family:reviewed-token-family-ref>",
+    "replayCacheRef": "<blinded-token-replay-cache:reviewed-replay-cache-ref>"
+  }
+}

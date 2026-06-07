@@ -1,0 +1,169 @@
+{
+  "version": "vanta-private-pool-v2-relayer-privacy-transport-acquisition-0.1",
+  "recordedAt": "2026-06-07T04:51:30Z",
+  "status": "blocked-awaiting-external-transport-deployment-and-review",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "privacyTransportReady": false,
+  "providerMutationAllowed": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "renderWorkspace": {
+    "workspaceId": "tea-d7j37af7f7vs739ii8rg",
+    "workspaceName": "William's workspace"
+  },
+  "relayerService": {
+    "serviceId": "srv-d7jg9jrbc2fs73c161gg",
+    "serviceName": "vanta-prod-private-pool-v2-relayer",
+    "url": "https://vanta-prod-private-pool-v2-relayer.onrender.com"
+  },
+  "currentRelayerDeploy": {
+    "deployRef": "render:tea-d7j37af7f7vs739ii8rg/srv-d7jg9jrbc2fs73c161gg/dep-d8if0t42m8qs73904afg",
+    "commitRef": "git:611acff6a38bc7de5741a83ed02db5a40cf4fcd6",
+    "status": "update_failed",
+    "failClosedReason": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_ENABLED=true missing",
+    "jitterBatchingErrorObserved": false,
+    "stalePostgresHostObserved": false
+  },
+  "primarySourceRefs": [
+    {
+      "id": "tor-project-onion-service-setup",
+      "url": "https://community.torproject.org/onion-services/setup/",
+      "usedFor": [
+        "Tor onion services use HiddenServiceDir and HiddenServicePort to map an onion virtual port to a local target.",
+        "The hostname file contains the onion v3 address.",
+        "The other files in HiddenServiceDir are onion service keys and must remain private."
+      ]
+    },
+    {
+      "id": "ietf-rfc9576-privacy-pass-architecture",
+      "url": "https://www.ietf.org/rfc/rfc9576.html",
+      "usedFor": [
+        "Privacy Pass requires Client, Origin, Issuer, and Attester roles.",
+        "Token issuance and redemption contexts must be separated for privacy.",
+        "Redeemed tokens must not be replayed."
+      ]
+    },
+    {
+      "id": "ietf-rfc9577-privacy-pass-http-auth",
+      "url": "https://www.ietf.org/rfc/rfc9577.html",
+      "usedFor": [
+        "PrivateToken is the HTTP authentication scheme for Privacy Pass token challenges and redemption.",
+        "Clients can cache tokens to separate issuance time from redemption time.",
+        "Cached tokens must match challenge fields and replay controls."
+      ]
+    }
+  ],
+  "modeDecision": {
+    "recommendedFirstMode": "tor-onion",
+    "reason": "Tor onion ingress needs one reviewed onion service deployment, onion host fingerprint, reverse-proxy redaction review, no-IP retention review, and reviewer acceptance. Blinded-token transport also needs issuer, verifier, token-family, replay-cache, issuance/redemption separation, and replay/hoarding review.",
+    "alternateMode": "blinded-token",
+    "alternateStatus": "valid-but-heavier-external-infrastructure-path"
+  },
+  "repoRequestRefs": {
+    "humanRequestRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-external-evidence-request.md",
+    "torOnionTemplateRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-tor-onion.template.json",
+    "blindedTokenTemplateRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-blinded-token.template.json",
+    "closurePacketRef": "ops/mainnet/private-pool-v2-relayer-privacy-transport-closure.evidence.json"
+  },
+  "reviewOrder": [
+    {
+      "id": "tor-onion-ingress-deployment",
+      "status": "external-deployment-required",
+      "requiredReturn": "refs-only Tor onion service deployment ref, onion-service ref, and onion host fingerprint ref",
+      "fills": [
+        "deploymentRef",
+        "torOnion.onionServiceRef",
+        "torOnion.onionHostFingerprintRef"
+      ],
+      "truthBoundary": "Not satisfied by a local template or direct HTTP relayer health check."
+    },
+    {
+      "id": "reverse-proxy-and-relayer-log-redaction",
+      "status": "external-review-required",
+      "requiredReturn": "refs-only review proving reverse-proxy and relayer logs omit or redact IP headers, user agents, auth tokens, proof/witness/private-input material, wallet identifiers, and raw tokens",
+      "fills": [
+        "logRedactionReviewRef",
+        "torOnion.reverseProxyRedactionRef"
+      ],
+      "truthBoundary": "Not satisfied by source code alone; reviewer must inspect deployed ingress and relayer log surfaces."
+    },
+    {
+      "id": "no-ip-retention-policy",
+      "status": "external-review-required",
+      "requiredReturn": "refs-only retention-policy ref that explicitly forbids open-ended persistence of IP addresses, forwarded headers, user agents, auth tokens, and raw token material",
+      "fills": ["retentionPolicyRef"],
+      "truthBoundary": "Not a legal/compliance claim; it is the minimum operational retention control before transport refs can be accepted."
+    },
+    {
+      "id": "reviewer-acceptance",
+      "status": "external-review-required",
+      "requiredReturn": "refs-only reviewer acceptance ref binding deployment, log-redaction, retention, mode-specific refs, and forbidden-material review",
+      "fills": ["reviewerAcceptanceRef"],
+      "truthBoundary": "Not satisfied by the operator who created the local request packet."
+    },
+    {
+      "id": "returned-evidence-validation",
+      "status": "ready-for-returned-packet",
+      "requiredReturn": "filled reviewed refs-only JSON matching exactly one mode",
+      "validationCommand": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_EVIDENCE_PATH=<reviewed-privacy-transport-json> npm run relayer:privacy-transport-closure-check",
+      "truthBoundary": "Passing validation permits provider env review; it still does not lift productionReady or privacyClaimAllowed."
+    },
+    {
+      "id": "render-env-mutation",
+      "status": "blocked-until-returned-evidence-validates",
+      "requiredReturn": "Render env names set to refs-only values, followed by live env-status --require-ready readback",
+      "validationCommand": "RENDER_API_KEY=<render-api-key> npm run mainnet:render-relayer-privacy-transport-env-status -- --require-ready",
+      "truthBoundary": "Do not set placeholder refs or raw secret values on Render."
+    }
+  ],
+  "currentAcceptedRefs": {
+    "common": {
+      "deploymentRef": null,
+      "logRedactionReviewRef": null,
+      "retentionPolicyRef": null,
+      "reviewerAcceptanceRef": null
+    },
+    "torOnion": {
+      "onionHostFingerprintRef": null,
+      "onionServiceRef": null,
+      "reverseProxyRedactionRef": null
+    },
+    "blindedToken": {
+      "issuerRef": null,
+      "verifierRef": null,
+      "tokenFamilyRef": null,
+      "replayCacheRef": null
+    }
+  },
+  "forbiddenInReturnedEvidence": [
+    "raw database URLs",
+    "Render API keys",
+    "bearer tokens",
+    "auth tokens",
+    "onion private keys",
+    "blinded-token preimages",
+    "raw IP addresses",
+    "x-forwarded-for",
+    "x-real-ip",
+    "forwarded",
+    "cf-connecting-ip",
+    "user agents",
+    "user identifiers",
+    "wallet identifiers",
+    "proof bytes",
+    "witnesses",
+    "private inputs",
+    "seed phrases",
+    "private keys"
+  ],
+  "canonicalCommands": [
+    "npm run relayer:privacy-transport-acquisition-check",
+    "npm run relayer:privacy-transport-closure-check",
+    "npm run mainnet:render-relayer-privacy-transport-env-status",
+    "npm run relayer:privacy-transport-check",
+    "npm run mainnet:secret-exposure-check",
+    "npm run truth:privacy-claim-gate"
+  ],
+  "truthBoundary": "This packet tells an operator and reviewer exactly how to obtain reviewed refs-only Tor-onion or blinded-token privacy-transport evidence. It does not deploy Tor, deploy a blinded-token issuer/verifier, accept reviewer refs, mutate Render envs, prove anonymity, lift production privacy, sign, broadcast, or move funds."
+}
