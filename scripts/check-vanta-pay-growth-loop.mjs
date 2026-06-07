@@ -137,6 +137,9 @@ assert.deepEqual(VANTA_PAY_GROWTH_LOOP_EVENT_TYPES, [
   "share_link_copied",
   "counterparty_verifier_opened",
   "next_private_settlement_requested",
+  "counterparty_invite_created",
+  "counterparty_invite_opened",
+  "next_settlement_intent_created",
 ]);
 assert.equal(growthLoop.evidence.schemaVersion, "vanta-pay-growth-loop-evidence-v0.1");
 assert.equal(growthLoop.evidence.measurementMode, "local-fixture-only");
@@ -318,6 +321,9 @@ requireMarkers("src/pay/vantaPayGrowthLoopEvidence.ts", [
   "share_link_copied",
   "counterparty_verifier_opened",
   "next_private_settlement_requested",
+  "counterparty_invite_created",
+  "counterparty_invite_opened",
+  "next_settlement_intent_created",
   "local-fixture-measured-claim-blocked",
   "live-redacted-first-party",
   "redacted-live-event-ledger-no-customer-private-inputs",
@@ -339,6 +345,7 @@ requireMarkers("src/pay/vantaPayReceiptPublicView.ts", [
   "growthLoop",
   "buildVantaPayGrowthLoopEvidence",
   "npm run pay:growth-loop-check",
+  "npm run pay:counterparty-activation-check",
 ]);
 requireMarkers("src/components/PayReceiptPacketCard.tsx", [
   "data-vanta-pay-growth-loop",

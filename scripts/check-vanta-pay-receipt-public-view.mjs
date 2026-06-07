@@ -71,6 +71,7 @@ assert.deepEqual(publicView.verification.commands, [
   "npm run pay:institutional-disclosure-receipt-check",
   "npm run pay:growth-loop-check",
   "npm run pay:measured-loop-implementation-check",
+  "npm run pay:counterparty-activation-check",
   "npm run programmatic-privacy:contract-check",
   "npm run twitter-intelligence:check",
 ]);
@@ -101,12 +102,25 @@ assert.equal(publicView.growthLoop.evidence.claimControls.claimLiftBlockedUntilL
 assert.equal(publicView.growthLoop.usageVelocity.invitedCounterparties7d, 1);
 assert.equal(publicView.growthLoop.usageVelocity.repeatedPrivateActions7d, 1);
 assert.equal(publicView.growthLoop.productionReady, false);
+assert.equal(publicView.counterpartyActivation.schemaVersion, "vanta-pay-counterparty-activation-v0.1");
+assert.equal(publicView.counterpartyActivation.status, "actionable-live-redacted-claim-blocked");
+assert.equal(
+  publicView.counterpartyActivation.counterpartyNextAction.nextAction,
+  "request_next_private_settlement",
+);
+assert.equal(publicView.counterpartyActivation.counterpartyNextAction.eventType, "next_settlement_intent_created");
+assert.equal(publicView.counterpartyActivation.counterpartyNextAction.route, "/app/pay");
+assert.equal(publicView.counterpartyActivation.measurement.eventTypes.length, 3);
+assert.equal(publicView.counterpartyActivation.measurement.noCustomerEmailValue, true);
+assert.equal(publicView.counterpartyActivation.measurement.noIpAddressOrUserAgent, true);
+assert.equal(publicView.counterpartyActivation.claimControls.adoptionClaimAllowed, false);
+assert.equal(publicView.counterpartyActivation.claimControls.productionReady, false);
 assert.ok(publicView.privateSettlement.railReceipt.idPrefix);
 assert.ok(publicView.privateSettlement.auditDisclosure.idPrefix);
 assert.ok(publicView.privateSettlement.railReceipt.idPrefix.length < receipt.privateRailReceiptId.length);
 assert.ok(publicView.privateSettlement.auditDisclosure.idPrefix.length < receipt.auditDisclosureId.length);
 assert.ok(!serialized.includes("buyer@example.com"), "Public receipt view must redact customer email.");
-assert.ok(!serialized.includes("customerEmail"), "Public receipt view must not expose customerEmail.");
+assert.ok(!/"customerEmail"\s*:/u.test(serialized), "Public receipt view must not expose customerEmail.");
 assert.ok(
   !serialized.includes(receipt.privateRailReceiptId),
   "Public receipt view must not expose the full private rail receipt ID.",

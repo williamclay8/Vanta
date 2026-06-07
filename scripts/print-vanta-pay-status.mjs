@@ -175,6 +175,7 @@ const measuredLoopImplementation = {
   liveMeasurementEnabled: true,
   implementedSurfaces: {
     automaticReceiptGeneratedEvent: true,
+    counterpartyActivationSurface: true,
     eventIntakeEndpoint: "POST /v1/growth-loop/events",
     eventLedgerSnapshotPersistence: true,
     operatorStatusEndpoint: "GET /v1/growth-loop/status",
@@ -192,6 +193,35 @@ const measuredLoopImplementation = {
   },
   verificationCommand: "npm run pay:measured-loop-implementation-check",
 };
+const counterpartyActivation = {
+  schemaVersion: "vanta-pay-counterparty-activation-v0.1",
+  object: "pay_counterparty_activation",
+  status: "actionable-live-redacted-claim-blocked",
+  activationMode: "receipt-bound-counterparty-next-action",
+  measurementMode: "live-redacted-first-party",
+  liveMeasurementEnabled: true,
+  activationEventTypes: [
+    "counterparty_invite_created",
+    "counterparty_invite_opened",
+    "next_settlement_intent_created",
+  ],
+  primaryAction: {
+    ctaLabel: "Request private settlement",
+    eventType: "next_settlement_intent_created",
+    nextAction: "request_next_private_settlement",
+    policySafeCopy: "Request the next private settlement using this receipt as context.",
+    route: "/app/pay",
+  },
+  claimControls: {
+    adoptionClaimAllowed: false,
+    anonymityClaimAllowed: false,
+    claimLiftBlockedUntilReviewedLiveEvidence: true,
+    complianceSafeClaimAllowed: false,
+    productionReady: false,
+    regulatorApprovalClaimAllowed: false,
+  },
+  verificationCommand: "npm run pay:counterparty-activation-check",
+};
 
 const result = {
   capabilities: {
@@ -200,6 +230,7 @@ const result = {
       process.env.VANTA_PAY_STORE_PATH || process.env.VANTA_PAY_DATABASE_URL,
     ),
     growthLoopAdoptionClaimAllowed: false,
+    growthLoopCounterpartyActivation: "actionable-live-redacted-claim-blocked",
     growthLoopLiveMeasurement: "redacted-first-party-claim-blocked",
     growthLoopMeasuredImplementation: "implemented-live-redacted-claim-blocked",
     hostedCheckoutSessions: true,
@@ -232,6 +263,7 @@ const result = {
   growthLoopEvidence,
   liveGrowthLoopMeasurement,
   measuredLoopImplementation,
+  counterpartyActivation,
   storage: {
     kind: process.env.VANTA_PAY_DATABASE_URL
       ? "postgres-jsonb-snapshot-store"
@@ -257,6 +289,7 @@ const result = {
     "pay:institutional-disclosure-receipt-check",
     "pay:growth-loop-check",
     "pay:measured-loop-implementation-check",
+    "pay:counterparty-activation-check",
     "pay:hidden-economics-request-check",
     "pay:committed-checkout-acceptance-check",
     "pay:merchant-api-check",
@@ -305,6 +338,9 @@ if (jsonMode) {
   console.log(
     `- measured loop implementation: status=${result.measuredLoopImplementation.status}, command=${result.measuredLoopImplementation.verificationCommand}`,
   );
+  console.log(
+    `- counterparty activation: status=${result.counterpartyActivation.status}, action=${result.counterpartyActivation.primaryAction.nextAction}, command=${result.counterpartyActivation.verificationCommand}`,
+  );
   console.log(`- settlement lifecycle: ${result.privateSettlement.lifecycleModel}`);
   console.log(`- checkout proof boundary: ${result.privateSettlement.checkoutProofBoundary}`);
   console.log(`- checkout settlement route: ${result.privateSettlement.checkoutSettlementRoute}`);
@@ -334,6 +370,6 @@ if (jsonMode) {
   console.log(`- withdrawals: ${result.privateSettlement.withdrawalState}`);
   console.log(`- reconciliation: ${result.privateSettlement.reconciliationState}`);
   console.log(
-    "- canonical verification: npm run pay:verify (includes merchant trust, approval packet, receipt privacy, receipt public-view, institutional disclosure receipt, receipt growth loop, measured-loop implementation, Pay hidden-economics boundary, and committed checkout acceptance checks)",
+    "- canonical verification: npm run pay:verify (includes merchant trust, approval packet, receipt privacy, receipt public-view, institutional disclosure receipt, receipt growth loop, measured-loop implementation, counterparty activation, Pay hidden-economics boundary, and committed checkout acceptance checks)",
   );
 }

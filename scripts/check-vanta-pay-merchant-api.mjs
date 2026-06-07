@@ -12,6 +12,7 @@ const sourceFiles = [
   "tokens/vantaTokenCatalog.ts",
   "pay/vantaPayAssets.ts",
   "pay/vantaPayTypes.ts",
+  "pay/vantaPayCounterpartyActivation.ts",
   "pay/vantaPayGrowthLoopEvidence.ts",
   "pay/vantaPayRuntime.ts",
   "pay/vantaPayPrivateSettlementAdapter.ts",
@@ -584,19 +585,37 @@ try {
     idempotencyKey: "next-private-settlement",
     receiptId: completion.receipt.id,
   });
+  runtime.recordGrowthLoopEvent({
+    counterpartyRole: "merchant",
+    eventType: "counterparty_invite_created",
+    idempotencyKey: "counterparty-invite-created",
+    receiptId: completion.receipt.id,
+  });
+  runtime.recordGrowthLoopEvent({
+    counterpartyRole: "counterparty",
+    eventType: "counterparty_invite_opened",
+    idempotencyKey: "counterparty-invite-opened",
+    receiptId: completion.receipt.id,
+  });
+  runtime.recordGrowthLoopEvent({
+    counterpartyRole: "counterparty",
+    eventType: "next_settlement_intent_created",
+    idempotencyKey: "next-settlement-intent",
+    receiptId: completion.receipt.id,
+  });
   const liveGrowthLoopMeasurement = runtime.getGrowthLoopMeasurement();
   const serializedLiveGrowthLoopMeasurement = JSON.stringify(liveGrowthLoopMeasurement);
   assert(
-    liveGrowthLoopMeasurement.derivedCounters.invitedCounterparties7d === 1,
-    "Expected copied share link to count invited counterparties.",
+    liveGrowthLoopMeasurement.derivedCounters.invitedCounterparties7d === 2,
+    "Expected copied share link and invite-created event to count invited counterparties.",
   );
   assert(
-    liveGrowthLoopMeasurement.derivedCounters.counterpartyVerifierOpened7d === 1,
-    "Expected counterparty verifier open to count.",
+    liveGrowthLoopMeasurement.derivedCounters.counterpartyVerifierOpened7d === 2,
+    "Expected verifier open and invite-opened event to count.",
   );
   assert(
-    liveGrowthLoopMeasurement.derivedCounters.nextPrivateSettlementRequests7d === 1,
-    "Expected next private settlement request to count.",
+    liveGrowthLoopMeasurement.derivedCounters.nextPrivateSettlementRequests7d === 2,
+    "Expected next private settlement request and intent-created event to count.",
   );
   assert(
     !serializedLiveGrowthLoopMeasurement.includes("buyer@example.com"),
@@ -1002,6 +1021,11 @@ try {
       "Expected Pay API status to expose claim-blocked measured-loop implementation.",
     );
     assert(
+      apiStatus.parsed?.capabilities?.growthLoopCounterpartyActivation ===
+        "actionable-live-redacted-claim-blocked",
+      "Expected Pay API status to expose claim-blocked counterparty activation.",
+    );
+    assert(
       apiStatus.parsed?.measuredLoopImplementation?.schemaVersion ===
         "vanta-pay-measured-loop-implementation-v0.1",
       "Expected Pay API status to expose the measured-loop implementation schema.",
@@ -1009,6 +1033,27 @@ try {
     assert(
       apiStatus.parsed?.measuredLoopImplementation?.claimControls?.adoptionClaimAllowed === false,
       "Expected measured-loop implementation to keep adoption claims locked.",
+    );
+    assert(
+      apiStatus.parsed?.counterpartyActivation?.schemaVersion ===
+        "vanta-pay-counterparty-activation-v0.1",
+      "Expected Pay API status to expose counterparty activation schema.",
+    );
+    assert(
+      apiStatus.parsed?.counterpartyActivation?.claimControls?.adoptionClaimAllowed === false,
+      "Expected counterparty activation to keep adoption claims locked.",
+    );
+    assert(
+      apiStatus.parsed?.counterpartyActivation?.activationEventTypes?.includes(
+        "counterparty_invite_created",
+      ),
+      "Expected Pay API status to expose counterparty invite-created activation event.",
+    );
+    assert(
+      apiStatus.parsed?.counterpartyActivation?.activationEventTypes?.includes(
+        "next_settlement_intent_created",
+      ),
+      "Expected Pay API status to expose next settlement intent activation event.",
     );
     assert(
       apiStatus.parsed?.capabilities?.growthLoopAdoptionClaimAllowed === false,
@@ -1261,6 +1306,50 @@ try {
       nextPrivateSettlement.parsed?.measurement?.derivedCounters?.repeatedPrivateActions7d === 1,
       "Expected API next private settlement request to count repeated action.",
     );
+    const counterpartyInviteCreated = await requestJson("/v1/growth-loop/events", {
+      body: JSON.stringify({
+        counterparty_role: "merchant",
+        event_type: "counterparty_invite_created",
+        idempotency_key: "api-counterparty-invite-created",
+        receipt_id: completed.parsed.receipt.id,
+      }),
+      method: "POST",
+    });
+    assert(
+      counterpartyInviteCreated.ok,
+      counterpartyInviteCreated.text || "Expected counterparty invite-created event response.",
+    );
+    assert(
+      counterpartyInviteCreated.parsed?.measurement?.derivedCounters?.invitedCounterparties7d === 2,
+      "Expected API invite-created event to count invited counterparties.",
+    );
+    const counterpartyInviteOpened = await requestJson("/v1/growth-loop/events", {
+      body: JSON.stringify({
+        counterparty_role: "counterparty",
+        event_type: "counterparty_invite_opened",
+        idempotency_key: "api-counterparty-invite-opened",
+        receipt_id: completed.parsed.receipt.id,
+      }),
+      method: "POST",
+    });
+    assert(
+      counterpartyInviteOpened.ok,
+      counterpartyInviteOpened.text || "Expected counterparty invite-opened event response.",
+    );
+    const nextSettlementIntentCreated = await requestJson("/v1/growth-loop/events", {
+      body: JSON.stringify({
+        counterparty_role: "counterparty",
+        event_type: "next_settlement_intent_created",
+        idempotency_key: "api-next-settlement-intent-created",
+        receipt_id: completed.parsed.receipt.id,
+      }),
+      method: "POST",
+    });
+    assert(
+      nextSettlementIntentCreated.parsed?.measurement?.derivedCounters
+        ?.nextPrivateSettlementRequests7d === 2,
+      "Expected API next settlement intent to count next private settlement requests.",
+    );
     const forbiddenGrowthLoopEvent = await requestJson("/v1/growth-loop/events", {
       body: JSON.stringify({
         customer_email: "buyer@example.com",
@@ -1277,12 +1366,12 @@ try {
     const growthLoopStatusAfterEvents = await requestJson("/v1/growth-loop/status");
     const serializedGrowthLoopStatusAfterEvents = JSON.stringify(growthLoopStatusAfterEvents.parsed);
     assert(
-      growthLoopStatusAfterEvents.parsed?.derivedCounters?.counterpartyVerifierOpened7d === 1,
-      "Expected API verifier open count.",
+      growthLoopStatusAfterEvents.parsed?.derivedCounters?.counterpartyVerifierOpened7d === 2,
+      "Expected API verifier open plus invite-opened count.",
     );
     assert(
-      growthLoopStatusAfterEvents.parsed?.derivedCounters?.nextPrivateSettlementRequests7d === 1,
-      "Expected API next private settlement request count.",
+      growthLoopStatusAfterEvents.parsed?.derivedCounters?.nextPrivateSettlementRequests7d === 2,
+      "Expected API next private settlement request plus intent count.",
     );
     assert(
       !serializedGrowthLoopStatusAfterEvents.includes("buyer@example.com"),
@@ -1604,8 +1693,8 @@ try {
     );
     assert(writtenPayStore.receipts?.length === 1, "Expected persisted Pay receipt.");
     assert(
-      writtenPayStore.growthLoopEvents?.length === 4,
-      "Expected persisted Pay growth-loop events.",
+      writtenPayStore.growthLoopEvents?.length === 7,
+      "Expected persisted Pay growth-loop and activation events.",
     );
     console.log("vanta-pay api store schema: PASS");
 
@@ -1689,8 +1778,12 @@ try {
       "Expected persisted growth-loop transaction count.",
     );
     assert(
-      persistedGrowthLoopStatus.parsed?.derivedCounters?.invitedCounterparties7d === 1,
-      "Expected persisted growth-loop invited counterparty count.",
+      persistedGrowthLoopStatus.parsed?.derivedCounters?.invitedCounterparties7d === 2,
+      "Expected persisted growth-loop invited counterparty count with activation event.",
+    );
+    assert(
+      persistedGrowthLoopStatus.parsed?.derivedCounters?.nextPrivateSettlementRequests7d === 2,
+      "Expected persisted growth-loop next private settlement count with activation intent.",
     );
     assert(
       persistedGrowthLoopStatus.parsed?.claimControls?.adoptionClaimAllowed === false,

@@ -19,7 +19,7 @@ export function ReceiptVerificationPage() {
       </p>
       <div className="route-fallback__actions" aria-label="Receipt verification actions">
         <Link className="route-fallback__action route-fallback__action--primary" to="/app/pay">
-          Open Pay
+          Request private settlement
         </Link>
         <Link className="route-fallback__action" to="/docs/trust">
           Review trust docs
@@ -52,6 +52,15 @@ export function ReceiptVerificationPage() {
             /v1/growth-loop/events as redacted first-party measurement; live adoption claims remain
             blocked. Measured-loop implementation is checked by npm run
             pay:measured-loop-implementation-check.
+          </dd>
+        </div>
+        <div data-vanta-pay-counterparty-activation>
+          <dt>Counterparty activation</dt>
+          <dd>
+            Request private settlement from the receipt context. The actionable loop records
+            `counterparty_invite_opened` and `next_settlement_intent_created` as redacted
+            first-party events through POST /v1/growth-loop/events. Verify the activation packet
+            with npm run pay:counterparty-activation-check.
           </dd>
         </div>
         <div>

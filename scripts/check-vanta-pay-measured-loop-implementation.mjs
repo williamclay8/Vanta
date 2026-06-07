@@ -76,6 +76,7 @@ assert.equal(packet.measurementMode, "live-redacted-first-party");
 assert.equal(packet.liveMeasurementEnabled, true);
 assert.equal(packet.implementedSurfaces.runtimeRedactedEventLedger, true);
 assert.equal(packet.implementedSurfaces.automaticReceiptGeneratedEvent, true);
+assert.equal(packet.implementedSurfaces.counterpartyActivationSurface, true);
 assert.equal(packet.implementedSurfaces.eventLedgerSnapshotPersistence, true);
 assert.equal(packet.implementedSurfaces.publicAuditDiscovery, true);
 assert.equal(packet.implementedSurfaces.operatorStatusEndpoint, "GET /v1/growth-loop/status");
@@ -137,10 +138,20 @@ assert.ok(
   "pay:verify must include the measured-loop implementation gate.",
 );
 assert.ok(
+  packageJson.scripts?.["pay:verify"]?.includes("npm run pay:counterparty-activation-check"),
+  "pay:verify must include the counterparty activation gate.",
+);
+assert.ok(
   packageJson.scripts?.["twitter-intelligence:check"]?.includes(
     "npm run pay:measured-loop-implementation-check",
   ),
   "twitter-intelligence:check must include the measured-loop implementation gate.",
+);
+assert.ok(
+  packageJson.scripts?.["twitter-intelligence:check"]?.includes(
+    "npm run pay:counterparty-activation-check",
+  ),
+  "twitter-intelligence:check must include the counterparty activation gate.",
 );
 assert.ok(
   publicDiscovery.safeCommands?.includes("npm run pay:measured-loop-implementation-check"),
@@ -152,12 +163,15 @@ requireMarkers("src/pay/vantaPayTypes.ts", [
   "vanta-pay-measured-loop-implementation-v0.1",
   "implemented-live-redacted-claim-blocked",
   "runtimeRedactedEventLedger",
+  "counterpartyActivationSurface",
   "claimLiftBlockedUntilReviewedLiveEvidence",
 ]);
 requireMarkers("src/pay/vantaPayMeasuredLoopImplementation.ts", [
   "VANTA_PAY_MEASURED_LOOP_IMPLEMENTATION",
+  "counterpartyActivationSurface",
   "GET /v1/growth-loop/status",
   "POST /v1/growth-loop/events",
+  "pay:counterparty-activation-check",
   "dep-d8icv01oagis73dala20",
   "dep-d8icv01oagis73dal8lg",
 ]);

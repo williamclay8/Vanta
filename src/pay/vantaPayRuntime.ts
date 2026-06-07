@@ -427,7 +427,7 @@ export function createVantaPayRuntime({
   function defaultGrowthLoopCounterpartyRole(
     eventType: VantaPayGrowthLoopEventCreateInput["eventType"],
   ): VantaPayGrowthLoopCounterpartyRole {
-    if (eventType === "receipt_generated") {
+    if (eventType === "receipt_generated" || eventType === "counterparty_invite_created") {
       return "merchant";
     }
     if (eventType === "share_link_copied") {

@@ -19,6 +19,9 @@ export const VANTA_PAY_GROWTH_LOOP_EVENT_TYPES = [
   "share_link_copied",
   "counterparty_verifier_opened",
   "next_private_settlement_requested",
+  "counterparty_invite_created",
+  "counterparty_invite_opened",
+  "next_settlement_intent_created",
 ] as const satisfies readonly VantaPayGrowthLoopEventType[];
 
 function addMinutes(isoTimestamp: string, minutes: number): string {
@@ -88,6 +91,14 @@ function countEvents(
   return events.filter((event) => event.eventType === eventType).length;
 }
 
+function countAnyEvent(
+  events: readonly VantaPayGrowthLoopEvent[],
+  eventTypes: readonly VantaPayGrowthLoopEventType[],
+): number {
+  const allowedTypes = new Set(eventTypes);
+  return events.filter((event) => allowedTypes.has(event.eventType)).length;
+}
+
 export function deriveVantaPayGrowthLoopCounters(
   receipt: VantaPayReceipt,
   events: readonly VantaPayGrowthLoopEvent[],
@@ -101,9 +112,18 @@ export function deriveVantaPayGrowthLoopCountersForReceipts(
 ): VantaPayGrowthLoopDerivedCounters {
   const receiptById = new Map(receipts.map((receipt) => [receipt.id, receipt]));
   const receiptGeneratedCount = countEvents(events, "receipt_generated");
-  const shareLinkCopiedCount = countEvents(events, "share_link_copied");
-  const verifierOpenedCount = countEvents(events, "counterparty_verifier_opened");
-  const nextSettlementRequestCount = countEvents(events, "next_private_settlement_requested");
+  const shareLinkCopiedCount = countAnyEvent(events, [
+    "share_link_copied",
+    "counterparty_invite_created",
+  ]);
+  const verifierOpenedCount = countAnyEvent(events, [
+    "counterparty_verifier_opened",
+    "counterparty_invite_opened",
+  ]);
+  const nextSettlementRequestCount = countAnyEvent(events, [
+    "next_private_settlement_requested",
+    "next_settlement_intent_created",
+  ]);
   const volumeUsd = events
     .filter((event) => event.eventType === "receipt_generated")
     .reduce((total, event) => total + toUsdAmount(receiptById.get(event.receiptId)?.amount ?? "0"), 0);

@@ -353,7 +353,10 @@ export type VantaPayGrowthLoopEventType =
   | "receipt_generated"
   | "share_link_copied"
   | "counterparty_verifier_opened"
-  | "next_private_settlement_requested";
+  | "next_private_settlement_requested"
+  | "counterparty_invite_created"
+  | "counterparty_invite_opened"
+  | "next_settlement_intent_created";
 
 export type VantaPayGrowthLoopCounterpartyRole = "merchant" | "buyer" | "counterparty";
 
@@ -472,6 +475,7 @@ export type VantaPayMeasuredLoopImplementation = {
   liveMeasurementEnabled: true;
   implementedSurfaces: {
     automaticReceiptGeneratedEvent: true;
+    counterpartyActivationSurface: true;
     eventIntakeEndpoint: "POST /v1/growth-loop/events";
     eventLedgerSnapshotPersistence: true;
     operatorStatusEndpoint: "GET /v1/growth-loop/status";
@@ -506,6 +510,93 @@ export type VantaPayMeasuredLoopImplementation = {
     regulatorApprovalClaimAllowed: false;
   };
   sourceRefs: readonly string[];
+  verificationCommands: readonly string[];
+  truthBoundary: string;
+};
+
+export type VantaPayCounterpartyActivationEventType =
+  | "counterparty_invite_created"
+  | "counterparty_invite_opened"
+  | "next_settlement_intent_created";
+
+export type VantaPayCounterpartyActivationAction = {
+  ctaLabel: "Request private settlement";
+  eventType: "next_settlement_intent_created";
+  nextAction: "request_next_private_settlement";
+  policySafeCopy: "Request the next private settlement using this receipt as context.";
+  route: "/app/pay";
+};
+
+export type VantaPayCounterpartyActivation = {
+  schemaVersion: "vanta-pay-counterparty-activation-v0.1";
+  object: "pay_counterparty_activation";
+  status: "actionable-live-redacted-claim-blocked";
+  activationMode: "receipt-bound-counterparty-next-action";
+  measurementMode: "live-redacted-first-party";
+  liveMeasurementEnabled: true;
+  receiptRef: {
+    amount: string;
+    asset: VantaPayAsset;
+    receiptId: string;
+    sharePath: string;
+    status: VantaPayReceiptStatus;
+  };
+  verifiedFacts: {
+    amountAndAsset: true;
+    receiptStatus: true;
+    redactedSettlementReferences: true;
+  };
+  actionableSurfaces: {
+    counterpartyActivationPacket: true;
+    counterpartyIntentEvents: true;
+    operatorStatusDiscovery: true;
+    publicAuditDiscovery: true;
+    receiptVerifierNextAction: true;
+  };
+  activationEventTypes: readonly [
+    "counterparty_invite_created",
+    "counterparty_invite_opened",
+    "next_settlement_intent_created",
+  ];
+  counterpartyNextAction: VantaPayCounterpartyActivationAction;
+  primaryAction: VantaPayCounterpartyActivationAction;
+  measurement: {
+    eventIntakeEndpoint: "POST /v1/growth-loop/events";
+    eventTypes: readonly [
+      "counterparty_invite_created",
+      "counterparty_invite_opened",
+      "next_settlement_intent_created",
+    ];
+    measurementMode: "live-redacted-first-party";
+    noCustomerEmailValue: true;
+    noIpAddressOrUserAgent: true;
+    redactedFirstParty: true;
+    statusEndpoint: "GET /v1/growth-loop/status";
+  };
+  privacyBoundary: {
+    customerEmailStored: false;
+    fullAuditDisclosureIdStored: false;
+    fullPrivateRailReceiptIdStored: false;
+    ipAddressStored: false;
+    privateInputsStored: false;
+    rawSettlementTermsStored: false;
+    userAgentStored: false;
+    witnessStored: false;
+  };
+  claimControls: {
+    adoptionClaimAllowed: false;
+    anonymityClaimAllowed: false;
+    claimLiftBlockedUntilReviewedLiveEvidence: true;
+    complianceSafeClaimAllowed: false;
+    productionReady: false;
+    regulatorApprovalClaimAllowed: false;
+  };
+  sourceRefs: readonly string[];
+  verification: {
+    command: "npm run pay:counterparty-activation-check";
+    commands: readonly string[];
+  };
+  verificationCommand: "npm run pay:counterparty-activation-check";
   verificationCommands: readonly string[];
   truthBoundary: string;
 };
@@ -616,6 +707,7 @@ export type VantaPayReceiptPublicView = {
       "npm run pay:institutional-disclosure-receipt-check",
       "npm run pay:growth-loop-check",
       "npm run pay:measured-loop-implementation-check",
+      "npm run pay:counterparty-activation-check",
       "npm run programmatic-privacy:contract-check",
       "npm run twitter-intelligence:check",
     ];
@@ -660,6 +752,7 @@ export type VantaPayReceiptPublicView = {
     evidence: VantaPayReceiptGrowthLoop["evidence"];
     productionReady: false;
   };
+  counterpartyActivation: VantaPayCounterpartyActivation;
   version: "vanta-pay-receipt-public-view-0.1";
 };
 

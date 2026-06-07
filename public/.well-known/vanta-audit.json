@@ -31,12 +31,14 @@
     "liveMeasurementSchema": "vanta-pay-live-growth-loop-measurement-v0.1",
     "measuredLoopImplementationSchema": "vanta-pay-measured-loop-implementation-v0.1",
     "measuredLoopImplementationStatus": "implemented-live-redacted-claim-blocked",
+    "counterpartyActivationSchema": "vanta-pay-counterparty-activation-v0.1",
     "fixtureMeasurementMode": "local-fixture-only",
     "measurementMode": "live-redacted-first-party",
     "liveMeasurementEnabled": true,
     "statusEndpoint": "GET /v1/growth-loop/status",
     "eventIntakeEndpoint": "POST /v1/growth-loop/events",
     "implementationCheckCommand": "npm run pay:measured-loop-implementation-check",
+    "activationCheckCommand": "npm run pay:counterparty-activation-check",
     "adoptionClaimAllowed": false,
     "productionReady": false,
     "counterpartyVerifierRoute": "/receipt/:receiptId",
@@ -52,23 +54,29 @@
       "receipt_generated",
       "share_link_copied",
       "counterparty_verifier_opened",
-      "next_private_settlement_requested"
+      "next_private_settlement_requested",
+      "counterparty_invite_created",
+      "counterparty_invite_opened",
+      "next_settlement_intent_created"
     ],
     "sourceRefs": [
       "docs/twitter-intelligence/2026-06-06-requirements.md",
       "operator/pay-server.mjs",
       "src/pay/vantaPayRuntime.ts",
+      "src/pay/vantaPayCounterpartyActivation.ts",
       "src/pay/vantaPayReceiptGrowthLoop.ts",
       "src/pay/vantaPayGrowthLoopEvidence.ts",
       "src/pay/vantaPayMeasuredLoopImplementation.ts",
       "src/pay/vantaPayReceiptPublicView.ts",
       "src/components/PayReceiptPacketCard.tsx",
       "src/pages/ReceiptVerificationPage.tsx",
+      "scripts/check-vanta-pay-counterparty-activation.mjs",
       "scripts/check-vanta-pay-measured-loop-implementation.mjs"
     ],
     "verificationCommands": [
       "npm run pay:growth-loop-check",
       "npm run pay:measured-loop-implementation-check",
+      "npm run pay:counterparty-activation-check",
       "npm run pay:merchant-api-check",
       "npm run pay:receipt-public-view-check",
       "npm run pay:status-json",
@@ -84,6 +92,7 @@
     "liveMeasurementEnabled": true,
     "implementedSurfaces": {
       "automaticReceiptGeneratedEvent": true,
+      "counterpartyActivationSurface": true,
       "eventIntakeEndpoint": "POST /v1/growth-loop/events",
       "eventLedgerSnapshotPersistence": true,
       "operatorStatusEndpoint": "GET /v1/growth-loop/status",
@@ -120,6 +129,7 @@
     "sourceRefs": [
       "operator/pay-server.mjs",
       "src/pay/vantaPayRuntime.ts",
+      "src/pay/vantaPayCounterpartyActivation.ts",
       "src/pay/vantaPayGrowthLoopEvidence.ts",
       "src/pay/vantaPayMeasuredLoopImplementation.ts",
       "public/.well-known/vanta-audit.json",
@@ -127,12 +137,124 @@
     ],
     "verificationCommands": [
       "npm run pay:measured-loop-implementation-check",
+      "npm run pay:counterparty-activation-check",
       "npm run pay:growth-loop-check",
       "npm run pay:merchant-api-check",
       "npm run public:audit-discovery-check",
       "npm run pay:verify"
     ],
     "truthBoundary": "The Pay measured loop is implemented as live redacted first-party operator measurement with claim controls locked. This is not an adoption, production privacy, anonymity, compliance approval, audit acceptance, or mainnet readiness claim."
+  },
+  "payCounterpartyActivation": {
+    "schemaVersion": "vanta-pay-counterparty-activation-v0.1",
+    "object": "pay_counterparty_activation",
+    "status": "actionable-live-redacted-claim-blocked",
+    "activationMode": "receipt-bound-counterparty-next-action",
+    "measurementMode": "live-redacted-first-party",
+    "liveMeasurementEnabled": true,
+    "receiptRef": {
+      "amount": "receipt-bound",
+      "asset": "USDC",
+      "receiptId": ":receiptId",
+      "sharePath": "/receipt/:receiptId",
+      "status": "paid"
+    },
+    "verifiedFacts": {
+      "amountAndAsset": true,
+      "receiptStatus": true,
+      "redactedSettlementReferences": true
+    },
+    "actionableSurfaces": {
+      "counterpartyActivationPacket": true,
+      "counterpartyIntentEvents": true,
+      "operatorStatusDiscovery": true,
+      "publicAuditDiscovery": true,
+      "receiptVerifierNextAction": true
+    },
+    "activationEventTypes": [
+      "counterparty_invite_created",
+      "counterparty_invite_opened",
+      "next_settlement_intent_created"
+    ],
+    "counterpartyNextAction": {
+      "ctaLabel": "Request private settlement",
+      "eventType": "next_settlement_intent_created",
+      "nextAction": "request_next_private_settlement",
+      "policySafeCopy": "Request the next private settlement using this receipt as context.",
+      "route": "/app/pay"
+    },
+    "primaryAction": {
+      "ctaLabel": "Request private settlement",
+      "eventType": "next_settlement_intent_created",
+      "nextAction": "request_next_private_settlement",
+      "policySafeCopy": "Request the next private settlement using this receipt as context.",
+      "route": "/app/pay"
+    },
+    "measurement": {
+      "eventIntakeEndpoint": "POST /v1/growth-loop/events",
+      "eventTypes": [
+        "counterparty_invite_created",
+        "counterparty_invite_opened",
+        "next_settlement_intent_created"
+      ],
+      "measurementMode": "live-redacted-first-party",
+      "noCustomerEmailValue": true,
+      "noIpAddressOrUserAgent": true,
+      "redactedFirstParty": true,
+      "statusEndpoint": "GET /v1/growth-loop/status"
+    },
+    "privacyBoundary": {
+      "customerEmailStored": false,
+      "fullAuditDisclosureIdStored": false,
+      "fullPrivateRailReceiptIdStored": false,
+      "ipAddressStored": false,
+      "privateInputsStored": false,
+      "rawSettlementTermsStored": false,
+      "userAgentStored": false,
+      "witnessStored": false
+    },
+    "claimControls": {
+      "adoptionClaimAllowed": false,
+      "anonymityClaimAllowed": false,
+      "claimLiftBlockedUntilReviewedLiveEvidence": true,
+      "complianceSafeClaimAllowed": false,
+      "productionReady": false,
+      "regulatorApprovalClaimAllowed": false
+    },
+    "sourceRefs": [
+      "operator/pay-server.mjs",
+      "src/pay/vantaPayCounterpartyActivation.ts",
+      "src/pay/vantaPayGrowthLoopEvidence.ts",
+      "src/pay/vantaPayMeasuredLoopImplementation.ts",
+      "src/pay/vantaPayReceiptPublicView.ts",
+      "src/components/PayReceiptPacketCard.tsx",
+      "src/pages/ReceiptVerificationPage.tsx",
+      "public/.well-known/vanta-audit.json",
+      "scripts/check-vanta-pay-counterparty-activation.mjs"
+    ],
+    "verification": {
+      "command": "npm run pay:counterparty-activation-check",
+      "commands": [
+        "npm run pay:counterparty-activation-check",
+        "npm run pay:measured-loop-implementation-check",
+        "npm run pay:growth-loop-check",
+        "npm run pay:receipt-public-view-check",
+        "npm run pay:merchant-api-check",
+        "npm run public:audit-discovery-check",
+        "npm run pay:verify"
+      ]
+    },
+    "verificationCommand": "npm run pay:counterparty-activation-check",
+    "verificationCommands": [
+      "npm run pay:counterparty-activation-check",
+      "npm run pay:measured-loop-implementation-check",
+      "npm run pay:growth-loop-check",
+      "npm run pay:receipt-public-view-check",
+      "npm run pay:merchant-api-check",
+      "npm run public:audit-discovery-check",
+      "npm run pay:verify"
+    ],
+    "truthBoundary": "Counterparty activation turns a receipt into a next-action request surface and redacted intent measurement. It is not an adoption claim, not production privacy, not anonymity, not compliance approval, not audit acceptance, and not mainnet readiness."
   },
   "proofBoundaries": {
     "c01VerifierBackendDecision": "docs/zk/c01-production-verifier-backend-decision.md",
@@ -191,6 +313,7 @@
     "npm run audit:package-check",
     "npm run pay:growth-loop-check",
     "npm run pay:measured-loop-implementation-check",
+    "npm run pay:counterparty-activation-check",
     "npm run pay:merchant-api-check",
     "npm run pay:receipt-public-view-check",
     "npm run pay:status-json",

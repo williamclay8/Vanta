@@ -177,6 +177,19 @@ export function PayReceiptPacketCard({
             )}.
           </dd>
         </div>
+        <div data-vanta-pay-counterparty-activation>
+          <dt>Counterparty activation</dt>
+          <dd>
+            Request private settlement:{" "}
+            {publicView.counterpartyActivation.counterpartyNextAction.policySafeCopy} Event:
+            next_settlement_intent_created. Verify with npm run
+            pay:counterparty-activation-check. Claim lift blocked:{" "}
+            {String(
+              publicView.counterpartyActivation.claimControls
+                .claimLiftBlockedUntilReviewedLiveEvidence,
+            )}.
+          </dd>
+        </div>
         <div data-vanta-pay-institutional-disclosure>
           <dt>Institutional disclosure</dt>
           <dd>

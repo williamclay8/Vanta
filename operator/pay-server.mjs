@@ -46,6 +46,7 @@ const sourceFiles = [
   "tokens/vantaTokenCatalog.ts",
   "pay/vantaPayAssets.ts",
   "pay/vantaPayTypes.ts",
+  "pay/vantaPayCounterpartyActivation.ts",
   "pay/vantaPayGrowthLoopEvidence.ts",
   "pay/vantaPayRuntime.ts",
   "pay/vantaPayReceiptPublicView.ts",
@@ -690,6 +691,9 @@ const { VANTA_PAY_ASSET_SYMBOLS, getVantaPayAssetDecimals } = await import(
 const { VANTA_PAY_GROWTH_LOOP_EVENT_TYPES } = await import(
   pathToFileURL(join(tempJsDir, "pay/vantaPayGrowthLoopEvidence.js")).href
 );
+const { VANTA_PAY_COUNTERPARTY_ACTIVATION } = await import(
+  pathToFileURL(join(tempJsDir, "pay/vantaPayCounterpartyActivation.js")).href
+);
 const { createVantaPayPrivateSettlementAdapter } = await import(
   pathToFileURL(join(tempJsDir, "pay/vantaPayPrivateSettlementAdapter.js")).href
 );
@@ -698,6 +702,11 @@ const { buildVantaPayReceiptPublicView } = await import(
 );
 const supportedAssets = new Set(VANTA_PAY_ASSET_SYMBOLS);
 const supportedGrowthLoopEventTypes = new Set(VANTA_PAY_GROWTH_LOOP_EVENT_TYPES);
+const supportedCounterpartyActivationEventTypes = new Set([
+  "counterparty_invite_created",
+  "counterparty_invite_opened",
+  "next_settlement_intent_created",
+]);
 const defaultSnapshot = { stateVersion: VANTA_PAY_STORE_SCHEMA_VERSION };
 const snapshotStore = databaseUrl
   ? await createPostgresSnapshotStore({
@@ -762,6 +771,7 @@ const server = createServer(async (request, response) => {
           databaseAdapterSeam: true,
           hostedCheckoutSessions: true,
           growthLoopAdoptionClaimAllowed: false,
+          growthLoopCounterpartyActivation: "actionable-live-redacted-claim-blocked",
           growthLoopLiveMeasurement: "redacted-first-party-claim-blocked",
           growthLoopMeasuredImplementation: "implemented-live-redacted-claim-blocked",
           durableStoreConfigured: readiness.durableStoreConfigured,
@@ -816,6 +826,8 @@ const server = createServer(async (request, response) => {
         ],
         object: "vanta_pay_operator_status",
         privateSettlement: runtime.getMerchantApiStatus().privateSettlement,
+        counterpartyActivation: VANTA_PAY_COUNTERPARTY_ACTIVATION,
+        counterpartyActivationEventTypes: [...supportedCounterpartyActivationEventTypes],
         measuredLoopImplementation,
         readiness,
         service: "vanta-pay",
