@@ -582,6 +582,28 @@ Required common refs are deployment, log-redaction review, no-IP retention polic
 
 This is not live Tor, not live blinded-token submission, not production privacy, not anonymity evidence, and not audit acceptance. It only makes the Tor/blinded-token relayer path executable as a fail-closed evidence contract.
 
+The closure/intake guard for returned privacy-transport refs is:
+
+```bash
+npm run relayer:privacy-transport-closure-check
+```
+
+The default closure check keeps all accepted refs null and records the relayer as blocked until a reviewed refs-only packet is supplied with:
+
+```bash
+VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_EVIDENCE_PATH=<reviewed-privacy-transport-json> npm run relayer:privacy-transport-closure-check
+```
+
+For provider-side readiness without printing secret values, use:
+
+```bash
+npm run mainnet:render-relayer-privacy-transport-env-status
+RENDER_API_KEY=<render-api-key> npm run mainnet:render-relayer-privacy-transport-env-status
+RENDER_API_KEY=<render-api-key> npm run mainnet:render-relayer-privacy-transport-env-status -- --require-ready
+```
+
+The Render env-status command prints only booleans, env names, missing env names, workspace/service ids, and the non-secret active mode. It must not print deployment-ref values, bearer tokens, database URLs, onion private keys, blinded-token preimages, wallet keys, or customer/private proof material. Do not set placeholder privacy-transport refs on Render.
+
 Important environment variables:
 
 ```bash

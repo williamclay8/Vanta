@@ -1,0 +1,191 @@
+{
+  "version": "vanta-private-pool-v2-relayer-privacy-transport-closure-0.1",
+  "recordedAt": "2026-06-07T04:01:47Z",
+  "status": "blocked-external-privacy-transport-evidence-required",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "privacyTransportReady": false,
+  "secretPolicy": "references-only-no-secret-values",
+  "renderWorkspace": {
+    "workspaceId": "tea-d7j37af7f7vs739ii8rg",
+    "workspaceName": "William's workspace"
+  },
+  "relayerService": {
+    "serviceId": "srv-d7jg9jrbc2fs73c161gg",
+    "serviceName": "vanta-prod-private-pool-v2-relayer",
+    "url": "https://vanta-prod-private-pool-v2-relayer.onrender.com"
+  },
+  "startCommitRef": "git:e14332ad11f449400b377ebe26dbc4258af37650",
+  "priorRepairRef": "ops/mainnet/render-provider-config-repair.evidence.json",
+  "recommendedFirstMode": {
+    "mode": "tor-onion",
+    "reason": "Tor onion mode requires fewer moving infrastructure parts than blinded-token issuance, verification, token-family, and replay-cache infrastructure.",
+    "providerMutationAllowed": false,
+    "providerMutationAllowedWhen": "all common and tor-onion refs are returned, reviewed, and pass npm run relayer:privacy-transport-closure-check plus npm run mainnet:render-relayer-privacy-transport-env-status with live Render API access"
+  },
+  "currentRenderEvidence": {
+    "latestMainDeployRef": "render:tea-d7j37af7f7vs739ii8rg/srv-d7jg9jrbc2fs73c161gg/dep-d8iej0jrjlhs739p1240",
+    "latestMainDeployStatus": "update_failed",
+    "latestMainDeployCommit": "83373a55c35c66eaa085c12ffe3c8059f8f011cd",
+    "jitterBatchingErrorObservedAfterRepair": false,
+    "nextFailClosedBlocker": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_ENABLED=true missing",
+    "currentLiveHealthOk": true,
+    "productionReady": false,
+    "mainnetReady": false
+  },
+  "requiredCommonRefs": [
+    {
+      "field": "deploymentRef",
+      "envVar": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_DEPLOYMENT_REF",
+      "allowedPrefixes": ["tor-onion-service:", "blinded-token-service:", "deploy:", "render-deploy:"],
+      "currentRef": null
+    },
+    {
+      "field": "logRedactionReviewRef",
+      "envVar": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_LOG_REDACTION_REVIEW_REF",
+      "allowedPrefixes": ["log-redaction:", "review:"],
+      "currentRef": null
+    },
+    {
+      "field": "retentionPolicyRef",
+      "envVar": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_RETENTION_POLICY_REF",
+      "allowedPrefixes": ["retention-policy:", "review:"],
+      "currentRef": null
+    },
+    {
+      "field": "reviewerAcceptanceRef",
+      "envVar": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_REVIEWER_ACCEPTANCE_REF",
+      "allowedPrefixes": ["review:", "reviewer:"],
+      "currentRef": null
+    }
+  ],
+  "modeSpecificRefs": {
+    "tor-onion": [
+      {
+        "field": "onionHostFingerprintRef",
+        "envVar": "VANTA_PRIVATE_POOL_V2_RELAYER_TOR_ONION_HOST_FINGERPRINT_REF",
+        "allowedPrefixes": ["sha256:", "tor-onion-fingerprint:"],
+        "currentRef": null
+      },
+      {
+        "field": "onionServiceRef",
+        "envVar": "VANTA_PRIVATE_POOL_V2_RELAYER_TOR_ONION_SERVICE_REF",
+        "allowedPrefixes": ["deploy:", "render-deploy:", "tor-onion-service:"],
+        "currentRef": null
+      },
+      {
+        "field": "reverseProxyRedactionRef",
+        "envVar": "VANTA_PRIVATE_POOL_V2_RELAYER_TOR_REVERSE_PROXY_REDACTION_REF",
+        "allowedPrefixes": ["log-redaction:", "review:"],
+        "currentRef": null
+      }
+    ],
+    "blinded-token": [
+      {
+        "field": "issuerRef",
+        "envVar": "VANTA_PRIVATE_POOL_V2_RELAYER_BLINDED_TOKEN_ISSUER_REF",
+        "allowedPrefixes": ["blinded-token-issuer:", "privacy-pass-issuer:", "review:"],
+        "currentRef": null
+      },
+      {
+        "field": "verifierRef",
+        "envVar": "VANTA_PRIVATE_POOL_V2_RELAYER_BLINDED_TOKEN_VERIFIER_REF",
+        "allowedPrefixes": ["blinded-token-verifier:", "privacy-pass-verifier:", "review:"],
+        "currentRef": null
+      },
+      {
+        "field": "tokenFamilyRef",
+        "envVar": "VANTA_PRIVATE_POOL_V2_RELAYER_BLINDED_TOKEN_FAMILY_REF",
+        "allowedPrefixes": ["blinded-token-family:", "privacy-pass-token-family:", "sha256:"],
+        "currentRef": null
+      },
+      {
+        "field": "replayCacheRef",
+        "envVar": "VANTA_PRIVATE_POOL_V2_RELAYER_BLINDED_TOKEN_REPLAY_CACHE_REF",
+        "allowedPrefixes": ["blinded-token-replay-cache:", "redis-ref:", "review:"],
+        "currentRef": null
+      }
+    ]
+  },
+  "externalClosureValidation": {
+    "status": "ready-for-reviewed-refs-only-relayer-privacy-transport-validation",
+    "evidencePathEnvVar": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_EVIDENCE_PATH",
+    "command": "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_EVIDENCE_PATH=<reviewed-privacy-transport-json> npm run relayer:privacy-transport-closure-check",
+    "defaultGuardRequiresExternalEvidence": false,
+    "requiresExactlyOneMode": true,
+    "validates": [
+      "refs-only evidence packet version and secret policy",
+      "productionReady, mainnetReady, privacyClaimAllowed, and privacyTransportReady remain false in the closure packet until external refs are supplied",
+      "returned evidence uses exactly one mode: tor-onion or blinded-token",
+      "common deployment, log-redaction, retention-policy, and reviewer-acceptance refs are present",
+      "tor-onion mode includes onion service, onion host fingerprint, and reverse-proxy redaction refs",
+      "blinded-token mode includes issuer, verifier, token-family, and replay-cache refs",
+      "no raw database URLs, Render API keys, bearer tokens, auth tokens, onion private keys, blinded-token preimages, IP addresses, user identifiers, wallet identifiers, proof bytes, witnesses, or private inputs are stored"
+    ],
+    "satisfiesRelayerPrivacyTransportClosure": false,
+    "truthBoundary": "This makes relayer privacy-transport evidence intake executable but does not supply live Tor or blinded-token provider evidence. Without a reviewed refs-only packet, the relayer remains correctly blocked."
+  },
+  "renderProviderPreflight": {
+    "command": "npm run mainnet:render-relayer-privacy-transport-env-status",
+    "liveCommand": "RENDER_API_KEY=<render-api-key> npm run mainnet:render-relayer-privacy-transport-env-status",
+    "requireReadyCommand": "RENDER_API_KEY=<render-api-key> npm run mainnet:render-relayer-privacy-transport-env-status -- --require-ready",
+    "printsSecretValues": false,
+    "defaultRequiresRenderApiKey": false,
+    "checksOnlyEnvKeyPresenceAndMode": true,
+    "providerMutationAllowed": false,
+    "lastLiveStatus": {
+      "checkedAt": "2026-06-07T04:01:47Z",
+      "liveProviderChecked": true,
+      "checkedEnvKeyCount": 13,
+      "presentPrivacyTransportEnvNames": [],
+      "missingRequiredEnvNames": [
+        "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_ENABLED",
+        "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_MODE",
+        "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_DEPLOYMENT_REF",
+        "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_LOG_REDACTION_REVIEW_REF",
+        "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_RETENTION_POLICY_REF",
+        "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_REVIEWER_ACCEPTANCE_REF"
+      ],
+      "privacyTransportReady": false,
+      "valueDisclosure": "env-values-read-only-for-booleans/mode-and-never-printed-for-refs-or-secrets"
+    }
+  },
+  "forbiddenInEvidence": [
+    "raw database URLs",
+    "Render API keys",
+    "bearer tokens",
+    "auth tokens",
+    "onion private keys",
+    "blinded-token preimages",
+    "raw IP addresses",
+    "x-forwarded-for",
+    "cf-connecting-ip",
+    "user agents",
+    "user identifiers",
+    "wallet identifiers",
+    "proof bytes",
+    "witnesses",
+    "private inputs",
+    "seed phrases",
+    "private keys"
+  ],
+  "remainingBlockers": [
+    "no live Tor onion service deployment ref",
+    "no Tor onion host fingerprint ref",
+    "no Tor reverse-proxy redaction review ref",
+    "no relayer log-redaction review ref",
+    "no relayer no-IP retention policy ref",
+    "no relayer privacy-transport reviewer acceptance ref",
+    "no reviewed refs-only privacy-transport evidence packet",
+    "no allowed Render env mutation for privacy transport refs yet"
+  ],
+  "canonicalCommands": [
+    "npm run relayer:privacy-transport-check",
+    "npm run relayer:privacy-transport-closure-check",
+    "npm run mainnet:render-relayer-privacy-transport-env-status",
+    "npm run mainnet:deployment-manifest-check",
+    "npm run truth:privacy-claim-gate"
+  ],
+  "truthBoundary": "This is a blocked relayer privacy-transport closure packet. It creates the refs-only evidence intake and provider preflight path, but it is not live Tor, not live blinded-token submission, not anonymity evidence, not audit acceptance, not production privacy, not mainnet readiness, not signing, not broadcast, and not real-funds movement."
+}
