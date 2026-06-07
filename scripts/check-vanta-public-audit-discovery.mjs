@@ -20,6 +20,12 @@ const requiredRefs = [
   "ops/mainnet/legal-compliance-custody.packet.template.json",
   "ops/mainnet/production-key-custody.template.json",
   "ops/mainnet/private-pool-v2-anonymity-set.evidence.json",
+  "docs/twitter-intelligence/2026-06-06-requirements.md",
+  "src/pay/vantaPayReceiptGrowthLoop.ts",
+  "src/pay/vantaPayGrowthLoopEvidence.ts",
+  "src/pay/vantaPayReceiptPublicView.ts",
+  "src/components/PayReceiptPacketCard.tsx",
+  "src/pages/ReceiptVerificationPage.tsx",
 ];
 
 function readJson(path) {
@@ -117,30 +123,76 @@ assert.ok(
 
 assert.equal(discovery.schemaVersion, "vanta-public-audit-discovery-0.1");
 assert.equal(discovery.path, "/.well-known/vanta-audit.json");
-assert.equal(discovery.generatedAt, "2026-05-26");
+assert.equal(discovery.generatedAt, "2026-06-07");
 assert.equal(discovery.auditClaimAllowed, false);
 assert.equal(discovery.thirdPartyAuditAccepted, false);
 assert.equal(discovery.productionReady, false);
 assert.equal(discovery.mainnetReady, false);
 assert.equal(discovery.liveDeploymentVerified, false);
-// Post-2026-05-19 audit (L5 + M3): Render service/deploy IDs were stripped from the
-// public manifest because they are operational identifiers that don't belong in a
-// crawler-visible discovery file, and the manifest was re-shaped to reflect the
-// 2026-05-14 deploy drift (live site is now serving a newer asset than the last
-// attested one). The check below enforces the new shape and leaves the explicit
-// "pending re-attestation" status until a follow-up live verification rerun records
-// the current live commit and asset hash.
+// Keep crawler-visible deployment evidence refs-only and claim-bounded: this is
+// a public reviewer map, not a private-settlement or readiness attestation.
 assert.deepEqual(discovery.websiteDeployment, {
-  status: "last-verified-website-deploy",
-  lastVerifiedCommit: "bf3ee40a034e0bbb3550c07532b6c96bddfcc7dc",
-  lastVerifiedAt: "2026-05-26T01:04:05Z",
+  status: "last-verified-pay-growth-loop-deploy",
+  lastVerifiedCommit: "06bf7a979469c016189ba9a0edafd66e6804f75f",
+  lastVerifiedAt: "2026-06-07T00:29:57Z",
   liveUrl: "https://vantaprivacy.xyz",
   truthBoundary:
-    "This records the website bundle attested at commit bf3ee40a034e0bbb3550c07532b6c96bddfcc7dc with asset hash assets/index-C0Eqol52.js from the 2026-05-26 pre-deploy build verification. Live URL must serve this commit after the next Render deploy before citing as live evidence. Private settlement, SBF, verifier, custody, and anonymity evidence remain blocked.",
+    "This records the website deploy that served the Pay receipt growth-loop evidence bundle for commit 06bf7a979469c016189ba9a0edafd66e6804f75f on 2026-06-07 UTC. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, and mainnet evidence remain blocked.",
 });
 assert.equal(discovery.privacyClaimAllowed, false);
 assert.equal(discovery.anonymityClaimAllowed, false);
 assert.equal(discovery.refsOnly, true);
+
+assert.equal(discovery.payGrowthLoopDiscovery?.schemaVersion, "vanta-pay-growth-loop-discovery-0.1");
+assert.equal(discovery.payGrowthLoopDiscovery?.status, "local-fixture-measured-publicly-discoverable");
+assert.equal(
+  discovery.payGrowthLoopDiscovery?.receiptGrowthLoopSchema,
+  "vanta-pay-receipt-growth-loop-v0.1",
+);
+assert.equal(discovery.payGrowthLoopDiscovery?.evidenceSchema, "vanta-pay-growth-loop-evidence-v0.1");
+assert.equal(discovery.payGrowthLoopDiscovery?.measurementMode, "local-fixture-only");
+assert.equal(discovery.payGrowthLoopDiscovery?.liveMeasurementEnabled, false);
+assert.equal(discovery.payGrowthLoopDiscovery?.adoptionClaimAllowed, false);
+assert.equal(discovery.payGrowthLoopDiscovery?.productionReady, false);
+assert.equal(discovery.payGrowthLoopDiscovery?.counterpartyVerifierRoute, "/receipt/:receiptId");
+assert.equal(discovery.payGrowthLoopDiscovery?.publicFixtureReceiptPath, "/receipt/rcpt_growth_loop_test");
+assert.deepEqual(discovery.payGrowthLoopDiscovery?.loopSteps, [
+  "private_action",
+  "trust_packet_ready",
+  "counterparty_verification",
+  "invited_use",
+  "repeated_private_action",
+]);
+assert.deepEqual(discovery.payGrowthLoopDiscovery?.fixtureEventTypes, [
+  "receipt_generated",
+  "share_link_copied",
+  "counterparty_verifier_opened",
+  "next_private_settlement_requested",
+]);
+assert.deepEqual(discovery.payGrowthLoopDiscovery?.sourceRefs, [
+  "docs/twitter-intelligence/2026-06-06-requirements.md",
+  "src/pay/vantaPayReceiptGrowthLoop.ts",
+  "src/pay/vantaPayGrowthLoopEvidence.ts",
+  "src/pay/vantaPayReceiptPublicView.ts",
+  "src/components/PayReceiptPacketCard.tsx",
+  "src/pages/ReceiptVerificationPage.tsx",
+]);
+assert.deepEqual(discovery.payGrowthLoopDiscovery?.verificationCommands, [
+  "npm run pay:growth-loop-check",
+  "npm run pay:receipt-public-view-check",
+  "npm run pay:verify",
+]);
+discovery.payGrowthLoopDiscovery?.verificationCommands?.forEach((command, index) =>
+  assertSafeNpmRunCommand(command, `discovery.payGrowthLoopDiscovery.verificationCommands[${index}]`),
+);
+assert.ok(
+  discovery.payGrowthLoopDiscovery?.claimBoundary?.includes("fixture evidence only"),
+  "Pay growth-loop discovery must preserve fixture-only claim boundary.",
+);
+assert.ok(
+  discovery.payGrowthLoopDiscovery?.claimBoundary?.includes("no live adoption"),
+  "Pay growth-loop discovery must block live-adoption claims.",
+);
 
 assert.equal(auditAlias.schemaVersion, "vanta-public-audit-alias-0.1");
 assert.equal(auditAlias.path, "/.well-known/audit");
@@ -232,6 +284,9 @@ assert.ok(
 for (const command of [
   "npm run public:audit-discovery-check",
   "npm run audit:package-check",
+  "npm run pay:growth-loop-check",
+  "npm run pay:receipt-public-view-check",
+  "npm run pay:verify",
   "npm run zk:c01-production-verifier-backend-candidate-check",
   "npm run zk:c01-verifier-adapter-test-candidate-check",
   "npm run zk:c01-positive-proof-verified-claim-gate-check",
@@ -261,6 +316,13 @@ for (const phrase of [
   "not an audit report",
   "not third-party approval",
   "not production readiness",
+  "payGrowthLoopDiscovery",
+  "vanta-pay-growth-loop-discovery-0.1",
+  "vanta-pay-growth-loop-evidence-v0.1",
+  "counterparty verifier route",
+  "npm run pay:growth-loop-check",
+  "fixture evidence only",
+  "no live adoption",
 ]) {
   assert.ok(auditPackage.includes(phrase), `docs/audit-package.md is missing public discovery phrase: ${phrase}`);
 }

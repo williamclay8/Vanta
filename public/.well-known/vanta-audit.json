@@ -2,7 +2,7 @@
   "schemaVersion": "vanta-public-audit-discovery-0.1",
   "path": "/.well-known/vanta-audit.json",
   "name": "Vanta public audit discovery",
-  "generatedAt": "2026-05-26",
+  "generatedAt": "2026-06-07",
   "refsOnly": true,
   "auditClaimAllowed": false,
   "thirdPartyAuditAccepted": false,
@@ -10,17 +10,56 @@
   "mainnetReady": false,
   "liveDeploymentVerified": false,
   "websiteDeployment": {
-    "status": "last-verified-website-deploy",
-    "lastVerifiedCommit": "bf3ee40a034e0bbb3550c07532b6c96bddfcc7dc",
-    "lastVerifiedAt": "2026-05-26T01:04:05Z",
+    "status": "last-verified-pay-growth-loop-deploy",
+    "lastVerifiedCommit": "06bf7a979469c016189ba9a0edafd66e6804f75f",
+    "lastVerifiedAt": "2026-06-07T00:29:57Z",
     "liveUrl": "https://vantaprivacy.xyz",
-    "truthBoundary": "This records the website bundle attested at commit bf3ee40a034e0bbb3550c07532b6c96bddfcc7dc with asset hash assets/index-C0Eqol52.js from the 2026-05-26 pre-deploy build verification. Live URL must serve this commit after the next Render deploy before citing as live evidence. Private settlement, SBF, verifier, custody, and anonymity evidence remain blocked."
+    "truthBoundary": "This records the website deploy that served the Pay receipt growth-loop evidence bundle for commit 06bf7a979469c016189ba9a0edafd66e6804f75f on 2026-06-07 UTC. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, and mainnet evidence remain blocked."
   },
   "privacyClaimAllowed": false,
   "anonymityClaimAllowed": false,
   "securityLimitations": "SECURITY_LIMITATIONS.md",
   "auditPackage": "docs/audit-package.md",
   "findingLedger": "VANTA_ZK_REVIEW.findings.json",
+  "payGrowthLoopDiscovery": {
+    "schemaVersion": "vanta-pay-growth-loop-discovery-0.1",
+    "status": "local-fixture-measured-publicly-discoverable",
+    "receiptGrowthLoopSchema": "vanta-pay-receipt-growth-loop-v0.1",
+    "evidenceSchema": "vanta-pay-growth-loop-evidence-v0.1",
+    "measurementMode": "local-fixture-only",
+    "liveMeasurementEnabled": false,
+    "adoptionClaimAllowed": false,
+    "productionReady": false,
+    "counterpartyVerifierRoute": "/receipt/:receiptId",
+    "publicFixtureReceiptPath": "/receipt/rcpt_growth_loop_test",
+    "loopSteps": [
+      "private_action",
+      "trust_packet_ready",
+      "counterparty_verification",
+      "invited_use",
+      "repeated_private_action"
+    ],
+    "fixtureEventTypes": [
+      "receipt_generated",
+      "share_link_copied",
+      "counterparty_verifier_opened",
+      "next_private_settlement_requested"
+    ],
+    "sourceRefs": [
+      "docs/twitter-intelligence/2026-06-06-requirements.md",
+      "src/pay/vantaPayReceiptGrowthLoop.ts",
+      "src/pay/vantaPayGrowthLoopEvidence.ts",
+      "src/pay/vantaPayReceiptPublicView.ts",
+      "src/components/PayReceiptPacketCard.tsx",
+      "src/pages/ReceiptVerificationPage.tsx"
+    ],
+    "verificationCommands": [
+      "npm run pay:growth-loop-check",
+      "npm run pay:receipt-public-view-check",
+      "npm run pay:verify"
+    ],
+    "claimBoundary": "Public discovery for Pay receipt growth-loop fixture evidence only: no live adoption, no lifted privacy/anonymity/compliance/regulator claims, no audit acceptance, and no mainnet readiness claim."
+  },
   "proofBoundaries": {
     "c01VerifierBackendDecision": "docs/zk/c01-production-verifier-backend-decision.md",
     "c01VerifierCandidateEvidence": "ops/mainnet/private-pool-v2-c01-verifier-candidate.evidence.json",
@@ -76,6 +115,9 @@
   "safeCommands": [
     "npm run public:audit-discovery-check",
     "npm run audit:package-check",
+    "npm run pay:growth-loop-check",
+    "npm run pay:receipt-public-view-check",
+    "npm run pay:verify",
     "npm run zk:c01-production-verifier-backend-candidate-check",
     "npm run zk:c01-verifier-adapter-test-candidate-check",
     "npm run zk:c01-positive-proof-verified-claim-gate-check",
