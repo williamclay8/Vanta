@@ -23,6 +23,7 @@ const requiredRefs = [
   "docs/twitter-intelligence/2026-06-06-requirements.md",
   "operator/pay-server.mjs",
   "src/pay/vantaPayRuntime.ts",
+  "src/pay/vantaPayCommittedCheckoutAcceptance.ts",
   "src/pay/vantaPayCounterpartyActivation.ts",
   "src/pay/vantaPayReceiptGrowthLoop.ts",
   "src/pay/vantaPayGrowthLoopEvidence.ts",
@@ -30,6 +31,7 @@ const requiredRefs = [
   "src/pay/vantaPayReceiptPublicView.ts",
   "src/components/PayReceiptPacketCard.tsx",
   "src/pages/ReceiptVerificationPage.tsx",
+  "scripts/check-vanta-pay-committed-checkout-acceptance.mjs",
   "scripts/check-vanta-pay-counterparty-activation.mjs",
   "scripts/check-vanta-pay-measured-loop-implementation.mjs",
 ];
@@ -174,6 +176,14 @@ assert.equal(
   discovery.payGrowthLoopDiscovery?.counterpartyActivationSchema,
   "vanta-pay-counterparty-activation-v0.1",
 );
+assert.equal(
+  discovery.payGrowthLoopDiscovery?.committedCheckoutAcceptanceSchema,
+  "vanta-pay-committed-checkout-acceptance-v0.1",
+);
+assert.equal(
+  discovery.payGrowthLoopDiscovery?.committedCheckoutAcceptanceStatus,
+  "acceptance-ready-live-redacted-claim-blocked",
+);
 assert.equal(discovery.payGrowthLoopDiscovery?.fixtureMeasurementMode, "local-fixture-only");
 assert.equal(discovery.payGrowthLoopDiscovery?.measurementMode, "live-redacted-first-party");
 assert.equal(discovery.payGrowthLoopDiscovery?.liveMeasurementEnabled, true);
@@ -187,6 +197,10 @@ assert.equal(
   discovery.payGrowthLoopDiscovery?.activationCheckCommand,
   "npm run pay:counterparty-activation-check",
 );
+assert.equal(
+  discovery.payGrowthLoopDiscovery?.committedCheckoutAcceptanceCheckCommand,
+  "npm run pay:committed-checkout-acceptance-check",
+);
 assertSafeNpmRunCommand(
   discovery.payGrowthLoopDiscovery?.implementationCheckCommand,
   "discovery.payGrowthLoopDiscovery.implementationCheckCommand",
@@ -194,6 +208,10 @@ assertSafeNpmRunCommand(
 assertSafeNpmRunCommand(
   discovery.payGrowthLoopDiscovery?.activationCheckCommand,
   "discovery.payGrowthLoopDiscovery.activationCheckCommand",
+);
+assertSafeNpmRunCommand(
+  discovery.payGrowthLoopDiscovery?.committedCheckoutAcceptanceCheckCommand,
+  "discovery.payGrowthLoopDiscovery.committedCheckoutAcceptanceCheckCommand",
 );
 assert.equal(discovery.payGrowthLoopDiscovery?.adoptionClaimAllowed, false);
 assert.equal(discovery.payGrowthLoopDiscovery?.productionReady, false);
@@ -214,11 +232,13 @@ assert.deepEqual(discovery.payGrowthLoopDiscovery?.fixtureEventTypes, [
   "counterparty_invite_created",
   "counterparty_invite_opened",
   "next_settlement_intent_created",
+  "committed_checkout_acceptance_created",
 ]);
 assert.deepEqual(discovery.payGrowthLoopDiscovery?.sourceRefs, [
   "docs/twitter-intelligence/2026-06-06-requirements.md",
   "operator/pay-server.mjs",
   "src/pay/vantaPayRuntime.ts",
+  "src/pay/vantaPayCommittedCheckoutAcceptance.ts",
   "src/pay/vantaPayCounterpartyActivation.ts",
   "src/pay/vantaPayReceiptGrowthLoop.ts",
   "src/pay/vantaPayGrowthLoopEvidence.ts",
@@ -226,6 +246,7 @@ assert.deepEqual(discovery.payGrowthLoopDiscovery?.sourceRefs, [
   "src/pay/vantaPayReceiptPublicView.ts",
   "src/components/PayReceiptPacketCard.tsx",
   "src/pages/ReceiptVerificationPage.tsx",
+  "scripts/check-vanta-pay-committed-checkout-acceptance.mjs",
   "scripts/check-vanta-pay-counterparty-activation.mjs",
   "scripts/check-vanta-pay-measured-loop-implementation.mjs",
 ]);
@@ -233,6 +254,7 @@ assert.deepEqual(discovery.payGrowthLoopDiscovery?.verificationCommands, [
   "npm run pay:growth-loop-check",
   "npm run pay:measured-loop-implementation-check",
   "npm run pay:counterparty-activation-check",
+  "npm run pay:committed-checkout-acceptance-check",
   "npm run pay:merchant-api-check",
   "npm run pay:receipt-public-view-check",
   "npm run pay:status-json",
@@ -275,6 +297,10 @@ assert.equal(
 );
 assert.equal(
   discovery.payMeasuredLoopImplementation?.implementedSurfaces?.counterpartyActivationSurface,
+  true,
+);
+assert.equal(
+  discovery.payMeasuredLoopImplementation?.implementedSurfaces?.committedCheckoutAcceptanceSurface,
   true,
 );
 assert.equal(
@@ -353,6 +379,59 @@ assert.ok(
 );
 discovery.payCounterpartyActivation?.verificationCommands?.forEach((command, index) =>
   assertSafeNpmRunCommand(command, `discovery.payCounterpartyActivation.verificationCommands[${index}]`),
+);
+
+assert.equal(
+  discovery.payCommittedCheckoutAcceptance?.schemaVersion,
+  "vanta-pay-committed-checkout-acceptance-v0.1",
+);
+assert.equal(discovery.payCommittedCheckoutAcceptance?.object, "pay_committed_checkout_acceptance");
+assert.equal(
+  discovery.payCommittedCheckoutAcceptance?.status,
+  "acceptance-ready-live-redacted-claim-blocked",
+);
+assert.equal(
+  discovery.payCommittedCheckoutAcceptance?.acceptanceMode,
+  "receipt-bound-committed-economics-acceptance",
+);
+assert.equal(
+  discovery.payCommittedCheckoutAcceptance?.acceptanceAction?.eventType,
+  "committed_checkout_acceptance_created",
+);
+assert.equal(
+  discovery.payCommittedCheckoutAcceptance?.acceptanceAction?.nextAction,
+  "accept_committed_checkout_private_settlement",
+);
+assert.equal(
+  discovery.payCommittedCheckoutAcceptance?.acceptedPrivateSettlement?.economicsMode,
+  "committed-economics",
+);
+assert.equal(
+  discovery.payCommittedCheckoutAcceptance?.acceptedPrivateSettlement
+    ?.rawEconomicTermsInAcceptedCheckoutSettlement,
+  false,
+);
+assert.equal(
+  discovery.payCommittedCheckoutAcceptance?.privacyBoundary?.rawFutureSettlementTermsStored,
+  false,
+);
+assert.equal(discovery.payCommittedCheckoutAcceptance?.claimControls?.adoptionClaimAllowed, false);
+assert.equal(discovery.payCommittedCheckoutAcceptance?.claimControls?.productionReady, false);
+assert.equal(discovery.payCommittedCheckoutAcceptance?.claimControls?.anonymityClaimAllowed, false);
+assert.equal(
+  discovery.payCommittedCheckoutAcceptance?.claimControls
+    ?.claimLiftBlockedUntilReviewedLiveEvidence,
+  true,
+);
+assert.ok(
+  discovery.payCommittedCheckoutAcceptance?.truthBoundary?.includes("does not execute a settlement"),
+  "Pay committed checkout acceptance must block execution claims.",
+);
+discovery.payCommittedCheckoutAcceptance?.verificationCommands?.forEach((command, index) =>
+  assertSafeNpmRunCommand(
+    command,
+    `discovery.payCommittedCheckoutAcceptance.verificationCommands[${index}]`,
+  ),
 );
 
 assert.equal(auditAlias.schemaVersion, "vanta-public-audit-alias-0.1");
@@ -448,6 +527,7 @@ for (const command of [
   "npm run pay:growth-loop-check",
   "npm run pay:measured-loop-implementation-check",
   "npm run pay:counterparty-activation-check",
+  "npm run pay:committed-checkout-acceptance-check",
   "npm run pay:merchant-api-check",
   "npm run pay:receipt-public-view-check",
   "npm run pay:status-json",
@@ -484,16 +564,19 @@ for (const phrase of [
   "payGrowthLoopDiscovery",
   "payMeasuredLoopImplementation",
   "payCounterpartyActivation",
+  "payCommittedCheckoutAcceptance",
   "vanta-pay-growth-loop-discovery-0.1",
   "vanta-pay-growth-loop-evidence-v0.1",
   "vanta-pay-live-growth-loop-measurement-v0.1",
   "vanta-pay-measured-loop-implementation-v0.1",
   "vanta-pay-counterparty-activation-v0.1",
+  "vanta-pay-committed-checkout-acceptance-v0.1",
   "live redacted first-party measurement",
   "counterparty verifier route",
   "npm run pay:growth-loop-check",
   "npm run pay:measured-loop-implementation-check",
   "npm run pay:counterparty-activation-check",
+  "npm run pay:committed-checkout-acceptance-check",
   "live event intake stores only redacted event metadata",
   "no live adoption",
 ]) {

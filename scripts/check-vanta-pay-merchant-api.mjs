@@ -603,6 +603,12 @@ try {
     idempotencyKey: "next-settlement-intent",
     receiptId: completion.receipt.id,
   });
+  runtime.recordGrowthLoopEvent({
+    counterpartyRole: "counterparty",
+    eventType: "committed_checkout_acceptance_created",
+    idempotencyKey: "committed-checkout-acceptance",
+    receiptId: completion.receipt.id,
+  });
   const liveGrowthLoopMeasurement = runtime.getGrowthLoopMeasurement();
   const serializedLiveGrowthLoopMeasurement = JSON.stringify(liveGrowthLoopMeasurement);
   assert(
@@ -614,8 +620,8 @@ try {
     "Expected verifier open and invite-opened event to count.",
   );
   assert(
-    liveGrowthLoopMeasurement.derivedCounters.nextPrivateSettlementRequests7d === 2,
-    "Expected next private settlement request and intent-created event to count.",
+    liveGrowthLoopMeasurement.derivedCounters.nextPrivateSettlementRequests7d === 3,
+    "Expected next private settlement request, intent-created, and committed acceptance events to count.",
   );
   assert(
     !serializedLiveGrowthLoopMeasurement.includes("buyer@example.com"),
@@ -1026,6 +1032,11 @@ try {
       "Expected Pay API status to expose claim-blocked counterparty activation.",
     );
     assert(
+      apiStatus.parsed?.capabilities?.growthLoopCommittedCheckoutAcceptance ===
+        "acceptance-ready-live-redacted-claim-blocked",
+      "Expected Pay API status to expose claim-blocked committed checkout acceptance.",
+    );
+    assert(
       apiStatus.parsed?.measuredLoopImplementation?.schemaVersion ===
         "vanta-pay-measured-loop-implementation-v0.1",
       "Expected Pay API status to expose the measured-loop implementation schema.",
@@ -1054,6 +1065,26 @@ try {
         "next_settlement_intent_created",
       ),
       "Expected Pay API status to expose next settlement intent activation event.",
+    );
+    assert(
+      apiStatus.parsed?.committedCheckoutAcceptance?.schemaVersion ===
+        "vanta-pay-committed-checkout-acceptance-v0.1",
+      "Expected Pay API status to expose committed checkout acceptance schema.",
+    );
+    assert(
+      apiStatus.parsed?.committedCheckoutAcceptance?.acceptedPrivateSettlement
+        ?.rawEconomicTermsInAcceptedCheckoutSettlement === false,
+      "Expected committed checkout acceptance to keep raw terms out of accepted settlement.",
+    );
+    assert(
+      apiStatus.parsed?.committedCheckoutAcceptance?.claimControls?.adoptionClaimAllowed === false,
+      "Expected committed checkout acceptance to keep adoption claims locked.",
+    );
+    assert(
+      apiStatus.parsed?.committedCheckoutAcceptanceEventTypes?.includes(
+        "committed_checkout_acceptance_created",
+      ),
+      "Expected Pay API status to expose committed checkout acceptance event.",
     );
     assert(
       apiStatus.parsed?.capabilities?.growthLoopAdoptionClaimAllowed === false,
@@ -1350,6 +1381,20 @@ try {
         ?.nextPrivateSettlementRequests7d === 2,
       "Expected API next settlement intent to count next private settlement requests.",
     );
+    const committedCheckoutAcceptanceCreated = await requestJson("/v1/growth-loop/events", {
+      body: JSON.stringify({
+        counterparty_role: "counterparty",
+        event_type: "committed_checkout_acceptance_created",
+        idempotency_key: "api-committed-checkout-acceptance-created",
+        receipt_id: completed.parsed.receipt.id,
+      }),
+      method: "POST",
+    });
+    assert(
+      committedCheckoutAcceptanceCreated.parsed?.measurement?.derivedCounters
+        ?.nextPrivateSettlementRequests7d === 3,
+      "Expected API committed checkout acceptance to count next private settlement requests.",
+    );
     const forbiddenGrowthLoopEvent = await requestJson("/v1/growth-loop/events", {
       body: JSON.stringify({
         customer_email: "buyer@example.com",
@@ -1363,6 +1408,22 @@ try {
       forbiddenGrowthLoopEvent.text.includes("redacted growth-loop event"),
       forbiddenGrowthLoopEvent.text || "Expected forbidden field error.",
     );
+    const forbiddenRawFutureTermsEvent = await requestJson("/v1/growth-loop/events", {
+      body: JSON.stringify({
+        event_type: "committed_checkout_acceptance_created",
+        rawFutureSettlementTerms: "amount=125.00&asset=USDC",
+        receipt_id: completed.parsed.receipt.id,
+      }),
+      method: "POST",
+    });
+    assert(
+      !forbiddenRawFutureTermsEvent.ok,
+      "Expected raw future settlement terms growth-loop event field to fail.",
+    );
+    assert(
+      forbiddenRawFutureTermsEvent.text.includes("redacted growth-loop event"),
+      forbiddenRawFutureTermsEvent.text || "Expected forbidden future terms field error.",
+    );
     const growthLoopStatusAfterEvents = await requestJson("/v1/growth-loop/status");
     const serializedGrowthLoopStatusAfterEvents = JSON.stringify(growthLoopStatusAfterEvents.parsed);
     assert(
@@ -1370,8 +1431,8 @@ try {
       "Expected API verifier open plus invite-opened count.",
     );
     assert(
-      growthLoopStatusAfterEvents.parsed?.derivedCounters?.nextPrivateSettlementRequests7d === 2,
-      "Expected API next private settlement request plus intent count.",
+      growthLoopStatusAfterEvents.parsed?.derivedCounters?.nextPrivateSettlementRequests7d === 3,
+      "Expected API next private settlement request, intent, and committed acceptance count.",
     );
     assert(
       !serializedGrowthLoopStatusAfterEvents.includes("buyer@example.com"),
@@ -1408,6 +1469,11 @@ try {
       "Expected public receipt view to redact customer email.",
     );
     assert(
+      receipts.parsed?.data?.[0]?.committedCheckoutAcceptance?.schemaVersion ===
+        "vanta-pay-committed-checkout-acceptance-v0.1",
+      "Expected public receipt view to expose committed checkout acceptance packet.",
+    );
+    assert(
       !JSON.stringify(receipts.parsed.data[0]).includes("buyer@example.com"),
       "Expected receipt list public view to omit raw customer email.",
     );
@@ -1417,6 +1483,11 @@ try {
     assert(receiptDetail.ok, receiptDetail.text || "Expected receipt detail response.");
     assert(receiptDetail.parsed?.receiptId === completed.parsed.receipt.id, "Expected receipt detail id.");
     assert(receiptDetail.parsed?.object === "receipt_public_view", "Expected receipt detail public view.");
+    assert(
+      receiptDetail.parsed?.committedCheckoutAcceptance?.acceptedPrivateSettlement
+        ?.rawEconomicTermsInAcceptedCheckoutSettlement === false,
+      "Expected receipt detail committed checkout acceptance to keep raw terms redacted.",
+    );
     assert(
       receiptDetail.parsed?.privateSettlement?.railReceipt?.redacted === true,
       "Expected receipt detail to redact the private rail receipt.",
@@ -1693,8 +1764,8 @@ try {
     );
     assert(writtenPayStore.receipts?.length === 1, "Expected persisted Pay receipt.");
     assert(
-      writtenPayStore.growthLoopEvents?.length === 7,
-      "Expected persisted Pay growth-loop and activation events.",
+      writtenPayStore.growthLoopEvents?.length === 8,
+      "Expected persisted Pay growth-loop, activation, and acceptance events.",
     );
     console.log("vanta-pay api store schema: PASS");
 
@@ -1782,8 +1853,8 @@ try {
       "Expected persisted growth-loop invited counterparty count with activation event.",
     );
     assert(
-      persistedGrowthLoopStatus.parsed?.derivedCounters?.nextPrivateSettlementRequests7d === 2,
-      "Expected persisted growth-loop next private settlement count with activation intent.",
+      persistedGrowthLoopStatus.parsed?.derivedCounters?.nextPrivateSettlementRequests7d === 3,
+      "Expected persisted growth-loop next private settlement count with activation intent and acceptance.",
     );
     assert(
       persistedGrowthLoopStatus.parsed?.claimControls?.adoptionClaimAllowed === false,

@@ -96,6 +96,15 @@ const liveEvents = [
     receiptId: receipt.id,
     sharePath: `/receipt/${receipt.id}`,
   },
+  {
+    counterpartyRole: "counterparty",
+    eventId: "pgl_live_committed_checkout_acceptance_created",
+    eventType: "committed_checkout_acceptance_created",
+    measurementSource: "pay-operator-live-redacted",
+    occurredAt: "2026-05-02T00:04:00.000Z",
+    receiptId: receipt.id,
+    sharePath: `/receipt/${receipt.id}`,
+  },
 ];
 const liveMeasurement = buildVantaPayLiveGrowthLoopMeasurement([receipt], liveEvents);
 const measuredLoopImplementation = VANTA_PAY_MEASURED_LOOP_IMPLEMENTATION;
@@ -140,22 +149,26 @@ assert.deepEqual(VANTA_PAY_GROWTH_LOOP_EVENT_TYPES, [
   "counterparty_invite_created",
   "counterparty_invite_opened",
   "next_settlement_intent_created",
+  "committed_checkout_acceptance_created",
 ]);
 assert.equal(growthLoop.evidence.schemaVersion, "vanta-pay-growth-loop-evidence-v0.1");
 assert.equal(growthLoop.evidence.measurementMode, "local-fixture-only");
 assert.equal(growthLoop.evidence.verificationCommand, "npm run pay:growth-loop-check");
 assert.equal(growthLoop.evidence.eventLedger.object, "growth_loop_event_ledger");
 assert.equal(growthLoop.evidence.eventLedger.liveMeasurementEnabled, false);
-assert.equal(growthLoop.evidence.eventLedger.events.length, 4);
+assert.equal(growthLoop.evidence.eventLedger.events.length, 5);
 assert.equal(growthLoop.evidence.eventLedger.events[0].eventType, "receipt_generated");
 assert.equal(growthLoop.evidence.eventLedger.events[1].eventType, "share_link_copied");
 assert.equal(growthLoop.evidence.eventLedger.events[2].eventType, "counterparty_verifier_opened");
 assert.equal(growthLoop.evidence.eventLedger.events[3].eventType, "next_private_settlement_requested");
+assert.equal(growthLoop.evidence.eventLedger.events[4].eventType, "committed_checkout_acceptance_created");
 assert.equal(growthLoop.evidence.eventLedger.events[1].counterpartyRole, "buyer");
 assert.equal(growthLoop.evidence.eventLedger.events[2].counterpartyRole, "counterparty");
 assert.equal(growthLoop.evidence.eventLedger.events[3].counterpartyRole, "counterparty");
+assert.equal(growthLoop.evidence.eventLedger.events[4].counterpartyRole, "counterparty");
 assert.equal(growthLoop.evidence.derivedCounters.invitedCounterparties7d, 1);
-assert.equal(growthLoop.evidence.derivedCounters.repeatedPrivateActions7d, 1);
+assert.equal(growthLoop.evidence.derivedCounters.nextPrivateSettlementRequests7d, 2);
+assert.equal(growthLoop.evidence.derivedCounters.repeatedPrivateActions7d, 2);
 assert.equal(growthLoop.evidence.derivedCounters.transactionCount7d, 1);
 assert.equal(growthLoop.evidence.derivedCounters.volume7dUsd, 2400);
 assert.equal(growthLoop.evidence.derivedCounters.transactionCount30d, 1);
@@ -164,8 +177,9 @@ assert.equal(growthLoop.evidence.claimControls.claimLiftBlockedUntilLiveEvidence
 assert.equal(growthLoop.evidence.claimControls.adoptionClaimAllowed, false);
 assert.equal(growthLoop.evidence.claimControls.productionReady, false);
 assert.equal(growthLoopEvidence.derivedCounters.invitedCounterparties7d, 1);
-assert.equal(growthLoopEvidence.derivedCounters.repeatedPrivateActions7d, 1);
-assert.equal(growthLoopEvidence.eventLedger.events.length, 4);
+assert.equal(growthLoopEvidence.derivedCounters.nextPrivateSettlementRequests7d, 2);
+assert.equal(growthLoopEvidence.derivedCounters.repeatedPrivateActions7d, 2);
+assert.equal(growthLoopEvidence.eventLedger.events.length, 5);
 assert.equal(growthLoopEvidence.publicSummary.receiptId, receipt.id);
 assert.equal(growthLoopEvidence.publicSummary.sharePath, `/receipt/${receipt.id}`);
 assert.equal(growthLoopEvidence.publicSummary.nextAction, "request_next_private_settlement");
@@ -184,14 +198,14 @@ assert.equal(
   liveMeasurement.eventLedger.retentionBoundary,
   "redacted-live-event-ledger-no-customer-private-inputs",
 );
-assert.equal(liveMeasurement.eventLedger.events.length, 4);
+assert.equal(liveMeasurement.eventLedger.events.length, 5);
 assert.equal(liveMeasurement.eventLedger.events[0].measurementSource, "pay-operator-live-redacted");
 assert.equal(liveMeasurement.derivedCounters.transactionCount7d, 1);
 assert.equal(liveMeasurement.derivedCounters.volume7dUsd, 2400);
 assert.equal(liveMeasurement.derivedCounters.invitedCounterparties7d, 1);
 assert.equal(liveMeasurement.derivedCounters.counterpartyVerifierOpened7d, 1);
-assert.equal(liveMeasurement.derivedCounters.nextPrivateSettlementRequests7d, 1);
-assert.equal(liveMeasurement.derivedCounters.repeatedPrivateActions7d, 1);
+assert.equal(liveMeasurement.derivedCounters.nextPrivateSettlementRequests7d, 2);
+assert.equal(liveMeasurement.derivedCounters.repeatedPrivateActions7d, 2);
 assert.equal(liveMeasurement.claimControls.adoptionClaimAllowed, false);
 assert.equal(liveMeasurement.claimControls.productionReady, false);
 assert.equal(liveMeasurement.claimControls.anonymityClaimAllowed, false);
@@ -232,7 +246,7 @@ assert.ok(
   ),
 );
 assert.equal(growthLoop.usageVelocity.invitedCounterparties7d, 1);
-assert.equal(growthLoop.usageVelocity.repeatedPrivateActions7d, 1);
+assert.equal(growthLoop.usageVelocity.repeatedPrivateActions7d, 2);
 assert.equal(growthLoop.usageVelocity.transactionCount7d, 1);
 assert.equal(growthLoop.usageVelocity.volume7dUsd, 2400);
 assert.equal(growthLoop.usageVelocity.transactionCount30d, 1);
@@ -247,7 +261,7 @@ assert.deepEqual(growthLoop.usageVelocity, {
   transactionCount7d: 1,
   transactionCount30d: 1,
   invitedCounterparties7d: 1,
-  repeatedPrivateActions7d: 1,
+  repeatedPrivateActions7d: 2,
   claimLiftBlockedUntilMeasured: true,
 });
 assert.deepEqual(growthLoop.claimControls, {
@@ -269,11 +283,12 @@ assert.equal(publicView.growthLoop.sharePath, `/receipt/${receipt.id}`);
 assert.equal(publicView.growthLoop.counterpartyVerification.verifierRoute, "/receipt/:receiptId");
 assert.equal(publicView.growthLoop.counterpartyVerification.verificationCommand, "npm run pay:growth-loop-check");
 assert.equal(publicView.growthLoop.invitedUse.nextAction, "share_receipt_with_counterparty");
-assert.equal(publicView.growthLoop.evidence.eventLedger.events.length, 4);
+assert.equal(publicView.growthLoop.evidence.eventLedger.events.length, 5);
 assert.equal(publicView.growthLoop.evidence.derivedCounters.invitedCounterparties7d, 1);
-assert.equal(publicView.growthLoop.evidence.derivedCounters.repeatedPrivateActions7d, 1);
+assert.equal(publicView.growthLoop.evidence.derivedCounters.nextPrivateSettlementRequests7d, 2);
+assert.equal(publicView.growthLoop.evidence.derivedCounters.repeatedPrivateActions7d, 2);
 assert.equal(publicView.growthLoop.usageVelocity.invitedCounterparties7d, 1);
-assert.equal(publicView.growthLoop.usageVelocity.repeatedPrivateActions7d, 1);
+assert.equal(publicView.growthLoop.usageVelocity.repeatedPrivateActions7d, 2);
 assert.equal(publicView.growthLoop.productionReady, false);
 assert.ok(publicView.verification.commands.includes("npm run pay:growth-loop-check"));
 
@@ -324,6 +339,7 @@ requireMarkers("src/pay/vantaPayGrowthLoopEvidence.ts", [
   "counterparty_invite_created",
   "counterparty_invite_opened",
   "next_settlement_intent_created",
+  "committed_checkout_acceptance_created",
   "local-fixture-measured-claim-blocked",
   "live-redacted-first-party",
   "redacted-live-event-ledger-no-customer-private-inputs",

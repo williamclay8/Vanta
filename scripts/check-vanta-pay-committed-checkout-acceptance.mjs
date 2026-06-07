@@ -3,13 +3,18 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import {
+  VANTA_PAY_COMMITTED_CHECKOUT_ACCEPTANCE,
+  buildVantaPayCommittedCheckoutAcceptance,
+} from "../src/pay/vantaPayCommittedCheckoutAcceptance.ts";
+
 const repoRoot = resolve(import.meta.dirname, "..");
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-pay-committed-checkout-"));
 const tempTsDir = join(tempRoot, "ts");
 const tempJsDir = join(tempRoot, "js");
 const storePath = join(tempRoot, "private-pool-v2-receipts.json");
-const port = 10_180 + Math.floor(Math.random() * 300);
-const baseUrl = `http://127.0.0.1:${port}`;
+let port = 12_880 + Math.floor(Math.random() * 1_000);
+let baseUrl = `http://127.0.0.1:${port}`;
 const authToken = "vanta-pay-committed-checkout-test-token";
 const sourceFiles = [
   "tokens/vantaTokenCatalog.ts",
@@ -42,8 +47,19 @@ function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
 }
 
+function chooseOperatorPort() {
+  port = 12_880 + Math.floor(Math.random() * 1_000);
+  baseUrl = `http://127.0.0.1:${port}`;
+}
+
 async function waitForHealth() {
-  for (let attempt = 0; attempt < 50; attempt += 1) {
+  for (let attempt = 0; attempt < 120; attempt += 1) {
+    if (operator?.exitCode !== null) {
+      throw new Error(
+        `Private Pool V2 operator exited before health check. code=${operator.exitCode} stderr=${operatorLogs.stderr.slice(-1000)} stdout=${operatorLogs.stdout.slice(-1000)}`,
+      );
+    }
+
     try {
       const response = await fetch(`${baseUrl}/health`);
       if (response.ok) {
@@ -55,7 +71,9 @@ async function waitForHealth() {
     await sleep(250);
   }
 
-  throw new Error("Private Pool V2 operator did not become healthy.");
+  throw new Error(
+    `Private Pool V2 operator did not become healthy. stderr=${operatorLogs.stderr.slice(-1000)} stdout=${operatorLogs.stdout.slice(-1000)}`,
+  );
 }
 
 async function requestJson(path, options = {}) {
@@ -96,19 +114,44 @@ async function stopOperator() {
 }
 
 async function startOperator(extraEnv = {}) {
-  operator = spawn(process.execPath, [resolve(repoRoot, "operator/private-pool-v2-server.mjs")], {
-    cwd: repoRoot,
-    env: {
-      ...process.env,
-      ...extraEnv,
-      VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN: authToken,
-      VANTA_PRIVATE_POOL_V2_OPERATOR_HOST: "127.0.0.1",
-      VANTA_PRIVATE_POOL_V2_OPERATOR_PORT: String(port),
-      VANTA_PRIVATE_POOL_V2_STORE_PATH: storePath,
-    },
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  await waitForHealth();
+  let lastError = null;
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    operatorLogs = { stderr: "", stdout: "" };
+    operator = spawn(process.execPath, [resolve(repoRoot, "operator/private-pool-v2-server.mjs")], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        ...extraEnv,
+        VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN: authToken,
+        VANTA_PRIVATE_POOL_V2_OPERATOR_HOST: "127.0.0.1",
+        VANTA_PRIVATE_POOL_V2_OPERATOR_PORT: String(port),
+        VANTA_PRIVATE_POOL_V2_STORE_PATH: storePath,
+      },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    operator.stdout.on("data", (chunk) => {
+      operatorLogs.stdout += chunk.toString("utf8");
+    });
+    operator.stderr.on("data", (chunk) => {
+      operatorLogs.stderr += chunk.toString("utf8");
+    });
+
+    try {
+      await waitForHealth();
+      return;
+    } catch (error) {
+      lastError = error;
+      const message = error instanceof Error ? error.message : String(error);
+      await stopOperator();
+      if (!message.includes("listen EPERM") && !message.includes("EADDRINUSE")) {
+        throw error;
+      }
+      chooseOperatorPort();
+    }
+  }
+
+  throw lastError ?? new Error("Private Pool V2 operator did not become healthy.");
 }
 
 async function seedCommittedCheckoutInput(request) {
@@ -214,6 +257,7 @@ async function assertCommittedCheckoutUsesSendProofBoundary({
 }
 
 let operator = null;
+let operatorLogs = { stderr: "", stdout: "" };
 
 try {
   mkdirSync(tempTsDir, { recursive: true });
@@ -277,6 +321,91 @@ try {
   });
 
   const committedRequest = createVantaPayCheckoutCommittedEconomicsSettlementRequest(session);
+  const committedCheckoutReceipt = {
+    amount: session.amount,
+    asset: session.currency,
+    auditDisclosureId: "aud_committed_checkout_acceptance_7a1d3a7fd97ce95f7f06c32c",
+    checkoutSessionId: session.id,
+    completionBasis: "local-test-harness",
+    createdAt: session.createdAt,
+    customerEmail: session.customerEmail,
+    customerPaymentEvidenceRef: null,
+    id: "rcpt_committed_checkout_acceptance_test",
+    invoiceReference: "INV-COMMITTED-1",
+    merchantId: session.merchantId,
+    object: "receipt",
+    orderId: session.orderId,
+    paymentId: "pay_committed_checkout_acceptance_test",
+    privateRailReceiptId: "prail_committed_checkout_acceptance_4c4cfd71f6f024c629d06902",
+    status: "paid",
+  };
+  const acceptancePacket = buildVantaPayCommittedCheckoutAcceptance(committedCheckoutReceipt);
+  assert(
+    VANTA_PAY_COMMITTED_CHECKOUT_ACCEPTANCE.schemaVersion ===
+      "vanta-pay-committed-checkout-acceptance-v0.1",
+    "Expected committed-checkout acceptance schema.",
+  );
+  assert(
+    VANTA_PAY_COMMITTED_CHECKOUT_ACCEPTANCE.object ===
+      "pay_committed_checkout_acceptance",
+    "Expected committed-checkout acceptance object.",
+  );
+  assert(
+    VANTA_PAY_COMMITTED_CHECKOUT_ACCEPTANCE.acceptanceMode ===
+      "receipt-bound-committed-economics-acceptance",
+    "Expected receipt-bound committed-economics acceptance mode.",
+  );
+  assert(
+    VANTA_PAY_COMMITTED_CHECKOUT_ACCEPTANCE.acceptanceAction.eventType ===
+      "committed_checkout_acceptance_created",
+    "Expected committed checkout acceptance event type.",
+  );
+  assert(
+    VANTA_PAY_COMMITTED_CHECKOUT_ACCEPTANCE.acceptanceAction.nextAction ===
+      "accept_committed_checkout_private_settlement",
+    "Expected committed checkout acceptance next action.",
+  );
+  assert(
+    VANTA_PAY_COMMITTED_CHECKOUT_ACCEPTANCE.acceptedPrivateSettlement
+      .rawEconomicTermsInAcceptedCheckoutSettlement === false,
+    "Accepted checkout settlement must not expose raw economic terms.",
+  );
+  assert(
+    VANTA_PAY_COMMITTED_CHECKOUT_ACCEPTANCE.acceptedPrivateSettlement
+      .customerPaymentEvidenceRequiredForProduction === true,
+    "Production checkout completion must still require customer payment evidence.",
+  );
+  assert(
+    VANTA_PAY_COMMITTED_CHECKOUT_ACCEPTANCE.privacyBoundary
+      .rawFutureSettlementTermsStored === false,
+    "Acceptance packet must not store raw future settlement terms.",
+  );
+  assert(
+    VANTA_PAY_COMMITTED_CHECKOUT_ACCEPTANCE.claimControls.productionReady === false,
+    "Acceptance packet must not lift production readiness.",
+  );
+  assert(
+    VANTA_PAY_COMMITTED_CHECKOUT_ACCEPTANCE.verificationCommand ===
+      "npm run pay:committed-checkout-acceptance-check",
+    "Acceptance packet must name the committed-checkout gate.",
+  );
+  assert(
+    acceptancePacket.receiptRef.receiptId === committedCheckoutReceipt.id,
+    "Receipt-scoped committed-checkout acceptance must bind receipt id.",
+  );
+  assert(
+    acceptancePacket.receiptRef.sharePath === `/receipt/${committedCheckoutReceipt.id}`,
+    "Receipt-scoped committed-checkout acceptance must bind share path.",
+  );
+  assertNoRawTerms("Pay committed checkout acceptance packet", acceptancePacket, [
+    "buyer@example.com",
+    session.clientToken,
+    session.id,
+    merchant.id,
+    "123450000",
+  ]);
+  console.log("vanta-pay committed checkout acceptance packet: PASS");
+
   assert(committedRequest.action === "send", "Expected Pay checkout to map to private-send protocol action.");
   assert(
     committedRequest.economicsMode === "committed-economics",

@@ -112,10 +112,10 @@ const growthLoopEvidence = {
     invitedCounterparties30d: 1,
     counterpartyVerifierOpened7d: 1,
     counterpartyVerifierOpened30d: 1,
-    nextPrivateSettlementRequests7d: 1,
-    nextPrivateSettlementRequests30d: 1,
-    repeatedPrivateActions7d: 1,
-    repeatedPrivateActions30d: 1,
+    nextPrivateSettlementRequests7d: 2,
+    nextPrivateSettlementRequests30d: 2,
+    repeatedPrivateActions7d: 2,
+    repeatedPrivateActions30d: 2,
     transactionCount7d: 1,
     transactionCount30d: 1,
     volume7dUsd: 2400,
@@ -175,6 +175,7 @@ const measuredLoopImplementation = {
   liveMeasurementEnabled: true,
   implementedSurfaces: {
     automaticReceiptGeneratedEvent: true,
+    committedCheckoutAcceptanceSurface: true,
     counterpartyActivationSurface: true,
     eventIntakeEndpoint: "POST /v1/growth-loop/events",
     eventLedgerSnapshotPersistence: true,
@@ -222,6 +223,43 @@ const counterpartyActivation = {
   },
   verificationCommand: "npm run pay:counterparty-activation-check",
 };
+const committedCheckoutAcceptance = {
+  schemaVersion: "vanta-pay-committed-checkout-acceptance-v0.1",
+  object: "pay_committed_checkout_acceptance",
+  status: "acceptance-ready-live-redacted-claim-blocked",
+  acceptanceMode: "receipt-bound-committed-economics-acceptance",
+  measurementMode: "live-redacted-first-party",
+  liveMeasurementEnabled: true,
+  acceptanceAction: {
+    ctaLabel: "Accept committed checkout",
+    eventType: "committed_checkout_acceptance_created",
+    nextAction: "accept_committed_checkout_private_settlement",
+    policySafeCopy: "Accept a receipt-bound private settlement with committed checkout terms.",
+    route: "/app/pay",
+  },
+  acceptedPrivateSettlement: {
+    acceptanceVerificationCommand: "npm run pay:committed-checkout-acceptance-check",
+    acceptedCheckoutSettlementBoundary: "actual-private-spend-protocol-settlement",
+    checkoutProofBoundary: "hidden-economics-request",
+    checkoutSettlementRoute: "actual-private-spend-protocol-settlement",
+    customerPaymentEvidenceRequiredForProduction: true,
+    customerPaymentEvidenceWired: false,
+    economicsMode: "committed-economics",
+    proofBoundaryVerificationCommand: "npm run pay:hidden-economics-request-check",
+    rawEconomicTermsInAcceptedCheckoutSettlement: false,
+    rawEconomicTermsInLiveCheckoutSettlement: false,
+    rawEconomicTermsInProofRequest: false,
+  },
+  claimControls: {
+    adoptionClaimAllowed: false,
+    anonymityClaimAllowed: false,
+    claimLiftBlockedUntilReviewedLiveEvidence: true,
+    complianceSafeClaimAllowed: false,
+    productionReady: false,
+    regulatorApprovalClaimAllowed: false,
+  },
+  verificationCommand: "npm run pay:committed-checkout-acceptance-check",
+};
 
 const result = {
   capabilities: {
@@ -230,6 +268,7 @@ const result = {
       process.env.VANTA_PAY_STORE_PATH || process.env.VANTA_PAY_DATABASE_URL,
     ),
     growthLoopAdoptionClaimAllowed: false,
+    growthLoopCommittedCheckoutAcceptance: "acceptance-ready-live-redacted-claim-blocked",
     growthLoopCounterpartyActivation: "actionable-live-redacted-claim-blocked",
     growthLoopLiveMeasurement: "redacted-first-party-claim-blocked",
     growthLoopMeasuredImplementation: "implemented-live-redacted-claim-blocked",
@@ -264,6 +303,7 @@ const result = {
   liveGrowthLoopMeasurement,
   measuredLoopImplementation,
   counterpartyActivation,
+  committedCheckoutAcceptance,
   storage: {
     kind: process.env.VANTA_PAY_DATABASE_URL
       ? "postgres-jsonb-snapshot-store"
@@ -340,6 +380,9 @@ if (jsonMode) {
   );
   console.log(
     `- counterparty activation: status=${result.counterpartyActivation.status}, action=${result.counterpartyActivation.primaryAction.nextAction}, command=${result.counterpartyActivation.verificationCommand}`,
+  );
+  console.log(
+    `- committed checkout acceptance: status=${result.committedCheckoutAcceptance.status}, action=${result.committedCheckoutAcceptance.acceptanceAction.nextAction}, command=${result.committedCheckoutAcceptance.verificationCommand}`,
   );
   console.log(`- settlement lifecycle: ${result.privateSettlement.lifecycleModel}`);
   console.log(`- checkout proof boundary: ${result.privateSettlement.checkoutProofBoundary}`);

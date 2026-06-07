@@ -21,6 +21,9 @@ export function ReceiptVerificationPage() {
         <Link className="route-fallback__action route-fallback__action--primary" to="/app/pay">
           Request private settlement
         </Link>
+        <Link className="route-fallback__action" to="/app/pay">
+          Accept committed checkout
+        </Link>
         <Link className="route-fallback__action" to="/docs/trust">
           Review trust docs
         </Link>
@@ -61,6 +64,16 @@ export function ReceiptVerificationPage() {
             `counterparty_invite_opened` and `next_settlement_intent_created` as redacted
             first-party events through POST /v1/growth-loop/events. Verify the activation packet
             with npm run pay:counterparty-activation-check.
+          </dd>
+        </div>
+        <div data-vanta-pay-committed-checkout-acceptance>
+          <dt>Committed checkout acceptance</dt>
+          <dd>
+            Accept committed checkout from the receipt context. The acceptance packet uses
+            committed-economics settlement metadata, records
+            `committed_checkout_acceptance_created` as a redacted first-party event, and is
+            checked by npm run pay:committed-checkout-acceptance-check. It does not execute
+            live signing, broadcast, real-funds movement, or production privacy by itself.
           </dd>
         </div>
         <div>

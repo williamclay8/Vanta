@@ -46,6 +46,7 @@ const sourceFiles = [
   "tokens/vantaTokenCatalog.ts",
   "pay/vantaPayAssets.ts",
   "pay/vantaPayTypes.ts",
+  "pay/vantaPayCommittedCheckoutAcceptance.ts",
   "pay/vantaPayCounterpartyActivation.ts",
   "pay/vantaPayGrowthLoopEvidence.ts",
   "pay/vantaPayRuntime.ts",
@@ -94,6 +95,8 @@ const forbiddenGrowthLoopEventKeys = new Set([
   "privateInputs",
   "privateRailReceiptId",
   "raw_settlement_terms",
+  "raw_future_settlement_terms",
+  "rawFutureSettlementTerms",
   "rawSettlementTerms",
   "secret",
   "signature",
@@ -113,6 +116,7 @@ const measuredLoopImplementation = {
   liveMeasurementEnabled: true,
   implementedSurfaces: {
     automaticReceiptGeneratedEvent: true,
+    committedCheckoutAcceptanceSurface: true,
     eventIntakeEndpoint: "POST /v1/growth-loop/events",
     eventLedgerSnapshotPersistence: true,
     operatorStatusEndpoint: "GET /v1/growth-loop/status",
@@ -694,6 +698,9 @@ const { VANTA_PAY_GROWTH_LOOP_EVENT_TYPES } = await import(
 const { VANTA_PAY_COUNTERPARTY_ACTIVATION } = await import(
   pathToFileURL(join(tempJsDir, "pay/vantaPayCounterpartyActivation.js")).href
 );
+const { VANTA_PAY_COMMITTED_CHECKOUT_ACCEPTANCE } = await import(
+  pathToFileURL(join(tempJsDir, "pay/vantaPayCommittedCheckoutAcceptance.js")).href
+);
 const { createVantaPayPrivateSettlementAdapter } = await import(
   pathToFileURL(join(tempJsDir, "pay/vantaPayPrivateSettlementAdapter.js")).href
 );
@@ -706,6 +713,9 @@ const supportedCounterpartyActivationEventTypes = new Set([
   "counterparty_invite_created",
   "counterparty_invite_opened",
   "next_settlement_intent_created",
+]);
+const supportedCommittedCheckoutAcceptanceEventTypes = new Set([
+  "committed_checkout_acceptance_created",
 ]);
 const defaultSnapshot = { stateVersion: VANTA_PAY_STORE_SCHEMA_VERSION };
 const snapshotStore = databaseUrl
@@ -771,6 +781,8 @@ const server = createServer(async (request, response) => {
           databaseAdapterSeam: true,
           hostedCheckoutSessions: true,
           growthLoopAdoptionClaimAllowed: false,
+          growthLoopCommittedCheckoutAcceptance:
+            "acceptance-ready-live-redacted-claim-blocked",
           growthLoopCounterpartyActivation: "actionable-live-redacted-claim-blocked",
           growthLoopLiveMeasurement: "redacted-first-party-claim-blocked",
           growthLoopMeasuredImplementation: "implemented-live-redacted-claim-blocked",
@@ -826,6 +838,10 @@ const server = createServer(async (request, response) => {
         ],
         object: "vanta_pay_operator_status",
         privateSettlement: runtime.getMerchantApiStatus().privateSettlement,
+        committedCheckoutAcceptance: VANTA_PAY_COMMITTED_CHECKOUT_ACCEPTANCE,
+        committedCheckoutAcceptanceEventTypes: [
+          ...supportedCommittedCheckoutAcceptanceEventTypes,
+        ],
         counterpartyActivation: VANTA_PAY_COUNTERPARTY_ACTIVATION,
         counterpartyActivationEventTypes: [...supportedCounterpartyActivationEventTypes],
         measuredLoopImplementation,

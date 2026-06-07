@@ -72,6 +72,7 @@ assert.deepEqual(publicView.verification.commands, [
   "npm run pay:growth-loop-check",
   "npm run pay:measured-loop-implementation-check",
   "npm run pay:counterparty-activation-check",
+  "npm run pay:committed-checkout-acceptance-check",
   "npm run programmatic-privacy:contract-check",
   "npm run twitter-intelligence:check",
 ]);
@@ -93,14 +94,14 @@ assert.equal(publicView.growthLoop.repeatedPrivateAction.liveUsageMeasured, fals
 assert.equal(publicView.growthLoop.evidence.schemaVersion, "vanta-pay-growth-loop-evidence-v0.1");
 assert.equal(publicView.growthLoop.evidence.eventLedger.object, "growth_loop_event_ledger");
 assert.equal(publicView.growthLoop.evidence.eventLedger.liveMeasurementEnabled, false);
-assert.equal(publicView.growthLoop.evidence.eventLedger.events.length, 4);
+assert.equal(publicView.growthLoop.evidence.eventLedger.events.length, 5);
 assert.equal(publicView.growthLoop.evidence.derivedCounters.invitedCounterparties7d, 1);
 assert.equal(publicView.growthLoop.evidence.derivedCounters.counterpartyVerifierOpened7d, 1);
-assert.equal(publicView.growthLoop.evidence.derivedCounters.nextPrivateSettlementRequests7d, 1);
-assert.equal(publicView.growthLoop.evidence.derivedCounters.repeatedPrivateActions7d, 1);
+assert.equal(publicView.growthLoop.evidence.derivedCounters.nextPrivateSettlementRequests7d, 2);
+assert.equal(publicView.growthLoop.evidence.derivedCounters.repeatedPrivateActions7d, 2);
 assert.equal(publicView.growthLoop.evidence.claimControls.claimLiftBlockedUntilLiveEvidence, true);
 assert.equal(publicView.growthLoop.usageVelocity.invitedCounterparties7d, 1);
-assert.equal(publicView.growthLoop.usageVelocity.repeatedPrivateActions7d, 1);
+assert.equal(publicView.growthLoop.usageVelocity.repeatedPrivateActions7d, 2);
 assert.equal(publicView.growthLoop.productionReady, false);
 assert.equal(publicView.counterpartyActivation.schemaVersion, "vanta-pay-counterparty-activation-v0.1");
 assert.equal(publicView.counterpartyActivation.status, "actionable-live-redacted-claim-blocked");
@@ -115,6 +116,32 @@ assert.equal(publicView.counterpartyActivation.measurement.noCustomerEmailValue,
 assert.equal(publicView.counterpartyActivation.measurement.noIpAddressOrUserAgent, true);
 assert.equal(publicView.counterpartyActivation.claimControls.adoptionClaimAllowed, false);
 assert.equal(publicView.counterpartyActivation.claimControls.productionReady, false);
+assert.equal(
+  publicView.committedCheckoutAcceptance.schemaVersion,
+  "vanta-pay-committed-checkout-acceptance-v0.1",
+);
+assert.equal(
+  publicView.committedCheckoutAcceptance.status,
+  "acceptance-ready-live-redacted-claim-blocked",
+);
+assert.equal(
+  publicView.committedCheckoutAcceptance.acceptanceAction.eventType,
+  "committed_checkout_acceptance_created",
+);
+assert.equal(
+  publicView.committedCheckoutAcceptance.acceptedPrivateSettlement.economicsMode,
+  "committed-economics",
+);
+assert.equal(
+  publicView.committedCheckoutAcceptance.acceptedPrivateSettlement.rawEconomicTermsInAcceptedCheckoutSettlement,
+  false,
+);
+assert.equal(
+  publicView.committedCheckoutAcceptance.privacyBoundary.rawFutureSettlementTermsStored,
+  false,
+);
+assert.equal(publicView.committedCheckoutAcceptance.claimControls.adoptionClaimAllowed, false);
+assert.equal(publicView.committedCheckoutAcceptance.claimControls.productionReady, false);
 assert.ok(publicView.privateSettlement.railReceipt.idPrefix);
 assert.ok(publicView.privateSettlement.auditDisclosure.idPrefix);
 assert.ok(publicView.privateSettlement.railReceipt.idPrefix.length < receipt.privateRailReceiptId.length);

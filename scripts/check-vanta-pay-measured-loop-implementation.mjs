@@ -77,6 +77,7 @@ assert.equal(packet.liveMeasurementEnabled, true);
 assert.equal(packet.implementedSurfaces.runtimeRedactedEventLedger, true);
 assert.equal(packet.implementedSurfaces.automaticReceiptGeneratedEvent, true);
 assert.equal(packet.implementedSurfaces.counterpartyActivationSurface, true);
+assert.equal(packet.implementedSurfaces.committedCheckoutAcceptanceSurface, true);
 assert.equal(packet.implementedSurfaces.eventLedgerSnapshotPersistence, true);
 assert.equal(packet.implementedSurfaces.publicAuditDiscovery, true);
 assert.equal(packet.implementedSurfaces.operatorStatusEndpoint, "GET /v1/growth-loop/status");
@@ -142,6 +143,12 @@ assert.ok(
   "pay:verify must include the counterparty activation gate.",
 );
 assert.ok(
+  packageJson.scripts?.["pay:verify"]?.includes(
+    "npm run pay:committed-checkout-acceptance-check",
+  ),
+  "pay:verify must include the committed-checkout acceptance gate.",
+);
+assert.ok(
   packageJson.scripts?.["twitter-intelligence:check"]?.includes(
     "npm run pay:measured-loop-implementation-check",
   ),
@@ -160,18 +167,23 @@ assert.ok(
 
 requireMarkers("src/pay/vantaPayTypes.ts", [
   "VantaPayMeasuredLoopImplementation",
+  "VantaPayCommittedCheckoutAcceptance",
   "vanta-pay-measured-loop-implementation-v0.1",
+  "vanta-pay-committed-checkout-acceptance-v0.1",
   "implemented-live-redacted-claim-blocked",
   "runtimeRedactedEventLedger",
   "counterpartyActivationSurface",
+  "committedCheckoutAcceptanceSurface",
   "claimLiftBlockedUntilReviewedLiveEvidence",
 ]);
 requireMarkers("src/pay/vantaPayMeasuredLoopImplementation.ts", [
   "VANTA_PAY_MEASURED_LOOP_IMPLEMENTATION",
   "counterpartyActivationSurface",
+  "committedCheckoutAcceptanceSurface",
   "GET /v1/growth-loop/status",
   "POST /v1/growth-loop/events",
   "pay:counterparty-activation-check",
+  "pay:committed-checkout-acceptance-check",
   "dep-d8idfupoagis73dar1ng",
   "dep-d8idfuhoagis73dar0b0",
 ]);
@@ -185,6 +197,7 @@ requireMarkers("src/pay/vantaPayRuntime.ts", [
 requireMarkers("operator/pay-server.mjs", [
   "measuredLoopImplementation",
   "growthLoopMeasuredImplementation",
+  "growthLoopCommittedCheckoutAcceptance",
   "implemented-live-redacted-claim-blocked",
   "GET /v1/growth-loop/status",
   "POST /v1/growth-loop/events",
@@ -192,6 +205,8 @@ requireMarkers("operator/pay-server.mjs", [
 requireMarkers("scripts/print-vanta-pay-status.mjs", [
   "measuredLoopImplementation",
   "pay:measured-loop-implementation-check",
+  "committedCheckoutAcceptance",
+  "pay:committed-checkout-acceptance-check",
   "implemented-live-redacted-claim-blocked",
   "live-redacted-first-party",
 ]);

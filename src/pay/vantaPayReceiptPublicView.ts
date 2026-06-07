@@ -5,6 +5,8 @@ import type {
   VantaPayReceiptRedactedReference,
 } from "./vantaPayTypes";
 // @ts-expect-error Node-based Pay checks import this TS source directly and need the explicit suffix.
+import { buildVantaPayCommittedCheckoutAcceptance } from "./vantaPayCommittedCheckoutAcceptance.ts";
+// @ts-expect-error Node-based Pay checks import this TS source directly and need the explicit suffix.
 import { buildVantaPayCounterpartyActivation } from "./vantaPayCounterpartyActivation.ts";
 // @ts-expect-error Node-based Pay checks import this TS source directly and need the explicit suffix.
 import { buildVantaPayGrowthLoopEvidence } from "./vantaPayGrowthLoopEvidence.ts";
@@ -53,6 +55,7 @@ export function buildVantaPayReceiptPublicView(
 ): VantaPayReceiptPublicView {
   const growthLoopEvidence = buildVantaPayGrowthLoopEvidence(receipt);
   const counterpartyActivation = buildVantaPayCounterpartyActivation(receipt);
+  const committedCheckoutAcceptance = buildVantaPayCommittedCheckoutAcceptance(receipt);
 
   return {
     amount: receipt.amount,
@@ -90,6 +93,7 @@ export function buildVantaPayReceiptPublicView(
         "npm run pay:growth-loop-check",
         "npm run pay:measured-loop-implementation-check",
         "npm run pay:counterparty-activation-check",
+        "npm run pay:committed-checkout-acceptance-check",
         "npm run programmatic-privacy:contract-check",
         "npm run twitter-intelligence:check",
       ],
@@ -159,6 +163,7 @@ export function buildVantaPayReceiptPublicView(
       productionReady: false,
     },
     counterpartyActivation,
+    committedCheckoutAcceptance,
     version: VANTA_PAY_RECEIPT_PUBLIC_VIEW_VERSION,
   };
 }

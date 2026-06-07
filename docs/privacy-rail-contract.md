@@ -49,17 +49,19 @@ Vanta Pay now carries a counterparty-verifiable receipt growth loop:
 - live measurement schema: `vanta-pay-live-growth-loop-measurement-v0.1`
 - measured loop implementation schema: `vanta-pay-measured-loop-implementation-v0.1`
 - counterparty activation schema: `vanta-pay-counterparty-activation-v0.1`
+- committed checkout acceptance schema: `vanta-pay-committed-checkout-acceptance-v0.1`
 - command: `npm run pay:growth-loop-check`
 - implementation command: `npm run pay:measured-loop-implementation-check`
 - activation command: `npm run pay:counterparty-activation-check`
+- committed checkout acceptance command: `npm run pay:committed-checkout-acceptance-check`
 - live measurement endpoints: `GET /v1/growth-loop/status`, `POST /v1/growth-loop/events`
 - loop: private action -> trust packet ready -> counterparty verification -> invited use -> repeated private action
 - verifier route: `/receipt/:receiptId`
-- local fixture events: `receipt_generated`, `share_link_copied`, `counterparty_verifier_opened`, `next_private_settlement_requested`, `counterparty_invite_created`, `counterparty_invite_opened`, and `next_settlement_intent_created`
+- local fixture events: `receipt_generated`, `share_link_copied`, `counterparty_verifier_opened`, `next_private_settlement_requested`, `counterparty_invite_created`, `counterparty_invite_opened`, `next_settlement_intent_created`, and `committed_checkout_acceptance_created`
 - usage velocity: local fixture counters can be derived for 7d/30d volume, transaction, invited-counterparty, counterparty-verifier-open, next-private-settlement-request, and repeated-action counts
 - claim controls: production readiness, adoption, regulator approval, compliance assurance, and anonymity claims remain blocked
 
-This turns the receipt into the growth artifact without claiming live adoption. The receipt packet still proves the beta trust-packet shape, counterparty verifier path, and fixture-only measurement contract. The measured loop implementation packet proves the runtime event ledger, redacted operator intake, status endpoint, public discovery manifest, and claim locks are wired together. The counterparty activation packet makes the next action explicit: a counterparty can request private settlement using the verified receipt as context, while the operator records only redacted invite and intent events. The Pay operator can now measure live redacted first-party growth-loop events without storing customer email values, full private-rail receipt ids, full audit disclosure ids, private inputs, witness data, IP addresses, or user agents. Live adoption claims remain blocked until reviewer-verifiable live evidence exists.
+This turns the receipt into the growth artifact without claiming live adoption. The receipt packet still proves the beta trust-packet shape, counterparty verifier path, and fixture-only measurement contract. The measured loop implementation packet proves the runtime event ledger, redacted operator intake, status endpoint, public discovery manifest, and claim locks are wired together. The counterparty activation packet makes the next action explicit: a counterparty can request private settlement using the verified receipt as context, while the operator records only redacted invite and intent events. The committed checkout acceptance packet makes the next action inspectable as `Accept committed checkout`: it points to the hidden-economics proof request and actual-private committed-economics checkout acceptance guard without executing signing, broadcast, real-funds movement, or production privacy by itself. The Pay operator can now measure live redacted first-party growth-loop events without storing customer email values, full private-rail receipt ids, full audit disclosure ids, private inputs, witness data, raw future settlement terms, IP addresses, or user agents. Live adoption claims remain blocked until reviewer-verifiable live evidence exists.
 
 ## Rails
 

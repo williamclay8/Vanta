@@ -110,6 +110,7 @@ assert.deepEqual(sourcePacket.activationEventTypes, [
   "next_settlement_intent_created",
 ]);
 assert.deepEqual(sourcePacket.actionableSurfaces, {
+  committedCheckoutAcceptancePacket: true,
   counterpartyActivationPacket: true,
   counterpartyIntentEvents: true,
   operatorStatusDiscovery: true,
@@ -192,6 +193,10 @@ assert.ok(
   VANTA_PAY_GROWTH_LOOP_EVENT_TYPES.includes("next_settlement_intent_created"),
   "Growth-loop event types must include next_settlement_intent_created.",
 );
+assert.ok(
+  VANTA_PAY_GROWTH_LOOP_EVENT_TYPES.includes("committed_checkout_acceptance_created"),
+  "Growth-loop event types must include committed_checkout_acceptance_created.",
+);
 
 assert.equal(
   measuredImplementation.implementedSurfaces.counterpartyActivationSurface,
@@ -235,6 +240,20 @@ assert.ok(
   publicDiscovery.payGrowthLoopDiscovery?.fixtureEventTypes?.includes("next_settlement_intent_created"),
   "Public growth-loop discovery must include activation intent event.",
 );
+assert.equal(
+  publicDiscovery.payGrowthLoopDiscovery?.committedCheckoutAcceptanceSchema,
+  "vanta-pay-committed-checkout-acceptance-v0.1",
+);
+assert.equal(
+  publicDiscovery.payGrowthLoopDiscovery?.committedCheckoutAcceptanceCheckCommand,
+  "npm run pay:committed-checkout-acceptance-check",
+);
+assert.ok(
+  publicDiscovery.payGrowthLoopDiscovery?.fixtureEventTypes?.includes(
+    "committed_checkout_acceptance_created",
+  ),
+  "Public growth-loop discovery must include committed checkout acceptance event.",
+);
 assertSafeNpmRunCommand(
   publicDiscovery.payGrowthLoopDiscovery?.activationCheckCommand,
   "public activation check command",
@@ -268,11 +287,15 @@ for (const command of sourcePacket.verificationCommands) {
 
 requireMarkers("src/pay/vantaPayTypes.ts", [
   "VantaPayCounterpartyActivation",
+  "VantaPayCommittedCheckoutAcceptance",
   "vanta-pay-counterparty-activation-v0.1",
+  "vanta-pay-committed-checkout-acceptance-v0.1",
   "counterparty_invite_created",
   "counterparty_invite_opened",
   "next_settlement_intent_created",
+  "committed_checkout_acceptance_created",
   "counterpartyActivation",
+  "committedCheckoutAcceptance",
 ]);
 requireMarkers("src/pay/vantaPayCounterpartyActivation.ts", [
   "VANTA_PAY_COUNTERPARTY_ACTIVATION",
@@ -286,55 +309,83 @@ requireMarkers("src/pay/vantaPayGrowthLoopEvidence.ts", [
   "counterparty_invite_created",
   "counterparty_invite_opened",
   "next_settlement_intent_created",
+  "committed_checkout_acceptance_created",
 ]);
 requireMarkers("src/pay/vantaPayMeasuredLoopImplementation.ts", [
   "counterpartyActivationSurface",
+  "committedCheckoutAcceptanceSurface",
   "pay:counterparty-activation-check",
+  "pay:committed-checkout-acceptance-check",
 ]);
 requireMarkers("src/pay/vantaPayReceiptPublicView.ts", [
   "counterpartyActivation",
+  "committedCheckoutAcceptance",
   "buildVantaPayCounterpartyActivation",
+  "buildVantaPayCommittedCheckoutAcceptance",
   "npm run pay:counterparty-activation-check",
+  "npm run pay:committed-checkout-acceptance-check",
 ]);
 requireMarkers("src/components/PayReceiptPacketCard.tsx", [
   "data-vanta-pay-counterparty-activation",
+  "data-vanta-pay-committed-checkout-acceptance",
   "Counterparty activation",
+  "Committed checkout acceptance",
   "Request private settlement",
   "next_settlement_intent_created",
+  "committed_checkout_acceptance_created",
   "pay:counterparty-activation-check",
+  "pay:committed-checkout-acceptance-check",
 ]);
 requireMarkers("src/pages/ReceiptVerificationPage.tsx", [
   "data-vanta-pay-counterparty-activation",
+  "data-vanta-pay-committed-checkout-acceptance",
   "Request private settlement",
+  "Accept committed checkout",
   "next_settlement_intent_created",
+  "committed_checkout_acceptance_created",
   "counterparty_invite_opened",
   "pay:counterparty-activation-check",
+  "pay:committed-checkout-acceptance-check",
 ]);
 requireMarkers("operator/pay-server.mjs", [
   "counterpartyActivation",
+  "committedCheckoutAcceptance",
   "growthLoopCounterpartyActivation",
+  "growthLoopCommittedCheckoutAcceptance",
   "counterparty_invite_created",
   "next_settlement_intent_created",
+  "committed_checkout_acceptance_created",
 ]);
 requireMarkers("scripts/check-vanta-pay-merchant-api.mjs", [
   "growthLoopCounterpartyActivation",
+  "growthLoopCommittedCheckoutAcceptance",
   "counterparty_invite_created",
   "next_settlement_intent_created",
+  "committed_checkout_acceptance_created",
 ]);
 requireMarkers("docs/audit-package.md", [
   "payCounterpartyActivation",
+  "payCommittedCheckoutAcceptance",
   "vanta-pay-counterparty-activation-v0.1",
+  "vanta-pay-committed-checkout-acceptance-v0.1",
   "npm run pay:counterparty-activation-check",
+  "npm run pay:committed-checkout-acceptance-check",
 ]);
 requireMarkers("docs/privacy-rail-contract.md", [
   "counterparty activation",
+  "committed checkout acceptance",
   "vanta-pay-counterparty-activation-v0.1",
+  "vanta-pay-committed-checkout-acceptance-v0.1",
   "npm run pay:counterparty-activation-check",
+  "npm run pay:committed-checkout-acceptance-check",
 ]);
 requireMarkers("docs/twitter-intelligence/2026-06-06-requirements.md", [
   "counterparty activation",
+  "committed checkout acceptance",
   "vanta-pay-counterparty-activation-v0.1",
+  "vanta-pay-committed-checkout-acceptance-v0.1",
   "npm run pay:counterparty-activation-check",
+  "npm run pay:committed-checkout-acceptance-check",
 ]);
 
 for (const leaked of [

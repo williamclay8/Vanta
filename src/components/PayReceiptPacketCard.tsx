@@ -190,6 +190,24 @@ export function PayReceiptPacketCard({
             )}.
           </dd>
         </div>
+        <div data-vanta-pay-committed-checkout-acceptance>
+          <dt>Committed checkout acceptance</dt>
+          <dd>
+            Accept committed checkout:{" "}
+            {publicView.committedCheckoutAcceptance.acceptanceAction.policySafeCopy} Event:
+            committed_checkout_acceptance_created. Accepted settlement boundary:{" "}
+            {
+              publicView.committedCheckoutAcceptance.acceptedPrivateSettlement
+                .acceptedCheckoutSettlementBoundary
+            }
+            . Verify with npm run pay:committed-checkout-acceptance-check. Raw future terms
+            stored:{" "}
+            {String(
+              publicView.committedCheckoutAcceptance.privacyBoundary
+                .rawFutureSettlementTermsStored,
+            )}.
+          </dd>
+        </div>
         <div data-vanta-pay-institutional-disclosure>
           <dt>Institutional disclosure</dt>
           <dd>

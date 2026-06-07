@@ -356,7 +356,8 @@ export type VantaPayGrowthLoopEventType =
   | "next_private_settlement_requested"
   | "counterparty_invite_created"
   | "counterparty_invite_opened"
-  | "next_settlement_intent_created";
+  | "next_settlement_intent_created"
+  | "committed_checkout_acceptance_created";
 
 export type VantaPayGrowthLoopCounterpartyRole = "merchant" | "buyer" | "counterparty";
 
@@ -475,6 +476,7 @@ export type VantaPayMeasuredLoopImplementation = {
   liveMeasurementEnabled: true;
   implementedSurfaces: {
     automaticReceiptGeneratedEvent: true;
+    committedCheckoutAcceptanceSurface: true;
     counterpartyActivationSurface: true;
     eventIntakeEndpoint: "POST /v1/growth-loop/events";
     eventLedgerSnapshotPersistence: true;
@@ -547,6 +549,7 @@ export type VantaPayCounterpartyActivation = {
     redactedSettlementReferences: true;
   };
   actionableSurfaces: {
+    committedCheckoutAcceptancePacket: true;
     counterpartyActivationPacket: true;
     counterpartyIntentEvents: true;
     operatorStatusDiscovery: true;
@@ -597,6 +600,86 @@ export type VantaPayCounterpartyActivation = {
     commands: readonly string[];
   };
   verificationCommand: "npm run pay:counterparty-activation-check";
+  verificationCommands: readonly string[];
+  truthBoundary: string;
+};
+
+export type VantaPayCommittedCheckoutAcceptanceAction = {
+  ctaLabel: "Accept committed checkout";
+  eventType: "committed_checkout_acceptance_created";
+  nextAction: "accept_committed_checkout_private_settlement";
+  policySafeCopy: "Accept a receipt-bound private settlement with committed checkout terms.";
+  route: "/app/pay";
+};
+
+export type VantaPayCommittedCheckoutAcceptance = {
+  schemaVersion: "vanta-pay-committed-checkout-acceptance-v0.1";
+  object: "pay_committed_checkout_acceptance";
+  status: "acceptance-ready-live-redacted-claim-blocked";
+  acceptanceMode: "receipt-bound-committed-economics-acceptance";
+  measurementMode: "live-redacted-first-party";
+  liveMeasurementEnabled: true;
+  receiptRef: {
+    amount: string;
+    asset: VantaPayAsset;
+    receiptId: string;
+    sharePath: string;
+    status: VantaPayReceiptStatus;
+  };
+  acceptedFacts: {
+    committedEconomicsBoundary: true;
+    receiptStatus: true;
+    redactedSettlementReferences: true;
+  };
+  acceptanceAction: VantaPayCommittedCheckoutAcceptanceAction;
+  acceptedPrivateSettlement: {
+    acceptanceVerificationCommand: "npm run pay:committed-checkout-acceptance-check";
+    acceptedCheckoutSettlementBoundary: "actual-private-spend-protocol-settlement";
+    checkoutProofBoundary: "hidden-economics-request";
+    checkoutSettlementRoute: "actual-private-spend-protocol-settlement";
+    customerPaymentEvidenceRequiredForProduction: true;
+    customerPaymentEvidenceWired: false;
+    economicsMode: "committed-economics";
+    proofBoundaryVerificationCommand: "npm run pay:hidden-economics-request-check";
+    rawEconomicTermsInAcceptedCheckoutSettlement: false;
+    rawEconomicTermsInLiveCheckoutSettlement: false;
+    rawEconomicTermsInProofRequest: false;
+  };
+  measurement: {
+    eventIntakeEndpoint: "POST /v1/growth-loop/events";
+    eventTypes: readonly ["committed_checkout_acceptance_created"];
+    measurementMode: "live-redacted-first-party";
+    noCustomerEmailValue: true;
+    noIpAddressOrUserAgent: true;
+    noRawFutureSettlementTerms: true;
+    redactedFirstParty: true;
+    statusEndpoint: "GET /v1/growth-loop/status";
+  };
+  privacyBoundary: {
+    customerEmailStored: false;
+    fullAuditDisclosureIdStored: false;
+    fullPrivateRailReceiptIdStored: false;
+    ipAddressStored: false;
+    privateInputsStored: false;
+    rawFutureSettlementTermsStored: false;
+    rawSettlementTermsStored: false;
+    userAgentStored: false;
+    witnessStored: false;
+  };
+  claimControls: {
+    adoptionClaimAllowed: false;
+    anonymityClaimAllowed: false;
+    claimLiftBlockedUntilReviewedLiveEvidence: true;
+    complianceSafeClaimAllowed: false;
+    productionReady: false;
+    regulatorApprovalClaimAllowed: false;
+  };
+  sourceRefs: readonly string[];
+  verification: {
+    command: "npm run pay:committed-checkout-acceptance-check";
+    commands: readonly string[];
+  };
+  verificationCommand: "npm run pay:committed-checkout-acceptance-check";
   verificationCommands: readonly string[];
   truthBoundary: string;
 };
@@ -708,6 +791,7 @@ export type VantaPayReceiptPublicView = {
       "npm run pay:growth-loop-check",
       "npm run pay:measured-loop-implementation-check",
       "npm run pay:counterparty-activation-check",
+      "npm run pay:committed-checkout-acceptance-check",
       "npm run programmatic-privacy:contract-check",
       "npm run twitter-intelligence:check",
     ];
@@ -753,6 +837,7 @@ export type VantaPayReceiptPublicView = {
     productionReady: false;
   };
   counterpartyActivation: VantaPayCounterpartyActivation;
+  committedCheckoutAcceptance: VantaPayCommittedCheckoutAcceptance;
   version: "vanta-pay-receipt-public-view-0.1";
 };
 

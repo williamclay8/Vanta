@@ -18,6 +18,7 @@ const COUNTERPARTY_ACTIVATION_ACTION = {
 } as const satisfies VantaPayCounterpartyActivation["primaryAction"];
 
 const ACTIONABLE_SURFACES = {
+  committedCheckoutAcceptancePacket: true,
   counterpartyActivationPacket: true,
   counterpartyIntentEvents: true,
   operatorStatusDiscovery: true,
@@ -70,6 +71,7 @@ const VERIFICATION = {
 
 const SOURCE_REFS = [
   "operator/pay-server.mjs",
+  "src/pay/vantaPayCommittedCheckoutAcceptance.ts",
   "src/pay/vantaPayCounterpartyActivation.ts",
   "src/pay/vantaPayGrowthLoopEvidence.ts",
   "src/pay/vantaPayMeasuredLoopImplementation.ts",

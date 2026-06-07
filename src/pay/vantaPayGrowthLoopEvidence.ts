@@ -22,6 +22,7 @@ export const VANTA_PAY_GROWTH_LOOP_EVENT_TYPES = [
   "counterparty_invite_created",
   "counterparty_invite_opened",
   "next_settlement_intent_created",
+  "committed_checkout_acceptance_created",
 ] as const satisfies readonly VantaPayGrowthLoopEventType[];
 
 function addMinutes(isoTimestamp: string, minutes: number): string {
@@ -81,6 +82,15 @@ export function createVantaPayGrowthLoopFixtureEvents(
       receiptId: receipt.id,
       sharePath,
     },
+    {
+      counterpartyRole: "counterparty",
+      eventId: eventIdFor(receipt.id, "committed_checkout_acceptance_created"),
+      eventType: "committed_checkout_acceptance_created",
+      measurementSource: "local-ui-fixture",
+      occurredAt: addMinutes(receipt.createdAt, 4),
+      receiptId: receipt.id,
+      sharePath,
+    },
   ];
 }
 
@@ -123,6 +133,7 @@ export function deriveVantaPayGrowthLoopCountersForReceipts(
   const nextSettlementRequestCount = countAnyEvent(events, [
     "next_private_settlement_requested",
     "next_settlement_intent_created",
+    "committed_checkout_acceptance_created",
   ]);
   const volumeUsd = events
     .filter((event) => event.eventType === "receipt_generated")

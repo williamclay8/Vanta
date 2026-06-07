@@ -12,6 +12,7 @@ export const VANTA_PAY_MEASURED_LOOP_IMPLEMENTATION =
     liveMeasurementEnabled: true,
     implementedSurfaces: {
       automaticReceiptGeneratedEvent: true,
+      committedCheckoutAcceptanceSurface: true,
       counterpartyActivationSurface: true,
       eventIntakeEndpoint: "POST /v1/growth-loop/events",
       eventLedgerSnapshotPersistence: true,
@@ -49,6 +50,7 @@ export const VANTA_PAY_MEASURED_LOOP_IMPLEMENTATION =
     sourceRefs: [
       "operator/pay-server.mjs",
       "src/pay/vantaPayRuntime.ts",
+      "src/pay/vantaPayCommittedCheckoutAcceptance.ts",
       "src/pay/vantaPayCounterpartyActivation.ts",
       "src/pay/vantaPayGrowthLoopEvidence.ts",
       "src/pay/vantaPayMeasuredLoopImplementation.ts",
@@ -58,6 +60,7 @@ export const VANTA_PAY_MEASURED_LOOP_IMPLEMENTATION =
     verificationCommands: [
       "npm run pay:measured-loop-implementation-check",
       "npm run pay:counterparty-activation-check",
+      "npm run pay:committed-checkout-acceptance-check",
       "npm run pay:growth-loop-check",
       "npm run pay:merchant-api-check",
       "npm run public:audit-discovery-check",
