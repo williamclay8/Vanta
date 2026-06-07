@@ -50,7 +50,8 @@ export function ReceiptVerificationPage() {
             Opening this verifier is modeled as `counterparty_verifier_opened` in the local
             evidence ledger. A configured Pay operator can also record the same event through POST
             /v1/growth-loop/events as redacted first-party measurement; live adoption claims remain
-            blocked.
+            blocked. Measured-loop implementation is checked by npm run
+            pay:measured-loop-implementation-check.
           </dd>
         </div>
         <div>
@@ -80,8 +81,8 @@ export function ReceiptVerificationPage() {
         <div>
           <dt>Verifier</dt>
           <dd>
-            Use npm run pay:growth-loop-check and npm run pay:verify for local reviewer evidence
-            until public lookup is live.
+            Use npm run pay:growth-loop-check, npm run pay:measured-loop-implementation-check, and
+            npm run pay:verify for local reviewer evidence until public lookup is live.
           </dd>
         </div>
       </dl>

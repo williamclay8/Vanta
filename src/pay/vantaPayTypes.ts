@@ -464,6 +464,52 @@ export type VantaPayLiveGrowthLoopMeasurement = {
   verificationCommand: "npm run pay:growth-loop-check";
 };
 
+export type VantaPayMeasuredLoopImplementation = {
+  schemaVersion: "vanta-pay-measured-loop-implementation-v0.1";
+  object: "pay_measured_loop_implementation";
+  status: "implemented-live-redacted-claim-blocked";
+  measurementMode: "live-redacted-first-party";
+  liveMeasurementEnabled: true;
+  implementedSurfaces: {
+    automaticReceiptGeneratedEvent: true;
+    eventIntakeEndpoint: "POST /v1/growth-loop/events";
+    eventLedgerSnapshotPersistence: true;
+    operatorStatusEndpoint: "GET /v1/growth-loop/status";
+    publicAuditDiscovery: true;
+    receiptVerifierSurface: "/receipt/:receiptId";
+    runtimeRedactedEventLedger: true;
+  };
+  liveDeployReceipt: {
+    lastVerifiedAt: string;
+    operatorDeployId: string;
+    staticDeployId: string;
+    verifiedCommit: string;
+    liveUrl: "https://vantaprivacy.xyz";
+    operatorUrl: "https://vanta-0wwi.onrender.com";
+  };
+  privacyBoundary: {
+    customerEmailStored: false;
+    fullAuditDisclosureIdStored: false;
+    fullPrivateRailReceiptIdStored: false;
+    ipAddressStored: false;
+    privateInputsStored: false;
+    rawSettlementTermsStored: false;
+    userAgentStored: false;
+    witnessStored: false;
+  };
+  claimControls: {
+    adoptionClaimAllowed: false;
+    anonymityClaimAllowed: false;
+    claimLiftBlockedUntilReviewedLiveEvidence: true;
+    complianceSafeClaimAllowed: false;
+    productionReady: false;
+    regulatorApprovalClaimAllowed: false;
+  };
+  sourceRefs: readonly string[];
+  verificationCommands: readonly string[];
+  truthBoundary: string;
+};
+
 export type VantaPayReceiptGrowthLoop = {
   schemaVersion: "vanta-pay-receipt-growth-loop-v0.1";
   object: "receipt_growth_loop";
@@ -569,6 +615,7 @@ export type VantaPayReceiptPublicView = {
       "npm run pay:receipt-privacy-contract-check",
       "npm run pay:institutional-disclosure-receipt-check",
       "npm run pay:growth-loop-check",
+      "npm run pay:measured-loop-implementation-check",
       "npm run programmatic-privacy:contract-check",
       "npm run twitter-intelligence:check",
     ];

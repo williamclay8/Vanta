@@ -104,6 +104,41 @@ const forbiddenGrowthLoopEventKeys = new Set([
   "walletAddress",
   "witness",
 ]);
+const measuredLoopImplementation = {
+  schemaVersion: "vanta-pay-measured-loop-implementation-v0.1",
+  object: "pay_measured_loop_implementation",
+  status: "implemented-live-redacted-claim-blocked",
+  measurementMode: "live-redacted-first-party",
+  liveMeasurementEnabled: true,
+  implementedSurfaces: {
+    automaticReceiptGeneratedEvent: true,
+    eventIntakeEndpoint: "POST /v1/growth-loop/events",
+    eventLedgerSnapshotPersistence: true,
+    operatorStatusEndpoint: "GET /v1/growth-loop/status",
+    publicAuditDiscovery: true,
+    receiptVerifierSurface: "/receipt/:receiptId",
+    runtimeRedactedEventLedger: true,
+  },
+  privacyBoundary: {
+    customerEmailStored: false,
+    fullAuditDisclosureIdStored: false,
+    fullPrivateRailReceiptIdStored: false,
+    ipAddressStored: false,
+    privateInputsStored: false,
+    rawSettlementTermsStored: false,
+    userAgentStored: false,
+    witnessStored: false,
+  },
+  claimControls: {
+    adoptionClaimAllowed: false,
+    anonymityClaimAllowed: false,
+    claimLiftBlockedUntilReviewedLiveEvidence: true,
+    complianceSafeClaimAllowed: false,
+    productionReady: false,
+    regulatorApprovalClaimAllowed: false,
+  },
+  verificationCommand: "npm run pay:measured-loop-implementation-check",
+};
 
 function assertProductionSecrets() {
   if (process.env.NODE_ENV !== "production") {
@@ -728,6 +763,7 @@ const server = createServer(async (request, response) => {
           hostedCheckoutSessions: true,
           growthLoopAdoptionClaimAllowed: false,
           growthLoopLiveMeasurement: "redacted-first-party-claim-blocked",
+          growthLoopMeasuredImplementation: "implemented-live-redacted-claim-blocked",
           durableStoreConfigured: readiness.durableStoreConfigured,
           idempotency: {
             checkoutCompletion: true,
@@ -780,6 +816,7 @@ const server = createServer(async (request, response) => {
         ],
         object: "vanta_pay_operator_status",
         privateSettlement: runtime.getMerchantApiStatus().privateSettlement,
+        measuredLoopImplementation,
         readiness,
         service: "vanta-pay",
         storage: {

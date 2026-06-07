@@ -10,6 +10,7 @@ import {
   buildVantaPayGrowthLoopEvidence,
   createVantaPayGrowthLoopFixtureEvents,
 } from "../src/pay/vantaPayGrowthLoopEvidence.ts";
+import { VANTA_PAY_MEASURED_LOOP_IMPLEMENTATION } from "../src/pay/vantaPayMeasuredLoopImplementation.ts";
 import { buildVantaPayReceiptPublicView } from "../src/pay/vantaPayReceiptPublicView.ts";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -97,10 +98,12 @@ const liveEvents = [
   },
 ];
 const liveMeasurement = buildVantaPayLiveGrowthLoopMeasurement([receipt], liveEvents);
+const measuredLoopImplementation = VANTA_PAY_MEASURED_LOOP_IMPLEMENTATION;
 const serializedGrowthLoop = JSON.stringify(growthLoop);
 const serializedPublicView = JSON.stringify(publicView);
 const serializedGrowthLoopEvidence = JSON.stringify(growthLoopEvidence);
 const serializedLiveMeasurement = JSON.stringify(liveMeasurement);
+const serializedMeasuredLoopImplementation = JSON.stringify(measuredLoopImplementation);
 
 assert.equal(growthLoop.schemaVersion, "vanta-pay-receipt-growth-loop-v0.1");
 assert.equal(growthLoop.object, "receipt_growth_loop");
@@ -199,6 +202,32 @@ assert.equal(liveMeasurement.privacyBoundary.ipAddressStored, false);
 assert.equal(liveMeasurement.statusEndpoint, "GET /v1/growth-loop/status");
 assert.equal(liveMeasurement.eventIntakeEndpoint, "POST /v1/growth-loop/events");
 assert.equal(liveMeasurement.verificationCommand, "npm run pay:growth-loop-check");
+assert.equal(
+  measuredLoopImplementation.schemaVersion,
+  "vanta-pay-measured-loop-implementation-v0.1",
+);
+assert.equal(measuredLoopImplementation.object, "pay_measured_loop_implementation");
+assert.equal(measuredLoopImplementation.status, "implemented-live-redacted-claim-blocked");
+assert.equal(measuredLoopImplementation.measurementMode, "live-redacted-first-party");
+assert.equal(measuredLoopImplementation.liveMeasurementEnabled, true);
+assert.equal(
+  measuredLoopImplementation.implementedSurfaces.operatorStatusEndpoint,
+  "GET /v1/growth-loop/status",
+);
+assert.equal(
+  measuredLoopImplementation.implementedSurfaces.eventIntakeEndpoint,
+  "POST /v1/growth-loop/events",
+);
+assert.equal(measuredLoopImplementation.implementedSurfaces.runtimeRedactedEventLedger, true);
+assert.equal(measuredLoopImplementation.implementedSurfaces.automaticReceiptGeneratedEvent, true);
+assert.equal(measuredLoopImplementation.claimControls.adoptionClaimAllowed, false);
+assert.equal(measuredLoopImplementation.claimControls.productionReady, false);
+assert.equal(measuredLoopImplementation.claimControls.anonymityClaimAllowed, false);
+assert.ok(
+  measuredLoopImplementation.verificationCommands.includes(
+    "npm run pay:measured-loop-implementation-check",
+  ),
+);
 assert.equal(growthLoop.usageVelocity.invitedCounterparties7d, 1);
 assert.equal(growthLoop.usageVelocity.repeatedPrivateActions7d, 1);
 assert.equal(growthLoop.usageVelocity.transactionCount7d, 1);
@@ -254,6 +283,10 @@ for (const leaked of [
   assert.ok(!serializedGrowthLoop.includes(leaked), `${leaked} leaked in growth loop packet`);
   assert.ok(!serializedGrowthLoopEvidence.includes(leaked), `${leaked} leaked in evidence packet`);
   assert.ok(!serializedLiveMeasurement.includes(leaked), `${leaked} leaked in live measurement`);
+  assert.ok(
+    !serializedMeasuredLoopImplementation.includes(leaked),
+    `${leaked} leaked in measured loop implementation`,
+  );
   assert.ok(!serializedPublicView.includes(leaked), `${leaked} leaked in public view`);
 }
 
@@ -266,8 +299,17 @@ requireMarkers("src/pay/vantaPayTypes.ts", [
   "VantaPayGrowthLoopEventLedger",
   "VantaPayGrowthLoopEvidence",
   "VantaPayLiveGrowthLoopMeasurement",
+  "VantaPayMeasuredLoopImplementation",
+  "vanta-pay-measured-loop-implementation-v0.1",
   "pay-operator-live-redacted",
   "claimLiftBlockedUntilReviewedLiveEvidence",
+]);
+requireMarkers("src/pay/vantaPayMeasuredLoopImplementation.ts", [
+  "VANTA_PAY_MEASURED_LOOP_IMPLEMENTATION",
+  "implemented-live-redacted-claim-blocked",
+  "GET /v1/growth-loop/status",
+  "POST /v1/growth-loop/events",
+  "npm run pay:measured-loop-implementation-check",
 ]);
 requireMarkers("src/pay/vantaPayGrowthLoopEvidence.ts", [
   "vanta-pay-growth-loop-evidence-v0.1",
@@ -366,8 +408,18 @@ assert.ok(
   "twitter-intelligence:check must include the Pay growth-loop gate",
 );
 assert.ok(
+  packageJson.scripts?.["twitter-intelligence:check"]?.includes(
+    "npm run pay:measured-loop-implementation-check",
+  ),
+  "twitter-intelligence:check must include the Pay measured-loop implementation gate",
+);
+assert.ok(
   packageJson.scripts?.["pay:verify"]?.includes("npm run pay:growth-loop-check"),
   "pay:verify must include the Pay growth-loop gate",
+);
+assert.ok(
+  packageJson.scripts?.["pay:verify"]?.includes("npm run pay:measured-loop-implementation-check"),
+  "pay:verify must include the Pay measured-loop implementation gate",
 );
 
 for (const source of [

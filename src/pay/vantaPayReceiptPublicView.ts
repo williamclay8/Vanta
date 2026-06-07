@@ -85,6 +85,7 @@ export function buildVantaPayReceiptPublicView(
         "npm run pay:receipt-privacy-contract-check",
         "npm run pay:institutional-disclosure-receipt-check",
         "npm run pay:growth-loop-check",
+        "npm run pay:measured-loop-implementation-check",
         "npm run programmatic-privacy:contract-check",
         "npm run twitter-intelligence:check",
       ],

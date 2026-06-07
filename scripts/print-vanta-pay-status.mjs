@@ -167,6 +167,31 @@ const liveGrowthLoopMeasurement = {
   },
   verificationCommand: "npm run pay:growth-loop-check",
 };
+const measuredLoopImplementation = {
+  schemaVersion: "vanta-pay-measured-loop-implementation-v0.1",
+  object: "pay_measured_loop_implementation",
+  status: "implemented-live-redacted-claim-blocked",
+  measurementMode: "live-redacted-first-party",
+  liveMeasurementEnabled: true,
+  implementedSurfaces: {
+    automaticReceiptGeneratedEvent: true,
+    eventIntakeEndpoint: "POST /v1/growth-loop/events",
+    eventLedgerSnapshotPersistence: true,
+    operatorStatusEndpoint: "GET /v1/growth-loop/status",
+    publicAuditDiscovery: true,
+    receiptVerifierSurface: "/receipt/:receiptId",
+    runtimeRedactedEventLedger: true,
+  },
+  claimControls: {
+    adoptionClaimAllowed: false,
+    anonymityClaimAllowed: false,
+    claimLiftBlockedUntilReviewedLiveEvidence: true,
+    complianceSafeClaimAllowed: false,
+    productionReady: false,
+    regulatorApprovalClaimAllowed: false,
+  },
+  verificationCommand: "npm run pay:measured-loop-implementation-check",
+};
 
 const result = {
   capabilities: {
@@ -176,6 +201,7 @@ const result = {
     ),
     growthLoopAdoptionClaimAllowed: false,
     growthLoopLiveMeasurement: "redacted-first-party-claim-blocked",
+    growthLoopMeasuredImplementation: "implemented-live-redacted-claim-blocked",
     hostedCheckoutSessions: true,
     idempotency: {
       checkoutCompletion: true,
@@ -205,6 +231,7 @@ const result = {
   productionReady: payProductionReady,
   growthLoopEvidence,
   liveGrowthLoopMeasurement,
+  measuredLoopImplementation,
   storage: {
     kind: process.env.VANTA_PAY_DATABASE_URL
       ? "postgres-jsonb-snapshot-store"
@@ -229,6 +256,7 @@ const result = {
     "pay:receipt-public-view-check",
     "pay:institutional-disclosure-receipt-check",
     "pay:growth-loop-check",
+    "pay:measured-loop-implementation-check",
     "pay:hidden-economics-request-check",
     "pay:committed-checkout-acceptance-check",
     "pay:merchant-api-check",
@@ -274,6 +302,9 @@ if (jsonMode) {
   console.log(
     `- live growth loop measurement: mode=${result.liveGrowthLoopMeasurement.measurementMode}, intake="${result.liveGrowthLoopMeasurement.eventIntakeEndpoint}", adoptionClaimAllowed=${String(result.liveGrowthLoopMeasurement.claimControls.adoptionClaimAllowed)}, productionReady=${String(result.liveGrowthLoopMeasurement.claimControls.productionReady)}`,
   );
+  console.log(
+    `- measured loop implementation: status=${result.measuredLoopImplementation.status}, command=${result.measuredLoopImplementation.verificationCommand}`,
+  );
   console.log(`- settlement lifecycle: ${result.privateSettlement.lifecycleModel}`);
   console.log(`- checkout proof boundary: ${result.privateSettlement.checkoutProofBoundary}`);
   console.log(`- checkout settlement route: ${result.privateSettlement.checkoutSettlementRoute}`);
@@ -303,6 +334,6 @@ if (jsonMode) {
   console.log(`- withdrawals: ${result.privateSettlement.withdrawalState}`);
   console.log(`- reconciliation: ${result.privateSettlement.reconciliationState}`);
   console.log(
-    "- canonical verification: npm run pay:verify (includes merchant trust, approval packet, receipt privacy, receipt public-view, institutional disclosure receipt, receipt growth loop, Pay hidden-economics boundary, and committed checkout acceptance checks)",
+    "- canonical verification: npm run pay:verify (includes merchant trust, approval packet, receipt privacy, receipt public-view, institutional disclosure receipt, receipt growth loop, measured-loop implementation, Pay hidden-economics boundary, and committed checkout acceptance checks)",
   );
 }

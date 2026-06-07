@@ -997,6 +997,20 @@ try {
       "Expected Pay API status to expose claim-blocked live growth-loop measurement.",
     );
     assert(
+      apiStatus.parsed?.capabilities?.growthLoopMeasuredImplementation ===
+        "implemented-live-redacted-claim-blocked",
+      "Expected Pay API status to expose claim-blocked measured-loop implementation.",
+    );
+    assert(
+      apiStatus.parsed?.measuredLoopImplementation?.schemaVersion ===
+        "vanta-pay-measured-loop-implementation-v0.1",
+      "Expected Pay API status to expose the measured-loop implementation schema.",
+    );
+    assert(
+      apiStatus.parsed?.measuredLoopImplementation?.claimControls?.adoptionClaimAllowed === false,
+      "Expected measured-loop implementation to keep adoption claims locked.",
+    );
+    assert(
       apiStatus.parsed?.capabilities?.growthLoopAdoptionClaimAllowed === false,
       "Expected Pay API status to keep growth-loop adoption claims locked.",
     );

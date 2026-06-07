@@ -25,9 +25,11 @@ const requiredRefs = [
   "src/pay/vantaPayRuntime.ts",
   "src/pay/vantaPayReceiptGrowthLoop.ts",
   "src/pay/vantaPayGrowthLoopEvidence.ts",
+  "src/pay/vantaPayMeasuredLoopImplementation.ts",
   "src/pay/vantaPayReceiptPublicView.ts",
   "src/components/PayReceiptPacketCard.tsx",
   "src/pages/ReceiptVerificationPage.tsx",
+  "scripts/check-vanta-pay-measured-loop-implementation.mjs",
 ];
 
 function readJson(path) {
@@ -134,12 +136,14 @@ assert.equal(discovery.liveDeploymentVerified, false);
 // Keep crawler-visible deployment evidence refs-only and claim-bounded: this is
 // a public reviewer map, not a private-settlement or readiness attestation.
 assert.deepEqual(discovery.websiteDeployment, {
-  status: "last-verified-pay-growth-loop-deploy",
-  lastVerifiedCommit: "06bf7a979469c016189ba9a0edafd66e6804f75f",
-  lastVerifiedAt: "2026-06-07T00:29:57Z",
+  status: "last-verified-pay-live-measured-loop-deploy",
+  lastVerifiedCommit: "b4ed0e46316c1ed06247fe710d4200b618ae19f4",
+  lastVerifiedAt: "2026-06-07T01:34:02Z",
+  staticDeployId: "dep-d8icjspoagis73dah84g",
+  operatorDeployId: "dep-d8icjspoagis73dah720",
   liveUrl: "https://vantaprivacy.xyz",
   truthBoundary:
-    "This records the website deploy that served the Pay receipt growth-loop evidence bundle for commit 06bf7a979469c016189ba9a0edafd66e6804f75f on 2026-06-07 UTC. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, and mainnet evidence remain blocked.",
+    "This records the static website and Pay operator deploys that served the live redacted measured Pay growth loop for commit b4ed0e46316c1ed06247fe710d4200b618ae19f4 on 2026-06-07 UTC. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, and mainnet evidence remain blocked.",
 });
 assert.equal(discovery.privacyClaimAllowed, false);
 assert.equal(discovery.anonymityClaimAllowed, false);
@@ -156,11 +160,27 @@ assert.equal(
   discovery.payGrowthLoopDiscovery?.liveMeasurementSchema,
   "vanta-pay-live-growth-loop-measurement-v0.1",
 );
+assert.equal(
+  discovery.payGrowthLoopDiscovery?.measuredLoopImplementationSchema,
+  "vanta-pay-measured-loop-implementation-v0.1",
+);
+assert.equal(
+  discovery.payGrowthLoopDiscovery?.measuredLoopImplementationStatus,
+  "implemented-live-redacted-claim-blocked",
+);
 assert.equal(discovery.payGrowthLoopDiscovery?.fixtureMeasurementMode, "local-fixture-only");
 assert.equal(discovery.payGrowthLoopDiscovery?.measurementMode, "live-redacted-first-party");
 assert.equal(discovery.payGrowthLoopDiscovery?.liveMeasurementEnabled, true);
 assert.equal(discovery.payGrowthLoopDiscovery?.statusEndpoint, "GET /v1/growth-loop/status");
 assert.equal(discovery.payGrowthLoopDiscovery?.eventIntakeEndpoint, "POST /v1/growth-loop/events");
+assert.equal(
+  discovery.payGrowthLoopDiscovery?.implementationCheckCommand,
+  "npm run pay:measured-loop-implementation-check",
+);
+assertSafeNpmRunCommand(
+  discovery.payGrowthLoopDiscovery?.implementationCheckCommand,
+  "discovery.payGrowthLoopDiscovery.implementationCheckCommand",
+);
 assert.equal(discovery.payGrowthLoopDiscovery?.adoptionClaimAllowed, false);
 assert.equal(discovery.payGrowthLoopDiscovery?.productionReady, false);
 assert.equal(discovery.payGrowthLoopDiscovery?.counterpartyVerifierRoute, "/receipt/:receiptId");
@@ -184,12 +204,15 @@ assert.deepEqual(discovery.payGrowthLoopDiscovery?.sourceRefs, [
   "src/pay/vantaPayRuntime.ts",
   "src/pay/vantaPayReceiptGrowthLoop.ts",
   "src/pay/vantaPayGrowthLoopEvidence.ts",
+  "src/pay/vantaPayMeasuredLoopImplementation.ts",
   "src/pay/vantaPayReceiptPublicView.ts",
   "src/components/PayReceiptPacketCard.tsx",
   "src/pages/ReceiptVerificationPage.tsx",
+  "scripts/check-vanta-pay-measured-loop-implementation.mjs",
 ]);
 assert.deepEqual(discovery.payGrowthLoopDiscovery?.verificationCommands, [
   "npm run pay:growth-loop-check",
+  "npm run pay:measured-loop-implementation-check",
   "npm run pay:merchant-api-check",
   "npm run pay:receipt-public-view-check",
   "npm run pay:status-json",
@@ -205,6 +228,51 @@ assert.ok(
 assert.ok(
   discovery.payGrowthLoopDiscovery?.claimBoundary?.includes("no live adoption"),
   "Pay growth-loop discovery must block live-adoption claims.",
+);
+
+assert.equal(
+  discovery.payMeasuredLoopImplementation?.schemaVersion,
+  "vanta-pay-measured-loop-implementation-v0.1",
+);
+assert.equal(discovery.payMeasuredLoopImplementation?.object, "pay_measured_loop_implementation");
+assert.equal(
+  discovery.payMeasuredLoopImplementation?.status,
+  "implemented-live-redacted-claim-blocked",
+);
+assert.equal(discovery.payMeasuredLoopImplementation?.measurementMode, "live-redacted-first-party");
+assert.equal(discovery.payMeasuredLoopImplementation?.liveMeasurementEnabled, true);
+assert.equal(
+  discovery.payMeasuredLoopImplementation?.implementedSurfaces?.operatorStatusEndpoint,
+  "GET /v1/growth-loop/status",
+);
+assert.equal(
+  discovery.payMeasuredLoopImplementation?.implementedSurfaces?.eventIntakeEndpoint,
+  "POST /v1/growth-loop/events",
+);
+assert.equal(
+  discovery.payMeasuredLoopImplementation?.implementedSurfaces?.runtimeRedactedEventLedger,
+  true,
+);
+assert.equal(
+  discovery.payMeasuredLoopImplementation?.implementedSurfaces?.automaticReceiptGeneratedEvent,
+  true,
+);
+assert.equal(discovery.payMeasuredLoopImplementation?.privacyBoundary?.customerEmailStored, false);
+assert.equal(discovery.payMeasuredLoopImplementation?.privacyBoundary?.privateInputsStored, false);
+assert.equal(discovery.payMeasuredLoopImplementation?.privacyBoundary?.witnessStored, false);
+assert.equal(discovery.payMeasuredLoopImplementation?.claimControls?.adoptionClaimAllowed, false);
+assert.equal(discovery.payMeasuredLoopImplementation?.claimControls?.productionReady, false);
+assert.equal(discovery.payMeasuredLoopImplementation?.claimControls?.anonymityClaimAllowed, false);
+assert.equal(
+  discovery.payMeasuredLoopImplementation?.claimControls?.claimLiftBlockedUntilReviewedLiveEvidence,
+  true,
+);
+assert.ok(
+  discovery.payMeasuredLoopImplementation?.truthBoundary?.includes("not an adoption"),
+  "Pay measured-loop implementation must block adoption claims.",
+);
+discovery.payMeasuredLoopImplementation?.verificationCommands?.forEach((command, index) =>
+  assertSafeNpmRunCommand(command, `discovery.payMeasuredLoopImplementation.verificationCommands[${index}]`),
 );
 
 assert.equal(auditAlias.schemaVersion, "vanta-public-audit-alias-0.1");
@@ -298,6 +366,7 @@ for (const command of [
   "npm run public:audit-discovery-check",
   "npm run audit:package-check",
   "npm run pay:growth-loop-check",
+  "npm run pay:measured-loop-implementation-check",
   "npm run pay:merchant-api-check",
   "npm run pay:receipt-public-view-check",
   "npm run pay:status-json",
@@ -332,12 +401,15 @@ for (const phrase of [
   "not third-party approval",
   "not production readiness",
   "payGrowthLoopDiscovery",
+  "payMeasuredLoopImplementation",
   "vanta-pay-growth-loop-discovery-0.1",
   "vanta-pay-growth-loop-evidence-v0.1",
   "vanta-pay-live-growth-loop-measurement-v0.1",
+  "vanta-pay-measured-loop-implementation-v0.1",
   "live redacted first-party measurement",
   "counterparty verifier route",
   "npm run pay:growth-loop-check",
+  "npm run pay:measured-loop-implementation-check",
   "live event intake stores only redacted event metadata",
   "no live adoption",
 ]) {
