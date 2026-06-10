@@ -231,6 +231,7 @@ requireMarkers("src/components/PayReceiptPacketCard.tsx", [
   "publicView.institutionalDisclosure.receiptSchemaVersion",
 ]);
 requireMarkers("operator/pay-server.mjs", [
+  "pay/vantaPayAmountWindowDisclosure.ts",
   "pay/vantaPayInstitutionalDisclosureReceipt.ts",
 ]);
 requireMarkers("scripts/print-vanta-pay-status.mjs", [
