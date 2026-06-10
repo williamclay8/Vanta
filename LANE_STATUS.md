@@ -1,6 +1,6 @@
 # Vanta Lane Status
 
-Last updated: 2026-05-12. Reviewed local feedback commit: `3c39fbc`. This page is repo-local truth for reviewers; it is not live deployment evidence.
+Last updated: 2026-06-10. Reviewed local feedback commit: `3c39fbc`. This page is repo-local truth for reviewers; it is not live deployment evidence.
 
 | Lane | Current target | trust-contract `productionReady` | Verifier present | Vault custody model | Claim-controls flags | Reviewer command |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -12,3 +12,23 @@ Last updated: 2026-05-12. Reviewed local feedback commit: `3c39fbc`. This page i
 | Pay | merchant command center and checkout/API preview | `false` | receipt/trust-packet and committed-settlement contract checks; no production payment processor verifier | operator-backed beta settlement records | production payment-processor and production-private Pay claims locked | `npm run pay:verify` |
 
 Standing blockers across all lanes: live shared-pool settlement evidence, audited shared anonymity, real production proof/verifier integration, production relayer/indexer separation, external audit/custody/legal review, and exact-scope approval before any real-funds movement.
+
+## Phase 2 Research-Driven ZK Expansion - 2026-06-10
+
+The June 10 X research run is wired as local/reviewer evidence only. New repo-local gates add Velocity/PMF, client-side Groth16, institutional Coinbase-signal, confidential-compute benchmark, credit-note transfer, agent authorization, and tokenomics-sustainability checks.
+
+New local Noir circuits:
+
+- `zk/noir/vanta_private_credit_note_transfer` - DarkDrop-inspired credit-note/dead-drop predicate, amount bucket, claim-code commitment, credit-note commitment, nullifier.
+- `zk/noir/vanta_rwa_compliance` - RWA ownership/compliance predicate.
+- `zk/noir/vanta_private_perps_risk` - private perps risk predicate.
+- `zk/noir/vanta_agent_spending_limit` - zkRune-inspired agent spending-limit / human approval predicate.
+
+Reviewer commands:
+
+- `npm run twitter-intelligence:check`
+- `npm run zk:phase2-product-circuits-check`
+- `npm run credit-note-transfer-primitive-check`
+- `npm run agent-authorization-proof-request-check`
+
+Truth boundary: these are local circuits, request shapes, and docs/guards. They do not prove generated browser Groth16 production readiness, on-chain verifier acceptance, trusted setup/audit completion, deployment, live private transfers, institutional adoption, exchange/listing status, legal/compliance approval, or real-funds movement.

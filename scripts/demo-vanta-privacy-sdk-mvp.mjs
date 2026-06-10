@@ -65,7 +65,7 @@ console.log("   Settlement ref:", velocityFlow.settlement.settlementRef);
 
 // NEW: Marketplace acquisition and use
 const marketplace = getMarketplacePrimitives();
-console.log("\n4. Privacy Primitives Marketplace (FULL - 6 composable primitives):");
+console.log(`\n4. Privacy Primitives Marketplace (FULL - ${marketplace.length} composable primitives):`);
 marketplace.forEach(p => {
   console.log(`   - ${p.id}: ${p.name} (audited: ${p.audited})`);
   console.log(`     ${p.description}`);
@@ -101,6 +101,6 @@ assert.ok(velocityFlow.settlement.claimBoundary.includes("beta-privacy-sdk-not-p
 
 console.log("\n=== DEMO COMPLETE: SUCCESS (Privacy SDK composable primitives + marketplace FULL MVP) ===");
 console.log("SDK unifies commitment/nullifier/disclosure/settlement/velocity/predicate-composer across products.");
-console.log("Marketplace lists 6 reusable primitives with acquisition helper. Velocity bridge to Product 5.");
+console.log(`Marketplace lists ${marketplace.length} reusable primitives with acquisition helper. Velocity bridge to Product 5.`);
 console.log("Verification commands: npm run privacy-sdk:check , npm run compliance:gateway-check , npm run pay:verify");
 console.log("Next: Real WASM/audits, on-chain integration, full marketplace UI/API, Product 5 velocity dashboards.");

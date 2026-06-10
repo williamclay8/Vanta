@@ -16,6 +16,22 @@ const circuits = {
     label: "Vanta velocity aggregate",
     path: "zk/noir/vanta_velocity_aggregate",
   },
+  "credit-note-transfer": {
+    label: "Vanta credit-note private transfer",
+    path: "zk/noir/vanta_private_credit_note_transfer",
+  },
+  "rwa-compliance": {
+    label: "Vanta RWA compliance",
+    path: "zk/noir/vanta_rwa_compliance",
+  },
+  "private-perps-risk": {
+    label: "Vanta private perps risk",
+    path: "zk/noir/vanta_private_perps_risk",
+  },
+  "agent-spending-limit": {
+    label: "Vanta agent spending limit",
+    path: "zk/noir/vanta_agent_spending_limit",
+  },
 };
 
 const circuit = circuits[target];
@@ -35,7 +51,7 @@ if (!existsSync(manifestPath)) {
 }
 
 console.log(`${circuit.label} circuit check: ${circuit.path}`);
-execFileSync("nargo", ["check"], {
+execFileSync("nargo", ["test"], {
   cwd: circuitDir,
   stdio: "inherit",
 });

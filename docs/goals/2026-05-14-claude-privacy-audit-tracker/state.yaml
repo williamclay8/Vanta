@@ -2883,3 +2883,160 @@ band_item_T3_institutional:
     - "Define regulator access model"
     - "Add institutional velocity fields to usage_velocity"
   current_state: "Band item opened - primitive design pending"
+
+twitter_pass_2026_06_10_requirements:
+  source: "June 10 2026 five-lane X research run; exact X URLs pending local/backfill resolution"
+  status: "repo-local-wired-red-green-guards"
+  items:
+    - id: T1
+      title: "Velocity/PMF"
+      mandatory: true
+      source_project: "Arcium / ZINC"
+      primitives:
+        - "private_defi_velocity_metrics"
+        - "encrypted_compute_velocity"
+        - "watch private DeFi dApp onboarding and computation count as product-market pull"
+      limitations:
+        - "Arcium/ZINC metrics are benchmark inputs, not Vanta adoption evidence."
+        - "No usage claim lift without reviewer-verifiable Vanta on-chain data."
+      success_metrics:
+        arcium_computations_observed: ">=1000000"
+        zinc_revenue_rank_signal: "top-3-solana"
+        private_defi_dapps_watchlist: ["UmbraPrivacy", "prediction markets", "sealed-bid launches", "private payments"]
+      x_post_refs:
+        - label: "Arcium 1M+ computations / ZINC revenue signal"
+          url: "pending-from-2026-06-10-x-run"
+    - id: T2
+      title: "Local Proving / Client-Side Groth16"
+      mandatory: true
+      source_project: "zkRune + browser Groth16/Fable/Noir React threads"
+      primitives:
+        - "client_side_groth16_patterns"
+        - "agent_spending_limit"
+        - "human_approval_commitment"
+        - "browser_worker_no_witness_request_packets"
+      limitations:
+        - "Current proof request packets are request/result shapes, not production proof generation."
+        - "Server proving remains disabled unless a future consented/audit-labeled fallback is created."
+      success_metrics:
+        browser_groth16_perf_target_seconds: 6
+        baseline_perf_note: "90s -> 6s Fable-style browser Groth16 target"
+        private_inputs_never_leave_client: true
+      x_post_refs:
+        - label: "zkRune client-side Groth16 agent authorization / zkAgent Passport"
+          url: "pending-from-2026-06-10-x-run"
+        - label: "Fable browser Groth16 90s -> 6s performance signal"
+          url: "pending-from-2026-06-10-x-run"
+    - id: T3
+      title: "Institutional Lane / Coinbase Signals"
+      mandatory: true
+      source_project: "Arcium ARX"
+      primitives:
+        - "rwa_compliance_circuit"
+        - "selective_disclosure"
+        - "institutional_confidential_execution"
+      limitations:
+        - "Coinbase roadmap mention is a market signal only; it is not Vanta partnership, listing, or legal/compliance evidence."
+        - "Institutional support remains beta/local until proof generation, verifier acceptance, custody, and review evidence exist."
+      success_metrics:
+        coinbase_roadmap_signal: "ARX"
+        reviewer_command: "npm run institutional-coinbase-signal-check"
+      x_post_refs:
+        - label: "ARX on Coinbase roadmap"
+          url: "pending-from-2026-06-10-x-run"
+    - id: T4
+      title: "Hybrid ZK / Confidential Compute"
+      mandatory: true
+      source_project: "Arcium / ZINC confidential computing"
+      primitives:
+        - "MPC"
+        - "on_chain_verification"
+        - "confidential_execution"
+        - "private_defi_dapps"
+      limitations:
+        - "Vanta does not claim Arcium-compatible confidential execution."
+        - "Hybrid ZK docs must separate ZK proof validity from MPC/confidential-compute trust boundaries."
+      success_metrics:
+        benchmark_projects: ["Arcium", "ZINC"]
+        reviewer_command: "npm run confidential-compute-benchmark-check"
+      x_post_refs:
+        - label: "Arcium/ZINC confidential-compute benchmark thread"
+          url: "pending-from-2026-06-10-x-run"
+    - id: T5
+      title: "Private Transfers / Credit Notes"
+      mandatory: true
+      source_project: "DarkDrop"
+      primitives:
+        - "Merkle vault deposit"
+        - "encrypted claim code"
+        - "credit_note_commitment"
+        - "dead-drop withdrawal"
+        - "direct lamport manipulation"
+      limitations:
+        - "DarkDrop is a benchmark pattern, not copied code or audited Vanta transfer privacy."
+        - "Vanta credit-note circuit is local predicate evidence only; it does not move funds."
+      success_metrics:
+        reviewer_command: "npm run credit-note-transfer-primitive-check"
+        devnet_project_signal: "SOL + USDC V2 on devnet; trusted setup/audits pending per X-run"
+      x_post_refs:
+        - label: "DarkDrop V2 credit-note/dead-drop architecture"
+          url: "pending-from-2026-06-10-x-run"
+
+encrypted_compute_velocity:
+  status: "red-first-benchmark-only"
+  benchmark: "Arcium / ZINC"
+  arcium_computations_observed: ">=1000000"
+  zinc_revenue_rank_signal: "top-3-solana"
+  private_defi_velocity_metrics:
+    - "encrypted computations"
+    - "MXE or equivalent confidential-execution environments"
+    - "private dApp onboarding count"
+    - "private payment / prediction / sealed-bid activity"
+  current_state: "tracked as benchmark; not Vanta usage evidence"
+
+client_side_groth16_patterns:
+  status: "repo-local-proof-request-shapes"
+  source_projects: ["zkRune", "Fable", "Noir React proof generation"]
+  browser_groth16_perf_target_seconds: 6
+  baseline_perf_note: "90s -> 6s target from June 10 X run"
+  private_inputs_never_leave_client: true
+  agent_spending_limit: "vanta_agent_spending_limit circuit + browser proof request shape"
+  human_in_the_loop: "human_approval_commitment is public; approval secret remains private witness"
+  verification: ["npm run client-side-proving-enforced-check", "npm run agent-authorization-proof-request-check"]
+
+institutional_coinbase_signal:
+  status: "market-signal-only"
+  source_project: "Arcium"
+  token_signal: "ARX"
+  coinbase_roadmap_signal: "watch-only-not-partnership-or-listing-claim"
+  rwa_compliance_circuit: "zk:noir:vanta_rwa_compliance"
+  verification: ["npm run institutional-coinbase-signal-check"]
+
+confidential_compute_benchmark:
+  status: "benchmark-watch"
+  primary_projects: ["Arcium", "ZINC"]
+  mechanisms: ["MPC", "confidential_execution", "on_chain_verification", "private_defi_dapps"]
+  current_vanta_boundary: "Hybrid benchmark only; Vanta has local Noir circuits and proof-request shapes, not production MPC execution."
+  verification: ["npm run confidential-compute-benchmark-check"]
+
+private_transfers_credit_notes:
+  status: "local-circuit-and-proof-request-shape"
+  source_project: "DarkDrop"
+  primitives: ["Merkle vault deposit", "encrypted claim code", "credit_note_commitment", "dead-drop withdrawal", "direct lamport manipulation"]
+  circuit: "zk/noir/vanta_private_credit_note_transfer"
+  verification: ["npm run credit-note-transfer-primitive-check", "npm run zk:credit-note-transfer-circuit-check"]
+  current_state: "No live transfer, no devnet/mainnet movement, no audited private transfer claim."
+
+agent_authorization_proving:
+  status: "local-circuit-and-proof-request-shape"
+  source_project: "zkRune"
+  primitives: ["spending_limit", "human_approval_commitment", "authorization_nullifier", "policy_epoch"]
+  circuit: "zk/noir/vanta_agent_spending_limit"
+  verification: ["npm run agent-authorization-proof-request-check", "npm run zk:agent-spending-limit-circuit-check"]
+
+tokenomics_sustainability:
+  status: "documented-pattern-only"
+  source_project: "Proofra_zk"
+  pattern: "creator_fees_to_buyback_lock_burn"
+  not_a_token_launch_plan: true
+  verification: ["npm run tokenomics-sustainability-pattern-check"]
