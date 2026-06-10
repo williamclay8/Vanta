@@ -131,7 +131,7 @@ assert.ok(
 
 assert.equal(discovery.schemaVersion, "vanta-public-audit-discovery-0.1");
 assert.equal(discovery.path, "/.well-known/vanta-audit.json");
-assert.equal(discovery.generatedAt, "2026-06-07");
+assert.equal(discovery.generatedAt, "2026-06-10");
 assert.equal(discovery.auditClaimAllowed, false);
 assert.equal(discovery.thirdPartyAuditAccepted, false);
 assert.equal(discovery.productionReady, false);
@@ -140,14 +140,14 @@ assert.equal(discovery.liveDeploymentVerified, true);
 // Keep crawler-visible deployment evidence refs-only and claim-bounded: this is
 // a public reviewer map, not a private-settlement or readiness attestation.
 assert.deepEqual(discovery.websiteDeployment, {
-  status: "last-verified-product-workbench-deploy",
-  lastVerifiedCommit: "002b8febc54794d0bc0fb4dbb1d630fd194cb8a9",
-  lastVerifiedAt: "2026-06-07T20:51:35Z",
-  staticDeployId: "dep-d8itgt741pts739k0k50",
-  operatorDeployId: "dep-d8itgt741pts739k0kvg",
+  status: "last-verified-june-10-phase2-zk-deploy",
+  lastVerifiedCommit: "a3367076cbc526d989e9bb3daea0a6228c8133f3",
+  lastVerifiedAt: "2026-06-10T15:52:48Z",
+  staticDeployId: "dep-d8kodeb7uimc73b9ho0g",
+  operatorDeployId: "dep-d8koemcm0tmc73cttevg",
   liveUrl: "https://vantaprivacy.xyz",
   truthBoundary:
-    "This records the static website and Pay operator deploys that served the product-workbench website pages for commit 002b8febc54794d0bc0fb4dbb1d630fd194cb8a9 on 2026-06-07 UTC, including live entry asset assets/index-DSZCtlde.js. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, generated-proof, real-funds, and mainnet evidence remain blocked.",
+    "This records the static website and Pay operator deploys for commit a3367076cbc526d989e9bb3daea0a6228c8133f3 on 2026-06-10 UTC after the Phase 2 ZK circuit and Twitter Pass guard integration. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, generated browser Groth16 proofs, on-chain verifier acceptance, real-funds, and mainnet evidence remain blocked.",
 });
 assert.equal(discovery.privacyClaimAllowed, false);
 assert.equal(discovery.anonymityClaimAllowed, false);
