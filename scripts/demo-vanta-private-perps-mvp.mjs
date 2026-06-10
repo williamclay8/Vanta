@@ -39,7 +39,8 @@ console.log("1. Private Position Opened (notional + owner hidden in commitment):
 console.log("   Commitment:", publicOpened.positionCommitment);
 console.log("   Public leverage:", publicOpened.publicMetadata.leverage);
 console.log("   Nullifier (for private updates):", publicOpened.nullifier ? publicOpened.nullifier.slice(0, 16) + "..." : "n/a");
-console.log("   Proof stub:", publicOpened.proofStub);
+console.log("   Proof mode:", publicOpened.proofSummary.proofMode);
+console.log("   Proof material public:", publicOpened.proofSummary.proofMaterialPubliclyDisclosed);
 
 // Safety asserts (no leaks in public artifacts)
 assert.ok(opened.commitment.length === 64, "Commitment proper sha256");
@@ -80,6 +81,7 @@ const finalPacket = {
   object: "private_perps_position_packet",
   positionCommitment: publicOpened.positionCommitment,
   publicMetadata: publicOpened.publicMetadata,
+  proofSummary: publicOpened.proofSummary,
   liquidationPredicates: [liqAdverse, liqSafe],
   settlement: settlement,
   claimBoundary: settlement.claimBoundary,

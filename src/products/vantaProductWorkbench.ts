@@ -150,7 +150,11 @@ async function runPrivatePerpsWorkbench() {
         verified: true,
       },
       settlementStub: `settle_perps_${positionCommitment.slice(0, 8)}`,
-      proofStub: `position-opened-commitment-${positionCommitment.slice(0, 16)}`,
+      proofSummary: {
+        proofMaterialPubliclyDisclosed: false,
+        proofMode: "verifier-local-opening-stub-held-out",
+        verificationCommand: "npm run private-perps:check",
+      },
     },
     trustPacketKind: "Private Perps position and liquidation packet",
     verifierCanCheck: ["position commitment", "public leverage metadata", "liquidation predicate"],

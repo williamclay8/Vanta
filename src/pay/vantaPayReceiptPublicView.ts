@@ -5,6 +5,8 @@ import type {
   VantaPayReceiptRedactedReference,
 } from "./vantaPayTypes";
 // @ts-expect-error Node-based Pay checks import this TS source directly and need the explicit suffix.
+import { buildVantaPayAmountWindowDisclosure } from "./vantaPayAmountWindowDisclosure.ts";
+// @ts-expect-error Node-based Pay checks import this TS source directly and need the explicit suffix.
 import { buildVantaPayCommittedCheckoutAcceptance } from "./vantaPayCommittedCheckoutAcceptance.ts";
 // @ts-expect-error Node-based Pay checks import this TS source directly and need the explicit suffix.
 import { buildVantaPayCounterpartyActivation } from "./vantaPayCounterpartyActivation.ts";
@@ -23,6 +25,7 @@ const VANTA_PAY_INSTITUTIONAL_DISCLOSURE_RECEIPT_DISCLOSED_FIELDS = [
   "amount",
   "invoice_reference",
   "compliance_gateway_summary",
+  "amount_window_disclosure_summary",
   "private_settlement_reference_prefix",
   "audit_disclosure_reference_prefix",
   "claim_boundary",
@@ -139,6 +142,7 @@ export function buildVantaPayReceiptPublicView(
       regulatorScope: "time-and-scope-limited",
       expiresAt: createInstitutionalDisclosureExpiry(receipt.createdAt),
       disclosedFields: VANTA_PAY_INSTITUTIONAL_DISCLOSURE_RECEIPT_DISCLOSED_FIELDS,
+      amountWindowDisclosure: buildVantaPayAmountWindowDisclosure(receipt),
       complianceGateway: VANTA_PAY_COMPLIANCE_GATEWAY_SUMMARY,
       privateInputsDisclosed: false,
       witnessDisclosed: false,

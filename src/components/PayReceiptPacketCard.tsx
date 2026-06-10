@@ -225,6 +225,22 @@ export function PayReceiptPacketCard({
             )}.
           </dd>
         </div>
+        <div data-vanta-pay-amount-window-disclosure>
+          <dt>Amount/window disclosure</dt>
+          <dd>
+            Threshold:{" "}
+            {publicView.institutionalDisclosure.amountWindowDisclosure.thresholdAmount}{" "}
+            {publicView.institutionalDisclosure.amountWindowDisclosure.thresholdAsset}. Window basis:{" "}
+            {publicView.institutionalDisclosure.amountWindowDisclosure.disclosureWindow.basis}. Window
+            active for share link:{" "}
+            {String(
+              publicView.institutionalDisclosure.amountWindowDisclosure.disclosureWindow
+                .windowActiveForShareLink,
+            )}
+            . Verify with{" "}
+            {publicView.institutionalDisclosure.amountWindowDisclosure.verificationCommands[0]}.
+          </dd>
+        </div>
         <div>
           <dt>Private rail receipt</dt>
           <dd>{privateRailReceiptRef}</dd>

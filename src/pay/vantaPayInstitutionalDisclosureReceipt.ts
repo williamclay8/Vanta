@@ -3,6 +3,8 @@ import type {
   VantaPayReceipt,
   VantaPayReceiptRedactedReference,
 } from "./vantaPayTypes.ts";
+// @ts-expect-error Node-based Pay checks import this TS source directly and need the explicit suffix.
+import { buildVantaPayAmountWindowDisclosure } from "./vantaPayAmountWindowDisclosure.ts";
 
 export const VANTA_PAY_INSTITUTIONAL_DISCLOSURE_RECEIPT_SCHEMA_VERSION =
   "vanta-pay-institutional-disclosure-receipt-v0.1" as const;
@@ -15,6 +17,7 @@ export const VANTA_PAY_INSTITUTIONAL_DISCLOSURE_RECEIPT_DISCLOSED_FIELDS = [
   "amount",
   "invoice_reference",
   "compliance_gateway_summary",
+  "amount_window_disclosure_summary",
   "private_settlement_reference_prefix",
   "audit_disclosure_reference_prefix",
   "claim_boundary",
@@ -67,6 +70,7 @@ export function buildVantaPayInstitutionalDisclosureReceipt(
     purpose: "counterparty-verifiable private settlement",
     receiptRef: {
       amount: receipt.amount,
+      amountWindowDisclosure: buildVantaPayAmountWindowDisclosure(receipt),
       asset: receipt.asset,
       auditDisclosure: redactReference(receipt.auditDisclosureId),
       complianceGateway: VANTA_PAY_COMPLIANCE_GATEWAY_SUMMARY,

@@ -2,6 +2,7 @@ import { AssetPickerGrid, type AssetPickerGridOption } from "@/components/AssetP
 import { ShieldLegacyMigrationSection } from "@/components/ShieldLegacyMigrationSection";
 import { ShieldNativeSolRecoveryPanel } from "@/components/ShieldNativeSolRecoveryPanel";
 import { RecoveryPanelController } from "@/components/RecoveryPanelController";
+import { SafetyCallout } from "@/components/SafetyCallout";
 import { TransactionStatusToast } from "@/components/TransactionStatusToast";
 import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import { describeRecentShieldCompletion } from "@/components/shield/shieldPanelUtils";
@@ -11,7 +12,7 @@ import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
 import type { createShieldAssetCapability } from "@/solana/shieldAssetCapability";
 import type { LiveShieldTokenAssetKey } from "@/solana/shieldConfig";
 import type { VantaShieldedSolNote } from "@/solana/vantaShieldState";
-import type { ComponentProps } from "react";
+import { useState, type ComponentProps } from "react";
 
 export type ShieldWorkspaceStatus =
   | "idle"
@@ -141,6 +142,13 @@ export function ShieldWorkspaceCard({
   viewingKey,
   walletConnected,
 }: ShieldWorkspaceCardProps) {
+  const [recoveryPanelOpen, setRecoveryPanelOpen] = useState(false);
+  const shieldInFlight =
+    status === "awaiting_wallet_confirmation" ||
+    status === "routing_public_swap" ||
+    status === "shielding_in_progress" ||
+    status === "entering_shielded_state";
+
   return (
     <article className="send-card send-card--workspace">
       <div className="shield-card__header">
@@ -274,11 +282,24 @@ export function ShieldWorkspaceCard({
             />
           )}
 
-          <RecoveryPanelController viewingKeyControls={viewingKey} />
+          <SafetyCallout
+            actionLabel="Back up now"
+            onAction={() => {
+              setRecoveryPanelOpen(true);
+            }}
+          >
+            Back up your viewing key — it&apos;s the only way to restore shielded funds on
+            another device or after clearing site data.{" "}
+          </SafetyCallout>
+
+          <RecoveryPanelController
+            defaultOpen={recoveryPanelOpen}
+            viewingKeyControls={viewingKey}
+          />
 
           <div className="shield-form__actions shield-form__actions--primary">
             <button
-              className="button button-primary"
+              className={`button button-primary${shieldInFlight ? " button--loading" : ""}`}
               type="button"
               onClick={() => {
                 void handleShield();
@@ -288,12 +309,19 @@ export function ShieldWorkspaceCard({
                 !isAmountValid ||
                 (!shieldOwnerContext.ownerContext && !shieldOwnerContext.canRequestOwnerContext) ||
                 shieldOwnerContext.status === "requesting" ||
+                status === "awaiting_wallet_confirmation" ||
                 status === "routing_public_swap" ||
                 status === "shielding_in_progress" ||
                 status === "entering_shielded_state"
               }
             >
-              {isBetaMode ? "Beta mode" : "Shield"}
+              {isBetaMode
+                ? "Beta mode"
+                : status === "awaiting_wallet_confirmation"
+                  ? "Confirm in wallet…"
+                  : shieldInFlight
+                    ? "Shielding…"
+                    : "Shield"}
             </button>
           </div>
         </div>

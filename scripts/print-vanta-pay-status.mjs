@@ -273,6 +273,11 @@ const productExtensionGates = {
       command: "npm run compliance:gateway-check",
     },
     {
+      id: "private-perps",
+      surface: "Private Perps public packet hygiene",
+      command: "npm run private-perps:check",
+    },
+    {
       id: "shielded-rwa",
       surface: "Shielded RWA public packet",
       command: "npm run shielded-rwa:check",
@@ -369,6 +374,7 @@ const result = {
     "pay:receipt-public-view-check",
     "pay:institutional-disclosure-receipt-check",
     "compliance:gateway-check",
+    "private-perps:check",
     "shielded-rwa:check",
     "privacy-sdk:check",
     "velocity-intelligence:check",

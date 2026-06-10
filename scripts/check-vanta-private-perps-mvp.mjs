@@ -52,6 +52,8 @@ assert.ok(demoOutput.includes("DEMO COMPLETE: SUCCESS"), "Demo must report SUCCE
 assert.ok(demoOutput.includes("Liquidatable:"), "Liquidation predicate checks must be present");
 assert.ok(demoOutput.includes("beta-shielded-perps-not-production-private-derivatives-or-settlement"), "Claim boundary must be present and correct");
 assert.ok(demoOutput.includes("Nullifier (for private updates):"), "Nullifier for private updates must be demonstrated");
+assert.ok(demoOutput.includes("Proof mode:"), "Public proof summary mode must be demonstrated");
+assert.ok(demoOutput.includes("Proof material public: false"), "Public packet must keep proof material redacted");
 assert.ok(demoOutput.includes("Settlement ref:"), "Pay/Private Pool settlement hook must be present");
 
 // No leak checks on demo output (critical private perps *values* only - not descriptive words)
@@ -96,6 +98,7 @@ requireMarkers("scripts/demo-vanta-private-perps-mvp.mjs", [
   "checkPrivateLiquidation",
   "updatePositionWithNullifier",
   "createPerpsSettlementStub",
+  "proofSummary",
   "DEMO COMPLETE: SUCCESS",
   "claimBoundary",
   "beta-shielded-perps-not-production-private-derivatives-or-settlement",
@@ -105,12 +108,16 @@ requireMarkers("src/perps/vantaPrivatePerpsEngine.ts", [
   "VANTA_PRIVATE_PERPS_ENGINE_SCHEMA_VERSION",
   "VantaPrivatePositionCommitment",
   "VantaPrivatePositionPublicPacket",
+  "VANTA_PRIVATE_PERPS_REAL_NOIR_ADAPTER",
+  "VantaPrivatePerpsProofSummary",
   "openPrivatePosition",
   "checkPrivateLiquidation",
   "updatePositionWithNullifier",
   "createPerpsSettlementStub",
   "toPublicPrivatePerpsPositionPacket",
   "privateWitness",
+  "proofMaterialPubliclyDisclosed",
+  "verifier-local-opening-stub-held-out",
   "beta-shielded-perps-not-production-private-derivatives-or-settlement",
 ]);
 

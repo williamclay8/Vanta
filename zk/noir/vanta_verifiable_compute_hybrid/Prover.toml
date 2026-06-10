@@ -1,0 +1,13 @@
+# Prover.toml for vanta_verifiable_compute_hybrid (T6 Verifiable Compute + Velocity)
+# Private: velocity_sum, blinding, compute_cost, folding_depth
+# Public: threshold, period_start, period_end, velocity_commitment, expected_jurisdiction (for selective hybrid)
+
+velocity_sum = "150000"
+blinding = "123456789"
+compute_cost = "42"
+folding_depth = "3"
+threshold = "100000"
+period_start = "20260601"
+period_end = "20260608"
+velocity_commitment = "0" # computed in circuit tests; replace with the public Poseidon commitment for prove/verify runs
+expected_jurisdiction = "1"

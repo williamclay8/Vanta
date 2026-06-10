@@ -32,6 +32,10 @@ const circuits = {
     label: "Vanta agent spending limit",
     path: "zk/noir/vanta_agent_spending_limit",
   },
+  "verifiable-compute-hybrid": {
+    label: "Vanta verifiable compute hybrid",
+    path: "zk/noir/vanta_verifiable_compute_hybrid",
+  },
 };
 
 const circuit = circuits[target];

@@ -2693,6 +2693,20 @@ twitter_pass_requirements:
     implementation: "Use HeliusPrivacy-Watch-Item.md from Vanta Vault. Run dedicated X pass pre-release."
     verification: ["x_search on HeliusPrivacy"]
 
+
+  - id: T6
+    title: "Verifiable Compute Layer (SP1 + Nova Folding / Veria Integration)"
+    status: declared
+    source: "Twitter Pass 2026-06-08 (Veria/Proofra signals)"
+    requirement: "Evaluate and integrate SP1/RISC-V zkVM + Nova recursive folding + Solana Anchor verifier for hybrid ZK proofs (velocity aggregates, disclosure predicates, oracles). Off-chain compute with on-chain verification at low cost."
+    implementation: "Add verifiable-compute-check guard. Evaluate @veria/sdk or sp1-solana crate for Phase 2 velocity/disclosure proofs. Target T4 hybrid lane extension."
+    verification: ["check-verifiable-compute.mjs", "privacy-audit:tracker-check"]
+
+  # T1/T3 Extensions from Arcium (MPC+ZKP Privacy 2.0) and Noir client-side
+  # T1 extension: Add encrypted compute velocity sub-metrics (# computations, MXEs, dApps) to usage_velocity section (Arcium ~258k computations, 25+ dApps, Cerberus/Manticore).
+  # T3 extension: Institutional confidential execution (MPC+ZKP) for sensitive data; Arcium Cerberus model for private institutional compute.
+  # T2 extension: Noir client-side proving blindness (proving service sees no data) as explicit requirement for local_proving_enforced.
+  # DarkDrop: Retain as privacy primitive signal for unlinkability (credit notes + dead drops); limited additional data due to tool config.
 usage_velocity:
   # Red-first usage tracking from the 2026-06-06 Twitter intelligence pass.
   # Zeroes mean no reviewed live usage evidence has been accepted yet.
@@ -2827,7 +2841,11 @@ institutional_lane_details:
   target_audience: "banks and institutions needing privacy + regulatory connectivity"
   reference_narratives: ["ZKsync Prividiums", "Aztec local proving"]
   success_metric: "institutional volume through Vanta primitives"
-  current_state: "declared - needs Band item + design"
+  source_refs:
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/Selective-Disclosure-Primitive-Spec-v0.2.md"
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/Institutional-Settlement-Lane-Plan-Updated-2026-06-07.md"
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/Codex-Handoff-Institutional-Settlement-Lane-2026-06-07.md"
+  current_state: "opened - first repo-local primitive now exists as a Pay receipt-bound amount/window disclosure summary plus evidence shape; broader regulator/audit flow still pending"
 
 hybrid_zk_design_details:
   required_non_zk_mechanisms: ["blinded_tokens", "revocation_layers", "trusted_execution_fallback"]
@@ -2848,7 +2866,7 @@ institutional_settlement_lane:
     - jurisdiction_aware_unshield
     - regulator_access_controls
   success_metric: "institutional_volume_usd"
-  current_state: "declared - needs Band item and primitive design"
+  current_state: "opened - v0.2 selective-disclosure design exists in the vault and the first amount/window receipt primitive is implemented locally; broader institutional flow still pending"
 
 
 # Institutional Velocity Fields - 2026-06-06
@@ -2861,7 +2879,7 @@ institutional_velocity_fields:
     - compliance_flow_attribution
     - regulator_disclosure_requests
     - jurisdiction_coverage
-  status: "declared - ready to populate on all primitives"
+  status: "populated red-first on all tracked primitives; do not treat zero placeholders as live institutional volume"
 
 
 # NEW BAND ITEM - T3 Institutional Settlement Lane (opened 2026-06-06)
@@ -2878,11 +2896,15 @@ band_item_T3_institutional:
     - jurisdiction_aware_unshield
   reference: "ZKsync Prividium + Cari Network ($600B+ deposits)"
   success_metric: "institutional_volume_usd"
+  source_refs:
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/Selective-Disclosure-Primitive-Spec-v0.2.md"
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/Institutional-Settlement-Lane-Plan-Updated-2026-06-07.md"
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/Codex-Handoff-Institutional-Settlement-Lane-2026-06-07.md"
   next_actions:
-    - "Draft selective disclosure circuit spec"
-    - "Define regulator access model"
-    - "Add institutional velocity fields to usage_velocity"
-  current_state: "Band item opened - primitive design pending"
+    - "Promote the new Pay receipt-bound amount/window disclosure summary into a real proof-request bridge or Noir fixture"
+    - "Bind the first primitive to committed-checkout or actual-private-spend evidence before adding broader regulator access"
+    - "Keep institutional velocity red-first until reviewer-verifiable live data exists"
+  current_state: "Band item opened - first repo-local amount/window receipt primitive exists; real proof generation, regulator flow, and claim lift remain pending"
 
 twitter_pass_2026_06_10_requirements:
   source: "June 10 2026 five-lane X research run; exact X URLs pending local/backfill resolution"
@@ -3040,3 +3062,61 @@ tokenomics_sustainability:
   pattern: "creator_fees_to_buyback_lock_burn"
   not_a_token_launch_plan: true
   verification: ["npm run tokenomics-sustainability-pattern-check"]
+
+# Improvement sweep - 2026-06-08
+improvement_sweep_2026_06_08:
+  source_goal: "hourly-top-5-improvement-goals"
+  status: "repo-local-slice-implemented"
+  lanes:
+    - id: "top5-c01-bundle"
+      title: "Re-green C01 bundle / verifier evidence request chain"
+      status: "verified-local"
+      result: "Outbound request-bundle evidence remains fail-closed and passes the canonical local check."
+      verification:
+        - "npm run zk:c01-external-review-request-bundle-check"
+      blockers:
+        - "External reviewed production artifact bundle, verifier adapter/program acceptance, SBF/live lineage, and audit/reviewer acceptance refs remain absent."
+    - id: "top5-relayer-privacy-transport"
+      title: "Advance relayer privacy transport blocker lane"
+      status: "verified-local-blocked-external"
+      result: "Local relayer privacy transport guard still passes and the issue-intake status surface now prints explicit next operator action and blocker fields."
+      verification:
+        - "npm run relayer:privacy-transport-check"
+      blockers:
+        - "GitHub/network-backed reviewer acceptance cannot be proven from the local sandbox."
+        - "Live Tor or blinded-token infrastructure still requires provider approval and deployment receipts."
+    - id: "top5-t3-first-primitive"
+      title: "Implement first narrow T3 selective-disclosure primitive"
+      status: "implemented-verified-local"
+      result: "Pay institutional disclosure now includes a receipt-bound amount/window disclosure summary plus public-view and receipt-packet evidence wiring."
+      verification:
+        - "npm run pay:institutional-disclosure-receipt-check"
+        - "npm run pay:receipt-public-view-check"
+        - "npm run compliance:gateway-check"
+      blockers:
+        - "No real proof generation, regulator access workflow, or claim lift exists yet."
+    - id: "top5-product2-public-private-hygiene"
+      title: "Finish Product 2 public/private witness cleanup"
+      status: "implemented-verified-local"
+      result: "Private Perps public packet now exposes proofSummary metadata instead of a public proof stub, and Pay status/readiness surfaces include the Product 2 verification gate."
+      verification:
+        - "npm run private-perps:check"
+        - "npm run pay:production-readiness-json"
+      blockers:
+        - "Product 2 remains a local/source-level surface and does not imply live operator or production settlement readiness."
+    - id: "top5-anonymity-set-1024"
+      title: "Clarify anonymity-set-1024 blocker lane"
+      status: "verified-local-blocked-real-funds"
+      result: "Bootstrap status output now surfaces the bounded-real-funds approval requirement, cohort deposit ref state, known blockers, and next decision."
+      verification:
+        - "npm run private-pool-v2:anonymity-set-readiness-check"
+        - "node scripts/print-vanta-anonymity-set-1024-bootstrap-status.mjs --json"
+      blockers:
+        - "Current live distinct commitments remain below the 1024 threshold."
+        - "No approval exists for real-funds or mainnet bootstrap actions."
+  cross_checks:
+    - "npm run build"
+    - "npm run privacy-audit:tracker-check"
+  known_non_regression_failure:
+    command: "npm run pay:verify"
+    reason: "Fails at Vanta Pay merchant API health gate; not caused by this implementation sweep."

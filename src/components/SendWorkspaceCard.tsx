@@ -288,7 +288,13 @@ export function SendWorkspaceCard({
 
               <div className="shield-form__actions shield-form__actions--primary">
                 <button
-                  className="button button-primary"
+                  className={`button button-primary${
+                    privateCoreSendExecution.status === "running" ||
+                    status === "sending" ||
+                    status === "settling"
+                      ? " button--loading"
+                      : ""
+                  }`}
                   data-vanta-send-primary-action
                   type="button"
                   onClick={() => {

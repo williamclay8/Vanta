@@ -19,6 +19,12 @@ const issueNumber = dispatch.githubReviewIssue?.number;
 const repoOwner = dispatch.repository?.owner;
 const repoName = dispatch.repository?.name;
 const repo = `${repoOwner}/${repoName}`;
+const closurePacket = JSON.parse(
+  readFileSync(
+    resolve(repoRoot, "ops/mainnet/private-pool-v2-relayer-privacy-transport-closure.evidence.json"),
+    "utf8",
+  ),
+);
 
 function printResult(result, exitCode = 0) {
   console.log(JSON.stringify(result, null, 2));
@@ -140,9 +146,15 @@ function main() {
     activeMode: accepted[0]?.evidence.activeMode ?? null,
     candidateJsonBlockCount: candidates.length,
     githubIssueUrl: issue.url,
+    nextOperatorAction:
+      "Wait for exactly one refs-only reviewer JSON packet on issue #8, then rerun relayer:privacy-transport-closure-check before any Render env mutation.",
     ok: true,
     parseFailureCount: parseFailures.length,
     providerMutationAllowed: false,
+    remainingBlockers: closurePacket.remainingBlockers,
+    requireReadyCommand: "npm run relayer:privacy-transport-issue-intake-check -- --require-returned",
+    returnedEvidenceValidationCommand:
+      "VANTA_PRIVATE_POOL_V2_RELAYER_PRIVACY_TRANSPORT_EVIDENCE_PATH=<reviewed-privacy-transport-json> npm run relayer:privacy-transport-closure-check",
     reviewerAccepted: accepted.length === 1,
     status:
       accepted.length === 1
