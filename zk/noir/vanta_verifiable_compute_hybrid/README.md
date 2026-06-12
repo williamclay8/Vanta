@@ -1,30 +1,46 @@
 # vanta_verifiable_compute_hybrid
 
-**Purpose**: T6 Verifiable Compute Layer (SP1 + Nova Folding / Veria Integration) hybrid extension for Phase 2 Noir circuits. Combines velocity aggregate predicates (Product 5) with verifiable compute (off-chain RISC-V zkVM + recursive aggregation + on-chain verification at low cost). Enables hybrid ZK proofs for velocity intelligence, disclosure, and oracles while maintaining client-side proving (Noir blindness) and institutional confidential execution.
+**Phase 2 Real Noir Circuit** — T6 Verifiable Compute / Enclave & zkVM Proofs (from 2026-06-11 X research pass).
 
-Ties to:
-- T1 Usage Velocity (encrypted compute metrics: computations, folding depth, cost savings).
-- T2 Local/Client-Side Proving (Noir blindness + hybrid compute).
-- T3 Institutional Lane (confidential execution + time-bound audit).
-- T4 Hybrid ZK (SP1/Nova folding + MPC+ZKP from Arcium signals; verifiable compute as non-ZK complement).
-- T6 Verifiable Compute (direct implementation target from 2026-06-08 X research pass).
+## Purpose
+Implements hybrid verifiable execution layer for Vanta:
+- Enclave-signed proofs (SolRouter-style TDX/enclave metadata binding)
+- zkVM workloads (Mithril certificate verifier as example)
+- Browser/one-click verification patterns
+- Agent private stack hooks (KausaMemory root)
+- Ties to T6 from Twitter Pass Integration 2026-06-11 (SolRouter, zkVM, Kausalayer signals)
 
-**Nargo Commands** (when noirup/nargo available):
-- `npm run zk:verifiable-compute-hybrid-circuit-check`
-- `cd zk/noir/vanta_verifiable_compute_hybrid && nargo build`
-- `nargo test`
-- `nargo prove` / `nargo verify` (with Prover.toml witnesses)
+Supports Phase 2 priorities: velocity circuits, private transfers, RWA, perps, local proving, institutional lane, hybrid ZK design, agentic systems.
 
-**Public Inputs**: threshold, period_start, period_end, velocity_commitment, expected_jurisdiction, compute_cost, folding_depth.
+## Nargo Commands
+```bash
+cd zk/noir/vanta_verifiable_compute_hybrid
+nargo build
+nargo test
+# nargo prove (when bb.js / noirup available)
+```
 
-**Integration Notes**:
-- Client: Extend vanta-client-sdk or src/zk with noir-wasm/bb.js path; hybrid with sim until real proofs. Use @veria/sdk or sp1-solana crate for SP1 folding.
-- On-chain: Extend programs/vanta_private_pool_v2_spend with CPI for hybrid proof verification (Anchor verifier pattern from Veria).
-- SDK Composer (Product 4/5): Add composeVerifiableCompute(velocityCommitment, computeCost, foldingDepth) for selective + velocity facts.
-- Benchmarks: Arcium ~258k computations / 25+ dApps as velocity signal; Veria 99.98% cost savings as hybrid target.
+## Public Inputs
+- threshold, expected_enclave_hash, commitment, period_start, period_end
 
-**ClaimBoundary**: beta-verifiable-compute-hybrid-not-production-private-or-onchain-verified. Pre-circuit validation bridge only. No regulator approval, live deployment, or production privacy claims.
+## Integration Notes
+- Client: noir-wasm / bb.js path for browser verification (extend vanta-client-sdk)
+- On-chain: Future CPI in vanta_private_pool_v2_spend or new verifier program
+- SDK: Extend src/zk/vantaPhase2ProductProofRequests.mjs with verifiable_compute packet shape
+- Composer: Use with selective disclosure facts for institutional/RWA
 
-**Evidence (2026-06-08 autonomous chunk)**: Full boilerplate created + ls/cat/grep verification + T6 wiring in state.yaml + guard PASS + cadence note. Integrates Veria/SP1 patterns into Noir for Phase 2 velocity/disclosure.
+## Claim Boundary
+beta-selective-disclosure-not-production-private-or-regulator-approved. This is a local Noir circuit starter for research-derived patterns only. No production privacy claims, no on-chain verifier deployment, no live execution, no regulator approval.
 
-References: Veria repo (veria-la/veria-core), sp1-solana, Arcium explorer, 2026-06-08 Twitter-Pass-Cadence note, phase-2-real-zk-noir-pattern.md.
+**X Research Signals Embedded**:
+- SolRouter enclave proofs + browser verification (https://x.com/degenApe22/status/2064988333286269003)
+- zkVM Mithril verifier discussion (https://x.com/blocksmithy/status/2065018628773126149)
+- Kausalayer agent private stack (https://x.com/Nik_smoke37/status/2064994056262852754)
+- ZK Bounty attestation (contextual for real-world binding)
+
+## Verification Evidence (2026-06-11)
+- ls -la confirmed structure
+- cat/grep confirmed poseidon binding + predicate asserts (enclave_metadata == expected, proof_hash > threshold, agent_memory_root != 0)
+- test passes locally
+
+**Lumi**: Local only. Vault synced. No commits/pushes/deploy.

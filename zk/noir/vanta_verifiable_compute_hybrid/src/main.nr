@@ -1,57 +1,61 @@
 use ::poseidon::poseidon::bn254;
 
-fn hash_velocity_commitment(velocity_sum: u64, blinding: Field) -> Field {
-    bn254::hash_2([velocity_sum as Field, blinding])
+fn hash_verifiable_compute_commitment(proof_hash: u64, enclave_metadata: Field, blinding: Field) -> Field {
+    bn254::hash_3([proof_hash as Field, enclave_metadata, blinding])
 }
 
 fn main(
-    // Private (hidden)
-    velocity_sum: u64,
+    // Private inputs (witness)
+    proof_hash: u64,             // zkVM or enclave proof-strength/workload scalar
+    enclave_metadata: Field,     // Secure Enclave / TDX metadata
+    agent_memory_root: Field,    // KausaMemory-style agent state root
     blinding: Field,
-    compute_cost: u64,      // T6 verifiable compute cost (SP1-style)
-    folding_depth: u64,     // T6 Nova/SuperNova folding depth
-    // Public
+    // Public inputs
     threshold: pub u64,
+    expected_enclave_hash: pub Field,
+    commitment: pub Field,
     period_start: pub u64,
     period_end: pub u64,
-    velocity_commitment: pub Field,
-    expected_jurisdiction: pub Field
 ) {
-    // Commitment binding (core invariant)
-    let computed_commitment = hash_velocity_commitment(velocity_sum, blinding);
-    assert(computed_commitment == velocity_commitment);
+    // Poseidon commitment binding (mandatory per pattern)
+    let computed = hash_verifiable_compute_commitment(proof_hash, enclave_metadata, blinding);
+    assert(computed == commitment);
 
-    // Velocity predicate (T1 usage + Product 5)
-    assert(velocity_sum > threshold);
+    // Predicate asserts for verifiable execution
+    assert(enclave_metadata == expected_enclave_hash);  // Enclave validity
+    assert(proof_hash > threshold);                     // Proof strength / zkVM workload threshold
+    assert(period_end > period_start);                  // Time-bound public audit window
 
-    // Time-bound audit (institutional T3)
-    assert(period_start < period_end);
+    // Agent memory / private GPU compute predicate example
+    assert(agent_memory_root != 0);  // Non-empty agent state
 
-    // Hybrid verifiable compute predicates (T6)
-    // SP1/Nova folding simulation: cost < threshold for efficiency; depth > 1 for recursive aggregation
-    assert(compute_cost < 1000);  // low on-chain cost (99.98% savings vs direct)
-    assert(folding_depth > 1);    // recursive aggregation (Nova/SuperNova style)
-
-    // Jurisdiction for selective hybrid (T2/T3 client-side + institutional)
-    assert(expected_jurisdiction == 1);  // US example; extend for Noir client-side blindness
+    // Compliance fact placeholder for hybrid ZK (e.g. jurisdiction or accredited for institutional)
+    // let jurisdiction_match = ... ;
 }
 
-// Test with witness values from Prover.toml
 #[test]
-fn test_vanta_verifiable_compute_hybrid() {
-    let velocity_sum = 150000;
-    let blinding = 123456789;
-    let velocity_commitment = hash_velocity_commitment(velocity_sum, blinding);
+fn test_verifiable_compute_hybrid() {
+    // Test values
+    let proof_hash = 200;
+    let enclave_metadata = 123456789;
+    let agent_memory_root = 555555555;
+    let blinding = 111111111;
+    let threshold = 100;
+    let expected_enclave_hash = 123456789;
+    let period_start = 20260601;
+    let period_end = 20260630;
+
+    let commitment = hash_verifiable_compute_commitment(proof_hash, enclave_metadata, blinding);
 
     main(
-        velocity_sum,  // velocity_sum
-        blinding,  // blinding
-        42,      // compute_cost (T6)
-        3,       // folding_depth (T6)
-        100000,  // threshold
-        20260601, // period_start
-        20260608, // period_end
-        velocity_commitment, // velocity_commitment
-        1        // expected_jurisdiction
+        proof_hash,
+        enclave_metadata,
+        agent_memory_root,
+        blinding,
+        threshold,
+        expected_enclave_hash,
+        commitment,
+        period_start,
+        period_end
     );
 }
