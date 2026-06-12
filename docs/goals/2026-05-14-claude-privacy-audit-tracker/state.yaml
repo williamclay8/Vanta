@@ -2702,6 +2702,57 @@ twitter_pass_requirements:
     implementation: "Add verifiable-compute-check guard. Evaluate @veria/sdk or sp1-solana crate for Phase 2 velocity/disclosure proofs. Target T4 hybrid lane extension."
     verification: ["check-verifiable-compute.mjs", "privacy-audit:tracker-check"]
 
+
+  - id: T10
+    title: "Unlink/Euler Institutional Private Lending Privacy"
+    status: declared
+    source: "Twitter Pass 2026-06-12 (Unlink + Euler institutional DeFi privacy)"
+    requirement: "Study ZK-based institutional private lending as a mandatory selective-disclosure and private DeFi transfer pattern. Treat privacy + compliance + UX as a product constraint, not a marketing slogan."
+    implementation: "Add unlink_euler_institutional_private_lending_details, watch Unlink/Euler accounts, and gate any institutional claim through local proof/selective-disclosure evidence."
+    verification: ["npm run twitter-pass-2026-06-12-unlink-euler-check"]
+  - id: T11
+    title: "Arcium Confidential AI Benchmark and C-SPL"
+    status: declared
+    source: "Twitter Pass 2026-06-12 (Arcium/Inpher, confidential AI, C-SPL)"
+    requirement: "Track confidential AI, MXE, and C-SPL as hybrid privacy benchmarks for agent circuits, private transfers, order books, and lending."
+    implementation: "Add arcium_confidential_ai_benchmark_and_c_spl_details and keep Arcium as benchmark-only evidence until Vanta has its own verified runtime."
+    verification: ["npm run twitter-pass-2026-06-12-arcium-confidential-ai-check"]
+  - id: T12
+    title: "HeliusPrivacy Scalable Onchain ZK Privacy Layer Blueprint"
+    status: declared
+    source: "Twitter Pass 2026-06-12 (HeliusPrivacy / Light Protocol acquisition update)"
+    requirement: "Use the fully composable, on-chain, open-source HeliusPrivacy direction as a scalable Solana ZK privacy blueprint for private payments, markets, and DeFi."
+    implementation: "Add heliusprivacy_scalable_onchain_zk_privacy_layer_blueprint_details and monitor @HeliusPrivacy for repos, APIs, and developer tooling."
+    verification: ["npm run twitter-pass-2026-06-12-heliusprivacy-zk-layer-check"]
+  - id: T13
+    title: "zkRune Client-Side Groth16 Eligibility Gating"
+    status: declared
+    source: "Twitter Pass 2026-06-12 (zkRune x Xona Agent integration)"
+    requirement: "Treat client-side Groth16 eligibility gating, HTTP header proofs, on-chain verification, and fail-closed API access as a mandatory agent-privacy UX benchmark."
+    implementation: "Add zkrune_client_side_groth16_eligibility_gating_details and preserve private input/witness non-disclosure in all agent proof requests."
+    verification: ["npm run twitter-pass-2026-06-12-zkrune-eligibility-gating-check"]
+  - id: T14
+    title: "ZK Bounty Hardware Attestation for RWA Velocity"
+    status: declared
+    source: "Twitter Pass 2026-06-12 (ZK Bounty Solana slot-hash hardware attestation)"
+    requirement: "Add hardware ZK attestation and Solana slot-hash anti-backdating as a Phase 2 RWA/velocity/external-predicate benchmark."
+    implementation: "Add zkbounty_hardware_attestation_for_rwa_velocity_details and schema fields for evidence refs, privacy boundaries, and no-real-world-claim-lift gates."
+    verification: ["npm run twitter-pass-2026-06-12-zkbounty-attestation-check"]
+  - id: T15
+    title: "TrustBoostAI Agent Privacy Layer"
+    status: declared
+    source: "Twitter Pass 2026-06-12 (TrustBoostAI / Mastercard Agent Pay context)"
+    requirement: "Track PII redaction before LLMs plus on-chain verification as an agent privacy layer benchmark for Vanta Phase 2."
+    implementation: "Add trustboostai_agent_privacy_layer_details and keep agent privacy claims local/beta until proof and redaction evidence exists."
+    verification: ["npm run twitter-pass-2026-06-12-trustboostai-agent-privacy-check"]
+  - id: T16
+    title: "Privacy Cash Private Transfer Volume Benchmark"
+    status: declared
+    source: "Twitter Pass 2026-06-12 (Privacy Cash volume claim)"
+    requirement: "Track Privacy Cash as a private-transfer velocity benchmark while treating third-party volume claims as external benchmark input, not Vanta adoption evidence."
+    implementation: "Add privacy_cash_private_transfer_volume_benchmark_details and require reviewer-verifiable Vanta metrics before any claim lift."
+    verification: ["npm run twitter-pass-2026-06-12-privacy-cash-volume-check"]
+
   # T1/T3 Extensions from Arcium (MPC+ZKP Privacy 2.0) and Noir client-side
   # T1 extension: Add encrypted compute velocity sub-metrics (# computations, MXEs, dApps) to usage_velocity section (Arcium ~258k computations, 25+ dApps, Cerberus/Manticore).
   # T3 extension: Institutional confidential execution (MPC+ZKP) for sensitive data; Arcium Cerberus model for private institutional compute.
@@ -3062,6 +3113,212 @@ tokenomics_sustainability:
   pattern: "creator_fees_to_buyback_lock_burn"
   not_a_token_launch_plan: true
   verification: ["npm run tokenomics-sustainability-pattern-check"]
+
+
+twitter_pass_2026_06_12_requirements:
+  source: "June 12 2026 five-lane X research run; primary window since 2026-06-11"
+  status: "repo-local-wired-red-green-guards"
+  source_section: "/Users/clay/.hermes/skills/supergrok-research/references/zk-solana-momentum-2026-06.md#June 12, 2026 Run"
+  items:
+    - id: T10
+      title: "Unlink/Euler Institutional Private Lending Privacy"
+      mandatory: true
+      source_project: "Unlink + Euler Finance"
+      primitives: ["institutional selective disclosure", "private lending", "private DeFi transfers", "compliance-aware privacy", "privacy + compliance + UX triangle"]
+      limitations:
+        - "Unlink/Euler is an external benchmark and not Vanta adoption, partnership, lending, compliance, or production evidence."
+        - "Vanta institutional support remains beta/local until proof generation, verifier acceptance, custody, legal/compliance, and reviewer evidence exist."
+      success_metrics:
+        watch_accounts: ["@unlink_xyz", "@eulerfinance", "@phklive"]
+        reviewer_command: "npm run twitter-pass-2026-06-12-unlink-euler-check"
+        source_quote: "Building privacy in 5 lines of code"
+      x_post_refs:
+        - "https://x.com/i/status/2065449637352501467"
+        - "https://x.com/i/status/2065449650434482551"
+        - "https://x.com/i/status/2065464255931887672"
+      vanta_relevance_ref: "Institutional lane (Unlink/Euler lending privacy, compliant flows, Helius scale)"
+    - id: T11
+      title: "Arcium Confidential AI Benchmark and C-SPL"
+      mandatory: true
+      source_project: "Arcium / ZINC / Inpher"
+      primitives: ["MPC", "MXE", "confidential AI", "encrypted AI inference/training", "C-SPL", "private transfers", "private order books", "lending without MEV"]
+      limitations:
+        - "Arcium/ZINC metrics are external benchmark signals only and not Vanta confidential-compute capability."
+        - "Vanta does not claim production MPC, encrypted AI runtime, C-SPL compatibility, or Coinbase/listing status."
+      success_metrics:
+        confidential_computations_observed: ">1.1M"
+        mainnet_txns_observed: ">4.2M"
+        reviewer_command: "npm run twitter-pass-2026-06-12-arcium-confidential-ai-check"
+      x_post_refs:
+        - "https://x.com/i/status/2065404370645340213"
+        - "https://x.com/i/status/2065397505043374426"
+      vanta_relevance_ref: "Hybrid ZK / confidential compute benchmarks (Arcium MXE); Agentic systems (Arcium encrypted AI)"
+    - id: T12
+      title: "HeliusPrivacy Scalable Onchain ZK Privacy Layer Blueprint"
+      mandatory: true
+      source_project: "HeliusPrivacy / Light Protocol"
+      primitives: ["private payments", "private markets", "private DeFi", "fully composable", "on-chain", "open-source", "developer APIs"]
+      limitations:
+        - "HeliusPrivacy is an external infra benchmark and not Vanta API access, code reuse, partnership, or production privacy evidence."
+      success_metrics:
+        developer_form: "https://www.helius.dev/privacy"
+        blog: "https://www.helius.dev/blog/light-protocol-acquisition"
+        reviewer_command: "npm run twitter-pass-2026-06-12-heliusprivacy-zk-layer-check"
+        source_quote: "Encryption at the speed of Solana."
+      x_post_refs:
+        - "https://x.com/i/status/2064766817818530074"
+      vanta_relevance_ref: "Private transfers/DeFi (Helius private markets/payments); on-chain verification; institutional lane; hybrid ZK design"
+    - id: T13
+      title: "zkRune Client-Side Groth16 Eligibility Gating"
+      mandatory: true
+      source_project: "zkRune x Xona Agent"
+      primitives: ["client-side Groth16", "eligibility gating", "HTTP header proof", "on-chain verify", "fail-closed API", "private agent authorization"]
+      limitations:
+        - "zkRune/Xona is an external benchmark. Vanta proof requests remain local request/result shapes unless separately verified."
+      success_metrics:
+        performance_benchmark: "~0.5s with snarkjs"
+        private_input_boundary: "birth year private on device; proof sent as HTTP header"
+        reviewer_command: "npm run twitter-pass-2026-06-12-zkrune-eligibility-gating-check"
+      x_post_refs:
+        - "https://x.com/i/status/2065434194155880463"
+        - "https://x.com/i/status/2065433944947122623"
+      vanta_relevance_ref: "Local/client-side proving (zkRune 0.5s Groth16, fail-closed); On-chain verification/attestation (zkRune on-chain verify)"
+    - id: T14
+      title: "ZK Bounty Hardware Attestation for RWA Velocity"
+      mandatory: true
+      source_project: "ZK Bounty"
+      primitives: ["hardware ZK proofs", "Secure Enclave metadata", "GPS", "sensor proofs", "Solana slot hash", "anti-backdating", "permissionless verifier", "automatic escrow"]
+      limitations:
+        - "ZK Bounty is an external benchmark and not Vanta real-world verification, RWA compliance, hardware support, or public API evidence."
+      success_metrics:
+        attestation_layers: 4
+        zk_sdk_version: "v1.0"
+        reviewer_command: "npm run twitter-pass-2026-06-12-zkbounty-attestation-check"
+      x_post_refs:
+        - "https://x.com/zk_bounty/status/2065464938680721770"
+        - "https://x.com/i/status/2065429673249558848"
+      vanta_relevance_ref: "On-chain verification/attestation (ZK Bounty slot hash hardware proofs); Velocity/PMF, RWA"
+    - id: T15
+      title: "TrustBoostAI Agent Privacy Layer"
+      mandatory: true
+      source_project: "TrustBoostAI"
+      primitives: ["PII redaction before LLMs", "on-chain verification", "agent payment privacy", "open-source agent privacy"]
+      limitations:
+        - "TrustBoostAI is an external agent-privacy signal and not Vanta Mastercard, TrustBoost, PII-processing, or compliance evidence."
+      success_metrics:
+        redaction_required_before_llm: true
+        verifier_required: "on-chain verification or proof-bound equivalent"
+        reviewer_command: "npm run twitter-pass-2026-06-12-trustboostai-agent-privacy-check"
+      x_post_refs:
+        - "https://x.com/i/status/2065436902371541288"
+      vanta_relevance_ref: "Agentic systems (TrustBoost PII+verification, zkRune eligibility, Arcium encrypted AI)"
+    - id: T16
+      title: "Privacy Cash Private Transfer Volume Benchmark"
+      mandatory: true
+      source_project: "Privacy Cash"
+      primitives: ["private transfer volume benchmark", "velocity/PMF benchmark", "traction monitoring"]
+      limitations:
+        - "Privacy Cash volume is an external claim and must not be represented as Vanta volume, adoption, or production privacy evidence."
+      success_metrics:
+        external_volume_claim: "$400M+ processed"
+        reviewer_command: "npm run twitter-pass-2026-06-12-privacy-cash-volume-check"
+      x_post_refs:
+        - "https://x.com/i/status/2065454669195809251"
+      vanta_relevance_ref: "Token/traction strategies (Privacy Cash volume, Arcium TGE anticipation)"
+
+unlink_euler_institutional_private_lending_details:
+  status: "benchmark-watch-fail-closed"
+  source_project: "Unlink + Euler Finance"
+  primitives: ["institutional selective disclosure", "private lending", "private DeFi transfers", "compliance-aware privacy"]
+  limitations: ["External benchmark only", "No Vanta institutional volume", "No legal/compliance approval", "No production privacy claim"]
+  success_metrics:
+    - "Dedicated watch item stays current before institutional lane claim movement."
+    - "Selective-disclosure primitive maps to a proof/request or receipt-bound evidence packet before any claim lift."
+  source_refs:
+    - "/Users/clay/.hermes/skills/supergrok-research/references/zk-solana-momentum-2026-06.md#June 12, 2026 Run"
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/Unlink-Euler-Institutional-Lending-Watch-Item.md"
+  verification: ["npm run twitter-pass-2026-06-12-unlink-euler-check"]
+  current_state: "declared - benchmark and watch item only"
+
+arcium_confidential_ai_benchmark_and_c_spl_details:
+  status: "benchmark-watch-fail-closed"
+  source_project: "Arcium / ZINC / Inpher"
+  primitives: ["MPC", "MXE", "confidential AI", "C-SPL", "private DeFi primitives", "on-chain verification"]
+  limitations: ["External benchmark only", "No Vanta production MPC", "No encrypted AI runtime", "No C-SPL compatibility claim"]
+  success_metrics:
+    - ">1.1M confidential computations and >4.2M txns tracked as benchmark signals only."
+    - "Hybrid-ZK docs distinguish ZK proof validity from confidential-compute trust boundaries."
+  source_refs:
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/Arcium-Watch-Item.md"
+  verification: ["npm run twitter-pass-2026-06-12-arcium-confidential-ai-check", "npm run confidential-compute-benchmark-check"]
+  current_state: "declared - benchmark only"
+
+heliusprivacy_scalable_onchain_zk_privacy_layer_blueprint_details:
+  status: "benchmark-watch-fail-closed"
+  source_project: "HeliusPrivacy / Light Protocol"
+  primitives: ["private payments", "private markets", "private DeFi", "fully composable, on-chain, open-source", "developer APIs"]
+  limitations: ["External blueprint only", "No Vanta partnership", "No API access claim", "No production privacy claim"]
+  success_metrics:
+    - "Monitor developer API/repo release and compare copy/counter/ignore/deep-read action before major releases."
+    - "Vanta private-transfer/on-chain-verification roadmap names what is implemented versus only benchmarked."
+  source_refs:
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/HeliusPrivacy-Watch-Item.md"
+  verification: ["npm run twitter-pass-2026-06-12-heliusprivacy-zk-layer-check", "npm run heliusprivacy-benchmark-check"]
+  current_state: "declared - watch item updated"
+
+zkrune_client_side_groth16_eligibility_gating_details:
+  status: "benchmark-watch-fail-closed"
+  source_project: "zkRune x Xona Agent"
+  primitives: ["client-side Groth16", "HTTP header proof", "on-chain verify", "fail-closed", "private agent authorization"]
+  limitations: ["External benchmark only", "Vanta agent proof requests remain local request/result shapes until separately verified"]
+  success_metrics:
+    - "Private input stays on device; proof artifact crosses boundary, not witness data."
+    - "Agent proof requests remain witnessless and fail closed."
+  source_refs:
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/zkRune-Watch-Item.md"
+  verification: ["npm run twitter-pass-2026-06-12-zkrune-eligibility-gating-check", "npm run client-side-proving-enforced-check"]
+  current_state: "declared - benchmark only"
+
+zkbounty_hardware_attestation_for_rwa_velocity_details:
+  status: "schema-and-benchmark-watch-fail-closed"
+  source_project: "ZK Bounty"
+  primitives: ["hardware ZK proofs", "Solana slot hash", "Secure Enclave", "GPS", "sensor", "anti-backdating", "permissionless verifier"]
+  limitations: ["External benchmark only", "No Vanta hardware attestation", "No RWA compliance claim", "No real-world payout evidence"]
+  success_metrics:
+    - "Hardware attestation schema records evidence refs, privacy fields, anti-backdating, verifier, and claim boundary."
+    - "RWA/velocity predicates remain simulated until reviewer-verifiable Vanta data exists."
+  source_refs:
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/ZKBounty-Hardware-Attestation-Watch-Item.md"
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/Hardware-Attestation-Metric-Schema-2026-06-12.md"
+  verification: ["npm run twitter-pass-2026-06-12-zkbounty-attestation-check"]
+  current_state: "declared - schema/watch only"
+
+trustboostai_agent_privacy_layer_details:
+  status: "schema-and-benchmark-watch-fail-closed"
+  source_project: "TrustBoostAI"
+  primitives: ["PII redaction before LLMs", "on-chain verification", "agent payment privacy", "agent privacy receipt"]
+  limitations: ["External benchmark only", "No Mastercard relationship", "No production PII processing", "No compliance approval"]
+  success_metrics:
+    - "Agent privacy schema records redaction point, proof/check ref, retained metadata, and no-PII claim boundary."
+    - "Vanta agent circuits keep private fields witness-only and fail closed."
+  source_refs:
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/TrustBoostAI-Agent-Privacy-Watch-Item.md"
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/Agent-Privacy-Verification-Metric-Schema-2026-06-12.md"
+  verification: ["npm run twitter-pass-2026-06-12-trustboostai-agent-privacy-check"]
+  current_state: "declared - schema/watch only"
+
+privacy_cash_private_transfer_volume_benchmark_details:
+  status: "benchmark-watch-fail-closed"
+  source_project: "Privacy Cash"
+  primitives: ["private transfer volume benchmark", "velocity/PMF benchmark", "traction monitoring"]
+  limitations: ["External claim only", "No Vanta adoption evidence", "No production privacy or volume claim"]
+  success_metrics:
+    - "Track external volume as benchmark with source/date/freshness and no Vanta claim lift."
+    - "Require reviewer-verifiable Vanta usage_velocity before any Vanta velocity claim."
+  source_refs:
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/Privacy-Cash-Volume-Benchmark-Watch-Item.md"
+  verification: ["npm run twitter-pass-2026-06-12-privacy-cash-volume-check", "npm run usage-velocity-check"]
+  current_state: "declared - benchmark only"
 
 # Improvement sweep - 2026-06-08
 improvement_sweep_2026_06_08:
