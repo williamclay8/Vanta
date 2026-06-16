@@ -2752,6 +2752,41 @@ twitter_pass_requirements:
     requirement: "Track Privacy Cash as a private-transfer velocity benchmark while treating third-party volume claims as external benchmark input, not Vanta adoption evidence."
     implementation: "Add privacy_cash_private_transfer_volume_benchmark_details and require reviewer-verifiable Vanta metrics before any claim lift."
     verification: ["npm run twitter-pass-2026-06-12-privacy-cash-volume-check"]
+  - id: T17
+    title: "Medusa Client-Side Reputation Attestation"
+    status: declared
+    source: "Twitter Pass 2026-06-13 (Medusa Privacy wallet reputation / eligibility ZK)"
+    requirement: "Make client-side reputation, eligibility, allowlist, and credibility proofs a Phase 2 primitive. Private wallet history must stay local; only proof/receipt artifacts can cross the boundary."
+    implementation: "Add medusa_client_side_reputation_attestation_details, update watchlists, design vanta_private_reputation_gate, and gate any eligibility claim through local proving and on-chain-verifier evidence."
+    verification: ["npm run twitter-pass-2026-06-13-medusa-reputation-check"]
+  - id: T18
+    title: "Midnight Selective Disclosure for Agents and Compliance"
+    status: declared
+    source: "Twitter Pass 2026-06-13 (Midnight rational/selective disclosure)"
+    requirement: "Extend selective disclosure beyond amount/jurisdiction into policy-scoped user-data and agent-behavior disclosure packets."
+    implementation: "Add midnight_selective_disclosure_agent_compliance_details and upgrade the Phase 2 selective-disclosure spec with time-bound, scope-bound agent/institutional disclosure patterns."
+    verification: ["npm run twitter-pass-2026-06-13-midnight-selective-disclosure-check"]
+  - id: T19
+    title: "Concordium Identity + ZK Agent/Institutional Pattern"
+    status: declared
+    source: "Twitter Pass 2026-06-13 (Concordium identity plus ZK privacy)"
+    requirement: "Track identity-plus-ZK as an institutional and agent envelope pattern while refusing public identity exposure or compliance claims without reviewed evidence."
+    implementation: "Add concordium_identity_zk_agent_institutional_details and map identity envelopes to Vanta's optional selective-disclosure receipts."
+    verification: ["npm run twitter-pass-2026-06-13-concordium-identity-zk-check"]
+  - id: T20
+    title: "Noir on Solana Integration Opportunity"
+    status: declared
+    source: "Twitter Pass 2026-06-13 (Aztec / NoirLang / Solana payments)"
+    requirement: "Treat Noir-on-Solana availability as direct validation of Vanta's Noir-first Phase 2 lane and monitor verifier examples, client proving, and cross-chain proof integration."
+    implementation: "Add noir_on_solana_integration_details, update watchlists, and route next implementation through local/browser proving before on-chain verifier claims."
+    verification: ["npm run twitter-pass-2026-06-13-noir-solana-integration-check"]
+  - id: T21
+    title: "Sedna Lightweight Hybrid Privacy Benchmark"
+    status: declared
+    source: "Twitter Pass 2026-06-13 (Sei Sedna multi-proposer privacy discussion)"
+    requirement: "Benchmark lighter sequencing/metadata privacy primitives against full ZK without weakening Vanta proof, custody, verifier, anonymity, or claim gates."
+    implementation: "Add sedna_lightweight_hybrid_privacy_benchmark_details and use it to evaluate relayer jitter, batching, state channels, spam resistance, and metadata leakage."
+    verification: ["npm run twitter-pass-2026-06-13-sedna-hybrid-privacy-check"]
 
   # T1/T3 Extensions from Arcium (MPC+ZKP Privacy 2.0) and Noir client-side
   # T1 extension: Add encrypted compute velocity sub-metrics (# computations, MXEs, dApps) to usage_velocity section (Arcium ~258k computations, 25+ dApps, Cerberus/Manticore).
@@ -3318,6 +3353,150 @@ privacy_cash_private_transfer_volume_benchmark_details:
   source_refs:
     - "/Users/clay/Desktop/Vanta Vault/02 Projects/Privacy-Cash-Volume-Benchmark-Watch-Item.md"
   verification: ["npm run twitter-pass-2026-06-12-privacy-cash-volume-check", "npm run usage-velocity-check"]
+  current_state: "declared - benchmark only"
+
+twitter_pass_2026_06_13_requirements:
+  source: "June 13 2026 five-lane X research run; primary window since 2026-06-12"
+  status: "repo-local-wired-red-green-guards"
+  source_section: "/Users/clay/.hermes/skills/supergrok-research/references/zk-solana-momentum-2026-06.md#June 13, 2026 Run"
+  items:
+    - id: T17
+      title: "Medusa Client-Side Reputation Attestation"
+      mandatory: true
+      source_project: "Medusa Privacy"
+      primitives: ["client-side reputation ZK", "private eligibility gating", "allowlists", "wallet credibility", "passport claim wallet", "on-chain verification"]
+      limitations:
+        - "Medusa is an external benchmark and not Vanta integration, adoption, token evidence, or production allowlist support."
+        - "Vanta must keep wallet history local and prove only bounded predicates before any eligibility claim moves."
+      success_metrics:
+        ux_benchmark: "Generate proof -> Verify on-chain -> Keep wallet private"
+        next_circuit: "vanta_private_reputation_gate"
+        reviewer_command: "npm run twitter-pass-2026-06-13-medusa-reputation-check"
+      x_post_refs:
+        - "https://x.com/ZkMedusa/status/2065551465771585854"
+        - "https://x.com/i/status/2065497636246028770"
+      vanta_relevance_ref: "Local/client-side proving, velocity predicates, RWA eligibility, agentic receipts, and institutional private allowlists"
+    - id: T18
+      title: "Midnight Selective Disclosure for Agents and Compliance"
+      mandatory: true
+      source_project: "Midnight / Cardano After Dark"
+      primitives: ["rational/selective disclosure", "private-by-default agent interactions", "user data disclosure scope", "agent behavior disclosure scope", "compliance-aware proof packets"]
+      limitations:
+        - "Midnight is an external benchmark and not Vanta integration, legal approval, or production private smart contract evidence."
+      success_metrics:
+        disclosure_scope: "time-bound and policy-bound"
+        next_spec: "Selective-Disclosure-Primitive-Spec-v0.3-2026-06-13"
+        reviewer_command: "npm run twitter-pass-2026-06-13-midnight-selective-disclosure-check"
+      x_post_refs:
+        - "https://x.com/CardanoAftrDark/status/2065576650461659270"
+      vanta_relevance_ref: "Institutional selective disclosure, RWA counterparties, and agent behavior receipts"
+    - id: T19
+      title: "Concordium Identity + ZK Agent/Institutional Pattern"
+      mandatory: true
+      source_project: "Concordium"
+      primitives: ["protocol-level identity", "ZK privacy for humans and AI agents", "identity envelope", "institutional selective disclosure"]
+      limitations:
+        - "Concordium is an external identity-plus-ZK benchmark and not Vanta identity-provider integration, KYC support, regulator acceptance, or compliance approval."
+      success_metrics:
+        identity_envelope_boundary: "identity facts stay optional, scoped, and receipt-bound"
+        reviewer_command: "npm run twitter-pass-2026-06-13-concordium-identity-zk-check"
+      x_post_refs:
+        - "https://x.com/barondickson/status/2065566719855235083"
+      vanta_relevance_ref: "Institutional compliance patterns and agent eligibility without public identity exposure"
+    - id: T20
+      title: "Noir on Solana Integration Opportunity"
+      mandatory: true
+      source_project: "Aztec / NoirLang / Solana payments"
+      primitives: ["Noir directly available on Solana", "verifier program examples", "client proving", "cross-chain Noir", "Solana-native proof verification"]
+      limitations:
+        - "Noir-on-Solana is external ecosystem validation, not Vanta production verifier readiness, generated Groth16 evidence, audit acceptance, or deployed proof verification."
+      success_metrics:
+        watch_accounts: ["@aztecnetwork", "@NoirLang", "@solanapayments"]
+        next_integration: "NoirJS browser worker -> proof receipt -> fail-closed verifier adapter -> Solana verifier evidence"
+        reviewer_command: "npm run twitter-pass-2026-06-13-noir-solana-integration-check"
+      x_post_refs:
+        - "https://x.com/aztecnetwork/status/2065488233627365572"
+        - "https://x.com/i/status/2065488221195341869"
+        - "https://x.com/i/status/2064424103369666848"
+      vanta_relevance_ref: "Direct validation of existing Phase 2 Noir starter and Solana-native verifier vision"
+    - id: T21
+      title: "Sedna Lightweight Hybrid Privacy Benchmark"
+      mandatory: true
+      source_project: "Sei Sedna"
+      primitives: ["multi-proposer sequencing", "metadata privacy", "spam resistance", "state-channel-like privacy", "lighter hybrid privacy primitives"]
+      limitations:
+        - "Sedna is a benchmark for hybrid design tradeoffs, not a substitute for Vanta ZK proof, verifier, custody, anonymity, audit, or claim gates."
+      success_metrics:
+        benchmark_claim: "90% of privacy problem with 0.01% engineering effort"
+        reviewer_command: "npm run twitter-pass-2026-06-13-sedna-hybrid-privacy-check"
+      x_post_refs:
+        - "https://x.com/jayendra_jog/status/2065508685657567452"
+      vanta_relevance_ref: "Hybrid ZK design, relayer batching/jitter, sequencing privacy, and lighter alternatives as benchmarks"
+
+medusa_client_side_reputation_attestation_details:
+  status: "primitive-design-watch-fail-closed"
+  source_project: "Medusa Privacy"
+  primitives: ["client-side reputation ZK", "private eligibility gating", "allowlists", "wallet credibility", "passport claim wallet"]
+  limitations: ["External benchmark only", "No Vanta integration", "No wallet-history scoring claim", "No production allowlist enforcement", "No token evidence"]
+  success_metrics:
+    - "Wallet history and eligibility inputs remain local; only proof, public inputs, and receipt metadata cross the boundary."
+    - "Verifier path is fail-closed until generated proof, verifier key, on-chain adapter, SBF/live lineage, and reviewer evidence exist."
+  source_refs:
+    - "/Users/clay/.hermes/skills/supergrok-research/references/zk-solana-momentum-2026-06.md#June 13, 2026 Run"
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/Medusa-Client-Side-Reputation-Attestation-Watch-Item.md"
+  verification: ["npm run twitter-pass-2026-06-13-medusa-reputation-check", "npm run local-proving-enforced-check"]
+  current_state: "declared - primitive design and watch item only"
+
+midnight_selective_disclosure_agent_compliance_details:
+  status: "selective-disclosure-design-watch-fail-closed"
+  source_project: "Midnight"
+  primitives: ["rational/selective disclosure", "private-by-default agent interactions", "scope-bound compliance proofs", "agent behavior disclosure receipts"]
+  limitations: ["External benchmark only", "No Vanta Midnight integration", "No legal/compliance approval", "No private smart contract production evidence"]
+  success_metrics:
+    - "Selective disclosure spec v0.3 adds user-data, agent-behavior, policy-scope, and disclosure-window fields."
+    - "Disclosure receipts state what stayed private, what was proven, and what claim gates remain locked."
+  source_refs:
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/Selective-Disclosure-Primitive-Spec-v0.3-2026-06-13.md"
+  verification: ["npm run twitter-pass-2026-06-13-midnight-selective-disclosure-check"]
+  current_state: "declared - spec update only"
+
+concordium_identity_zk_agent_institutional_details:
+  status: "identity-envelope-design-watch-fail-closed"
+  source_project: "Concordium"
+  primitives: ["protocol-level identity", "identity + ZK", "agent eligibility", "institutional disclosure envelope"]
+  limitations: ["External benchmark only", "No identity-provider integration", "No KYC/compliance support", "No regulator acceptance"]
+  success_metrics:
+    - "Identity facts are optional scoped predicates, not public identity exposure."
+    - "Any identity receipt is tied to a verifier, purpose, expiration, and disclosure policy hash."
+  source_refs:
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/Selective-Disclosure-Primitive-Spec-v0.3-2026-06-13.md"
+  verification: ["npm run twitter-pass-2026-06-13-concordium-identity-zk-check"]
+  current_state: "declared - identity envelope pattern only"
+
+noir_on_solana_integration_details:
+  status: "ecosystem-watch-fail-closed"
+  source_project: "Aztec / NoirLang / Solana payments"
+  primitives: ["Noir directly available on Solana", "verifier examples", "client proving", "cross-chain Noir", "Solana-native verifier"]
+  limitations: ["External ecosystem signal only", "No Vanta production verifier readiness", "No generated Groth16/Solana verifier evidence", "No deployed on-chain proof verification"]
+  success_metrics:
+    - "Monitor integration examples and map them to Vanta's existing NoirJS/browser-worker proof lanes."
+    - "Do not claim on-chain verification until C01/verifier evidence gates accept generated proof, VK, program, and SBF/live lineage."
+  source_refs:
+    - "/Users/clay/Desktop/Vanta Vault/02 Projects/Noir-On-Solana-Watch-Item.md"
+  verification: ["npm run twitter-pass-2026-06-13-noir-solana-integration-check", "npm run zk:phase2-product-proof-requests-check"]
+  current_state: "declared - watch and integration plan only"
+
+sedna_lightweight_hybrid_privacy_benchmark_details:
+  status: "hybrid-benchmark-watch-fail-closed"
+  source_project: "Sei Sedna"
+  primitives: ["multi-proposer sequencing", "metadata privacy", "spam resistance", "lightweight privacy", "hybrid ZK benchmark"]
+  limitations: ["External benchmark only", "Not a substitute for Vanta proof/verifier/custody/anonymity/review gates"]
+  success_metrics:
+    - "Use Sedna as benchmark for sequencing, batching, jitter, state-channel, and metadata-leak reduction."
+    - "Hybrid design docs must name which privacy property is provided by ZK and which by non-ZK mechanisms."
+  source_refs:
+    - "/Users/clay/.hermes/skills/supergrok-research/references/zk-solana-momentum-2026-06.md#June 13, 2026 Run"
+  verification: ["npm run twitter-pass-2026-06-13-sedna-hybrid-privacy-check", "npm run hybrid-zk-design-check"]
   current_state: "declared - benchmark only"
 
 # Improvement sweep - 2026-06-08
