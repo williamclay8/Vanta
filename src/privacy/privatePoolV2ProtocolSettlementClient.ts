@@ -297,6 +297,18 @@ export type VantaPrivatePoolV2ProofReceipt = {
 };
 
 export type VantaProtocolSettlementResponse = {
+  acceptedPublicInputs?: {
+    acceptedRoot?: string;
+    assetCohort?: string;
+    changeOutputCommitment?: string;
+    nullifierOrReplayCommitment?: string;
+    outputCommitment?: string;
+    poolId?: string;
+    privateSpendContextHash?: string;
+    privateSpendPublicInputHash?: string;
+    proofReceiptPublicInputCommitment?: string;
+    version: "vanta-actual-private-accepted-public-inputs-0.1";
+  };
   kind: "protocol_settlement";
   proofReceipt?: VantaPrivatePoolV2ProofReceipt;
   protocolSettlementReceipt: VantaProtocolSettlementReceipt;

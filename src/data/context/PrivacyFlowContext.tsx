@@ -79,6 +79,7 @@ import {
   fetchVantaPrivatePoolV2ProtocolSettlementStatus,
   requestVantaPrivatePoolV2ProtocolSettlement,
   type VantaPrivatePoolV2ProofReceipt,
+  type VantaProtocolSettlementResponse,
   type VantaProtocolSettlementRequest,
   type VantaPrivatePoolV2SettlementStatus,
   type VantaProtocolSettlementReceipt,
@@ -339,6 +340,7 @@ export type RecentShieldContext = {
 };
 
 export type PrivacyFlowContextValue = {
+  privatePoolV2LatestProtocolSettlement: VantaProtocolSettlementResponse | null;
   privatePoolV2ProtocolSettlementStatus: VantaPrivatePoolV2ProtocolSettlementState;
   privateCoreOwner: { publicKey: string };
   privateCoreRecentShield: VantaPrivateCoreShieldState | null;
@@ -1428,6 +1430,8 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     useState<VantaPrivatePoolV2ProtocolSettlementState>(
       initialPrivatePoolV2ProtocolSettlementStatus,
     );
+  const [privatePoolV2LatestProtocolSettlement, setPrivatePoolV2LatestProtocolSettlement] =
+    useState<VantaProtocolSettlementResponse | null>(null);
 
   const refreshPrivatePoolV2ProtocolSettlementStatus = useCallback(async () => {
     try {
@@ -2193,7 +2197,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
       destination: privateCoreOwner.publicKey,
       owner: privateCoreOwner.publicKey,
       settlementId: nextShieldState.sourceNoteCommitment,
-    }).then(() => refreshPrivatePoolV2ProtocolSettlementStatus());
+    }).then((settlement) => {
+      if (settlement) {
+        setPrivatePoolV2LatestProtocolSettlement(settlement);
+      }
+      return refreshPrivatePoolV2ProtocolSettlementStatus();
+    });
 
     return nextShieldState;
   }, [buildPrivateCorePresentedState, privateCoreLedger, privateCoreOwner, refreshPrivatePoolV2ProtocolSettlementStatus]);
@@ -2300,7 +2309,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         settlementCommitment: committedSendSettlement.settlementCommitment,
         settlementId: result.resultingRoot,
         validUntilSlot: committedSendSettlement.validUntilSlot,
-      }).then(() => refreshPrivatePoolV2ProtocolSettlementStatus());
+      }).then((settlement) => {
+        if (settlement) {
+          setPrivatePoolV2LatestProtocolSettlement(settlement);
+        }
+        return refreshPrivatePoolV2ProtocolSettlementStatus();
+      });
 
       return {
         result,
@@ -2397,7 +2411,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         destination: result.output.commitment.value,
         owner: privateCoreOwner.publicKey,
         settlementId: result.resultingRoot,
-      }).then(() => refreshPrivatePoolV2ProtocolSettlementStatus());
+      }).then((settlement) => {
+        if (settlement) {
+          setPrivatePoolV2LatestProtocolSettlement(settlement);
+        }
+        return refreshPrivatePoolV2ProtocolSettlementStatus();
+      });
 
       return {
         result,
@@ -2567,7 +2586,12 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
         settlementId: committedUnshieldSettlement.settlementCommitment,
         unshieldContextTag: committedUnshieldSettlement.unshieldContextTag,
         unshieldPublicInputHash: committedUnshieldSettlement.unshieldPublicInputHash,
-      }).then(() => refreshPrivatePoolV2ProtocolSettlementStatus());
+      }).then((settlement) => {
+        if (settlement) {
+          setPrivatePoolV2LatestProtocolSettlement(settlement);
+        }
+        return refreshPrivatePoolV2ProtocolSettlementStatus();
+      });
       const sourceUnshieldArtifacts = deriveVantaPrivateCoreSourceArtifactsFromUnshieldResult(result);
       const sourceProofConsistency = summarizeVantaPrivateCoreUnshieldProofEnvelopeConsistency({
         envelope: proofEnvelope,
@@ -3023,16 +3047,17 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
           finishLineStatus: privateCoreOperatorRawZkV1FinishLineStatus,
         });
       return {
-      privatePoolV2ProtocolSettlementStatus,
-      privateCoreOwner: { publicKey: privateCoreOwner.publicKey },
-      privateCoreRecentShield,
-      privateCoreHoldState,
-      privateCoreSendState,
-      privateCoreReleaseCandidateState,
-      privateCoreReleaseWorkflowState,
-      privateCoreReleaseHandoffState,
-      privateCoreReleasePackageState,
-      privateCoreSwapState,
+        privatePoolV2LatestProtocolSettlement,
+        privatePoolV2ProtocolSettlementStatus,
+        privateCoreOwner: { publicKey: privateCoreOwner.publicKey },
+        privateCoreRecentShield,
+        privateCoreHoldState,
+        privateCoreSendState,
+        privateCoreReleaseCandidateState,
+        privateCoreReleaseWorkflowState,
+        privateCoreReleaseHandoffState,
+        privateCoreReleasePackageState,
+        privateCoreSwapState,
       privateCoreOperatorConsumes,
       privateCoreOperatorConsumeError,
       privateCoreOperatorLatestConsume,
@@ -3301,6 +3326,7 @@ export function PrivacyFlowProvider({ children }: { children: ReactNode }) {
     },
     [
       privateCoreHoldState,
+      privatePoolV2LatestProtocolSettlement,
       privatePoolV2ProtocolSettlementStatus,
       privateCoreOwner,
       privateCoreSendState,

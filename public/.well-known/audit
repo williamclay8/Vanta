@@ -9,7 +9,7 @@
   "thirdPartyAuditAccepted": false,
   "productionReady": false,
   "mainnetReady": false,
-  "liveDeploymentVerified": true,
+  "liveDeploymentVerified": false,
   "privacyClaimAllowed": false,
   "anonymityClaimAllowed": false,
   "currentBlockers": [

@@ -18,6 +18,7 @@ import {
 } from "@/components/unshield/unshieldPanelUtils";
 import type { NotePickerOption } from "@/components/NotePicker";
 import type { UmbraOperationApprovalDisplay } from "@/privacy/umbraOperations";
+import type { VantaPrivatePoolV2ProductActionContractResult } from "@/privacy/privatePoolV2ProductActionContract";
 import type { VantaShieldedSolNote } from "@/solana/vantaShieldState";
 import type { LiveUnshieldDiagnosticsSummary } from "@/zk/liveUnshieldBridge";
 
@@ -123,6 +124,7 @@ export type UnshieldWorkspaceCardProps = {
   privateCoreReleaseHandoffState: PrivateCoreReleaseLabelState | null;
   privateCoreReleasePackageState: PrivateCoreReleaseLabelState | null;
   privateCoreReleaseWorkflowState: PrivateCoreReleaseLabelState | null;
+  productActionContract: VantaPrivatePoolV2ProductActionContractResult;
   refreshPrivateCoreOperatorSummary: () => unknown;
   referenceNoteLabel: string;
   releaseHandoffRefreshPending: boolean;
@@ -198,6 +200,7 @@ export function UnshieldWorkspaceCard(props: UnshieldWorkspaceCardProps) {
     privateCoreReleaseHandoffState,
     privateCoreReleasePackageState,
     privateCoreReleaseWorkflowState,
+    productActionContract,
     referenceNoteLabel,
     refreshPrivateCoreOperatorSummary,
     releaseHandoffRefreshPending,
@@ -226,9 +229,25 @@ export function UnshieldWorkspaceCard(props: UnshieldWorkspaceCardProps) {
     walletAddress,
     walletAddressShort,
   } = props;
+  const firstProductActionBlocker = productActionContract.blockers[0] ?? null;
+  const unshieldCompletionTitle =
+    productActionContract.localPrivateCompletionAllowed && lastCompletion
+      ? `Private Unshield complete - ${formatUnshieldAmount(lastCompletion.amount, lastCompletion.asset)} ${lastCompletion.asset}`
+      : lastCompletion
+        ? `Public release recorded - ${formatUnshieldAmount(lastCompletion.amount, lastCompletion.asset)} ${lastCompletion.asset}`
+        : "Public release recorded";
+  const unshieldCompletionMessage = productActionContract.localPrivateCompletionAllowed
+    ? "Proof-bound Unshield completion is allowed by the product action contract."
+    : `Beta: public operator release reported. Private completion remains blocked by ${firstProductActionBlocker ?? "the product action contract"}.`;
 
   return (
-    <article className="send-card send-card--workspace">
+    <article
+      className="send-card send-card--workspace"
+      data-vanta-unshield-product-action-local-private={
+        productActionContract.localPrivateCompletionAllowed
+      }
+      data-vanta-unshield-product-action-scope={productActionContract.visibleCompletionScope}
+    >
       <div className="shield-card__header unshield-ticket__header">
         <div>
           <span>Unshield</span>
@@ -597,10 +616,14 @@ export function UnshieldWorkspaceCard(props: UnshieldWorkspaceCardProps) {
         <TransactionStatusToast
 	              tone="success"
 	              phase="complete"
-	              title={`Done — sent ${formatUnshieldAmount(lastCompletion.amount, lastCompletion.asset)} ${lastCompletion.asset} to ${walletAddressShort ?? "wallet"}`}
-	              message="Beta: public operator release reported. Verify the public exit transaction before treating funds as moved."
+	              title={unshieldCompletionTitle}
+	              message={unshieldCompletionMessage}
 	              floating
 	            >
+          <p className="shield-helper" data-vanta-unshield-product-action-status>
+            Product action scope: {productActionContract.visibleCompletionScope}
+            {firstProductActionBlocker ? `; blocker: ${firstProductActionBlocker}` : "."}
+          </p>
           <div className="preview-grid unshield-evidence-grid">
             <div className="preview-card preview-card--accent">
               <span>Transaction evidence</span>

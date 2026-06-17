@@ -68,7 +68,8 @@ for (const [pageName, pagePath, requiredPhrases] of [
       "Recording swap transition",
       "Authorizing swap",
       "Finalizing beta route evidence",
-      "Swap recorded",
+      "Swap proof verified",
+      "Swap route recorded",
     ],
   ],
   [

@@ -135,6 +135,12 @@ assert.ok(
 assert.ok(
   requirements
     .get("proof-bound-settlement-receipt")
+    .requiredEvidenceRefs.includes("npm run private-pool-v2:product-action-contract-check"),
+  "Proof-bound settlement receipt requirement must name the product action contract check.",
+);
+assert.ok(
+  requirements
+    .get("proof-bound-settlement-receipt")
     .currentTruth.includes("memo ciphertext body-hash fields"),
   "Proof-bound settlement receipt requirement must mention local Send ciphertext body-hash field binding.",
 );
@@ -158,6 +164,7 @@ for (const command of [
   "npm run private-pool-v2:send-proof-request-check",
   "npm run private-pool-v2:send-circuit-check",
   "npm run private-pool-v2:public-input-hash-alignment-check",
+  "npm run private-pool-v2:product-action-contract-check",
   "npm run private-pool-v2:anonymity-set-readiness-check",
   "npm run private-pool-v2:relayer-separation-evidence-check",
   "npm run shield:trust-packet-check",

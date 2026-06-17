@@ -13,6 +13,7 @@ import type {
   VantaPrivateCoreOperatorSendProofRecord,
   VantaPrivateCoreOperatorSendRecord,
 } from "@/zk/vantaPrivateCoreOperatorClient";
+import type { VantaPrivatePoolV2ProductActionContractResult } from "@/privacy/privatePoolV2ProductActionContract";
 import type { SendTransitionV0, Bytes32Hex } from "@/zk/vantaPrivateCore";
 import { buildVantaPrivateCoreSendProofBoundary } from "@/zk/vantaPrivateCoreSendProof";
 import {
@@ -85,6 +86,7 @@ export type SendProofLanePanelProps = {
   privateCoreSendExecution: PrivateCoreSendExecutionState;
   privateCoreSendPreview: PrivateCoreSendPreview | null;
   privateCoreSendState: VantaPrivateCoreSendState | null | undefined;
+  productActionContract: VantaPrivatePoolV2ProductActionContractResult;
   refreshPrivateCoreOperatorSummary: () => unknown;
   releaseHandoffRefreshPending: boolean;
   releasePackageExportStatus: ReleasePackageExportStatus;
@@ -134,6 +136,7 @@ export function SendProofLanePanel({
   privateCoreSendExecution,
   privateCoreSendPreview,
   privateCoreSendState,
+  productActionContract,
   refreshPrivateCoreOperatorSummary,
   releaseHandoffRefreshPending,
   releasePackageExportStatus,
@@ -146,8 +149,14 @@ export function SendProofLanePanel({
   setSendReceiptModalOpen,
   setStatus,
 }: SendProofLanePanelProps) {
+  const firstProductActionBlocker = productActionContract.blockers[0] ?? null;
+
   return (
-          <article className="send-card" data-vanta-send-proof-panel>
+          <article
+            className="send-card"
+            data-vanta-send-product-action-proof-scope={productActionContract.visibleCompletionScope}
+            data-vanta-send-proof-panel
+          >
           <div className="shield-card__header">
             <div>
               <span>Private-core send</span>
@@ -309,11 +318,18 @@ export function SendProofLanePanel({
 
           {privateCoreSendExecution.status === "verified" && (
             <div className="status-panel status-panel--success">
-              <span>Send proof verified</span>
+              <span>
+                {productActionContract.localPrivateCompletionAllowed
+                  ? "Send private completion verified"
+                  : "Send proof verified; private completion blocked"}
+              </span>
               <p>
-                The operator verified and recorded the send transition. Recipient delivery or
-                recovery remains separate. The remaining balance can stay held or move to
-                Unshield.
+                Product action scope: {productActionContract.visibleCompletionScope}
+                {firstProductActionBlocker
+                  ? `; first blocker: ${firstProductActionBlocker}.`
+                  : ". "}
+                Recipient delivery or recovery remains separate. The remaining balance can stay held
+                or move to Unshield.
               </p>
               <div className="success-metrics">
                 <div className="preview-card preview-card--accent">

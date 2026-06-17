@@ -8,6 +8,7 @@ import { WalletApprovalSheet } from "@/components/WalletApprovalSheet";
 import type { PrivateCoreSendExecutionState } from "@/components/SendProofLanePanel";
 import { abbreviate } from "@/components/send/sendPanelUtils";
 import type { PrivacyAssetKey } from "@/data/context/PrivacyFlowContext";
+import type { VantaPrivatePoolV2ProductActionContractResult } from "@/privacy/privatePoolV2ProductActionContract";
 import type { SendRecipientInputSource, SendRecipientValidationResult } from "@/solana/sendRecipientValidation";
 import type { ShieldedSendAssetCapability, ShieldedSendAssetKey } from "@/solana/shieldedSendCapability";
 import type { VantaShieldAccountState } from "@/solana/vantaShieldState";
@@ -55,6 +56,7 @@ export type SendWorkspaceCardProps = {
   lastSentAmount: number | null;
   parsedAmount: number;
   privateCoreSendExecution: PrivateCoreSendExecutionState;
+  productActionContract: VantaPrivatePoolV2ProductActionContractResult;
   recentSendRecipients: readonly string[];
   recipient: string;
   recipientValidation: SendRecipientValidationResult;
@@ -105,6 +107,7 @@ export function SendWorkspaceCard({
   lastSentAmount,
   parsedAmount,
   privateCoreSendExecution,
+  productActionContract,
   recentSendRecipients,
   recipient,
   recipientValidation,
@@ -137,8 +140,27 @@ export function SendWorkspaceCard({
   onSetSendAdvancedOpen,
   setSendReceiptModalOpen,
 }: SendWorkspaceCardProps) {
+  const firstProductActionBlocker = productActionContract.blockers[0] ?? null;
+  const sendCompletionTitle = productActionContract.localPrivateCompletionAllowed
+    ? "Proof-bound Send complete"
+    : "Send recorded";
+  const sendCompletionMessage =
+    lastSentAmount !== null && lastRecipient
+      ? productActionContract.localPrivateCompletionAllowed
+        ? `${formatBalance(lastSentAmount, "USDC")} proof-bound private send recorded for ${lastRecipient}.`
+        : `${formatBalance(lastSentAmount, "USDC")} local Send transition recorded for ${lastRecipient}; private completion is still blocked by ${firstProductActionBlocker ?? "the product action contract"}.`
+      : productActionContract.localPrivateCompletionAllowed
+        ? "Your proof-bound private send was recorded."
+        : `Your local Send transition was recorded; private completion is still blocked by ${firstProductActionBlocker ?? "the product action contract"}.`;
+
   return (
-        <article className="send-card send-card--workspace">
+        <article
+          className="send-card send-card--workspace"
+          data-vanta-send-product-action-local-private={
+            productActionContract.localPrivateCompletionAllowed
+          }
+          data-vanta-send-product-action-scope={productActionContract.visibleCompletionScope}
+        >
           <div className="shield-card__header">
             <div>
               <span>Send</span>
@@ -240,7 +262,7 @@ export function SendWorkspaceCard({
                 <summary>Privacy summary</summary>
                 <PrivacySummary
                   items={SEND_PRIVACY_SUMMARY_ITEMS}
-                  note="Send production privacy is locked until live evidence, approval, audit, replay, and operator gates pass."
+                  note={`Product action scope: ${productActionContract.visibleCompletionScope}. Send production privacy is locked until live evidence, approval, audit, replay, and operator gates pass.`}
                 />
               </details>
 
@@ -399,14 +421,14 @@ export function SendWorkspaceCard({
             <TransactionStatusToast
               tone="success"
               phase="complete"
-              title="Send complete"
-              message={
-                lastSentAmount !== null && lastRecipient
-                  ? `${formatBalance(lastSentAmount, "USDC")} sent privately to ${lastRecipient}.`
-                  : "Your private send was confirmed."
-              }
+              title={sendCompletionTitle}
+              message={sendCompletionMessage}
               floating
             >
+              <p className="shield-helper" data-vanta-send-product-action-status>
+                Product action scope: {productActionContract.visibleCompletionScope}
+                {firstProductActionBlocker ? `; blocker: ${firstProductActionBlocker}` : "."}
+              </p>
               <div className="success-metrics">
                 <div className="preview-card preview-card--accent">
                   <span>Amount sent</span>
