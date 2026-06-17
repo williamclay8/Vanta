@@ -50,7 +50,11 @@ import {
   type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
 import { useWalletState } from "@/data/context/WalletContext";
-import { requestVantaPrivatePoolV2ProtocolSettlement } from "@/privacy/privatePoolV2ProtocolSettlementClient";
+import {
+  requestVantaPrivatePoolV2ProtocolSettlement,
+  type VantaProtocolSettlementResponse,
+} from "@/privacy/privatePoolV2ProtocolSettlementClient";
+import { evaluateVantaPrivatePoolV2SwapActionContract } from "@/privacy/privatePoolV2ProductActionContract";
 import {
   createCommittedSwapSettlementTerms,
   listCanonicalSwapRecords,
@@ -279,6 +283,8 @@ export function SwapPage() {
     null,
   );
   const [lastSwapSummary, setLastSwapSummary] = useState<SwapReceiptSummary | null>(null);
+  const [lastSwapProtocolSettlement, setLastSwapProtocolSettlement] =
+    useState<VantaProtocolSettlementResponse | null>(null);
   const [recentSwapSummaries, setRecentSwapSummaries] = useState<SwapReceiptSummary[]>(
     () => buildRecentSwapReceiptSummaries(),
   );
@@ -1309,6 +1315,7 @@ export function SwapPage() {
       if (settlementReceipt?.proofReceipt?.intent !== "swap-to-shielded") {
         throw new Error("Committed Swap settlement did not return a swap-to-shielded proof receipt.");
       }
+      setLastSwapProtocolSettlement(settlementReceipt);
       persistCanonicalSwapRecord(canonicalRecord);
       const canonicalSummary = swapReceiptSummaryFromCanonicalRecord(canonicalRecord);
       setRecentSwapSummaries((currentSummaries) =>
@@ -1339,6 +1346,7 @@ export function SwapPage() {
     spentMarkerTransaction.reset();
     setFlowError(null);
     setSwapBridgeError(null);
+    setLastSwapProtocolSettlement(null);
     setOperatorAuthorizationStarted(false);
     setPendingSwapBridge(null);
     setStatus("awaiting_confirmation");
@@ -1483,6 +1491,7 @@ export function SwapPage() {
     spentMarkerTransaction.reset();
     setFlowError(null);
     setSwapBridgeError(null);
+    setLastSwapProtocolSettlement(null);
     setOperatorAuthorizationStarted(false);
     setPendingSwapBridge(null);
     setStatus("awaiting_confirmation");
@@ -1807,6 +1816,63 @@ export function SwapPage() {
           : "Route adapter default",
       }
     : null;
+  const swapProductActionContract = useMemo(() => {
+    const swapProtocolReceipt = lastSwapProtocolSettlement?.protocolSettlementReceipt ?? null;
+    const swapCommittedSettlementReceipt =
+      swapProtocolReceipt?.economicsMode === "committed-economics"
+        ? swapProtocolReceipt
+        : null;
+    const swapProofReceipt = lastSwapProtocolSettlement?.proofReceipt ?? null;
+    const swapProtocolSettlementReceiptBound =
+      swapProtocolReceipt?.action === "swap" &&
+      swapProtocolReceipt.status === "confirmed" &&
+      swapProtocolReceipt.proofReceiptPublicInputCommitment ===
+        swapProofReceipt?.publicInputCommitment &&
+      swapProofReceipt?.intent === "swap-to-shielded";
+    const swapNoWitnessProofReceiptReady =
+      swapProofReceipt?.intent === "swap-to-shielded" &&
+      swapProofReceipt.proofSystem !== "mock" &&
+      Boolean(swapProofReceipt.proofBackend) &&
+      swapProofReceipt.proofBackend !== "local-mock";
+
+    return evaluateVantaPrivatePoolV2SwapActionContract({
+      uiStatus: status,
+      exactSpendableNoteSelected: Boolean(exactSpendableNote || lastSwapSummary),
+      quoteFresh: status === "complete" ? Boolean(lastSwapSummary) : isQuoteFresh,
+      canonicalSwapBridgePresent: Boolean(
+        lastSwapSummary?.recordId || swapProtocolReceipt?.settlementId.startsWith("swap:"),
+      ),
+      committedSettlementTermsReady: Boolean(
+        swapCommittedSettlementReceipt?.settlementCommitment,
+      ),
+      operatorSwapAuthorizationPresent: Boolean(
+        lastSwapSummary?.requestId || swapProtocolReceipt?.proofReceiptId,
+      ),
+      protocolSettlementReceiptBound: swapProtocolSettlementReceiptBound,
+      swapToShieldedProofReceiptPresent: swapProofReceipt?.intent === "swap-to-shielded",
+      noWitnessProofReceiptReady: swapNoWitnessProofReceiptReady,
+      replayProtectionLinked: Boolean(swapProofReceipt?.replayKey.startsWith("swap-to-shielded:")),
+      outputCommitmentBound: Boolean(swapProofReceipt?.publicInputCommitment),
+      resultingRootRecorded: Boolean(swapCommittedSettlementReceipt?.settlementCommitment),
+      liveMainnetSettlementReviewed: false,
+      productionVerifierAccepted: false,
+      sharedAnonymityReviewed: false,
+      relayerSeparationReviewed: false,
+      auditAccepted: false,
+      programmaticProductionPrivateReady: false,
+      programmaticPrivacyClaimAllowed: false,
+      programmaticMainnetReady: false,
+      productionPrivacyClaimsLocked: true,
+      externalReviewAccepted: false,
+      ownerApprovedProductionScope: false,
+    });
+  }, [
+    exactSpendableNote,
+    isQuoteFresh,
+    lastSwapProtocolSettlement,
+    lastSwapSummary,
+    status,
+  ]);
 
   return (
     <section className="send-page swap-page">
@@ -1872,6 +1938,7 @@ export function SwapPage() {
             setFlowError(null);
             setQuote(null);
             setQuoteError(null);
+            setLastSwapProtocolSettlement(null);
           }}
           onMaxAmount={() => {
             if (maxAvailableAmount <= 0 || !maxSwappableNote) {
@@ -1883,6 +1950,7 @@ export function SwapPage() {
             setFlowError(null);
             setQuote(null);
             setQuoteError(null);
+            setLastSwapProtocolSettlement(null);
           }}
           onOpenReceipt={(summaryKey) => {
             setSelectedSwapReceiptKey(summaryKey);
@@ -1895,6 +1963,7 @@ export function SwapPage() {
             setFlowError(null);
             setQuote(null);
             setQuoteError(null);
+            setLastSwapProtocolSettlement(null);
           }}
           onSelectTargetAsset={(next) => {
             setSelectedTargetAsset(next);
@@ -1902,9 +1971,11 @@ export function SwapPage() {
             setFlowError(null);
             setQuote(null);
             setQuoteError(null);
+            setLastSwapProtocolSettlement(null);
           }}
           onSetSwapReceiptModalOpen={setSwapReceiptModalOpen}
           parsedAmount={parsedAmount}
+          productActionContract={swapProductActionContract}
           quote={quote}
           quoteProgressPercent={quoteProgressPercent}
           quoteProgressTone={quoteProgressTone}

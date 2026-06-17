@@ -40,6 +40,7 @@ const contractRequirements = [
       "Local proof and receipt boundaries bind roots, nullifiers, commitments, proof hashes, Send recipient/change memo ciphertext body-hash fields, and a local encrypted view-tag/body-hash indexer handoff; production promotion still needs reviewed live evidence and deployed recipient discovery.",
     requiredEvidenceRefs: [
       "npm run private-core:verify",
+      "npm run private-pool-v2:product-action-contract-check",
       "npm run private-pool-v2:send-proof-request-check",
       "npm run private-pool-v2:send-circuit-check",
       "npm run send:discovery-indexer-handoff-check",
@@ -171,6 +172,7 @@ export function createVantaProgrammaticProductionPrivacyContract() {
       "npm run private-pool-v2:send-proof-request-check",
       "npm run private-pool-v2:send-circuit-check",
       "npm run private-pool-v2:public-input-hash-alignment-check",
+      "npm run private-pool-v2:product-action-contract-check",
       "npm run private-pool-v2:anonymity-set-readiness-check",
       "npm run private-pool-v2:relayer-separation-evidence-check",
       "npm run shield:trust-packet-check",
