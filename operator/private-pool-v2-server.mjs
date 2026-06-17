@@ -1143,7 +1143,10 @@ function hasActualPrivateSendFields(body) {
       optionalNonEmptyString(body.assetCohort) &&
       optionalNonEmptyString(body.poolId) &&
       optionalNonEmptyString(body.privateSpendContextHash) &&
-      optionalNonEmptyString(body.outputCommitment),
+      optionalNonEmptyString(body.outputCommitment) &&
+      optionalNonEmptyString(body.changeOutputCommitment) &&
+      (optionalNonEmptyString(body.privateSpendPublicInputHash) ||
+        optionalNonEmptyString(body.sendPublicInputHash)),
   );
 }
 

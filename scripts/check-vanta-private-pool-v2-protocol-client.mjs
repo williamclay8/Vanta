@@ -43,6 +43,10 @@ function expectedLocalPublicInputCommitment(request) {
   return hashHex(localProverScheme, "public-inputs", serializedRequest);
 }
 
+function expectedProofArtifactPublicInputCommitment(publicInputs) {
+  return `sha256:${bytesToHex(sha256(new TextEncoder().encode(JSON.stringify(publicInputs))))}`;
+}
+
 function treeIdForAsset(asset) {
   return hashHex(payPrivateSettlementAdapterVersion, "tree", asset).slice(0, 34);
 }
@@ -624,6 +628,89 @@ try {
     "Expected committed Send response validation to reject a spliced public input commitment.",
   );
 
+  const derivedActualPrivateSpendPublicInput = "123456789";
+  const derivedActualPrivateSpendCommitment =
+    expectedProofArtifactPublicInputCommitment([derivedActualPrivateSpendPublicInput]);
+  const derivedActualPrivateSpendRequest = {
+    action: "send",
+    acceptedRoot: "0xderivedsend_root",
+    assetCohort: "stablecoin-usdc-v1",
+    changeOutputCommitment: "0xderivedsend_change_output",
+    economicsCommitment: "0xderivedsend_economics",
+    economicsMode: "committed-economics",
+    nullifierOrReplayCommitment: "0xderivedsend_replay",
+    outputCommitment: "0xderivedsend_recipient_output",
+    ownerCommitment: "0xderivedsend_owner",
+    poolId: "0xderivedsend_pool",
+    privateSpendContextHash: "0xderivedsend_context",
+    privateSpendPublicInputHash: derivedActualPrivateSpendPublicInput,
+    routeCommitment: "0xderivedsend_route",
+    settlementCommitment: "0xderivedsend_settlement",
+    settlementId: "protocol-client-derived-actual-private-send",
+  };
+  const derivedActualPrivateSpendReceiptId = "0xderivedactualprivatesendreceipt";
+  const derivedActualPrivateSpendResponse = {
+    acceptedPublicInputs: {
+      acceptedRoot: derivedActualPrivateSpendRequest.acceptedRoot,
+      assetCohort: derivedActualPrivateSpendRequest.assetCohort,
+      changeOutputCommitment: derivedActualPrivateSpendRequest.changeOutputCommitment,
+      nullifierOrReplayCommitment:
+        derivedActualPrivateSpendRequest.nullifierOrReplayCommitment,
+      outputCommitment: derivedActualPrivateSpendRequest.outputCommitment,
+      poolId: derivedActualPrivateSpendRequest.poolId,
+      privateSpendContextHash: derivedActualPrivateSpendRequest.privateSpendContextHash,
+      privateSpendPublicInputHash:
+        derivedActualPrivateSpendRequest.privateSpendPublicInputHash,
+      proofReceiptPublicInputCommitment: derivedActualPrivateSpendCommitment,
+      version: "vanta-actual-private-accepted-public-inputs-0.1",
+    },
+    kind: "protocol_settlement",
+    proofReceipt: {
+      assetId: VANTA_PRIVATE_POOL_V2_HIDDEN_ECONOMICS_ASSET_ID,
+      intent: "private-send",
+      proofBackend: "local-bb-derived-artifact",
+      proofSystem: "noir-bb",
+      publicInputCommitment: derivedActualPrivateSpendCommitment,
+      receiptId: derivedActualPrivateSpendReceiptId,
+      recordedAtSlot: "1",
+      replayKey: "private-send:0xderivedsend_replay",
+    },
+    protocolSettlementReceipt: {
+      action: "send",
+      economicsCommitment: derivedActualPrivateSpendRequest.economicsCommitment,
+      economicsMode: "committed-economics",
+      id: "proto_derived_actual_private_send",
+      object: "protocol_settlement_receipt",
+      proofReceiptId: `ppv2_${derivedActualPrivateSpendReceiptId.slice(2, 26)}`,
+      proofReceiptPublicInputCommitment: derivedActualPrivateSpendCommitment,
+      settlementCommitment: derivedActualPrivateSpendRequest.settlementCommitment,
+      settlementId: derivedActualPrivateSpendRequest.settlementId,
+      status: "confirmed",
+    },
+  };
+  validateVantaPrivatePoolV2ProtocolSettlementResponse({
+    request: derivedActualPrivateSpendRequest,
+    response: derivedActualPrivateSpendResponse,
+  });
+  await assertRejects(
+    () =>
+      Promise.resolve(
+        validateVantaPrivatePoolV2ProtocolSettlementResponse({
+          request: derivedActualPrivateSpendRequest,
+          response: {
+            ...derivedActualPrivateSpendResponse,
+            acceptedPublicInputs: {
+              ...derivedActualPrivateSpendResponse.acceptedPublicInputs,
+              proofReceiptPublicInputCommitment:
+                "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            },
+          },
+        }),
+      ),
+    "Committed Send proof receipt public input commitment does not match",
+    "Expected derived actual-private Send validation to reject a spliced accepted-public-inputs receipt binding.",
+  );
+
   const statefulCommittedSendRequest = {
     action: "send",
     assetIdCommitment: "0xstatefulsend_asset",
@@ -779,6 +866,70 @@ try {
     },
     "Private Pool v2 settlement requires actual-private send fields or full stateful send terms",
     "Expected committed Send settlement to require actual-private send fields when stateful terms are absent.",
+  );
+  await assertRejects(
+    async () => {
+      const rejected = await requestJson("/private-pool-v2/protocol-settlements", {
+        body: JSON.stringify({
+          action: "send",
+          acceptedRoot: "0xmissingchange_root",
+          assetCohort: "stablecoin-usdc-v1",
+          economicsCommitment: "0xmissingchange_economics",
+          economicsMode: "committed-economics",
+          nullifierOrReplayCommitment: "0xmissingchange_replay",
+          outputCommitment: "0xmissingchange_output",
+          ownerCommitment: "0xmissingchange_owner",
+          poolId: "0xmissingchange_pool",
+          privateSpendContextHash: "0xmissingchange_context",
+          privateSpendPublicInputHash: "123456790",
+          routeCommitment: "0xmissingchange_route",
+          settlementCommitment: "0xmissingchange_settlement",
+          settlementId: "protocol-client-missing-change-actual-private-send",
+        }),
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+        method: "POST",
+      });
+
+      if (!rejected.ok) {
+        throw new Error(rejected.parsed?.error ?? rejected.text);
+      }
+    },
+    "Private Pool v2 settlement requires actual-private send fields or full stateful send terms",
+    "Expected actual-private Send settlement to require a change output commitment.",
+  );
+  await assertRejects(
+    async () => {
+      const rejected = await requestJson("/private-pool-v2/protocol-settlements", {
+        body: JSON.stringify({
+          action: "send",
+          acceptedRoot: "0xmissingpublicinput_root",
+          assetCohort: "stablecoin-usdc-v1",
+          changeOutputCommitment: "0xmissingpublicinput_change",
+          economicsCommitment: "0xmissingpublicinput_economics",
+          economicsMode: "committed-economics",
+          nullifierOrReplayCommitment: "0xmissingpublicinput_replay",
+          outputCommitment: "0xmissingpublicinput_output",
+          ownerCommitment: "0xmissingpublicinput_owner",
+          poolId: "0xmissingpublicinput_pool",
+          privateSpendContextHash: "0xmissingpublicinput_context",
+          routeCommitment: "0xmissingpublicinput_route",
+          settlementCommitment: "0xmissingpublicinput_settlement",
+          settlementId: "protocol-client-missing-public-input-actual-private-send",
+        }),
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+        method: "POST",
+      });
+
+      if (!rejected.ok) {
+        throw new Error(rejected.parsed?.error ?? rejected.text);
+      }
+    },
+    "Private Pool v2 settlement requires actual-private send fields or full stateful send terms",
+    "Expected actual-private Send settlement to require privateSpendPublicInputHash or sendPublicInputHash.",
   );
 
   await assertRejects(
