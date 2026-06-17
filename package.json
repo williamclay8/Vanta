@@ -660,6 +660,7 @@
     "social:twitter-open-approved": "node scripts/open-vanta-social-approved-export.mjs",
     "social:twitter-review-check": "node scripts/check-vanta-social-review-queue.mjs",
     "mainnet:asset-registry-check": "node scripts/check-vanta-mainnet-asset-registry.mjs",
+    "private-pool-v2:solana-privacy-suite-offline-harness-check": "node scripts/check-vanta-solana-privacy-suite-offline-harness.mjs",
     "private-pool-v2:solana-relayer-submission-check": "node scripts/check-vanta-private-pool-v2-solana-relayer-submission.mjs",
     "private-pool-v2:solana-spend-transaction-builder-check": "node scripts/check-vanta-private-pool-v2-solana-spend-transaction-builder.mjs",
     "private-pool-v2:solana-spend-transaction": "node scripts/print-vanta-private-pool-v2-solana-spend-transaction.mjs",
