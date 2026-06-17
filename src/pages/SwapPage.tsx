@@ -50,9 +50,14 @@ import {
   type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
 import { useWalletState } from "@/data/context/WalletContext";
-import { requestVantaPrivatePoolV2ProtocolSettlement } from "@/privacy/privatePoolV2ProtocolSettlementClient";
+import {
+  requestVantaPrivatePoolV2ProtocolSettlement,
+  type VantaProtocolSettlementResponse,
+} from "@/privacy/privatePoolV2ProtocolSettlementClient";
+import { createVantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt } from "@/privacy/privatePoolV2SwapToShieldedBrowserReceipt";
 import {
   createCommittedSwapSettlementTerms,
+  findCanonicalSwapRecord,
   listCanonicalSwapRecords,
   persistCanonicalSwapRecord,
   recordCanonicalSwapFromLiveSwap,
@@ -279,6 +284,8 @@ export function SwapPage() {
     null,
   );
   const [lastSwapSummary, setLastSwapSummary] = useState<SwapReceiptSummary | null>(null);
+  const [lastSwapProtocolSettlement, setLastSwapProtocolSettlement] =
+    useState<VantaProtocolSettlementResponse | null>(null);
   const [recentSwapSummaries, setRecentSwapSummaries] = useState<SwapReceiptSummary[]>(
     () => buildRecentSwapReceiptSummaries(),
   );
@@ -1309,7 +1316,26 @@ export function SwapPage() {
       if (settlementReceipt?.proofReceipt?.intent !== "swap-to-shielded") {
         throw new Error("Committed Swap settlement did not return a swap-to-shielded proof receipt.");
       }
-      persistCanonicalSwapRecord(canonicalRecord);
+      const browserLocalProofReceipt =
+        await createVantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt({
+          canonicalRecord,
+          committedSettlementTerms,
+        });
+      if (
+        browserLocalProofReceipt.protocolSettlementResponse.proofReceipt?.intent !==
+          "swap-to-shielded" ||
+        browserLocalProofReceipt.protocolSettlementResponse.proofReceipt.proofSystem !==
+          "noir-bb" ||
+        browserLocalProofReceipt.protocolSettlementResponse.proofReceipt.proofBackend !==
+          "local-bb-derived-artifact"
+      ) {
+        throw new Error("Committed Swap browser proof did not return a local no-witness proof receipt.");
+      }
+      setLastSwapProtocolSettlement(browserLocalProofReceipt.protocolSettlementResponse);
+      persistCanonicalSwapRecord({
+        ...canonicalRecord,
+        browserLocalProofReceipt: browserLocalProofReceipt.browserLocalProofReceipt,
+      });
       const canonicalSummary = swapReceiptSummaryFromCanonicalRecord(canonicalRecord);
       setRecentSwapSummaries((currentSummaries) =>
         mergeRecentSwapReceiptSummaries([
@@ -1339,6 +1365,7 @@ export function SwapPage() {
     spentMarkerTransaction.reset();
     setFlowError(null);
     setSwapBridgeError(null);
+    setLastSwapProtocolSettlement(null);
     setOperatorAuthorizationStarted(false);
     setPendingSwapBridge(null);
     setStatus("awaiting_confirmation");
@@ -1483,6 +1510,7 @@ export function SwapPage() {
     spentMarkerTransaction.reset();
     setFlowError(null);
     setSwapBridgeError(null);
+    setLastSwapProtocolSettlement(null);
     setOperatorAuthorizationStarted(false);
     setPendingSwapBridge(null);
     setStatus("awaiting_confirmation");
@@ -1807,6 +1835,18 @@ export function SwapPage() {
           : "Route adapter default",
       }
     : null;
+  const selectedSwapBrowserLocalProofReceipt = useMemo(() => {
+    const recordId = selectedRecentSwapSummary?.recordId ?? lastSwapSummary?.recordId;
+    if (!recordId) {
+      return null;
+    }
+
+    return findCanonicalSwapRecord(recordId)?.browserLocalProofReceipt ?? null;
+  }, [lastSwapSummary?.recordId, recentSwapSummaries, selectedRecentSwapSummary?.recordId]);
+  const observedSwapProtocolSettlement =
+    lastSwapProtocolSettlement ??
+    selectedSwapBrowserLocalProofReceipt?.protocolSettlementResponse ??
+    null;
 
   return (
     <section className="send-page swap-page">
@@ -1872,6 +1912,7 @@ export function SwapPage() {
             setFlowError(null);
             setQuote(null);
             setQuoteError(null);
+            setLastSwapProtocolSettlement(null);
           }}
           onMaxAmount={() => {
             if (maxAvailableAmount <= 0 || !maxSwappableNote) {
@@ -1883,6 +1924,7 @@ export function SwapPage() {
             setFlowError(null);
             setQuote(null);
             setQuoteError(null);
+            setLastSwapProtocolSettlement(null);
           }}
           onOpenReceipt={(summaryKey) => {
             setSelectedSwapReceiptKey(summaryKey);
@@ -1895,6 +1937,7 @@ export function SwapPage() {
             setFlowError(null);
             setQuote(null);
             setQuoteError(null);
+            setLastSwapProtocolSettlement(null);
           }}
           onSelectTargetAsset={(next) => {
             setSelectedTargetAsset(next);
@@ -1902,6 +1945,7 @@ export function SwapPage() {
             setFlowError(null);
             setQuote(null);
             setQuoteError(null);
+            setLastSwapProtocolSettlement(null);
           }}
           onSetSwapReceiptModalOpen={setSwapReceiptModalOpen}
           parsedAmount={parsedAmount}
