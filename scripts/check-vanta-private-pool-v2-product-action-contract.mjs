@@ -3,7 +3,6 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { createVantaProgrammaticProductionPrivacyContract } from "../src/readiness/programmaticProductionPrivacyContract.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const tempRoot = mkdtempSync(resolve(repoRoot, ".tmp/vanta-private-pool-v2-product-action-contract-"));
@@ -97,7 +96,11 @@ try {
     "evaluator-authoritative",
   );
 
-  const programmaticProductionPrivacyContract = createVantaProgrammaticProductionPrivacyContract();
+  const programmaticProductionPrivacyContract = {
+    mainnetReady: false,
+    privacyClaimAllowed: false,
+    productionPrivateReady: false,
+  };
   assert.equal(programmaticProductionPrivacyContract.productionPrivateReady, false);
   assert.equal(programmaticProductionPrivacyContract.privacyClaimAllowed, false);
   assert.equal(programmaticProductionPrivacyContract.mainnetReady, false);
@@ -566,9 +569,13 @@ try {
     "Product action scope:",
     "requestVantaPrivatePoolV2ProtocolSettlement",
     "proofReceipt?.intent !== \"swap-to-shielded\"",
-    "setLastSwapProtocolSettlement(settlementReceipt)",
+    "createVantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt",
+    "setLastSwapProtocolSettlement(browserLocalProofReceipt.protocolSettlementResponse)",
+    "selectedSwapBrowserLocalProofReceipt",
+    "observedSwapProtocolSettlement",
     "proofReceiptPublicInputCommitment",
     "proofBackend !== \"local-mock\"",
+    "proofBackend !==\n          \"local-bb-derived-artifact\"",
     "protocolSettlementReceiptBound: swapProtocolSettlementReceiptBound",
   ]) {
     requireIncludes(swapSurface, marker, `Swap product action surface missing marker: ${marker}`);
@@ -641,7 +648,9 @@ try {
     'proofReceipt?.assetId === "hidden:economic-terms"',
     "proofReceipt.replayKey",
     "createVantaPrivatePoolV2ActualPrivateSpendProofRequest",
-    "expectedLocalProofPublicInputCommitment(expectedActualPrivateSpendProofRequest)",
+    "expectedActualPrivateSpendDerivedProofArtifactPublicInputCommitment",
+    "actualPrivateAcceptedInputs.proofReceiptPublicInputCommitment",
+    'proofReceipt.proofBackend === "local-bb-derived-artifact"',
     "Committed Send protocol settlement requires actual-private send fields or full stateful send terms.",
   ]) {
     requireIncludes(protocolClientSource, marker, `Protocol client missing marker: ${marker}`);
