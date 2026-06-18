@@ -36,14 +36,16 @@ const spec = {
 };
 const failures = [];
 
-function readRequired(path) {
-  const fullPath = path.startsWith("/") ? path : resolve(repoRoot, path);
-  try {
-    return readFileSync(fullPath, "utf8");
-  } catch {
-    failures.push(`Missing required file: ${path}`);
-    return "";
+function readRequired(pathOrPaths) {
+  const paths = Array.isArray(pathOrPaths) ? pathOrPaths : [pathOrPaths];
+  for (const path of paths) {
+    const fullPath = path.startsWith("/") ? path : resolve(repoRoot, path);
+    try {
+      return readFileSync(fullPath, "utf8");
+    } catch {}
   }
+  failures.push(`Missing required file: ${paths.join(" or ")}`);
+  return "";
 }
 
 function requireMarkers(label, content, markers) {
@@ -56,8 +58,11 @@ console.log(`=== ${spec.npmScript} (${spec.id}) ===`);
 
 const state = readRequired("docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml");
 const requirements = readRequired("docs/twitter-intelligence/2026-06-12-requirements.md");
-const integration = readRequired("/Users/clay/Desktop/Vanta Vault/02 Projects/Twitter-Pass-Integration-2026-06-12.md");
-const watch = readRequired(spec.watchPath);
+const integration = readRequired([
+  "docs/twitter-intelligence/2026-06-12-integration.md",
+  "/Users/clay/Desktop/Vanta Vault/02 Projects/Twitter-Pass-Integration-2026-06-12.md"
+]);
+const watch = readRequired(["docs/twitter-intelligence/2026-06-12-integration.md", spec.watchPath]);
 const packageJson = JSON.parse(readRequired("package.json") || "{}");
 
 requireMarkers("state.yaml", state, spec.stateMarkers);
