@@ -188,6 +188,7 @@
     "mainnet:production-evidence-next-json": "node scripts/print-vanta-production-evidence-next-blockers.mjs --json",
     "mainnet:production-evidence-next-check": "node scripts/check-vanta-production-evidence-next-blockers.mjs",
     "mainnet:current-abi-approval-deploy-evidence-print": "node scripts/print-vanta-current-abi-mainnet-approval-deploy-evidence-packet.mjs",
+    "mainnet:current-abi-approval-deploy-evidence-prewindow-check": "npm run mainnet:current-abi-approval-deploy-evidence-print && npm run mainnet:current-abi-approval-deploy-evidence-check && npm run private-pool-v2:sbf-abi-check && npm run zk:c01-sbf-live-lineage-acceptance-gate-check && npm run mainnet:production-evidence-next-check",
     "mainnet:current-abi-approval-deploy-evidence-check": "node scripts/check-vanta-current-abi-mainnet-approval-deploy-evidence-packet.mjs",
     "mainnet:actual-private-hard-blockers-check": "node scripts/check-vanta-actual-private-hard-blockers-packet.mjs",
     "mainnet:actual-private-external-artifact-acquisition-check": "node scripts/check-vanta-actual-private-external-artifact-acquisition-packet.mjs",

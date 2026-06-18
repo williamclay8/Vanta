@@ -83,6 +83,7 @@ export function createVantaProductionEvidenceNextBlockers() {
           "npm run private-pool-v2:sbf-abi-check",
           "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
           "npm run mainnet:private-settlement-status-json",
+          "npm run mainnet:current-abi-approval-deploy-evidence-prewindow-check",
           "npm run mainnet:current-abi-approval-deploy-evidence-print",
           "npm run mainnet:current-abi-approval-deploy-evidence-check",
         ],

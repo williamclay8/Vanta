@@ -95,6 +95,7 @@ for (const section of [
 
 for (const command of [
   "git status --short --branch",
+  "npm run mainnet:current-abi-approval-deploy-evidence-prewindow-check",
   "npm run mainnet:current-abi-approval-deploy-evidence-print",
   "shasum -a 256 programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so",
   "npm run private-pool-v2:sbf-abi-check",
@@ -165,6 +166,10 @@ assert.equal(
   "node scripts/print-vanta-current-abi-mainnet-approval-deploy-evidence-packet.mjs",
 );
 assert.equal(
+  packageJson.scripts["mainnet:current-abi-approval-deploy-evidence-prewindow-check"],
+  "npm run mainnet:current-abi-approval-deploy-evidence-print && npm run mainnet:current-abi-approval-deploy-evidence-check && npm run private-pool-v2:sbf-abi-check && npm run zk:c01-sbf-live-lineage-acceptance-gate-check && npm run mainnet:production-evidence-next-check",
+);
+assert.equal(
   packageJson.scripts["mainnet:current-abi-approval-deploy-evidence-check"],
   "node scripts/check-vanta-current-abi-mainnet-approval-deploy-evidence-packet.mjs",
 );
@@ -204,6 +209,10 @@ assert.ok(
 assert.ok(
   productionEvidenceNextSource.includes("npm run mainnet:current-abi-approval-deploy-evidence-print"),
   "Production evidence next-blockers must name this packet printer.",
+);
+assert.ok(
+  productionEvidenceNextSource.includes("npm run mainnet:current-abi-approval-deploy-evidence-prewindow-check"),
+  "Production evidence next-blockers must name this packet pre-window check.",
 );
 
 const readinessSource = readFileSync(resolve(repoRoot, "src/readiness/mainnetReadiness.mjs"), "utf8");

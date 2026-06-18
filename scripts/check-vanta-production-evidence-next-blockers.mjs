@@ -79,6 +79,7 @@ assert.equal(
 );
 assert.equal(spend.currentEvidenceRefs.proposedMaximumFundsAtRiskRef, "2.0 SOL");
 assert.equal(spend.currentEvidenceRefs.proposedLaunchWindowRef, "2026-06-18T20:00:00-21:30:00 America/Chicago");
+assert.ok(spend.canonicalCommands.includes("npm run mainnet:current-abi-approval-deploy-evidence-prewindow-check"));
 assert.ok(spend.canonicalCommands.includes("npm run mainnet:current-abi-approval-deploy-evidence-print"));
 assert.ok(spend.canonicalCommands.includes("npm run mainnet:current-abi-approval-deploy-evidence-check"));
 
