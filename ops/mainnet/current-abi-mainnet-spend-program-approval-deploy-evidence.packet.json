@@ -1,0 +1,133 @@
+{
+  "version": "vanta-current-abi-mainnet-spend-program-approval-deploy-evidence-packet-0.1",
+  "checkedAt": "2026-06-18T12:00:00.000Z",
+  "mainnetReady": false,
+  "productionReady": false,
+  "privacyClaimAllowed": false,
+  "realFundsAllowedNow": false,
+  "approvalStatus": "draft-not-approved",
+  "requiresClayApproval": true,
+  "secretPolicy": "references-only-no-secret-values",
+  "purpose": "Exact draft approval/deploy/evidence packet for the current ABI-compatible mainnet spend-program evidence tranche. This packet does not approve funds, deploy programs, run live transactions, write approval evidence, write settlement evidence, or claim production privacy.",
+  "canonicalSource": {
+    "repository": "Vanta-stable",
+    "branch": "codex/five-products-audit-integration",
+    "artifactBuildCommit": "0e2e6933",
+    "artifactBuildCommitPurpose": "Fresh local current-ABI SBF artifact build and production-evidence next-blocker status",
+    "postPacketCommitPolicy": "Later commits may update this packet, but the local artifact hash in this packet is tied to artifactBuildCommit."
+  },
+  "currentAbiSbfArtifact": {
+    "path": "programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so",
+    "sha256": "ff128d4a8169c95a67cf25cd895d8b328cff4607704ee0dc3d57276f10bca91d",
+    "sizeBytes": 188952,
+    "abi": "output-record-pda-eight-account-spend-v1",
+    "artifactStatus": "fresh-local-build-reviewed-no-live-funds",
+    "requiredFreshnessCommands": [
+      "npm run private-pool-v2:sbf-abi-check",
+      "npm run zk:c01-sbf-live-lineage-candidate-check",
+      "npm run zk:c01-sbf-live-lineage-acceptance-gate-check"
+    ],
+    "knownBuildWarnings": [
+      "Host and SBF builds emit deprecated solana_program system instruction/program warnings.",
+      "Host and SBF builds emit unused reserved helper/constant warnings.",
+      "SBF post-processing warns about unresolved syscall symbols; repo ABI and lineage gates still pass."
+    ]
+  },
+  "proposedApprovalRecord": {
+    "approvalRecordRef": "VANTA_MAINNET_REAL_FUNDS_APPROVAL_REF",
+    "proposedActionRef": "actual-private/current-abi-mainnet-spend-program-deploy-reinit-evidence-run-2026-06-18-2000-2130-central",
+    "proposedActionSummary": "One Vanta mainnet-beta current-ABI Private Pool v2 spend-program deploy or upgrade, reinitialize/smoke account setup, and actual-private shared-cohort settlement evidence run with maximum 2.0 SOL at risk",
+    "proposedEnvironment": "mainnet-beta",
+    "proposedFeePayerRef": "wallet/public-fee-payer-vanta-mainnet-5pzJsEVARN5Ly6H1AjbbVofY6Fjr68FbkT6y8ozx3Ymi",
+    "proposedLaunchWindowRef": "2026-06-18T20:00:00-21:30:00 America/Chicago",
+    "rollbackPlanRef": "runbook/disable-private-pool-v2-services-and-live-actions",
+    "stopLossPlanRef": "stop-after-one-live-transaction-failed-preflight-unexpected-solscan-linkage-replay-check-failure-missing-reviewer-packet-invariant-or-2.0-sol-cap",
+    "maximumFundsAtRiskRef": "2.0 SOL",
+    "maximumFundsAtRiskRationale": "Includes current SBF program deploy or upgrade rent/fees, smoke account rent, settlement fees, and a buffer. The older 0.015 SOL approval cap is not sufficient for deploy or upgrade work.",
+    "approvedByRef": "PENDING_CLAY_APPROVAL",
+    "approvedAtRef": "PENDING_CLAY_APPROVAL",
+    "approvalWriteAllowedNow": false
+  },
+  "rollbackPlan": {
+    "rollbackPlanRef": "runbook/disable-private-pool-v2-services-and-live-actions",
+    "actions": [
+      "Stop all live Private Pool v2 browser and operator actions.",
+      "Disable or remove production service routes that can call the deployed spend program.",
+      "Keep the deployed program address and every transaction signature in evidence for review.",
+      "Do not rerun deploy, smoke, settlement, or evidence-write commands without a new bounded approval window."
+    ]
+  },
+  "stopConditions": [
+    "Stop before approval if git status is dirty with unreviewed changes.",
+    "Stop before approval if the SBF artifact sha256 differs from ff128d4a8169c95a67cf25cd895d8b328cff4607704ee0dc3d57276f10bca91d.",
+    "Stop before approval if npm run private-pool-v2:sbf-abi-check fails.",
+    "Stop before approval if npm run zk:c01-sbf-live-lineage-acceptance-gate-check fails.",
+    "Stop before any live command if npm run mainnet:production-evidence-next-check fails.",
+    "Stop before any live command if no fresh Clay approval exists for the exact action ref, launch window, fee payer ref, and 2.0 SOL cap.",
+    "Stop before any live command if the estimated deploy, upgrade, smoke, and settlement cost exceeds 2.0 SOL.",
+    "Stop immediately if any command asks to paste a private key, seed phrase, raw bearer token, raw database URL, signed transaction, or customer private input into chat or git.",
+    "Stop after one failed live transaction, failed live preflight, replay invariant failure, unexpected public linkage, or missing reviewer-packet invariant.",
+    "Stop after any successful deploy or upgrade plus evidence run; no retries or extra live funds without a new bounded approval window."
+  ],
+  "exactCommands": {
+    "safePreWindowNoLiveFunds": [
+      "git status --short --branch",
+      "shasum -a 256 programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so",
+      "npm run private-pool-v2:sbf-abi-check",
+      "npm run zk:c01-sbf-live-lineage-candidate-check",
+      "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
+      "npm run mainnet:production-evidence-next-check",
+      "npm run mainnet:current-abi-approval-deploy-evidence-check"
+    ],
+    "approvalEvidencePreviewOnly": [
+      "VANTA_MAINNET_APPROVAL_RECORD_REF=VANTA_MAINNET_REAL_FUNDS_APPROVAL_REF VANTA_MAINNET_APPROVAL_ACTION_REF=actual-private/current-abi-mainnet-spend-program-deploy-reinit-evidence-run-2026-06-18-2000-2130-central VANTA_MAINNET_APPROVAL_ACTION_SUMMARY=\"One Vanta mainnet-beta current-ABI Private Pool v2 spend-program deploy or upgrade, reinitialize/smoke account setup, and actual-private shared-cohort settlement evidence run with maximum 2.0 SOL at risk\" VANTA_MAINNET_APPROVAL_ENVIRONMENT=mainnet-beta VANTA_MAINNET_APPROVAL_FEE_PAYER_REF=wallet/public-fee-payer-vanta-mainnet-5pzJsEVARN5Ly6H1AjbbVofY6Fjr68FbkT6y8ozx3Ymi VANTA_MAINNET_APPROVAL_LAUNCH_WINDOW_REF=\"2026-06-18T20:00:00-21:30:00 America/Chicago\" VANTA_MAINNET_APPROVAL_ROLLBACK_PLAN_REF=runbook/disable-private-pool-v2-services-and-live-actions VANTA_MAINNET_APPROVAL_STOP_LOSS_PLAN_REF=stop-after-one-live-transaction-failed-preflight-unexpected-solscan-linkage-replay-check-failure-missing-reviewer-packet-invariant-or-2.0-sol-cap VANTA_MAINNET_APPROVAL_MAX_FUNDS_REF=\"2.0 SOL\" VANTA_MAINNET_APPROVAL_APPROVED_BY_REF=Clay/founder-approval/PENDING_EXACT_APPROVAL_REF npm run mainnet:real-funds-approval-preview"
+    ],
+    "approvalEvidenceWriteAfterExplicitClayApprovalOnly": [
+      "VANTA_MAINNET_APPROVAL_RECORD_REF=VANTA_MAINNET_REAL_FUNDS_APPROVAL_REF VANTA_MAINNET_APPROVAL_ACTION_REF=actual-private/current-abi-mainnet-spend-program-deploy-reinit-evidence-run-2026-06-18-2000-2130-central VANTA_MAINNET_APPROVAL_ACTION_SUMMARY=\"One Vanta mainnet-beta current-ABI Private Pool v2 spend-program deploy or upgrade, reinitialize/smoke account setup, and actual-private shared-cohort settlement evidence run with maximum 2.0 SOL at risk\" VANTA_MAINNET_APPROVAL_ENVIRONMENT=mainnet-beta VANTA_MAINNET_APPROVAL_FEE_PAYER_REF=wallet/public-fee-payer-vanta-mainnet-5pzJsEVARN5Ly6H1AjbbVofY6Fjr68FbkT6y8ozx3Ymi VANTA_MAINNET_APPROVAL_LAUNCH_WINDOW_REF=\"2026-06-18T20:00:00-21:30:00 America/Chicago\" VANTA_MAINNET_APPROVAL_ROLLBACK_PLAN_REF=runbook/disable-private-pool-v2-services-and-live-actions VANTA_MAINNET_APPROVAL_STOP_LOSS_PLAN_REF=stop-after-one-live-transaction-failed-preflight-unexpected-solscan-linkage-replay-check-failure-missing-reviewer-packet-invariant-or-2.0-sol-cap VANTA_MAINNET_APPROVAL_MAX_FUNDS_REF=\"2.0 SOL\" VANTA_MAINNET_APPROVAL_APPROVED_BY_REF=Clay/founder-approval/<EXACT_APPROVAL_REF> npm run mainnet:real-funds-approval-write"
+    ],
+    "liveWindowHumanOnly": [
+      "solana program deploy programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so --program-id <PROGRAM_ID_OR_PROGRAM_AUTHORITY_REF> --keypair <FEE_PAYER_KEYPAIR_REF> --url <MAINNET_RPC_URL_REF> --commitment confirmed",
+      "VANTA_PRIVATE_POOL_V2_SOLANA_SPEND_PROGRAM_ID=<CURRENT_ABI_PROGRAM_ID> VANTA_PRIVATE_POOL_V2_SPEND_PROGRAM_SMOKE_MAX_SOL=2.0 VANTA_PRIVATE_POOL_V2_MAINNET_SMOKE_APPROVAL=I_APPROVE_VANTA_MAINNET_SPEND_PROGRAM_SMOKE npm run private-pool-v2:spend-program-smoke",
+      "npm run mainnet:actual-private-settlement-plan-env-packet",
+      "npm run mainnet:actual-private-settlement-plan-json",
+      "npm run private-pool-v2:solana-spend-transaction",
+      "VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_ACK=I_UNDERSTAND_THIS_RUN_CAN_MOVE_MAINNET_FUNDS VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_EXECUTE_ACK=I_UNDERSTAND_THIS_WILL_REQUEST_A_MAINNET_PRIVATE_SETTLEMENT npm run mainnet:actual-private-settlement-live -- --execute"
+    ],
+    "postWindowEvidenceWriteAfterActualRefsOnly": [
+      "VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_EVIDENCE_STATUS=observed-mainnet-current-abi-settlement VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_DEPLOY_TX_REF=solana-tx:<DEPLOY_TX> VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_INIT_TX_REF=solana-tx:<INIT_TX> VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_SPEND_TX_REF=solana-tx:<SPEND_TX> VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_OUTPUT_RECORD_REF=solana-account:<OUTPUT_RECORD_PDA> npm run mainnet:actual-private-settlement-evidence-preview",
+      "VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_EVIDENCE_STATUS=observed-mainnet-current-abi-settlement VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_DEPLOY_TX_REF=solana-tx:<DEPLOY_TX> VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_INIT_TX_REF=solana-tx:<INIT_TX> VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_SPEND_TX_REF=solana-tx:<SPEND_TX> VANTA_ACTUAL_PRIVATE_MAINNET_SETTLEMENT_OUTPUT_RECORD_REF=solana-account:<OUTPUT_RECORD_PDA> npm run mainnet:actual-private-settlement-evidence-write"
+    ],
+    "postWindowReviewNoLiveFunds": [
+      "npm run mainnet:actual-private-shared-cohort-deposit-review-check",
+      "npm run mainnet:actual-private-settlement-lineage-check",
+      "npm run mainnet:actual-private-settlement-review-check",
+      "npm run private-pool-v2:anonymity-set-metrics-json",
+      "npm run mainnet:production-evidence-next-check"
+    ]
+  },
+  "requiredHumanApprovalBefore": [
+    "mainnet:real-funds-approval-write",
+    "solana program deploy",
+    "private-pool-v2:spend-program-smoke",
+    "mainnet:actual-private-settlement-live -- --execute",
+    "mainnet:actual-private-settlement-evidence-write"
+  ],
+  "forbiddenValues": [
+    "private keys",
+    "seed phrases",
+    "raw signing credentials",
+    "raw database URLs",
+    "raw bearer tokens",
+    "signed transactions",
+    "customer private inputs",
+    "raw wallet secret material",
+    "raw operator token material"
+  ],
+  "nonClaims": [
+    "This is not live-funds approval.",
+    "This is not a deployment record.",
+    "This is not production privacy evidence.",
+    "This is not audited anonymity evidence.",
+    "This is not independent relayer separation review."
+  ]
+}

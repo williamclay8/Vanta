@@ -4,6 +4,10 @@ import { createVantaMainnetPrivateSettlementStatus } from "./mainnetPrivateSettl
 import { createVantaMainnetRealFundsApprovalStatus } from "./mainnetRealFundsApprovalStatus.mjs";
 
 const anonymityEvidencePath = new URL("../../ops/mainnet/private-pool-v2-anonymity-set.evidence.json", import.meta.url);
+const currentAbiApprovalDeployEvidencePacketPath = new URL(
+  "../../ops/mainnet/current-abi-mainnet-spend-program-approval-deploy-evidence.packet.json",
+  import.meta.url,
+);
 const hardBlockersPath = new URL("../../ops/mainnet/actual-private-hard-blockers.packet.json", import.meta.url);
 const relayerSeparationEvidencePath = new URL(
   "../../ops/mainnet/private-pool-v2-relayer-separation.evidence.json",
@@ -22,6 +26,7 @@ export function createVantaProductionEvidenceNextBlockers() {
   const privateSettlement = createVantaMainnetPrivateSettlementStatus();
   const approval = createVantaMainnetRealFundsApprovalStatus();
   const anonymityEvidence = readJson(anonymityEvidencePath);
+  const currentAbiApprovalDeployEvidencePacket = readJson(currentAbiApprovalDeployEvidencePacketPath);
   const hardBlockers = readJson(hardBlockersPath);
   const hardBlockerMap = blockerById(hardBlockers);
   const relayerSeparation = readJson(relayerSeparationEvidencePath);
@@ -63,6 +68,12 @@ export function createVantaProductionEvidenceNextBlockers() {
           initTxRef: privateSettlement.actualPrivateMainnetEvidence.mainnetSpendProgramEvidence.initTxRef,
           spendEvidenceTxRef:
             privateSettlement.actualPrivateMainnetEvidence.mainnetSpendProgramEvidence.spendEvidenceTxRef,
+          approvalDeployEvidencePacket:
+            "ops/mainnet/current-abi-mainnet-spend-program-approval-deploy-evidence.packet.json",
+          currentAbiSbfArtifactSha256: currentAbiApprovalDeployEvidencePacket.currentAbiSbfArtifact.sha256,
+          proposedApprovalActionRef: currentAbiApprovalDeployEvidencePacket.proposedApprovalRecord.proposedActionRef,
+          proposedMaximumFundsAtRiskRef: currentAbiApprovalDeployEvidencePacket.proposedApprovalRecord.maximumFundsAtRiskRef,
+          proposedLaunchWindowRef: currentAbiApprovalDeployEvidencePacket.proposedApprovalRecord.proposedLaunchWindowRef,
         },
         requiredArtifactShape:
           "sbf-lineage:<current-output-record-pda-eight-account-spend-v1-deploy-init-spend-review-ref>",
@@ -72,6 +83,7 @@ export function createVantaProductionEvidenceNextBlockers() {
           "npm run private-pool-v2:sbf-abi-check",
           "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
           "npm run mainnet:private-settlement-status-json",
+          "npm run mainnet:current-abi-approval-deploy-evidence-check",
         ],
         truthBoundary:
           "Historical mainnet spend evidence cannot promote current production privacy until it is rebuilt, redeployed, reinitialized, and reviewed against the current output-record PDA spend ABI.",

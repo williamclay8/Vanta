@@ -218,6 +218,7 @@ const requiredCommands = [
   "npm run private-pool-v2:production-relayer-review-check",
   "npm run private-pool-v2:production-privacy-reviewer-packet-check",
   "npm run mainnet:production-evidence-next-check",
+  "npm run mainnet:current-abi-approval-deploy-evidence-check",
   "npm run mainnet:actual-private-hard-blockers-check",
   "npm run mainnet:actual-private-external-artifact-acquisition-check",
   "npm run mainnet:production-smoke-evidence-check",

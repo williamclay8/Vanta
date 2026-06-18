@@ -65,6 +65,21 @@ assert.equal(spend.currentLocalAbi, "output-record-pda-eight-account-spend-v1");
 assert.equal(spend.reviewedMainnetEvidenceAbi, "pre-authority-gate-spend-v1");
 assert.ok(spend.requiredAction.includes("Rebuild, redeploy, and reinitialize"));
 assert.ok(spend.canonicalCommands.includes("npm run private-pool-v2:sbf-abi-status-json"));
+assert.equal(
+  spend.currentEvidenceRefs.approvalDeployEvidencePacket,
+  "ops/mainnet/current-abi-mainnet-spend-program-approval-deploy-evidence.packet.json",
+);
+assert.equal(
+  spend.currentEvidenceRefs.currentAbiSbfArtifactSha256,
+  "ff128d4a8169c95a67cf25cd895d8b328cff4607704ee0dc3d57276f10bca91d",
+);
+assert.equal(
+  spend.currentEvidenceRefs.proposedApprovalActionRef,
+  "actual-private/current-abi-mainnet-spend-program-deploy-reinit-evidence-run-2026-06-18-2000-2130-central",
+);
+assert.equal(spend.currentEvidenceRefs.proposedMaximumFundsAtRiskRef, "2.0 SOL");
+assert.equal(spend.currentEvidenceRefs.proposedLaunchWindowRef, "2026-06-18T20:00:00-21:30:00 America/Chicago");
+assert.ok(spend.canonicalCommands.includes("npm run mainnet:current-abi-approval-deploy-evidence-check"));
 
 const anonymity = blockers.get("audited-shared-anonymity-evidence");
 assert.equal(anonymity.status, "blocked-measured-below-threshold-and-no-independent-review");
