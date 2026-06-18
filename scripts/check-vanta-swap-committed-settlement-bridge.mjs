@@ -11,6 +11,11 @@ function assert(condition, message) {
   }
 }
 
+function indexOfRegex(source, pattern, fromIndex = 0) {
+  const match = pattern.exec(source.slice(fromIndex));
+  return match ? fromIndex + match.index : -1;
+}
+
 assert(
   swapPage.includes("requestVantaPrivatePoolV2ProtocolSettlement"),
   "Swap page must request a Private Pool v2 protocol settlement receipt.",
@@ -19,11 +24,28 @@ assert(
   swapPage.includes("createCommittedSwapSettlementTerms"),
   "Swap page must derive committed settlement terms from the canonical swap bridge.",
 );
+
+const committedSettlementGateIndex = swapPage.indexOf(
+  "proofReceipt?.intent !== \"swap-to-shielded\"",
+);
+const browserProofCallIndex = swapPage.indexOf(
+  "await createVantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt",
+  committedSettlementGateIndex,
+);
+const browserProofBackendGateIndex = indexOfRegex(
+  swapPage,
+  /proofBackend\s*!==\s*"local-bb-derived-artifact"/u,
+  browserProofCallIndex,
+);
+
 assert(
   swapPage.includes("{ persist: false }") &&
-    swapPage.indexOf("persistCanonicalSwapRecord(canonicalRecord)") >
-      swapPage.indexOf("proofReceipt?.intent !== \"swap-to-shielded\""),
-  "Swap output note must not be treated complete unless committed settlement receipt exists or output root is registered as swap-output.",
+    committedSettlementGateIndex >= 0 &&
+    browserProofCallIndex > committedSettlementGateIndex &&
+    browserProofBackendGateIndex > browserProofCallIndex &&
+    swapPage.indexOf("persistCanonicalSwapRecord(", browserProofBackendGateIndex) >
+      browserProofBackendGateIndex,
+  "Swap output note must not be treated complete unless committed settlement and browser-local proof receipts exist.",
 );
 assert(
   swapPage.includes('action: "swap"') && swapPage.includes('economicsMode: "committed-economics"'),
