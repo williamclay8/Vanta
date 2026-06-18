@@ -442,7 +442,7 @@ assert.equal(auditAlias.auditClaimAllowed, false);
 assert.equal(auditAlias.thirdPartyAuditAccepted, false);
 assert.equal(auditAlias.productionReady, false);
 assert.equal(auditAlias.mainnetReady, false);
-assert.equal(auditAlias.liveDeploymentVerified, true);
+assert.equal(auditAlias.liveDeploymentVerified, false);
 assert.equal(auditAlias.privacyClaimAllowed, false);
 assert.equal(auditAlias.anonymityClaimAllowed, false);
 assert.ok(
