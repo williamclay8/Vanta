@@ -55,9 +55,12 @@ import {
   type VantaProtocolSettlementResponse,
 } from "@/privacy/privatePoolV2ProtocolSettlementClient";
 import { evaluateVantaPrivatePoolV2SwapActionContract } from "@/privacy/privatePoolV2ProductActionContract";
+import { createVantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt } from "@/privacy/privatePoolV2SwapToShieldedBrowserReceipt";
 import {
   createCommittedSwapSettlementTerms,
+  findCanonicalSwapRecord,
   listCanonicalSwapRecords,
+  persistCanonicalSwapBrowserLocalProofReceipt,
   persistCanonicalSwapRecord,
   recordCanonicalSwapFromLiveSwap,
   type LiveSwapCanonicalRecord,
@@ -1315,9 +1318,33 @@ export function SwapPage() {
       if (settlementReceipt?.proofReceipt?.intent !== "swap-to-shielded") {
         throw new Error("Committed Swap settlement did not return a swap-to-shielded proof receipt.");
       }
-      setLastSwapProtocolSettlement(settlementReceipt);
-      persistCanonicalSwapRecord(canonicalRecord);
-      const canonicalSummary = swapReceiptSummaryFromCanonicalRecord(canonicalRecord);
+      const { browserLocalProofReceipt } =
+        await createVantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt({
+          canonicalRecord,
+          committedSettlementTerms,
+        });
+      const proofReceipt = browserLocalProofReceipt.protocolSettlementResponse.proofReceipt;
+      if (proofReceipt?.intent !== "swap-to-shielded") {
+        throw new Error("Swap browser-local proof receipt did not return swap-to-shielded proof evidence.");
+      }
+      if (
+        proofReceipt.proofBackend !==
+          "local-bb-derived-artifact" ||
+        proofReceipt.proofSystem !== "noir-bb"
+      ) {
+        throw new Error("Swap browser-local proof receipt did not return local noir-bb evidence.");
+      }
+      const canonicalRecordWithProof: LiveSwapCanonicalRecord = {
+        ...canonicalRecord,
+        browserLocalProofReceipt,
+      };
+      persistCanonicalSwapRecord(canonicalRecordWithProof);
+      persistCanonicalSwapBrowserLocalProofReceipt({
+        proofReceipt: browserLocalProofReceipt,
+        recordId: canonicalRecord.recordId,
+      });
+      setLastSwapProtocolSettlement(browserLocalProofReceipt.protocolSettlementResponse);
+      const canonicalSummary = swapReceiptSummaryFromCanonicalRecord(canonicalRecordWithProof);
       setRecentSwapSummaries((currentSummaries) =>
         mergeRecentSwapReceiptSummaries([
           canonicalSummary,
@@ -1794,6 +1821,13 @@ export function SwapPage() {
     ) ??
     recentSwapSummaries[0] ??
     null;
+  const selectedSwapBrowserLocalProofReceipt = selectedRecentSwapSummary?.recordId
+    ? findCanonicalSwapRecord(selectedRecentSwapSummary.recordId)?.browserLocalProofReceipt ?? null
+    : null;
+  const observedSwapProtocolSettlement =
+    lastSwapProtocolSettlement ??
+    selectedSwapBrowserLocalProofReceipt?.protocolSettlementResponse ??
+    null;
   const swapReceiptSource =
     selectedRecentSwapSummary ?? (status === "complete" ? lastSwapSummary : null);
   const swapReceiptDetails: SwapReceiptModalDetails | null = swapReceiptSource
@@ -1805,6 +1839,9 @@ export function SwapPage() {
         quoteExpiresLabel: formatQuoteTimestamp(swapReceiptSource.quoteExpiresAt),
         quoteId: formatShortSwapId(swapReceiptSource.quoteId),
         quoteIssuedLabel: formatQuoteTimestamp(swapReceiptSource.quoteTimestamp),
+        protocolReceiptId: observedSwapProtocolSettlement?.proofReceipt?.receiptId
+          ? formatShortSwapId(observedSwapProtocolSettlement.proofReceipt.receiptId)
+          : undefined,
         requestId: swapReceiptSource.requestId
           ? formatShortSwapId(swapReceiptSource.requestId)
           : "Pending operator request",

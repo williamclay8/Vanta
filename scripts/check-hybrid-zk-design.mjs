@@ -4,11 +4,13 @@
  * Twitter Pass guard (T4)
  */
 import { readFileSync } from 'fs';
+import { resolve } from 'path';
 console.log('=== hybrid-zk-design-check (T4) ===');
-const state = readFileSync('/Users/clay/Desktop/Vanta/docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml', 'utf8');
-const packageJson = JSON.parse(readFileSync('/Users/clay/Desktop/Vanta/package.json', 'utf8'));
-const threatModel = readFileSync('/Users/clay/Desktop/Vanta/docs/threat-model.md', 'utf8');
-const limitations = readFileSync('/Users/clay/Desktop/Vanta/SECURITY_LIMITATIONS.md', 'utf8');
+const repoRoot = resolve(import.meta.dirname, '..');
+const state = readFileSync(resolve(repoRoot, 'docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml'), 'utf8');
+const packageJson = JSON.parse(readFileSync(resolve(repoRoot, 'package.json'), 'utf8'));
+const threatModel = readFileSync(resolve(repoRoot, 'docs/threat-model.md'), 'utf8');
+const limitations = readFileSync(resolve(repoRoot, 'SECURITY_LIMITATIONS.md'), 'utf8');
 const failures = [];
 
 for (const marker of [

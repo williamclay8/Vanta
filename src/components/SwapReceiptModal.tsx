@@ -8,6 +8,7 @@ export type SwapReceiptModalDetails = {
   quoteExpiresLabel: ReactNode;
   quoteId: ReactNode;
   quoteIssuedLabel: ReactNode;
+  protocolReceiptId?: ReactNode;
   requestId: ReactNode;
   routeTruthLabel: ReactNode;
   transitionNoteId: ReactNode;
@@ -38,6 +39,9 @@ export function SwapReceiptModal({
     { label: "Quote", value: details.quoteId },
     { label: "Quote issued", value: details.quoteIssuedLabel },
     { label: "Quote expires", value: details.quoteExpiresLabel },
+    ...(details.protocolReceiptId
+      ? [{ label: "Proof receipt", value: details.protocolReceiptId }]
+      : []),
     { label: "Output note", value: details.outputNoteId },
     { label: "Transition note", value: details.transitionNoteId },
     { label: "Venue pool", value: details.venuePoolAddress },

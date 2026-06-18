@@ -31,6 +31,7 @@ import {
   createOwnerContextRecoveryEvidence,
   type OwnerContextRecoveryEvidence,
 } from "./ownerContextRecoveryEvidence";
+import type { VantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt } from "../privacy/privatePoolV2SwapToShieldedBrowserReceipt";
 
 const LIVE_SWAP_RECORDS_STORAGE_KEY = "vanta.zk.phase1.live-swap-records.v1";
 const DEFAULT_USDC_DECIMALS = 6;
@@ -134,6 +135,7 @@ export type LiveSwapCanonicalRecord = {
     liveStateSignature: string;
     lifecycle?: CanonicalLifecycleOutputLinkage;
   };
+  browserLocalProofReceipt?: VantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt;
   diagnosticStorage: PrivatePoolV2ShieldedStateDiagnostic;
 };
 
@@ -179,6 +181,10 @@ export type LiveSwapDiagnosticsSummary = {
   outputOwnerRecoveryClass: OwnerContextRecoveryEvidence["recoveryClass"];
   outputOwnerRecoveryEvidenceSource: OwnerContextRecoveryEvidence["evidenceSource"];
   outputOwnerRecoveryCrossDeviceCandidate: boolean;
+  proofReceiptId?: string;
+  proofBackend?: string;
+  proofSystem?: string;
+  proofPublicInputCommitment?: string;
 };
 
 export type LiveSwapCommittedSettlementTerms = {
@@ -508,6 +514,11 @@ export function listCanonicalSwapDiagnosticsSummaries(): LiveSwapDiagnosticsSumm
         record.outputSuccessor.ownerContextEvidence?.crossDeviceCandidate ??
         record.ownerContextEvidence?.crossDeviceCandidate ??
         createOwnerContextRecoveryEvidence({}).crossDeviceCandidate,
+      proofReceiptId: record.browserLocalProofReceipt?.proofReceipt.receiptId,
+      proofBackend: record.browserLocalProofReceipt?.proofReceipt.proofBackend,
+      proofSystem: record.browserLocalProofReceipt?.proofReceipt.proofSystem,
+      proofPublicInputCommitment:
+        record.browserLocalProofReceipt?.proofReceipt.publicInputCommitment,
     }))
     .sort((left, right) => right.createdAt - left.createdAt);
 }
@@ -609,15 +620,53 @@ export function persistCanonicalSwapRecord(record: LiveSwapCanonicalRecord) {
   }
 
   const existingRecords = listCanonicalSwapRecords();
-  if (existingRecords.some((existingRecord) => existingRecord.recordId === record.recordId)) {
+  const normalizedRecord = normalizeLiveSwapRecordForPersistence(record);
+  const existingIndex = existingRecords.findIndex(
+    (existingRecord) => existingRecord.recordId === record.recordId,
+  );
+  if (existingIndex >= 0) {
+    const nextRecords = existingRecords.map((existingRecord, index) =>
+      index === existingIndex
+        ? normalizeLiveSwapRecordForPersistence({
+            ...existingRecord,
+            browserLocalProofReceipt:
+              normalizedRecord.browserLocalProofReceipt ??
+              existingRecord.browserLocalProofReceipt,
+          })
+        : normalizeLiveSwapRecordForPersistence(existingRecord),
+    );
+    storage.setItem(LIVE_SWAP_RECORDS_STORAGE_KEY, JSON.stringify(nextRecords));
     return;
   }
 
   const nextRecords = [
     ...existingRecords.map(normalizeLiveSwapRecordForPersistence),
-    normalizeLiveSwapRecordForPersistence(record),
+    normalizedRecord,
   ];
   storage.setItem(LIVE_SWAP_RECORDS_STORAGE_KEY, JSON.stringify(nextRecords));
+}
+
+export function findCanonicalSwapRecord(recordId: string): LiveSwapCanonicalRecord | null {
+  return listCanonicalSwapRecords().find((record) => record.recordId === recordId) ?? null;
+}
+
+export function persistCanonicalSwapBrowserLocalProofReceipt({
+  proofReceipt,
+  recordId,
+}: {
+  proofReceipt: VantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt;
+  recordId: string;
+}) {
+  const record = findCanonicalSwapRecord(recordId);
+
+  if (!record) {
+    return;
+  }
+
+  persistCanonicalSwapRecord({
+    ...record,
+    browserLocalProofReceipt: proofReceipt,
+  });
 }
 
 function normalizeLiveSwapRecordForPersistence(record: LiveSwapCanonicalRecord): LiveSwapCanonicalRecord {
@@ -638,6 +687,7 @@ function normalizeLiveSwapRecordForPersistence(record: LiveSwapCanonicalRecord):
         existingEvidence: record.outputSuccessor.ownerContextEvidence,
       }),
     },
+    browserLocalProofReceipt: record.browserLocalProofReceipt,
   };
 }
 
