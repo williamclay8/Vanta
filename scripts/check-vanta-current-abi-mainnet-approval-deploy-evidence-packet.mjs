@@ -1,4 +1,5 @@
 import { strict as assert } from "node:assert";
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
@@ -94,6 +95,7 @@ for (const section of [
 
 for (const command of [
   "git status --short --branch",
+  "npm run mainnet:current-abi-approval-deploy-evidence-print",
   "shasum -a 256 programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so",
   "npm run private-pool-v2:sbf-abi-check",
   "npm run zk:c01-sbf-live-lineage-acceptance-gate-check",
@@ -159,9 +161,32 @@ for (const nonClaim of [
 }
 
 assert.equal(
+  packageJson.scripts["mainnet:current-abi-approval-deploy-evidence-print"],
+  "node scripts/print-vanta-current-abi-mainnet-approval-deploy-evidence-packet.mjs",
+);
+assert.equal(
   packageJson.scripts["mainnet:current-abi-approval-deploy-evidence-check"],
   "node scripts/check-vanta-current-abi-mainnet-approval-deploy-evidence-packet.mjs",
 );
+
+const printedChecklist = execFileSync("npm", ["run", "--silent", "mainnet:current-abi-approval-deploy-evidence-print"], {
+  cwd: repoRoot,
+  encoding: "utf8",
+});
+for (const requiredOutput of [
+  "Vanta current ABI approval/deploy/evidence checklist",
+  "Approval status: draft-not-approved",
+  "Real funds allowed now: false",
+  "Privacy claim allowed: false",
+  "No live funds, signing, deployment, approval write, or evidence write may run from this checklist alone.",
+  "SHA256: ff128d4a8169c95a67cf25cd895d8b328cff4607704ee0dc3d57276f10bca91d",
+  "Window: 2026-06-18T20:00:00-21:30:00 America/Chicago",
+  "Max funds at risk: 2.0 SOL",
+  "Live Window Human-Only Commands",
+  "Post-Window Evidence Write After Actual Refs Only",
+]) {
+  assert.ok(printedChecklist.includes(requiredOutput), `Printed checklist must include ${requiredOutput}.`);
+}
 assert.ok(
   packageJson.scripts["mainnet:preflight"].includes("npm run mainnet:current-abi-approval-deploy-evidence-check"),
   "mainnet:preflight must include current ABI approval/deploy/evidence packet check.",
@@ -175,6 +200,10 @@ assert.ok(
 assert.ok(
   productionEvidenceNextSource.includes("npm run mainnet:current-abi-approval-deploy-evidence-check"),
   "Production evidence next-blockers must name this packet checker.",
+);
+assert.ok(
+  productionEvidenceNextSource.includes("npm run mainnet:current-abi-approval-deploy-evidence-print"),
+  "Production evidence next-blockers must name this packet printer.",
 );
 
 const readinessSource = readFileSync(resolve(repoRoot, "src/readiness/mainnetReadiness.mjs"), "utf8");

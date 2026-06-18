@@ -72,6 +72,7 @@
   "exactCommands": {
     "safePreWindowNoLiveFunds": [
       "git status --short --branch",
+      "npm run mainnet:current-abi-approval-deploy-evidence-print",
       "shasum -a 256 programs/vanta_private_pool_v2_spend/target/deploy/vanta_private_pool_v2_spend.so",
       "npm run private-pool-v2:sbf-abi-check",
       "npm run zk:c01-sbf-live-lineage-candidate-check",
