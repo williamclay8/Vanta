@@ -31,6 +31,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Noir toolchain
+        run: |
+          curl -L https://raw.githubusercontent.com/noir-lang/noirup/main/install | bash
+          "$HOME/.nargo/bin/noirup" -v 1.0.0-beta.19
+          "$HOME/.nargo/bin/nargo" --version
+          echo "$HOME/.nargo/bin" >> "$GITHUB_PATH"
+
       - name: Check Claude privacy audit tracker
         run: npm run privacy-audit:tracker-check
 
