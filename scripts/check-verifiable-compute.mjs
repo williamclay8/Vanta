@@ -5,13 +5,15 @@
  * Extends T4 hybrid ZK lane for Phase 2
  */
 import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
 console.log('=== verifiable-compute-check (T6 + Hybrid ZK extension) ===');
 
 try {
-  const statePath = '/Users/clay/Desktop/Vanta/docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml';
+  const repoRoot = resolve(import.meta.dirname, '..');
+  const statePath = resolve(repoRoot, 'docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml');
   const stateContent = readFileSync(statePath, 'utf8');
-  const packageJson = JSON.parse(readFileSync('/Users/clay/Desktop/Vanta/package.json', 'utf8'));
+  const packageJson = JSON.parse(readFileSync(resolve(repoRoot, 'package.json'), 'utf8'));
 
   const failures = [];
 

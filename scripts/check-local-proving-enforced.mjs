@@ -7,19 +7,21 @@
  */
 
 import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
 console.log('=== local-proving-enforced-check (T2) ===');
 
 try {
-  const statePath = '/Users/clay/Desktop/Vanta/docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml';
+  const repoRoot = resolve(import.meta.dirname, '..');
+  const statePath = resolve(repoRoot, 'docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml');
   const stateContent = readFileSync(statePath, 'utf8');
-  const packageJson = JSON.parse(readFileSync('/Users/clay/Desktop/Vanta/package.json', 'utf8'));
-  const securityLimitations = readFileSync('/Users/clay/Desktop/Vanta/SECURITY_LIMITATIONS.md', 'utf8');
+  const packageJson = JSON.parse(readFileSync(resolve(repoRoot, 'package.json'), 'utf8'));
+  const securityLimitations = readFileSync(resolve(repoRoot, 'SECURITY_LIMITATIONS.md'), 'utf8');
   const payPublicView = readFileSync(
-    '/Users/clay/Desktop/Vanta/src/pay/vantaPayReceiptPublicView.ts',
+    resolve(repoRoot, 'src/pay/vantaPayReceiptPublicView.ts'),
     'utf8',
   );
-  const payTypes = readFileSync('/Users/clay/Desktop/Vanta/src/pay/vantaPayTypes.ts', 'utf8');
+  const payTypes = readFileSync(resolve(repoRoot, 'src/pay/vantaPayTypes.ts'), 'utf8');
   const failures = [];
 
   for (const marker of [

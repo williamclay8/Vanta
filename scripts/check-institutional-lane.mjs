@@ -4,16 +4,18 @@
  * Twitter Pass guard (T3)
  */
 import { readFileSync } from 'fs';
+import { resolve } from 'path';
 console.log('=== institutional-lane-check (T3) ===');
-const state = readFileSync('/Users/clay/Desktop/Vanta/docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml', 'utf8');
-const packageJson = JSON.parse(readFileSync('/Users/clay/Desktop/Vanta/package.json', 'utf8'));
+const repoRoot = resolve(import.meta.dirname, '..');
+const state = readFileSync(resolve(repoRoot, 'docs/goals/2026-05-14-claude-privacy-audit-tracker/state.yaml'), 'utf8');
+const packageJson = JSON.parse(readFileSync(resolve(repoRoot, 'package.json'), 'utf8'));
 const docs = [
-  readFileSync('/Users/clay/Desktop/Vanta/docs/privacy-rail-contract.md', 'utf8'),
-  readFileSync('/Users/clay/Desktop/Vanta/docs/twitter-intelligence/2026-06-06-requirements.md', 'utf8'),
+  readFileSync(resolve(repoRoot, 'docs/privacy-rail-contract.md'), 'utf8'),
+  readFileSync(resolve(repoRoot, 'docs/twitter-intelligence/2026-06-06-requirements.md'), 'utf8'),
 ].join('\n');
-const payTypes = readFileSync('/Users/clay/Desktop/Vanta/src/pay/vantaPayTypes.ts', 'utf8');
-const payView = readFileSync('/Users/clay/Desktop/Vanta/src/pay/vantaPayReceiptPublicView.ts', 'utf8');
-const payInstitutionalDisclosureReceipt = readFileSync('/Users/clay/Desktop/Vanta/src/pay/vantaPayInstitutionalDisclosureReceipt.ts', 'utf8');
+const payTypes = readFileSync(resolve(repoRoot, 'src/pay/vantaPayTypes.ts'), 'utf8');
+const payView = readFileSync(resolve(repoRoot, 'src/pay/vantaPayReceiptPublicView.ts'), 'utf8');
+const payInstitutionalDisclosureReceipt = readFileSync(resolve(repoRoot, 'src/pay/vantaPayInstitutionalDisclosureReceipt.ts'), 'utf8');
 const failures = [];
 
 for (const marker of [
