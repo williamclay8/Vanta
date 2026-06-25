@@ -127,7 +127,7 @@ For developers and reviewers, detailed verification commands and operator contra
 ## Links
 
 - **Website**: [vantaprivacy.xyz](https://vantaprivacy.xyz)
-- **Token**: [$VANTA](https://vantaprivacy.xyz/token) (Solana)
+- **Token**: [$VANTA](https://vantaprivacy.xyz/token) `9yqv319Boij6kUfD6CAzXEGYk7pHUfda37ye6FQmBAGS` (Solana)
 - **Documentation**: [docs.vantaprivacy.xyz](https://docs.vantaprivacy.xyz)
 - **GitHub**: This repository
 - **Status & Audits**: See `SECURITY_LIMITATIONS.md` and `/.well-known/vanta-audit.json`
