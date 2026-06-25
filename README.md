@@ -40,13 +40,13 @@ Primary app tabs at `/app` (defaults to Shield):
 
 **Inspectable today:** wallet connection, shield flows for supported assets, constrained Send/Swap/Unshield paths, proof and operator checks for the narrow private-core lane, app tabs and diagnostics, receipt verification, and verification commands that keep claims honest.
 
-**Not live or final:** audited production privacy, broad multi-asset support, final proof/nullifier architecture, production Pay processor semantics, live Strategy execution, mainnet private settlement, or production custody/compliance guarantees.
+**Not live or final:** audited production privacy, broad multi-asset support, final proof/nullifier architecture, production Pay processor semantics, live Strategy execution, mainnet private settlement, or production custody/compliance guarantees. Proving stays local/dev-only: not live Send or actual-private-spend routing, not production browser-runtime proving, no live remote proof service, and no production proof-format acceptance on-chain yet. H08 records `selectedRuntimeDirection: remote-service-production-prover` as a local direction only; `selectedProverRuntime` stays null until production evidence exists.
 
 See `SECURITY_LIMITATIONS.md` for the full boundary list.
 
----
+Private-core compatibility: the repo still ships **active-v0 legacy** single-note Send/Swap/Unshield circuits for bounded compatibility lanes. **Private Pool v2 entry** is the replacement family for new architecture work — not a claim that every lane is migrated yet.
 
-## Pricing
+---
 
 - `0` monthly fee
 - `0.25%` only when Pay, Shield, Send, Swap, or Unshield completes successfully
