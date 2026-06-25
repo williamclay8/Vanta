@@ -1,3 +1,4 @@
+import { isRecord } from "../isRecord";
 import {
   type CanonicalNoteCommitment,
   type CanonicalNoteV1,
@@ -201,10 +202,6 @@ export async function getShieldedStateDeterminismExample() {
   });
 
   return state.getSnapshot();
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 async function deriveSha256Hex(bytes: Uint8Array): Promise<string> {

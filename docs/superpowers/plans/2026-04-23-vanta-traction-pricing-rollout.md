@@ -45,8 +45,6 @@
   - Require preview-safe pricing copy and ban live-billing implication on Strategy.
 - `README.md`
   - Add the canonical pricing sentence and pass-through clarification.
-- `SUBMISSION.md`
-  - Keep the demo/story truth aligned with the new pricing contract.
 - `package.json`
   - Add a dedicated `pricing:contract-check` command and wire it into the relevant verification path.
 
@@ -504,7 +502,6 @@ git commit -m "feat: add traction pricing to landing copy"
 
 **Files:**
 - Modify: `README.md`
-- Modify: `SUBMISSION.md`
 - Modify: `scripts/check-vanta-pay-doc-truth.mjs`
 - Modify: `package.json`
 
@@ -518,14 +515,6 @@ const docChecks = [
       "0 monthly fee",
       "0.25% only when a supported action completes successfully.",
       "Network, off-ramp, and third-party execution costs are shown separately when they apply.",
-    ],
-  },
-  {
-    path: "SUBMISSION.md",
-    required: [
-      "0 monthly fee",
-      "0.25% only when a supported action completes successfully.",
-      "utility-first",
     ],
   },
 ];
@@ -548,21 +537,7 @@ Vanta's traction-stage pricing is simple:
 - network, off-ramp, and third-party execution costs stay separate when they apply
 ```
 
-- [ ] **Step 4: Add the same pricing truth to `SUBMISSION.md`**
-
-```md
-### Pricing
-
-Vanta is designed to be easy to try:
-
-- `0 monthly fee`
-- `0.25%` only when a supported action completes successfully
-- pass-through network, off-ramp, and third-party execution costs remain separate
-
-The `$VANTA` roadmap remains utility-first rather than token-first.
-```
-
-- [ ] **Step 5: Add a compact pricing verify script**
+- [ ] **Step 4: Add a compact pricing verify script**
 
 ```json
 {
@@ -584,7 +559,7 @@ Expected:
 - [ ] **Step 7: Commit**
 
 ```bash
-git add README.md SUBMISSION.md scripts/check-vanta-pay-doc-truth.mjs package.json
+git add README.md scripts/check-vanta-pay-doc-truth.mjs package.json
 git commit -m "docs: align pricing contract across docs and verification"
 ```
 

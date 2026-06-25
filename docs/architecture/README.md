@@ -14,7 +14,6 @@ This diagram is the current one-page visual for Vanta's constrained real mainnet
 It is intended for:
 
 - `README` embeds
-- `SUBMISSION` materials
 - demo slides
 - one-page architecture overviews
 

@@ -90,6 +90,7 @@ export type LiveSwapCanonicalRecord = {
   recordId: string;
   source: "live_swap_v1";
   createdAt: number;
+  browserLocalProofReceipt?: VantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt;
   lifecycleLinkage?: CanonicalLifecycleRecordLinkage;
   liveSwap: {
     owner: string;
@@ -171,6 +172,10 @@ export type LiveSwapDiagnosticsSummary = {
   transitionNoteId: string;
   spentMarkerSignature?: string;
   operatorRequestId?: string;
+  proofReceiptId?: string;
+  proofBackend?: string;
+  proofSystem?: string;
+  proofPublicInputCommitment?: string;
   venueSummary: string;
   quoteId: string;
   storageRole: PrivatePoolV2ShieldedStateDiagnostic["storageRole"];
@@ -487,6 +492,11 @@ export function listCanonicalSwapDiagnosticsSummaries(): LiveSwapDiagnosticsSumm
       transitionNoteId: record.liveSwap.transitionNoteId,
       spentMarkerSignature: record.liveSwap.spentMarkerSignature,
       operatorRequestId: record.liveSwap.operatorRequestId,
+      proofReceiptId: record.browserLocalProofReceipt?.proofReceipt.receiptId,
+      proofBackend: record.browserLocalProofReceipt?.proofReceipt.proofBackend,
+      proofSystem: record.browserLocalProofReceipt?.proofReceipt.proofSystem,
+      proofPublicInputCommitment:
+        record.browserLocalProofReceipt?.proofReceipt.publicInputCommitment,
       venueSummary: `${record.liveSwap.venueName} ${record.liveSwap.venueFamily} · ${record.liveSwap.venueNetwork}`,
       quoteId: record.liveSwap.quoteId,
       storageRole:
@@ -672,6 +682,7 @@ export function persistCanonicalSwapBrowserLocalProofReceipt({
 function normalizeLiveSwapRecordForPersistence(record: LiveSwapCanonicalRecord): LiveSwapCanonicalRecord {
   return {
     ...record,
+    browserLocalProofReceipt: record.browserLocalProofReceipt,
     liveSwap: {
       ...record.liveSwap,
       minOutputAmountDisplay:

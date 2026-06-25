@@ -63,9 +63,12 @@ function hashLeaf(record) {
   );
 }
 
+const fetchTimeoutMs = 5_000;
+
 async function requestJson(path, options = {}) {
   const response = await fetch(`${baseUrl}${path}`, {
     ...options,
+    signal: options.signal ?? AbortSignal.timeout(fetchTimeoutMs),
     headers: {
       "Content-Type": "application/json",
       ...(options.headers ?? {}),
@@ -86,6 +89,7 @@ async function requestJson(path, options = {}) {
 async function requestJsonAt(base, path, options = {}) {
   const response = await fetch(`${base}${path}`, {
     ...options,
+    signal: options.signal ?? AbortSignal.timeout(fetchTimeoutMs),
     headers: {
       "Content-Type": "application/json",
       ...(options.headers ?? {}),
@@ -103,10 +107,10 @@ async function requestJsonAt(base, path, options = {}) {
   return { headers: response.headers, ok: response.ok, parsed, status: response.status, text };
 }
 
-async function waitForHealth() {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+async function waitForHealthAt(targetBaseUrl, label = "Private Pool V2 operator") {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
     try {
-      const response = await requestJson("/health");
+      const response = await requestJsonAt(targetBaseUrl, "/health");
       if (response.ok) {
         return;
       }
@@ -117,7 +121,11 @@ async function waitForHealth() {
     await sleep(250);
   }
 
-  throw new Error("Private Pool V2 operator did not become healthy.");
+  throw new Error(`${label} did not become healthy at ${targetBaseUrl}.`);
+}
+
+async function waitForHealth() {
+  await waitForHealthAt(baseUrl);
 }
 
 async function waitForExit(child, timeoutMs = 5_000) {
@@ -376,17 +384,7 @@ const authenticatedServer = spawn("node", ["operator/private-pool-v2-server.mjs"
   stdio: ["ignore", "pipe", "pipe"],
 });
 try {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
-    try {
-      const response = await requestJsonAt(authBaseUrl, "/health");
-      if (response.ok) {
-        break;
-      }
-    } catch {
-      // Server still booting.
-    }
-    await sleep(250);
-  }
+  await waitForHealthAt(authBaseUrl, "Private Pool v2 authenticated operator");
 
   const unauthenticatedStatus = await requestJsonAt(authBaseUrl, "/state/private-pool-v2-status");
   assert(unauthenticatedStatus.status === 401, "Expected auth-protected status endpoint.");
@@ -537,17 +535,7 @@ const mainnetUnshieldServer = spawn("node", ["operator/private-pool-v2-server.mj
   stdio: ["ignore", "pipe", "pipe"],
 });
 try {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
-    try {
-      const response = await requestJsonAt(mainnetUnshieldBaseUrl, "/health");
-      if (response.ok) {
-        break;
-      }
-    } catch {
-      // Server still booting.
-    }
-    await sleep(250);
-  }
+  await waitForHealthAt(mainnetUnshieldBaseUrl, "Private Pool v2 mainnet unshield operator");
 
   const directUnshield = await requestJsonAt(mainnetUnshieldBaseUrl, "/unshield", {
     body: JSON.stringify({

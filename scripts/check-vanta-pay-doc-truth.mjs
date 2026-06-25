@@ -26,22 +26,12 @@ const docChecks = [
   {
     path: "README.md",
     required: [
-      "a `/app/pay` Vanta Pay Suite preview focused on payment creation, hosted/embedded/modal checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, and beta state",
+      "a `/app/pay` merchant preview lane: payment creation, checkout modes, settlement records, refunds, withdrawals, reconciliation, receipt preview, and beta/no-funds disclosure — verifiable through Pay commands, but still preview-only",
+      "**Pay** is one bounded merchant lane among several — a preview for payment requests, checkout modes, settlement records, and verifiable receipts. It is not the headline product.",
       "Pay with Vanta",
       "0 monthly fee",
       "0.25%` only when Pay, Shield, Send, Swap, or Unshield completes successfully",
       "network, off-ramp, and third-party execution costs stay separate when they apply",
-      "Net Vanta-collected fees are reserved for ecosystem growth, including supply buybacks, marketing, operator infrastructure, security, and product development.",
-    ],
-  },
-  {
-    path: "SUBMISSION.md",
-    required: [
-      "The Pay demo focuses on a simple merchant question",
-      "payment creation, checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, and beta disabled state",
-      "0 monthly fee",
-      "0.25%` only when Pay, Shield, Send, Swap, or Unshield completes successfully",
-      "utility-first",
       "Net Vanta-collected fees are reserved for ecosystem growth, including supply buybacks, marketing, operator infrastructure, security, and product development.",
     ],
   },

@@ -1,3 +1,4 @@
+import { isRecord } from "../isRecord";
 import { chacha20poly1305 } from "@noble/ciphers/chacha.js";
 import { x25519 } from "@noble/curves/ed25519.js";
 import { hkdf } from "@noble/hashes/hkdf";
@@ -2062,10 +2063,6 @@ function compareSourceEnvelopeField(
   }
 
   return envelopeValue === expectedValue ? "Aligned" : "Mismatch";
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 function getErrorMessage(error: unknown): string {

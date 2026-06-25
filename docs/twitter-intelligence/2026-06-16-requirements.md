@@ -166,7 +166,7 @@ Limitation: this is not FHE implementation, not post-quantum security, not quant
 
 Source label: `pasted-brief-backed` plus `cron-output-backed` Helius/ZkMedusa context and `prior momentum-bank-backed support` from Helius/Light, Arcium/ZINC, Zcash/privacy narrative, Privacy Cash volume, and fair-launch/revenue-recycle items.
 
-The supporting items are useful as positioning and prioritization signals, not as Vanta proof. Helius/Light, Arcium, Zcash/privacy narratives, hackathons, Privacy Cash traction, Streamflow locks, fair launch mechanics, and revenue recycle patterns should sharpen Vanta's roadmap discipline:
+The supporting items are useful as positioning and prioritization signals, not as Vanta proof. Helius/Light, Arcium, Zcash/privacy narratives, Privacy Cash traction, Streamflow locks, fair launch mechanics, and revenue recycle patterns should sharpen Vanta's roadmap discipline:
 
 - ship real proof artifacts before narrative expansion
 - keep local proving and receipts as the differentiator

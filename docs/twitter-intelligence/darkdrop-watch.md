@@ -13,7 +13,7 @@ DarkDrop's credit-note / dead-drop design gives Vanta a concrete alternative to 
 3. ZK proof creates a credit-note.
 4. withdrawal path hides amounts/timing and, per the run, uses direct lamport manipulation rather than a visible Transfer instruction.
 
-The run describes V2 on devnet with SOL + USDC, trusted setup upcoming, audits pending, and Colosseum submission context.
+The run describes V2 on devnet with SOL + USDC, trusted setup upcoming, and audits pending.
 
 ## Vanta Interpretation
 

@@ -2,14 +2,14 @@
 
 **Shield first. Move privately.**
 
-Vanta is a shield-first privacy app for supported Solana assets.
+Vanta is a shield-first beta privacy app for supported Solana assets.
 
 The simple version:
 
 - Normal Solana wallets are public.
-- Vanta lets supported assets move into a more private Vanta area.
-- From there, the app can support private actions like send, swap, and exit.
-- Vanta Pay applies the same idea to merchants: create and review payment requests, inspect settlement records, and keep beta limits visible.
+- Vanta lets supported assets move into a more private Vanta area through Shield.
+- From there, the app exposes constrained private-core lanes: Send, Swap, and Unshield.
+- Additional preview lanes include Pay (merchant checkout and settlement records), Strategy (planning), Proof (trust packets), and product workbenches on `/products`.
 
 The honest status:
 
@@ -21,19 +21,25 @@ The honest status:
 If you only read one thing, read this mental model:
 
 ```text
-Public Wallet -> Shield -> Private Vanta Area -> Send / Swap / Pay -> Unshield
+Public Wallet -> Shield -> Private Vanta Area -> Send / Swap / Unshield
+                                              -> Pay / Strategy / Proof (preview lanes)
 ```
 
 ---
 
 ## What Normal People Should Know
 
-Vanta has two user-facing paths:
+The app at `/app` is shield-first. Primary tabs are **Shield**, **Send**, **Swap**, and **Unshield**. The **More** menu adds **Pay**, **Strategy**, **Proof**, **Recovery**, and **Launch** preview surfaces.
 
-- **Vanta Portal** is for wallet users. It explains how assets enter Vanta, move through supported private actions, and leave again.
-- **Vanta Pay** is for payments. The visible app tab stays focused on the few details needed to create and review a payment request, while the backend keeps merchant settlement, refund, withdrawal, reconciliation, and receipt contracts verifiable.
+- **Shield / Send / Swap / Unshield** are the core private-settlement lanes. They move supported assets into Vanta, act inside shielded state, and exit again when needed.
+- **Pay** is one bounded merchant lane among several — a preview for payment requests, checkout modes, settlement records, and verifiable receipts. It is not the headline product.
+- **Strategy**, **Proof**, **`/products`**, and **`/receipt/:receiptId`** are additional beta or reviewer surfaces for planning, trust packets, product workbenches, and counterparty receipt checks.
 
-The app also includes reviewer and operator surfaces. Those are for people checking whether the claims are true. They should not leak into normal user copy.
+Docs at `/docs` explain the same lanes in plainer language. `/docs/portal` is a docs track name for the shield-first wallet flow — not a separate app users open instead of `/app`.
+
+Reviewer and operator surfaces stay separate from normal user copy. They exist so claims can be checked, not so every user learns protocol vocabulary.
+
+Vanta grows when private actions produce receipts or trust packets that counterparties can inspect — not when privacy stays abstract.
 
 ## What Works Today
 
@@ -42,14 +48,13 @@ Today, Vanta is a constrained development system, not a finished network.
 Working or inspectable today:
 
 - wallet connection and public balance detection
-- shield flows for supported mainnet assets
-- shielded state inside Vanta
-- constrained send, swap, and unshield paths
-- a `/app/pay` Vanta Pay Suite preview focused on payment creation, hosted/embedded/modal checkout modes, payment links, invoices, subscriptions, refunds, withdrawals, reconciliation, developer controls, route preview, receipt preview, transaction evidence, and beta state
-- the real `/app/pay` tab is a Merchant Command Center preview: payment creation first, with suite modes, trust rail, beta/no-funds disclosure, privacy-readiness limitation, and read-only operations context
-- Pay with Vanta checkout and merchant API preview flows
-- Pay status, approval, settlement, refund, withdrawal, reconciliation, and receipt contracts remain verifiable through commands
-- proof and operator checks for the current narrow private-core lane
+- shield flows for supported mainnet assets and shielded state inside Vanta
+- constrained send, swap, and unshield paths backed by the narrow private-core operator lane
+- proof and operator checks for that private-core lane, plus Private Pool v2 benchmark seams
+- app tabs for Shield, Send, Swap, Unshield, Strategy preview, Proof/trust packets, recovery settings, and dashboard diagnostics
+- `/products` workbench surfaces (Compliance Gateway, Private Perps Engine, Shielded RWA Tokenization, Privacy SDK marketplace, Private Velocity Intelligence) with redacted trust-packet generation
+- public receipt verification at `/receipt/:receiptId`
+- a `/app/pay` merchant preview lane: payment creation, checkout modes, settlement records, refunds, withdrawals, reconciliation, receipt preview, and beta/no-funds disclosure — verifiable through Pay commands, but still preview-only
 - repo-local proof-artifact handoff checks that reject relabelled local metadata and remote verifier receipt transcript drift without claiming a live proof service
 - verification commands that keep the repo honest about what is still unfinished
 
@@ -83,9 +88,11 @@ It means supported assets leave the normal public-wallet flow and enter Vanta's 
 
 ## Where To Start
 
-- Product docs: `/docs`
-- App shell: `/app`
-- Pay demo: `/app/pay`
+- App shell (Shield first): `/app` → `/app/shield`
+- Product docs: `/docs` (shield-first wallet flow at `/docs/portal`; Pay docs at `/docs/pay`)
+- Product workbenches: `/products`
+- Merchant Pay preview: `/app/pay`
+- Trust and receipt checks: `/app/proof`, `/receipt/:receiptId`
 - Security limits: `SECURITY_LIMITATIONS.md`
 - Audit handoff: `docs/audit-package.md`
 - Operator runbook: `docs/operator-runbook.md`
@@ -107,21 +114,15 @@ The detailed command lists below are for engineers and reviewers.
 ## Routes
 
 - `/` marketing homepage
-- `/docs`
-- `/docs/portal`
-- `/docs/pay`
-- `/docs/trust`
-- `/docs/security`
-- `/docs/pricing`
-- `/docs/roadmap`
-- `/app` app shell entry
-- `/app/shield`
-- `/app/send`
-- `/app/swap`
-- `/app/strategy`
-- `/app/unshield`
-- `/app/pay`
-- `/app/launch`
+- `/manifesto`
+- `/products` and `/products/:productSlug`
+- `/docs`, `/docs/portal`, `/docs/pay`, `/docs/trust`, `/docs/security`, `/docs/roadmap`
+- `/app` app shell (defaults to Shield)
+- `/app/dashboard`
+- `/app/shield`, `/app/send`, `/app/swap`, `/app/unshield` (primary tabs)
+- `/app/pay`, `/app/strategy`, `/app/proof`, `/app/launch` (More menu / preview lanes)
+- `/app/settings/recovery`, `/app/privacy-review`, `/app/actual-private-settlement`
+- `/receipt/:receiptId`
 
 ---
 
@@ -164,21 +165,21 @@ npm run build
 npm run preview
 ```
 
-## Demo-Day Proof Points
+## Reviewer proof points
 
-If you need the shortest honest command set for a reviewer, judge, or demo partner, use:
+If you need the shortest honest command set for a reviewer, operator, or design partner, use:
 
 ```bash
 npm run build
 npm run protocol:browser-check
-npm run pay:verify
 npm run private-core:demo-preflight
+npm run pay:verify
 npm run truth:transaction-check
 npm run mainnet:transaction-evidence-check
 npm run mainnet:readiness-check
 ```
 
-These commands prove the current app compiles, the user-facing surfaces render, the Pay control plane stays aligned with its trust surfaces, the private-core proof lane is demo-ready, transaction language is bounded by current implementation truth, and the repo is still honest about not being production-ready yet.
+These commands prove the current app compiles, primary and preview user surfaces render, the private-core proof lane is demo-ready, Pay preview contracts stay aligned with trust surfaces where implemented, transaction language is bounded by current implementation truth, and the repo is still honest about not being production-ready yet.
 
 `Transaction Evidence v0.1` is a reviewer-facing trace for current mainnet, local, preview, and operator-harness flows. It can name transaction summaries, simulation/approval requirements, signatures or operator request ids when present, confirmation status when present, and proof/root/nullifier or settlement receipt linkage when present. It is not mainnet finality, audit approval, custody proof, live privacy proof, or production settlement.
 
@@ -787,22 +788,20 @@ The live operator summary layers dynamic verifier-side state on top of that cont
 ## What's in this repository
 
 This repository currently contains:
-- a polished landing page
-- a modular application experience
-- Shield as the primary entrypoint into the suite
-- Send as the first workflow unlocked by shielded state
-- an app-path Vanta Private Core send-proof check inside the Send experience
-- shared app-level continuity between Shield and Send
+- a polished landing page, manifesto, and `/products` catalog
+- a modular app shell with Shield-first primary tabs and preview lanes in More
+- Shield, Send, Swap, and Unshield as the core private-settlement workflow
+- shared app-level continuity between Shield, Send, Swap, and Unshield
 - a constrained real mainnet protocol path for `USDC`
 - direct native SOL shield entry into shielded SOL state
 - authenticated operator-backed Unshield for `USDC` and `SOL`
 - a constrained one-way live `USDC -> SOL` swap lane
 - a standalone Vanta Private Core proof lane with operator-backed verification
-- roadmap framing for Swap, Pay, and broader Vanta expansion
+- Private Pool v2 benchmark seams, Proof/trust-packet surfaces, and Pay/Strategy preview lanes
 
 The current implementation is intentionally product-led. It focuses on:
-- clear user understanding
-- coherent privacy flow
+- clear user understanding of shield-first private lanes
+- coherent privacy flow and counterparty-verifiable receipts where implemented
 - strong visual system
 - extensible structure for stronger future protocol integration
 
@@ -820,13 +819,8 @@ The current implementation is intentionally product-led. It focuses on:
 
 ## Additional materials
 
-For hackathon positioning, proof records, demo scripts, FAQ, and submission-ready descriptions, see:
-
-`SUBMISSION.md`
-
-For the current private-core proof/demo lane runbook, see:
-
-`docs/zk/vanta-private-core-demo-runbook.md`
+- Private-core demo runbook: `docs/zk/vanta-private-core-demo-runbook.md`
+- ZK v1 shipping decision: `docs/zk/vanta-zk-v1-shipping-decision.md`
 
 ---
 
@@ -834,4 +828,4 @@ For the current private-core proof/demo lane runbook, see:
 
 If someone asks what Vanta is, the shortest correct answer is:
 
-> Vanta is a shield-first privacy app for Solana that lets users move supported assets out of public wallet flows and use them through private workflows beginning with send.
+> Vanta is a shield-first beta privacy app for Solana. Users move supported assets out of public wallet flows, use them through constrained private lanes (Send, Swap, Unshield), and can share verifiable receipts where implemented. Pay is one preview lane among several — not the whole product.

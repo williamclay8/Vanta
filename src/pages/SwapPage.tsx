@@ -54,6 +54,7 @@ import {
   requestVantaPrivatePoolV2ProtocolSettlement,
   type VantaProtocolSettlementResponse,
 } from "@/privacy/privatePoolV2ProtocolSettlementClient";
+import { createVantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt } from "@/privacy/privatePoolV2SwapToShieldedBrowserReceipt";
 import { evaluateVantaPrivatePoolV2SwapActionContract } from "@/privacy/privatePoolV2ProductActionContract";
 import { createVantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt } from "@/privacy/privatePoolV2SwapToShieldedBrowserReceipt";
 import {
@@ -1853,13 +1854,25 @@ export function SwapPage() {
           : "Route adapter default",
       }
     : null;
+  const selectedSwapBrowserLocalProofReceipt = useMemo(() => {
+    const recordId = selectedRecentSwapSummary?.recordId ?? lastSwapSummary?.recordId;
+    if (!recordId) {
+      return null;
+    }
+
+    return findCanonicalSwapRecord(recordId)?.browserLocalProofReceipt ?? null;
+  }, [lastSwapSummary?.recordId, recentSwapSummaries, selectedRecentSwapSummary?.recordId]);
+  const observedSwapProtocolSettlement =
+    lastSwapProtocolSettlement ??
+    selectedSwapBrowserLocalProofReceipt?.protocolSettlementResponse ??
+    null;
   const swapProductActionContract = useMemo(() => {
-    const swapProtocolReceipt = lastSwapProtocolSettlement?.protocolSettlementReceipt ?? null;
+    const swapProtocolReceipt = observedSwapProtocolSettlement?.protocolSettlementReceipt ?? null;
     const swapCommittedSettlementReceipt =
       swapProtocolReceipt?.economicsMode === "committed-economics"
         ? swapProtocolReceipt
         : null;
-    const swapProofReceipt = lastSwapProtocolSettlement?.proofReceipt ?? null;
+    const swapProofReceipt = observedSwapProtocolSettlement?.proofReceipt ?? null;
     const swapProtocolSettlementReceiptBound =
       swapProtocolReceipt?.action === "swap" &&
       swapProtocolReceipt.status === "confirmed" &&
@@ -1906,8 +1919,8 @@ export function SwapPage() {
   }, [
     exactSpendableNote,
     isQuoteFresh,
-    lastSwapProtocolSettlement,
     lastSwapSummary,
+    observedSwapProtocolSettlement,
     status,
   ]);
 

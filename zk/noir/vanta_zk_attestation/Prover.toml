@@ -1,0 +1,16 @@
+# Witnesses for vanta_zk_attestation (T9)
+# Private: enclave_metadata, action_proof, location_hash, identity_blind, blinding
+# Public: threshold, expected_enclave, payout_threshold, commitment, period_start, period_end
+
+enclave_metadata = 123456789
+action_proof = 987654321
+location_hash = 444444444
+identity_blind = 222222222
+blinding = 111111111
+
+threshold = 100
+expected_enclave = 123456789
+payout_threshold = 50
+commitment = 0
+period_start = 20260601
+period_end = 20260630

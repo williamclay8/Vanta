@@ -1,0 +1,16 @@
+# Witnesses for vanta_privacy_native_defi (T8)
+# Private: private_flow_hash, composable_flag, verifiable_exec, selective_attr, blinding
+# Public: threshold, expected_flow, composable_threshold, commitment, period_start, period_end
+
+private_flow_hash = 777777777
+composable_flag = 1
+verifiable_exec = 1
+selective_attr = 1
+blinding = 111111111
+
+threshold = 100
+expected_flow = 777777777
+composable_threshold = 1
+commitment = 0
+period_start = 20260601
+period_end = 20260630

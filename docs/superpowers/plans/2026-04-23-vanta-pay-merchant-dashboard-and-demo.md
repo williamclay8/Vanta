@@ -6,7 +6,7 @@
 
 **Architecture:** Extend the real Pay page and its existing trust/lifecycle surfaces instead of creating a separate dashboard product. First strengthen the merchant operations summary, then deepen refund/withdraw/reconciliation detail states, then add a design-partner/demo layer that reuses shared content across the Pay UI and supporting docs.
 
-**Tech Stack:** React + TypeScript, existing Pay page/components, Node `.mjs` browser/status checks, Vite build, docs/readme/submission markdown
+**Tech Stack:** React + TypeScript, existing Pay page/components, Node `.mjs` browser/status checks, Vite build, docs/readme markdown
 
 ---
 
@@ -29,8 +29,6 @@
   - Reflect the stronger merchant dashboard and detail state story.
 - `README.md`
   - Mention the richer Pay demo/control-plane surface.
-- `SUBMISSION.md`
-  - Keep the hackathon story aligned with the upgraded Pay experience.
 
 ---
 
@@ -192,7 +190,6 @@ Expected:
 - Modify: `src/pages/PayPage.tsx`
 - Modify: `docs/pay-merchant-trust-surface.md`
 - Modify: `README.md`
-- Modify: `SUBMISSION.md`
 - Modify: `scripts/check-vanta-pay-browser.mjs`
 
 - [ ] **Step 1: Add the failing browser assertions**
@@ -228,7 +225,7 @@ export const VANTA_PAY_MERCHANT_DEMO_CONTENT = {
 </aside>
 ```
 
-- [ ] **Step 5: Align docs and submission language**
+- [ ] **Step 5: Align docs and public messaging**
 
 ```md
 The real Pay demo now shows:

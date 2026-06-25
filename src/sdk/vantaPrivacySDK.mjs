@@ -98,6 +98,42 @@ export const VANTA_REAL_NOIR_ADAPTERS = {
     verificationCommand: "npm run zk:agent-spending-limit-circuit-check",
     claimBoundary: "beta-real-zk-circuits-not-production-private-or-onchain-ready",
   },
+  verifiableComputeHybrid: {
+    adapterId: "vanta-verifiable-compute-hybrid-noir-v0.1",
+    circuitPath: "zk/noir/vanta_verifiable_compute_hybrid",
+    proofMode: "real-noir-adapter-interface-only",
+    publicInputs: ["threshold", "expected_enclave_hash", "commitment", "period_start", "period_end"],
+    privateInputs: ["proof_hash", "enclave_metadata", "agent_memory_root", "blinding"],
+    verificationCommand: "npm run verifiable-compute-benchmark-check",
+    claimBoundary: "beta-real-zk-circuits-not-production-private-or-onchain-ready",
+  },
+  zkAttestation: {
+    adapterId: "vanta-zk-attestation-noir-v0.1",
+    circuitPath: "zk/noir/vanta_zk_attestation",
+    proofMode: "real-noir-adapter-interface-only",
+    publicInputs: ["threshold", "expected_enclave", "payout_threshold", "commitment", "period_start", "period_end"],
+    privateInputs: ["enclave_metadata", "action_proof", "location_hash", "identity_blind", "blinding"],
+    verificationCommand: "npm run zk-attestation-check",
+    claimBoundary: "beta-real-zk-circuits-not-production-private-or-onchain-ready",
+  },
+  agentPrivateStack: {
+    adapterId: "vanta-agent-private-stack-noir-v0.1",
+    circuitPath: "zk/noir/vanta_agent_private_stack",
+    proofMode: "real-noir-adapter-interface-only",
+    publicInputs: ["threshold", "expected_memory", "limit_threshold", "commitment", "period_start", "period_end"],
+    privateInputs: ["agent_memory_root", "gpu_compute_flag", "spending_limit", "human_approval", "blinding"],
+    verificationCommand: "npm run agent-private-stack-check",
+    claimBoundary: "beta-real-zk-circuits-not-production-private-or-onchain-ready",
+  },
+  privacyNativeDefi: {
+    adapterId: "vanta-privacy-native-defi-noir-v0.1",
+    circuitPath: "zk/noir/vanta_privacy_native_defi",
+    proofMode: "real-noir-adapter-interface-only",
+    publicInputs: ["threshold", "expected_flow", "composable_threshold", "commitment", "period_start", "period_end"],
+    privateInputs: ["private_flow_hash", "composable_flag", "verifiable_exec", "selective_attr", "blinding"],
+    verificationCommand: "npm run privacy-native-defi-check",
+    claimBoundary: "beta-real-zk-circuits-not-production-private-or-onchain-ready",
+  },
 };
 
 export function generateBlinding() {
