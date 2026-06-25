@@ -102,6 +102,25 @@ const requiredFiles = [
     ],
   },
   {
+    path: "src/privacy/privatePoolV2ActualPrivateSpendRuntimeProofService.ts",
+    exports: [
+      "VANTA_PRIVATE_POOL_V2_ACTUAL_PRIVATE_SPEND_RUNTIME_PROOF_SERVICE_SCHEME",
+      "VantaPrivatePoolV2ActualPrivateSpendRuntimeProofService",
+      "createVantaPrivatePoolV2ActualPrivateSpendRuntimeProofService",
+    ],
+  },
+  {
+    path: "src/privacy/privatePoolV2ProductActionContract.ts",
+    exports: [
+      "VANTA_PRIVATE_POOL_V2_PRODUCT_ACTION_CONTRACT_VERSION",
+      "VANTA_PRIVATE_POOL_V2_PRODUCT_ACTION_CONTRACT",
+      "VANTA_PRIVATE_POOL_V2_PRODUCT_ACTION_CONTRACT_ADOPTION",
+      "evaluateVantaPrivatePoolV2SendActionContract",
+      "evaluateVantaPrivatePoolV2SwapActionContract",
+      "evaluateVantaPrivatePoolV2UnshieldActionContract",
+    ],
+  },
+  {
     path: "src/privacy/privatePoolV2LocalVerifierRegistry.ts",
     exports: [
       "VANTA_PRIVATE_POOL_V2_LOCAL_VERIFIER_REGISTRY_SCHEME",
@@ -1039,6 +1058,34 @@ const requiredTextFiles = [
     ],
   },
   {
+    path: "scripts/check-vanta-private-pool-v2-product-action-contract.mjs",
+    markers: [
+      "legacy-local-transition-not-production-private",
+      "local-proof-bound-not-production-private",
+      "swap-beta-route-not-private",
+      "public-operator-release-not-private",
+      "actual-private-spend-runtime-proof-service-ready",
+      "evaluateVantaPrivatePoolV2SwapActionContract",
+      "swap-to-shielded-proof-receipt-present",
+      "committed-swap-settlement-terms-ready",
+      "operator-swap-authorization-present",
+      "protocol-settlement-receipt-bound",
+      "no-witness-proof-receipt-ready",
+      "output-commitment-bound",
+      "resulting-root-recorded",
+      "owner-approved-production-scope",
+      "programmatic-production-private-ready",
+      "programmatic-privacy-claim-allowed",
+      "programmatic-mainnet-ready",
+      "send-swap-unshield-ui-authoritative",
+      "evaluator-authoritative",
+      "program-tag-unshield-pda-cpi-fail-closed",
+      "privateCoreSendExecution.status === \\\"verified\\\"",
+      "not-live-mainnet-settlement",
+      "Vanta Private Pool v2 product action contract check: PASS",
+    ],
+  },
+  {
     path: "scripts/check-vanta-private-pool-v2-solana-spend-transaction-builder.mjs",
     markers: [
       "requires exactly 8 spend accounts",
@@ -1205,6 +1252,7 @@ const requiredPackageScripts = [
   "private-pool-v2:actual-private-spend-witness-prover-check",
   "private-pool-v2:send-witness-prover-check",
   "private-pool-v2:browser-worker-prover-check",
+  "private-pool-v2:actual-private-spend-runtime-proof-service-check",
   "private-pool-v2:mock-proof-boundary-check",
   "private-pool-v2:shield-proof-request-check",
   "private-pool-v2:send-proof-request-check",
@@ -1232,6 +1280,7 @@ const requiredPackageScripts = [
   "private-pool-v2:send-proof-artifact-consistency-check",
   "private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
   "private-pool-v2:send-operator-no-witness-check",
+  "private-pool-v2:product-action-contract-check",
   "private-pool-v2:swap-to-shielded-prove",
   "private-pool-v2:actual-private-spend-prove",
   "private-pool-v2:claim-prove",
@@ -1287,6 +1336,7 @@ const requiredVerifyScripts = [
   "npm run private-pool-v2:send-proof-artifact-consistency-check",
   "npm run private-pool-v2:actual-private-spend-proof-artifact-consistency-check",
   "npm run private-pool-v2:send-operator-no-witness-check",
+  "npm run private-pool-v2:product-action-contract-check",
   "npm run swap:economics-binding-check",
   "npm run private-pool-v2:sbf-abi-check",
   "npm run private-pool-v2:root-provenance-check",
@@ -1346,6 +1396,16 @@ for (const scriptCall of requiredVerifyScripts) {
   if (!packageJson.scripts?.["private-pool-v2:verify"]?.includes(scriptCall)) {
     failures.push(`private-pool-v2:verify must include ${scriptCall}`);
   }
+}
+
+if (
+  !packageJson.scripts?.["private-pool-v2:proof-backend-boundary-check"]?.includes(
+    "npm run private-pool-v2:actual-private-spend-runtime-proof-service-check",
+  )
+) {
+  failures.push(
+    "private-pool-v2:proof-backend-boundary-check must include actual-private-spend runtime proof-service check",
+  );
 }
 
 if (!packageJson.scripts?.["private-pool-v2:crucible-check"]?.includes("npm run private-pool-v2:sbf-abi-check")) {

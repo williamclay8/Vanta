@@ -1,4 +1,5 @@
 import { argon2idAsync } from "@noble/hashes/argon2.js";
+import { isRecord } from "../isRecord";
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -267,10 +268,6 @@ function isPrivateVaultPayloadEnvelope(value: unknown): value is PrivateVaultPay
     isByteArrayLike(value.iv, 12) &&
     isByteArrayLike(value.ciphertext)
   );
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 function hasValidKdfIterations(

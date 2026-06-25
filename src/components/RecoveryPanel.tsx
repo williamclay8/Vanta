@@ -95,7 +95,7 @@ export function RecoveryPanel({
         ))}
         <div className="recovery-panel__actions">
           <button
-            className="button button-ghost"
+            className="button button-secondary"
             type="button"
             disabled={!canExportRecordSource}
             onClick={onExportRecordSource}
@@ -103,7 +103,7 @@ export function RecoveryPanel({
             Export record source
           </button>
           <button
-            className="button button-ghost"
+            className="button button-secondary"
             type="button"
             disabled={!canVerifyRecordSource}
             onClick={onVerifyRecordSource}
@@ -137,7 +137,7 @@ export function RecoveryPanel({
         )}
         <div className="recovery-panel__actions">
           <button
-            className="button button-ghost"
+            className="button button-secondary"
             type="button"
             disabled={!canShowBackup}
             onClick={onShowBackup}
@@ -145,7 +145,7 @@ export function RecoveryPanel({
             Show backup
           </button>
           <button
-            className="button button-ghost"
+            className="button button-secondary"
             type="button"
             disabled={!canRestoreBackup}
             onClick={onRestoreBackup}

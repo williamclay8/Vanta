@@ -46,6 +46,7 @@ const sourceFiles = [
   "tokens/vantaTokenCatalog.ts",
   "pay/vantaPayAssets.ts",
   "pay/vantaPayTypes.ts",
+  "pay/vantaPayAmountWindowDisclosure.ts",
   "pay/vantaPayCommittedCheckoutAcceptance.ts",
   "pay/vantaPayCounterpartyActivation.ts",
   "pay/vantaPayGrowthLoopEvidence.ts",

@@ -77,7 +77,22 @@ The first implemented Pay primitive is a receipt-scoped selective-disclosure rec
 - disclosed scope: one Pay receipt, its status, amount/asset, invoice reference, redacted settlement/audit prefixes, claim boundary, and verification commands
 - redacted scope: customer email value, full private rail receipt id, full audit disclosure id, private inputs, witness data, and full transaction history
 
+The first repo-local amount/window evidence shape now rides inside that receipt:
+
+- schema: `vanta-pay-amount-window-disclosure-v0.1`
+- purpose: receipt-bound amount-and-window selective disclosure
+- predicates: `amountAboveThreshold`, `disclosureWindowActive`
+- current scope: supported threshold bucket floor plus `receipt-created-at-plus-7d` disclosure window
+- verification commands: `npm run pay:institutional-disclosure-receipt-check`, `npm run compliance:gateway-check`, `npm run pay:committed-checkout-acceptance-check`
+
 This keeps the institutional lane concrete while preserving beta truth: it is a trust-packet primitive, not live institutional adoption, production privacy, or legal/compliance approval.
+
+2026-06-07 Codex intake:
+
+- source pack: `/Users/clay/Desktop/Vanta Vault/02 Projects/Selective-Disclosure-Primitive-Spec-v0.2.md`, `/Users/clay/Desktop/Vanta Vault/02 Projects/Institutional-Settlement-Lane-Plan-Updated-2026-06-07.md`, and `/Users/clay/Desktop/Vanta Vault/02 Projects/Codex-Handoff-Institutional-Settlement-Lane-2026-06-07.md`
+- useful update: the market direction is strong enough to keep T3 active, but the first repo slice should be one proof primitive and one trust-packet/evidence shape, not a broad regulator dashboard or full Solana verifier launch
+- recommended first primitive: amount/window threshold disclosure for a single receipt or committed Private Pool v2 action, because it maps directly to existing Pay receipt disclosure and usage velocity gates
+- still blocked from claim lift: live institutional volume, regulator approval, legal/compliance assurance, production privacy, mainnet readiness, and audited verifier acceptance
 
 ## Hybrid ZK Direction
 

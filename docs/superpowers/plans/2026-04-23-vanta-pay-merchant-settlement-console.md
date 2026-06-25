@@ -4,7 +4,7 @@
 
 **Goal:** Make the real Pay checkout feel like a merchant settlement console with balances, payout state, receipts, and reconciliation records while preserving the existing merchant-trust story.
 
-**Architecture:** Introduce one typed merchant-console summary module in `src/pay/` and render it directly on the real Pay checkout surface. Strengthen the browser-backed verification against the new console copy and records, then align the merchant trust doc, README, and submission framing so they describe the same product truth.
+**Architecture:** Introduce one typed merchant-console summary module in `src/pay/` and render it directly on the real Pay checkout surface. Strengthen the browser-backed verification against the new console copy and records, then align the merchant trust doc, README, and public product messaging so they describe the same product truth.
 
 **Tech Stack:** React + TypeScript, existing Pay page/components, Vite, Node `.mjs` browser checks, markdown docs
 
@@ -29,8 +29,6 @@
   - Document the merchant settlement console and its typed summary.
 - `README.md`
   - Mention the richer merchant settlement console in the Pay story.
-- `SUBMISSION.md`
-  - Keep the hackathon framing aligned with the live Pay experience.
 
 ---
 
@@ -186,7 +184,6 @@ Expected:
 **Files:**
 - Modify: `docs/pay-merchant-trust-surface.md`
 - Modify: `README.md`
-- Modify: `SUBMISSION.md`
 
 - [x] **Step 1: Update the docs to describe the live console truth**
 
@@ -261,4 +258,4 @@ Expected:
 
 - More realistic merchant settlement console: covered by Tasks 1 and 2.
 - Concrete balances, payout state, receipts, and reconciliation records: covered by Tasks 1, 2, and 4.
-- Product-truth alignment across Pay UI, docs, README, and submission framing: covered by Task 3.
+- Product-truth alignment across Pay UI, docs, README, and public product messaging: covered by Task 3.

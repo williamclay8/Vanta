@@ -13,6 +13,7 @@ import {
   SWAP_PRIVACY_SUMMARY_ITEMS,
 } from "@/components/swap/swapPanelUtils";
 import type { NotePickerOption } from "@/components/NotePicker";
+import type { VantaPrivatePoolV2ProductActionContractResult } from "@/privacy/privatePoolV2ProductActionContract";
 import { formatAssetAmount, type ShieldedSwapAssetKey } from "@/solana/publicSwapRoute";
 import type { SwapQuote } from "@/solana/swapOperatorClient";
 import type { SolToShieldedRouteQuote } from "@/solana/solToShieldedRouteAdapter";
@@ -58,6 +59,7 @@ export type SwapWorkspaceCardProps = {
   onSelectTargetAsset: (asset: ShieldedSwapAssetKey) => void;
   onSetSwapReceiptModalOpen: (open: boolean) => void;
   parsedAmount: number;
+  productActionContract: VantaPrivatePoolV2ProductActionContractResult;
   quote: ActiveSwapQuote | null;
   quoteProgressPercent: number;
   quoteProgressTone: QuoteCountdownBarTone;
@@ -102,6 +104,7 @@ export function SwapWorkspaceCard({
   onSelectTargetAsset,
   onSetSwapReceiptModalOpen,
   parsedAmount,
+  productActionContract,
   quote,
   quoteProgressPercent,
   quoteProgressTone,
@@ -123,8 +126,22 @@ export function SwapWorkspaceCard({
   swapTargetAssetPickerOptions,
   validationMessage,
 }: SwapWorkspaceCardProps) {
+  const productActionBlocker = productActionContract.blockers[0] ?? "none";
+  const productActionScope = productActionContract.visibleCompletionScope;
+  const swapCompleteTitle = productActionContract.localPrivateCompletionAllowed
+    ? "Swap proof verified"
+    : "Swap route recorded";
+
   return (
-    <article className="send-card send-card--workspace">
+    <article
+      className="send-card send-card--workspace"
+      data-vanta-swap-product-action-local-private={
+        productActionContract.localPrivateCompletionAllowed ? "true" : "false"
+      }
+      data-vanta-swap-product-action-scope={productActionScope}
+      data-vanta-swap-product-action-status={productActionScope}
+      data-vanta-swap-product-action-blocker={productActionBlocker}
+    >
       <div className="shield-card__header">
         <div>
           <span>Choose trade</span>
@@ -236,7 +253,7 @@ export function SwapWorkspaceCard({
             <summary>Privacy summary</summary>
             <PrivacySummary
               items={SWAP_PRIVACY_SUMMARY_ITEMS}
-              note="Swap production privacy is locked until route adapters, verifier-backed settlement, audit, and operator gates pass."
+              note={`Product action scope: ${productActionScope}. Blocker: ${productActionBlocker}. Swap production privacy is locked until route adapters, verifier-backed settlement, audit, and operator gates pass.`}
             />
           </details>
 
@@ -316,14 +333,16 @@ export function SwapWorkspaceCard({
                     : status === "finalizing_state"
                       ? "Finalizing beta route evidence"
                       : status === "complete"
-                        ? "Swap recorded"
+                        ? swapCompleteTitle
                         : "Swap failed"
             }
             message={
               status === "complete" && lastSwapSummary
-                ? `Recorded ${formatAssetAmount(lastSwapSummary.inputAmount, lastSwapSummary.inputAsset)} into ${formatAssetAmount(lastSwapSummary.outputAmount, lastSwapSummary.outputAsset)} with committed receipt checks.`
+                ? productActionContract.localPrivateCompletionAllowed
+                  ? `Proof-bound Swap completed locally; production privacy remains blocked by ${productActionBlocker}.`
+                  : `Recorded ${formatAssetAmount(lastSwapSummary.inputAmount, lastSwapSummary.inputAsset)} into ${formatAssetAmount(lastSwapSummary.outputAmount, lastSwapSummary.outputAsset)}. Product action scope: ${productActionScope}; blocker: ${productActionBlocker}.`
                 : status === "complete"
-                  ? `Recorded ${formatAssetAmount(parsedAmount, selectedSourceAsset)} into shielded ${selectedTargetAsset} (beta route).`
+                  ? `Recorded ${formatAssetAmount(parsedAmount, selectedSourceAsset)} into shielded ${selectedTargetAsset}. Product action scope: ${productActionScope}; blocker: ${productActionBlocker}.`
                 : status === "failed"
                   ? flowError ?? "The swap could not be completed."
                   : status === "authorizing_operator"
@@ -375,6 +394,14 @@ export function SwapWorkspaceCard({
             )}
             {swapBridgeError && status === "complete" && (
               <p className="shield-helper shield-helper--meta">{swapBridgeError}</p>
+            )}
+            {status === "complete" && (
+              <p
+                className="shield-helper shield-helper--meta"
+                data-vanta-swap-product-action-status={productActionScope}
+              >
+                Product action scope: {productActionScope}; blocker: {productActionBlocker}.
+              </p>
             )}
             {status === "complete" && lastSwapSummary && (
               <button

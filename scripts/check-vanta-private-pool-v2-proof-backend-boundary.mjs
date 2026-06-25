@@ -75,8 +75,14 @@ const swapToShieldedBrowserWorkerProverCheck = read(
 const browserWorkerProofResultAdapter = read(
   "src/privacy/privatePoolV2BrowserWorkerProofResultAdapter.ts",
 );
+const actualPrivateSpendRuntimeProofService = read(
+  "src/privacy/privatePoolV2ActualPrivateSpendRuntimeProofService.ts",
+);
 const browserWorkerProofResultAdapterCheck = read(
   "scripts/check-vanta-private-pool-v2-browser-worker-proof-result-adapter.mjs",
+);
+const actualPrivateSpendRuntimeProofServiceCheck = read(
+  "scripts/check-vanta-private-pool-v2-actual-private-spend-runtime-proof-service.mjs",
 );
 const remoteProofArtifactBoundary = read(
   "scripts/check-vanta-private-pool-v2-remote-proof-artifact-boundary.mjs",
@@ -895,7 +901,7 @@ includes(
 
 assert(
   scripts["private-pool-v2:proof-backend-boundary-check"] ===
-    "node scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs && npm run private-pool-v2:browser-worker-prover-check && npm run private-pool-v2:actual-private-spend-browser-worker-prover-check && npm run private-pool-v2:shield-browser-worker-prover-check && npm run private-pool-v2:claim-browser-worker-prover-check && npm run private-pool-v2:swap-to-shielded-browser-worker-prover-check && npm run private-pool-v2:browser-worker-proof-result-adapter-check",
+    "node scripts/check-vanta-private-pool-v2-proof-backend-boundary.mjs && npm run private-pool-v2:actual-private-spend-runtime-proof-service-check && npm run private-pool-v2:browser-worker-prover-check && npm run private-pool-v2:actual-private-spend-browser-worker-prover-check && npm run private-pool-v2:shield-browser-worker-prover-check && npm run private-pool-v2:claim-browser-worker-prover-check && npm run private-pool-v2:swap-to-shielded-browser-worker-prover-check && npm run private-pool-v2:browser-worker-proof-result-adapter-check",
   "package.json must expose private-pool-v2:proof-backend-boundary-check",
 );
 assert(
@@ -907,6 +913,11 @@ assert(
   scripts["private-pool-v2:actual-private-spend-witness-prover-check"] ===
     "node scripts/check-vanta-private-pool-v2-actual-private-spend-witness-prover.mjs",
   "package.json must expose private-pool-v2:actual-private-spend-witness-prover-check",
+);
+assert(
+  scripts["private-pool-v2:actual-private-spend-runtime-proof-service-check"] ===
+    "node scripts/check-vanta-private-pool-v2-actual-private-spend-runtime-proof-service.mjs",
+  "package.json must expose private-pool-v2:actual-private-spend-runtime-proof-service-check",
 );
 assert(
   scripts["private-pool-v2:send-witness-prover-check"] ===
@@ -997,6 +1008,86 @@ includes(
   browserWorkerProofResultAdapterCheck,
   "adapter errors must sanitize owner_secret",
   "browser-worker proof-result adapter sanitized error guard",
+);
+includes(
+  actualPrivateSpendRuntimeProofService,
+  "VANTA_PRIVATE_POOL_V2_ACTUAL_PRIVATE_SPEND_RUNTIME_PROOF_SERVICE_SCHEME",
+  "actual-private-spend runtime proof service scheme",
+);
+includes(
+  actualPrivateSpendRuntimeProofService,
+  "requires local-bb-derived-artifact evidence",
+  "actual-private-spend runtime proof service derived-artifact boundary",
+);
+includes(
+  actualPrivateSpendRuntimeProofService,
+  "producer proof request must match the requested transcript",
+  "actual-private-spend runtime proof service transcript binding",
+);
+includes(
+  actualPrivateSpendRuntimeProofService,
+  "Actual-private-spend runtime proof service accepts only local-bb-derived-artifact evidence",
+  "actual-private-spend runtime proof service local-only warning",
+);
+includes(
+  actualPrivateSpendRuntimeProofService,
+  "not production verifier evidence",
+  "actual-private-spend runtime proof service production overclaim warning",
+);
+includes(
+  actualPrivateSpendRuntimeProofService,
+  "requires verified proof bytes",
+  "actual-private-spend runtime proof service proof-byte verification requirement",
+);
+includes(
+  actualPrivateSpendRuntimeProofService,
+  "hidden-economics amount sentinel",
+  "actual-private-spend runtime proof service hidden-economics amount sentinel",
+);
+includes(
+  actualPrivateSpendRuntimeProofService,
+  "hidden-economics asset sentinel",
+  "actual-private-spend runtime proof service hidden-economics asset sentinel",
+);
+includes(
+  actualPrivateSpendRuntimeProofServiceCheck,
+  "runtime proof service mock rejection",
+  "actual-private-spend runtime proof service mock rejection check",
+);
+includes(
+  actualPrivateSpendRuntimeProofServiceCheck,
+  "runtime proof service fixture replay rejection",
+  "actual-private-spend runtime proof service fixture replay rejection check",
+);
+includes(
+  actualPrivateSpendRuntimeProofServiceCheck,
+  "runtime proof service witness leakage rejection",
+  "actual-private-spend runtime proof service no-witness rejection check",
+);
+includes(
+  actualPrivateSpendRuntimeProofServiceCheck,
+  "runtime proof service transcript tamper rejection",
+  "actual-private-spend runtime proof service transcript tamper check",
+);
+includes(
+  actualPrivateSpendRuntimeProofServiceCheck,
+  "runtime proof service proof-byte tamper rejection",
+  "actual-private-spend runtime proof service proof-byte tamper check",
+);
+includes(
+  actualPrivateSpendRuntimeProofServiceCheck,
+  "runtime proof service verification-receipt mismatch rejection",
+  "actual-private-spend runtime proof service verification receipt mismatch check",
+);
+includes(
+  actualPrivateSpendRuntimeProofServiceCheck,
+  "runtime proof service amount sentinel rejection",
+  "actual-private-spend runtime proof service amount sentinel check",
+);
+includes(
+  actualPrivateSpendRuntimeProofServiceCheck,
+  "runtime proof service asset sentinel rejection",
+  "actual-private-spend runtime proof service asset sentinel check",
 );
 assert(
   scripts["private-pool-v2:local-prover-check"]?.includes(
@@ -1131,6 +1222,13 @@ assert(
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:proof-backend-boundary-check"),
   "private-pool-v2:verify must include the proof backend boundary guard",
+);
+assert(
+  scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:proof-backend-boundary-check") &&
+    scripts["private-pool-v2:proof-backend-boundary-check"]?.includes(
+      "npm run private-pool-v2:actual-private-spend-runtime-proof-service-check",
+    ),
+  "private-pool-v2:verify must reach the actual-private-spend runtime proof-service guard through proof-backend-boundary-check",
 );
 assert(
   scripts["private-pool-v2:verify"]?.includes("npm run private-pool-v2:proof-backend-boundary-check") &&

@@ -34,6 +34,15 @@ const result = {
   reviewerAccepted: anonymity.currentMeasurement.reviewerAccepted,
   productionReady: false,
   privacyClaimAllowed: false,
+  requiresBoundedRealFundsApproval: bootstrap.bootstrapStrategy.requiresBoundedRealFundsApproval,
+  sharedCohortDepositRefStatus: bootstrap.knownBlockers.includes(
+    "Shared-cohort deposit ref is still a review placeholder, not a reviewed solana-tx ref.",
+  )
+    ? "placeholder-review-ref-only"
+    : "reviewed-solana-tx-ref-present",
+  knownBlockers: bootstrap.knownBlockers,
+  nextDecision:
+    "Keep the lane blocked until a fresh approval window, a reviewed shared-cohort deposit ref, and reviewer-accepted measurement evidence exist.",
   nextOperatorCommands: [
     "npm run anonymity:1024-bootstrap-checklist -- --write-evidence",
     "npm run mainnet:shared-cohort-next-action",
@@ -54,6 +63,13 @@ if (jsonMode) {
   console.log(`- measurement status: ${result.measurementStatus}`);
   console.log(`- reviewer accepted: ${String(result.reviewerAccepted)}`);
   console.log(`- privacy claim: blocked`);
+  console.log(`- bounded real-funds approval required: ${String(result.requiresBoundedRealFundsApproval)}`);
+  console.log(`- shared cohort deposit ref: ${result.sharedCohortDepositRefStatus}`);
+  console.log(`- next decision: ${result.nextDecision}`);
+  console.log("- blockers:");
+  for (const blocker of result.knownBlockers) {
+    console.log(`  ${blocker}`);
+  }
   console.log("- next:");
   for (const command of result.nextOperatorCommands) {
     console.log(`  ${command}`);

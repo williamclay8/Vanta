@@ -39,6 +39,66 @@ const TARGETS = {
     target: "velocity-aggregate",
     workerKind: "vanta-phase2-product-browser-worker-prove-velocity-aggregate",
   },
+  creditNoteTransfer: {
+    adapter: VANTA_REAL_NOIR_ADAPTERS.creditNoteTransfer,
+    circuitPathMarker: "zk/noir/vanta_private_credit_note_transfer",
+    circuit: "vanta_private_credit_note_transfer",
+    expectedPublicInputs: [
+      "amount_bucket_min",
+      "amount_bucket_max",
+      "asset_id",
+      "recipient_commitment",
+      "withdraw_context",
+      "deposit_commitment",
+      "claim_code_commitment",
+      "credit_note_commitment",
+      "nullifier",
+    ],
+    target: "credit-note-transfer",
+    workerKind: "vanta-phase2-product-browser-worker-prove-credit-note-transfer",
+  },
+  rwaCompliance: {
+    adapter: VANTA_REAL_NOIR_ADAPTERS.rwaCompliance,
+    circuit: "vanta_rwa_compliance",
+    expectedPublicInputs: [
+      "min_value",
+      "asset_id",
+      "expected_jurisdiction",
+      "expected_accredited",
+      "owner_commitment",
+      "rwa_commitment",
+    ],
+    target: "rwa-compliance",
+    workerKind: "vanta-phase2-product-browser-worker-prove-rwa-compliance",
+  },
+  privatePerpsRisk: {
+    adapter: VANTA_REAL_NOIR_ADAPTERS.privatePerpsRisk,
+    circuit: "vanta_private_perps_risk",
+    expectedPublicInputs: [
+      "market_id",
+      "max_leverage",
+      "maintenance_bps",
+      "position_commitment",
+      "liquidation_context",
+    ],
+    target: "private-perps-risk",
+    workerKind: "vanta-phase2-product-browser-worker-prove-private-perps-risk",
+  },
+  agentSpendingLimit: {
+    adapter: VANTA_REAL_NOIR_ADAPTERS.agentSpendingLimit,
+    circuitPathMarker: "zk/noir/vanta_agent_spending_limit",
+    circuit: "vanta_agent_spending_limit",
+    expectedPublicInputs: [
+      "agent_id",
+      "spending_limit",
+      "policy_epoch",
+      "human_approval_commitment",
+      "authorization_nullifier",
+      "policy_commitment",
+    ],
+    target: "agent-spending-limit",
+    workerKind: "vanta-phase2-product-browser-worker-prove-agent-spending-limit",
+  },
 };
 
 function stableJson(value) {
@@ -156,6 +216,22 @@ export function createVelocityAggregateBrowserProofRequest(publicInputs, options
   return createVantaPhase2ProductProofRequest("velocityAggregate", publicInputs, options);
 }
 
+export function createCreditNoteTransferBrowserProofRequest(publicInputs, options = {}) {
+  return createVantaPhase2ProductProofRequest("creditNoteTransfer", publicInputs, options);
+}
+
+export function createRwaComplianceBrowserProofRequest(publicInputs, options = {}) {
+  return createVantaPhase2ProductProofRequest("rwaCompliance", publicInputs, options);
+}
+
+export function createPrivatePerpsRiskBrowserProofRequest(publicInputs, options = {}) {
+  return createVantaPhase2ProductProofRequest("privatePerpsRisk", publicInputs, options);
+}
+
+export function createAgentSpendingLimitBrowserProofRequest(publicInputs, options = {}) {
+  return createVantaPhase2ProductProofRequest("agentSpendingLimit", publicInputs, options);
+}
+
 export function createVantaPhase2ProductProofResultPacket(request, workerResult = {}, options = {}) {
   const target = assertSupportedRequest(request);
   assertWorkerResultIsPublic(workerResult);
@@ -215,6 +291,37 @@ export function createVelocityAggregateBrowserProofResultPacket(
 ) {
   const request =
     options.request ?? createVelocityAggregateBrowserProofRequest(publicInputs, options.requestOptions);
+  return createVantaPhase2ProductProofResultPacket(request, workerResult, options);
+}
+
+export function createCreditNoteTransferBrowserProofResultPacket(
+  publicInputs,
+  workerResult = {},
+  options = {},
+) {
+  const request =
+    options.request ?? createCreditNoteTransferBrowserProofRequest(publicInputs, options.requestOptions);
+  return createVantaPhase2ProductProofResultPacket(request, workerResult, options);
+}
+
+export function createRwaComplianceBrowserProofResultPacket(publicInputs, workerResult = {}, options = {}) {
+  const request = options.request ?? createRwaComplianceBrowserProofRequest(publicInputs, options.requestOptions);
+  return createVantaPhase2ProductProofResultPacket(request, workerResult, options);
+}
+
+export function createPrivatePerpsRiskBrowserProofResultPacket(
+  publicInputs,
+  workerResult = {},
+  options = {},
+) {
+  const request =
+    options.request ?? createPrivatePerpsRiskBrowserProofRequest(publicInputs, options.requestOptions);
+  return createVantaPhase2ProductProofResultPacket(request, workerResult, options);
+}
+
+export function createAgentSpendingLimitBrowserProofResultPacket(publicInputs, workerResult = {}, options = {}) {
+  const request =
+    options.request ?? createAgentSpendingLimitBrowserProofRequest(publicInputs, options.requestOptions);
   return createVantaPhase2ProductProofResultPacket(request, workerResult, options);
 }
 

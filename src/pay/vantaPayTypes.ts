@@ -280,6 +280,7 @@ export type VantaPayInstitutionalDisclosureReceiptField =
   | "amount"
   | "invoice_reference"
   | "compliance_gateway_summary"
+  | "amount_window_disclosure_summary"
   | "private_settlement_reference_prefix"
   | "audit_disclosure_reference_prefix"
   | "claim_boundary"
@@ -301,6 +302,38 @@ export type VantaPayComplianceGatewaySummary = {
   claimBoundary: "beta-selective-disclosure-not-production-private-or-regulator-approved";
 };
 
+export type VantaPayAmountWindowDisclosureSummary = {
+  schemaVersion: "vanta-pay-amount-window-disclosure-v0.1";
+  purpose: "receipt-bound amount-and-window selective disclosure";
+  predicateKinds: readonly ["amountAboveThreshold", "disclosureWindowActive"];
+  thresholdAsset: VantaPayAsset;
+  thresholdAmount: string;
+  thresholdSelection: "supported-bucket-floor-or-exact-amount-fallback";
+  thresholdSatisfied: boolean;
+  disclosureWindow: {
+    basis: "receipt-created-at-plus-7d";
+    startsAt: string;
+    endsAt: string;
+    windowActiveForShareLink: true;
+  };
+  proofMaterialPubliclyDisclosed: false;
+  privateInputsDisclosed: false;
+  witnessDisclosed: false;
+  proofMode: "summary-only-real-noir-adapter-pending";
+  realNoirAdapter: {
+    adapterId: "vanta-selective-disclosure-noir-v0.1";
+    circuitPath: "zk/noir/vanta_selective_disclosure";
+    status: "candidate-package-check-wired";
+  };
+  verificationCommands: readonly [
+    "npm run pay:institutional-disclosure-receipt-check",
+    "npm run compliance:gateway-check",
+    "npm run pay:committed-checkout-acceptance-check",
+    "npm run pay:receipt-public-view-check",
+  ];
+  claimBoundary: "beta-selective-disclosure-not-production-private-or-regulator-approved";
+};
+
 export type VantaPayInstitutionalDisclosureReceipt = {
   schemaVersion: "vanta-pay-institutional-disclosure-receipt-v0.1";
   object: "institutional_disclosure_receipt";
@@ -308,6 +341,7 @@ export type VantaPayInstitutionalDisclosureReceipt = {
   purpose: "counterparty-verifiable private settlement";
   receiptRef: {
     amount: string;
+    amountWindowDisclosure: VantaPayAmountWindowDisclosureSummary;
     asset: VantaPayAsset;
     auditDisclosure: VantaPayReceiptRedactedReference;
     complianceGateway: VantaPayComplianceGatewaySummary;
@@ -332,6 +366,7 @@ export type VantaPayInstitutionalDisclosureReceipt = {
     "amount",
     "invoice_reference",
     "compliance_gateway_summary",
+    "amount_window_disclosure_summary",
     "private_settlement_reference_prefix",
     "audit_disclosure_reference_prefix",
     "claim_boundary",
@@ -841,6 +876,7 @@ export type VantaPayReceiptPublicView = {
     regulatorScope: "time-and-scope-limited";
     expiresAt: string;
     disclosedFields: VantaPayInstitutionalDisclosureReceipt["disclosedFields"];
+    amountWindowDisclosure: VantaPayAmountWindowDisclosureSummary;
     complianceGateway: VantaPayComplianceGatewaySummary;
     privateInputsDisclosed: false;
     witnessDisclosed: false;

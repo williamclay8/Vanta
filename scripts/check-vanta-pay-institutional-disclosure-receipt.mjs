@@ -70,6 +70,7 @@ assert.deepEqual(disclosureReceipt.disclosedFields, [
   "amount",
   "invoice_reference",
   "compliance_gateway_summary",
+  "amount_window_disclosure_summary",
   "private_settlement_reference_prefix",
   "audit_disclosure_reference_prefix",
   "claim_boundary",
@@ -114,8 +115,55 @@ assert.equal(
   "npm run compliance:gateway-check",
 );
 assert.equal(
+  disclosureReceipt.receiptRef.amountWindowDisclosure.schemaVersion,
+  "vanta-pay-amount-window-disclosure-v0.1",
+);
+assert.deepEqual(disclosureReceipt.receiptRef.amountWindowDisclosure.predicateKinds, [
+  "amountAboveThreshold",
+  "disclosureWindowActive",
+]);
+assert.equal(disclosureReceipt.receiptRef.amountWindowDisclosure.thresholdAsset, "USDC");
+assert.equal(disclosureReceipt.receiptRef.amountWindowDisclosure.thresholdAmount, "25.00");
+assert.equal(disclosureReceipt.receiptRef.amountWindowDisclosure.thresholdSatisfied, true);
+assert.equal(
+  disclosureReceipt.receiptRef.amountWindowDisclosure.disclosureWindow.basis,
+  "receipt-created-at-plus-7d",
+);
+assert.equal(
+  disclosureReceipt.receiptRef.amountWindowDisclosure.disclosureWindow.startsAt,
+  "2026-05-02T00:00:00.000Z",
+);
+assert.equal(
+  disclosureReceipt.receiptRef.amountWindowDisclosure.disclosureWindow.endsAt,
+  "2026-05-09T00:00:00.000Z",
+);
+assert.equal(
+  disclosureReceipt.receiptRef.amountWindowDisclosure.proofMaterialPubliclyDisclosed,
+  false,
+);
+assert.equal(disclosureReceipt.receiptRef.amountWindowDisclosure.privateInputsDisclosed, false);
+assert.equal(disclosureReceipt.receiptRef.amountWindowDisclosure.witnessDisclosed, false);
+assert.deepEqual(disclosureReceipt.receiptRef.amountWindowDisclosure.verificationCommands, [
+  "npm run pay:institutional-disclosure-receipt-check",
+  "npm run compliance:gateway-check",
+  "npm run pay:committed-checkout-acceptance-check",
+  "npm run pay:receipt-public-view-check",
+]);
+assert.equal(
   disclosureReceipt.receiptRef.complianceGateway.proofMaterialPubliclyDisclosed,
   false,
+);
+assert.equal(
+  publicView.institutionalDisclosure.amountWindowDisclosure.schemaVersion,
+  "vanta-pay-amount-window-disclosure-v0.1",
+);
+assert.equal(
+  publicView.institutionalDisclosure.amountWindowDisclosure.thresholdAmount,
+  "25.00",
+);
+assert.equal(
+  publicView.institutionalDisclosure.amountWindowDisclosure.disclosureWindow.endsAt,
+  "2026-05-09T00:00:00.000Z",
 );
 assert.equal(publicView.institutionalDisclosure.complianceGateway.privateInputsDisclosed, false);
 assert.equal(publicView.institutionalDisclosure.complianceGateway.witnessDisclosed, false);
@@ -140,6 +188,8 @@ for (const leaked of [
 requireMarkers("src/pay/vantaPayTypes.ts", [
   "VantaPayInstitutionalDisclosureReceipt",
   "selective_disclosure_receipt",
+  "amount_window_disclosure_summary",
+  "VantaPayAmountWindowDisclosureSummary",
   "time-and-scope-limited",
   "privateInputsDisclosed",
   "witnessDisclosed",
@@ -151,18 +201,29 @@ requireMarkers("src/pay/vantaPayInstitutionalDisclosureReceipt.ts", [
   "vanta-pay-institutional-disclosure-receipt-v0.1",
   "counterparty-verifiable private settlement",
   "beta-selective-disclosure-not-production-private-or-regulator-approved",
+  "amount_window_disclosure_summary",
   "privateInputsDisclosed: false",
   "witnessDisclosed: false",
   "npm run compliance:gateway-check",
 ]);
+requireMarkers("src/pay/vantaPayAmountWindowDisclosure.ts", [
+  "vanta-pay-amount-window-disclosure-v0.1",
+  "receipt-bound amount-and-window selective disclosure",
+  "supported-bucket-floor-or-exact-amount-fallback",
+  "disclosureWindowActive",
+  "npm run pay:committed-checkout-acceptance-check",
+]);
 requireMarkers("src/pay/vantaPayReceiptPublicView.ts", [
   "VANTA_PAY_INSTITUTIONAL_DISCLOSURE_RECEIPT_SCHEMA_VERSION",
   "receiptSchemaVersion",
+  "amountWindowDisclosure",
   "npm run pay:institutional-disclosure-receipt-check",
   "vanta-compliance-gateway-summary-v0.1",
 ]);
 requireMarkers("src/components/PayReceiptPacketCard.tsx", [
   "Selective disclosure receipt",
+  "Amount/window disclosure",
+  "windowActiveForShareLink",
   "Disclosure expires",
   "Private inputs disclosed",
   "Witness disclosed",
@@ -170,6 +231,7 @@ requireMarkers("src/components/PayReceiptPacketCard.tsx", [
   "publicView.institutionalDisclosure.receiptSchemaVersion",
 ]);
 requireMarkers("operator/pay-server.mjs", [
+  "pay/vantaPayAmountWindowDisclosure.ts",
   "pay/vantaPayInstitutionalDisclosureReceipt.ts",
 ]);
 requireMarkers("scripts/print-vanta-pay-status.mjs", [

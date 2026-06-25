@@ -1,3 +1,4 @@
+import { isRecord } from "../isRecord";
 import type { PrivateVaultRecord } from "./privateVaultTypes";
 
 export const PRIVATE_VAULT_RECOVERY_FILE_VERSION =
@@ -61,8 +62,4 @@ function isPrivateVaultRecord(value: unknown): value is PrivateVaultRecord {
     Array.isArray(value.capabilityLabels) &&
     value.capabilityLabels.every((entry) => typeof entry === "string")
   );
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }

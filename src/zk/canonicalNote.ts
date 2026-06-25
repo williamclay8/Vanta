@@ -1,3 +1,4 @@
+import { isRecord } from "../isRecord";
 import {
   phase1OwnerRecoveryPayloadCryptoAdapter,
   type OwnerRecoveryCryptoAdapter,
@@ -764,10 +765,6 @@ function normalizeBytes32(value: unknown, fieldName: string): CanonicalBytes32 {
   }
 
   return normalized.toLowerCase();
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 function generatePlaceholderBytes32(): CanonicalBytes32 {

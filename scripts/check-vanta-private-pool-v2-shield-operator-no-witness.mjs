@@ -69,10 +69,15 @@ async function requestJson(path, options = {}, targetBaseUrl = baseUrl) {
   return { ok: response.ok, parsed, status: response.status, text };
 }
 
-async function waitForHealth(server, targetBaseUrl = baseUrl) {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+async function waitForHealth(server, targetBaseUrl = baseUrl, getStderr = () => "") {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
     if (server.exitCode !== null) {
-      throw new Error("Private Pool V2 operator exited before health check.");
+      const stderr = getStderr().trim();
+      throw new Error(
+        stderr.length > 0
+          ? `Private Pool V2 operator exited before health check. stderr=${stderr}`
+          : "Private Pool V2 operator exited before health check.",
+      );
     }
 
     try {
@@ -403,12 +408,14 @@ try {
   await stopOperator(operator.server);
 }
 
+await sleep(500);
+
 const productionOperator = startOperator(port + 1_000, "private-pool-v2-shield-production.json", {
   VANTA_PRIVATE_POOL_V2_REQUIRE_PRODUCTION_PROOF_SYSTEM: "true",
 });
 
 try {
-  await waitForHealth(productionOperator.server, productionBaseUrl);
+  await waitForHealth(productionOperator.server, productionBaseUrl, productionOperator.stderr);
   await expectReject(
     "private-pool-v2 operator Shield production local artifact rejection",
     { expectedPublicInputs, proofArtifact },

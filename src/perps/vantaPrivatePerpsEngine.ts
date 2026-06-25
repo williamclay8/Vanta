@@ -27,8 +27,23 @@ export type VantaPrivatePositionCommitment = {
   privateWitness: {
     blinding: string;
   };
-  proof: string; // opening stub
+  proof: string; // verifier-local opening stub, never disclosed publicly
   nullifier?: string; // for update/close without leak
+};
+
+export const VANTA_PRIVATE_PERPS_REAL_NOIR_ADAPTER = {
+  adapterId: "vanta-private-perps-noir-v0.1",
+  circuitPath: "zk/noir/vanta_selective_disclosure",
+  proofMode: "real-noir-adapter-interface-only",
+  verificationCommand: "npm run private-perps:check",
+  claimBoundary: "beta-real-zk-circuits-not-production-private-or-onchain-ready",
+} as const;
+
+export type VantaPrivatePerpsProofSummary = {
+  proofMaterialPubliclyDisclosed: false;
+  proofMode: "verifier-local-opening-stub-held-out";
+  realNoirAdapter: typeof VANTA_PRIVATE_PERPS_REAL_NOIR_ADAPTER;
+  verificationCommand: "npm run private-perps:check";
 };
 
 export type VantaPrivatePositionPublicPacket = {
@@ -36,7 +51,7 @@ export type VantaPrivatePositionPublicPacket = {
   object: "private_perps_public_position_packet";
   positionCommitment: string;
   publicMetadata: VantaPrivatePositionCommitment["public"];
-  proofStub: string;
+  proofSummary: VantaPrivatePerpsProofSummary;
   nullifier?: string;
   claimBoundary: "beta-shielded-perps-not-production-private-derivatives-or-settlement";
 };
@@ -165,7 +180,12 @@ export function toPublicPrivatePerpsPositionPacket(
     object: "private_perps_public_position_packet",
     positionCommitment: commitment.commitment,
     publicMetadata: commitment.public,
-    proofStub: commitment.proof,
+    proofSummary: {
+      proofMaterialPubliclyDisclosed: false,
+      proofMode: "verifier-local-opening-stub-held-out",
+      realNoirAdapter: VANTA_PRIVATE_PERPS_REAL_NOIR_ADAPTER,
+      verificationCommand: "npm run private-perps:check",
+    },
     nullifier: commitment.nullifier,
     claimBoundary: "beta-shielded-perps-not-production-private-derivatives-or-settlement",
   };

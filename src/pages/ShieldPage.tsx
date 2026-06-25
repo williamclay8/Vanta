@@ -30,6 +30,7 @@ import {
   type PublicToUsdcQuote,
 } from "@/solana/publicSwapRoute";
 import { requestVantaPrivatePoolV2BrowserShieldReceipt } from "@/privacy/privatePoolV2ProtocolSettlementClient";
+import { submitVantaPrivatePoolV2SharedCohortShieldHandoff } from "@/privacy/privatePoolV2SharedCohortShieldHandoff";
 import { runShieldWithDecoys } from "@/privacy/shieldDecoyBatcher";
 import { createVantaShieldCommittedEconomicsSettlement } from "@/privacy/vantaShieldCommittedSettlement";
 import { createUmbraShieldActionApprovalReview } from "@/privacy/umbraShieldActionReview";
@@ -70,6 +71,7 @@ import {
   computeNativeSolShieldPoseidonCommitment,
   VANTA_NATIVE_SOL_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
   VANTA_TOKEN_SAME_TRANSACTION_DEPOSIT_SIGNATURE,
+  VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX_V2,
   type VantaShieldedSolNote,
 } from "@/solana/vantaShieldState";
 import {
@@ -977,7 +979,7 @@ export function ShieldPage(_props: ShieldPageProps) {
       });
 
       // TODO: Get the actual memo string that was sent (from createNativeSolShieldMemoInstruction)
-      const depositMemo = `vanta:native-sol-shield-note:v2:${JSON.stringify({
+      const depositMemo = `${VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX_V2}${JSON.stringify({
         kind: "native_sol_shield",
         asset: "SOL",
         assetId: NATIVE_SOL_ASSET_ID_SENTINEL,
@@ -988,30 +990,19 @@ export function ShieldPage(_props: ShieldPageProps) {
         depositSignature: deposit.signature,
       })}`;
 
-      // Phase 2: Submit sentinel-based Poseidon commitment to Private Pool v2 ingestion (non-blocking)
-      // Polished WIP: uses same default as migrateLegacy helper. See design doc Phase 2.
-      void (async () => {
-        try {
-          // Use indexer for native SOL ingestion (operator URL was wrong → caused "Failed to fetch")
-          const defaultBase = "https://vanta-prod-private-pool-v2-indexer.onrender.com";
-          const baseUrl = defaultBase; // TODO: centralize via privatePoolV2ProtocolSettlementClient or env
-          await fetch(`${baseUrl.replace(/\/+$/, "")}/v1/ingest-native-sol-shield-deposit`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              depositMemo,
-              depositSignature: deposit.signature,
-              commitment,
-              owner: walletAddress,
-              vaultOwner: activeVaultOwner,
-              amount: sameSessionAmount.toString(),
-              treeId: "vanta-private-pool-v2-unified-tree-v1",
-            }),
-          });
-        } catch (e) {
-          console.warn("Native SOL v2 ingestion submission failed (non-fatal for Phase 2, per design doc):", e);
-        }
-      })();
+      void submitVantaPrivatePoolV2SharedCohortShieldHandoff({
+        amount: sameSessionAmount.toString(),
+        commitment,
+        depositMemo,
+        depositSignature: deposit.signature,
+        owner: walletAddress,
+        vaultOwner: activeVaultOwner,
+      }).catch((error) => {
+        console.warn(
+          "Native SOL v2 shared-cohort ingestion failed (non-fatal for Phase 2, per design doc):",
+          error,
+        );
+      });
     } catch (e) {
       console.warn("Failed to compute/submit native SOL v2 commitment:", e);
     }

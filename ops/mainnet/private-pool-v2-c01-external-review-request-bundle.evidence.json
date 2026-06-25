@@ -227,7 +227,7 @@
       "id": "audit-package",
       "group": "local-audit-context",
       "path": "docs/audit-package.md",
-      "sha256": "sha256:7aeb8374248fa326e5fb4874d63ff421a0f715cb58aee5d635621db6ca1853d9",
+      "sha256": "sha256:977a664212097f3a31cbc4afc4aab2b49d375448fba79ced6c69812719c3bf79",
       "requiredFor": "Audit package pointers to current C01 gates.",
       "truthBoundary": "Local package index only; not audit/reviewer acceptance."
     },

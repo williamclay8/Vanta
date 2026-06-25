@@ -1,0 +1,16 @@
+# Witnesses for vanta_agent_private_stack (T7)
+# Private: agent_memory_root, gpu_compute_flag, spending_limit, human_approval, blinding
+# Public: threshold, expected_memory, limit_threshold, commitment, period_start, period_end
+
+agent_memory_root = 555555555
+gpu_compute_flag = 1
+spending_limit = 1000
+human_approval = 1
+blinding = 111111111
+
+threshold = 100
+expected_memory = 555555555
+limit_threshold = 500
+commitment = 0
+period_start = 20260601
+period_end = 20260630

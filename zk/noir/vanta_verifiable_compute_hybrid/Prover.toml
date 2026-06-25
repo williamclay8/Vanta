@@ -1,0 +1,14 @@
+# Example witnesses for vanta_verifiable_compute_hybrid (T6)
+# Private: enclave_metadata, proof_hash, agent_memory_root, blinding
+# Public: threshold, expected_enclave_hash, commitment, period_start, period_end
+
+enclave_metadata = 123456789
+proof_hash = 987654321
+agent_memory_root = 555555555
+blinding = 111111111
+
+threshold = 100
+expected_enclave_hash = 123456789
+commitment = 0  # computed via poseidon in circuit
+period_start = 20260601
+period_end = 20260630

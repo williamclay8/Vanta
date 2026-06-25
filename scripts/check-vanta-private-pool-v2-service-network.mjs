@@ -108,7 +108,7 @@ async function requestJson(baseUrl, path, options = {}) {
 }
 
 async function waitForHealth(baseUrl) {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
     try {
       const response = await requestJson(baseUrl, "/health");
       if (response.ok) {

@@ -14,6 +14,7 @@ import { useUnshieldReceiptModal } from "@/components/unshield/useUnshieldReceip
 import { useUnshieldReleasePackageExport } from "@/components/unshield/useUnshieldReleasePackageExport";
 import { usePrivacyFlow } from "@/data/context/PrivacyFlowContext";
 import { useWalletState } from "@/data/context/WalletContext";
+import { evaluateVantaPrivatePoolV2UnshieldActionContract } from "@/privacy/privatePoolV2ProductActionContract";
 import { getUnshieldTrustContract } from "@/solana/unshieldTrustContract";
 import { useVantaShieldAssetRegistryState } from "@/solana/useVantaShieldAssetRegistryState";
 import { useVantaShieldState } from "@/solana/useVantaShieldState";
@@ -93,6 +94,48 @@ export function UnshieldPage() {
       latestPrivateCoreOperatorRelease,
       privateCoreOperatorLatestProof,
       privateCoreOperatorLatestReleaseProof,
+    ],
+  );
+  const unshieldProductActionContract = useMemo(
+    () =>
+      evaluateVantaPrivatePoolV2UnshieldActionContract({
+        uiStatus: flow.status,
+        operatorReleaseSignaturePresent: Boolean(flow.operatorReleaseSignature),
+        releaseModel: "program-tag-unshield-pda-cpi-fail-closed",
+        pausedBannerVisible: true,
+        unshieldProofRequestReady: Boolean(privateCoreUnshieldState?.proofBoundaryKind),
+        runtimeVerifierWired: false,
+        strictNoWitnessArtifactPresent:
+          currentUnshieldTransactionEvidence.proof.status === "verified",
+        operatorProgramReleaseReceiptPresent: Boolean(
+          latestPrivateCoreOperatorRelease || flow.operatorReleaseSignature,
+        ),
+        protocolSettlementReceiptBound:
+          currentUnshieldTransactionEvidence.settlement.status ===
+          "live-mainnet-settlement-complete",
+        replayProtectionLinked: privateCoreUnshieldState?.replayRejected === true,
+        releaseEnabledAuditGate: "blocked",
+        publicExitVerified: Boolean(flow.operatorReleaseSignature),
+        liveMainnetSettlementReviewed: false,
+        productionVerifierAccepted: false,
+        sharedAnonymityReviewed: false,
+        relayerSeparationReviewed: false,
+        auditAccepted: false,
+        programmaticProductionPrivateReady: false,
+        programmaticPrivacyClaimAllowed: false,
+        programmaticMainnetReady: false,
+        productionPrivacyClaimsLocked: true,
+        externalReviewAccepted: false,
+        ownerApprovedProductionScope: false,
+      }),
+    [
+      currentUnshieldTransactionEvidence.proof.status,
+      currentUnshieldTransactionEvidence.settlement.status,
+      flow.operatorReleaseSignature,
+      flow.status,
+      latestPrivateCoreOperatorRelease,
+      privateCoreUnshieldState?.proofBoundaryKind,
+      privateCoreUnshieldState?.replayRejected,
     ],
   );
   const privateCoreSendCompleted = Boolean(
@@ -255,6 +298,7 @@ export function UnshieldPage() {
           privateCoreReleaseHandoffState={privateCoreReleaseHandoffState}
           privateCoreReleasePackageState={privateCoreReleasePackageState}
           privateCoreReleaseWorkflowState={privateCoreReleaseWorkflowState}
+          productActionContract={unshieldProductActionContract}
           referenceNoteLabel={
             flow.selectedUnshieldNote ? abbreviate(flow.selectedUnshieldNote.noteId) : "Unavailable"
           }

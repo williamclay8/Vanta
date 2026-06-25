@@ -2101,8 +2101,8 @@ If that rule were enforced everywhere, the gap between code and copy this review
 
 Three categories of documentation, all of which a reviewer or future operator will encounter:
 
-**Top-level repository docs** (8 files, ~3.5k lines combined):
-`README.md` (805 lines), `MISSION.md` (43), `DESIGN.md` (430), `SECURITY_LIMITATIONS.md` (136), `SUBMISSION.md` (783), `AGENTS.md` (290), `VANTA_VAULT.md` (23), and the new `VANTA_ZK_REVIEW.md` produced by this work.
+**Top-level repository docs** (7 files, ~2.7k lines combined):
+`README.md` (805 lines), `MISSION.md` (43), `DESIGN.md` (430), `SECURITY_LIMITATIONS.md` (136), `AGENTS.md` (290), `VANTA_VAULT.md` (23), and the new `VANTA_ZK_REVIEW.md` produced by this work.
 
 **`docs/` folder** (18 markdown files plus 4 in `docs/architecture/` and 19 in `docs/zk/`, ~5k lines combined):
 The most load-bearing files for reviewers are `docs/audit-package.md`, `docs/operator-runbook.md`, `docs/privacy-model.md`, `docs/privacy-rail-contract.md`, `docs/mvp-real.md`, `docs/mainnet-deployment-runbook.md`, `docs/mainnet-external-gates.md`, and the `docs/zk/` series describing canonical notes, Noir hash decisions, and per-lane proof boundaries.
@@ -2182,7 +2182,7 @@ The fix is small: every trust-packet-shaped doc surface should add a one-sentenc
 
 ### D5. Operator runbook is comprehensive but un-actionable for new readers
 
-`docs/operator-runbook.md` is 1400 lines listing ~50 readiness check commands. It's the right inventory of *what should exist*, but for a reviewer or new operator landing on it cold, there's no curated entry point. The same complaint applies to the README's "Demo-Day Proof Points" section: 6 commands with overlapping coverage, no clear "if you only run one thing" path.
+`docs/operator-runbook.md` is 1400 lines listing ~50 readiness check commands. It's the right inventory of *what should exist*, but for a reviewer or new operator landing on it cold, there's no curated entry point. The same complaint applies to the README's "Reviewer proof points" section: 6 commands with overlapping coverage, no clear "if you only run one thing" path.
 
 A reviewer's first ten minutes with the project are spent figuring out which of the 50 commands actually matter today. **Add a top-of-runbook "If you have 10 minutes" section** with the three commands that produce the most informative single output. From the lane deep dives, those are likely:
 
@@ -3042,13 +3042,13 @@ Adjacent B2B treasury features to follow:
 
 ## F10. The token, the product, and the relationship between them
 
-A `$VANTA` token exists, launched on Bags at contract address `9yqv319Boij6kUfD6CAzXEGYk7pHUfda37ye6FQmBAGS`. The README's reference to "supply buybacks" is therefore backed by a real on-chain instrument, not aspirational framing. This is a constraint to factor into the rest of the review, not a strategic question to answer.
+A `$VANTA` token exists on-chain at contract address `9yqv319Boij6kUfD6CAzXEGYk7pHUfda37ye6FQmBAGS`. The README's reference to "supply buybacks" is therefore backed by a real on-chain instrument, not aspirational framing. This is a constraint to factor into the rest of the review, not a strategic question to answer.
 
 Three observations that follow from the token's existence, none of which should drive the technical or product roadmap:
 
 - **The "Why Vanta exists" story stays product-first.** The premier-suite case is that Vanta is the credible private-settlement rail for Solana stablecoin flows. Merchants integrate because the product works and because trust packets are useful, not because they're token holders. Letting the token become the headline weakens the merchant pitch — most regulated counterparties evaluate "is there a token" as a *risk*, not a feature. The product copy on `/`, `/docs`, `/app/pay`, and merchant-facing collateral should treat the token as a public artifact of the project, not as a reason to use it.
 - **The token enables specific moves the rest of this review proposes, when they make sense product-first.** Anonymity-set seeding subsidies (F2), anchor-merchant token grants (F3), buyback transparency as a trust signal (F11), governance over verifier upgrades (F12 Stage 4) — each of these has a token-aware version and a token-free version. Pick the version that's right for the product reason, then use the token where it actually adds clarity. Don't manufacture utility just to give the token a job.
-- **The token launch venue carries connotation.** Bags is a Solana launchpad associated more with memecoin distribution than with infrastructure-protocol fundraising. That's not disqualifying — many serious projects launch via unconventional venues — but it means the token's framing in product copy and investor/merchant conversations needs to actively distinguish "$VANTA, the utility token of the privacy suite" from "$VANTA, a memecoin." A short tokenomics page at `/token` covering supply, distribution, the buyback formula, on-chain links to the contract, and any utility hooks (fee discounts, staking, governance) is the cheapest way to do this. It also lets the token live as one part of the product surface without colonizing the rest.
+- **The token launch venue carries connotation.** A launchpad-style token launch is associated more with memecoin distribution than with infrastructure-protocol fundraising. That's not disqualifying — many serious projects launch via unconventional venues — but it means the token's framing in product copy and investor/merchant conversations needs to actively distinguish "$VANTA, the utility token of the privacy suite" from "$VANTA, a memecoin." A short tokenomics page at `/token` covering supply, distribution, the buyback formula, on-chain links to the contract, and any utility hooks (fee discounts, staking, governance) is the cheapest way to do this. It also lets the token live as one part of the product surface without colonizing the rest.
 
 Concrete next moves, optional but available:
 
@@ -3329,7 +3329,7 @@ None of this is more *features*. All of this is taste.
 
 ## How to start
 
-Most of this is unbuildable in a hackathon and unfundable in a typical seed round. Both are fine. Taste is a long game. The starting moves are small, opinionated, and mostly free:
+Most of this is unbuildable in a short sprint and unfundable in a typical seed round. Both are fine. Taste is a long game. The starting moves are small, opinionated, and mostly free:
 
 - **This week:** write the voice spec (T2). One page. Pin it to the engineering channel. Apply it to the next ten copy edits.
 - **This week:** rename "trust packet" to "Letter" everywhere. The next time anyone in the team uses the old term, gently correct them. Two weeks later it'll have stuck.

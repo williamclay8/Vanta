@@ -51,6 +51,7 @@ assert.equal(
 );
 for (const command of [
   "npm run compliance:gateway-check",
+  "npm run private-perps:check",
   "npm run shielded-rwa:check",
   "npm run privacy-sdk:check",
   "npm run velocity-intelligence:check",
@@ -63,6 +64,7 @@ for (const command of [
 }
 for (const command of [
   "compliance:gateway-check",
+  "private-perps:check",
   "shielded-rwa:check",
   "privacy-sdk:check",
   "velocity-intelligence:check",

@@ -31,6 +31,7 @@ import {
   createOwnerContextRecoveryEvidence,
   type OwnerContextRecoveryEvidence,
 } from "./ownerContextRecoveryEvidence";
+import type { VantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt } from "../privacy/privatePoolV2SwapToShieldedBrowserReceipt";
 
 const LIVE_SWAP_RECORDS_STORAGE_KEY = "vanta.zk.phase1.live-swap-records.v1";
 const DEFAULT_USDC_DECIMALS = 6;
@@ -89,6 +90,7 @@ export type LiveSwapCanonicalRecord = {
   recordId: string;
   source: "live_swap_v1";
   createdAt: number;
+  browserLocalProofReceipt?: VantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt;
   lifecycleLinkage?: CanonicalLifecycleRecordLinkage;
   liveSwap: {
     owner: string;
@@ -169,6 +171,10 @@ export type LiveSwapDiagnosticsSummary = {
   transitionNoteId: string;
   spentMarkerSignature?: string;
   operatorRequestId?: string;
+  proofReceiptId?: string;
+  proofBackend?: string;
+  proofSystem?: string;
+  proofPublicInputCommitment?: string;
   venueSummary: string;
   quoteId: string;
   storageRole: PrivatePoolV2ShieldedStateDiagnostic["storageRole"];
@@ -481,6 +487,11 @@ export function listCanonicalSwapDiagnosticsSummaries(): LiveSwapDiagnosticsSumm
       transitionNoteId: record.liveSwap.transitionNoteId,
       spentMarkerSignature: record.liveSwap.spentMarkerSignature,
       operatorRequestId: record.liveSwap.operatorRequestId,
+      proofReceiptId: record.browserLocalProofReceipt?.proofReceipt.receiptId,
+      proofBackend: record.browserLocalProofReceipt?.proofReceipt.proofBackend,
+      proofSystem: record.browserLocalProofReceipt?.proofReceipt.proofSystem,
+      proofPublicInputCommitment:
+        record.browserLocalProofReceipt?.proofReceipt.publicInputCommitment,
       venueSummary: `${record.liveSwap.venueName} ${record.liveSwap.venueFamily} · ${record.liveSwap.venueNetwork}`,
       quoteId: record.liveSwap.quoteId,
       storageRole:
@@ -609,20 +620,59 @@ export function persistCanonicalSwapRecord(record: LiveSwapCanonicalRecord) {
   }
 
   const existingRecords = listCanonicalSwapRecords();
-  if (existingRecords.some((existingRecord) => existingRecord.recordId === record.recordId)) {
+  const normalizedRecord = normalizeLiveSwapRecordForPersistence(record);
+  const existingIndex = existingRecords.findIndex(
+    (existingRecord) => existingRecord.recordId === record.recordId,
+  );
+  if (existingIndex >= 0) {
+    const nextRecords = existingRecords.map((existingRecord, index) =>
+      index === existingIndex
+        ? normalizeLiveSwapRecordForPersistence({
+            ...existingRecord,
+            browserLocalProofReceipt:
+              normalizedRecord.browserLocalProofReceipt ??
+              existingRecord.browserLocalProofReceipt,
+          })
+        : normalizeLiveSwapRecordForPersistence(existingRecord),
+    );
+    storage.setItem(LIVE_SWAP_RECORDS_STORAGE_KEY, JSON.stringify(nextRecords));
     return;
   }
 
   const nextRecords = [
     ...existingRecords.map(normalizeLiveSwapRecordForPersistence),
-    normalizeLiveSwapRecordForPersistence(record),
+    normalizedRecord,
   ];
   storage.setItem(LIVE_SWAP_RECORDS_STORAGE_KEY, JSON.stringify(nextRecords));
+}
+
+export function findCanonicalSwapRecord(recordId: string): LiveSwapCanonicalRecord | null {
+  return listCanonicalSwapRecords().find((record) => record.recordId === recordId) ?? null;
+}
+
+export function persistCanonicalSwapBrowserLocalProofReceipt({
+  proofReceipt,
+  recordId,
+}: {
+  proofReceipt: VantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt;
+  recordId: string;
+}) {
+  const record = findCanonicalSwapRecord(recordId);
+
+  if (!record) {
+    return;
+  }
+
+  persistCanonicalSwapRecord({
+    ...record,
+    browserLocalProofReceipt: proofReceipt,
+  });
 }
 
 function normalizeLiveSwapRecordForPersistence(record: LiveSwapCanonicalRecord): LiveSwapCanonicalRecord {
   return {
     ...record,
+    browserLocalProofReceipt: record.browserLocalProofReceipt,
     liveSwap: {
       ...record.liveSwap,
       minOutputAmountDisplay:

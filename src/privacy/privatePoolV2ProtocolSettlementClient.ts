@@ -21,6 +21,8 @@ const VANTA_PRIVATE_POOL_V2_LOCAL_PROVER_SCHEME =
   "sha256-private-pool-v2-local-prover-0.1" as const;
 const VANTA_PAY_PRIVATE_SETTLEMENT_ADAPTER_VERSION =
   "vanta-pay-private-settlement-adapter-0.1" as const;
+const BN254_SCALAR_FIELD =
+  21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 
 export type VantaProtocolSettlementAction = "shield" | "send" | "swap" | "unshield";
 
@@ -297,6 +299,18 @@ export type VantaPrivatePoolV2ProofReceipt = {
 };
 
 export type VantaProtocolSettlementResponse = {
+  acceptedPublicInputs?: {
+    acceptedRoot?: string;
+    assetCohort?: string;
+    changeOutputCommitment?: string;
+    nullifierOrReplayCommitment?: string;
+    outputCommitment?: string;
+    poolId?: string;
+    privateSpendContextHash?: string;
+    privateSpendPublicInputHash?: string;
+    proofReceiptPublicInputCommitment?: string;
+    version: "vanta-actual-private-accepted-public-inputs-0.1";
+  };
   kind: "protocol_settlement";
   proofReceipt?: VantaPrivatePoolV2ProofReceipt;
   protocolSettlementReceipt: VantaProtocolSettlementReceipt;
@@ -463,6 +477,49 @@ function expectedLocalProofPublicInputCommitment(request: {
     "public-inputs",
     serializedRequest,
   );
+}
+
+function normalizeBn254FieldString(value: string, label: string) {
+  const trimmed = value.trim();
+  const parsed = /^0x[0-9a-f]+$/u.test(trimmed)
+    ? BigInt(trimmed)
+    : /^(0|[1-9][0-9]*)$/u.test(trimmed)
+      ? BigInt(trimmed)
+      : null;
+
+  if (parsed === null) {
+    throw new Error(`${label} must be a BN254 field string.`);
+  }
+
+  if (parsed >= BN254_SCALAR_FIELD) {
+    throw new Error(`${label} must fit in BN254.`);
+  }
+
+  return parsed.toString(10);
+}
+
+function expectedProofArtifactPublicInputCommitment(publicInputs: readonly string[]) {
+  return `sha256:${bytesToHex(
+    sha256(new TextEncoder().encode(JSON.stringify(publicInputs))),
+  )}`;
+}
+
+function expectedActualPrivateSpendDerivedProofArtifactPublicInputCommitment(request: {
+  circuitPublicInputs?: readonly string[];
+}) {
+  const prefix = "private-spend-public-input-hash:";
+  const matches = request.circuitPublicInputs?.filter((input) => input.startsWith(prefix)) ?? [];
+  requireProtocolSettlementCondition(
+    matches.length === 1,
+    "Committed Send actual-private proof request is missing the derived artifact public input.",
+  );
+
+  return expectedProofArtifactPublicInputCommitment([
+    normalizeBn254FieldString(
+      matches[0]!.slice(prefix.length),
+      "actual-private-spend derived artifact public input",
+    ),
+  ]);
 }
 
 function privateSettlementTreeIdForAsset(asset: string) {
@@ -841,9 +898,39 @@ export function validateVantaPrivatePoolV2ProtocolSettlementResponse({
             privateSpendPublicInputHash:
               request.privateSpendPublicInputHash ?? request.sendPublicInputHash,
           });
+        const expectedLocalCommitment = expectedLocalProofPublicInputCommitment(
+          expectedActualPrivateSpendProofRequest,
+        );
+        const actualPrivateAcceptedInputs = response.acceptedPublicInputs ?? null;
+        const acceptedInputsMatchRequest =
+          actualPrivateAcceptedInputs?.version ===
+            "vanta-actual-private-accepted-public-inputs-0.1" &&
+          actualPrivateAcceptedInputs.acceptedRoot === request.acceptedRoot &&
+          actualPrivateAcceptedInputs.assetCohort === request.assetCohort &&
+          actualPrivateAcceptedInputs.changeOutputCommitment ===
+            request.changeOutputCommitment &&
+          actualPrivateAcceptedInputs.nullifierOrReplayCommitment ===
+            request.nullifierOrReplayCommitment &&
+          actualPrivateAcceptedInputs.outputCommitment === request.outputCommitment &&
+          actualPrivateAcceptedInputs.poolId === request.poolId &&
+          actualPrivateAcceptedInputs.privateSpendContextHash ===
+            request.privateSpendContextHash &&
+          actualPrivateAcceptedInputs.privateSpendPublicInputHash ===
+            (request.privateSpendPublicInputHash ?? request.sendPublicInputHash) &&
+          actualPrivateAcceptedInputs.proofReceiptPublicInputCommitment ===
+            proofReceipt?.publicInputCommitment;
+        const localCommitmentMatches =
+          proofReceipt?.publicInputCommitment === expectedLocalCommitment;
+        const derivedArtifactCommitmentMatches =
+          proofReceipt?.proofSystem === "noir-bb" &&
+          proofReceipt.proofBackend === "local-bb-derived-artifact" &&
+          acceptedInputsMatchRequest &&
+          proofReceipt.publicInputCommitment ===
+            expectedActualPrivateSpendDerivedProofArtifactPublicInputCommitment(
+              expectedActualPrivateSpendProofRequest,
+            );
         requireProtocolSettlementCondition(
-          proofReceipt?.publicInputCommitment ===
-            expectedLocalProofPublicInputCommitment(expectedActualPrivateSpendProofRequest),
+          localCommitmentMatches || derivedArtifactCommitmentMatches,
           "Committed Send proof receipt public input commitment does not match the request.",
         );
       } else {

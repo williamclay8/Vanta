@@ -19,6 +19,7 @@ import {
   encryptVantaShieldMemoToViewingKey,
   encryptVantaShieldMemoToViewingKeyPacket,
 } from "@/solana/vantaShieldViewingKey";
+import { ingestVantaPrivatePoolV2NativeSolShieldDeposit } from "@/privacy/privatePoolV2IndexerClient";
 
 export const VANTA_SHIELD_MEMO_PROGRAM =
   "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
@@ -180,74 +181,41 @@ export async function migrateLegacyVantaShieldedSolNoteToV2(args: {
     };
     const depositMemo = `${VANTA_NATIVE_SOL_SHIELD_MEMO_PREFIX_V2}${JSON.stringify(depositMemoPayload)}`;
 
-    // Use the indexer service for native SOL ingestion (the route only exists on the indexer role).
-    // This was previously incorrectly pointing at the operator, causing "Failed to fetch".
-    const defaultBase = "https://vanta-prod-private-pool-v2-indexer.onrender.com";
-    const base = (operatorBaseUrl || defaultBase).replace(/\/+$/, "");
+    const ingest = await ingestVantaPrivatePoolV2NativeSolShieldDeposit({
+      amount: legacyNote.amount.toString(),
+      commitment,
+      depositMemo,
+      depositSignature: legacyNote.depositSignature,
+      indexerBaseUrl: operatorBaseUrl,
+      isLegacyMigration: true,
+      originalAssetId: VANTA_NATIVE_SOL_ASSET_ID,
+      owner: resolvedOwner,
+      vaultOwner: resolvedVaultOwner,
+    });
 
-    // Simple retry for transient network errors (indexer cold starts are common on Render during Phase 2)
-    let resp: Response | null = null;
-    let lastError: any = null;
-    const maxRetries = 3;
-
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        resp = await fetch(`${base}/v1/ingest-native-sol-shield-deposit`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify({
-            depositMemo,
-            depositSignature: legacyNote.depositSignature,
-            commitment,
-            owner: resolvedOwner,
-            vaultOwner: resolvedVaultOwner,
-            amount: legacyNote.amount.toString(),
-            treeId: "vanta-private-pool-v2-unified-tree-v1",
-            isLegacyMigration: true,
-            originalAssetId: VANTA_NATIVE_SOL_ASSET_ID, // WSOL for audit trail only; normalized to sentinel server-side
-          }),
-        });
-        break; // success
-      } catch (fetchErr: any) {
-        lastError = fetchErr;
-        if (attempt < maxRetries - 1) {
-          const delay = 800 * Math.pow(2, attempt); // 800ms, 1.6s, 3.2s
-          await new Promise((r) => setTimeout(r, delay));
-        }
-      }
-    }
-
-    if (!resp) {
-      throw lastError || new Error("Failed to fetch after retries");
-    }
-
-    let phase1MigrationNote: string | undefined;
-    if (!resp.ok) {
-      const text = await resp.text().catch(() => "");
-      // Server may return phase1MigrationNote for guidance.
-      try {
-        const json = JSON.parse(text);
-        phase1MigrationNote = json?.phase1MigrationNote;
-      } catch {}
+    if (!ingest.success) {
       return {
         success: false,
-        error: `Ingestion endpoint rejected migration (${resp.status}): ${text.slice(0, 200)}`,
-        responseStatus: resp.status,
-        phase1MigrationNote,
+        error: ingest.error ?? "Indexer ingestion failed during legacy migration.",
+        responseStatus: ingest.responseStatus,
+        phase1MigrationNote: ingest.phase1MigrationNote,
+        isTransientNetworkError: ingest.isTransientNetworkError,
       };
     }
 
-    let json: any = {};
-    try {
-      json = await resp.json();
-      phase1MigrationNote = json?.phase1MigrationNote;
-    } catch {}
+    const responseBody =
+      ingest.responseBody && typeof ingest.responseBody === "object"
+        ? (ingest.responseBody as { message?: string; phase1MigrationNote?: string })
+        : null;
 
     return {
       success: true,
       commitment,
-      responseStatus: resp.status,
-      phase1MigrationNote: phase1MigrationNote || json?.message || "Legacy note migrated to v2 sentinel tree",
+      responseStatus: ingest.responseStatus,
+      phase1MigrationNote:
+        ingest.phase1MigrationNote ||
+        responseBody?.message ||
+        "Legacy note migrated to v2 sentinel tree",
     };
   } catch (e: any) {
     const msg = e?.message || String(e);

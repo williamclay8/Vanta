@@ -49,8 +49,6 @@
   - Add the merchant settlement control-plane framing and commands.
 - `docs/operator-runbook.md`
   - Document the new merchant trust and approval-packet surfaces.
-- `SUBMISSION.md`
-  - Tighten the public story around merchant-first private stablecoin settlement.
 
 ### Existing commands to keep using
 
@@ -360,7 +358,6 @@ git commit -m "feat: add pay approval packet contract"
 **Files:**
 - Create: `docs/pay-merchant-trust-surface.md`
 - Modify: `README.md`
-- Modify: `SUBMISSION.md`
 - Modify: `docs/operator-runbook.md`
 
 - [ ] **Step 1: Write the failing documentation assertions in the runbook check**
@@ -394,7 +391,7 @@ This surface explains:
 - which commands prove the current trust surface
 ```
 
-- [ ] **Step 4: Update README and SUBMISSION category language**
+- [ ] **Step 4: Update README category language**
 
 ```md
 Vanta is building the merchant-first control plane for private, policy-legible stablecoin settlement.
@@ -421,7 +418,7 @@ Expected:
 - [ ] **Step 6: Commit**
 
 ```bash
-git add docs/pay-merchant-trust-surface.md README.md SUBMISSION.md docs/operator-runbook.md
+git add docs/pay-merchant-trust-surface.md README.md docs/operator-runbook.md
 git commit -m "docs: add merchant trust surface framing"
 ```
 
@@ -492,7 +489,7 @@ git commit -m "chore: promote pay verify into merchant control-plane checkpoint"
 - Merchant-first trust surface: covered by Task 1.
 - Merchant-visible settlement lifecycle: covered by Task 2.
 - Typed approval / permission packet: covered by Task 3.
-- Public/docs/submission alignment: covered by Task 4.
+- Public/docs alignment: covered by Task 4.
 - Canonical verification chain: covered by Task 5.
 
 ### Placeholder scan

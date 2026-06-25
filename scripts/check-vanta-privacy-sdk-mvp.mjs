@@ -2,7 +2,7 @@
 /**
  * Vanta Privacy SDK & Primitives Marketplace Check (Product 4 FULL MVP TDD Harness)
  * Executes the demo, asserts composable SDK flows (RWA + perp + velocity + composer + marketplace acquisition),
- * commitments hide values, ownership/velocity proofs, selective disclosures, marketplace (6 primitives + use),
+ * commitments hide values, ownership/velocity proofs, selective disclosures, marketplace (8 primitives + use),
  * settlement hooks, no leaks, claim boundaries, markers, banned claims.
  * Mirrors perps/RWA/compliance pattern. Full expansion from starter.
  * Run: node scripts/check-vanta-privacy-sdk-mvp.mjs
@@ -67,7 +67,7 @@ assert.ok(demoOutput.includes("DEMO COMPLETE: SUCCESS"), "Demo must report SUCCE
 assert.ok(demoOutput.includes("SDK-composed Shielded RWA:"), "RWA composable flow must be present");
 assert.ok(demoOutput.includes("SDK-composed Private Position"), "Perp/position composable flow must be present");
 assert.ok(demoOutput.includes("SDK-composed Velocity Intelligence Flow"), "Velocity composable flow must be present (Product 5 bridge)");
-assert.ok(demoOutput.includes("Privacy Primitives Marketplace (FULL - 6 composable primitives)"), "Enhanced marketplace (6 primitives) must be demonstrated");
+assert.ok(demoOutput.includes("Privacy Primitives Marketplace (FULL - 8 composable primitives)"), "Enhanced marketplace (8 primitives) must be demonstrated");
 assert.ok(demoOutput.includes("Marketplace Acquisition Example:"), "Marketplace use/acquisition helper must be demonstrated");
 assert.ok(demoOutput.includes("Composed Predicates (accredited + velocity):"), "Predicate composer must be demonstrated");
 assert.ok(demoOutput.includes("beta-privacy-sdk-not-production-private-or-audited-primitives"), "Claim boundary must be present and correct");
@@ -188,4 +188,4 @@ if (failures.length > 0) {
 }
 
 console.log("Vanta Privacy SDK & Primitives Marketplace check: PASS");
-console.log("All composable flows (incl. velocity + composer), marketplace (6 primitives + acquisition), no leaks, claims fail-closed, markers present, integration hooks verified.");
+console.log("All composable flows (incl. velocity + composer), marketplace (8 primitives + acquisition), no leaks, claims fail-closed, markers present, integration hooks verified.");

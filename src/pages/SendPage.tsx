@@ -21,6 +21,7 @@ import { SendReceiptModal, type SendReceiptModalDetails } from "@/components/Sen
 import { buildPrivateCoreStatePanelProps } from "@/components/privateCore/buildPrivateCoreStatePanelProps";
 import { isBetaMode } from "@/config/deploymentMode";
 import { usePrivacyFlow, type PrivacyAssetKey } from "@/data/context/PrivacyFlowContext";
+import { evaluateVantaPrivatePoolV2SendActionContract } from "@/privacy/privatePoolV2ProductActionContract";
 import { buildHeliusPriorityFeeInstructions } from "@/solana/heliusPriorityFees";
 import {
   validateLiveSendRecipient,
@@ -347,6 +348,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
     privateCoreOperatorSourceProvingRelationship,
     privateCoreOperatorSummaryUpdatedAt,
     privateCoreOwner,
+    privatePoolV2LatestProtocolSettlement,
     privateCoreRecentShield,
     recentShield,
     privateCoreReleaseCandidateState,
@@ -1550,6 +1552,87 @@ export function SendPage({ dashboard = false }: SendPageProps) {
         ? "Shield the asset first, then return here to send it."
         : "Enter a valid amount and recipient wallet address.";
 
+  const sendProductActionContract = useMemo(() => {
+    const sendBoundaryReady =
+      privateCoreOperatorSendBoundaryStatusLabel === "Send boundary coherent" ||
+      privateCoreOperatorSendBoundaryStatusLabel === "Send boundary coherent but stale" ||
+      privateCoreOperatorSendBoundaryStatusLabel === "Send output consumed downstream" ||
+      privateCoreOperatorSendBoundaryStatusLabel === "Send output released downstream";
+    const sendContinuityReady =
+      privateCoreOperatorSendContinuityStatusLabel === "Downstream continuity ready" ||
+      privateCoreOperatorSendContinuityStatusLabel === "Continuity registered but stale" ||
+      privateCoreOperatorSendContinuityStatusLabel === "Continuity consumed downstream" ||
+      privateCoreOperatorSendContinuityStatusLabel === "Continuity released downstream";
+    const latestSendProtocolSettlement =
+      privatePoolV2LatestProtocolSettlement?.protocolSettlementReceipt.action === "send" &&
+      privatePoolV2LatestProtocolSettlement.protocolSettlementReceipt.settlementId ===
+        privateCoreSendState?.resultingRoot
+        ? privatePoolV2LatestProtocolSettlement
+        : null;
+    const latestSendProtocolReceipt = latestSendProtocolSettlement?.protocolSettlementReceipt;
+    const latestSendProofReceipt = latestSendProtocolSettlement?.proofReceipt;
+    const sendProtocolSettlementReceiptBound =
+      latestSendProtocolReceipt?.status === "confirmed" &&
+      latestSendProtocolReceipt.proofReceiptPublicInputCommitment ===
+        latestSendProofReceipt?.publicInputCommitment &&
+      latestSendProofReceipt?.intent === "private-send";
+    const sendActualPrivateSpendRuntimeProofServiceReady =
+      latestSendProtocolSettlement?.acceptedPublicInputs?.version ===
+        "vanta-actual-private-accepted-public-inputs-0.1" &&
+      latestSendProofReceipt?.intent === "private-send" &&
+      latestSendProofReceipt.proofSystem === "noir-bb" &&
+      latestSendProofReceipt.proofBackend === "local-bb-derived-artifact";
+
+    return evaluateVantaPrivatePoolV2SendActionContract({
+      legacyUiStatus: status,
+      privateCoreExecutionStatus: privateCoreSendExecution.status,
+      sendLedgerGateReady: sendLedgerGateStatus.ready,
+      runtimeActualPrivateSpendProofServiceReady:
+        sendActualPrivateSpendRuntimeProofServiceReady,
+      noWitnessProofArtifactPresent: Boolean(privateCoreSendPreview?.boundary.proofArtifact),
+      operatorProofReceiptPresent: Boolean(
+        privateCoreSendExecution.latestProofId || privateCoreOperatorLatestSendProof?.proofId,
+      ),
+      operatorProofSendLinkReady: privateCoreOperatorProofSendLinkStatus === "linked",
+      operatorSendBoundaryReady: sendBoundaryReady,
+      operatorContinuityReady: sendContinuityReady,
+      resultingRootRecorded: Boolean(
+        privateCoreOperatorSendResultingRootRecord?.root ||
+          privateCoreOperatorLatestSend?.resultingRoot ||
+          privateCoreSendState?.resultingRoot,
+      ),
+      protocolSettlementReceiptBound: sendProtocolSettlementReceiptBound,
+      replayProtectionLinked: Boolean(privateCoreOperatorLatestSendLinkedProof?.nullifier),
+      memoCiphertextBodyHashBound: Boolean(privateCoreSendState),
+      liveMainnetSettlementReviewed: false,
+      productionVerifierAccepted: false,
+      sharedAnonymityReviewed: false,
+      relayerSeparationReviewed: false,
+      auditAccepted: false,
+      programmaticProductionPrivateReady: false,
+      programmaticPrivacyClaimAllowed: false,
+      programmaticMainnetReady: false,
+      productionPrivacyClaimsLocked: true,
+      externalReviewAccepted: false,
+      ownerApprovedProductionScope: false,
+    });
+  }, [
+    privateCoreOperatorLatestSend?.resultingRoot,
+    privateCoreOperatorLatestSendLinkedProof?.nullifier,
+    privateCoreOperatorLatestSendProof?.proofId,
+    privateCoreOperatorProofSendLinkStatus,
+    privateCoreOperatorSendBoundaryStatusLabel,
+    privateCoreOperatorSendContinuityStatusLabel,
+    privateCoreOperatorSendResultingRootRecord?.root,
+    privateCoreSendExecution.latestProofId,
+    privateCoreSendExecution.status,
+    privateCoreSendPreview?.boundary.proofArtifact,
+    privateCoreSendState,
+    privatePoolV2LatestProtocolSettlement,
+    sendLedgerGateStatus.ready,
+    status,
+  ]);
+
   const privateCoreStatePanelProps = useMemo(
     () =>
       buildPrivateCoreStatePanelProps(privacyFlow, {
@@ -1610,6 +1693,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
           lastSentAmount={lastSentAmount}
           parsedAmount={parsedAmount}
           privateCoreSendExecution={privateCoreSendExecution}
+          productActionContract={sendProductActionContract}
           recentSendRecipients={recentSendRecipients}
           recipient={recipient}
           recipientValidation={recipientValidation}
@@ -1701,6 +1785,7 @@ export function SendPage({ dashboard = false }: SendPageProps) {
             privateCoreSendExecution={privateCoreSendExecution}
             privateCoreSendPreview={privateCoreSendPreview}
             privateCoreSendState={privateCoreSendState}
+            productActionContract={sendProductActionContract}
             refreshPrivateCoreOperatorSummary={refreshPrivateCoreOperatorSummary}
             releaseHandoffRefreshPending={releaseHandoffRefreshPending}
             releasePackageExportStatus={releasePackageExportStatus}

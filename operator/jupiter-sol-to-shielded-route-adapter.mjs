@@ -25,7 +25,7 @@ const jupiterQuoteUrl =
   process.env.VANTA_JUPITER_QUOTE_URL ?? "https://api.jup.ag/swap/v1/quote";
 const jupiterSwapUrl =
   process.env.VANTA_JUPITER_SWAP_URL ?? "https://api.jup.ag/swap/v1/swap";
-const jupiterApiKey = process.env.JUPITER_API_KEY ?? process.env.VITE_JUPITER_API_KEY ?? "";
+const jupiterApiKey = process.env.JUPITER_API_KEY ?? "";
 const authToken = process.env.VANTA_SOL_TO_SHIELDED_ADAPTER_AUTH_TOKEN ?? "";
 const privatePoolOperatorUrl = process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_URL ?? "";
 const privatePoolAuthToken = process.env.VANTA_PRIVATE_POOL_V2_OPERATOR_AUTH_TOKEN ?? "";
