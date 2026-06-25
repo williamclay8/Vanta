@@ -136,7 +136,6 @@ export type LiveSwapCanonicalRecord = {
     liveStateSignature: string;
     lifecycle?: CanonicalLifecycleOutputLinkage;
   };
-  browserLocalProofReceipt?: VantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt;
   diagnosticStorage: PrivatePoolV2ShieldedStateDiagnostic;
 };
 
@@ -186,10 +185,6 @@ export type LiveSwapDiagnosticsSummary = {
   outputOwnerRecoveryClass: OwnerContextRecoveryEvidence["recoveryClass"];
   outputOwnerRecoveryEvidenceSource: OwnerContextRecoveryEvidence["evidenceSource"];
   outputOwnerRecoveryCrossDeviceCandidate: boolean;
-  proofReceiptId?: string;
-  proofBackend?: string;
-  proofSystem?: string;
-  proofPublicInputCommitment?: string;
 };
 
 export type LiveSwapCommittedSettlementTerms = {
@@ -524,11 +519,6 @@ export function listCanonicalSwapDiagnosticsSummaries(): LiveSwapDiagnosticsSumm
         record.outputSuccessor.ownerContextEvidence?.crossDeviceCandidate ??
         record.ownerContextEvidence?.crossDeviceCandidate ??
         createOwnerContextRecoveryEvidence({}).crossDeviceCandidate,
-      proofReceiptId: record.browserLocalProofReceipt?.proofReceipt.receiptId,
-      proofBackend: record.browserLocalProofReceipt?.proofReceipt.proofBackend,
-      proofSystem: record.browserLocalProofReceipt?.proofReceipt.proofSystem,
-      proofPublicInputCommitment:
-        record.browserLocalProofReceipt?.proofReceipt.publicInputCommitment,
     }))
     .sort((left, right) => right.createdAt - left.createdAt);
 }
@@ -698,7 +688,6 @@ function normalizeLiveSwapRecordForPersistence(record: LiveSwapCanonicalRecord):
         existingEvidence: record.outputSuccessor.ownerContextEvidence,
       }),
     },
-    browserLocalProofReceipt: record.browserLocalProofReceipt,
   };
 }
 

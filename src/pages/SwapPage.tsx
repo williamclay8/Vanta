@@ -56,7 +56,6 @@ import {
 } from "@/privacy/privatePoolV2ProtocolSettlementClient";
 import { createVantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt } from "@/privacy/privatePoolV2SwapToShieldedBrowserReceipt";
 import { evaluateVantaPrivatePoolV2SwapActionContract } from "@/privacy/privatePoolV2ProductActionContract";
-import { createVantaPrivatePoolV2SwapToShieldedBrowserLocalProofReceipt } from "@/privacy/privatePoolV2SwapToShieldedBrowserReceipt";
 import {
   createCommittedSwapSettlementTerms,
   findCanonicalSwapRecord,
@@ -1822,9 +1821,14 @@ export function SwapPage() {
     ) ??
     recentSwapSummaries[0] ??
     null;
-  const selectedSwapBrowserLocalProofReceipt = selectedRecentSwapSummary?.recordId
-    ? findCanonicalSwapRecord(selectedRecentSwapSummary.recordId)?.browserLocalProofReceipt ?? null
-    : null;
+  const selectedSwapBrowserLocalProofReceipt = useMemo(() => {
+    const recordId = selectedRecentSwapSummary?.recordId ?? lastSwapSummary?.recordId;
+    if (!recordId) {
+      return null;
+    }
+
+    return findCanonicalSwapRecord(recordId)?.browserLocalProofReceipt ?? null;
+  }, [lastSwapSummary?.recordId, recentSwapSummaries, selectedRecentSwapSummary?.recordId]);
   const observedSwapProtocolSettlement =
     lastSwapProtocolSettlement ??
     selectedSwapBrowserLocalProofReceipt?.protocolSettlementResponse ??
@@ -1854,18 +1858,6 @@ export function SwapPage() {
           : "Route adapter default",
       }
     : null;
-  const selectedSwapBrowserLocalProofReceipt = useMemo(() => {
-    const recordId = selectedRecentSwapSummary?.recordId ?? lastSwapSummary?.recordId;
-    if (!recordId) {
-      return null;
-    }
-
-    return findCanonicalSwapRecord(recordId)?.browserLocalProofReceipt ?? null;
-  }, [lastSwapSummary?.recordId, recentSwapSummaries, selectedRecentSwapSummary?.recordId]);
-  const observedSwapProtocolSettlement =
-    lastSwapProtocolSettlement ??
-    selectedSwapBrowserLocalProofReceipt?.protocolSettlementResponse ??
-    null;
   const swapProductActionContract = useMemo(() => {
     const swapProtocolReceipt = observedSwapProtocolSettlement?.protocolSettlementReceipt ?? null;
     const swapCommittedSettlementReceipt =
