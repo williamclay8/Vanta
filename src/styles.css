@@ -110,6 +110,8 @@ input {
 input,
 textarea,
 select {
+  box-sizing: border-box;
+  max-width: 100%;
   min-height: 56px;
   padding: 0 18px;
   border-radius: 12px;
@@ -1854,6 +1856,7 @@ select:focus {
 .route-error-boundary {
   position: relative;
   z-index: 2;
+  box-sizing: border-box;
   display: grid;
   align-content: center;
   gap: 18px;
@@ -1959,6 +1962,7 @@ select:focus {
   margin: 8px 0 0;
   color: var(--muted-strong);
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 640px) {
