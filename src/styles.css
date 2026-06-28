@@ -14553,6 +14553,12 @@ select:focus {
     min-height: 48px;
     font-size: 1rem;
   }
+
+  .swap-page .swap-asset-select,
+  .swap-page .note-picker__select {
+    max-width: min(100%, calc(100vw - 104px));
+  }
+
   .amount-field .button-ghost {
     min-height: 44px;
   }
