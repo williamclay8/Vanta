@@ -141,13 +141,13 @@ assert.equal(discovery.liveDeploymentVerified, true);
 // a public reviewer map, not a private-settlement or readiness attestation.
 assert.deepEqual(discovery.websiteDeployment, {
   status: "last-verified-june-28-ui-ux-live-fix",
-  lastVerifiedCommit: "4c38b2320768f86e0d357ef02769557855c3935d",
-  lastVerifiedAt: "2026-06-28T17:05:53Z",
-  staticDeployId: "dep-d90l4qegvqtc739khsn0",
+  lastVerifiedCommit: "5337048ec767524d30305bd6faf67e5b6a059992",
+  lastVerifiedAt: "2026-06-28T17:29:36Z",
+  staticDeployId: "dep-d90lgtdaeets73e6us9g",
   operatorDeployId: "dep-d8krgfpkh4rs73ffra80",
   liveUrl: "https://vantaprivacy.xyz",
   truthBoundary:
-    "This records the live Vanta UI/UX repair static website entry asset assets/index-BU3kUSHJ.js from Render static deploy dep-d90l4qegvqtc739khsn0 for commit 4c38b2320768f86e0d357ef02769557855c3935d on 2026-06-28 UTC. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, generated browser Groth16 proofs, on-chain verifier acceptance, real-funds, and mainnet evidence remain blocked.",
+    "This records the live Vanta UI/UX repair static website entry asset assets/index-CI_UI_OS.js from Render static deploy dep-d90lgtdaeets73e6us9g for commit 5337048ec767524d30305bd6faf67e5b6a059992 on 2026-06-28 UTC. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, generated browser Groth16 proofs, on-chain verifier acceptance, real-funds, and mainnet evidence remain blocked.",
 });
 assert.equal(discovery.privacyClaimAllowed, false);
 assert.equal(discovery.anonymityClaimAllowed, false);
