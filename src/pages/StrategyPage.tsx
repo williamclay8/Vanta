@@ -397,6 +397,14 @@ export function StrategyPage() {
     setPreviewSubmitted(false);
     setForm((current) => ({ ...current, [key]: value }));
   };
+  const previewPacketDisabled = strategyPlan === null || strategyPreviewLedger === null || capabilityState.submitDisabled;
+  const previewPacket = () => {
+    if (previewPacketDisabled) {
+      return;
+    }
+
+    setPreviewSubmitted(true);
+  };
 
   return (
     <section className="send-page strategy-page" aria-labelledby="strategy-title">
@@ -430,12 +438,7 @@ export function StrategyPage() {
             className="send-card send-card--workspace strategy-card strategy-card--primary"
             onSubmit={(event) => {
               event.preventDefault();
-
-              if (!strategyPlan || capabilityState.submitDisabled) {
-                return;
-              }
-
-              setPreviewSubmitted(true);
+              previewPacket();
             }}
           >
             <div className="shield-card__header strategy-card__header">
@@ -563,8 +566,21 @@ export function StrategyPage() {
               </section>
             ) : null}
 
+            <div className="strategy-preview-actions">
+              <button
+                aria-controls="strategy-preview-confirmation"
+                className="button button-secondary"
+                disabled={previewPacketDisabled}
+                onClick={previewPacket}
+                type="button"
+              >
+                Preview packet
+              </button>
+              <span>Generates a local receipt preview only; no trades are submitted.</span>
+            </div>
+
             {previewSubmitted && strategyPlan && strategyPreviewLedger ? (
-              <div className="strategy-preview-confirmation" role="status">
+              <div className="strategy-preview-confirmation" id="strategy-preview-confirmation" role="status">
                 <span>Preview packet ready</span>
                 <strong>{strategyPlan.id}</strong>
                 <small>{strategyPreviewLedger.summary}</small>

@@ -7997,6 +7997,19 @@ select:focus {
   color: var(--text);
 }
 
+.strategy-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  align-items: center;
+}
+
+.strategy-preview-actions span {
+  color: var(--muted-strong);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
 .strategy-preview-confirmation span {
   color: var(--accent);
   font-size: 0.68rem;
