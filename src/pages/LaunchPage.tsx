@@ -11,6 +11,7 @@ export function LaunchPage() {
       primaryCardCopy="This space is reserved for future launch policies, participant access controls, and distribution workflows that benefit from stronger privacy defaults."
       previewLabel="Future module"
       buttonLabel="View future direction"
+      buttonTo="/docs/roadmap"
       secondaryItems={[
         { label: "Distribution mode", value: "Roadmap configuration" },
         { label: "Participant policy", value: "Privacy controls reserved" },

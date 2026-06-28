@@ -18,11 +18,14 @@ export function ReceiptVerificationPage() {
         why production privacy is not enabled.
       </p>
       <div className="route-fallback__actions" aria-label="Receipt verification actions">
-        <Link className="route-fallback__action route-fallback__action--primary" to="/app/pay">
-          Request private settlement
+        <Link
+          className="route-fallback__action route-fallback__action--primary"
+          to={`/app/pay?receipt=${encodeURIComponent(safeReceiptId)}`}
+        >
+          Open Pay preview
         </Link>
-        <Link className="route-fallback__action" to="/app/pay">
-          Accept committed checkout
+        <Link className="route-fallback__action" to="/docs/pay">
+          Review Pay docs
         </Link>
         <Link className="route-fallback__action" to="/docs/trust">
           Review trust docs

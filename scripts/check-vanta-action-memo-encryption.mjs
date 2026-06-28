@@ -14,6 +14,7 @@ const sourceFiles = [
   "privacy/protocolAdapter.ts",
   "privacy/privatePoolV2Types.ts",
   "privacy/privatePoolV2ProofRequests.ts",
+  "privacy/privatePoolV2IndexerClient.ts",
   "solana/vantaShieldViewingKey.ts",
   "solana/vantaShieldState.ts",
 ];
@@ -70,7 +71,8 @@ function copySource(relativePath) {
     .replace(/from "@\/solana\/shieldConfig"/g, 'from "./shieldConfig"')
     .replace(/from "@\/solana\/vantaShieldViewingKey"/g, 'from "./vantaShieldViewingKey"')
     .replace(/from "@\/solana\/client"/g, 'from "./client"')
-    .replace(/from "@\/solana\/nativeSolShield"/g, 'from "./nativeSolShield"');
+    .replace(/from "@\/solana\/nativeSolShield"/g, 'from "./nativeSolShield"')
+    .replace(/from "@\/privacy\/privatePoolV2IndexerClient"/g, 'from "../privacy/privatePoolV2IndexerClient"');
   writeFileSync(join(tempTsDir, relativePath), source);
 }
 

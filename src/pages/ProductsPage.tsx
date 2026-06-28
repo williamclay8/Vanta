@@ -180,6 +180,18 @@ function ProductWorkbench({ surface }: { surface: VantaProductSurface }) {
   );
 }
 
+function getProductSurfaceCtaLabel(surface: VantaProductSurface) {
+  if (surface.appRoute === "/app/pay") {
+    return "Open Pay preview";
+  }
+
+  if (surface.appRoute === "/app/proof") {
+    return "Open proof center";
+  }
+
+  return "Open app surface";
+}
+
 export function ProductsPage() {
   return (
     <ProductsBodyClass>
@@ -318,7 +330,7 @@ export function ProductDetailPage() {
 
           <div className="product-detail__actions">
             <Link className="landing-btn landing-btn--primary" to={surface.appRoute}>
-              Open related Vanta surface
+              {getProductSurfaceCtaLabel(surface)}
             </Link>
             <Link className="landing-btn landing-btn--ghost" to="/app/proof">
               Review proof details
