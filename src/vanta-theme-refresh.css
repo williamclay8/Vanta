@@ -19,10 +19,9 @@
      3. promote to permanent: fold PART A tokens into a real token module and let
         styles.css consume them; reconcile DESIGN.md (see note below).
 
-   DESIGN.md DRIFT NOTE
-     DESIGN.md declares accent #00e5c8 but the app ships #77f2d4. This file treats
-     the SHIPPED value (#77f2d4) as canonical and exposes it as --v-accent.
-     Update DESIGN.md to match, or change --v-accent here — but pick ONE.
+   DESIGN.md NOTE
+     DESIGN.md and the shipped app use #77f2d4 as the canonical accent. This file
+     exposes that value as --v-accent for refresh-layer components.
    ============================================================================ */
 
 /* ====================== PART A — TOKENS (global, additive) ================= */
@@ -245,6 +244,7 @@ body.vanta-refresh .dashboard-focus-card__chips span {
   gap: var(--v-space-sm);
 }
 .swap-coming-soon__actions .v-tile {
+  min-width: 0;
   text-decoration: none;
   color: inherit;
 }
@@ -643,11 +643,17 @@ body.vanta-refresh .dashboard-focus-card__chips span {
   }
 
   .swap-page .swap-coming-soon {
-    margin-inline: 16px;
+    margin-inline: 0;
+  }
+
+  .swap-page .swap-coming-soon__actions {
+    grid-template-columns: 1fr;
   }
 
   .swap-page .swap-module {
     gap: 10px;
+    width: 100%;
+    max-width: 100%;
     padding: 12px;
   }
 
@@ -681,10 +687,14 @@ body.vanta-refresh .dashboard-focus-card__chips span {
   }
 
   .swap-page .shield-form__actions--primary {
-    position: sticky;
-    bottom: 0;
+    position: static;
+    bottom: auto;
     z-index: 6;
-    margin: 8px -12px -12px;
+    width: 100%;
+    max-width: calc(100vw - 96px);
+    min-width: 0;
+    box-sizing: border-box;
+    margin: 8px 0 -12px;
     padding: 12px 12px max(12px, env(safe-area-inset-bottom));
     border-top: 1px solid var(--v-border);
     background:
@@ -694,7 +704,9 @@ body.vanta-refresh .dashboard-focus-card__chips span {
   }
 
   .swap-page .shield-form__actions--primary .button-primary {
-    width: 100%;
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
     min-height: 48px;
   }
 }

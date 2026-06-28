@@ -273,6 +273,7 @@ function describeDestinationWallet(input: {
 
 export function StrategyPage() {
   const [form, setForm] = useState<StrategyFormState>(defaultForm);
+  const [previewSubmitted, setPreviewSubmitted] = useState(false);
   const { privateCoreHoldState, privateCoreOwner } = usePrivacyFlow();
   const { walletAddressShort, walletConnected } = useWalletState();
   const strategyPair = deriveStrategyPair(form);
@@ -393,6 +394,7 @@ export function StrategyPage() {
     key: Key,
     value: StrategyFormState[Key],
   ) => {
+    setPreviewSubmitted(false);
     setForm((current) => ({ ...current, [key]: value }));
   };
 
@@ -432,6 +434,8 @@ export function StrategyPage() {
               if (!strategyPlan || capabilityState.submitDisabled) {
                 return;
               }
+
+              setPreviewSubmitted(true);
             }}
           >
             <div className="shield-card__header strategy-card__header">
@@ -557,6 +561,14 @@ export function StrategyPage() {
                   </div>
                 </div>
               </section>
+            ) : null}
+
+            {previewSubmitted && strategyPlan && strategyPreviewLedger ? (
+              <div className="strategy-preview-confirmation" role="status">
+                <span>Preview packet ready</span>
+                <strong>{strategyPlan.id}</strong>
+                <small>{strategyPreviewLedger.summary}</small>
+              </div>
             ) : null}
 
             <StrategyAdvancedPanel
