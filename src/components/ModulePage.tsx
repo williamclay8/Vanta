@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 type ModulePageProps = {
   title: string;
   status: string;
@@ -7,6 +9,7 @@ type ModulePageProps = {
   primaryCardCopy: string;
   previewLabel?: string;
   buttonLabel?: string;
+  buttonTo?: string;
   secondaryItems: Array<{
     label: string;
     value: string;
@@ -22,6 +25,7 @@ export function ModulePage({
   primaryCardCopy,
   previewLabel = "Workflow preview",
   buttonLabel = "View module scope",
+  buttonTo,
   secondaryItems,
 }: ModulePageProps) {
   return (
@@ -43,9 +47,11 @@ export function ModulePage({
           <span>{previewLabel}</span>
           <h3>{primaryCardTitle}</h3>
           <p>{primaryCardCopy}</p>
-          <button className="button button-primary" type="button">
-            {buttonLabel}
-          </button>
+          {buttonTo ? (
+            <Link className="button button-primary" to={buttonTo}>
+              {buttonLabel}
+            </Link>
+          ) : null}
         </article>
 
         <article className="module-card">

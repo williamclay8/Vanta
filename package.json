@@ -337,6 +337,7 @@
     "pay:merchant-trust-status-check": "node scripts/print-vanta-pay-merchant-trust-status.mjs --check",
     "pay:approval-packet-check": "node scripts/check-vanta-pay-approval-packet.mjs",
     "pay:customer-side-zk-escrow-binding-check": "node scripts/check-vanta-pay-customer-side-zk-escrow-binding.mjs",
+    "pay:receipt-privacy-contract-check": "node scripts/check-vanta-pay-receipt-privacy-contract.mjs",
     "pay:receipt-public-view-check": "node scripts/check-vanta-pay-receipt-public-view.mjs",
     "compliance:gateway-check": "node scripts/check-vanta-compliance-gateway.mjs",
     "pay:institutional-disclosure-receipt-check": "node scripts/check-vanta-pay-institutional-disclosure-receipt.mjs",

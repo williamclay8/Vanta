@@ -70,7 +70,7 @@ for (const lane of ["Shield", "Send", "Swap", "Unshield", "Strategy", "Pay"]) {
 }
 
 for (const phrase of [
-  "Last updated: 2026-05-12",
+  "Last updated: 2026-06-10",
   "Reviewed local feedback commit:",
   "productionReady",
   "Verifier present",
@@ -162,35 +162,34 @@ for (const phrase of [
   rejectPhrase(zkReview, phrase, "VANTA_ZK_REVIEW.md");
 }
 requirePhrase(operatorRunbook, "If You Have 10 Minutes", "docs/operator-runbook.md");
-requirePhrase(readme, "Vanta is not production-ready until it has", "README.md");
 requirePhrase(
   readme,
-  "Shield, Claim, Swap-to-shielded, actual-private-spend, and Send local bb artifact-backed proof-result adapter",
+  "Vanta is not production-ready or mainnet-ready.",
   "README.md",
 );
 requirePhrase(
   readme,
-  "actual-private-spend and Send also have dev-only browser/Web Worker proof execution plus worker-side witness generation from typed witness input",
+  "Proving stays local/dev-only",
   "README.md",
 );
 requirePhrase(
   readme,
-  "Claim has dev-only Claim browser/Web Worker proof execution plus worker-side witness generation from typed Claim witness input",
+  "active-v0 legacy",
   "README.md",
 );
 requirePhrase(
   readme,
-  "Swap-to-shielded now has dev-only Swap-to-shielded browser/Web Worker proof execution plus worker-side witness generation from typed Swap-to-shielded witness input",
+  "Private Pool v2 entry",
   "README.md",
 );
 requirePhrase(
   readme,
-  "opt-in browser-worker proof-result adapter",
+  "selectedRuntimeDirection: remote-service-production-prover",
   "README.md",
 );
 requirePhrase(
   readme,
-  "C01 local proof-format observation",
+  "selectedProverRuntime` stays null",
   "README.md",
 );
 

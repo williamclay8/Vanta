@@ -273,6 +273,7 @@ function describeDestinationWallet(input: {
 
 export function StrategyPage() {
   const [form, setForm] = useState<StrategyFormState>(defaultForm);
+  const [previewSubmitted, setPreviewSubmitted] = useState(false);
   const { privateCoreHoldState, privateCoreOwner } = usePrivacyFlow();
   const { walletAddressShort, walletConnected } = useWalletState();
   const strategyPair = deriveStrategyPair(form);
@@ -393,7 +394,16 @@ export function StrategyPage() {
     key: Key,
     value: StrategyFormState[Key],
   ) => {
+    setPreviewSubmitted(false);
     setForm((current) => ({ ...current, [key]: value }));
+  };
+  const previewPacketDisabled = strategyPlan === null || strategyPreviewLedger === null || capabilityState.submitDisabled;
+  const previewPacket = () => {
+    if (previewPacketDisabled) {
+      return;
+    }
+
+    setPreviewSubmitted(true);
   };
 
   return (
@@ -428,10 +438,7 @@ export function StrategyPage() {
             className="send-card send-card--workspace strategy-card strategy-card--primary"
             onSubmit={(event) => {
               event.preventDefault();
-
-              if (!strategyPlan || capabilityState.submitDisabled) {
-                return;
-              }
+              previewPacket();
             }}
           >
             <div className="shield-card__header strategy-card__header">
@@ -557,6 +564,27 @@ export function StrategyPage() {
                   </div>
                 </div>
               </section>
+            ) : null}
+
+            <div className="strategy-preview-actions">
+              <button
+                aria-controls="strategy-preview-confirmation"
+                className="button button-secondary"
+                disabled={previewPacketDisabled}
+                onClick={previewPacket}
+                type="button"
+              >
+                Preview packet
+              </button>
+              <span>Generates a local receipt preview only; no trades are submitted.</span>
+            </div>
+
+            {previewSubmitted && strategyPlan && strategyPreviewLedger ? (
+              <div className="strategy-preview-confirmation" id="strategy-preview-confirmation" role="status">
+                <span>Preview packet ready</span>
+                <strong>{strategyPlan.id}</strong>
+                <small>{strategyPreviewLedger.summary}</small>
+              </div>
             ) : null}
 
             <StrategyAdvancedPanel

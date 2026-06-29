@@ -131,7 +131,7 @@ assert.ok(
 
 assert.equal(discovery.schemaVersion, "vanta-public-audit-discovery-0.1");
 assert.equal(discovery.path, "/.well-known/vanta-audit.json");
-assert.equal(discovery.generatedAt, "2026-06-10");
+assert.equal(discovery.generatedAt, "2026-06-28");
 assert.equal(discovery.auditClaimAllowed, false);
 assert.equal(discovery.thirdPartyAuditAccepted, false);
 assert.equal(discovery.productionReady, false);
@@ -140,14 +140,14 @@ assert.equal(discovery.liveDeploymentVerified, true);
 // Keep crawler-visible deployment evidence refs-only and claim-bounded: this is
 // a public reviewer map, not a private-settlement or readiness attestation.
 assert.deepEqual(discovery.websiteDeployment, {
-  status: "last-verified-june-10-render-pay-operator-bundle-repair",
-  lastVerifiedCommit: "486c8e5a6a1b7943e48292c555d6bd1f9c7ca9df",
-  lastVerifiedAt: "2026-06-10T19:22:54Z",
-  staticDeployId: "dep-d8krht7avr4c73emeceg",
+  status: "last-verified-june-28-ui-ux-live-fix",
+  lastVerifiedCommit: "5337048ec767524d30305bd6faf67e5b6a059992",
+  lastVerifiedAt: "2026-06-28T17:29:36Z",
+  staticDeployId: "dep-d90lgtdaeets73e6us9g",
   operatorDeployId: "dep-d8krgfpkh4rs73ffra80",
   liveUrl: "https://vantaprivacy.xyz",
   truthBoundary:
-    "This records the static website entry asset assets/index-Dc9phHY1.js and Pay operator deploys for commit 486c8e5a6a1b7943e48292c555d6bd1f9c7ca9df on 2026-06-10 UTC after the Render Pay operator runtime bundle repair. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, generated browser Groth16 proofs, on-chain verifier acceptance, real-funds, and mainnet evidence remain blocked.",
+    "This records the live Vanta UI/UX repair static website entry asset assets/index-CI_UI_OS.js from Render static deploy dep-d90lgtdaeets73e6us9g for commit 5337048ec767524d30305bd6faf67e5b6a059992 on 2026-06-28 UTC. The public discovery manifest is a reviewer map only. Private settlement, SBF, verifier, custody, anonymity, audit, generated browser Groth16 proofs, on-chain verifier acceptance, real-funds, and mainnet evidence remain blocked.",
 });
 assert.equal(discovery.privacyClaimAllowed, false);
 assert.equal(discovery.anonymityClaimAllowed, false);
